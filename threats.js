@@ -1,0 +1,144 @@
+(() => {
+  function telegraphAffectsLane({ telegraph, lane, getLobLanes }) {
+    if (telegraph?.type === "lob") {
+      return getLobLanes(telegraph.targetLane, telegraph.radius).includes(lane);
+    }
+    if (telegraph?.type === "sweep") {
+      return Array.isArray(telegraph.lanes) && telegraph.lanes.includes(lane);
+    }
+    return false;
+  }
+
+  function getEnemyTelegraphs({ telegraphs, enemyId }) {
+    return (Array.isArray(telegraphs) ? telegraphs : []).filter((telegraph) => telegraph.sourceEnemyId === enemyId);
+  }
+
+  function getTelegraphCoverageLanes({ telegraph, getLobLanes }) {
+    if (telegraph?.type === "lob") {
+      return getLobLanes(telegraph.targetLane, telegraph.radius);
+    }
+    if (telegraph?.type === "sweep") {
+      return [...(Array.isArray(telegraph.lanes) ? telegraph.lanes : [])];
+    }
+    return [];
+  }
+
+  function getTelegraphThreatTypeLabel({ telegraph }) {
+    if (telegraph?.type === "lob") {
+      return "LOB";
+    }
+    if (telegraph?.type === "sweep") {
+      if (telegraph.direction === "left") {
+        return "SWEEP <";
+      }
+      if (telegraph.direction === "right") {
+        return "SWEEP >";
+      }
+      return "SWEEP";
+    }
+    return "THREAT";
+  }
+
+  function renderTrackMap({
+    rootEl,
+    trackLanes,
+    playerLane,
+    highlightLanes,
+    telegraphs,
+    aimedThreats,
+    telegraphAffectsLaneFn,
+    getTelegraphProgress,
+    cookTierLabel,
+    trainMarkerSrc,
+  }) {
+    if (!rootEl) {
+      return;
+    }
+
+    const highlightSet = new Set(Array.isArray(highlightLanes) ? highlightLanes : []);
+    const activeTelegraphs = Array.isArray(telegraphs) ? telegraphs : [];
+    const laneThreats = aimedThreats instanceof Map ? aimedThreats : new Map();
+    rootEl.innerHTML = "";
+
+    for (let lane = 0; lane < trackLanes; lane += 1) {
+      const laneEl = document.createElement("div");
+      laneEl.className = "track-lane";
+      if (highlightSet.has(lane)) {
+        laneEl.classList.add("threat-highlight");
+      }
+      if (lane === playerLane) {
+        laneEl.classList.add("player-lane");
+      }
+      if (laneThreats.has(lane)) {
+        laneEl.classList.add("aim-threat-lane");
+      }
+
+      const laneId = document.createElement("span");
+      laneId.className = "lane-id";
+      laneId.textContent = `T${lane + 1}`;
+      laneEl.appendChild(laneId);
+
+      activeTelegraphs.forEach((telegraph) => {
+        const affectsLane =
+          typeof telegraphAffectsLaneFn === "function"
+            ? telegraphAffectsLaneFn(telegraph, lane)
+            : telegraph?.type === "sweep" && Array.isArray(telegraph.lanes)
+              ? telegraph.lanes.includes(lane)
+              : false;
+        if (!affectsLane) {
+          return;
+        }
+
+        const marker = document.createElement("div");
+        const progress = typeof getTelegraphProgress === "function" ? getTelegraphProgress(telegraph) : 0;
+        const progressPct = `${Math.round(progress * 100)}%`;
+        marker.style.setProperty("--fill-pct", progressPct);
+        marker.classList.add(`tier-${telegraph.cookTier}`);
+
+        if (telegraph.type === "lob") {
+          marker.className = "telegraph lob";
+          marker.classList.add(`tier-${telegraph.cookTier}`);
+          if (lane !== telegraph.targetLane) {
+            marker.classList.add("spill");
+          }
+        } else if (telegraph.type === "sweep") {
+          marker.className = `telegraph directional ${telegraph.direction || "right"}`;
+          marker.classList.add(`tier-${telegraph.cookTier}`);
+        }
+
+        const tierBadge = document.createElement("span");
+        tierBadge.className = "telegraph-tier";
+        tierBadge.textContent = cookTierLabel[telegraph.cookTier];
+        marker.appendChild(tierBadge);
+        laneEl.appendChild(marker);
+      });
+
+      if (laneThreats.has(lane)) {
+        const threat = laneThreats.get(lane);
+        const marker = document.createElement("span");
+        marker.className = "aim-threat-marker";
+        marker.textContent = threat.count > 1 ? `LOCK x${threat.count}` : "LOCK";
+        marker.title = `Aimed shot threat: up to ${threat.maxDamage} dmg`;
+        laneEl.appendChild(marker);
+      }
+
+      if (lane === playerLane) {
+        const marker = document.createElement("img");
+        marker.className = "train-marker";
+        marker.src = trainMarkerSrc;
+        marker.alt = "Player Train";
+        laneEl.appendChild(marker);
+      }
+
+      rootEl.appendChild(laneEl);
+    }
+  }
+
+  window.BRASSLINE_THREATS = {
+    telegraphAffectsLane,
+    getEnemyTelegraphs,
+    getTelegraphCoverageLanes,
+    getTelegraphThreatTypeLabel,
+    renderTrackMap,
+  };
+})();

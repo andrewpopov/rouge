@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brassline: Last Reactor HUD</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="hud-shell">
+      <header class="panel status-strip reveal reveal-1">
+        <div class="status-item">
+          <span class="status-label">Hull</span>
+          <strong id="hullValue">72</strong>
+          <span class="status-sub">Block <strong id="blockValue">0</strong></span>
+        </div>
+
+        <section class="heat-cluster">
+          <div class="cluster-head">
+            <span class="status-label">Reactor Heat</span>
+            <strong id="heatValue">35%</strong>
+          </div>
+          <div class="heat-track">
+            <div id="heatFill"></div>
+          </div>
+          <p id="heatState" class="heat-state">Stable Pressure</p>
+        </section>
+
+        <div class="status-item right">
+          <span class="status-label">Turn</span>
+          <strong id="turnValue">1</strong>
+          <span class="status-sub">Steam <strong id="energyValue">3</strong></span>
+          <span class="status-sub">Track <strong id="laneValue">3</strong></span>
+        </div>
+      </header>
+
+      <section class="panel battlefield reveal reveal-2">
+        <div class="battlefield-header">
+          <h1>Brassline: Last Reactor</h1>
+          <p id="sectorLabel">Sector 1/5 // Freight Corridor</p>
+        </div>
+        <div class="map-wrap">
+          <div class="map-head">
+            <span>Track Telegraph Map</span>
+            <small class="cook-legend">
+              <b class="tier-fast">FAST 1t</b>
+              <b class="tier-medium">MED 2t</b>
+              <b class="tier-slow">SLOW 3t</b>
+            </small>
+          </div>
+          <div id="trackMap" class="track-map"></div>
+          <div id="laneThreatForecast" class="lane-threat-forecast"></div>
+        </div>
+        <div id="enemyRow" class="enemy-row"></div>
+      </section>
+
+      <section class="panel hand-zone reveal reveal-3">
+        <div class="deck-meta">
+          <span><img class="ui-icon" src="./assets/curated/icons/ui/power_plug.svg" alt="" />Draw: <strong id="drawCount">18</strong></span>
+          <span><img class="ui-icon" src="./assets/curated/icons/ui/energy_battery-50.svg" alt="" />Discard: <strong id="discardCount">4</strong></span>
+          <span><img class="ui-icon" src="./assets/curated/icons/ui/turn_pocket-watch.svg" alt="" />Hand: <strong id="handCount">5</strong></span>
+        </div>
+        <div id="cardRow" class="card-row"></div>
+      </section>
+
+      <footer class="panel controls reveal reveal-4">
+        <div class="button-row">
+          <button id="overclockBtn" class="control-btn hot">Overclock (+1 Steam, +12 Heat)</button>
+          <button id="endTurnBtn" class="control-btn neutral" aria-keyshortcuts="Space Enter">End Turn [Space/Enter]</button>
+          <button id="shiftLeftBtn" class="control-btn cool" aria-keyshortcuts="Q">Shift Left [Q] (1 Steam)</button>
+          <button id="shiftRightBtn" class="control-btn cool" aria-keyshortcuts="E">Shift Right [E] (1 Steam)</button>
+          <button id="cycleHandBtn" class="control-btn cool">Purge Hand (1 Steam)</button>
+          <button id="toggleOnboardingBtn" class="control-btn neutral onboarding-toggle-btn" aria-expanded="false">
+            How to Play
+          </button>
+        </div>
+        <section id="onboardingPanel" class="onboarding-panel hidden" aria-live="polite">
+          <div class="onboarding-head">
+            <h2>How to Play</h2>
+            <button id="dismissOnboardingBtn" class="control-btn neutral onboarding-dismiss-btn">Dismiss Tips</button>
+          </div>
+          <div class="onboarding-grid">
+            <p class="onboarding-tip">
+              <strong>Turn Flow</strong>
+              Play cards, spend Steam, then end turn so enemy intents and telegraphs resolve.
+            </p>
+            <p class="onboarding-tip">
+              <strong>Heat Thresholds</strong>
+              Under 55 is stable, 55-79 is warning, and 80+ risks meltdown pressure.
+            </p>
+            <p class="onboarding-tip">
+              <strong>Telegraph Cook Times</strong>
+              FAST (1t), MED (2t), SLOW (3t). Filled markers resolve for damage when the timer ends.
+            </p>
+            <p class="onboarding-tip">
+              <strong>Controls</strong>
+              <kbd>Q</kbd> shift left, <kbd>E</kbd> shift right, <kbd>Space</kbd>/<kbd>Enter</kbd> end turn.
+            </p>
+          </div>
+        </section>
+        <div class="upgrade-strip-wrap">
+          <div id="upgradeStrip" class="upgrade-strip"></div>
+          <div class="meta-actions">
+            <button id="resetMetaBtn" class="control-btn neutral meta-reset-btn">Reset Meta Paths</button>
+            <button id="resetRunRecordsBtn" class="control-btn neutral records-reset-btn">Reset Run Records</button>
+          </div>
+        </div>
+
+        <div class="warning-wrap">
+          <span id="warningLamp" class="warning-lamp"></span>
+          <p id="warningText">Reactor stable. Push output when ready.</p>
+          <span id="phaseBadge" class="phase-badge">Player Phase</span>
+        </div>
+        <p id="combatLog" class="combat-log">Select an enemy, then play cards.</p>
+      </footer>
+
+      <section id="rewardPanel" class="panel reward-panel hidden">
+        <div class="reward-head">
+          <h2>Intermission Reward</h2>
+          <p id="rewardSubtitle">Choose one card to add before the next sector.</p>
+        </div>
+        <div id="rewardMeta" class="reward-meta-summary"></div>
+        <div id="rewardChoices" class="reward-choices"></div>
+        <div class="reward-actions">
+          <button id="skipRewardBtn" class="control-btn neutral">Skip Reward (+4 Hull)</button>
+        </div>
+      </section>
+
+      <section id="interludePanel" class="panel interlude-panel hidden">
+        <div class="reward-head">
+          <h2 id="interludeTitle">Interlude</h2>
+          <p id="interludeSubtitle"></p>
+        </div>
+        <div id="interludeChoices" class="interlude-choices"></div>
+      </section>
+
+      <section id="runSummaryPanel" class="panel run-summary-panel hidden">
+        <div class="run-summary-head">
+          <h2 id="runSummaryTitle">Run Summary</h2>
+          <p id="runSummarySubtitle"></p>
+        </div>
+        <div id="runSummaryStats" class="run-summary-stats"></div>
+        <div class="run-summary-tools">
+          <button id="toggleRunTimelineBtn" class="control-btn neutral run-timeline-toggle hidden">
+            Show Full Timeline
+          </button>
+        </div>
+        <div id="runSummaryTimeline" class="run-summary-timeline"></div>
+      </section>
+    </main>
+
+    <script src="./balance.js"></script>
+    <script src="./utils.js"></script>
+    <script src="./runtime-utils.js"></script>
+    <script src="./persistence.js"></script>
+    <script src="./progression.js"></script>
+    <script src="./progression-content.js"></script>
+    <script src="./tuning-readers.js"></script>
+    <script src="./enemy-catalog.js"></script>
+    <script src="./card-catalog.js"></script>
+    <script src="./forecast.js"></script>
+    <script src="./threats.js"></script>
+    <script src="./enemy-phase.js"></script>
+    <script src="./combat-core.js"></script>
+    <script src="./player-actions.js"></script>
+    <script src="./run-flow.js"></script>
+    <script src="./meta-progression.js"></script>
+    <script src="./game-state.js"></script>
+    <script src="./hud-state.js"></script>
+    <script src="./enemy-ui.js"></script>
+    <script src="./controls-ui.js"></script>
+    <script src="./run-snapshot.js"></script>
+    <script src="./run-ui.js"></script>
+    <script src="./main.js"></script>
+  </body>
+</html>
