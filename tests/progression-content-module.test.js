@@ -23,6 +23,7 @@ test("progression content module exposes default content providers", () => {
   assert.equal(typeof api?.getDefaultStarterDeckRecipe, "function");
   assert.equal(typeof api?.getDefaultRewardPool, "function");
   assert.equal(typeof api?.getDefaultInterludes, "function");
+  assert.equal(typeof api?.getDefaultArtifactCatalog, "function");
   assert.equal(typeof api?.getDefaultUpgradePathCatalog, "function");
 });
 
@@ -54,8 +55,35 @@ test("progression content providers return defensive copies", () => {
   interludesA.push({ afterSector: 1 });
   assert.equal(interludesB.length, 0);
 
+  const artifactsA = api.getDefaultArtifactCatalog();
+  const artifactsB = api.getDefaultArtifactCatalog();
+  artifactsA.aegis_booster.title = "Mutated";
+  assert.equal(artifactsB.aegis_booster.title, "Aegis Booster");
+
   const upgradeA = api.getDefaultUpgradePathCatalog();
   const upgradeB = api.getDefaultUpgradePathCatalog();
   upgradeA.condenser_bank.title = "Mutated";
+  if (upgradeA.condenser_bank.branchChoices?.options?.[0]) {
+    upgradeA.condenser_bank.branchChoices.options[0].title = "Mutated Branch";
+  }
   assert.equal(upgradeB.condenser_bank.title, "Condenser Bank");
+  assert.equal(
+    upgradeB.condenser_bank.branchChoices?.options?.[0]?.title,
+    "Pressure Cells"
+  );
+});
+
+test("default artifact catalog exposes tunable positive weights", () => {
+  const api = loadProgressionContentModule();
+  const artifacts = api.getDefaultArtifactCatalog();
+  const entries = Object.values(artifacts);
+
+  assert.ok(entries.length >= 3);
+  assert.ok(entries.every((artifact) => Number.isFinite(artifact.weight) && artifact.weight > 0));
+  assert.ok(entries.some((artifact) => artifact.weight > 1));
+  assert.ok(
+    entries.every((artifact) =>
+      ["common", "uncommon", "rare"].includes(String(artifact.rarity || "").toLowerCase())
+    )
+  );
 });

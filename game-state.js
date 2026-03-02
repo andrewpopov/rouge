@@ -19,14 +19,21 @@
     baseMaxEnergy,
     playerStartHeat,
     trackLanes,
+    createRunSeedFn = () => 1,
     createDefaultRunStatsFn,
     createDefaultRecordHighlightsFn,
     createDefaultRunTimelineFn,
   }) {
+    const runSeedRaw = Number.parseInt(createRunSeedFn(), 10);
+    const runSeed = Number.isInteger(runSeedRaw) && runSeedRaw > 0 ? runSeedRaw : 1;
+
     return {
       phase: "player",
       turn: 1,
       sectorIndex: 0,
+      runSeed,
+      turnCardsPlayed: 0,
+      encounterModifier: null,
       player: createPlayerState({
         baseMaxHull,
         baseMaxEnergy,
@@ -44,6 +51,7 @@
       highlightLanes: [],
       highlightLockKey: null,
       rewardChoices: [],
+      artifacts: [],
       interlude: null,
       interludeDeck: [],
       runStats: createDefaultRunStatsFn(),
@@ -60,7 +68,10 @@
     baseMaxEnergy,
     playerStartHeat,
     trackLanes,
+    createRunSeedFn = () => 1,
     createDefaultUpgradeStateFn,
+    createDefaultMetaUnlockStateFn = () => ({}),
+    createDefaultMetaBranchStateFn = () => ({}),
     createDefaultRunStatsFn,
     createDefaultRunRecordsFn,
     createDefaultRecordHighlightsFn,
@@ -71,6 +82,7 @@
       baseMaxEnergy,
       playerStartHeat,
       trackLanes,
+      createRunSeedFn,
       createDefaultRunStatsFn,
       createDefaultRecordHighlightsFn,
       createDefaultRunTimelineFn,
@@ -79,6 +91,8 @@
     return {
       ...freshRun,
       upgrades: createDefaultUpgradeStateFn(),
+      metaUnlocks: createDefaultMetaUnlockStateFn(),
+      metaBranches: createDefaultMetaBranchStateFn(),
       runRecords: createDefaultRunRecordsFn(),
       metaResetArmedUntil: 0,
       runRecordsResetArmedUntil: 0,
@@ -94,6 +108,7 @@
     baseMaxEnergy,
     playerStartHeat,
     trackLanes,
+    createRunSeedFn = () => 1,
     createDefaultRunStatsFn,
     createDefaultRecordHighlightsFn,
     createDefaultRunTimelineFn,
@@ -103,6 +118,7 @@
       baseMaxEnergy,
       playerStartHeat,
       trackLanes,
+      createRunSeedFn,
       createDefaultRunStatsFn,
       createDefaultRecordHighlightsFn,
       createDefaultRunTimelineFn,

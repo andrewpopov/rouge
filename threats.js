@@ -39,6 +39,89 @@
     return "THREAT";
   }
 
+  function createLaneHighlightController({
+    game,
+    parseLaneDataFn = () => [],
+    renderTrackMapFn = () => {},
+  }) {
+    function setLaneHighlight(lanes, lockKey = null) {
+      if (!game || typeof game !== "object") {
+        return;
+      }
+      const uniqueLanes = [...new Set(Array.isArray(lanes) ? lanes : [])];
+      game.highlightLanes = uniqueLanes;
+      game.highlightLockKey = lockKey;
+      renderTrackMapFn();
+    }
+
+    function clearLaneHighlight(force = false) {
+      if (!game || typeof game !== "object") {
+        return;
+      }
+      if (!force && game.highlightLockKey !== null) {
+        return;
+      }
+      if (game.highlightLanes.length === 0 && game.highlightLockKey === null) {
+        return;
+      }
+      game.highlightLanes = [];
+      game.highlightLockKey = null;
+      renderTrackMapFn();
+    }
+
+    function toggleLockedHighlight(lockKey, lanes) {
+      if (!game || typeof game !== "object") {
+        return;
+      }
+      if (game.highlightLockKey === lockKey) {
+        clearLaneHighlight(true);
+        return;
+      }
+      setLaneHighlight(lanes, lockKey);
+    }
+
+    function bindLaneHighlightInteractions(items, keyPrefix) {
+      const list = items && typeof items.forEach === "function" ? items : [];
+      list.forEach((item, index) => {
+        const lanes = parseLaneDataFn(item?.dataset?.lanes || "");
+        if (lanes.length === 0) {
+          return;
+        }
+        const fallback = (item.textContent || "").trim() || `row_${index + 1}`;
+        const highlightKey = item.dataset.highlightKey || `${keyPrefix}_${index + 1}_${fallback}`;
+
+        item.addEventListener("pointerenter", (event) => {
+          event.stopPropagation();
+          if (game.highlightLockKey !== null) {
+            return;
+          }
+          setLaneHighlight(lanes, null);
+        });
+
+        item.addEventListener("pointerleave", (event) => {
+          event.stopPropagation();
+          if (game.highlightLockKey !== null) {
+            return;
+          }
+          clearLaneHighlight(false);
+        });
+
+        item.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggleLockedHighlight(highlightKey, lanes);
+        });
+      });
+    }
+
+    return {
+      setLaneHighlight,
+      clearLaneHighlight,
+      toggleLockedHighlight,
+      bindLaneHighlightInteractions,
+    };
+  }
+
   function renderTrackMap({
     rootEl,
     trackLanes,
@@ -139,6 +222,7 @@
     getEnemyTelegraphs,
     getTelegraphCoverageLanes,
     getTelegraphThreatTypeLabel,
+    createLaneHighlightController,
     renderTrackMap,
   };
 })();

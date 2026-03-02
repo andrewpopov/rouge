@@ -48,21 +48,83 @@
     }
   }
 
-  function readMetaUpgrades({ key, upgradePathCatalog, createDefaultUpgradeState, clamp }) {
+  function readMetaUpgrades({
+    key,
+    upgradePathCatalog,
+    createDefaultUpgradeState,
+    createDefaultMetaUnlockState,
+    createDefaultMetaBranchState,
+    clamp,
+  }) {
     const fallback = createDefaultUpgradeState();
+    const fallbackUnlocks =
+      typeof createDefaultMetaUnlockState === "function"
+        ? createDefaultMetaUnlockState()
+        : null;
+    const fallbackBranches =
+      typeof createDefaultMetaBranchState === "function"
+        ? createDefaultMetaBranchState()
+        : null;
     const parsed = readJson(key);
     if (!parsed || typeof parsed !== "object") {
+      if (fallbackUnlocks || fallbackBranches) {
+        const payload = { upgrades: fallback };
+        if (fallbackUnlocks) {
+          payload.unlocks = fallbackUnlocks;
+        }
+        if (fallbackBranches) {
+          payload.branches = fallbackBranches;
+        }
+        return payload;
+      }
       return fallback;
     }
     const stored = parsed.upgrades && typeof parsed.upgrades === "object" ? parsed.upgrades : parsed;
+    const storedUnlocks = parsed.unlocks && typeof parsed.unlocks === "object" ? parsed.unlocks : {};
+    const storedBranches = parsed.branches && typeof parsed.branches === "object" ? parsed.branches : {};
 
     Object.keys(upgradePathCatalog || {}).forEach((pathId) => {
       const level = Number.parseInt(stored[pathId], 10);
       const maxLevel = Number.parseInt(upgradePathCatalog[pathId]?.maxLevel, 10);
       const cappedMax = Number.isInteger(maxLevel) && maxLevel > 0 ? maxLevel : 0;
       fallback[pathId] = Number.isInteger(level) ? clamp(level, 0, cappedMax) : 0;
+
+      if (fallbackUnlocks) {
+        const tierIds = new Set(
+          (Array.isArray(upgradePathCatalog[pathId]?.tierUnlocks) ? upgradePathCatalog[pathId].tierUnlocks : [])
+            .map((entry) => (typeof entry?.id === "string" ? entry.id : ""))
+            .filter(Boolean)
+        );
+        fallbackUnlocks[pathId] = (Array.isArray(storedUnlocks[pathId]) ? storedUnlocks[pathId] : [])
+          .map((tierId) => (typeof tierId === "string" ? tierId.trim() : ""))
+          .filter((tierId) => tierId && tierIds.has(tierId));
+      }
+      if (fallbackBranches) {
+        const branchIds = new Set(
+          (
+            Array.isArray(upgradePathCatalog[pathId]?.branchChoices?.options)
+              ? upgradePathCatalog[pathId].branchChoices.options
+              : []
+          )
+            .map((entry) => (typeof entry?.id === "string" ? entry.id : ""))
+            .filter(Boolean)
+        );
+        const selectedBranch =
+          typeof storedBranches[pathId] === "string" ? storedBranches[pathId].trim() : "";
+        fallbackBranches[pathId] = selectedBranch && branchIds.has(selectedBranch) ? selectedBranch : "";
+      }
     });
 
+    if (fallbackUnlocks || fallbackBranches) {
+      const payload = { upgrades: fallback };
+      if (fallbackUnlocks) {
+        payload.unlocks = fallbackUnlocks;
+      }
+      if (fallbackBranches) {
+        payload.branches = fallbackBranches;
+      }
+      return payload;
+    }
     return fallback;
   }
 
@@ -84,10 +146,17 @@
     return fallback;
   }
 
-  function writeMetaUpgrades({ key, upgrades }) {
-    return writeJson(key, {
+  function writeMetaUpgrades({ key, upgrades, unlocks, branches }) {
+    const payload = {
       upgrades,
-    });
+    };
+    if (unlocks && typeof unlocks === "object") {
+      payload.unlocks = unlocks;
+    }
+    if (branches && typeof branches === "object") {
+      payload.branches = branches;
+    }
+    return writeJson(key, payload);
   }
 
   function writeRunRecords({ key, runRecords }) {

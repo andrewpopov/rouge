@@ -1,4 +1,33 @@
 (() => {
+  function normalizeArtifactRarity(artifact) {
+    const explicit = typeof artifact?.rarity === "string" ? artifact.rarity.trim().toLowerCase() : "";
+    if (explicit === "common" || explicit === "uncommon" || explicit === "rare") {
+      return explicit;
+    }
+
+    const weight = Number.parseInt(artifact?.weight, 10);
+    if (Number.isInteger(weight)) {
+      if (weight <= 1) {
+        return "rare";
+      }
+      if (weight <= 2) {
+        return "uncommon";
+      }
+    }
+    return "common";
+  }
+
+  function getArtifactRarityLabel(artifact) {
+    const rarity = normalizeArtifactRarity(artifact);
+    if (rarity === "rare") {
+      return "Rare";
+    }
+    if (rarity === "uncommon") {
+      return "Uncommon";
+    }
+    return "Common";
+  }
+
   function safeEscape(escapeHtml, value) {
     if (typeof escapeHtml === "function") {
       return escapeHtml(value);
@@ -16,9 +45,26 @@
   }) {
     const currentLevel = getUpgradeLevel(path.id);
     const nextLevel = Math.min(path.maxLevel, currentLevel + 1);
+    const nextTierUnlock = (Array.isArray(path.tierUnlocks) ? path.tierUnlocks : []).find(
+      (tier) => tier.level === nextLevel
+    );
+    const nextTierText = nextTierUnlock ? ` // Unlock ${nextTierUnlock.title}` : "";
     const suggestedTag = options.suggested
       ? '<span class="reward-suggested-tag" aria-label="Suggested upgrade">Suggested</span>'
       : "";
+    const branchChoice = options.branchChoice && typeof options.branchChoice === "object"
+      ? options.branchChoice
+      : null;
+    const branchTypeText =
+      branchChoice && typeof branchChoice.title === "string" ? "Upgrade Path // Branch" : "Upgrade Path";
+    const branchFootText =
+      branchChoice && typeof branchChoice.title === "string"
+        ? ` // Branch ${branchChoice.title}`
+        : "";
+    const branchDescription =
+      branchChoice && typeof branchChoice.description === "string" && branchChoice.description.trim()
+        ? ` // ${branchChoice.description.trim()}`
+        : "";
     const node = document.createElement("article");
     node.className = "card reward-upgrade";
     if (options.suggested) {
@@ -28,15 +74,49 @@
     node.innerHTML = `
     <div class="card-top">
       <div>
-        <p class="card-type">Upgrade Path</p>
+        <p class="card-type">${safeEscape(escapeHtml, branchTypeText)}</p>
         <h3 class="card-title">${safeEscape(escapeHtml, path.title)}</h3>
       </div>
       <span class="card-cost">L${nextLevel}</span>
     </div>
     ${suggestedTag}
     <img class="card-icon" src="${path.icon}" alt="${safeEscape(escapeHtml, path.title)}" />
-    <p class="card-text">${safeEscape(escapeHtml, path.description)}</p>
-    <span class="card-foot">${safeEscape(escapeHtml, `Lv ${currentLevel}/${path.maxLevel} -> Lv ${nextLevel}/${path.maxLevel} // ${path.bonusLabel(nextLevel)}`)}</span>
+    <p class="card-text">${safeEscape(escapeHtml, `${path.description}${branchDescription}`)}</p>
+    <span class="card-foot">${safeEscape(escapeHtml, `Lv ${currentLevel}/${path.maxLevel} -> Lv ${nextLevel}/${path.maxLevel} // ${path.bonusLabel(nextLevel)}${nextTierText}${branchFootText}`)}</span>
+  `;
+    node.addEventListener("click", onClick);
+    return node;
+  }
+
+  function createArtifactNode({
+    artifact,
+    onClick,
+    reactorFrame,
+    escapeHtml,
+  }) {
+    const rarity = normalizeArtifactRarity(artifact);
+    const rarityLabel = getArtifactRarityLabel(artifact);
+    const node = document.createElement("article");
+    node.className = "card reward-artifact";
+    node.classList.add(`rarity-${rarity}`);
+    node.style.setProperty("--card-frame", `url("${reactorFrame}")`);
+    node.innerHTML = `
+    <div class="card-top">
+      <div>
+        <p class="card-type">Artifact // ${safeEscape(escapeHtml, rarityLabel)}</p>
+        <h3 class="card-title">${safeEscape(escapeHtml, artifact.title)}</h3>
+      </div>
+      <div class="artifact-meta">
+        <span class="artifact-rarity-pill rarity-${safeEscape(escapeHtml, rarity)}">${safeEscape(
+          escapeHtml,
+          rarityLabel
+        )}</span>
+        <span class="card-cost">Passive</span>
+      </div>
+    </div>
+    <img class="card-icon" src="${artifact.icon}" alt="${safeEscape(escapeHtml, artifact.title)}" />
+    <p class="card-text">${safeEscape(escapeHtml, artifact.description)}</p>
+    <span class="card-foot">${safeEscape(escapeHtml, "Unique // One per run")}</span>
   `;
     node.addEventListener("click", onClick);
     return node;
@@ -80,9 +160,13 @@
         if (level <= 0) {
           return null;
         }
+        const unlockedTiers = (Array.isArray(path.tierUnlocks) ? path.tierUnlocks : []).filter(
+          (tier) => level >= tier.level
+        );
         return {
           path,
           level,
+          unlockedTiers,
         };
       })
       .filter(Boolean);
@@ -103,12 +187,68 @@
         <div class="upgrade-chip">
           <strong>${safeEscape(escapeHtml, `${entry.path.title} Lv ${entry.level}/${entry.path.maxLevel}`)}</strong>
           <small>${safeEscape(escapeHtml, entry.path.bonusLabel(entry.level))}</small>
+          <small>${safeEscape(
+            escapeHtml,
+            `Tiers ${entry.unlockedTiers.length}/${Array.isArray(entry.path.tierUnlocks) ? entry.path.tierUnlocks.length : 0}`
+          )}</small>
         </div>
       `
       )
       .join("");
 
     upgradeStripEl.innerHTML = `
+    ${headRow}
+    <div class="upgrade-grid">${chips}</div>
+  `;
+  }
+
+  function renderArtifactStrip({
+    artifactStripEl,
+    artifactCatalog,
+    artifacts,
+    escapeHtml,
+  }) {
+    if (!artifactStripEl) {
+      return;
+    }
+
+    const ownedArtifacts = (Array.isArray(artifacts) ? artifacts : [])
+      .map((artifactId) => artifactCatalog?.[artifactId])
+      .filter(Boolean);
+    const headRow = `
+    <div class="upgrade-head-row">
+      <p class="upgrade-head">Artifacts</p>
+      <span class="upgrade-progress-pill">${safeEscape(escapeHtml, `${ownedArtifacts.length}`)}</span>
+    </div>
+  `;
+
+    if (ownedArtifacts.length === 0) {
+      artifactStripEl.innerHTML = `
+      ${headRow}
+      <p class="upgrade-empty">
+        none installed.
+      </p>
+    `;
+      return;
+    }
+
+    const chips = ownedArtifacts
+      .map(
+        (artifact) => {
+          const rarity = normalizeArtifactRarity(artifact);
+          const rarityLabel = getArtifactRarityLabel(artifact);
+          return `
+        <div class="artifact-chip rarity-${safeEscape(escapeHtml, rarity)}">
+          <strong>${safeEscape(escapeHtml, artifact.title)}</strong>
+          <small class="artifact-rarity">${safeEscape(escapeHtml, rarityLabel)}</small>
+          <small>${safeEscape(escapeHtml, artifact.description)}</small>
+        </div>
+      `;
+        }
+      )
+      .join("");
+
+    artifactStripEl.innerHTML = `
     ${headRow}
     <div class="upgrade-grid">${chips}</div>
   `;
@@ -131,13 +271,30 @@
     }));
     const totalLevels = pathLevels.reduce((sum, entry) => sum + entry.level, 0);
     const totalPossible = pathLevels.reduce((sum, entry) => sum + entry.path.maxLevel, 0);
+    const unlockedTiers = pathLevels.reduce(
+      (sum, entry) =>
+        sum +
+        (Array.isArray(entry.path.tierUnlocks)
+          ? entry.path.tierUnlocks.filter((tier) => entry.level >= tier.level).length
+          : 0),
+      0
+    );
+    const totalTiers = pathLevels.reduce(
+      (sum, entry) => sum + (Array.isArray(entry.path.tierUnlocks) ? entry.path.tierUnlocks.length : 0),
+      0
+    );
     const suggestedPathId = getSuggestedUpgradePathIdFn();
     const suggested = suggestedPathId ? pathLevels.find((entry) => entry.path.id === suggestedPathId) : null;
 
     const chips = pathLevels
       .map(
         (entry) =>
-          `<span class="reward-meta-chip">${safeEscape(escapeHtml, `${entry.path.title} Lv ${entry.level}/${entry.path.maxLevel}`)}</span>`
+          `<span class="reward-meta-chip">${safeEscape(
+            escapeHtml,
+            `${entry.path.title} Lv ${entry.level}/${entry.path.maxLevel} // T${Array.isArray(entry.path.tierUnlocks)
+              ? entry.path.tierUnlocks.filter((tier) => entry.level >= tier.level).length
+              : 0}`
+          )}</span>`
       )
       .join("");
     const suggestionText = suggested
@@ -148,7 +305,7 @@
     rewardMetaEl.innerHTML = `
     <div class="reward-meta-top">
       <p class="reward-meta-title">Meta Progress</p>
-      <strong>${safeEscape(escapeHtml, `${totalLevels}/${totalPossible} levels installed`)}</strong>
+      <strong>${safeEscape(escapeHtml, `${totalLevels}/${totalPossible} levels installed // ${unlockedTiers}/${totalTiers} tiers unlocked`)}</strong>
     </div>
     <div class="reward-meta-grid">${chips}</div>
     <p class="${suggestionClass}">${safeEscape(escapeHtml, suggestionText)}</p>
@@ -158,6 +315,7 @@
   function renderRewardPanel({
     rewardPanelEl,
     rewardMetaEl,
+    rewardIntelEl,
     rewardSubtitleEl,
     rewardChoicesEl,
     phase,
@@ -165,11 +323,14 @@
     sectorIndex,
     runSectors,
     sector,
+    nextSectorIntel = null,
     rewardChoices,
+    artifactCatalog,
     getSuggestedUpgradePathIdFn,
     renderRewardMetaSummaryFn,
     upgradePathCatalog,
     createUpgradeNodeFn,
+    createArtifactNodeFn,
     createCardNodeFn,
     cardCatalog,
     onApplyRewardAndAdvance,
@@ -180,12 +341,94 @@
       if (rewardMetaEl) {
         rewardMetaEl.innerHTML = "";
       }
+      if (rewardIntelEl) {
+        rewardIntelEl.innerHTML = "";
+      }
       return;
     }
 
     const suggestedPathId = getSuggestedUpgradePathIdFn();
-    rewardSubtitleEl.textContent = `Sector ${sectorIndex + 1}/${runSectors.length} cleared (${sector.name}). Pick 1 reward (card or upgrade path) and repair +${intermissionHealing} Hull.`;
+    rewardSubtitleEl.textContent = `Sector ${sectorIndex + 1}/${runSectors.length} cleared (${sector.name}). Pick 1 reward (card, artifact, or upgrade path) and repair +${intermissionHealing} Hull.`;
     renderRewardMetaSummaryFn();
+    if (rewardIntelEl) {
+      const nextSector = nextSectorIntel || runSectors[sectorIndex + 1] || null;
+      const intelTitle = nextSector
+        ? `Next Sector ${sectorIndex + 2}/${runSectors.length}: ${nextSector.name}${nextSector.boss ? " // Boss" : ""}`
+        : "Final push ahead";
+      const intelLines = [];
+      if (nextSector) {
+        const enemyPoolSize = Array.isArray(nextSector.enemies) ? nextSector.enemies.length : 0;
+        const encounterSizeRaw = Number.parseInt(nextSector?.encounterSize, 10);
+        const encounterSize =
+          Number.isInteger(encounterSizeRaw) && encounterSizeRaw > 0
+            ? Math.min(encounterSizeRaw, Math.max(1, enemyPoolSize))
+            : enemyPoolSize;
+        const eliteChanceRaw =
+          Number.isFinite(nextSector?.eliteChance) && nextSector.eliteChance >= 0 && nextSector.eliteChance <= 1
+            ? nextSector.eliteChance
+            : 0;
+        const elitePct = Math.round(eliteChanceRaw * 100);
+        const modifierSummary =
+          typeof nextSector?.modifierSummary === "string" && nextSector.modifierSummary.trim()
+            ? nextSector.modifierSummary.trim()
+            : "Mutators: none configured.";
+        const likelyThreats =
+          Array.isArray(nextSector?.likelyThreats) && nextSector.likelyThreats.length > 0
+            ? `Likely threats: ${nextSector.likelyThreats.join(" // ")}`
+            : "Likely threats: unknown.";
+        const likelyThreatEntries = Array.isArray(nextSector?.likelyThreatEntries)
+          ? nextSector.likelyThreatEntries
+          : [];
+        const threatGridHtml =
+          likelyThreatEntries.length > 0
+            ? `<div class="reward-intel-threat-grid">
+                ${likelyThreatEntries
+                  .map((entry) => {
+                    const eliteTag = entry?.elite ? '<em class="reward-intel-threat-elite">ELITE</em>' : "";
+                    const iconHtml =
+                      typeof entry?.icon === "string" && entry.icon.trim()
+                        ? `<img src="${safeEscape(escapeHtml, entry.icon)}" alt="" />`
+                        : "";
+                    const intelDescription =
+                      typeof entry?.intelDescription === "string" && entry.intelDescription.trim()
+                        ? entry.intelDescription.trim()
+                        : "Pattern intel unavailable.";
+                    return `<div class="reward-intel-threat-chip" title="${safeEscape(
+                      escapeHtml,
+                      intelDescription
+                    )}" aria-label="${safeEscape(escapeHtml, intelDescription)}">
+                      <div class="reward-intel-threat-head">
+                        ${iconHtml}
+                        <strong>${safeEscape(escapeHtml, entry?.name || entry?.key || "Unknown")}</strong>
+                      </div>
+                      <small>${safeEscape(escapeHtml, `${entry?.chancePct ?? 0}%`)}</small>
+                      ${eliteTag}
+                    </div>`;
+                  })
+                  .join("")}
+              </div>`
+            : "";
+        intelLines.push(`Encounter: ${encounterSize} from ${enemyPoolSize} templates.`);
+        intelLines.push(elitePct > 0 ? `Elite risk: ${elitePct}%` : "Elite risk: none.");
+        intelLines.push(likelyThreats);
+        intelLines.push(modifierSummary);
+        intelLines.push(threatGridHtml);
+      } else {
+        intelLines.push("No further sectors after this reward.");
+      }
+      rewardIntelEl.innerHTML = `
+      <p class="reward-intel-title">${safeEscape(escapeHtml, intelTitle)}</p>
+      <div class="reward-intel-lines">
+        ${intelLines
+          .map((line) =>
+            line.startsWith('<div class="reward-intel-threat-grid">')
+              ? line
+              : `<p class="reward-intel-line">${safeEscape(escapeHtml, line)}</p>`
+          )
+          .join("")}
+      </div>
+    `;
+    }
     rewardChoicesEl.innerHTML = "";
 
     rewardChoices.forEach((choice) => {
@@ -194,13 +437,33 @@
         if (!path) {
           return;
         }
+        const branchChoice =
+          typeof choice?.branchId === "string" && Array.isArray(path?.branchChoices?.options)
+            ? path.branchChoices.options.find((option) => option?.id === choice.branchId) || null
+            : null;
         const node = createUpgradeNodeFn(
           path,
           () => {
             onApplyRewardAndAdvance(choice);
           },
-          { suggested: path.id === suggestedPathId }
+          { suggested: path.id === suggestedPathId, branchChoice }
         );
+        node.classList.add("reward-choice");
+        rewardChoicesEl.appendChild(node);
+        return;
+      }
+
+      if (choice?.type === "artifact") {
+        const artifact = artifactCatalog?.[choice.artifactId];
+        if (!artifact) {
+          return;
+        }
+        const node = createArtifactNodeFn({
+          artifact,
+          onClick: () => {
+            onApplyRewardAndAdvance(choice);
+          },
+        });
         node.classList.add("reward-choice");
         rewardChoicesEl.appendChild(node);
         return;
@@ -271,6 +534,7 @@
     sectorsCleared,
     sectorCount,
     deckSize,
+    artifactCount,
     installedLevels,
     possibleLevels,
   }) {
@@ -284,6 +548,7 @@
       { label: "Rewards Taken", value: String(stats.rewardsClaimed) },
       { label: "Reward Skips", value: String(stats.rewardSkips) },
       { label: "Deck Size", value: String(deckSize) },
+      { label: "Artifacts", value: String(artifactCount) },
       { label: "Meta Levels", value: `${installedLevels}/${possibleLevels}` },
       { label: "Profile Runs", value: String(records.totalRuns) },
       { label: "Profile Wins", value: String(records.wins) },
@@ -296,6 +561,34 @@
       { key: "bestSectorsCleared", label: "Best Sector Clear", value: `${records.bestSectorsCleared}/${sectorCount}` },
       { key: "bestMetaLevels", label: "Best Meta Levels", value: `${records.bestMetaLevels}/${possibleLevels}` },
     ];
+  }
+
+  function buildRunSummaryArtifactHtml({ artifactCatalog, artifacts, escapeHtml }) {
+    const ownedArtifacts = (Array.isArray(artifacts) ? artifacts : [])
+      .map((artifactId) => artifactCatalog?.[artifactId])
+      .filter(Boolean);
+    if (ownedArtifacts.length === 0) {
+      return '<p class="run-summary-artifacts-empty">Artifacts: none installed.</p>';
+    }
+    const chips = ownedArtifacts
+      .map(
+        (artifact) => `
+        <span
+          class="run-summary-artifact-chip rarity-${safeEscape(escapeHtml, normalizeArtifactRarity(artifact))}"
+          title="${safeEscape(escapeHtml, `${artifact.description} // ${getArtifactRarityLabel(artifact)}`)}"
+        >
+          <em>${safeEscape(escapeHtml, getArtifactRarityLabel(artifact))}</em>
+          ${safeEscape(escapeHtml, artifact.title)}
+        </span>
+      `
+      )
+      .join("");
+    return `
+    <div class="run-summary-artifacts">
+      <p class="run-summary-artifacts-title">Artifacts</p>
+      <div class="run-summary-artifact-grid">${chips}</div>
+    </div>
+  `;
   }
 
   function normalizeTimelineEvents(rawTimeline) {
@@ -325,6 +618,8 @@
     runSummaryStatsEl,
     runSummaryTimelineEl,
     toggleRunTimelineBtnEl,
+    artifactCatalog = {},
+    artifacts = [],
     phase,
     turn,
     sectorIndex,
@@ -392,6 +687,7 @@
       sectorsCleared,
       sectorCount: runSectors.length,
       deckSize,
+      artifactCount: (Array.isArray(artifacts) ? artifacts : []).length,
       installedLevels,
       possibleLevels,
     });
@@ -424,7 +720,13 @@
     }
 
     if (timelineItems.length === 0) {
+      const artifactsHtml = buildRunSummaryArtifactHtml({
+        artifactCatalog,
+        artifacts,
+        escapeHtml,
+      });
       runSummaryTimelineEl.innerHTML = `
+      ${artifactsHtml}
       <p class="run-timeline-empty">No timeline events recorded.</p>
     `;
       return;
@@ -473,20 +775,40 @@
     const countText = showFull
       ? `Showing all ${totalTimelineItems} events`
       : `Showing recent ${timelineItems.length}/${totalTimelineItems} events`;
+    const artifactsHtml = buildRunSummaryArtifactHtml({
+      artifactCatalog,
+      artifacts,
+      escapeHtml,
+    });
     runSummaryTimelineEl.innerHTML = `
+    ${artifactsHtml}
     <p class="run-timeline-title">Run Timeline</p>
     <p class="run-timeline-count">${safeEscape(escapeHtml, countText)}</p>
     <ol class="run-timeline-list">${timelineHtml}</ol>
   `;
   }
 
+  function toggleRunTimelineView({ game, renderRunSummaryPanelFn }) {
+    if (!game || typeof game !== "object") {
+      return false;
+    }
+    game.showFullTimeline = !game.showFullTimeline;
+    if (typeof renderRunSummaryPanelFn === "function") {
+      renderRunSummaryPanelFn();
+    }
+    return true;
+  }
+
   window.BRASSLINE_RUN_UI = {
     createUpgradeNode,
+    createArtifactNode,
     getSuggestedUpgradePathId,
     renderUpgradeStrip,
+    renderArtifactStrip,
     renderRewardMetaSummary,
     renderRewardPanel,
     renderInterludePanel,
+    toggleRunTimelineView,
     renderRunSummaryPanel,
   };
 })();

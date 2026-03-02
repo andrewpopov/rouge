@@ -1,16 +1,141 @@
 (() => {
-  function drawRewardChoices({ rewardPool, rewardChoiceCount, shuffleInPlace, getUpgradeablePathIds }) {
+  function drawRewardChoices({
+    rewardPool,
+    rewardChoiceCount,
+    shuffleInPlace,
+    getUpgradeablePathIds,
+    getUpgradeablePathChoices = null,
+    getAvailableArtifactIds = () => [],
+    randomInt = null,
+  }) {
+    function normalizeArtifactPool(rawPool) {
+      const source = Array.isArray(rawPool) ? rawPool : [];
+      const normalized = source
+        .map((entry) => {
+          if (typeof entry === "string") {
+            const id = entry.trim();
+            return id ? { id, weight: 1 } : null;
+          }
+          if (!entry || typeof entry !== "object" || typeof entry.id !== "string") {
+            return null;
+          }
+          const id = entry.id.trim();
+          if (!id) {
+            return null;
+          }
+          const weightRaw = Number.parseInt(entry.weight, 10);
+          return {
+            id,
+            weight: Number.isInteger(weightRaw) && weightRaw > 0 ? weightRaw : 1,
+          };
+        })
+        .filter(Boolean);
+
+      const seen = new Set();
+      return normalized.filter((entry) => {
+        if (seen.has(entry.id)) {
+          return false;
+        }
+        seen.add(entry.id);
+        return true;
+      });
+    }
+
+    function normalizeUpgradePool(rawPool) {
+      const source = Array.isArray(rawPool) ? rawPool : [];
+      const normalized = source
+        .map((entry) => {
+          if (typeof entry === "string") {
+            const upgradeId = entry.trim();
+            return upgradeId ? { upgradeId } : null;
+          }
+          if (!entry || typeof entry !== "object" || typeof entry.upgradeId !== "string") {
+            return null;
+          }
+          const upgradeId = entry.upgradeId.trim();
+          if (!upgradeId) {
+            return null;
+          }
+          const branchId =
+            typeof entry.branchId === "string" && entry.branchId.trim() ? entry.branchId.trim() : "";
+          return branchId ? { upgradeId, branchId } : { upgradeId };
+        })
+        .filter(Boolean);
+
+      const seen = new Set();
+      return normalized.filter((entry) => {
+        const key = `${entry.upgradeId}::${entry.branchId || ""}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function pickWeightedArtifactIndex(pool) {
+      if (!Array.isArray(pool) || pool.length === 0) {
+        return -1;
+      }
+      const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+      if (totalWeight <= 0) {
+        return 0;
+      }
+
+      const roll =
+        typeof randomInt === "function"
+          ? randomInt(totalWeight)
+          : Math.floor(Math.random() * totalWeight);
+      let cursor = Number.isInteger(roll) ? Math.max(0, Math.min(totalWeight - 1, roll)) : 0;
+
+      for (let index = 0; index < pool.length; index += 1) {
+        cursor -= pool[index].weight;
+        if (cursor < 0) {
+          return index;
+        }
+      }
+      return pool.length - 1;
+    }
+
     const cardPool = [...rewardPool];
     shuffleInPlace(cardPool);
-    const upgradePool = getUpgradeablePathIds();
+    const rawUpgradePool =
+      typeof getUpgradeablePathChoices === "function"
+        ? getUpgradeablePathChoices()
+        : Array.isArray(getUpgradeablePathIds?.())
+          ? getUpgradeablePathIds().map((upgradeId) => ({ upgradeId }))
+          : [];
+    const upgradePool = normalizeUpgradePool(rawUpgradePool);
     shuffleInPlace(upgradePool);
+    const artifactPool = normalizeArtifactPool(getAvailableArtifactIds());
+
+    function takeArtifactId() {
+      const artifactIndex = pickWeightedArtifactIndex(artifactPool);
+      if (artifactIndex < 0) {
+        return "";
+      }
+      const [picked] = artifactPool.splice(artifactIndex, 1);
+      return picked?.id || "";
+    }
 
     const choices = [];
-    if (upgradePool.length > 0) {
+    if (upgradePool.length > 0 && choices.length < rewardChoiceCount) {
+      const nextUpgrade = upgradePool.shift();
       choices.push({
         type: "upgrade",
-        upgradeId: upgradePool.shift(),
+        upgradeId: nextUpgrade.upgradeId,
+        ...(nextUpgrade.branchId ? { branchId: nextUpgrade.branchId } : {}),
       });
+    }
+
+    if (artifactPool.length > 0 && choices.length < rewardChoiceCount) {
+      const artifactId = takeArtifactId();
+      if (artifactId) {
+        choices.push({
+          type: "artifact",
+          artifactId,
+        });
+      }
     }
 
     while (choices.length < rewardChoiceCount && cardPool.length > 0) {
@@ -20,10 +145,23 @@
       });
     }
 
+    while (choices.length < rewardChoiceCount && artifactPool.length > 0) {
+      const artifactId = takeArtifactId();
+      if (!artifactId) {
+        break;
+      }
+      choices.push({
+        type: "artifact",
+        artifactId,
+      });
+    }
+
     while (choices.length < rewardChoiceCount && upgradePool.length > 0) {
+      const nextUpgrade = upgradePool.shift();
       choices.push({
         type: "upgrade",
-        upgradeId: upgradePool.shift(),
+        upgradeId: nextUpgrade.upgradeId,
+        ...(nextUpgrade.branchId ? { branchId: nextUpgrade.branchId } : {}),
       });
     }
 
@@ -160,12 +298,17 @@
     heatCarryRatio,
     heatCarryFloor,
     maxHeat,
+    getArtifactBattleStartBlockBonus = () => 0,
     clampLane,
     trackLanes,
     shuffleInPlace,
     rollEnemyIntents,
     drawCards,
     handSize,
+    getBattleStartDrawBonus = () => 0,
+    selectSectorEnemiesFn,
+    rollEncounterModifierFn,
+    applyEncounterModifierFn,
     setLog,
     appendRunTimelineEntry,
     renderEnemies,
@@ -176,6 +319,7 @@
     const sector = getCurrentSector();
     if (!sector) {
       game.phase = "run_victory";
+      game.encounterModifier = null;
       game.openEnemyTooltipId = null;
       game.highlightLanes = [];
       game.highlightLockKey = null;
@@ -188,6 +332,7 @@
 
     game.phase = "player";
     game.turn = 1;
+    game.turnCardsPlayed = 0;
     game.rewardChoices = [];
     game.interlude = null;
     game.interludeDeck = [];
@@ -195,12 +340,23 @@
     game.highlightLanes = [];
     game.highlightLockKey = null;
     game.telegraphs = [];
-    game.enemies = sector.enemies.map((entry, index) => createEnemy(entry, index));
+    const selectedEnemies =
+      typeof selectSectorEnemiesFn === "function"
+        ? selectSectorEnemiesFn(sector)
+        : Array.isArray(sector.enemies)
+          ? sector.enemies
+          : [];
+    const spawnEntries =
+      Array.isArray(selectedEnemies) && selectedEnemies.length > 0 ? selectedEnemies : sector.enemies;
+    game.enemies = spawnEntries.map((entry, index) => createEnemy(entry, index));
+    game.encounterModifier =
+      typeof rollEncounterModifierFn === "function" ? rollEncounterModifierFn(sector) : null;
 
     if (!freshStart) {
       game.player.heat = clamp(Math.round(game.player.heat * heatCarryRatio), heatCarryFloor, maxHeat);
     }
-    game.player.block = 0;
+    const artifactStartBlock = Math.max(0, Number.parseInt(getArtifactBattleStartBlockBonus(), 10) || 0);
+    game.player.block = artifactStartBlock;
     game.player.energy = game.player.maxEnergy;
     game.player.movedThisTurn = false;
     game.player.lane = clampLane(Math.floor(trackLanes / 2));
@@ -213,15 +369,23 @@
     game.hand = [];
     game.exhaustPile = [];
 
+    const encounterMessage =
+      game.encounterModifier && typeof applyEncounterModifierFn === "function"
+        ? applyEncounterModifierFn(game.encounterModifier)
+        : "";
     rollEnemyIntents();
-    drawCards(handSize);
+    const openingDrawBonus = Math.max(0, Number.parseInt(getBattleStartDrawBonus(), 10) || 0);
+    drawCards(handSize + openingDrawBonus);
     game.selectedEnemyId = game.enemies[0]?.id ?? null;
-    setLog(`Entering ${sector.name}.`);
-    appendRunTimelineEntry(`Entered ${sector.name}.`, {
-      sectorIndex: game.sectorIndex,
-      turn: game.turn,
-      type: "sector",
-    });
+    setLog(encounterMessage ? `Entering ${sector.name}. ${encounterMessage}` : `Entering ${sector.name}.`);
+    appendRunTimelineEntry(
+      game.encounterModifier ? `Entered ${sector.name} (${game.encounterModifier.title}).` : `Entered ${sector.name}.`,
+      {
+        sectorIndex: game.sectorIndex,
+        turn: game.turn,
+        type: "sector",
+      }
+    );
 
     renderEnemies();
     renderTrackMap();
@@ -240,6 +404,8 @@
     rewardHealSkip,
     rewardHealChosen,
     cardCatalog,
+    artifactCatalog = {},
+    getArtifactRewardHealBonus = () => 0,
     makeCardInstance,
     ensureRunStats,
     appendRunTimelineEntry,
@@ -278,10 +444,10 @@
 
     const deck = collectDeckInstances();
     let rewardMessage = "";
-    let healAmount = rewardHealSkip;
+    let healAmountBase = rewardHealSkip;
 
     if (normalizedChoice) {
-      healAmount = rewardHealChosen;
+      healAmountBase = rewardHealChosen;
       if (normalizedChoice.type === "card" && normalizedChoice.cardId && cardCatalog[normalizedChoice.cardId]) {
         deck.push(makeCardInstance(normalizedChoice.cardId));
         ensureRunStats().rewardsClaimed += 1;
@@ -292,7 +458,7 @@
         });
         rewardMessage = `Added ${cardCatalog[normalizedChoice.cardId].title}. Hull repaired by ${rewardHealChosen}.`;
       } else if (normalizedChoice.type === "upgrade" && normalizedChoice.upgradeId) {
-        const upgradeResult = applyUpgradePath(normalizedChoice.upgradeId);
+        const upgradeResult = applyUpgradePath(normalizedChoice.upgradeId, normalizedChoice.branchId || "");
         if (!upgradeResult) {
           setLog("Upgrade path is already maxed. Pick a different reward.");
           renderRewardPanel();
@@ -304,7 +470,37 @@
           `Reward: installed ${upgradeResult.path.title} Lv ${upgradeResult.nextLevel}/${upgradeResult.path.maxLevel}.`,
           { sectorIndex: game.sectorIndex, type: "reward" }
         );
-        rewardMessage = `Installed ${upgradeResult.path.title} Lv ${upgradeResult.nextLevel}/${upgradeResult.path.maxLevel}. Hull repaired by ${rewardHealChosen}.`;
+        const unlockedTierMessage =
+          Array.isArray(upgradeResult.newlyUnlockedTiers) && upgradeResult.newlyUnlockedTiers.length > 0
+            ? ` Unlocked ${upgradeResult.newlyUnlockedTiers.map((tier) => tier.title).join(", ")}.`
+            : "";
+        const branchMessage =
+          upgradeResult.chosenBranch && typeof upgradeResult.chosenBranch.title === "string"
+            ? ` Chosen branch: ${upgradeResult.chosenBranch.title}.`
+            : "";
+        rewardMessage = `Installed ${upgradeResult.path.title} Lv ${upgradeResult.nextLevel}/${upgradeResult.path.maxLevel}.${unlockedTierMessage}${branchMessage} Hull repaired by ${rewardHealChosen}.`;
+      } else if (normalizedChoice.type === "artifact" && normalizedChoice.artifactId) {
+        const artifact = artifactCatalog[normalizedChoice.artifactId];
+        if (!artifact) {
+          setLog("Invalid reward selection.");
+          renderRewardPanel();
+          return;
+        }
+        if (!Array.isArray(game.artifacts)) {
+          game.artifacts = [];
+        }
+        if (game.artifacts.includes(normalizedChoice.artifactId)) {
+          setLog("Artifact already installed. Pick a different reward.");
+          renderRewardPanel();
+          return;
+        }
+        game.artifacts.push(normalizedChoice.artifactId);
+        ensureRunStats().rewardsClaimed += 1;
+        appendRunTimelineEntry(`Reward: secured artifact ${artifact.title}.`, {
+          sectorIndex: game.sectorIndex,
+          type: "reward",
+        });
+        rewardMessage = `Secured artifact ${artifact.title}. ${artifact.description} Hull repaired by ${rewardHealChosen}.`;
       } else {
         setLog("Invalid reward selection.");
         renderRewardPanel();
@@ -319,6 +515,11 @@
       rewardMessage = `Skipped reward. Hull repaired by ${rewardHealSkip}.`;
     }
 
+    const artifactHealBonus = Math.max(0, Number.parseInt(getArtifactRewardHealBonus(), 10) || 0);
+    const healAmount = healAmountBase + artifactHealBonus;
+    if (artifactHealBonus > 0) {
+      rewardMessage += ` (+${artifactHealBonus} from artifacts)`;
+    }
     game.player.hull = clamp(game.player.hull + healAmount, 0, game.player.maxHull);
     game.sectorIndex += 1;
 
@@ -362,6 +563,7 @@
   }) {
     if (game.player.hull <= 0) {
       game.phase = "gameover";
+      game.encounterModifier = null;
       game.interlude = null;
       game.interludeDeck = [];
       game.openEnemyTooltipId = null;
@@ -380,6 +582,7 @@
     }
 
     if (livingEnemies().length === 0) {
+      game.encounterModifier = null;
       game.interlude = null;
       game.interludeDeck = [];
       game.openEnemyTooltipId = null;
@@ -407,7 +610,7 @@
           turn: game.turn,
           type: "sector",
         });
-        setLog("Sector cleared. Choose 1 reward (card or upgrade path) to continue.");
+        setLog("Sector cleared. Choose 1 reward (card, artifact, or upgrade path) to continue.");
       }
       return true;
     }

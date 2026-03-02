@@ -170,6 +170,7 @@
     if (ctx) {
       card.play(ctx);
     }
+    game.turnCardsPlayed = Number.isInteger(game.turnCardsPlayed) ? game.turnCardsPlayed + 1 : 1;
     if (typeof ensureRunStats === "function") {
       ensureRunStats().cardsPlayed += 1;
     }
@@ -349,8 +350,10 @@
   function startPlayerTurn({
     game,
     gainHeatFn,
+    gainEnergyFn,
     getTurnStartCoolingAmount,
     getTurnStartBlockAmount,
+    getTurnStartEnergyBonus,
     drawCardsFn,
     handSize,
     rollEnemyIntents,
@@ -366,6 +369,14 @@
     game.player.movedThisTurn = false;
     game.player.overclockUsed = false;
     game.player.nextAttackMultiplier = 1;
+    game.turnCardsPlayed = 0;
+    const energyBonus =
+      typeof getTurnStartEnergyBonus === "function"
+        ? Math.max(0, Number.parseInt(getTurnStartEnergyBonus(), 10) || 0)
+        : 0;
+    if (energyBonus > 0 && typeof gainEnergyFn === "function") {
+      gainEnergyFn(energyBonus);
+    }
     if (typeof gainHeatFn === "function" && typeof getTurnStartCoolingAmount === "function") {
       gainHeatFn(-getTurnStartCoolingAmount());
     }

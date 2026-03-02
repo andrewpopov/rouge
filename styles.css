@@ -704,6 +704,13 @@ body::before {
   box-shadow: 0 0 0 1px rgba(255, 209, 102, 0.35) inset;
 }
 
+.enemy.elite {
+  border-color: rgba(255, 164, 90, 0.82);
+  box-shadow:
+    0 0 0 1px rgba(255, 164, 90, 0.3) inset,
+    0 0 12px rgba(255, 141, 44, 0.22);
+}
+
 .enemy.aiming {
   border-color: rgba(143, 211, 255, 0.88);
   box-shadow:
@@ -758,8 +765,29 @@ body::before {
 }
 
 .enemy-meta strong {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.88rem;
+  line-height: 1.15;
+}
+
+.enemy-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.06rem 0.25rem 0.02rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.52rem;
+  font-family: "Share Tech Mono", "Consolas", monospace;
+}
+
+.enemy-badge-elite {
+  border: 1px solid rgba(255, 184, 120, 0.85);
+  color: #ffe4c7;
+  background: rgba(96, 44, 15, 0.52);
 }
 
 .enemy-meta small {
@@ -1316,6 +1344,88 @@ body[data-onboarding="active"] .onboarding-panel {
   gap: 0.35rem;
 }
 
+.reward-intel {
+  border: 1px solid rgba(255, 224, 148, 0.28);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(36, 27, 13, 0.62), rgba(13, 11, 8, 0.5));
+  padding: 0.46rem 0.6rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.reward-intel-title {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f6ddb0;
+}
+
+.reward-intel-lines {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.reward-intel-line {
+  margin: 0;
+  font-size: 0.65rem;
+  color: #dfd3b9;
+}
+
+.reward-intel-threat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin-top: 0.08rem;
+}
+
+.reward-intel-threat-chip {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 224, 148, 0.32);
+  background: rgba(23, 18, 11, 0.58);
+  padding: 0.24rem 0.28rem;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.reward-intel-threat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.reward-intel-threat-head img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.reward-intel-threat-head strong {
+  font-size: 0.56rem;
+  color: #f2e3c7;
+  line-height: 1.2;
+}
+
+.reward-intel-threat-chip small {
+  font-size: 0.56rem;
+  color: #f0d39f;
+  letter-spacing: 0.05em;
+}
+
+.reward-intel-threat-elite {
+  font-style: normal;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 180, 117, 0.64);
+  color: #ffd7ad;
+  font-size: 0.49rem;
+  line-height: 1;
+  letter-spacing: 0.07em;
+  width: fit-content;
+  padding: 0.07rem 0.26rem;
+  text-transform: uppercase;
+}
+
 .reward-meta-top {
   display: flex;
   justify-content: space-between;
@@ -1394,6 +1504,58 @@ body[data-onboarding="active"] .onboarding-panel {
   color: #9bdcff;
 }
 
+.reward-artifact .card-type {
+  color: #f2d9a0;
+}
+
+.artifact-meta {
+  display: grid;
+  justify-items: end;
+  gap: 0.18rem;
+}
+
+.artifact-rarity-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 224, 148, 0.52);
+  background: rgba(48, 34, 13, 0.72);
+  color: #ffe9bf;
+  padding: 0.08rem 0.36rem;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.artifact-rarity-pill.rarity-uncommon {
+  border-color: rgba(132, 233, 179, 0.72);
+  color: #d8fbe8;
+  background: rgba(16, 44, 31, 0.68);
+}
+
+.artifact-rarity-pill.rarity-rare {
+  border-color: rgba(255, 180, 117, 0.84);
+  color: #ffe2c2;
+  background: rgba(56, 32, 11, 0.72);
+}
+
+.reward-artifact.rarity-common {
+  border-color: rgba(255, 224, 148, 0.52);
+}
+
+.reward-artifact.rarity-uncommon {
+  border-color: rgba(132, 233, 179, 0.68);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.35),
+    0 0 11px rgba(132, 233, 179, 0.15);
+}
+
+.reward-artifact.rarity-rare {
+  border-color: rgba(255, 180, 117, 0.78);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.35),
+    0 0 12px rgba(255, 180, 117, 0.2);
+}
+
 .reward-upgrade.suggested-upgrade {
   border-color: rgba(255, 215, 128, 0.9);
   box-shadow:
@@ -1416,6 +1578,15 @@ body[data-onboarding="active"] .onboarding-panel {
 }
 
 .upgrade-strip {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(10, 15, 20, 0.52);
+  padding: 0.48rem 0.58rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.artifact-strip {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 10px;
   background: rgba(10, 15, 20, 0.52);
@@ -1493,6 +1664,47 @@ body[data-onboarding="active"] .onboarding-panel {
 .upgrade-chip small {
   font-size: 0.63rem;
   color: #9fd3f4;
+}
+
+.artifact-chip {
+  min-width: 156px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 224, 148, 0.52);
+  background: rgba(36, 29, 14, 0.58);
+  padding: 0.28rem 0.4rem;
+  display: grid;
+  gap: 0.14rem;
+}
+
+.artifact-chip strong {
+  font-size: 0.64rem;
+  color: #fff2cc;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artifact-chip small {
+  font-size: 0.63rem;
+  color: #f4dca2;
+  line-height: 1.25;
+}
+
+.artifact-chip .artifact-rarity {
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artifact-chip.rarity-common .artifact-rarity {
+  color: #f4dca2;
+}
+
+.artifact-chip.rarity-uncommon .artifact-rarity {
+  color: #a9f3c5;
+}
+
+.artifact-chip.rarity-rare .artifact-rarity {
+  color: #ffd4a3;
 }
 
 .meta-reset-btn {
@@ -1625,6 +1837,61 @@ body[data-onboarding="active"] .onboarding-panel {
   border-radius: 9px;
   background: rgba(8, 13, 18, 0.55);
   padding: 0.42rem 0.5rem 0.5rem;
+}
+
+.run-summary-artifacts {
+  display: grid;
+  gap: 0.24rem;
+  margin-bottom: 0.36rem;
+}
+
+.run-summary-artifacts-title {
+  margin: 0;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f1ddb2;
+}
+
+.run-summary-artifact-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.26rem;
+}
+
+.run-summary-artifact-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 224, 148, 0.62);
+  background: rgba(49, 35, 14, 0.58);
+  color: #ffe8bd;
+  font-size: 0.56rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.08rem 0.34rem;
+}
+
+.run-summary-artifact-chip em {
+  font-style: normal;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  margin-right: 0.18rem;
+  opacity: 0.86;
+}
+
+.run-summary-artifact-chip.rarity-uncommon {
+  border-color: rgba(132, 233, 179, 0.68);
+  color: #d8fbe8;
+}
+
+.run-summary-artifact-chip.rarity-rare {
+  border-color: rgba(255, 180, 117, 0.76);
+  color: #ffe2c2;
+}
+
+.run-summary-artifacts-empty {
+  margin: 0 0 0.3rem;
+  font-size: 0.62rem;
+  color: #c8b790;
 }
 
 .run-timeline-title {
@@ -1853,6 +2120,10 @@ body[data-phase="run_victory"] .phase-badge {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .reward-intel-threat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .run-summary-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1878,6 +2149,10 @@ body[data-phase="run_victory"] .phase-badge {
   }
 
   .reward-choices {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-intel-threat-grid {
     grid-template-columns: 1fr;
   }
 

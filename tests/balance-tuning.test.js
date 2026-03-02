@@ -19,6 +19,12 @@ test("enemy balance override changes spawned enemy stats", { concurrency: false 
       const dbg = window.__brasslineDebug;
       window.BRASSLINE_BALANCE.enemies.rail_hound.maxHp = 41;
       window.BRASSLINE_BALANCE.enemies.rail_hound.intents[0].value = 9;
+      window.BRASSLINE_BALANCE.progression.sectors = [
+        {
+          name: "Rail Hound Test",
+          enemies: [{ key: "rail_hound", power: 1 }],
+        },
+      ];
       dbg.initGame();
 
       const hound = dbg.game.enemies.find((enemy) => enemy.key === "rail_hound");
@@ -110,6 +116,60 @@ test("progression balance override changes sector roster and starter deck", { co
   }
 });
 
+test("weighted sector pools pick deterministic encounter subsets per run seed", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      const progression = window.BRASSLINE_BALANCE.progression;
+      progression.sectors = [
+        {
+          name: "Seed Setup",
+          enemies: [{ key: "rail_hound", power: 1 }],
+        },
+        {
+          name: "Weighted Probe",
+          encounterSize: 2,
+          enemies: [
+            { key: "ash_gunner", power: 1, weight: 5 },
+            { key: "rail_sentry", power: 1, weight: 1 },
+            { key: "mortar_engineer", power: 1, weight: 1 },
+            { key: "arc_lancer", power: 1, weight: 1 },
+          ],
+        },
+      ];
+
+      function runToSecondSector(seed) {
+        dbg.initGame();
+        const g = dbg.game;
+        g.runSeed = seed;
+        g.enemies.forEach((enemy) => {
+          enemy.alive = false;
+          enemy.hp = 0;
+        });
+        dbg.checkEndStates();
+        dbg.applyRewardAndAdvance(null);
+        return g.enemies.map((enemy) => enemy.key);
+      }
+
+      const seedA = runToSecondSector(1337);
+      const seedB = runToSecondSector(1337);
+
+      return {
+        seedA,
+        seedB,
+      };
+    });
+
+    assert.equal(result.seedA.length, 2);
+    assert.deepEqual(result.seedA, result.seedB);
+    assert.equal(new Set(result.seedA).size, 2);
+    assert.ok(result.seedA.includes("ash_gunner"));
+  } finally {
+    await page.close();
+  }
+});
+
 test("progression reward pool override controls offered card rewards", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
@@ -152,9 +212,10 @@ test("progression reward pool override controls offered card rewards", { concurr
     });
 
     assert.equal(result.phase, "reward");
-    assert.equal(result.choices.length, 1);
-    assert.equal(result.choices[0]?.type, "card");
-    assert.equal(result.choices[0]?.cardId, "rail_cannon");
+    assert.ok(result.choices.length > 0);
+    const cardChoices = result.choices.filter((choice) => choice.type === "card");
+    assert.ok(cardChoices.length >= 1);
+    assert.ok(cardChoices.every((choice) => choice.cardId === "rail_cannon"));
   } finally {
     await page.close();
   }
@@ -304,8 +365,9 @@ test("invalid reward pool falls back to default reward cards", { concurrency: fa
 
     assert.equal(result.phase, "reward");
     assert.ok(result.choices.length > 0);
-    assert.ok(result.choices.every((choice) => choice.type === "card"));
-    assert.ok(result.choices.every((choice) => choice.cardId !== "not_a_real_card"));
+    const cardChoices = result.choices.filter((choice) => choice.type === "card");
+    assert.ok(cardChoices.length >= 1);
+    assert.ok(cardChoices.every((choice) => choice.cardId !== "not_a_real_card"));
   } finally {
     await page.close();
   }
@@ -536,6 +598,155 @@ test("slag round gains bonus damage against charged targets", { concurrency: fal
   }
 });
 
+test("combo keyword grants bonus when another card was played first", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+
+      const g = dbg.game;
+      const target = g.enemies.find((enemy) => enemy.alive);
+      if (!target) {
+        return { damage: 0, energy: 0, turnCardsPlayed: 0 };
+      }
+
+      target.hp = 99;
+      target.maxHp = 99;
+      target.block = 0;
+      g.selectedEnemyId = target.id;
+      g.player.energy = 3;
+      g.player.heat = 10;
+      g.turnCardsPlayed = 0;
+      g.hand = [
+        { cardId: "relay_tap", instanceId: "c_test_relay_tap" },
+        { cardId: "combo_strike", instanceId: "c_test_combo_strike" },
+      ];
+      g.drawPile = [];
+      g.discardPile = [];
+      g.exhaustPile = [];
+      dbg.renderCards();
+
+      const before = target.hp;
+      const cards = document.querySelectorAll("#cardRow .card");
+      cards[0]?.click();
+      document.querySelector("#cardRow .card")?.click();
+      const after = target.hp;
+
+      return {
+        damage: before - after,
+        energy: g.player.energy,
+        turnCardsPlayed: g.turnCardsPlayed,
+        log: g.log,
+      };
+    });
+
+    assert.equal(result.damage, 9);
+    assert.equal(result.energy, 3);
+    assert.equal(result.turnCardsPlayed, 2);
+    assert.match(result.log, /combo strike/i);
+  } finally {
+    await page.close();
+  }
+});
+
+test("firstfire keyword only triggers on the first card of a turn", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+
+      const g = dbg.game;
+      const target = g.enemies.find((enemy) => enemy.alive);
+      if (!target) {
+        return { energy: 0, turnCardsPlayed: 0, log: "" };
+      }
+
+      target.hp = 99;
+      target.maxHp = 99;
+      target.block = 0;
+      g.selectedEnemyId = target.id;
+      g.player.energy = 3;
+      g.player.heat = 20;
+      g.turnCardsPlayed = 0;
+      g.hand = [
+        { cardId: "ignition_jab", instanceId: "c_test_ignition_jab_1" },
+        { cardId: "ignition_jab", instanceId: "c_test_ignition_jab_2" },
+      ];
+      g.drawPile = [];
+      g.discardPile = [];
+      g.exhaustPile = [];
+      dbg.renderCards();
+
+      const firstCard = document.querySelectorAll("#cardRow .card")[0];
+      firstCard?.click();
+      const afterFirstEnergy = g.player.energy;
+
+      document.querySelector("#cardRow .card")?.click();
+      const afterSecondEnergy = g.player.energy;
+
+      return {
+        afterFirstEnergy,
+        afterSecondEnergy,
+        turnCardsPlayed: g.turnCardsPlayed,
+        log: g.log,
+      };
+    });
+
+    assert.equal(result.afterFirstEnergy, 3);
+    assert.equal(result.afterSecondEnergy, 2);
+    assert.equal(result.turnCardsPlayed, 2);
+    assert.match(result.log, /ignition jab/i);
+  } finally {
+    await page.close();
+  }
+});
+
+test("siphon bolt steals target block before damage", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+
+      const g = dbg.game;
+      const target = g.enemies.find((enemy) => enemy.alive);
+      if (!target) {
+        return { playerBlock: 0, targetBlock: 0, damage: 0 };
+      }
+
+      target.hp = 99;
+      target.maxHp = 99;
+      target.block = 5;
+      g.player.block = 0;
+      g.selectedEnemyId = target.id;
+      g.player.energy = 3;
+      g.hand = [{ cardId: "siphon_bolt", instanceId: "c_test_siphon_bolt" }];
+      g.drawPile = [];
+      g.discardPile = [];
+      g.exhaustPile = [];
+      dbg.renderCards();
+
+      const before = target.hp;
+      document.querySelector("#cardRow .card")?.click();
+      const after = target.hp;
+
+      return {
+        playerBlock: g.player.block,
+        targetBlock: target.block,
+        damage: before - after,
+      };
+    });
+
+    assert.equal(result.playerBlock, 4);
+    assert.equal(result.targetBlock, 0);
+    assert.equal(result.damage, 7);
+  } finally {
+    await page.close();
+  }
+});
+
 test("new enemy roster entries spawn with expected intent families", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
@@ -565,6 +776,133 @@ test("new enemy roster entries spawn with expected intent families", { concurren
     assert.ok(orbitalMiner);
     assert.deepEqual(coilPriest.intents, ["charge", "attack", "stoke"]);
     assert.deepEqual(orbitalMiner.intents, ["sweep", "guard", "attack"]);
+  } finally {
+    await page.close();
+  }
+});
+
+test("signal jammer and rivet brute spawn with expected intent families", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      window.BRASSLINE_BALANCE.progression.sectors = [
+        {
+          name: "New Roster Probe",
+          enemies: [
+            { key: "signal_jammer", power: 1 },
+            { key: "rivet_brute", power: 1 },
+          ],
+        },
+      ];
+      dbg.initGame();
+
+      const enemies = dbg.game.enemies.map((enemy) => ({
+        key: enemy.key,
+        intents: enemy.intents.map((intent) => intent.kind),
+      }));
+      return { enemies };
+    });
+
+    const signalJammer = result.enemies.find((enemy) => enemy.key === "signal_jammer");
+    const rivetBrute = result.enemies.find((enemy) => enemy.key === "rivet_brute");
+    assert.ok(signalJammer);
+    assert.ok(rivetBrute);
+    assert.deepEqual(signalJammer.intents, ["aim", "stoke", "attack"]);
+    assert.deepEqual(rivetBrute.intents, ["guard", "attack", "sweep"]);
+  } finally {
+    await page.close();
+  }
+});
+
+test("elite enemy entries use elite patterns and render elite UI markers", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      const progression = window.BRASSLINE_BALANCE.progression;
+      progression.sectors = [
+        {
+          name: "Elite Probe",
+          enemies: [
+            { key: "rail_sentry", power: 1, elite: true },
+            { key: "mortar_engineer", power: 1, elite: true },
+          ],
+        },
+      ];
+      dbg.initGame();
+      dbg.renderEnemies();
+
+      document.querySelector("#enemyRow .enemy .enemy-tooltip-toggle")?.click();
+
+      return {
+        enemies: dbg.game.enemies.map((enemy) => ({
+          key: enemy.key,
+          elite: enemy.elite,
+          maxHp: enemy.maxHp,
+          block: enemy.block,
+          intentKinds: enemy.intents.map((intent) => intent.kind),
+        })),
+        eliteBadges: Array.from(document.querySelectorAll("#enemyRow .enemy .enemy-badge-elite")).map((node) =>
+          node.textContent?.trim() || ""
+        ),
+        tooltipText: document.querySelector("#enemyRow .enemy .enemy-tooltip")?.textContent || "",
+      };
+    });
+
+    const eliteSentry = result.enemies.find((enemy) => enemy.key === "rail_sentry");
+    const eliteMortar = result.enemies.find((enemy) => enemy.key === "mortar_engineer");
+    assert.ok(eliteSentry);
+    assert.ok(eliteMortar);
+    assert.equal(eliteSentry.elite, true);
+    assert.equal(eliteMortar.elite, true);
+    assert.deepEqual(eliteSentry.intentKinds, ["aim", "attack", "sweep"]);
+    assert.deepEqual(eliteMortar.intentKinds, ["lob", "stoke", "attack"]);
+    assert.ok(eliteSentry.maxHp > 29);
+    assert.ok(eliteMortar.maxHp > 33);
+    assert.ok(eliteSentry.block > 0);
+    assert.ok(eliteMortar.block > 0);
+    assert.ok(result.eliteBadges.length >= 2);
+    assert.ok(result.eliteBadges.every((label) => /elite/i.test(label)));
+    assert.match(result.tooltipText, /elite/i);
+  } finally {
+    await page.close();
+  }
+});
+
+test("encounter modifier overrides apply effects at sector start", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      const progression = window.BRASSLINE_BALANCE.progression;
+      progression.sectors = [
+        {
+          name: "Modifier Probe",
+          enemies: [{ key: "rail_hound", power: 1 }],
+        },
+      ];
+      progression.encounterModifiers = {
+        fortified_patrol: { enabled: true, value: 7, title: "Fortified Patrol" },
+        pressure_front: { enabled: false },
+        steam_surge: { enabled: false },
+      };
+      dbg.initGame();
+
+      const g = dbg.game;
+      return {
+        enemyBlocks: g.enemies.map((enemy) => enemy.block),
+        modifierTitle: g.encounterModifier?.title || "",
+        log: g.log,
+        sectorLabel: document.getElementById("sectorLabel")?.textContent || "",
+      };
+    });
+
+    assert.ok(result.enemyBlocks.length > 0);
+    assert.ok(result.enemyBlocks.every((value) => value === 7));
+    assert.match(result.modifierTitle, /fortified patrol/i);
+    assert.match(result.log, /fortified patrol/i);
+    assert.match(result.sectorLabel, /fortified patrol/i);
   } finally {
     await page.close();
   }
@@ -682,6 +1020,67 @@ test("configured shop interlude can add a card to deck", { concurrency: false },
     assert.equal(result.phaseAtInterlude, "interlude");
     assert.equal(result.phaseAfterChoice, "player");
     assert.ok(result.circuitBreakCount >= 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test("configured interlude can remove a targeted card for deck thinning", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      const progression = window.BRASSLINE_BALANCE.progression;
+      progression.sectors = [
+        {
+          name: "Trim A",
+          enemies: [{ key: "rail_hound", power: 1 }],
+        },
+        {
+          name: "Trim B",
+          enemies: [{ key: "rail_hound", power: 1 }],
+        },
+      ];
+      progression.interludes = [
+        {
+          afterSector: 1,
+          type: "shop",
+          title: "Scrap Yard",
+          options: [{ label: "Trim Vent", removeCard: "pressure_vent" }],
+        },
+      ];
+      dbg.initGame();
+
+      const g = dbg.game;
+      g.enemies.forEach((enemy) => {
+        enemy.alive = false;
+        enemy.hp = 0;
+      });
+      dbg.checkEndStates();
+      dbg.applyRewardAndAdvance(null);
+
+      const beforeDeck = [...g.interludeDeck];
+      const beforeCount = beforeDeck.length;
+      const beforeVentCount = beforeDeck.filter((instance) => instance.cardId === "pressure_vent").length;
+
+      dbg.resolveInterludeOption(0);
+      const afterDeck = [...g.hand, ...g.drawPile, ...g.discardPile, ...g.exhaustPile];
+      const afterCount = afterDeck.length;
+      const afterVentCount = afterDeck.filter((instance) => instance.cardId === "pressure_vent").length;
+
+      return {
+        phase: g.phase,
+        beforeCount,
+        afterCount,
+        beforeVentCount,
+        afterVentCount,
+      };
+    });
+
+    assert.equal(result.phase, "player");
+    assert.ok(result.beforeVentCount > 0);
+    assert.equal(result.afterCount, result.beforeCount - 1);
+    assert.equal(result.afterVentCount, result.beforeVentCount - 1);
   } finally {
     await page.close();
   }

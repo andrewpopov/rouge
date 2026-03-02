@@ -47,7 +47,7 @@ test("sector clear reward choices include an upgrade path option", { concurrency
   }
 });
 
-test("maxed upgrade paths stop offering upgrade rewards", { concurrency: false }, async () => {
+test("maxed upgrade paths stop offering upgrades but still offer artifacts", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
     const result = await page.evaluate(() => {
@@ -69,14 +69,18 @@ test("maxed upgrade paths stop offering upgrade rewards", { concurrency: false }
       return {
         phase: g.phase,
         hasUpgradeChoice: g.rewardChoices.some((choice) => choice?.type === "upgrade"),
+        hasArtifactChoice: g.rewardChoices.some((choice) => choice?.type === "artifact"),
         renderedUpgradeNodes: document.querySelectorAll("#rewardChoices .reward-upgrade").length,
+        renderedArtifactNodes: document.querySelectorAll("#rewardChoices .reward-artifact").length,
         rewardMetaText: document.getElementById("rewardMeta")?.textContent || "",
       };
     });
 
     assert.equal(result.phase, "reward");
     assert.equal(result.hasUpgradeChoice, false);
+    assert.equal(result.hasArtifactChoice, true);
     assert.equal(result.renderedUpgradeNodes, 0);
+    assert.ok(result.renderedArtifactNodes >= 1);
     assert.match(result.rewardMetaText, /12\/12 levels installed/i);
     assert.match(result.rewardMetaText, /all upgrade paths are maxed/i);
   } finally {
@@ -108,6 +112,46 @@ test("reward panel meta summary shows path chips and suggested next upgrade", { 
     assert.match(result.metaText, /3\/12 levels installed/i);
     assert.match(result.metaText, /suggested next/i);
     assert.match(result.metaText, /coolant loop/i);
+  } finally {
+    await page.close();
+  }
+});
+
+test("reward panel shows next encounter intel with elite risk preview", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.phase = "reward";
+      g.sectorIndex = 1;
+      g.rewardChoices = [{ type: "card", cardId: "spark_lance" }];
+      dbg.updateHud();
+
+      return {
+        title: document.querySelector("#rewardIntel .reward-intel-title")?.textContent || "",
+        text: document.getElementById("rewardIntel")?.textContent || "",
+        threatChipCount: document.querySelectorAll("#rewardIntel .reward-intel-threat-chip").length,
+        threatIconCount: document.querySelectorAll("#rewardIntel .reward-intel-threat-chip img").length,
+        firstThreatTitle:
+          document.querySelector("#rewardIntel .reward-intel-threat-chip")?.getAttribute("title") || "",
+      };
+    });
+
+    assert.match(result.title, /next sector 3\/5/i);
+    assert.match(result.title, /voltage causeway/i);
+    assert.match(result.text, /encounter:/i);
+    assert.match(result.text, /elite risk:/i);
+    assert.doesNotMatch(result.text, /elite risk:\s*none/i);
+    assert.match(result.text, /likely threats:/i);
+    assert.match(result.text, /%/i);
+    assert.match(result.text, /(arc lancer|ash gunner|coil priest|rail sentry)/i);
+    assert.match(result.text, /mutators:/i);
+    assert.ok(result.threatChipCount >= 1);
+    assert.ok(result.threatIconCount >= 1);
+    assert.match(result.firstThreatTitle, /pattern:/i);
+    assert.match(result.firstThreatTitle, /tags:/i);
   } finally {
     await page.close();
   }
@@ -172,6 +216,7 @@ test("run summary panel appears on victory and game over with stats", { concurre
       g.runStats.rewardsClaimed = 2;
       g.runStats.rewardSkips = 1;
       g.upgrades.guard_protocol = 2;
+      g.artifacts = ["aegis_booster"];
       dbg.updateHud();
 
       const victory = {
@@ -179,6 +224,7 @@ test("run summary panel appears on victory and game over with stats", { concurre
         title: document.getElementById("runSummaryTitle")?.textContent || "",
         subtitle: document.getElementById("runSummarySubtitle")?.textContent || "",
         text: document.getElementById("runSummaryStats")?.textContent || "",
+        timelineText: document.getElementById("runSummaryTimeline")?.textContent || "",
       };
 
       g.phase = "gameover";
@@ -203,6 +249,7 @@ test("run summary panel appears on victory and game over with stats", { concurre
     assert.match(result.victory.subtitle, /foundry crown secured in 9 turns/i);
     assert.match(result.victory.text, /83/);
     assert.match(result.victory.text, /2\/12/);
+    assert.match(result.victory.timelineText, /aegis booster/i);
 
     assert.equal(result.gameover.hidden, false);
     assert.match(result.gameover.title, /reactor lost/i);
@@ -619,6 +666,51 @@ test("upgrade reward increases path level and applies its stat effect", { concur
   }
 });
 
+test("branch upgrade reward stores chosen branch and applies branch bonus", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.upgrades.guard_protocol = 1;
+      g.metaBranches.guard_protocol = "";
+      g.phase = "reward";
+      g.rewardChoices = [
+        {
+          type: "upgrade",
+          upgradeId: "guard_protocol",
+          branchId: "guard_protocol_branch_reactive_coils",
+        },
+      ];
+      dbg.updateHud();
+
+      const renderedTypeText =
+        document.querySelector("#rewardChoices .reward-upgrade .card-type")?.textContent || "";
+      const beforeMaxEnergy = g.player.maxEnergy;
+      dbg.applyRewardAndAdvance({
+        type: "upgrade",
+        upgradeId: "guard_protocol",
+        branchId: "guard_protocol_branch_reactive_coils",
+      });
+
+      return {
+        renderedTypeText,
+        branchId: g.metaBranches.guard_protocol,
+        level: g.upgrades.guard_protocol,
+        maxEnergyDelta: g.player.maxEnergy - beforeMaxEnergy,
+      };
+    });
+
+    assert.match(result.renderedTypeText, /branch/i);
+    assert.equal(result.branchId, "guard_protocol_branch_reactive_coils");
+    assert.equal(result.level, 2);
+    assert.equal(result.maxEnergyDelta, 1);
+  } finally {
+    await page.close();
+  }
+});
+
 test("invalid or stale reward selection does not advance sector", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
@@ -654,6 +746,58 @@ test("invalid or stale reward selection does not advance sector", { concurrency:
   }
 });
 
+test("artifact reward renders and applies its passive on claim", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.player.hull = Math.max(1, g.player.maxHull - 20);
+      g.phase = "reward";
+      g.rewardChoices = [{ type: "artifact", artifactId: "field_medkit" }];
+      dbg.updateHud();
+      const renderedArtifactNodes = document.querySelectorAll("#rewardChoices .reward-artifact").length;
+      const artifactTypeText =
+        document.querySelector("#rewardChoices .reward-artifact .card-type")?.textContent || "";
+      const artifactClassName =
+        document.querySelector("#rewardChoices .reward-artifact")?.className || "";
+      const artifactRarityPillText =
+        document.querySelector("#rewardChoices .reward-artifact .artifact-rarity-pill")?.textContent || "";
+      const artifactRarityPillClassName =
+        document.querySelector("#rewardChoices .reward-artifact .artifact-rarity-pill")?.className || "";
+      const beforeHull = g.player.hull;
+
+      dbg.applyRewardAndAdvance({ type: "artifact", artifactId: "field_medkit" });
+
+      return {
+        renderedArtifactNodes,
+        artifactTypeText,
+        artifactClassName,
+        artifactRarityPillText,
+        artifactRarityPillClassName,
+        artifacts: Array.isArray(g.artifacts) ? g.artifacts.slice() : [],
+        hullGain: g.player.hull - beforeHull,
+        phase: g.phase,
+        sectorIndex: g.sectorIndex,
+      };
+    });
+
+    assert.ok(result.renderedArtifactNodes >= 1);
+    assert.match(result.artifactTypeText, /artifact/i);
+    assert.match(result.artifactTypeText, /uncommon/i);
+    assert.match(result.artifactClassName, /rarity-uncommon/i);
+    assert.match(result.artifactRarityPillText, /uncommon/i);
+    assert.match(result.artifactRarityPillClassName, /rarity-uncommon/i);
+    assert.ok(result.artifacts.includes("field_medkit"));
+    assert.equal(result.hullGain, 10);
+    assert.equal(result.phase, "player");
+    assert.equal(result.sectorIndex, 1);
+  } finally {
+    await page.close();
+  }
+});
+
 test("upgrades persist across run restarts via local storage", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
@@ -682,6 +826,209 @@ test("upgrades persist across run restarts via local storage", { concurrency: fa
 
     assert.equal(result.afterUpgrade, 1);
     assert.equal(result.afterRestart, 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test("artifact block bonus adds to turn-start guard block", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.upgrades.guard_protocol = 1; // +3
+      g.artifacts = ["aegis_booster"]; // +2
+      g.player.heat = 40;
+      g.player.block = 0;
+      g.player.energy = g.player.maxEnergy;
+      g.player.movedThisTurn = false;
+      g.telegraphs = [];
+      g.enemies
+        .filter((enemy) => enemy.alive)
+        .forEach((enemy) => {
+          enemy.attackBuff = 0;
+          enemy.aimed = false;
+          enemy.aimedLane = null;
+          enemy.intent = { kind: "guard", value: 0, hits: 0, label: "Idle" };
+        });
+      dbg.renderTrackMap();
+      dbg.renderEnemies();
+      dbg.renderCards();
+      dbg.updateHud();
+    });
+
+    const turnBefore = await getTurn(page);
+    await page.click("#endTurnBtn");
+    await waitForTurnAdvance(page, turnBefore);
+
+    const block = await page.evaluate(() =>
+      Number.parseInt(document.getElementById("blockValue")?.textContent || "0", 10)
+    );
+    assert.equal(block, 5);
+  } finally {
+    await page.close();
+  }
+});
+
+test("artifact battle-start block applies when entering a new sector", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.artifacts = ["anchor_chassis"];
+      g.enemies.forEach((enemy) => {
+        enemy.alive = false;
+        enemy.hp = 0;
+      });
+      dbg.checkEndStates();
+      dbg.applyRewardAndAdvance(null);
+      return {
+        phase: g.phase,
+        sectorIndex: g.sectorIndex,
+        block: g.player.block,
+      };
+    });
+
+    assert.equal(result.phase, "player");
+    assert.equal(result.sectorIndex, 1);
+    assert.equal(result.block, 4);
+  } finally {
+    await page.close();
+  }
+});
+
+test("artifact turn-start energy bonus grants extra steam each turn", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.artifacts = ["capacitor_spindle"];
+      g.player.heat = 40;
+      g.player.energy = g.player.maxEnergy;
+      g.player.movedThisTurn = false;
+      g.telegraphs = [];
+      g.enemies
+        .filter((enemy) => enemy.alive)
+        .forEach((enemy) => {
+          enemy.attackBuff = 0;
+          enemy.aimed = false;
+          enemy.aimedLane = null;
+          enemy.intent = { kind: "guard", value: 0, hits: 0, label: "Idle" };
+        });
+      dbg.renderTrackMap();
+      dbg.renderEnemies();
+      dbg.renderCards();
+      dbg.updateHud();
+    });
+
+    const turnBefore = await getTurn(page);
+    await page.click("#endTurnBtn");
+    await waitForTurnAdvance(page, turnBefore);
+
+    const energy = await page.evaluate(() =>
+      Number.parseInt(document.getElementById("energyValue")?.textContent || "0", 10)
+    );
+    assert.equal(energy, 4);
+  } finally {
+    await page.close();
+  }
+});
+
+test("artifact battle-start draw bonus increases opening hand size", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.artifacts = ["targeting_lens"];
+      g.enemies.forEach((enemy) => {
+        enemy.alive = false;
+        enemy.hp = 0;
+      });
+      dbg.checkEndStates();
+      dbg.applyRewardAndAdvance(null);
+      return {
+        phase: g.phase,
+        sectorIndex: g.sectorIndex,
+        hand: g.hand.length,
+      };
+    });
+
+    assert.equal(result.phase, "player");
+    assert.equal(result.sectorIndex, 1);
+    assert.equal(result.hand, 6);
+  } finally {
+    await page.close();
+  }
+});
+
+test("artifact overclock heat reduction lowers overclock pressure gain", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      const g = dbg.game;
+      g.artifacts = ["overclock_jacket"];
+      g.player.heat = 20;
+      g.player.overclockUsed = false;
+      dbg.updateHud();
+      dbg.useOverclock();
+      return {
+        heat: g.player.heat,
+      };
+    });
+
+    assert.equal(result.heat, 28);
+  } finally {
+    await page.close();
+  }
+});
+
+test("legacy meta payload migrates tier unlocks on boot", { concurrency: false }, async () => {
+  const page = await openGamePage(browser, { resetStorage: false });
+  try {
+    await page.evaluate(() => {
+      try {
+        window.localStorage?.removeItem("brassline_run_snapshot_v1");
+        window.localStorage?.setItem(
+          "brassline_meta_v1",
+          JSON.stringify({
+            condenser_bank: 3,
+            coolant_loop: 0,
+            hull_plating: 0,
+            guard_protocol: 0,
+          })
+        );
+      } catch (_error) {
+        // Ignore storage failures in tests.
+      }
+    });
+
+    await page.reload();
+    await page.waitForSelector("#laneThreatForecast");
+
+    const result = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.updateHud();
+      const g = dbg.game;
+      return {
+        level: g.upgrades.condenser_bank,
+        unlocks: Array.isArray(g.metaUnlocks?.condenser_bank) ? g.metaUnlocks.condenser_bank : [],
+        upgradeStripText: document.getElementById("upgradeStrip")?.textContent || "",
+      };
+    });
+
+    assert.equal(result.level, 3);
+    assert.deepEqual(result.unlocks, ["condenser_bank_tier_2", "condenser_bank_tier_3"]);
+    assert.match(result.upgradeStripText, /tiers 2\/2/i);
   } finally {
     await page.close();
   }
@@ -771,6 +1118,48 @@ test("upgrade strip reflects installed upgrade paths", { concurrency: false }, a
     assert.match(after.text, /guard protocol/i);
     assert.match(after.text, /start-turn block/i);
     assert.match(after.text, /1\/12/i);
+  } finally {
+    await page.close();
+  }
+});
+
+test("artifact strip reflects installed artifacts", { concurrency: false }, async () => {
+  const page = await openGamePage(browser);
+  try {
+    const before = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      dbg.initGame();
+      dbg.updateHud();
+      const strip = document.getElementById("artifactStrip");
+      return {
+        text: strip?.textContent || "",
+        chipCount: strip?.querySelectorAll(".artifact-chip").length || 0,
+      };
+    });
+
+    assert.equal(before.chipCount, 0);
+    assert.match(before.text, /artifacts/i);
+    assert.match(before.text, /none installed/i);
+
+    const after = await page.evaluate(() => {
+      const dbg = window.__brasslineDebug;
+      const g = dbg.game;
+      g.artifacts = ["aegis_booster", "field_medkit"];
+      dbg.updateHud();
+      const strip = document.getElementById("artifactStrip");
+      return {
+        text: strip?.textContent || "",
+        chipCount: strip?.querySelectorAll(".artifact-chip").length || 0,
+        rarityCount: strip?.querySelectorAll(".artifact-chip .artifact-rarity").length || 0,
+      };
+    });
+
+    assert.equal(after.chipCount, 2);
+    assert.equal(after.rarityCount, 2);
+    assert.match(after.text, /aegis booster/i);
+    assert.match(after.text, /field medkit/i);
+    assert.match(after.text, /common/i);
+    assert.match(after.text, /uncommon/i);
   } finally {
     await page.close();
   }

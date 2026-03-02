@@ -28,6 +28,7 @@ test("index loads required runtime modules before main.js", () => {
     "./progression.js",
     "./progression-content.js",
     "./tuning-readers.js",
+    "./encounter-modifiers.js",
     "./enemy-catalog.js",
     "./card-catalog.js",
     "./forecast.js",

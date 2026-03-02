@@ -37,8 +37,12 @@
     }
 
     const bossTag = sector.boss ? " // Boss" : "";
+    const modifierTag =
+      game.encounterModifier && typeof game.encounterModifier.title === "string"
+        ? ` // ${game.encounterModifier.title}`
+        : "";
     const clearedTag = game.phase === "reward" ? " // Cleared" : "";
-    sectorLabelEl.textContent = `Sector ${game.sectorIndex + 1}/${runSectorsLength} // ${sector.name}${bossTag}${clearedTag}`;
+    sectorLabelEl.textContent = `Sector ${game.sectorIndex + 1}/${runSectorsLength} // ${sector.name}${bossTag}${modifierTag}${clearedTag}`;
   }
 
   function updateHud({
@@ -61,6 +65,7 @@
     renderInterludePanelFn,
     renderRunSummaryPanelFn,
     renderUpgradeStripFn,
+    renderArtifactStripFn,
     renderLaneThreatForecastFn,
     renderOnboardingPanelFn,
     saveRunSnapshotStateFn,
@@ -163,6 +168,9 @@
     renderInterludePanelFn();
     renderRunSummaryPanelFn();
     renderUpgradeStripFn();
+    if (typeof renderArtifactStripFn === "function") {
+      renderArtifactStripFn();
+    }
     renderLaneThreatForecastFn(forecastUi);
     renderOnboardingPanelFn();
     saveRunSnapshotStateFn();

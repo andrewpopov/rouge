@@ -50,12 +50,35 @@ test("progression entries reference known enemy and card ids", () => {
   assert.ok(Array.isArray(sectors) && sectors.length > 0, "No progression sectors configured");
   sectors.forEach((sector, sectorIndex) => {
     assert.ok(Array.isArray(sector.enemies) && sector.enemies.length > 0, `Sector ${sectorIndex + 1} has no enemies`);
+    if ("encounterSize" in sector) {
+      assert.ok(
+        Number.isInteger(sector.encounterSize) && sector.encounterSize > 0,
+        `progression.sectors[${sectorIndex}].encounterSize must be a positive integer`
+      );
+      assert.ok(
+        sector.encounterSize <= sector.enemies.length,
+        `progression.sectors[${sectorIndex}].encounterSize cannot exceed enemy pool size`
+      );
+    }
     sector.enemies.forEach((entry) => {
       assert.ok(
         enemyIds.has(entry.key),
         `Unknown enemy id in progression.sectors[${sectorIndex}]: ${String(entry.key)}`
       );
       assert.ok(Number.isFinite(entry.power) && entry.power > 0, `Invalid enemy power for ${entry.key}`);
+      if ("elite" in entry) {
+        assert.equal(
+          typeof entry.elite,
+          "boolean",
+          `progression.sectors[${sectorIndex}].enemies entry elite flag must be boolean`
+        );
+      }
+      if ("weight" in entry) {
+        assert.ok(
+          Number.isFinite(entry.weight) && entry.weight > 0,
+          `progression.sectors[${sectorIndex}].enemies entry weight must be > 0`
+        );
+      }
     });
   });
 
@@ -122,6 +145,42 @@ test("default progression ships with event + shop interludes and at least one br
     entry.options.some((option) => Number.isInteger(option?.targetSector))
   );
   assert.ok(hasBranch, "Expected at least one default branching interlude option");
+
+  const branchOptionCount = interludes.reduce((sum, entry) => {
+    if (!Array.isArray(entry?.options)) {
+      return sum;
+    }
+    return sum + entry.options.filter((option) => Number.isInteger(option?.targetSector)).length;
+  }, 0);
+  assert.ok(branchOptionCount >= 2, "Expected at least two default branch options across interludes");
+});
+
+test("default progression includes a targeted deck-thinning interlude option", () => {
+  const balance = loadBalanceConfig();
+  const interludes = Array.isArray(balance.progression?.interludes) ? balance.progression.interludes : [];
+  const hasTargetedThin = interludes.some((entry) =>
+    Array.isArray(entry?.options) &&
+    entry.options.some((option) => typeof option?.removeCard === "string" && !option?.addCard)
+  );
+
+  assert.ok(hasTargetedThin, "Expected at least one remove-only interlude option for deck thinning");
+});
+
+test("default progression includes weighted encounter pools with per-run sampling", () => {
+  const balance = loadBalanceConfig();
+  const sectors = Array.isArray(balance.progression?.sectors) ? balance.progression.sectors : [];
+
+  const hasSampledPool = sectors.some((sector) => {
+    const encounterSize = sector?.encounterSize;
+    const enemyCount = Array.isArray(sector?.enemies) ? sector.enemies.length : 0;
+    return Number.isInteger(encounterSize) && encounterSize > 0 && encounterSize < enemyCount;
+  });
+  assert.ok(hasSampledPool, "Expected at least one default sector with encounterSize smaller than pool size");
+
+  const hasWeightedEnemy = sectors.some((sector) =>
+    Array.isArray(sector?.enemies) && sector.enemies.some((entry) => Number.isFinite(entry?.weight) && entry.weight > 1)
+  );
+  assert.ok(hasWeightedEnemy, "Expected at least one weighted enemy entry in default progression");
 });
 
 test("upgrade path ids and max levels are valid", () => {
@@ -160,4 +219,24 @@ test("card and enemy payloads contain required baseline fields", () => {
       );
     });
   });
+});
+
+test("default card set includes at least one keyword rules card", () => {
+  const balance = loadBalanceConfig();
+  const cardEntries = Object.entries(balance.cards || {});
+  const hasComboKeyword = cardEntries.some(([_cardId, card]) =>
+    typeof card?.text === "string" && /\bcombo:/i.test(card.text)
+  );
+
+  assert.ok(hasComboKeyword, "Expected at least one card text to define the Combo keyword");
+});
+
+test("default card set includes at least one Firstfire keyword card", () => {
+  const balance = loadBalanceConfig();
+  const cardEntries = Object.entries(balance.cards || {});
+  const hasFirstfireKeyword = cardEntries.some(([_cardId, card]) =>
+    typeof card?.text === "string" && /\bfirstfire:/i.test(card.text)
+  );
+
+  assert.ok(hasFirstfireKeyword, "Expected at least one card text to define the Firstfire keyword");
 });

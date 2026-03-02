@@ -45,6 +45,8 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
 
       g.phase = "player";
       g.turn = 4;
+      g.turnCardsPlayed = 2;
+      g.runSeed = 24680;
       g.player.hull = Math.max(1, g.player.maxHull - 19);
       g.player.block = 7;
       g.player.heat = 68;
@@ -80,12 +82,24 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
       ];
       g.nextTelegraphId = 78;
       g.selectedEnemyId = g.enemies[0]?.id ?? null;
+      g.artifacts = ["aegis_booster"];
+      g.upgrades.condenser_bank = 2;
+      g.metaBranches = {
+        condenser_bank: "condenser_bank_branch_pressure_cells",
+        coolant_loop: "",
+        hull_plating: "",
+        guard_protocol: "",
+      };
       dbg.updateHud();
 
       return {
         phase: g.phase,
         turn: g.turn,
+        turnCardsPlayed: g.turnCardsPlayed,
+        runSeed: g.runSeed,
         sectorIndex: g.sectorIndex,
+        artifacts: Array.isArray(g.artifacts) ? g.artifacts.slice() : [],
+        metaBranches: { ...(g.metaBranches || {}) },
         player: {
           hull: g.player.hull,
           heat: g.player.heat,
@@ -118,7 +132,11 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
       return {
         phase: g.phase,
         turn: g.turn,
+        turnCardsPlayed: g.turnCardsPlayed,
+        runSeed: g.runSeed,
         sectorIndex: g.sectorIndex,
+        artifacts: Array.isArray(g.artifacts) ? g.artifacts.slice() : [],
+        metaBranches: { ...(g.metaBranches || {}) },
         player: {
           hull: g.player.hull,
           heat: g.player.heat,

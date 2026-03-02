@@ -42,6 +42,15 @@ test("enemy catalog builder applies tuning callbacks with fallback defaults", ()
   assert.equal(blueprints.rail_hound.intents[0].value, 9);
   assert.equal(blueprints.ash_gunner.maxHp, 25);
   assert.equal(blueprints.rail_sentry.startIntentIndex, 1);
+  assert.equal(blueprints.rail_sentry.eliteStartBlock, 4);
+  assert.deepEqual(
+    Array.from(blueprints.rail_sentry.eliteIntents).map((intent) => intent.kind),
+    ["aim", "attack", "sweep"]
+  );
+  assert.deepEqual(
+    Array.from(blueprints.mortar_engineer.eliteIntents).map((intent) => intent.kind),
+    ["lob", "stoke", "attack"]
+  );
 });
 
 test("card catalog builder applies tuned values in runtime card behavior", () => {

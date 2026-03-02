@@ -67,6 +67,7 @@ const BRASSLINE_CARD_CATALOG = window.BRASSLINE_CARD_CATALOG || {};
 const BRASSLINE_PROGRESSION_CONTENT = window.BRASSLINE_PROGRESSION_CONTENT || {};
 const BRASSLINE_TUNING_READERS = window.BRASSLINE_TUNING_READERS || {};
 const BRASSLINE_RUNTIME_UTILS = window.BRASSLINE_RUNTIME_UTILS || {};
+const BRASSLINE_ENCOUNTER_MODIFIERS = window.BRASSLINE_ENCOUNTER_MODIFIERS || {};
 
 if (typeof BRASSLINE_RUNTIME_UTILS.createRuntimeUtils !== "function") {
   throw new Error("BRASSLINE_RUNTIME_UTILS.createRuntimeUtils is required.");
@@ -111,6 +112,7 @@ if (
   typeof BRASSLINE_PROGRESSION_CONTENT.getDefaultStarterDeckRecipe !== "function" ||
   typeof BRASSLINE_PROGRESSION_CONTENT.getDefaultRewardPool !== "function" ||
   typeof BRASSLINE_PROGRESSION_CONTENT.getDefaultInterludes !== "function" ||
+  typeof BRASSLINE_PROGRESSION_CONTENT.getDefaultArtifactCatalog !== "function" ||
   typeof BRASSLINE_PROGRESSION_CONTENT.getDefaultUpgradePathCatalog !== "function"
 ) {
   throw new Error("BRASSLINE_PROGRESSION_CONTENT default providers are required.");
@@ -120,12 +122,24 @@ const DEFAULT_RUN_SECTORS = BRASSLINE_PROGRESSION_CONTENT.getDefaultRunSectors()
 const DEFAULT_STARTER_DECK_RECIPE = BRASSLINE_PROGRESSION_CONTENT.getDefaultStarterDeckRecipe();
 const DEFAULT_REWARD_POOL = BRASSLINE_PROGRESSION_CONTENT.getDefaultRewardPool();
 const DEFAULT_INTERLUDES = BRASSLINE_PROGRESSION_CONTENT.getDefaultInterludes();
+const DEFAULT_ARTIFACT_CATALOG = BRASSLINE_PROGRESSION_CONTENT.getDefaultArtifactCatalog();
 const DEFAULT_UPGRADE_PATH_CATALOG = BRASSLINE_PROGRESSION_CONTENT.getDefaultUpgradePathCatalog();
+
+if (
+  typeof BRASSLINE_ENCOUNTER_MODIFIERS.buildEncounterModifierCatalog !== "function" ||
+  typeof BRASSLINE_ENCOUNTER_MODIFIERS.getRandomEncounterModifier !== "function" ||
+  typeof BRASSLINE_ENCOUNTER_MODIFIERS.applyEncounterModifier !== "function"
+) {
+  throw new Error("BRASSLINE_ENCOUNTER_MODIFIERS APIs are required.");
+}
+
+let encounterModifierCatalog = {};
 
 let runSectors = [];
 let starterDeckRecipe = [];
 let rewardPool = [];
 let runInterludes = [];
+const artifactCatalog = DEFAULT_ARTIFACT_CATALOG;
 
 function refreshConfiguredProgression() {
   const configured = BRASSLINE_PROGRESSION.buildConfiguredProgression({
@@ -146,7 +160,14 @@ function refreshConfiguredProgression() {
   runInterludes = configured.runInterludes;
 }
 
+function refreshEncounterModifierCatalog() {
+  encounterModifierCatalog = BRASSLINE_ENCOUNTER_MODIFIERS.buildEncounterModifierCatalog({
+    modifierConfig: BALANCE.progression?.encounterModifiers,
+  });
+}
+
 refreshConfiguredProgression();
+refreshEncounterModifierCatalog();
 
 function getRunRouteSignature() {
   return BRASSLINE_PROGRESSION.buildRunRouteSignature({
@@ -197,6 +218,28 @@ function createDefaultRunTimeline() {
   return BRASSLINE_PROGRESSION.createDefaultRunTimeline();
 }
 
+function createDefaultMetaUnlockState() {
+  if (typeof BRASSLINE_META_PROGRESSION.createDefaultMetaUnlockState !== "function") {
+    return {};
+  }
+  return BRASSLINE_META_PROGRESSION.createDefaultMetaUnlockState({
+    upgradePathCatalog,
+  });
+}
+
+function createDefaultMetaBranchState() {
+  if (typeof BRASSLINE_META_PROGRESSION.createDefaultMetaBranchState !== "function") {
+    return {};
+  }
+  return BRASSLINE_META_PROGRESSION.createDefaultMetaBranchState({
+    upgradePathCatalog,
+  });
+}
+
+function createRunSeed() {
+  return randomInt(2147483646) + 1;
+}
+
 function ensureRunStats() {
   return BRASSLINE_PROGRESSION.ensureRunStats({
     game,
@@ -212,12 +255,50 @@ function ensureRunRecords() {
 }
 
 function readMetaUpgradeState() {
-  return BRASSLINE_PERSISTENCE.readMetaUpgrades({
+  const parsed = BRASSLINE_PERSISTENCE.readMetaUpgrades({
     key: META_STORAGE_KEY,
     upgradePathCatalog,
     createDefaultUpgradeState,
+    createDefaultMetaUnlockState,
+    createDefaultMetaBranchState,
     clamp,
   });
+
+  const upgrades =
+    parsed && typeof parsed === "object" && parsed.upgrades && typeof parsed.upgrades === "object"
+      ? parsed.upgrades
+      : parsed;
+  const unlocksRaw =
+    parsed && typeof parsed === "object" && parsed.unlocks && typeof parsed.unlocks === "object"
+      ? parsed.unlocks
+      : {};
+  const branchesRaw =
+    parsed && typeof parsed === "object" && parsed.branches && typeof parsed.branches === "object"
+      ? parsed.branches
+      : {};
+  const safeUpgrades = upgrades && typeof upgrades === "object" ? upgrades : createDefaultUpgradeState();
+  const safeUnlocks =
+    typeof BRASSLINE_META_PROGRESSION.hydrateMetaUnlockState === "function"
+      ? BRASSLINE_META_PROGRESSION.hydrateMetaUnlockState({
+          upgradePathCatalog,
+          upgrades: safeUpgrades,
+          metaUnlocks: unlocksRaw,
+        })
+      : createDefaultMetaUnlockState();
+  const safeBranches =
+    typeof BRASSLINE_META_PROGRESSION.hydrateMetaBranchState === "function"
+      ? BRASSLINE_META_PROGRESSION.hydrateMetaBranchState({
+          upgradePathCatalog,
+          upgrades: safeUpgrades,
+          metaBranches: branchesRaw,
+        })
+      : createDefaultMetaBranchState();
+
+  return {
+    upgrades: safeUpgrades,
+    unlocks: safeUnlocks,
+    branches: safeBranches,
+  };
 }
 
 function readRunRecordsState() {
@@ -273,6 +354,8 @@ function readRunSnapshotState() {
     getRunRouteSignature,
     runSectors,
     createDefaultUpgradeState,
+    createDefaultMetaUnlockState,
+    createDefaultMetaBranchState,
     createDefaultRunStats,
     createDefaultRunTimeline,
     upgradePathCatalog,
@@ -283,6 +366,8 @@ function readRunSnapshotState() {
     clampLane,
     cardCatalog,
     normalizeRewardChoice,
+    encounterModifierCatalog,
+    artifactCatalog,
     trackLanes: TRACK_LANES,
     baseMaxHull: BASE_MAX_HULL,
     baseMaxEnergy: BASE_MAX_ENERGY,
@@ -345,7 +430,10 @@ const game = BRASSLINE_GAME_STATE.createInitialGameState({
   baseMaxEnergy: BASE_MAX_ENERGY,
   playerStartHeat: PLAYER_START_HEAT,
   trackLanes: TRACK_LANES,
+  createRunSeedFn: createRunSeed,
   createDefaultUpgradeStateFn: createDefaultUpgradeState,
+  createDefaultMetaUnlockStateFn: createDefaultMetaUnlockState,
+  createDefaultMetaBranchStateFn: createDefaultMetaBranchState,
   createDefaultRunStatsFn: createDefaultRunStats,
   createDefaultRunRecordsFn: createDefaultRunRecords,
   createDefaultRecordHighlightsFn: createDefaultRecordHighlights,
@@ -378,6 +466,7 @@ const els = {
   rewardPanel: document.getElementById("rewardPanel"),
   rewardSubtitle: document.getElementById("rewardSubtitle"),
   rewardMeta: document.getElementById("rewardMeta"),
+  rewardIntel: document.getElementById("rewardIntel"),
   rewardChoices: document.getElementById("rewardChoices"),
   skipRewardBtn: document.getElementById("skipRewardBtn"),
   interludePanel: document.getElementById("interludePanel"),
@@ -391,6 +480,7 @@ const els = {
   toggleRunTimelineBtn: document.getElementById("toggleRunTimelineBtn"),
   runSummaryTimeline: document.getElementById("runSummaryTimeline"),
   upgradeStrip: document.getElementById("upgradeStrip"),
+  artifactStrip: document.getElementById("artifactStrip"),
   resetMetaBtn: document.getElementById("resetMetaBtn"),
   resetRunRecordsBtn: document.getElementById("resetRunRecordsBtn"),
   overclockBtn: document.getElementById("overclockBtn"),
@@ -424,28 +514,14 @@ function setLog(message) {
 }
 
 function appendRunTimelineEntry(message, options = {}) {
-  if (typeof message !== "string" || message.trim().length === 0) {
-    return;
-  }
-  if (!Array.isArray(game.runTimeline)) {
-    game.runTimeline = createDefaultRunTimeline();
-  }
-
-  const sectorPart = Number.isInteger(options.sectorIndex)
-    ? `S${clamp(options.sectorIndex + 1, 1, runSectors.length)}`
-    : "";
-  const turnPart = Number.isInteger(options.turn) && options.turn > 0 ? `T${options.turn}` : "";
-  const prefix = [sectorPart, turnPart].filter(Boolean).join(" ");
-  const line = prefix ? `${prefix} // ${message.trim()}` : message.trim();
-  const type = typeof options.type === "string" && options.type.trim() ? options.type.trim() : "info";
-  game.runTimeline.push({
-    line,
-    type,
+  BRASSLINE_PROGRESSION.appendRunTimelineEntry({
+    game,
+    message,
+    options,
+    createDefaultRunTimelineFn: createDefaultRunTimeline,
+    clamp,
+    runSectorsLength: runSectors.length,
   });
-  const maxEntries = 22;
-  while (game.runTimeline.length > maxEntries) {
-    game.runTimeline.shift();
-  }
 }
 
 function getHeatState(heat) {
@@ -608,6 +684,7 @@ function buildContext(targetEnemy) {
   return {
     game,
     target: targetEnemy,
+    hasCombo: () => Number.isInteger(game.turnCardsPlayed) && game.turnCardsPlayed > 0,
     damageEnemy,
     drawCards,
     gainHeat,
@@ -666,6 +743,8 @@ function purgeHand() {
 }
 
 function useOverclock() {
+  const overclockHeatReduction = getRunArtifactBonus("overclock_heat_reduction");
+  const effectiveOverclockHeatGain = Math.max(0, OVERCLOCK_HEAT_GAIN - overclockHeatReduction);
   BRASSLINE_PLAYER_ACTIONS.useOverclock({
     game,
     setLog,
@@ -673,7 +752,7 @@ function useOverclock() {
     gainEnergyFn: gainEnergy,
     gainHeatFn: gainHeat,
     damagePlayerFn: damagePlayer,
-    overclockHeatGain: OVERCLOCK_HEAT_GAIN,
+    overclockHeatGain: effectiveOverclockHeatGain,
     overclockStrainHeatThreshold: OVERCLOCK_STRAIN_HEAT_THRESHOLD,
     overclockStrainDamage: OVERCLOCK_STRAIN_DAMAGE,
   });
@@ -750,6 +829,8 @@ function saveMetaUpgradeState() {
     writeMetaUpgrades: BRASSLINE_PERSISTENCE.writeMetaUpgrades,
     key: META_STORAGE_KEY,
     upgrades: game.upgrades,
+    metaUnlocks: game.metaUnlocks,
+    metaBranches: game.metaBranches,
   });
 }
 
@@ -822,6 +903,9 @@ function applyUpgradeDerivedCaps() {
     hullPerHullPlatingLevel: HULL_PER_HULL_PLATING_LEVEL,
     baseMaxEnergy: BASE_MAX_ENERGY,
     clamp,
+    upgradePathCatalog,
+    metaUnlocks: game.metaUnlocks,
+    metaBranches: game.metaBranches,
   });
 }
 
@@ -829,32 +913,75 @@ function getUpgradeablePathIds() {
   return BRASSLINE_META_PROGRESSION.getUpgradeablePathIds({
     upgradePathCatalog,
     getUpgradeLevelFn: getUpgradeLevel,
+    getMetaBranchSelectionFn: getMetaBranchSelection,
+  });
+}
+
+function getUpgradeablePathChoices() {
+  if (typeof BRASSLINE_META_PROGRESSION.getUpgradeablePathChoices !== "function") {
+    return getUpgradeablePathIds().map((upgradeId) => ({ upgradeId }));
+  }
+  return BRASSLINE_META_PROGRESSION.getUpgradeablePathChoices({
+    upgradePathCatalog,
+    getUpgradeLevelFn: getUpgradeLevel,
+    getMetaBranchSelectionFn: getMetaBranchSelection,
+  });
+}
+
+function getMetaBranchSelection(pathId) {
+  if (typeof BRASSLINE_META_PROGRESSION.getMetaBranchSelection !== "function") {
+    return typeof game.metaBranches?.[pathId] === "string" ? game.metaBranches[pathId] : "";
+  }
+  return BRASSLINE_META_PROGRESSION.getMetaBranchSelection({
+    metaBranches: game.metaBranches,
+    pathId,
   });
 }
 
 function getTurnStartCoolingAmount() {
-  return BRASSLINE_META_PROGRESSION.getTurnStartCoolingAmount({
+  const upgradeCooling = BRASSLINE_META_PROGRESSION.getTurnStartCoolingAmount({
     turnStartCoolingBase: TURN_START_COOLING_BASE,
     getUpgradeLevelFn: getUpgradeLevel,
     turnStartCoolingPerLevel: TURN_START_COOLING_PER_LEVEL,
+    upgradePathCatalog,
+    metaUnlocks: game.metaUnlocks,
+    metaBranches: game.metaBranches,
   });
+  return upgradeCooling + getRunArtifactBonus("turn_start_cooling_bonus");
 }
 
 function getTurnStartBlockAmount() {
-  return BRASSLINE_META_PROGRESSION.getTurnStartBlockAmount({
+  const upgradeBlock = BRASSLINE_META_PROGRESSION.getTurnStartBlockAmount({
     getUpgradeLevelFn: getUpgradeLevel,
     turnStartBlockPerGuardLevel: TURN_START_BLOCK_PER_GUARD_LEVEL,
+    upgradePathCatalog,
+    metaUnlocks: game.metaUnlocks,
+    metaBranches: game.metaBranches,
   });
+  return upgradeBlock + getRunArtifactBonus("turn_start_block_bonus");
 }
 
-function applyUpgradePath(pathId) {
+function getTurnStartEnergyBonus() {
+  return getRunArtifactBonus("turn_start_energy_bonus");
+}
+
+function getBattleStartDrawBonus() {
+  return getRunArtifactBonus("battle_start_draw_bonus");
+}
+
+function applyUpgradePath(pathId, branchId = "") {
   return BRASSLINE_META_PROGRESSION.applyUpgradePath({
     game,
     pathId,
+    branchId,
     upgradePathCatalog,
     getUpgradeLevelFn: getUpgradeLevel,
+    getMetaBranchSelectionFn: getMetaBranchSelection,
     applyUpgradeDerivedCapsFn: applyUpgradeDerivedCaps,
     clamp,
+    createDefaultMetaBranchStateFn: createDefaultMetaBranchState,
+    hydrateMetaBranchStateFn: BRASSLINE_META_PROGRESSION.hydrateMetaBranchState,
+    getPathBranchChoicesFn: BRASSLINE_META_PROGRESSION.getPathBranchChoices,
     saveMetaUpgradeStateFn: saveMetaUpgradeState,
   });
 }
@@ -879,7 +1006,42 @@ function drawRewardChoices() {
     rewardChoiceCount: REWARD_CHOICE_COUNT,
     shuffleInPlace,
     getUpgradeablePathIds,
+    getUpgradeablePathChoices,
+    getAvailableArtifactIds,
   });
+}
+
+function getRunArtifactBonus(effectId) {
+  const artifacts = Array.isArray(game.artifacts) ? game.artifacts : [];
+  return artifacts.reduce((sum, artifactId) => {
+    const artifact = artifactCatalog[artifactId];
+    if (!artifact || artifact.effect !== effectId) {
+      return sum;
+    }
+    const value = Number.parseInt(artifact.value, 10);
+    return Number.isInteger(value) ? sum + Math.max(0, value) : sum;
+  }, 0);
+}
+
+function getAvailableArtifactIds() {
+  const owned = new Set(Array.isArray(game.artifacts) ? game.artifacts : []);
+  return Object.values(artifactCatalog)
+    .filter((artifact) => artifact && typeof artifact.id === "string" && !owned.has(artifact.id))
+    .map((artifact) => ({
+      id: artifact.id,
+      weight:
+        Number.isFinite(artifact.weight) && artifact.weight > 0
+          ? Math.max(1, Math.floor(artifact.weight))
+          : 1,
+    }));
+}
+
+function getArtifactRewardHealBonus() {
+  return getRunArtifactBonus("reward_heal_bonus");
+}
+
+function getArtifactBattleStartBlockBonus() {
+  return getRunArtifactBonus("battle_start_block");
 }
 
 function normalizeRewardChoice(choice) {
@@ -897,10 +1059,156 @@ function getInterludeForAfterSector(afterSector) {
   });
 }
 
+function getModifierSummaryForSector(sector) {
+  const catalogEntries = Object.values(encounterModifierCatalog || {}).filter((modifier) => {
+    if (!modifier || typeof modifier !== "object") {
+      return false;
+    }
+    if (sector?.boss) {
+      return modifier.allowedOnBoss !== false;
+    }
+    return true;
+  });
+
+  if (catalogEntries.length === 0) {
+    return "Mutators: none configured.";
+  }
+
+  const weighted = catalogEntries
+    .map((modifier) => ({
+      title: typeof modifier.title === "string" ? modifier.title : modifier.id,
+      weight:
+        Number.isFinite(modifier.weight) && modifier.weight > 0
+          ? Math.max(1, Math.floor(modifier.weight))
+          : 1,
+    }))
+    .sort((a, b) => b.weight - a.weight || String(a.title).localeCompare(String(b.title)));
+  const totalWeight = weighted.reduce((sum, entry) => sum + entry.weight, 0);
+  const summary = weighted
+    .slice(0, 3)
+    .map((entry) => `${entry.title} ${Math.round((entry.weight / totalWeight) * 100)}%`)
+    .join(" // ");
+  return `Mutators: ${summary}`;
+}
+
+function buildThreatIntelDescriptor(blueprint) {
+  const intents = Array.isArray(blueprint?.intents) ? blueprint.intents : [];
+  const kinds = intents
+    .map((intent) => (typeof intent?.kind === "string" ? intent.kind.trim().toLowerCase() : ""))
+    .filter(Boolean);
+  if (kinds.length === 0) {
+    return "Pattern: unknown.";
+  }
+
+  const tags = [];
+  if (kinds.includes("attack")) {
+    tags.push("direct fire");
+  }
+  if (kinds.includes("aim")) {
+    tags.push("aim lock");
+  }
+  if (kinds.includes("lob") || kinds.includes("sweep")) {
+    tags.push("lane aoe");
+  }
+  if (kinds.includes("stoke") || kinds.includes("charge")) {
+    tags.push("heat pressure");
+  }
+  if (kinds.includes("guard")) {
+    tags.push("defensive");
+  }
+
+  const pattern = kinds.map((kind) => kind.toUpperCase()).join(" -> ");
+  const laneHint =
+    kinds.includes("lob") || kinds.includes("sweep")
+      ? "Watch telegraph lanes."
+      : kinds.includes("aim")
+        ? "Expect lane lock shots."
+        : "Primarily single-lane pressure.";
+  return `Pattern: ${pattern}. Tags: ${tags.join(", ")}. ${laneHint}`;
+}
+
+function getNextSectorRewardIntel() {
+  const nextSectorIndex = game.sectorIndex + 1;
+  const nextSector = runSectors[nextSectorIndex] || null;
+  if (!nextSector) {
+    return null;
+  }
+
+  const enemyPoolSize = Array.isArray(nextSector.enemies) ? nextSector.enemies.length : 0;
+  const encounterSizeRaw = Number.parseInt(nextSector?.encounterSize, 10);
+  const encounterSize =
+    Number.isInteger(encounterSizeRaw) && encounterSizeRaw > 0
+      ? Math.min(encounterSizeRaw, Math.max(1, enemyPoolSize))
+      : enemyPoolSize;
+  const eliteChance =
+    typeof BRASSLINE_PROGRESSION.estimateEncounterEliteChance === "function"
+      ? BRASSLINE_PROGRESSION.estimateEncounterEliteChance({ sector: nextSector })
+      : 0;
+  const keyOdds =
+    typeof BRASSLINE_PROGRESSION.estimateEncounterKeyInclusionChances === "function"
+      ? BRASSLINE_PROGRESSION.estimateEncounterKeyInclusionChances({ sector: nextSector })
+      : [];
+  const likelyThreatEntries = keyOdds.slice(0, 3).map((entry) => {
+    const blueprint = enemyBlueprints?.[entry.key] || null;
+    const enemyName = blueprint?.name || entry.key;
+    const chancePct = Math.round(Math.max(0, Math.min(1, entry.chance)) * 100);
+    const eliteTag = entry.hasElite ? " (Elite)" : "";
+    return {
+      key: entry.key,
+      icon: blueprint?.icon || "",
+      name: enemyName,
+      elite: Boolean(entry.hasElite),
+      chancePct,
+      label: `${enemyName}${eliteTag} ${chancePct}%`,
+      intelDescription: buildThreatIntelDescriptor(blueprint),
+    };
+  });
+  const likelyThreats = likelyThreatEntries
+    .map((entry) => entry.label)
+    .filter(Boolean);
+
+  return {
+    ...nextSector,
+    encounterSize,
+    eliteChance: Number.isFinite(eliteChance) ? Math.max(0, Math.min(1, eliteChance)) : 0,
+    modifierSummary: getModifierSummaryForSector(nextSector),
+    likelyThreatEntries,
+    likelyThreats,
+  };
+}
+
 function describeInterludeOptionEffects(option) {
   return BRASSLINE_PROGRESSION.describeInterludeOptionEffects({
     option,
     cardCatalog,
+  });
+}
+
+function rollEncounterModifier(sector) {
+  return BRASSLINE_ENCOUNTER_MODIFIERS.getRandomEncounterModifier({
+    sector,
+    modifierCatalog: encounterModifierCatalog,
+    randomInt,
+  });
+}
+
+function applyEncounterModifier(modifier) {
+  return BRASSLINE_ENCOUNTER_MODIFIERS.applyEncounterModifier({
+    game,
+    modifier,
+    clamp,
+    maxHeat: MAX_HEAT,
+  });
+}
+
+function selectSectorEnemies(sector) {
+  if (typeof BRASSLINE_PROGRESSION.pickSectorEncounter !== "function") {
+    return Array.isArray(sector?.enemies) ? sector.enemies : [];
+  }
+  return BRASSLINE_PROGRESSION.pickSectorEncounter({
+    sector,
+    sectorIndex: game.sectorIndex,
+    runSeed: game.runSeed,
   });
 }
 
@@ -949,12 +1257,17 @@ function beginSectorBattle(deckInstances, freshStart = false) {
     heatCarryRatio: HEAT_CARRY_RATIO,
     heatCarryFloor: HEAT_CARRY_FLOOR,
     maxHeat: MAX_HEAT,
+    getArtifactBattleStartBlockBonus,
     clampLane,
     trackLanes: TRACK_LANES,
     shuffleInPlace,
     rollEnemyIntents,
     drawCards,
     handSize: HAND_SIZE,
+    getBattleStartDrawBonus,
+    selectSectorEnemiesFn: selectSectorEnemies,
+    rollEncounterModifierFn: rollEncounterModifier,
+    applyEncounterModifierFn: applyEncounterModifier,
     setLog,
     appendRunTimelineEntry,
     renderEnemies,
@@ -976,6 +1289,8 @@ function applyRewardAndAdvance(rewardChoice = null) {
     rewardHealSkip: REWARD_HEAL_SKIP,
     rewardHealChosen: REWARD_HEAL_CHOSEN,
     cardCatalog,
+    artifactCatalog,
+    getArtifactRewardHealBonus,
     makeCardInstance,
     ensureRunStats,
     appendRunTimelineEntry,
@@ -1011,8 +1326,10 @@ function startPlayerTurn() {
   BRASSLINE_PLAYER_ACTIONS.startPlayerTurn({
     game,
     gainHeatFn: gainHeat,
+    gainEnergyFn: gainEnergy,
     getTurnStartCoolingAmount,
     getTurnStartBlockAmount,
+    getTurnStartEnergyBonus,
     drawCardsFn: drawCards,
     handSize: HAND_SIZE,
     rollEnemyIntents,
@@ -1079,65 +1396,13 @@ function getIntentPreview(enemy) {
   });
 }
 
-function bindLaneHighlightInteractions(items, keyPrefix) {
-  items.forEach((item, index) => {
-    const lanes = parseLaneData(item.dataset.lanes || "");
-    if (lanes.length === 0) {
-      return;
-    }
-    const fallback = (item.textContent || "").trim() || `row_${index + 1}`;
-    const highlightKey = item.dataset.highlightKey || `${keyPrefix}_${index + 1}_${fallback}`;
-
-    item.addEventListener("pointerenter", (event) => {
-      event.stopPropagation();
-      if (game.highlightLockKey !== null) {
-        return;
-      }
-      setLaneHighlight(lanes, null);
-    });
-
-    item.addEventListener("pointerleave", (event) => {
-      event.stopPropagation();
-      if (game.highlightLockKey !== null) {
-        return;
-      }
-      clearLaneHighlight(false);
-    });
-
-    item.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      toggleLockedHighlight(highlightKey, lanes);
-    });
-  });
-}
-
-function setLaneHighlight(lanes, lockKey = null) {
-  const uniqueLanes = [...new Set(lanes)];
-  game.highlightLanes = uniqueLanes;
-  game.highlightLockKey = lockKey;
-  renderTrackMap();
-}
-
-function clearLaneHighlight(force = false) {
-  if (!force && game.highlightLockKey !== null) {
-    return;
-  }
-  if (game.highlightLanes.length === 0 && game.highlightLockKey === null) {
-    return;
-  }
-  game.highlightLanes = [];
-  game.highlightLockKey = null;
-  renderTrackMap();
-}
-
-function toggleLockedHighlight(lockKey, lanes) {
-  if (game.highlightLockKey === lockKey) {
-    clearLaneHighlight(true);
-    return;
-  }
-  setLaneHighlight(lanes, lockKey);
-}
+const laneHighlightController = BRASSLINE_THREATS.createLaneHighlightController({
+  game,
+  parseLaneDataFn: parseLaneData,
+  renderTrackMapFn: renderTrackMap,
+});
+const bindLaneHighlightInteractions = laneHighlightController.bindLaneHighlightInteractions;
+const clearLaneHighlight = laneHighlightController.clearLaneHighlight;
 
 function buildEnemyTooltipEntries(enemy) {
   return BRASSLINE_ENEMY_UI.buildEnemyTooltipEntries({
@@ -1177,92 +1442,18 @@ function getAimedShotLaneThreats() {
   });
 }
 
-function getNextEnemyPhaseForecast() {
-  return BRASSLINE_FORECAST.getNextEnemyPhaseForecast({
-    trackLanes: TRACK_LANES,
-    telegraphs: game.telegraphs,
-    enemies: livingEnemies(),
-    getTelegraphCoverageLanes,
-    getLockedAimLane,
-    getAimedShotDamage,
-  });
-}
-
-function getShiftCapability() {
-  return BRASSLINE_FORECAST.getShiftCapability({
+function getForecastUiState() {
+  return BRASSLINE_FORECAST.createForecastUiState({
     phase: game.phase,
-    playerLane: game.player.lane,
-    movedThisTurn: game.player.movedThisTurn,
-    playerEnergy: game.player.energy,
-    trackLanes: TRACK_LANES,
-  });
-}
-
-function getEndTurnProjection(forecast) {
-  const shiftCapability = getShiftCapability();
-  return BRASSLINE_FORECAST.getEndTurnProjection({
     trackLanes: TRACK_LANES,
     player: game.player,
     telegraphs: game.telegraphs,
     enemies: livingEnemies(),
-    forecast,
-    shiftCapability,
     telegraphAffectsLane,
+    getTelegraphCoverageLanes,
     getLockedAimLane,
     getAimedShotDamage,
     clampLane,
-  });
-}
-
-function getProjectionAdvice(projection, shiftCapability) {
-  return BRASSLINE_FORECAST.getProjectionAdvice({
-    projection,
-    shiftCapability,
-    playerHull: game.player.hull,
-  });
-}
-
-function getForecastRecommendedAction(projection, adviceCode, shiftCapability, endTurnLockedByLethal) {
-  return BRASSLINE_FORECAST.getForecastRecommendedAction({
-    projection,
-    adviceCode,
-    shiftCapability,
-    endTurnLockedByLethal,
-    phase: game.phase,
-  });
-}
-
-function getForecastUiState() {
-  const forecast = getNextEnemyPhaseForecast();
-  const projection = getEndTurnProjection(forecast);
-  const shiftCapability = getShiftCapability();
-  const advice = getProjectionAdvice(projection, shiftCapability);
-  const endTurnLockedByLethal = game.phase === "player" && projection.canEscapeCurrentLethal;
-  const recommendedAction = getForecastRecommendedAction(
-    projection,
-    advice.code,
-    shiftCapability,
-    endTurnLockedByLethal
-  );
-
-  return {
-    forecast,
-    projection,
-    shiftCapability,
-    advice,
-    recommendedAction,
-    endTurnLockedByLethal,
-  };
-}
-
-function getForecastThreatClassName(damage) {
-  return BRASSLINE_FORECAST.getForecastThreatClassName(damage);
-}
-
-function getEndTurnLockMessage(projection, endTurnLockedByLethal) {
-  return BRASSLINE_FORECAST.getEndTurnLockMessage({
-    projection,
-    endTurnLockedByLethal,
   });
 }
 
@@ -1276,9 +1467,8 @@ function renderLaneThreatForecast(forecastUiOverride = null) {
     phase: game.phase,
     playerLane: game.player.lane,
     forecastUi,
-    getForecastThreatClassNameFn: getForecastThreatClassName,
-    getEndTurnLockMessageFn: ({ projection, endTurnLockedByLethal }) =>
-      getEndTurnLockMessage(projection, endTurnLockedByLethal),
+    getForecastThreatClassNameFn: BRASSLINE_FORECAST.getForecastThreatClassName,
+    getEndTurnLockMessageFn: BRASSLINE_FORECAST.getEndTurnLockMessage,
     escapeHtml,
     bindLaneHighlightInteractions,
     onShiftLane: shiftLane,
@@ -1312,6 +1502,18 @@ function renderTrackMap() {
 }
 
 function renderEnemies() {
+  const enemyInteractionHandlers = BRASSLINE_ENEMY_UI.createEnemyInteractionHandlers({
+    getOpenEnemyTooltipId: () => game.openEnemyTooltipId,
+    setOpenEnemyTooltipId: (value) => {
+      game.openEnemyTooltipId = value;
+    },
+    setSelectedEnemyId: (enemyId) => {
+      game.selectedEnemyId = enemyId;
+    },
+    clearLaneHighlightFn: clearLaneHighlight,
+    renderEnemiesFn: renderEnemies,
+  });
+
   BRASSLINE_ENEMY_UI.renderEnemies({
     enemyRowEl: els.enemyRow,
     enemies: game.enemies,
@@ -1324,21 +1526,8 @@ function renderEnemies() {
     describeIntent,
     escapeHtml,
     bindLaneHighlightInteractions,
-    onTooltipToggle: (enemyId) => {
-      if (game.openEnemyTooltipId === enemyId) {
-        game.openEnemyTooltipId = null;
-      } else {
-        game.openEnemyTooltipId = enemyId;
-      }
-      clearLaneHighlight(true);
-      renderEnemies();
-    },
-    onEnemySelect: (enemyId) => {
-      game.selectedEnemyId = enemyId;
-      game.openEnemyTooltipId = null;
-      clearLaneHighlight(true);
-      renderEnemies();
-    },
+    onTooltipToggle: enemyInteractionHandlers.onTooltipToggle,
+    onEnemySelect: enemyInteractionHandlers.onEnemySelect,
   });
 }
 
@@ -1381,6 +1570,15 @@ function createUpgradeNode(path, onClick, options = {}) {
   });
 }
 
+function createArtifactNode({ artifact, onClick }) {
+  return BRASSLINE_RUN_UI.createArtifactNode({
+    artifact,
+    onClick,
+    reactorFrame: typeToFrame.Reactor,
+    escapeHtml,
+  });
+}
+
 function getSuggestedUpgradePathId() {
   return BRASSLINE_RUN_UI.getSuggestedUpgradePathId({
     upgradePathCatalog,
@@ -1395,6 +1593,15 @@ function renderUpgradeStrip() {
     getUpgradeLevel,
     getMetaInstalledLevelsTotal,
     getMetaPossibleLevelsTotal,
+    escapeHtml,
+  });
+}
+
+function renderArtifactStrip() {
+  BRASSLINE_RUN_UI.renderArtifactStrip({
+    artifactStripEl: els.artifactStrip,
+    artifactCatalog,
+    artifacts: game.artifacts,
     escapeHtml,
   });
 }
@@ -1427,6 +1634,7 @@ function renderRewardPanel() {
   BRASSLINE_RUN_UI.renderRewardPanel({
     rewardPanelEl: els.rewardPanel,
     rewardMetaEl: els.rewardMeta,
+    rewardIntelEl: els.rewardIntel,
     rewardSubtitleEl: els.rewardSubtitle,
     rewardChoicesEl: els.rewardChoices,
     phase: game.phase,
@@ -1434,11 +1642,14 @@ function renderRewardPanel() {
     sectorIndex: game.sectorIndex,
     runSectors,
     sector: getCurrentSector(),
+    nextSectorIntel: getNextSectorRewardIntel(),
     rewardChoices: game.rewardChoices,
+    artifactCatalog,
     getSuggestedUpgradePathIdFn: getSuggestedUpgradePathId,
     renderRewardMetaSummaryFn: renderRewardMetaSummary,
     upgradePathCatalog,
     createUpgradeNodeFn: createUpgradeNode,
+    createArtifactNodeFn: createArtifactNode,
     createCardNodeFn: createCardNode,
     cardCatalog,
     onApplyRewardAndAdvance: applyRewardAndAdvance,
@@ -1467,6 +1678,8 @@ function renderRunSummaryPanel() {
     runSummaryStatsEl: els.runSummaryStats,
     runSummaryTimelineEl: els.runSummaryTimeline,
     toggleRunTimelineBtnEl: els.toggleRunTimelineBtn,
+    artifactCatalog,
+    artifacts: game.artifacts,
     phase: game.phase,
     turn: game.turn,
     sectorIndex: game.sectorIndex,
@@ -1499,20 +1712,6 @@ function renderOnboardingPanel() {
   });
 }
 
-function toggleOnboardingPanel() {
-  game.showOnboarding = !game.showOnboarding;
-  updateHud();
-}
-
-function dismissOnboarding() {
-  if (!game.onboardingDismissed) {
-    game.onboardingDismissed = true;
-    saveOnboardingState();
-  }
-  game.showOnboarding = false;
-  updateHud();
-}
-
 function updateSectorLabel() {
   BRASSLINE_HUD_STATE.updateSectorLabel({
     game,
@@ -1532,7 +1731,11 @@ function updateHud() {
     rewardHealSkip: REWARD_HEAL_SKIP,
     getHeatStateFn: getHeatState,
     getForecastUiStateFn: getForecastUiState,
-    getEndTurnLockMessageFn: getEndTurnLockMessage,
+    getEndTurnLockMessageFn: (projection, endTurnLockedByLethal) =>
+      BRASSLINE_FORECAST.getEndTurnLockMessage({
+        projection,
+        endTurnLockedByLethal,
+      }),
     hasInstalledMetaUpgradesFn: hasInstalledMetaUpgrades,
     isMetaResetArmedFn: isMetaResetArmed,
     hasRunRecordsDataFn: hasRunRecordsData,
@@ -1543,6 +1746,7 @@ function updateHud() {
     renderInterludePanelFn: renderInterludePanel,
     renderRunSummaryPanelFn: renderRunSummaryPanel,
     renderUpgradeStripFn: renderUpgradeStrip,
+    renderArtifactStripFn: renderArtifactStrip,
     renderLaneThreatForecastFn: renderLaneThreatForecast,
     renderOnboardingPanelFn: renderOnboardingPanel,
     saveRunSnapshotStateFn: saveRunSnapshotState,
@@ -1553,12 +1757,16 @@ function initGame(options = {}) {
   const tryResume = Boolean(options?.tryResume);
   refreshConfiguredUpgradePaths();
   refreshConfiguredProgression();
+  refreshEncounterModifierCatalog();
   disarmMetaReset();
   disarmRunRecordsReset();
   const onboardingState = readOnboardingState();
   game.onboardingDismissed = onboardingState.dismissed;
   game.showOnboarding = !game.onboardingDismissed;
-  game.upgrades = readMetaUpgradeState();
+  const metaState = readMetaUpgradeState();
+  game.upgrades = metaState.upgrades;
+  game.metaUnlocks = metaState.unlocks;
+  game.metaBranches = metaState.branches;
   game.runRecords = readRunRecordsState();
 
   if (tryResume) {
@@ -1577,6 +1785,7 @@ function initGame(options = {}) {
     baseMaxEnergy: BASE_MAX_ENERGY,
     playerStartHeat: PLAYER_START_HEAT,
     trackLanes: TRACK_LANES,
+    createRunSeedFn: createRunSeed,
     createDefaultRunStatsFn: createDefaultRunStats,
     createDefaultRecordHighlightsFn: createDefaultRecordHighlights,
     createDefaultRunTimelineFn: createDefaultRunTimeline,
@@ -1647,91 +1856,68 @@ function resetRunRecordsProgression() {
   updateHud();
 }
 
-function toggleRunTimelineView() {
-  game.showFullTimeline = !game.showFullTimeline;
-  renderRunSummaryPanel();
-}
-
-els.overclockBtn.addEventListener("click", useOverclock);
-els.endTurnBtn.addEventListener("click", endTurn);
-els.shiftLeftBtn.addEventListener("click", () => shiftLane(-1));
-els.shiftRightBtn.addEventListener("click", () => shiftLane(1));
-els.cycleHandBtn.addEventListener("click", purgeHand);
-if (els.toggleOnboardingBtn) {
-  els.toggleOnboardingBtn.addEventListener("click", toggleOnboardingPanel);
-}
-if (els.dismissOnboardingBtn) {
-  els.dismissOnboardingBtn.addEventListener("click", dismissOnboarding);
-}
-els.resetMetaBtn.addEventListener("click", resetMetaProgressionAndRestart);
-if (els.resetRunRecordsBtn) {
-  els.resetRunRecordsBtn.addEventListener("click", resetRunRecordsProgression);
-}
-if (els.toggleRunTimelineBtn) {
-  els.toggleRunTimelineBtn.addEventListener("click", toggleRunTimelineView);
-}
-els.skipRewardBtn.addEventListener("click", () => {
-  applyRewardAndAdvance(null);
+const onboardingController = BRASSLINE_CONTROLS_UI.createOnboardingController({
+  game,
+  saveOnboardingStateFn: saveOnboardingState,
+  updateHudFn: updateHud,
 });
-function isTypingTarget(target) {
-  return BRASSLINE_CONTROLS_UI.isTypingTarget(target);
-}
 
-function isInteractiveShortcutTarget(target) {
-  return BRASSLINE_CONTROLS_UI.isInteractiveShortcutTarget(target, isTypingTarget);
-}
+BRASSLINE_CONTROLS_UI.bindPrimaryControls({
+  overclockBtn: els.overclockBtn,
+  endTurnBtn: els.endTurnBtn,
+  shiftLeftBtn: els.shiftLeftBtn,
+  shiftRightBtn: els.shiftRightBtn,
+  cycleHandBtn: els.cycleHandBtn,
+  toggleOnboardingBtn: els.toggleOnboardingBtn,
+  dismissOnboardingBtn: els.dismissOnboardingBtn,
+  resetMetaBtn: els.resetMetaBtn,
+  resetRunRecordsBtn: els.resetRunRecordsBtn,
+  toggleRunTimelineBtn: els.toggleRunTimelineBtn,
+  skipRewardBtn: els.skipRewardBtn,
+  onUseOverclock: useOverclock,
+  onEndTurn: endTurn,
+  onShiftLeft: () => shiftLane(-1),
+  onShiftRight: () => shiftLane(1),
+  onCycleHand: purgeHand,
+  onToggleOnboarding: onboardingController.toggleOnboardingPanel,
+  onDismissOnboarding: onboardingController.dismissOnboarding,
+  onResetMeta: resetMetaProgressionAndRestart,
+  onResetRunRecords: resetRunRecordsProgression,
+  onToggleRunTimeline: () => {
+    BRASSLINE_RUN_UI.toggleRunTimelineView({
+      game,
+      renderRunSummaryPanelFn: renderRunSummaryPanel,
+    });
+  },
+  onSkipReward: () => {
+    applyRewardAndAdvance(null);
+  },
+});
 
-function triggerControlShortcut(button) {
-  return BRASSLINE_CONTROLS_UI.triggerControlShortcut(button);
-}
-
-function handleControlHotkeys(event) {
-  if (
-    event.defaultPrevented ||
-    event.repeat ||
-    event.ctrlKey ||
-    event.metaKey ||
-    event.altKey ||
-    isInteractiveShortcutTarget(event.target)
-  ) {
-    return;
-  }
-
-  if (event.code === "KeyQ") {
-    if (triggerControlShortcut(els.shiftLeftBtn)) {
-      event.preventDefault();
-    }
-    return;
-  }
-
-  if (event.code === "KeyE") {
-    if (triggerControlShortcut(els.shiftRightBtn)) {
-      event.preventDefault();
-    }
-    return;
-  }
-
-  if (event.code === "Space" || event.code === "Enter" || event.code === "NumpadEnter") {
-    if (triggerControlShortcut(els.endTurnBtn)) {
-      event.preventDefault();
-      return;
-    }
-    const lockReason = els.endTurnBtn.dataset.lockReason;
-    if (lockReason) {
-      event.preventDefault();
-      setLog(lockReason);
-    }
-  }
-}
+const handleControlHotkeys = BRASSLINE_CONTROLS_UI.createControlHotkeyHandler({
+  isInteractiveShortcutTargetFn: (target) =>
+    BRASSLINE_CONTROLS_UI.isInteractiveShortcutTarget(target, BRASSLINE_CONTROLS_UI.isTypingTarget),
+  triggerControlShortcutFn: BRASSLINE_CONTROLS_UI.triggerControlShortcut,
+  shiftLeftBtn: els.shiftLeftBtn,
+  shiftRightBtn: els.shiftRightBtn,
+  endTurnBtn: els.endTurnBtn,
+  onEndTurnLocked: (lockReason) => {
+    setLog(lockReason);
+  },
+});
 
 document.addEventListener("keydown", handleControlHotkeys);
-document.addEventListener("pointerdown", (event) => {
-  if (!event.target.closest(".enemy") && game.openEnemyTooltipId !== null) {
-    game.openEnemyTooltipId = null;
-    clearLaneHighlight(true);
-    renderEnemies();
-  }
-});
+document.addEventListener(
+  "pointerdown",
+  BRASSLINE_CONTROLS_UI.createEnemyTooltipDismissHandler({
+    getOpenEnemyTooltipId: () => game.openEnemyTooltipId,
+    setOpenEnemyTooltipId: (value) => {
+      game.openEnemyTooltipId = value;
+    },
+    clearLaneHighlightFn: clearLaneHighlight,
+    renderEnemiesFn: renderEnemies,
+  })
+);
 
 window.__brasslineDebug = {
   game,
@@ -1743,6 +1929,7 @@ window.__brasslineDebug = {
   advanceTelegraphs,
   applyRewardAndAdvance,
   resolveInterludeOption,
+  useOverclock,
   initGame,
 };
 

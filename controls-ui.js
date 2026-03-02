@@ -59,10 +59,170 @@
     return true;
   }
 
+  function createControlHotkeyHandler({
+    isInteractiveShortcutTargetFn = isInteractiveShortcutTarget,
+    triggerControlShortcutFn = triggerControlShortcut,
+    shiftLeftBtn,
+    shiftRightBtn,
+    endTurnBtn,
+    onEndTurnLocked = () => {},
+  }) {
+    return (event) => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        isInteractiveShortcutTargetFn(event.target)
+      ) {
+        return;
+      }
+
+      if (event.code === "KeyQ") {
+        if (triggerControlShortcutFn(shiftLeftBtn)) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (event.code === "KeyE") {
+        if (triggerControlShortcutFn(shiftRightBtn)) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (event.code === "Space" || event.code === "Enter" || event.code === "NumpadEnter") {
+        if (triggerControlShortcutFn(endTurnBtn)) {
+          event.preventDefault();
+          return;
+        }
+        const lockReason = endTurnBtn?.dataset?.lockReason;
+        if (lockReason) {
+          event.preventDefault();
+          onEndTurnLocked(lockReason);
+        }
+      }
+    };
+  }
+
+  function bindPrimaryControls({
+    overclockBtn,
+    endTurnBtn,
+    shiftLeftBtn,
+    shiftRightBtn,
+    cycleHandBtn,
+    toggleOnboardingBtn,
+    dismissOnboardingBtn,
+    resetMetaBtn,
+    resetRunRecordsBtn,
+    toggleRunTimelineBtn,
+    skipRewardBtn,
+    onUseOverclock,
+    onEndTurn,
+    onShiftLeft,
+    onShiftRight,
+    onCycleHand,
+    onToggleOnboarding,
+    onDismissOnboarding,
+    onResetMeta,
+    onResetRunRecords,
+    onToggleRunTimeline,
+    onSkipReward,
+  }) {
+    if (overclockBtn && typeof onUseOverclock === "function") {
+      overclockBtn.addEventListener("click", onUseOverclock);
+    }
+    if (endTurnBtn && typeof onEndTurn === "function") {
+      endTurnBtn.addEventListener("click", onEndTurn);
+    }
+    if (shiftLeftBtn && typeof onShiftLeft === "function") {
+      shiftLeftBtn.addEventListener("click", onShiftLeft);
+    }
+    if (shiftRightBtn && typeof onShiftRight === "function") {
+      shiftRightBtn.addEventListener("click", onShiftRight);
+    }
+    if (cycleHandBtn && typeof onCycleHand === "function") {
+      cycleHandBtn.addEventListener("click", onCycleHand);
+    }
+    if (toggleOnboardingBtn && typeof onToggleOnboarding === "function") {
+      toggleOnboardingBtn.addEventListener("click", onToggleOnboarding);
+    }
+    if (dismissOnboardingBtn && typeof onDismissOnboarding === "function") {
+      dismissOnboardingBtn.addEventListener("click", onDismissOnboarding);
+    }
+    if (resetMetaBtn && typeof onResetMeta === "function") {
+      resetMetaBtn.addEventListener("click", onResetMeta);
+    }
+    if (resetRunRecordsBtn && typeof onResetRunRecords === "function") {
+      resetRunRecordsBtn.addEventListener("click", onResetRunRecords);
+    }
+    if (toggleRunTimelineBtn && typeof onToggleRunTimeline === "function") {
+      toggleRunTimelineBtn.addEventListener("click", onToggleRunTimeline);
+    }
+    if (skipRewardBtn && typeof onSkipReward === "function") {
+      skipRewardBtn.addEventListener("click", onSkipReward);
+    }
+  }
+
+  function createOnboardingController({
+    game,
+    saveOnboardingStateFn = () => {},
+    updateHudFn = () => {},
+  }) {
+    function toggleOnboardingPanel() {
+      if (!game || typeof game !== "object") {
+        return false;
+      }
+      game.showOnboarding = !game.showOnboarding;
+      updateHudFn();
+      return true;
+    }
+
+    function dismissOnboarding() {
+      if (!game || typeof game !== "object") {
+        return false;
+      }
+      if (!game.onboardingDismissed) {
+        game.onboardingDismissed = true;
+        saveOnboardingStateFn();
+      }
+      game.showOnboarding = false;
+      updateHudFn();
+      return true;
+    }
+
+    return {
+      toggleOnboardingPanel,
+      dismissOnboarding,
+    };
+  }
+
+  function createEnemyTooltipDismissHandler({
+    getOpenEnemyTooltipId = () => null,
+    setOpenEnemyTooltipId = () => {},
+    clearLaneHighlightFn = () => {},
+    renderEnemiesFn = () => {},
+  }) {
+    return (event) => {
+      const isEnemyTarget = Boolean(event?.target?.closest?.(".enemy"));
+      if (!isEnemyTarget && getOpenEnemyTooltipId() !== null) {
+        setOpenEnemyTooltipId(null);
+        clearLaneHighlightFn(true);
+        renderEnemiesFn();
+      }
+    };
+  }
+
   window.BRASSLINE_CONTROLS_UI = {
     renderOnboardingPanel,
     isTypingTarget,
     isInteractiveShortcutTarget,
     triggerControlShortcut,
+    createControlHotkeyHandler,
+    bindPrimaryControls,
+    createOnboardingController,
+    createEnemyTooltipDismissHandler,
   };
 })();

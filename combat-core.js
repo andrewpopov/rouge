@@ -199,9 +199,18 @@
   function createEnemy({ game, entry, slot, enemyBlueprints, enemyTune, enemyIntentTune, clamp }) {
     const blueprint = enemyBlueprints[entry.key];
     const power = entry.power ?? 1;
+    const isElite = Boolean(entry?.elite);
+    const intentSource =
+      isElite && Array.isArray(blueprint.eliteIntents) && blueprint.eliteIntents.length > 0
+        ? blueprint.eliteIntents
+        : blueprint.intents;
+    const eliteHpMultiplier =
+      isElite && Number.isFinite(blueprint.eliteHpMultiplier) && blueprint.eliteHpMultiplier > 0
+        ? blueprint.eliteHpMultiplier
+        : 1;
     const maxHpBase = enemyTune(entry.key, "maxHp", blueprint.maxHp);
-    const hp = Math.max(1, Math.round(maxHpBase * power));
-    const intents = blueprint.intents.map((intent, intentIndex) => {
+    const hp = Math.max(1, Math.round(maxHpBase * power * eliteHpMultiplier));
+    const intents = intentSource.map((intent, intentIndex) => {
       const tunedValue = enemyIntentTune(entry.key, intentIndex, "value", intent.value);
       const tunedHits = enemyIntentTune(entry.key, intentIndex, "hits", intent.hits);
       const tunedCookTier = enemyIntentTune(entry.key, intentIndex, "cookTier", intent.cookTier);
@@ -234,6 +243,15 @@
       0,
       Math.max(0, intents.length - 1)
     );
+    const startBlock =
+      isElite && Number.isFinite(blueprint.eliteStartBlock)
+        ? Math.max(0, Math.round(blueprint.eliteStartBlock * power))
+        : 0;
+    const startAttackBuff =
+      isElite && Number.isFinite(blueprint.eliteAttackBuff)
+        ? Math.max(0, Math.round(blueprint.eliteAttackBuff))
+        : 0;
+    const eliteLabel = isElite && typeof blueprint.eliteLabel === "string" ? blueprint.eliteLabel.trim() : "";
 
     return {
       id: `enemy_${game.sectorIndex + 1}_${slot + 1}_${entry.key}`,
@@ -241,8 +259,8 @@
       name: blueprint.name,
       maxHp: hp,
       hp,
-      block: 0,
-      attackBuff: 0,
+      block: startBlock,
+      attackBuff: startAttackBuff,
       aimed: false,
       aimedLane: null,
       icon: blueprint.icon,
@@ -250,6 +268,8 @@
       intentIndex: startIntentIndex,
       intent: null,
       alive: true,
+      elite: isElite,
+      eliteLabel,
     };
   }
 

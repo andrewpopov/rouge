@@ -41,6 +41,8 @@
       getRunRouteSignature = () => "",
       runSectors = [],
       createDefaultUpgradeState = () => ({}),
+      createDefaultMetaUnlockState = () => ({}),
+      createDefaultMetaBranchState = () => ({}),
       createDefaultRunStats = () => ({}),
       createDefaultRunTimeline = () => [],
       upgradePathCatalog = {},
@@ -51,6 +53,8 @@
       clampLane = (lane) => lane,
       cardCatalog = {},
       normalizeRewardChoice = (choice) => choice,
+      encounterModifierCatalog = {},
+      artifactCatalog = {},
       trackLanes = 5,
       baseMaxHull = 72,
       baseMaxEnergy = 3,
@@ -77,6 +81,64 @@
         const value = Number.parseInt(raw[statKey], 10);
         fallback[statKey] = Number.isInteger(value) ? Math.max(0, value) : 0;
       });
+      return fallback;
+    }
+
+    function sanitizeSnapshotMetaUnlocks(rawUnlocks, upgrades) {
+      const fallback = createDefaultMetaUnlockState();
+      const raw = rawUnlocks && typeof rawUnlocks === "object" ? rawUnlocks : {};
+
+      Object.keys(upgradePathCatalog || {}).forEach((pathId) => {
+        const path = upgradePathCatalog[pathId];
+        const tierUnlocks = Array.isArray(path?.tierUnlocks) ? path.tierUnlocks : [];
+        const allowed = new Set(
+          tierUnlocks
+            .map((entry) => (typeof entry?.id === "string" ? entry.id.trim() : ""))
+            .filter(Boolean)
+        );
+        const level = Number.parseInt(upgrades?.[pathId], 10);
+        const unlockedByLevel = tierUnlocks
+          .filter((entry) => Number.isInteger(entry?.level) && entry.level > 0 && level >= entry.level)
+          .map((entry) => entry.id);
+        const stored = (Array.isArray(raw[pathId]) ? raw[pathId] : [])
+          .map((tierId) => (typeof tierId === "string" ? tierId.trim() : ""))
+          .filter((tierId) => tierId && allowed.has(tierId));
+        const merged = new Set([...stored, ...unlockedByLevel]);
+        fallback[pathId] = tierUnlocks.map((entry) => entry.id).filter((tierId) => merged.has(tierId));
+      });
+
+      return fallback;
+    }
+
+    function sanitizeSnapshotMetaBranches(rawBranches, upgrades) {
+      const fallback = createDefaultMetaBranchState();
+      const raw = rawBranches && typeof rawBranches === "object" ? rawBranches : {};
+
+      Object.keys(upgradePathCatalog || {}).forEach((pathId) => {
+        const path = upgradePathCatalog[pathId];
+        const branchChoices = path?.branchChoices;
+        const unlockLevel = Number.parseInt(branchChoices?.unlockLevel, 10);
+        const branchOptionIds = (
+          Array.isArray(branchChoices?.options) ? branchChoices.options : []
+        )
+          .map((entry) => (typeof entry?.id === "string" ? entry.id.trim() : ""))
+          .filter(Boolean);
+        if (branchOptionIds.length === 0 || !Number.isInteger(unlockLevel) || unlockLevel <= 0) {
+          fallback[pathId] = "";
+          return;
+        }
+
+        const selectedBranch = typeof raw[pathId] === "string" ? raw[pathId].trim() : "";
+        if (selectedBranch && branchOptionIds.includes(selectedBranch)) {
+          fallback[pathId] = selectedBranch;
+          return;
+        }
+
+        const level = Number.parseInt(upgrades?.[pathId], 10);
+        fallback[pathId] =
+          Number.isInteger(level) && level >= unlockLevel ? branchOptionIds[0] : "";
+      });
+
       return fallback;
     }
 
@@ -109,6 +171,39 @@
         })
         .filter(Boolean);
       return timeline.slice(-22);
+    }
+
+    function sanitizeSnapshotEncounterModifier(rawModifier) {
+      if (!rawModifier || typeof rawModifier !== "object") {
+        return null;
+      }
+      const id = typeof rawModifier.id === "string" ? rawModifier.id.trim() : "";
+      if (!id) {
+        return null;
+      }
+      const catalogEntry =
+        encounterModifierCatalog && typeof encounterModifierCatalog === "object"
+          ? encounterModifierCatalog[id]
+          : null;
+      if (catalogEntry && typeof catalogEntry === "object") {
+        return { ...catalogEntry };
+      }
+
+      const effect = typeof rawModifier.effect === "string" ? rawModifier.effect.trim() : "";
+      if (!effect) {
+        return null;
+      }
+      const title = typeof rawModifier.title === "string" ? rawModifier.title.trim() : id;
+      const description =
+        typeof rawModifier.description === "string" ? rawModifier.description.trim() : "";
+      const value = Number.isFinite(rawModifier.value) ? Math.round(rawModifier.value) : 0;
+      return {
+        id,
+        title: title || id,
+        description,
+        effect,
+        value,
+      };
     }
 
     function sanitizeSnapshotCardInstance(rawInstance, fallbackId) {
@@ -182,6 +277,13 @@
       if (!blueprint) {
         return null;
       }
+      const isElite = Boolean(rawEnemy.elite);
+      const fallbackIntentsSource =
+        isElite && Array.isArray(blueprint.eliteIntents) && blueprint.eliteIntents.length > 0
+          ? blueprint.eliteIntents
+          : Array.isArray(blueprint.intents)
+            ? blueprint.intents
+            : [];
 
       const intents = Array.isArray(rawEnemy.intents)
         ? rawEnemy.intents.map((intent) => sanitizeSnapshotIntent(intent)).filter(Boolean)
@@ -189,17 +291,21 @@
       const safeIntents =
         intents.length > 0
           ? intents
-          : (Array.isArray(blueprint.intents) ? blueprint.intents : [])
+          : fallbackIntentsSource
               .map((intent) => sanitizeSnapshotIntent(intent))
               .filter(Boolean);
       if (safeIntents.length === 0) {
         return null;
       }
 
+      const eliteHpMultiplier =
+        isElite && Number.isFinite(blueprint.eliteHpMultiplier) && blueprint.eliteHpMultiplier > 0
+          ? blueprint.eliteHpMultiplier
+          : 1;
       const fallbackMaxHp = enemyTune(enemyKey, "maxHp", blueprint.maxHp);
       const maxHp = Number.isFinite(rawEnemy.maxHp)
         ? Math.max(1, Math.round(rawEnemy.maxHp))
-        : Math.max(1, fallbackMaxHp);
+        : Math.max(1, Math.round(fallbackMaxHp * eliteHpMultiplier));
       const hp = Number.isFinite(rawEnemy.hp) ? clamp(Math.round(rawEnemy.hp), 0, maxHp) : maxHp;
       const intentIndexRaw = Number.parseInt(rawEnemy.intentIndex, 10);
       const intentIndex = Number.isInteger(intentIndexRaw) ? Math.max(0, intentIndexRaw) : 0;
@@ -218,10 +324,16 @@
         name: blueprint.name,
         maxHp,
         hp,
-        block: Number.isFinite(rawEnemy.block) ? Math.max(0, Math.round(rawEnemy.block)) : 0,
+        block: Number.isFinite(rawEnemy.block)
+          ? Math.max(0, Math.round(rawEnemy.block))
+          : isElite && Number.isFinite(blueprint.eliteStartBlock)
+            ? Math.max(0, Math.round(blueprint.eliteStartBlock))
+            : 0,
         attackBuff: Number.isFinite(rawEnemy.attackBuff)
           ? Math.max(0, Math.round(rawEnemy.attackBuff))
-          : 0,
+          : isElite && Number.isFinite(blueprint.eliteAttackBuff)
+            ? Math.max(0, Math.round(blueprint.eliteAttackBuff))
+            : 0,
         aimed: Boolean(rawEnemy.aimed) && aimedLane !== null,
         aimedLane,
         icon: blueprint.icon,
@@ -229,6 +341,13 @@
         intentIndex,
         intent: alive ? nextIntent : null,
         alive,
+        elite: isElite,
+        eliteLabel:
+          isElite && typeof rawEnemy.eliteLabel === "string" && rawEnemy.eliteLabel.trim()
+            ? rawEnemy.eliteLabel.trim()
+            : isElite && typeof blueprint.eliteLabel === "string"
+              ? blueprint.eliteLabel
+              : "",
       };
     }
 
@@ -390,6 +509,18 @@
       };
     }
 
+    function sanitizeSnapshotRunSeed(rawSeed) {
+      const value = Number.parseInt(rawSeed, 10);
+      return Number.isInteger(value) && value > 0 ? value : 1;
+    }
+
+    function sanitizeSnapshotArtifacts(rawArtifacts) {
+      const allowed = new Set(Object.keys(artifactCatalog || {}));
+      return (Array.isArray(rawArtifacts) ? rawArtifacts : [])
+        .map((artifactId) => (typeof artifactId === "string" ? artifactId.trim() : ""))
+        .filter((artifactId) => artifactId && allowed.has(artifactId));
+    }
+
     try {
       if (typeof readJson !== "function") {
         return null;
@@ -422,11 +553,14 @@
 
       const turnRaw = Number.parseInt(parsed.turn, 10);
       const turn = Number.isInteger(turnRaw) ? Math.max(1, turnRaw) : 1;
+      const turnCardsPlayedRaw = Number.parseInt(parsed.turnCardsPlayed, 10);
+      const turnCardsPlayed = Number.isInteger(turnCardsPlayedRaw) ? Math.max(0, turnCardsPlayedRaw) : 0;
       const sectorIndexRaw = Number.parseInt(parsed.sectorIndex, 10);
       if (!Number.isInteger(sectorIndexRaw) || sectorIndexRaw < 0 || sectorIndexRaw >= runSectors.length) {
         return null;
       }
       const sectorIndex = sectorIndexRaw;
+      const runSeed = sanitizeSnapshotRunSeed(parsed.runSeed);
 
       const player = sanitizeSnapshotPlayer(parsed.player);
       const enemies = Array.isArray(parsed.enemies)
@@ -470,6 +604,10 @@
       const rewardChoices = sanitizeSnapshotRewardChoices(parsed.rewardChoices);
       const interlude = sanitizeSnapshotInterlude(parsed.interlude, sectorIndex);
       const interludeDeck = sanitizeSnapshotDeckInstances(parsed.interludeDeck, "c_resume_interlude");
+      const encounterModifier = sanitizeSnapshotEncounterModifier(parsed.encounterModifier);
+      const upgrades = sanitizeSnapshotUpgradeState(parsed.upgrades);
+      const metaUnlocks = sanitizeSnapshotMetaUnlocks(parsed.metaUnlocks, upgrades);
+      const metaBranches = sanitizeSnapshotMetaBranches(parsed.metaBranches, upgrades);
       if (phase === "reward" && rewardChoices.length === 0) {
         return null;
       }
@@ -480,7 +618,9 @@
       return {
         phase,
         turn,
+        turnCardsPlayed,
         sectorIndex,
+        runSeed,
         nextCardInstanceId,
         nextTelegraphId,
         player,
@@ -494,7 +634,11 @@
         rewardChoices,
         interlude,
         interludeDeck,
-        upgrades: sanitizeSnapshotUpgradeState(parsed.upgrades),
+        encounterModifier,
+        artifacts: sanitizeSnapshotArtifacts(parsed.artifacts),
+        upgrades,
+        metaUnlocks,
+        metaBranches,
         runStats: sanitizeSnapshotRunStats(parsed.runStats),
         runTimeline: sanitizeSnapshotRunTimeline(parsed.runTimeline),
         showFullTimeline: Boolean(parsed.showFullTimeline),
@@ -530,7 +674,11 @@
 
     game.phase = snapshot.phase;
     game.turn = snapshot.turn;
+    game.turnCardsPlayed = Number.isInteger(snapshot.turnCardsPlayed)
+      ? Math.max(0, snapshot.turnCardsPlayed)
+      : 0;
     game.sectorIndex = snapshot.sectorIndex;
+    game.runSeed = Number.isInteger(snapshot.runSeed) && snapshot.runSeed > 0 ? snapshot.runSeed : 1;
     game.nextCardInstanceId = snapshot.nextCardInstanceId;
     game.nextTelegraphId = snapshot.nextTelegraphId;
     game.player = {
@@ -579,7 +727,14 @@
             ...instance,
           }))
         : [];
+    game.encounterModifier =
+      snapshot.encounterModifier && typeof snapshot.encounterModifier === "object"
+        ? { ...snapshot.encounterModifier }
+        : null;
+    game.artifacts = (Array.isArray(snapshot.artifacts) ? snapshot.artifacts : []).slice();
     game.upgrades = { ...(snapshot.upgrades || {}) };
+    game.metaUnlocks = { ...(snapshot.metaUnlocks || {}) };
+    game.metaBranches = { ...(snapshot.metaBranches || {}) };
     game.runStats = { ...(snapshot.runStats || {}) };
     game.runRecordHighlights = createDefaultRecordHighlights();
     game.runTimeline = (Array.isArray(snapshot.runTimeline) ? snapshot.runTimeline : []).map((entry) => ({
@@ -624,7 +779,9 @@
       routeSignature: getRunRouteSignature(),
       phase: game.phase,
       turn: game.turn,
+      turnCardsPlayed: Number.isInteger(game.turnCardsPlayed) ? Math.max(0, game.turnCardsPlayed) : 0,
       sectorIndex: game.sectorIndex,
+      runSeed: Number.isInteger(game.runSeed) && game.runSeed > 0 ? game.runSeed : 1,
       nextCardInstanceId: game.nextCardInstanceId,
       nextTelegraphId: game.nextTelegraphId,
       player: {
@@ -662,8 +819,19 @@
       interludeDeck: (Array.isArray(game.interludeDeck) ? game.interludeDeck : []).map((instance) => ({
         ...instance,
       })),
+      encounterModifier:
+        game.encounterModifier && typeof game.encounterModifier === "object"
+          ? { ...game.encounterModifier }
+          : null,
+      artifacts: (Array.isArray(game.artifacts) ? game.artifacts : []).slice(),
       upgrades: {
         ...(game.upgrades || {}),
+      },
+      metaUnlocks: {
+        ...(game.metaUnlocks || {}),
+      },
+      metaBranches: {
+        ...(game.metaBranches || {}),
       },
       runStats: {
         ...ensureRunStats(),

@@ -81,6 +81,11 @@
     }
 
     const lines = [{ text: `Next: ${describeIntent(enemy)}`, primary: true }];
+    if (enemy.elite) {
+      lines.push({
+        text: enemy.eliteLabel ? `Elite: ${enemy.eliteLabel}` : "Elite threat: reinforced pattern cycle.",
+      });
+    }
     const preview = getIntentPreviewFn(enemy);
     if (preview) {
       lines.push({
@@ -137,6 +142,32 @@
       });
   }
 
+  function createEnemyInteractionHandlers({
+    getOpenEnemyTooltipId = () => null,
+    setOpenEnemyTooltipId = () => {},
+    setSelectedEnemyId = () => {},
+    clearLaneHighlightFn = () => {},
+    renderEnemiesFn = () => {},
+  }) {
+    return {
+      onTooltipToggle(enemyId) {
+        if (getOpenEnemyTooltipId() === enemyId) {
+          setOpenEnemyTooltipId(null);
+        } else {
+          setOpenEnemyTooltipId(enemyId);
+        }
+        clearLaneHighlightFn(true);
+        renderEnemiesFn();
+      },
+      onEnemySelect(enemyId) {
+        setSelectedEnemyId(enemyId);
+        setOpenEnemyTooltipId(null);
+        clearLaneHighlightFn(true);
+        renderEnemiesFn();
+      },
+    };
+  }
+
   function renderEnemies({
     enemyRowEl,
     enemies,
@@ -167,6 +198,9 @@
       }
       if (enemy.aimed && enemy.alive) {
         card.classList.add("aiming");
+      }
+      if (enemy.elite) {
+        card.classList.add("elite");
       }
       if (selectedEnemy && selectedEnemy.id === enemy.id && enemy.alive) {
         card.classList.add("active");
@@ -218,13 +252,16 @@
           return `<p class="${classAttr}"${lanesAttr}${keyAttr}>${safeEscape(entry.text)}</p>`;
         })
         .join("");
+      const eliteBadgeHtml = enemy.elite
+        ? '<span class="enemy-badge enemy-badge-elite" aria-label="Elite enemy">ELITE</span>'
+        : "";
 
       card.innerHTML = `
       <div class="enemy-head">
         <div class="enemy-head-main">
           <img class="enemy-icon" src="${enemy.icon}" alt="${enemy.name}" />
           <div class="enemy-meta">
-            <strong>${enemy.name}</strong>
+            <strong>${safeEscape(enemy.name)}${eliteBadgeHtml}</strong>
             <small>HP ${hpLabel}${blockLabel}${aimedLabel}</small>
           </div>
         </div>
@@ -285,6 +322,7 @@
     getIntentPreview,
     buildEnemyTooltipEntries,
     buildEnemyThreatRows,
+    createEnemyInteractionHandlers,
     renderEnemies,
   };
 })();

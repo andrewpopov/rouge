@@ -89,6 +89,177 @@ test("buildConfiguredProgression sanitizes sectors, card lists, and interludes",
   assert.equal(result.runInterludes[0].options[1].addCard, null);
 });
 
+test("buildConfiguredProgression preserves elite enemy flags and route signatures", () => {
+  const progression = loadProgressionModule();
+
+  const result = progression.buildConfiguredProgression({
+    progressionBalance: {
+      sectors: [
+        {
+          name: "Elite Track",
+          enemies: [{ key: "rail_hound", power: 1.2, elite: true }],
+        },
+      ],
+    },
+    defaultRunSectors: [
+      {
+        name: "Fallback Sector",
+        boss: false,
+        enemies: [{ key: "rail_hound", power: 1 }],
+      },
+    ],
+    enemyBlueprints: {
+      rail_hound: { key: "rail_hound" },
+    },
+    starterDeckConfig: ["spark_lance"],
+    defaultStarterDeck: ["spark_lance"],
+    rewardPoolConfig: ["spark_lance"],
+    defaultRewardPool: ["spark_lance"],
+    interludeConfig: [],
+    defaultInterludes: [],
+    cardCatalog: {
+      spark_lance: { title: "Spark Lance" },
+    },
+  });
+
+  assert.equal(result.runSectors[0].enemies[0].elite, true);
+
+  const signature = progression.buildRunRouteSignature({
+    runSectors: result.runSectors,
+    runInterludes: [],
+  });
+  assert.match(signature, /rail_hound:1\.2:elite/);
+});
+
+test("pickSectorEncounter applies weighted deterministic selection per run seed", () => {
+  const progression = loadProgressionModule();
+
+  const sector = {
+    name: "Weighted Yard",
+    encounterSize: 2,
+    enemies: [
+      { key: "rail_hound", power: 1, weight: 8 },
+      { key: "ash_gunner", power: 1, weight: 1 },
+      { key: "mortar_engineer", power: 1, weight: 1, elite: true },
+    ],
+  };
+
+  const pickA = progression.pickSectorEncounter({
+    sector,
+    sectorIndex: 1,
+    runSeed: 12345,
+  });
+  const pickB = progression.pickSectorEncounter({
+    sector,
+    sectorIndex: 1,
+    runSeed: 12345,
+  });
+
+  assert.deepEqual(pickA, pickB);
+  assert.equal(pickA.length, 2);
+  assert.equal(new Set(pickA.map((entry) => entry.key)).size, 2);
+  assert.ok(pickA.some((entry) => entry.key === "rail_hound"));
+
+  let houndSeen = 0;
+  let gunnerSeen = 0;
+  let mortarSeen = 0;
+
+  for (let seed = 1; seed <= 40; seed += 1) {
+    const picks = progression.pickSectorEncounter({
+      sector,
+      sectorIndex: 1,
+      runSeed: seed,
+    });
+    picks.forEach((entry) => {
+      if (entry.key === "rail_hound") {
+        houndSeen += 1;
+      } else if (entry.key === "ash_gunner") {
+        gunnerSeen += 1;
+      } else if (entry.key === "mortar_engineer") {
+        mortarSeen += 1;
+      }
+    });
+  }
+
+  assert.ok(houndSeen > gunnerSeen);
+  assert.ok(houndSeen > mortarSeen);
+});
+
+test("estimateEncounterEliteChance returns stable weighted no-replacement elite odds", () => {
+  const progression = loadProgressionModule();
+
+  const none = progression.estimateEncounterEliteChance({
+    sector: {
+      encounterSize: 2,
+      enemies: [
+        { key: "rail_hound", weight: 2, elite: false },
+        { key: "ash_gunner", weight: 1, elite: false },
+      ],
+    },
+  });
+  assert.equal(none, 0);
+
+  const all = progression.estimateEncounterEliteChance({
+    sector: {
+      encounterSize: 1,
+      enemies: [
+        { key: "rail_sentry", weight: 1, elite: true },
+        { key: "mortar_engineer", weight: 2, elite: true },
+      ],
+    },
+  });
+  assert.equal(all, 1);
+
+  const simple = progression.estimateEncounterEliteChance({
+    sector: {
+      encounterSize: 1,
+      enemies: [
+        { key: "rail_hound", weight: 1, elite: false },
+        { key: "ash_gunner", weight: 1, elite: false },
+        { key: "mortar_engineer", weight: 1, elite: true },
+      ],
+    },
+  });
+  assert.ok(Math.abs(simple - 1 / 3) < 1e-9);
+
+  const weighted = progression.estimateEncounterEliteChance({
+    sector: {
+      encounterSize: 1,
+      enemies: [
+        { key: "rail_hound", weight: 1, elite: false },
+        { key: "ash_gunner", weight: 1, elite: false },
+        { key: "mortar_engineer", weight: 5, elite: true },
+      ],
+    },
+  });
+  assert.ok(weighted > simple);
+  assert.ok(Math.abs(weighted - 5 / 7) < 1e-9);
+});
+
+test("estimateEncounterKeyInclusionChances returns grouped weighted odds", () => {
+  const progression = loadProgressionModule();
+
+  const sector = {
+    encounterSize: 1,
+    enemies: [
+      { key: "a", weight: 1, elite: false },
+      { key: "b", weight: 1, elite: true },
+      { key: "b", weight: 1, elite: false },
+    ],
+  };
+
+  const odds = progression.estimateEncounterKeyInclusionChances({ sector });
+  assert.equal(odds.length, 2);
+
+  const chanceA = odds.find((entry) => entry.key === "a");
+  const chanceB = odds.find((entry) => entry.key === "b");
+  assert.ok(chanceA);
+  assert.ok(chanceB);
+  assert.ok(Math.abs(chanceA.chance - 1 / 3) < 1e-9);
+  assert.ok(Math.abs(chanceB.chance - 2 / 3) < 1e-9);
+  assert.equal(chanceB.hasElite, true);
+});
+
 test("buildUpgradePathCatalog applies tuning, clamps max levels, and builds bonus labels", () => {
   const progression = loadProgressionModule();
 
@@ -183,4 +354,85 @@ test("ensureRunRecords normalizes numeric fields and bestVictoryTurns", () => {
     bestSectorsCleared: 0,
     bestMetaLevels: 3,
   });
+});
+
+test("appendRunTimelineEntry prefixes sector/turn and trims to max entries", () => {
+  const progression = loadProgressionModule();
+  const game = {};
+
+  progression.appendRunTimelineEntry({
+    game,
+    message: "Entered Freight Corridor.",
+    options: { sectorIndex: 0, turn: 1, type: "sector" },
+    createDefaultRunTimelineFn: () => [],
+    clamp,
+    runSectorsLength: 5,
+    maxEntries: 3,
+  });
+  progression.appendRunTimelineEntry({
+    game,
+    message: "Reward selected.",
+    options: { sectorIndex: 0, turn: 2, type: "reward" },
+    createDefaultRunTimelineFn: () => [],
+    clamp,
+    runSectorsLength: 5,
+    maxEntries: 3,
+  });
+  progression.appendRunTimelineEntry({
+    game,
+    message: "Interlude event.",
+    options: { sectorIndex: 1, turn: 3, type: "info" },
+    createDefaultRunTimelineFn: () => [],
+    clamp,
+    runSectorsLength: 5,
+    maxEntries: 3,
+  });
+  progression.appendRunTimelineEntry({
+    game,
+    message: "Boss approach.",
+    options: { sectorIndex: 4, turn: 4, type: "danger" },
+    createDefaultRunTimelineFn: () => [],
+    clamp,
+    runSectorsLength: 5,
+    maxEntries: 3,
+  });
+
+  assert.equal(game.runTimeline.length, 3);
+  assert.deepEqual(
+    Array.from(game.runTimeline).map((entry) => entry.line),
+    ["S1 T2 // Reward selected.", "S2 T3 // Interlude event.", "S5 T4 // Boss approach."]
+  );
+  assert.deepEqual(
+    Array.from(game.runTimeline).map((entry) => entry.type),
+    ["reward", "info", "danger"]
+  );
+});
+
+test("normalizeRewardChoice and getRewardChoiceKey support artifact rewards", () => {
+  const progression = loadProgressionModule();
+  const normalized = progression.normalizeRewardChoice({
+    type: "artifact",
+    artifactId: "aegis_booster",
+  });
+
+  assert.equal(normalized?.type, "artifact");
+  assert.equal(normalized?.artifactId, "aegis_booster");
+  assert.equal(progression.getRewardChoiceKey(normalized), "artifact:aegis_booster");
+});
+
+test("normalizeRewardChoice and getRewardChoiceKey preserve upgrade branch ids", () => {
+  const progression = loadProgressionModule();
+  const normalized = progression.normalizeRewardChoice({
+    type: "upgrade",
+    upgradeId: "condenser_bank",
+    branchId: "condenser_bank_branch_cold_baffles",
+  });
+
+  assert.equal(normalized?.type, "upgrade");
+  assert.equal(normalized?.upgradeId, "condenser_bank");
+  assert.equal(normalized?.branchId, "condenser_bank_branch_cold_baffles");
+  assert.equal(
+    progression.getRewardChoiceKey(normalized),
+    "upgrade:condenser_bank#condenser_bank_branch_cold_baffles"
+  );
 });

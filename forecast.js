@@ -339,6 +339,73 @@
     return null;
   }
 
+  function createForecastUiState({
+    phase,
+    trackLanes,
+    player,
+    telegraphs,
+    enemies,
+    telegraphAffectsLane,
+    getTelegraphCoverageLanes,
+    getLockedAimLane,
+    getAimedShotDamage,
+    clampLane,
+  }) {
+    const forecast = getNextEnemyPhaseForecast({
+      trackLanes,
+      telegraphs,
+      enemies,
+      getTelegraphCoverageLanes,
+      getLockedAimLane,
+      getAimedShotDamage,
+    });
+
+    const shiftCapability = getShiftCapability({
+      phase,
+      playerLane: player?.lane ?? 0,
+      movedThisTurn: Boolean(player?.movedThisTurn),
+      playerEnergy: Number.isFinite(player?.energy) ? player.energy : 0,
+      trackLanes,
+    });
+
+    const projection = getEndTurnProjection({
+      trackLanes,
+      player,
+      telegraphs,
+      enemies,
+      forecast,
+      shiftCapability,
+      telegraphAffectsLane,
+      getLockedAimLane,
+      getAimedShotDamage,
+      clampLane,
+    });
+
+    const advice = getProjectionAdvice({
+      projection,
+      shiftCapability,
+      playerHull: player?.hull ?? 0,
+    });
+
+    const endTurnLockedByLethal = phase === "player" && projection.canEscapeCurrentLethal;
+    const recommendedAction = getForecastRecommendedAction({
+      projection,
+      adviceCode: advice.code,
+      shiftCapability,
+      endTurnLockedByLethal,
+      phase,
+    });
+
+    return {
+      forecast,
+      projection,
+      shiftCapability,
+      advice,
+      recommendedAction,
+      endTurnLockedByLethal,
+    };
+  }
+
   function getForecastThreatClassName(damage) {
     if (damage <= 0) {
       return "safe";
@@ -553,6 +620,7 @@
     getEndTurnProjection,
     getProjectionAdvice,
     getForecastRecommendedAction,
+    createForecastUiState,
     getForecastThreatClassName,
     getEndTurnLockMessage,
     renderLaneThreatForecast,
