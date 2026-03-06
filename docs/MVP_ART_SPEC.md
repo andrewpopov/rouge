@@ -1,4 +1,6 @@
-# Brassline: Last Reactor - MVP Art Spec
+# Legacy Steampunk Prototype - MVP Art Spec (Historical)
+
+This document records the retired pre-migration art direction. Start with `PROJECT_MASTER.md` instead. Do not use this file for new product-facing decisions except when cleaning up legacy UI still based on the old prototype shell.
 
 ## Theme
 - You are the engineer of a steam-reactor train crossing a dead industrial frontier.

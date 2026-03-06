@@ -1,6 +1,10 @@
 # Asset Packs To Download
 
-## Required Packs
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- Preferred current direction is the legal high-fidelity Diablo II asset path; legacy steampunk packs remain documented only because parts of the old prototype still exist in the repo.
+
+## Legacy Prototype Packs
 
 1. Kenney UI Pack - Sci-Fi (CC0)
 - URL: https://kenney.nl/assets/ui-pack-sci-fi
@@ -34,6 +38,31 @@
 ./scripts/download-assets.sh
 ./scripts/curate-mvp-icons.sh
 ```
+
+## Current High-Fidelity D2 Asset Pull (Legal)
+
+To build a high-fidelity Diablo II look without using Blizzard-owned assets:
+
+```bash
+./scripts/download-dark-fantasy-assets.sh
+./scripts/curate-dark-fantasy-icons.sh
+```
+
+- Pulls Game-icons tags:
+  - `medieval-fantasy`
+  - `weapon`
+  - `blade`
+  - `skull`
+  - `blood`
+  - `fire`
+  - `poison`
+  - `armor`
+  - `zombie`
+  - `vampire`
+  - `death`
+  - `mask`
+- Writes curated Diablo-inspired icon set to:
+  - `assets/curated/themes/diablo-inspired/icons`
 
 ## What The Scripts Do
 - `scripts/download-assets.sh`

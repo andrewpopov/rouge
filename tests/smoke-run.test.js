@@ -17,7 +17,7 @@ after(async () => {
   await closeBrowser(browser);
 });
 
-test("scripted debug smoke run reaches run victory and records a win", { concurrency: false }, async () => {
+test("scripted debug smoke run reaches run completion and records a win", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
     const result = await page.evaluate(() => {
@@ -25,12 +25,15 @@ test("scripted debug smoke run reaches run victory and records a win", { concurr
       dbg.initGame();
 
       const g = dbg.game;
+      const runSectorsLength =
+        typeof dbg.getRunSectorsLength === "function" ? Math.max(1, dbg.getRunSectorsLength()) : 5;
+      const maxGuard = Math.max(40, runSectorsLength * 3);
       let guard = 0;
       let rewardsSeen = 0;
       let interludesSeen = 0;
 
-      while (guard < 40 && g.phase !== "run_victory" && g.phase !== "gameover") {
-        if (g.phase === "player") {
+      while (guard < maxGuard && g.phase !== "run_complete" && g.phase !== "run_failed") {
+        if (g.phase === "encounter" && (g.combatSubphase || "player_turn") === "player_turn") {
           g.enemies.forEach((enemy) => {
             enemy.alive = false;
             enemy.hp = 0;
@@ -40,7 +43,7 @@ test("scripted debug smoke run reaches run victory and records a win", { concurr
         } else if (g.phase === "reward") {
           rewardsSeen += 1;
           dbg.applyRewardAndAdvance(null);
-        } else if (g.phase === "interlude") {
+        } else if (g.phase === "world_map") {
           interludesSeen += 1;
           dbg.resolveInterludeOption(0);
         } else {
@@ -59,6 +62,7 @@ test("scripted debug smoke run reaches run victory and records a win", { concurr
       return {
         phase: g.phase,
         guard,
+        maxGuard,
         sectorIndex: g.sectorIndex,
         rewardsSeen,
         interludesSeen,
@@ -70,8 +74,8 @@ test("scripted debug smoke run reaches run victory and records a win", { concurr
       };
     });
 
-    assert.equal(result.phase, "run_victory");
-    assert.ok(result.guard < 40);
+    assert.equal(result.phase, "run_complete");
+    assert.ok(result.guard < result.maxGuard);
     assert.equal(result.rewardsSeen, result.sectorIndex);
     assert.ok(result.interludesSeen >= 1);
     assert.equal(result.runSummaryVisible, true);
@@ -84,7 +88,7 @@ test("scripted debug smoke run reaches run victory and records a win", { concurr
   }
 });
 
-test("scripted debug smoke loss reaches gameover and records a loss", { concurrency: false }, async () => {
+test("scripted debug smoke loss reaches run_failed and records a loss", { concurrency: false }, async () => {
   const page = await openGamePage(browser);
   try {
     const result = await page.evaluate(() => {
@@ -111,7 +115,7 @@ test("scripted debug smoke loss reaches gameover and records a loss", { concurre
       };
     });
 
-    assert.equal(result.phase, "gameover");
+    assert.equal(result.phase, "run_failed");
     assert.equal(result.runSummaryVisible, true);
     assert.match(result.runSummaryTitle, /reactor lost/i);
     assert.match(result.timelineText, /run lost/i);

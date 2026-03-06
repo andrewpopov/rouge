@@ -1,0 +1,614 @@
+{
+  "version": "d2-canon-2026-03-05",
+  "source": "https://classic.battle.net/diablo2exp/monsters/",
+  "enemyPools": [
+    {
+      "act": 1,
+      "enemies": [
+        {
+          "id": "fallen",
+          "name": "Fallen"
+        },
+        {
+          "id": "fallen_shaman",
+          "name": "Fallen Shaman"
+        },
+        {
+          "id": "spike_fiend",
+          "name": "Spike Fiend"
+        },
+        {
+          "id": "zombie",
+          "name": "Zombie"
+        },
+        {
+          "id": "wendigo",
+          "name": "Wendigo"
+        },
+        {
+          "id": "corrupt_rogue",
+          "name": "Corrupt Rogue"
+        },
+        {
+          "id": "corrupt_rogue_archer",
+          "name": "Corrupt Rogue Archer"
+        },
+        {
+          "id": "corrupt_rogue_spearwoman",
+          "name": "Corrupt Rogue Spearwoman"
+        },
+        {
+          "id": "skeleton",
+          "name": "Skeleton"
+        },
+        {
+          "id": "skeleton_archer",
+          "name": "Skeleton Archer"
+        },
+        {
+          "id": "skeleton_mage",
+          "name": "Skeleton Mage"
+        },
+        {
+          "id": "goatman",
+          "name": "Goatman"
+        },
+        {
+          "id": "blood_hawk",
+          "name": "Blood Hawk"
+        },
+        {
+          "id": "tainted",
+          "name": "Tainted"
+        },
+        {
+          "id": "giant_spider",
+          "name": "Giant Spider"
+        },
+        {
+          "id": "wraith",
+          "name": "Wraith"
+        },
+        {
+          "id": "fetish",
+          "name": "Fetish"
+        },
+        {
+          "id": "vampire",
+          "name": "Vampire"
+        },
+        {
+          "id": "flying_scimitar",
+          "name": "Flying Scimitar"
+        },
+        {
+          "id": "blood_hawk_nest",
+          "name": "Blood Hawk Nest"
+        },
+        {
+          "id": "gargoyle_trap",
+          "name": "Gargoyle Trap"
+        }
+      ]
+    },
+    {
+      "act": 2,
+      "enemies": [
+        {
+          "id": "leaper",
+          "name": "Leaper"
+        },
+        {
+          "id": "scarab_demon",
+          "name": "Scarab Demon"
+        },
+        {
+          "id": "sand_maggot",
+          "name": "Sand Maggot"
+        },
+        {
+          "id": "sand_maggot_egg",
+          "name": "Sand Maggot Egg"
+        },
+        {
+          "id": "sand_maggot_young",
+          "name": "Sand Maggot Young"
+        },
+        {
+          "id": "vulture_demon",
+          "name": "Vulture Demon"
+        },
+        {
+          "id": "swarm",
+          "name": "Swarm"
+        },
+        {
+          "id": "sabre_cat",
+          "name": "Sabre Cat"
+        },
+        {
+          "id": "slinger",
+          "name": "Slinger"
+        },
+        {
+          "id": "mummy",
+          "name": "Mummy"
+        },
+        {
+          "id": "greater_mummy",
+          "name": "Greater Mummy"
+        },
+        {
+          "id": "sand_raider",
+          "name": "Sand Raider"
+        },
+        {
+          "id": "bat_demon",
+          "name": "Bat Demon"
+        },
+        {
+          "id": "claw_viper",
+          "name": "Claw Viper"
+        },
+        {
+          "id": "baboon_demon",
+          "name": "Baboon Demon"
+        },
+        {
+          "id": "blunderbore",
+          "name": "Blunderbore"
+        },
+        {
+          "id": "lightning_spire",
+          "name": "Lightning Spire"
+        },
+        {
+          "id": "mummy_sarcophagus",
+          "name": "Mummy Sarcophagus"
+        },
+        {
+          "id": "fire_tower",
+          "name": "Fire Tower"
+        }
+      ]
+    },
+    {
+      "act": 3,
+      "enemies": [
+        {
+          "id": "fetish_shaman",
+          "name": "Fetish Shaman"
+        },
+        {
+          "id": "giant_mosquito",
+          "name": "Giant Mosquito"
+        },
+        {
+          "id": "thorned_hulk",
+          "name": "Thorned Hulk"
+        },
+        {
+          "id": "frog_demon",
+          "name": "Frog Demon"
+        },
+        {
+          "id": "willowisp",
+          "name": "Willowisp"
+        },
+        {
+          "id": "bone_fetish",
+          "name": "Bone Fetish"
+        },
+        {
+          "id": "tentacle_beast",
+          "name": "Tentacle Beast"
+        },
+        {
+          "id": "zakarum_zealot",
+          "name": "Zakarum Zealot"
+        },
+        {
+          "id": "zakarum_priest",
+          "name": "Zakarum Priest"
+        },
+        {
+          "id": "council_member",
+          "name": "Council Member"
+        }
+      ]
+    },
+    {
+      "act": 4,
+      "enemies": [
+        {
+          "id": "finger_mage",
+          "name": "Finger Mage"
+        },
+        {
+          "id": "megademon",
+          "name": "Megademon"
+        },
+        {
+          "id": "regurgitator",
+          "name": "Regurgitator"
+        },
+        {
+          "id": "oblivion_knight",
+          "name": "Oblivion Knight"
+        },
+        {
+          "id": "vile_mother",
+          "name": "Vile Mother"
+        },
+        {
+          "id": "vile_child",
+          "name": "Vile Child"
+        }
+      ]
+    },
+    {
+      "act": 5,
+      "nativeEnemies": [
+        {
+          "id": "baal_s_minion",
+          "name": "Baal's Minion"
+        },
+        {
+          "id": "suicide_minion",
+          "name": "Suicide Minion"
+        },
+        {
+          "id": "death_mauler",
+          "name": "Death Mauler"
+        },
+        {
+          "id": "catapult",
+          "name": "Catapult"
+        },
+        {
+          "id": "overseer",
+          "name": "Overseer"
+        },
+        {
+          "id": "demon_imp",
+          "name": "Demon Imp"
+        },
+        {
+          "id": "siege_beast",
+          "name": "Siege Beast"
+        },
+        {
+          "id": "abominable",
+          "name": "Abominable"
+        },
+        {
+          "id": "reanimated_horde",
+          "name": "Reanimated Horde"
+        },
+        {
+          "id": "succubus",
+          "name": "Succubus"
+        },
+        {
+          "id": "stygian_fury",
+          "name": "Stygian Fury"
+        },
+        {
+          "id": "frozen_horror",
+          "name": "Frozen Horror"
+        },
+        {
+          "id": "blood_lord",
+          "name": "Blood Lord"
+        },
+        {
+          "id": "putrid_defiler",
+          "name": "Putrid Defiler"
+        },
+        {
+          "id": "pain_worm",
+          "name": "Pain Worm"
+        },
+        {
+          "id": "minion_of_destruction",
+          "name": "Minion of Destruction"
+        },
+        {
+          "id": "reziarfg",
+          "name": "Reziarfg"
+        }
+      ],
+      "guestEnemiesNightmareHell": [
+        {
+          "id": "baboon_demon",
+          "name": "Baboon Demon"
+        },
+        {
+          "id": "bat_demon",
+          "name": "Bat Demon"
+        },
+        {
+          "id": "blood_hawk",
+          "name": "Blood Hawk"
+        },
+        {
+          "id": "blunderbore",
+          "name": "Blunderbore"
+        },
+        {
+          "id": "bone_fetish",
+          "name": "Bone Fetish"
+        },
+        {
+          "id": "claw_viper",
+          "name": "Claw Viper"
+        },
+        {
+          "id": "corrupt_rogue_archer",
+          "name": "Corrupt Rogue Archer"
+        },
+        {
+          "id": "corrupt_rogue_spearwoman",
+          "name": "Corrupt Rogue Spearwoman"
+        },
+        {
+          "id": "council_member",
+          "name": "Council Member"
+        },
+        {
+          "id": "fallen",
+          "name": "Fallen"
+        },
+        {
+          "id": "fallen_shaman",
+          "name": "Fallen Shaman"
+        },
+        {
+          "id": "fetish",
+          "name": "Fetish"
+        },
+        {
+          "id": "fetish_shaman",
+          "name": "Fetish Shaman"
+        },
+        {
+          "id": "finger_mage",
+          "name": "Finger Mage"
+        },
+        {
+          "id": "giant_spider",
+          "name": "Giant Spider"
+        },
+        {
+          "id": "goatman",
+          "name": "Goatman"
+        },
+        {
+          "id": "greater_mummy",
+          "name": "Greater Mummy"
+        },
+        {
+          "id": "leaper",
+          "name": "Leaper"
+        },
+        {
+          "id": "megademon",
+          "name": "Megademon"
+        },
+        {
+          "id": "mummy",
+          "name": "Mummy"
+        },
+        {
+          "id": "regurgitator",
+          "name": "Regurgitator"
+        },
+        {
+          "id": "sabre_cat",
+          "name": "Sabre Cat"
+        },
+        {
+          "id": "sand_maggot",
+          "name": "Sand Maggot"
+        },
+        {
+          "id": "sand_maggot_egg",
+          "name": "Sand Maggot Egg"
+        },
+        {
+          "id": "sand_maggot_young",
+          "name": "Sand Maggot Young"
+        },
+        {
+          "id": "sand_raider",
+          "name": "Sand Raider"
+        },
+        {
+          "id": "scarab_demon",
+          "name": "Scarab Demon"
+        },
+        {
+          "id": "skeleton",
+          "name": "Skeleton"
+        },
+        {
+          "id": "skeleton_archer",
+          "name": "Skeleton Archer"
+        },
+        {
+          "id": "skeleton_mage",
+          "name": "Skeleton Mage"
+        },
+        {
+          "id": "slinger",
+          "name": "Slinger"
+        },
+        {
+          "id": "spike_fiend",
+          "name": "Spike Fiend"
+        },
+        {
+          "id": "tainted",
+          "name": "Tainted"
+        },
+        {
+          "id": "thorned_hulk",
+          "name": "Thorned Hulk"
+        },
+        {
+          "id": "undead_horror",
+          "name": "Undead Horror"
+        },
+        {
+          "id": "vampire",
+          "name": "Vampire"
+        },
+        {
+          "id": "vile_child",
+          "name": "Vile Child"
+        },
+        {
+          "id": "vile_mother",
+          "name": "Vile Mother"
+        },
+        {
+          "id": "vulture_demon",
+          "name": "Vulture Demon"
+        },
+        {
+          "id": "willowisp",
+          "name": "Willowisp"
+        },
+        {
+          "id": "wraith",
+          "name": "Wraith"
+        },
+        {
+          "id": "zakarum_priest",
+          "name": "Zakarum Priest"
+        },
+        {
+          "id": "zakarum_zealot",
+          "name": "Zakarum Zealot"
+        }
+      ]
+    }
+  ],
+  "encounterArchetypes": [
+    {
+      "id": "fallen_pack",
+      "label": "Fallen Pack",
+      "composition": [
+        "fallen",
+        "fallen_shaman"
+      ],
+      "notes": "Low HP swarm with resurrection pressure from shamans."
+    },
+    {
+      "id": "undead_legion",
+      "label": "Undead Legion",
+      "composition": [
+        "skeleton",
+        "skeleton_archer",
+        "skeleton_mage"
+      ],
+      "notes": "Mixed ranged/melee pressure and sustained attrition."
+    },
+    {
+      "id": "beast_ambush",
+      "label": "Beast Ambush",
+      "composition": [
+        "sabre_cat",
+        "leaper",
+        "vulture_demon"
+      ],
+      "notes": "Fast openers and momentum spikes."
+    },
+    {
+      "id": "kurast_fanatics",
+      "label": "Kurast Fanatics",
+      "composition": [
+        "zakarum_zealot",
+        "zakarum_priest",
+        "council_member"
+      ],
+      "notes": "High danger if priests are not focused first."
+    },
+    {
+      "id": "hell_siege",
+      "label": "Hell Siege",
+      "composition": [
+        "catapult",
+        "overseer",
+        "demon_imp"
+      ],
+      "notes": "Ranged setup with frontline support."
+    },
+    {
+      "id": "baal_wave",
+      "label": "Baal Throne Wave",
+      "composition": [
+        "baal_s_minion",
+        "minion_of_destruction"
+      ],
+      "notes": "Act V endgame elite pressure with heavy melee."
+    }
+  ],
+  "actBosses": [
+    {
+      "id": "andariel",
+      "name": "Andariel",
+      "act": 1,
+      "zone": "Catacombs",
+      "canonicalTheme": [
+        "poison",
+        "bleed",
+        "fast melee"
+      ]
+    },
+    {
+      "id": "duriel",
+      "name": "Duriel",
+      "act": 2,
+      "zone": "Tal Rasha's Chamber",
+      "canonicalTheme": [
+        "charge",
+        "cold aura",
+        "high melee burst"
+      ]
+    },
+    {
+      "id": "mephisto",
+      "name": "Mephisto",
+      "act": 3,
+      "zone": "Durance of Hate",
+      "canonicalTheme": [
+        "lightning",
+        "cold orb",
+        "skull missile"
+      ]
+    },
+    {
+      "id": "diablo",
+      "name": "Diablo",
+      "act": 4,
+      "zone": "Chaos Sanctuary",
+      "canonicalTheme": [
+        "fire nova",
+        "lightning hose",
+        "bone prison control"
+      ]
+    },
+    {
+      "id": "baal",
+      "name": "Baal",
+      "act": 5,
+      "zone": "The Worldstone Chamber",
+      "canonicalTheme": [
+        "mana burn",
+        "clone pressure",
+        "cold wedge and tentacles"
+      ]
+    }
+  ]
+}

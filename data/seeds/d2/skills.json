@@ -1,0 +1,1224 @@
+{
+  "version": "d2-canon-2026-03-05",
+  "source": "https://classic.battle.net/diablo2exp/skills/",
+  "classes": [
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "trees": [
+        {
+          "id": "amazon_bow_and_crossbow",
+          "name": "Bow and Crossbow",
+          "skills": [
+            {
+              "id": "amazon_magic_arrow",
+              "name": "Magic Arrow",
+              "requiredLevel": 1
+            },
+            {
+              "id": "amazon_fire_arrow",
+              "name": "Fire Arrow",
+              "requiredLevel": 1
+            },
+            {
+              "id": "amazon_cold_arrow",
+              "name": "Cold Arrow",
+              "requiredLevel": 6
+            },
+            {
+              "id": "amazon_multiple_shot",
+              "name": "Multiple Shot",
+              "requiredLevel": 6
+            },
+            {
+              "id": "amazon_exploding_arrow",
+              "name": "Exploding Arrow",
+              "requiredLevel": 12
+            },
+            {
+              "id": "amazon_ice_arrow",
+              "name": "Ice Arrow",
+              "requiredLevel": 18
+            },
+            {
+              "id": "amazon_guided_arrow",
+              "name": "Guided Arrow",
+              "requiredLevel": 18
+            },
+            {
+              "id": "amazon_immolation_arrow",
+              "name": "Immolation Arrow",
+              "requiredLevel": 24
+            },
+            {
+              "id": "amazon_strafe",
+              "name": "Strafe",
+              "requiredLevel": 24
+            },
+            {
+              "id": "amazon_freezing_arrow",
+              "name": "Freezing Arrow",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "amazon_javelin_and_spear",
+          "name": "Javelin and Spear",
+          "skills": [
+            {
+              "id": "amazon_jab",
+              "name": "Jab",
+              "requiredLevel": 1
+            },
+            {
+              "id": "amazon_power_strike",
+              "name": "Power Strike",
+              "requiredLevel": 6
+            },
+            {
+              "id": "amazon_poison_javelin",
+              "name": "Poison Javelin",
+              "requiredLevel": 6
+            },
+            {
+              "id": "amazon_impale",
+              "name": "Impale",
+              "requiredLevel": 12
+            },
+            {
+              "id": "amazon_lightning_bolt",
+              "name": "Lightning Bolt",
+              "requiredLevel": 12
+            },
+            {
+              "id": "amazon_charged_strike",
+              "name": "Charged Strike",
+              "requiredLevel": 18
+            },
+            {
+              "id": "amazon_plague_javelin",
+              "name": "Plague Javelin",
+              "requiredLevel": 18
+            },
+            {
+              "id": "amazon_fend",
+              "name": "Fend",
+              "requiredLevel": 24
+            },
+            {
+              "id": "amazon_lightning_strike",
+              "name": "Lightning Strike",
+              "requiredLevel": 30
+            },
+            {
+              "id": "amazon_lightning_fury",
+              "name": "Lightning Fury",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "amazon_passive_and_magic",
+          "name": "Passive and Magic",
+          "skills": [
+            {
+              "id": "amazon_inner_sight",
+              "name": "Inner Sight",
+              "requiredLevel": 1
+            },
+            {
+              "id": "amazon_dodge",
+              "name": "Dodge",
+              "requiredLevel": 6
+            },
+            {
+              "id": "amazon_critical_strike",
+              "name": "Critical Strike",
+              "requiredLevel": 1
+            },
+            {
+              "id": "amazon_slow_missiles",
+              "name": "Slow Missiles",
+              "requiredLevel": 12
+            },
+            {
+              "id": "amazon_avoid",
+              "name": "Avoid",
+              "requiredLevel": 12
+            },
+            {
+              "id": "amazon_penetrate",
+              "name": "Penetrate",
+              "requiredLevel": 18
+            },
+            {
+              "id": "amazon_decoy",
+              "name": "Decoy",
+              "requiredLevel": 24
+            },
+            {
+              "id": "amazon_evade",
+              "name": "Evade",
+              "requiredLevel": 24
+            },
+            {
+              "id": "amazon_valkyrie",
+              "name": "Valkyrie",
+              "requiredLevel": 30
+            },
+            {
+              "id": "amazon_pierce",
+              "name": "Pierce",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "assassin",
+      "className": "Assassin",
+      "trees": [
+        {
+          "id": "assassin_martial_arts",
+          "name": "Martial Arts",
+          "skills": [
+            {
+              "id": "assassin_tiger_strike",
+              "name": "Tiger Strike",
+              "requiredLevel": 1
+            },
+            {
+              "id": "assassin_dragon_talon",
+              "name": "Dragon Talon",
+              "requiredLevel": 1
+            },
+            {
+              "id": "assassin_fists_of_fire",
+              "name": "Fists of Fire",
+              "requiredLevel": 6
+            },
+            {
+              "id": "assassin_dragon_claw",
+              "name": "Dragon Claw",
+              "requiredLevel": 6
+            },
+            {
+              "id": "assassin_cobra_strike",
+              "name": "Cobra Strike",
+              "requiredLevel": 12
+            },
+            {
+              "id": "assassin_claws_of_thunder",
+              "name": "Claws of Thunder",
+              "requiredLevel": 18
+            },
+            {
+              "id": "assassin_blades_of_ice",
+              "name": "Blades of Ice",
+              "requiredLevel": 24
+            },
+            {
+              "id": "assassin_dragon_tail",
+              "name": "Dragon Tail",
+              "requiredLevel": 18
+            },
+            {
+              "id": "assassin_dragon_flight",
+              "name": "Dragon Flight",
+              "requiredLevel": 24
+            },
+            {
+              "id": "assassin_phoenix_strike",
+              "name": "Phoenix Strike",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "assassin_shadow_disciplines",
+          "name": "Shadow Disciplines",
+          "skills": [
+            {
+              "id": "assassin_claw_mastery",
+              "name": "Claw Mastery",
+              "requiredLevel": 1
+            },
+            {
+              "id": "assassin_psychic_hammer",
+              "name": "Psychic Hammer",
+              "requiredLevel": 1
+            },
+            {
+              "id": "assassin_burst_of_speed",
+              "name": "Burst of Speed",
+              "requiredLevel": 6
+            },
+            {
+              "id": "assassin_cloak_of_shadows",
+              "name": "Cloak of Shadows",
+              "requiredLevel": 12
+            },
+            {
+              "id": "assassin_weapon_block",
+              "name": "Weapon Block",
+              "requiredLevel": 12
+            },
+            {
+              "id": "assassin_fade",
+              "name": "Fade",
+              "requiredLevel": 18
+            },
+            {
+              "id": "assassin_shadow_warrior",
+              "name": "Shadow Warrior",
+              "requiredLevel": 18
+            },
+            {
+              "id": "assassin_mind_blast",
+              "name": "Mind Blast",
+              "requiredLevel": 24
+            },
+            {
+              "id": "assassin_venom",
+              "name": "Venom",
+              "requiredLevel": 30
+            },
+            {
+              "id": "assassin_shadow_master",
+              "name": "Shadow Master",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "assassin_traps",
+          "name": "Traps",
+          "skills": [
+            {
+              "id": "assassin_fire_blast",
+              "name": "Fire Blast",
+              "requiredLevel": 1
+            },
+            {
+              "id": "assassin_shock_web",
+              "name": "Shock Web",
+              "requiredLevel": 6
+            },
+            {
+              "id": "assassin_blade_sentinel",
+              "name": "Blade Sentinel",
+              "requiredLevel": 6
+            },
+            {
+              "id": "assassin_charged_bolt_sentry",
+              "name": "Charged Bolt Sentry",
+              "requiredLevel": 12
+            },
+            {
+              "id": "assassin_wake_of_fire",
+              "name": "Wake of Fire",
+              "requiredLevel": 12
+            },
+            {
+              "id": "assassin_blade_fury",
+              "name": "Blade Fury",
+              "requiredLevel": 18
+            },
+            {
+              "id": "assassin_lightning_sentry",
+              "name": "Lightning Sentry",
+              "requiredLevel": 24
+            },
+            {
+              "id": "assassin_wake_of_inferno",
+              "name": "Wake Of Inferno",
+              "requiredLevel": 24
+            },
+            {
+              "id": "assassin_death_sentry",
+              "name": "Death Sentry",
+              "requiredLevel": 30
+            },
+            {
+              "id": "assassin_blade_shield",
+              "name": "Blade Shield",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "barbarian",
+      "className": "Barbarian",
+      "trees": [
+        {
+          "id": "barbarian_combat_skills",
+          "name": "Combat",
+          "skills": [
+            {
+              "id": "barbarian_bash",
+              "name": "Bash",
+              "requiredLevel": 1
+            },
+            {
+              "id": "barbarian_double_swing",
+              "name": "Double Swing",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_leap",
+              "name": "Leap",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_double_throw",
+              "name": "Double Throw",
+              "requiredLevel": 12
+            },
+            {
+              "id": "barbarian_stun",
+              "name": "Stun",
+              "requiredLevel": 12
+            },
+            {
+              "id": "barbarian_leap_attack",
+              "name": "Leap Attack",
+              "requiredLevel": 18
+            },
+            {
+              "id": "barbarian_concentrate",
+              "name": "Concentrate",
+              "requiredLevel": 18
+            },
+            {
+              "id": "barbarian_frenzy",
+              "name": "Frenzy",
+              "requiredLevel": 24
+            },
+            {
+              "id": "barbarian_whirlwind",
+              "name": "Whirlwind",
+              "requiredLevel": 30
+            },
+            {
+              "id": "barbarian_berserk",
+              "name": "Berserk",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "barbarian_combat_masteries",
+          "name": "Combat Masteries",
+          "skills": [
+            {
+              "id": "barbarian_sword_mastery",
+              "name": "Sword Mastery",
+              "requiredLevel": 1
+            },
+            {
+              "id": "barbarian_axe_mastery",
+              "name": "Axe Mastery",
+              "requiredLevel": 1
+            },
+            {
+              "id": "barbarian_mace_mastery",
+              "name": "Mace Mastery",
+              "requiredLevel": 1
+            },
+            {
+              "id": "barbarian_polearm_mastery",
+              "name": "Polearm Mastery",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_throwing_mastery",
+              "name": "Throwing Mastery",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_spear_mastery",
+              "name": "Spear Mastery",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_increased_stamina",
+              "name": "Increased Stamina",
+              "requiredLevel": 12
+            },
+            {
+              "id": "barbarian_iron_skin",
+              "name": "Iron Skin",
+              "requiredLevel": 18
+            },
+            {
+              "id": "barbarian_increased_speed",
+              "name": "Increased Speed",
+              "requiredLevel": 24
+            },
+            {
+              "id": "barbarian_natural_resistance",
+              "name": "Natural Resistance",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "barbarian_warcries",
+          "name": "Warcries",
+          "skills": [
+            {
+              "id": "barbarian_howl",
+              "name": "Howl",
+              "requiredLevel": 1
+            },
+            {
+              "id": "barbarian_find_potion",
+              "name": "Find Potion",
+              "requiredLevel": 1
+            },
+            {
+              "id": "barbarian_shout",
+              "name": "Shout",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_taunt",
+              "name": "Taunt",
+              "requiredLevel": 6
+            },
+            {
+              "id": "barbarian_battle_cry",
+              "name": "Battle Cry",
+              "requiredLevel": 18
+            },
+            {
+              "id": "barbarian_find_item",
+              "name": "Find Item",
+              "requiredLevel": 12
+            },
+            {
+              "id": "barbarian_battle_orders",
+              "name": "Battle Orders",
+              "requiredLevel": 24
+            },
+            {
+              "id": "barbarian_grim_ward",
+              "name": "Grim Ward",
+              "requiredLevel": 24
+            },
+            {
+              "id": "barbarian_war_cry",
+              "name": "War Cry",
+              "requiredLevel": 30
+            },
+            {
+              "id": "barbarian_battle_command",
+              "name": "Battle Command",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "druid",
+      "className": "Druid",
+      "trees": [
+        {
+          "id": "druid_elemental",
+          "name": "Elemental",
+          "skills": [
+            {
+              "id": "druid_firestorm",
+              "name": "Firestorm",
+              "requiredLevel": 1
+            },
+            {
+              "id": "druid_molten_boulder",
+              "name": "Molten Boulder",
+              "requiredLevel": 6
+            },
+            {
+              "id": "druid_arctic_blast",
+              "name": "Arctic Blast",
+              "requiredLevel": 6
+            },
+            {
+              "id": "druid_cyclone_armor",
+              "name": "Cyclone Armor",
+              "requiredLevel": 12
+            },
+            {
+              "id": "druid_fissure",
+              "name": "Fissure",
+              "requiredLevel": 12
+            },
+            {
+              "id": "druid_twister",
+              "name": "Twister",
+              "requiredLevel": 18
+            },
+            {
+              "id": "druid_volcano",
+              "name": "Volcano",
+              "requiredLevel": 24
+            },
+            {
+              "id": "druid_tornado",
+              "name": "Tornado",
+              "requiredLevel": 24
+            },
+            {
+              "id": "druid_hurricane",
+              "name": "Hurricane",
+              "requiredLevel": 30
+            },
+            {
+              "id": "druid_armageddon",
+              "name": "Armageddon",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "druid_shape_shifting",
+          "name": "Shape Shifting",
+          "skills": [
+            {
+              "id": "druid_werewolf",
+              "name": "Werewolf",
+              "requiredLevel": 1
+            },
+            {
+              "id": "druid_lycanthropy",
+              "name": "Lycanthropy",
+              "requiredLevel": 1
+            },
+            {
+              "id": "druid_werebear",
+              "name": "Werebear",
+              "requiredLevel": 6
+            },
+            {
+              "id": "druid_maul",
+              "name": "Maul",
+              "requiredLevel": 12
+            },
+            {
+              "id": "druid_feral_rage",
+              "name": "Feral Rage",
+              "requiredLevel": 12
+            },
+            {
+              "id": "druid_fire_claws",
+              "name": "Fire Claws",
+              "requiredLevel": 18
+            },
+            {
+              "id": "druid_rabies",
+              "name": "Rabies",
+              "requiredLevel": 18
+            },
+            {
+              "id": "druid_shock_wave",
+              "name": "Shock Wave",
+              "requiredLevel": 24
+            },
+            {
+              "id": "druid_hunger",
+              "name": "Hunger",
+              "requiredLevel": 24
+            },
+            {
+              "id": "druid_fury",
+              "name": "Fury",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "druid_summoning",
+          "name": "Summoning",
+          "skills": [
+            {
+              "id": "druid_raven",
+              "name": "Raven",
+              "requiredLevel": 1
+            },
+            {
+              "id": "druid_poison_creeper",
+              "name": "Poison Creeper",
+              "requiredLevel": 1
+            },
+            {
+              "id": "druid_oak_sage",
+              "name": "Oak Sage",
+              "requiredLevel": 6
+            },
+            {
+              "id": "druid_summon_spirit_wolf",
+              "name": "Summon Spirit Wolf",
+              "requiredLevel": 6
+            },
+            {
+              "id": "druid_carrion_vine",
+              "name": "Carrion Vine",
+              "requiredLevel": 12
+            },
+            {
+              "id": "druid_heart_of_wolverine",
+              "name": "Heart of Wolverine",
+              "requiredLevel": 18
+            },
+            {
+              "id": "druid_summon_dire_wolf",
+              "name": "Summon Dire Wolf",
+              "requiredLevel": 18
+            },
+            {
+              "id": "druid_solar_creeper",
+              "name": "Solar Creeper",
+              "requiredLevel": 24
+            },
+            {
+              "id": "druid_spirit_of_barbs",
+              "name": "Spirit of Barbs",
+              "requiredLevel": 30
+            },
+            {
+              "id": "druid_summon_grizzly",
+              "name": "Summon Grizzly",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "necromancer",
+      "className": "Necromancer",
+      "trees": [
+        {
+          "id": "necromancer_curses",
+          "name": "Curses",
+          "skills": [
+            {
+              "id": "necromancer_amplify_damage",
+              "name": "Amplify Damage",
+              "requiredLevel": 1
+            },
+            {
+              "id": "necromancer_dim_vision",
+              "name": "Dim Vision",
+              "requiredLevel": 6
+            },
+            {
+              "id": "necromancer_weaken",
+              "name": "Weaken",
+              "requiredLevel": 6
+            },
+            {
+              "id": "necromancer_iron_maiden",
+              "name": "Iron Maiden",
+              "requiredLevel": 12
+            },
+            {
+              "id": "necromancer_terror",
+              "name": "Terror",
+              "requiredLevel": 12
+            },
+            {
+              "id": "necromancer_confuse",
+              "name": "Confuse",
+              "requiredLevel": 18
+            },
+            {
+              "id": "necromancer_life_tap",
+              "name": "Life Tap",
+              "requiredLevel": 18
+            },
+            {
+              "id": "necromancer_attract",
+              "name": "Attract",
+              "requiredLevel": 24
+            },
+            {
+              "id": "necromancer_decrepify",
+              "name": "Decrepify",
+              "requiredLevel": 24
+            },
+            {
+              "id": "necromancer_lower_resist",
+              "name": "Lower Resist",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "necromancer_poison_and_bone",
+          "name": "Poison and Bone",
+          "skills": [
+            {
+              "id": "necromancer_teeth",
+              "name": "Teeth",
+              "requiredLevel": 1
+            },
+            {
+              "id": "necromancer_bone_armor",
+              "name": "Bone Armor",
+              "requiredLevel": 1
+            },
+            {
+              "id": "necromancer_poison_dagger",
+              "name": "Poison Dagger",
+              "requiredLevel": 6
+            },
+            {
+              "id": "necromancer_corpse_explosion",
+              "name": "Corpse Explosion",
+              "requiredLevel": 6
+            },
+            {
+              "id": "necromancer_bone_wall",
+              "name": "Bone Wall",
+              "requiredLevel": 12
+            },
+            {
+              "id": "necromancer_poison_explosion",
+              "name": "Poison Explosion",
+              "requiredLevel": 18
+            },
+            {
+              "id": "necromancer_bone_spear",
+              "name": "Bone Spear",
+              "requiredLevel": 18
+            },
+            {
+              "id": "necromancer_bone_prison",
+              "name": "Bone Prison",
+              "requiredLevel": 24
+            },
+            {
+              "id": "necromancer_poison_nova",
+              "name": "Poison Nova",
+              "requiredLevel": 30
+            },
+            {
+              "id": "necromancer_bone_spirit",
+              "name": "Bone Spirit",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "necromancer_summoning",
+          "name": "Summoning",
+          "skills": [
+            {
+              "id": "necromancer_raise_skeleton",
+              "name": "Raise Skeleton",
+              "requiredLevel": 1
+            },
+            {
+              "id": "necromancer_skeleton_mastery",
+              "name": "Skeleton Mastery",
+              "requiredLevel": 1
+            },
+            {
+              "id": "necromancer_clay_golem",
+              "name": "Clay Golem",
+              "requiredLevel": 6
+            },
+            {
+              "id": "necromancer_golem_mastery",
+              "name": "Golem Mastery",
+              "requiredLevel": 12
+            },
+            {
+              "id": "necromancer_skeletal_mage",
+              "name": "Skeletal Mage",
+              "requiredLevel": 12
+            },
+            {
+              "id": "necromancer_blood_golem",
+              "name": "Blood Golem",
+              "requiredLevel": 18
+            },
+            {
+              "id": "necromancer_summon_resist",
+              "name": "Summon Resist",
+              "requiredLevel": 24
+            },
+            {
+              "id": "necromancer_iron_golem",
+              "name": "Iron Golem",
+              "requiredLevel": 24
+            },
+            {
+              "id": "necromancer_fire_golem",
+              "name": "Fire Golem",
+              "requiredLevel": 30
+            },
+            {
+              "id": "necromancer_revive",
+              "name": "Revive",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "paladin",
+      "className": "Paladin",
+      "trees": [
+        {
+          "id": "paladin_combat_skills",
+          "name": "Combat",
+          "skills": [
+            {
+              "id": "paladin_sacrifice",
+              "name": "Sacrifice",
+              "requiredLevel": 1
+            },
+            {
+              "id": "paladin_holy_bolt",
+              "name": "Holy Bolt",
+              "requiredLevel": 6
+            },
+            {
+              "id": "paladin_smite",
+              "name": "Smite",
+              "requiredLevel": 1
+            },
+            {
+              "id": "paladin_zeal",
+              "name": "Zeal",
+              "requiredLevel": 12
+            },
+            {
+              "id": "paladin_charge",
+              "name": "Charge",
+              "requiredLevel": 12
+            },
+            {
+              "id": "paladin_vengeance",
+              "name": "Vengeance",
+              "requiredLevel": 18
+            },
+            {
+              "id": "paladin_blessed_hammer",
+              "name": "Blessed Hammer",
+              "requiredLevel": 18
+            },
+            {
+              "id": "paladin_conversion",
+              "name": "Conversion",
+              "requiredLevel": 24
+            },
+            {
+              "id": "paladin_holy_shield",
+              "name": "Holy Shield",
+              "requiredLevel": 24
+            },
+            {
+              "id": "paladin_fist_of_the_heavens",
+              "name": "Fist of the Heavens",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "paladin_defensive_auras",
+          "name": "Defensive Auras",
+          "skills": [
+            {
+              "id": "paladin_prayer",
+              "name": "Prayer",
+              "requiredLevel": 1
+            },
+            {
+              "id": "paladin_resist_fire",
+              "name": "Resist Fire",
+              "requiredLevel": 1
+            },
+            {
+              "id": "paladin_resist_cold",
+              "name": "Resist Cold",
+              "requiredLevel": 6
+            },
+            {
+              "id": "paladin_resist_lightning",
+              "name": "Resist Lightning",
+              "requiredLevel": 12
+            },
+            {
+              "id": "paladin_defiance",
+              "name": "Defiance",
+              "requiredLevel": 6
+            },
+            {
+              "id": "paladin_cleansing",
+              "name": "Cleansing",
+              "requiredLevel": 12
+            },
+            {
+              "id": "paladin_vigor",
+              "name": "Vigor",
+              "requiredLevel": 18
+            },
+            {
+              "id": "paladin_meditation",
+              "name": "Meditation",
+              "requiredLevel": 24
+            },
+            {
+              "id": "paladin_redemption",
+              "name": "Redemption",
+              "requiredLevel": 30
+            },
+            {
+              "id": "paladin_salvation",
+              "name": "Salvation",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "paladin_offensive_auras",
+          "name": "Offensive Auras",
+          "skills": [
+            {
+              "id": "paladin_might",
+              "name": "Might",
+              "requiredLevel": 1
+            },
+            {
+              "id": "paladin_holy_fire",
+              "name": "Holy Fire",
+              "requiredLevel": 6
+            },
+            {
+              "id": "paladin_thorns",
+              "name": "Thorns",
+              "requiredLevel": 6
+            },
+            {
+              "id": "paladin_blessed_aim",
+              "name": "Blessed Aim",
+              "requiredLevel": 12
+            },
+            {
+              "id": "paladin_concentration",
+              "name": "Concentration",
+              "requiredLevel": 18
+            },
+            {
+              "id": "paladin_holy_freeze",
+              "name": "Holy Freeze",
+              "requiredLevel": 18
+            },
+            {
+              "id": "paladin_holy_shock",
+              "name": "Holy Shock",
+              "requiredLevel": 24
+            },
+            {
+              "id": "paladin_sanctuary",
+              "name": "Sanctuary",
+              "requiredLevel": 24
+            },
+            {
+              "id": "paladin_fanaticism",
+              "name": "Fanaticism",
+              "requiredLevel": 30
+            },
+            {
+              "id": "paladin_conviction",
+              "name": "Conviction",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "sorceress",
+      "className": "Sorceress",
+      "trees": [
+        {
+          "id": "sorceress_cold",
+          "name": "Cold",
+          "skills": [
+            {
+              "id": "sorceress_ice_bolt",
+              "name": "Ice Bolt",
+              "requiredLevel": 1
+            },
+            {
+              "id": "sorceress_frozen_armor",
+              "name": "Frozen Armor",
+              "requiredLevel": 1
+            },
+            {
+              "id": "sorceress_frost_nova",
+              "name": "Frost Nova",
+              "requiredLevel": 6
+            },
+            {
+              "id": "sorceress_ice_blast",
+              "name": "Ice Blast",
+              "requiredLevel": 6
+            },
+            {
+              "id": "sorceress_shiver_armor",
+              "name": "Shiver Armor",
+              "requiredLevel": 12
+            },
+            {
+              "id": "sorceress_glacial_spike",
+              "name": "Glacial Spike",
+              "requiredLevel": 18
+            },
+            {
+              "id": "sorceress_blizzard",
+              "name": "Blizzard",
+              "requiredLevel": 24
+            },
+            {
+              "id": "sorceress_chilling_armor",
+              "name": "Chilling Armor",
+              "requiredLevel": 24
+            },
+            {
+              "id": "sorceress_frozen_orb",
+              "name": "Frozen Orb",
+              "requiredLevel": 30
+            },
+            {
+              "id": "sorceress_cold_mastery",
+              "name": "Cold Mastery",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "sorceress_fire",
+          "name": "Fire",
+          "skills": [
+            {
+              "id": "sorceress_fire_bolt",
+              "name": "Fire Bolt",
+              "requiredLevel": 1
+            },
+            {
+              "id": "sorceress_warmth",
+              "name": "Warmth",
+              "requiredLevel": 1
+            },
+            {
+              "id": "sorceress_inferno",
+              "name": "Inferno",
+              "requiredLevel": 6
+            },
+            {
+              "id": "sorceress_blaze",
+              "name": "Blaze",
+              "requiredLevel": 12
+            },
+            {
+              "id": "sorceress_fireball",
+              "name": "Fireball",
+              "requiredLevel": 12
+            },
+            {
+              "id": "sorceress_fire_wall",
+              "name": "Fire Wall",
+              "requiredLevel": 18
+            },
+            {
+              "id": "sorceress_enchant",
+              "name": "Enchant",
+              "requiredLevel": 18
+            },
+            {
+              "id": "sorceress_meteor",
+              "name": "Meteor",
+              "requiredLevel": 24
+            },
+            {
+              "id": "sorceress_fire_mastery",
+              "name": "Fire Mastery",
+              "requiredLevel": 30
+            },
+            {
+              "id": "sorceress_hydra",
+              "name": "Hydra",
+              "requiredLevel": 30
+            }
+          ]
+        },
+        {
+          "id": "sorceress_lightning",
+          "name": "Lightning",
+          "skills": [
+            {
+              "id": "sorceress_charged_bolt",
+              "name": "Charged Bolt",
+              "requiredLevel": 1
+            },
+            {
+              "id": "sorceress_telekinesis",
+              "name": "Telekinesis",
+              "requiredLevel": 6
+            },
+            {
+              "id": "sorceress_static_field",
+              "name": "Static Field",
+              "requiredLevel": 6
+            },
+            {
+              "id": "sorceress_lightning",
+              "name": "Lightning",
+              "requiredLevel": 12
+            },
+            {
+              "id": "sorceress_nova",
+              "name": "Nova",
+              "requiredLevel": 12
+            },
+            {
+              "id": "sorceress_chain_lightning",
+              "name": "Chain Lightning",
+              "requiredLevel": 18
+            },
+            {
+              "id": "sorceress_teleport",
+              "name": "Teleport",
+              "requiredLevel": 18
+            },
+            {
+              "id": "sorceress_thunder_storm",
+              "name": "Thunder Storm",
+              "requiredLevel": 24
+            },
+            {
+              "id": "sorceress_energy_shield",
+              "name": "Energy Shield",
+              "requiredLevel": 24
+            },
+            {
+              "id": "sorceress_lightning_mastery",
+              "name": "Lightning Mastery",
+              "requiredLevel": 30
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

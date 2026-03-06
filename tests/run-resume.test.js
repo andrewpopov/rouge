@@ -43,7 +43,8 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
       dbg.checkEndStates();
       dbg.applyRewardAndAdvance(null);
 
-      g.phase = "player";
+      g.phase = "encounter";
+      g.combatSubphase = "player_turn";
       g.turn = 4;
       g.turnCardsPlayed = 2;
       g.runSeed = 24680;
@@ -83,6 +84,10 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
       g.nextTelegraphId = 78;
       g.selectedEnemyId = g.enemies[0]?.id ?? null;
       g.artifacts = ["aegis_booster"];
+      g.questState = {
+        activeQuestIds: ["graveyard_shift", "black_road_supplies", "crown_bounty"],
+        completedQuestIds: ["graveyard_shift"],
+      };
       g.upgrades.condenser_bank = 2;
       g.metaBranches = {
         condenser_bank: "condenser_bank_branch_pressure_cells",
@@ -94,11 +99,13 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
 
       return {
         phase: g.phase,
+        combatSubphase: g.combatSubphase,
         turn: g.turn,
         turnCardsPlayed: g.turnCardsPlayed,
         runSeed: g.runSeed,
         sectorIndex: g.sectorIndex,
         artifacts: Array.isArray(g.artifacts) ? g.artifacts.slice() : [],
+        questState: JSON.parse(JSON.stringify(g.questState || {})),
         metaBranches: { ...(g.metaBranches || {}) },
         player: {
           hull: g.player.hull,
@@ -131,11 +138,13 @@ test("reload restores an in-progress run snapshot", { concurrency: false }, asyn
       const g = window.__brasslineDebug.game;
       return {
         phase: g.phase,
+        combatSubphase: g.combatSubphase,
         turn: g.turn,
         turnCardsPlayed: g.turnCardsPlayed,
         runSeed: g.runSeed,
         sectorIndex: g.sectorIndex,
         artifacts: Array.isArray(g.artifacts) ? g.artifacts.slice() : [],
+        questState: JSON.parse(JSON.stringify(g.questState || {})),
         metaBranches: { ...(g.metaBranches || {}) },
         player: {
           hull: g.player.hull,
@@ -179,7 +188,8 @@ test("corrupt snapshot payload falls back to a fresh run", { concurrency: false 
           version: 1,
           savedAt: Date.now(),
           routeSignature: "invalid-route-signature",
-          phase: "player",
+          phase: "encounter",
+          combatSubphase: "player_turn",
           turn: 99,
           sectorIndex: 99,
         })
@@ -200,6 +210,7 @@ test("corrupt snapshot payload falls back to a fresh run", { concurrency: false 
       }
       return {
         phase: g.phase,
+        combatSubphase: g.combatSubphase,
         turn: g.turn,
         sectorIndex: g.sectorIndex,
         hull: g.player.hull,
@@ -209,7 +220,8 @@ test("corrupt snapshot payload falls back to a fresh run", { concurrency: false 
       };
     });
 
-    assert.equal(state.phase, "player");
+    assert.equal(state.phase, "encounter");
+    assert.equal(state.combatSubphase, "player_turn");
     assert.equal(state.turn, 1);
     assert.equal(state.sectorIndex, 0);
     assert.equal(state.hull, state.maxHull);

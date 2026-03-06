@@ -16,6 +16,7 @@
 
   function resolveEnemyIntent({
     enemy,
+    enemies,
     playerLane,
     getPlayerHull,
     getAimedShotDamage,
@@ -78,6 +79,43 @@
     if (intent.kind === "stoke") {
       gainHeat(intent.value);
       return `${enemy.name} raised your Heat by ${intent.value}.`;
+    }
+
+    if (intent.kind === "resurrect") {
+      const roster = Array.isArray(enemies) ? enemies : [];
+      const maxRevivesRaw = Number.parseInt(intent.value, 10);
+      const maxRevives = Number.isInteger(maxRevivesRaw) && maxRevivesRaw > 0 ? maxRevivesRaw : 1;
+      const healPercentRaw = Number.parseInt(intent.healPercent, 10);
+      const healRatio = Number.isInteger(healPercentRaw) && healPercentRaw > 0 ? healPercentRaw / 100 : 0.35;
+      const targetKey = typeof intent.targetKey === "string" ? intent.targetKey.trim().toLowerCase() : "";
+
+      let revived = 0;
+      for (let index = 0; index < roster.length; index += 1) {
+        const ally = roster[index];
+        if (!ally || ally.id === enemy.id || ally.alive) {
+          continue;
+        }
+        if (targetKey && String(ally.key || "").toLowerCase() !== targetKey) {
+          continue;
+        }
+
+        ally.alive = true;
+        ally.hp = Math.max(1, Math.round((Number.parseInt(ally.maxHp, 10) || 1) * healRatio));
+        ally.block = 0;
+        ally.aimed = false;
+        ally.aimedLane = null;
+        ally.intent = null;
+        revived += 1;
+
+        if (revived >= maxRevives) {
+          break;
+        }
+      }
+
+      if (revived > 0) {
+        return `${enemy.name} resurrected ${revived} ${revived === 1 ? "ally" : "allies"}.`;
+      }
+      return `${enemy.name} chanted a resurrection, but no corpses answered.`;
     }
 
     if (intent.kind === "lob") {

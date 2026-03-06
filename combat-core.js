@@ -60,6 +60,11 @@
     if (intent.kind === "stoke") {
       return `${intent.label} +${intent.value} Heat`;
     }
+    if (intent.kind === "resurrect") {
+      const reviveCountRaw = Number.parseInt(intent.value, 10);
+      const reviveCount = Number.isInteger(reviveCountRaw) && reviveCountRaw > 0 ? reviveCountRaw : 1;
+      return `${intent.label} revive ${reviveCount}`;
+    }
     if (intent.kind === "aim") {
       const aimedLane = getLockedAimLaneFn(enemy);
       if (aimedLane !== null) {

@@ -1,0 +1,139 @@
+{
+  "version": "d2-canon-2026-03-05",
+  "source": "https://classic.battle.net/diablo2exp/classes/",
+  "classes": [
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "baseStats": {
+        "strength": 20,
+        "dexterity": 25,
+        "vitality": 20,
+        "energy": 15
+      },
+      "startingResources": {
+        "hitPoints": 50,
+        "mana": 15
+      },
+      "skillTrees": [
+        "bow_and_crossbow",
+        "javelin_and_spear",
+        "passive_and_magic"
+      ]
+    },
+    {
+      "id": "assassin",
+      "name": "Assassin",
+      "baseStats": {
+        "strength": 20,
+        "dexterity": 20,
+        "vitality": 20,
+        "energy": 25
+      },
+      "startingResources": {
+        "hitPoints": 50,
+        "mana": 25
+      },
+      "skillTrees": [
+        "martial_arts",
+        "shadow_disciplines",
+        "traps"
+      ]
+    },
+    {
+      "id": "barbarian",
+      "name": "Barbarian",
+      "baseStats": {
+        "strength": 30,
+        "dexterity": 20,
+        "vitality": 25,
+        "energy": 10
+      },
+      "startingResources": {
+        "hitPoints": 55,
+        "mana": 10
+      },
+      "skillTrees": [
+        "combat_skills",
+        "combat_masteries",
+        "warcries"
+      ]
+    },
+    {
+      "id": "druid",
+      "name": "Druid",
+      "baseStats": {
+        "strength": 15,
+        "dexterity": 20,
+        "vitality": 25,
+        "energy": 20
+      },
+      "startingResources": {
+        "hitPoints": 55,
+        "mana": 20
+      },
+      "skillTrees": [
+        "elemental",
+        "shape_shifting",
+        "summoning"
+      ]
+    },
+    {
+      "id": "necromancer",
+      "name": "Necromancer",
+      "baseStats": {
+        "strength": 15,
+        "dexterity": 25,
+        "vitality": 15,
+        "energy": 25
+      },
+      "startingResources": {
+        "hitPoints": 45,
+        "mana": 25
+      },
+      "skillTrees": [
+        "curses",
+        "poison_and_bone",
+        "summoning"
+      ]
+    },
+    {
+      "id": "paladin",
+      "name": "Paladin",
+      "baseStats": {
+        "strength": 25,
+        "dexterity": 20,
+        "vitality": 25,
+        "energy": 15
+      },
+      "startingResources": {
+        "hitPoints": 55,
+        "mana": 15
+      },
+      "skillTrees": [
+        "combat_skills",
+        "defensive_auras",
+        "offensive_auras"
+      ]
+    },
+    {
+      "id": "sorceress",
+      "name": "Sorceress",
+      "baseStats": {
+        "strength": 10,
+        "dexterity": 25,
+        "vitality": 10,
+        "energy": 35
+      },
+      "startingResources": {
+        "hitPoints": 40,
+        "mana": 35
+      },
+      "skillTrees": [
+        "cold",
+        "fire",
+        "lightning"
+      ]
+    }
+  ]
+}

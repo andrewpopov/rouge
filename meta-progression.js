@@ -473,7 +473,7 @@
     getMetaInstalledLevelsTotalFn,
     saveRunRecordsStateFn,
   }) {
-    if (outcome !== "run_victory" && outcome !== "gameover") {
+    if (outcome !== "run_complete" && outcome !== "run_failed") {
       return;
     }
 
@@ -482,11 +482,11 @@
     const previous = { ...records };
     const highlights = createDefaultRecordHighlights();
     const sectorsCleared =
-      outcome === "run_victory" ? runSectorsLength : clamp(game.sectorIndex, 0, runSectorsLength);
+      outcome === "run_complete" ? runSectorsLength : clamp(game.sectorIndex, 0, runSectorsLength);
     const installedMeta = getMetaInstalledLevelsTotalFn();
 
     records.totalRuns += 1;
-    if (outcome === "run_victory") {
+    if (outcome === "run_complete") {
       records.wins += 1;
       if (records.bestVictoryTurns === null || game.turn < records.bestVictoryTurns) {
         records.bestVictoryTurns = game.turn;

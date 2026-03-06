@@ -20,7 +20,8 @@ test("createForecastUiState recommends shifting when current lane is lethal", ()
   const forecast = loadForecastModule();
 
   const state = forecast.createForecastUiState({
-    phase: "player",
+    phase: "encounter",
+      combatSubphase: "player_turn",
     trackLanes: 3,
     player: {
       lane: 1,
@@ -63,7 +64,8 @@ test("createForecastUiState does not recommend end turn outside player phase", (
   const forecast = loadForecastModule();
 
   const state = forecast.createForecastUiState({
-    phase: "enemy",
+    phase: "encounter",
+      combatSubphase: "enemy_resolve",
     trackLanes: 3,
     player: {
       lane: 1,

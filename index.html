@@ -31,17 +31,22 @@
           <strong id="turnValue">1</strong>
           <span class="status-sub">Steam <strong id="energyValue">3</strong></span>
           <span class="status-sub">Track <strong id="laneValue">3</strong></span>
+          <span class="status-sub">Lvl <strong id="classLevelValue">1</strong> // Skill <strong id="skillPointValue">0</strong> // Stat <strong id="statPointValue">0</strong></span>
+          <span class="status-sub">Gold <strong id="goldValue">0</strong> // Potions <strong id="potionValue">0</strong> // Upgrade <strong id="itemUpgradeValue">0</strong></span>
         </div>
       </header>
 
       <section class="panel battlefield reveal reveal-2">
         <div class="battlefield-header">
           <h1>Brassline: Last Reactor</h1>
+          <p id="flowLabel" class="flow-label">
+            You are the blue marker on the track map. Click an enemy card below to target it.
+          </p>
           <p id="sectorLabel">Sector 1/5 // Freight Corridor</p>
         </div>
         <div class="map-wrap">
           <div class="map-head">
-            <span>Track Telegraph Map</span>
+            <span>Your Track + Incoming Enemy Telegraphs</span>
             <small class="cook-legend">
               <b class="tier-fast">FAST 1t</b>
               <b class="tier-medium">MED 2t</b>
@@ -50,11 +55,21 @@
           </div>
           <div id="trackMap" class="track-map"></div>
           <div id="laneThreatForecast" class="lane-threat-forecast"></div>
+          <p id="mapRoleNote" class="map-role-note">YOU = blue marker. Red telegraphs = enemy attacks that trigger when timers end.</p>
+        </div>
+        <div class="enemy-zone-head">
+          <h2 class="zone-title enemy-zone-title">Enemy Units (Click to Target)</h2>
+          <p id="enemySectionHint" class="zone-hint">These cards are enemies. Reduce their Hull to 0 to clear the sector.</p>
         </div>
         <div id="enemyRow" class="enemy-row"></div>
+        <p id="targetHint" class="target-hint">Click an enemy card to target it before playing attack cards.</p>
       </section>
 
       <section class="panel hand-zone reveal reveal-3">
+        <h2 class="zone-title">Step 2: Play Combat Cards</h2>
+        <p id="handZoneHint" class="zone-hint">
+          Hand cards are one-turn actions. Permanent upgrades only appear after battles.
+        </p>
         <div class="deck-meta">
           <span><img class="ui-icon" src="./assets/curated/icons/ui/power_plug.svg" alt="" />Draw: <strong id="drawCount">18</strong></span>
           <span><img class="ui-icon" src="./assets/curated/icons/ui/energy_battery-50.svg" alt="" />Discard: <strong id="discardCount">4</strong></span>
@@ -64,16 +79,39 @@
       </section>
 
       <footer class="panel controls reveal reveal-4">
+        <h2 class="zone-title">Step 3: Move and End Turn</h2>
+        <section class="turn-loop" aria-live="polite">
+          <p class="turn-loop-label">Turn Loop</p>
+          <p id="turnFlowText" class="turn-loop-text">Your Turn: play cards and move. Enemy Turn: enemy telegraphs resolve. Repeat.</p>
+        </section>
         <div class="button-row">
           <button id="overclockBtn" class="control-btn hot">Overclock (+1 Steam, +12 Heat)</button>
+          <button id="usePotionBtn" class="control-btn neutral">Use Potion (0)</button>
           <button id="endTurnBtn" class="control-btn neutral" aria-keyshortcuts="Space Enter">End Turn [Space/Enter]</button>
           <button id="shiftLeftBtn" class="control-btn cool" aria-keyshortcuts="Q">Shift Left [Q] (1 Steam)</button>
           <button id="shiftRightBtn" class="control-btn cool" aria-keyshortcuts="E">Shift Right [E] (1 Steam)</button>
           <button id="cycleHandBtn" class="control-btn cool">Purge Hand (1 Steam)</button>
+          <button id="toggleComfortModeBtn" class="control-btn neutral">Larger Targets: Off</button>
           <button id="toggleOnboardingBtn" class="control-btn neutral onboarding-toggle-btn" aria-expanded="false">
             How to Play
           </button>
         </div>
+        <section class="quick-guide" aria-live="polite">
+          <p id="quickGuideGoal" class="quick-guide-goal">Goal: Destroy all enemies in this sector.</p>
+          <p id="quickGuideStep" class="quick-guide-step">Step: Click an enemy, play cards, then end turn.</p>
+        </section>
+        <section id="questPanel" class="quest-panel" aria-live="polite"></section>
+        <section class="class-skill-panel" aria-live="polite">
+          <div class="class-picker-row">
+            <label for="classSelect">Class</label>
+            <select id="classSelect" class="class-select"></select>
+            <button id="applyClassBtn" class="control-btn neutral">Restart As Class</button>
+          </div>
+          <p id="classSummary" class="class-summary"></p>
+          <div id="statAllocation" class="stat-allocation"></div>
+          <div id="skillTreeNodes" class="skill-tree-nodes"></div>
+          <div id="skillBar" class="skill-bar"></div>
+        </section>
         <section id="onboardingPanel" class="onboarding-panel hidden" aria-live="polite">
           <div class="onboarding-head">
             <h2>How to Play</h2>
@@ -81,24 +119,34 @@
           </div>
           <div class="onboarding-grid">
             <p class="onboarding-tip">
-              <strong>Turn Flow</strong>
-              Play cards, spend Steam, then end turn so enemy intents and telegraphs resolve.
+              <strong>Who You Are</strong>
+              You control the blue marker on the track map. Enemy units are the cards directly under the map.
             </p>
             <p class="onboarding-tip">
-              <strong>Heat Thresholds</strong>
-              Under 55 is stable, 55-79 is warning, and 80+ risks meltdown pressure.
+              <strong>Main Goal</strong>
+              Clear every enemy in the current sector. After each clear, pick one reward and continue.
             </p>
             <p class="onboarding-tip">
-              <strong>Telegraph Cook Times</strong>
-              FAST (1t), MED (2t), SLOW (3t). Filled markers resolve for damage when the timer ends.
+              <strong>Your Turn</strong>
+              1) Click an enemy. 2) Play combat cards using Steam. 3) Shift once with <kbd>Q</kbd>/<kbd>E</kbd> if needed.
             </p>
             <p class="onboarding-tip">
-              <strong>Controls</strong>
-              <kbd>Q</kbd> shift left, <kbd>E</kbd> shift right, <kbd>Space</kbd>/<kbd>Enter</kbd> end turn.
+              <strong>Cards vs Upgrades</strong>
+              Hand cards are temporary battle actions. Upgrades and artifacts appear only after sector clears.
+            </p>
+            <p class="onboarding-tip">
+              <strong>Enemy Warnings</strong>
+              Red circles/lines on the track are incoming attacks. When their timer finishes, they hit.
+            </p>
+            <p class="onboarding-tip">
+              <strong>Heat + End Turn</strong>
+              Heat above 90 causes direct damage. If End Turn is locked, move to the safer lane first.
             </p>
           </div>
         </section>
         <div class="upgrade-strip-wrap">
+          <div id="rewardTreeStrip" class="reward-tree-strip"></div>
+          <div id="gearStrip" class="gear-strip"></div>
           <div id="upgradeStrip" class="upgrade-strip"></div>
           <div id="artifactStrip" class="artifact-strip"></div>
           <div class="meta-actions">
@@ -154,8 +202,10 @@
     <script src="./balance.js"></script>
     <script src="./utils.js"></script>
     <script src="./runtime-utils.js"></script>
+    <script src="./engine-core.js"></script>
     <script src="./persistence.js"></script>
     <script src="./progression.js"></script>
+    <script src="./d2-seed-loader.js"></script>
     <script src="./progression-content.js"></script>
     <script src="./tuning-readers.js"></script>
     <script src="./encounter-modifiers.js"></script>
@@ -168,6 +218,12 @@
     <script src="./player-actions.js"></script>
     <script src="./run-flow.js"></script>
     <script src="./meta-progression.js"></script>
+    <script src="./theme-assets.js"></script>
+    <script src="./gear-system.js"></script>
+    <script src="./reward-tree.js"></script>
+    <script src="./quest-system.js"></script>
+    <script src="./class-content.js"></script>
+    <script src="./class-system.js"></script>
     <script src="./game-state.js"></script>
     <script src="./hud-state.js"></script>
     <script src="./enemy-ui.js"></script>

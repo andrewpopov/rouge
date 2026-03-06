@@ -1,5 +1,9 @@
 # Balance Guide
 
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- `BRASSLINE` here is a legacy runtime namespace.
+
 This project reads gameplay tuning from `window.BRASSLINE_BALANCE` in [`balance.js`](../balance.js).
 
 ## How It Works

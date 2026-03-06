@@ -3,8 +3,27 @@
     return Math.max(min, Math.min(max, value));
   }
 
+  function cloneQuestState(value) {
+    if (!value || typeof value !== "object") {
+      return {
+        activeQuestIds: [],
+        completedQuestIds: [],
+      };
+    }
+
+    return {
+      ...value,
+      activeQuestIds: Array.isArray(value.activeQuestIds) ? [...value.activeQuestIds] : [],
+      activeQuests: Array.isArray(value.activeQuests)
+        ? value.activeQuests.map((quest) => (quest && typeof quest === "object" ? JSON.parse(JSON.stringify(quest)) : null)).filter(Boolean)
+        : undefined,
+      completedQuestIds: Array.isArray(value.completedQuestIds) ? [...value.completedQuestIds] : [],
+      failedQuestIds: Array.isArray(value.failedQuestIds) ? [...value.failedQuestIds] : undefined,
+    };
+  }
+
   function isResumableRunPhase(phase) {
-    return phase === "player" || phase === "reward" || phase === "interlude";
+    return phase === "encounter" || phase === "reward" || phase === "world_map";
   }
 
   function getCardInstanceNumericId(instanceId) {
@@ -45,6 +64,44 @@
       createDefaultMetaBranchState = () => ({}),
       createDefaultRunStats = () => ({}),
       createDefaultRunTimeline = () => [],
+      createDefaultRunGearState = () => ({
+        gearInventory: [],
+        equippedGear: {
+          weapon: "",
+          armor: "",
+          trinket: "",
+        },
+      }),
+      createDefaultQuestState = () => ({
+        activeQuestIds: [],
+        completedQuestIds: [],
+      }),
+      createDefaultRewardTreeState = () => ({
+        objectives: {
+          sectorsCleared: 0,
+          bossKills: 0,
+          flawlessClears: 0,
+          speedClears: 0,
+        },
+            unlockedNodeIds: [],
+          }),
+      createDefaultClassState = () => ({
+        classId: "",
+        level: 1,
+        xp: 0,
+        skillPoints: 0,
+        statPoints: 0,
+        allocatedStats: {
+          strength: 0,
+          dexterity: 0,
+          vitality: 0,
+          energy: 0,
+        },
+        nodeRanks: {},
+        cooldowns: {},
+        baseStats: {},
+        baseResistances: {},
+      }),
       upgradePathCatalog = {},
       clamp = defaultClamp,
       normalizeCookTier = (tier) => tier,
@@ -55,6 +112,27 @@
       normalizeRewardChoice = (choice) => choice,
       encounterModifierCatalog = {},
       artifactCatalog = {},
+      gearCatalog = {},
+      questCatalog = {},
+      rewardTreeCatalog = {},
+      classItemCatalog = {},
+      normalizeRunGearState = ({ game }) => ({
+        ...createDefaultRunGearState(),
+        ...(game && typeof game === "object" ? game : {}),
+      }),
+      sanitizeQuestState = ({ rawState }) => rawState || createDefaultQuestState(),
+      sanitizeRewardTreeState = ({ rawState }) => rawState || createDefaultRewardTreeState(),
+      sanitizeClassState = ({ rawState }) => rawState || createDefaultClassState(),
+      sanitizeStageRouteState = () => ({
+        stageNodesBySector: [],
+        stageNodeIndex: 0,
+        stageProgress: {
+          totalNodes: 0,
+          completedNodes: 0,
+          nodesInSector: 1,
+          stageNodeIndex: 0,
+        },
+      }),
       trackLanes = 5,
       baseMaxHull = 72,
       baseMaxEnergy = 3,
@@ -424,6 +502,12 @@
           if (choice.type === "card") {
             return Boolean(cardCatalog[choice.cardId]);
           }
+          if (choice.type === "artifact") {
+            return Boolean(artifactCatalog[choice.artifactId]);
+          }
+          if (choice.type === "gear") {
+            return Boolean(gearCatalog[choice.gearId]);
+          }
           return Boolean(upgradePathCatalog[choice.upgradeId]);
         });
     }
@@ -505,6 +589,12 @@
         nextAttackMultiplier: Number.isFinite(rawPlayer?.nextAttackMultiplier)
           ? Math.max(1, Math.round(rawPlayer.nextAttackMultiplier))
           : 1,
+        nextAttackFlatBonus: Number.isFinite(rawPlayer?.nextAttackFlatBonus)
+          ? Math.max(0, Math.round(rawPlayer.nextAttackFlatBonus))
+          : 0,
+        pendingEnergyNextTurn: Number.isFinite(rawPlayer?.pendingEnergyNextTurn)
+          ? Math.max(0, Math.round(rawPlayer.pendingEnergyNextTurn))
+          : 0,
         overclockUsed: Boolean(rawPlayer?.overclockUsed),
       };
     }
@@ -519,6 +609,157 @@
       return (Array.isArray(rawArtifacts) ? rawArtifacts : [])
         .map((artifactId) => (typeof artifactId === "string" ? artifactId.trim() : ""))
         .filter((artifactId) => artifactId && allowed.has(artifactId));
+    }
+
+    function sanitizeSnapshotRunGearState(rawInventory, rawEquipped) {
+      const fallback = createDefaultRunGearState();
+      const rawGameState = {
+        gearInventory: Array.isArray(rawInventory) ? rawInventory : fallback.gearInventory,
+        equippedGear: rawEquipped && typeof rawEquipped === "object" ? rawEquipped : fallback.equippedGear,
+      };
+      const normalized =
+        typeof normalizeRunGearState === "function"
+          ? normalizeRunGearState({
+              gearCatalog,
+              game: rawGameState,
+            })
+          : rawGameState;
+      const gearInventory = Array.isArray(normalized?.gearInventory)
+        ? normalized.gearInventory
+            .map((gearId) => (typeof gearId === "string" ? gearId.trim() : ""))
+            .filter((gearId) => gearId && gearCatalog?.[gearId])
+        : [];
+      const equippedGearSource =
+        normalized?.equippedGear && typeof normalized.equippedGear === "object"
+          ? normalized.equippedGear
+          : fallback.equippedGear;
+      const equippedGear = {
+        weapon:
+          typeof equippedGearSource.weapon === "string" && gearCatalog?.[equippedGearSource.weapon]?.slot === "weapon"
+            ? equippedGearSource.weapon
+            : "",
+        armor:
+          typeof equippedGearSource.armor === "string" && gearCatalog?.[equippedGearSource.armor]?.slot === "armor"
+            ? equippedGearSource.armor
+            : "",
+        trinket:
+          typeof equippedGearSource.trinket === "string" &&
+          gearCatalog?.[equippedGearSource.trinket]?.slot === "trinket"
+            ? equippedGearSource.trinket
+            : "",
+      };
+      const inventorySet = new Set(gearInventory);
+      if (equippedGear.weapon && !inventorySet.has(equippedGear.weapon)) {
+        equippedGear.weapon = "";
+      }
+      if (equippedGear.armor && !inventorySet.has(equippedGear.armor)) {
+        equippedGear.armor = "";
+      }
+      if (equippedGear.trinket && !inventorySet.has(equippedGear.trinket)) {
+        equippedGear.trinket = "";
+      }
+      return {
+        gearInventory,
+        equippedGear,
+      };
+    }
+
+    function sanitizeSnapshotQuestState(rawState, snapshotContext = {}) {
+      if (typeof sanitizeQuestState === "function") {
+        return sanitizeQuestState({
+          questCatalog,
+          rawState,
+          runSeed: snapshotContext.runSeed,
+          runSectors,
+          stageNodesBySector: snapshotContext.stageNodesBySector,
+        });
+      }
+      return cloneQuestState(rawState || createDefaultQuestState());
+    }
+
+    function sanitizeSnapshotRewardTree(rawState) {
+      if (typeof sanitizeRewardTreeState === "function") {
+        return sanitizeRewardTreeState({
+          rewardTreeCatalog,
+          rawState,
+        });
+      }
+      const fallback = createDefaultRewardTreeState();
+      return rawState && typeof rawState === "object" ? rawState : fallback;
+    }
+
+    function sanitizeSnapshotClass(rawState) {
+      if (typeof sanitizeClassState === "function") {
+        return sanitizeClassState({
+          rawState,
+        });
+      }
+      const fallback = createDefaultClassState();
+      if (!rawState || typeof rawState !== "object") {
+        return fallback;
+      }
+      return {
+        ...fallback,
+        ...rawState,
+        statPoints: Math.max(0, Number.parseInt(rawState.statPoints, 10) || 0),
+        allocatedStats:
+          rawState.allocatedStats && typeof rawState.allocatedStats === "object"
+            ? {
+                strength: Math.max(0, Number.parseInt(rawState.allocatedStats.strength, 10) || 0),
+                dexterity: Math.max(0, Number.parseInt(rawState.allocatedStats.dexterity, 10) || 0),
+                vitality: Math.max(0, Number.parseInt(rawState.allocatedStats.vitality, 10) || 0),
+                energy: Math.max(0, Number.parseInt(rawState.allocatedStats.energy, 10) || 0),
+              }
+            : fallback.allocatedStats,
+        nodeRanks:
+          rawState.nodeRanks && typeof rawState.nodeRanks === "object"
+            ? { ...rawState.nodeRanks }
+            : fallback.nodeRanks,
+        cooldowns:
+          rawState.cooldowns && typeof rawState.cooldowns === "object"
+            ? { ...rawState.cooldowns }
+            : fallback.cooldowns,
+        baseStats:
+          rawState.baseStats && typeof rawState.baseStats === "object"
+            ? { ...rawState.baseStats }
+            : fallback.baseStats,
+        baseResistances:
+          rawState.baseResistances && typeof rawState.baseResistances === "object"
+            ? { ...rawState.baseResistances }
+            : fallback.baseResistances,
+      };
+    }
+
+    function sanitizeSnapshotClassItems(rawItems) {
+      const allowed = new Set(Object.keys(classItemCatalog || {}));
+      const source = Array.isArray(rawItems) ? rawItems : [];
+      const cleaned = source
+        .map((itemId) => (typeof itemId === "string" ? itemId.trim() : ""))
+        .filter((itemId) => itemId && allowed.has(itemId));
+      return [...new Set(cleaned)];
+    }
+
+    function sanitizeSnapshotCounter(value) {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isInteger(parsed) ? Math.max(0, parsed) : 0;
+    }
+
+    function sanitizeSnapshotStageProgress(rawProgress) {
+      const source = rawProgress && typeof rawProgress === "object" ? rawProgress : {};
+      const totalNodes = sanitizeSnapshotCounter(source.totalNodes);
+      const completedNodes = Math.min(totalNodes, sanitizeSnapshotCounter(source.completedNodes));
+      const nodesInSectorRaw = Number.parseInt(source.nodesInSector, 10);
+      const nodesInSector = Number.isInteger(nodesInSectorRaw) ? Math.max(1, nodesInSectorRaw) : 1;
+      const stageNodeIndexRaw = Number.parseInt(source.stageNodeIndex, 10);
+      const stageNodeIndex = Number.isInteger(stageNodeIndexRaw)
+        ? clamp(stageNodeIndexRaw, 0, Math.max(0, nodesInSector - 1))
+        : 0;
+      return {
+        totalNodes,
+        completedNodes,
+        nodesInSector,
+        stageNodeIndex,
+      };
     }
 
     try {
@@ -550,17 +791,51 @@
       if (!isResumableRunPhase(phase)) {
         return null;
       }
+      const combatSubphase =
+        phase === "encounter" && parsed.combatSubphase === "enemy_resolve"
+          ? "enemy_resolve"
+          : phase === "encounter"
+            ? "player_turn"
+            : null;
 
       const turnRaw = Number.parseInt(parsed.turn, 10);
       const turn = Number.isInteger(turnRaw) ? Math.max(1, turnRaw) : 1;
       const turnCardsPlayedRaw = Number.parseInt(parsed.turnCardsPlayed, 10);
       const turnCardsPlayed = Number.isInteger(turnCardsPlayedRaw) ? Math.max(0, turnCardsPlayedRaw) : 0;
+      const turnSpellActionsUsedRaw = Number.parseInt(parsed.turnSpellActionsUsed, 10);
+      const turnSpellActionsUsed = Number.isInteger(turnSpellActionsUsedRaw)
+        ? Math.max(0, turnSpellActionsUsedRaw)
+        : 0;
       const sectorIndexRaw = Number.parseInt(parsed.sectorIndex, 10);
       if (!Number.isInteger(sectorIndexRaw) || sectorIndexRaw < 0 || sectorIndexRaw >= runSectors.length) {
         return null;
       }
       const sectorIndex = sectorIndexRaw;
       const runSeed = sanitizeSnapshotRunSeed(parsed.runSeed);
+      const stageRouteState =
+        typeof sanitizeStageRouteState === "function"
+          ? sanitizeStageRouteState({
+              rawStageNodesBySector: parsed.stageNodesBySector,
+              stageNodeIndex: parsed.stageNodeIndex,
+              stageProgress: parsed.stageProgress,
+              sectorIndex,
+              runSeed,
+            })
+          : null;
+      const stageNodesBySector = Array.isArray(stageRouteState?.stageNodesBySector)
+        ? stageRouteState.stageNodesBySector.map((nodes) =>
+            (Array.isArray(nodes) ? nodes : []).map((node) => ({ ...node }))
+          )
+        : [];
+      const stageNodeIndexRaw = Number.parseInt(
+        stageRouteState?.stageNodeIndex ?? parsed.stageNodeIndex,
+        10
+      );
+      const stageNodeIndex =
+        Number.isInteger(stageNodeIndexRaw) && stageNodeIndexRaw >= 0 ? stageNodeIndexRaw : 0;
+      const stageProgress = sanitizeSnapshotStageProgress(
+        stageRouteState?.stageProgress || parsed.stageProgress
+      );
 
       const player = sanitizeSnapshotPlayer(parsed.player);
       const enemies = Array.isArray(parsed.enemies)
@@ -608,19 +883,40 @@
       const upgrades = sanitizeSnapshotUpgradeState(parsed.upgrades);
       const metaUnlocks = sanitizeSnapshotMetaUnlocks(parsed.metaUnlocks, upgrades);
       const metaBranches = sanitizeSnapshotMetaBranches(parsed.metaBranches, upgrades);
+      const runStats = sanitizeSnapshotRunStats(parsed.runStats);
+      const runGear = sanitizeSnapshotRunGearState(parsed.gearInventory, parsed.equippedGear);
+      const questState = sanitizeSnapshotQuestState(parsed.questState, {
+        runSeed,
+        stageNodesBySector,
+      });
+      const rewardTreeState = sanitizeSnapshotRewardTree(parsed.rewardTreeState);
+      const classState = sanitizeSnapshotClass(parsed.classState);
+      const classItems = sanitizeSnapshotClassItems(parsed.classItems);
+      const gold = sanitizeSnapshotCounter(parsed.gold);
+      const healingPotions = sanitizeSnapshotCounter(parsed.healingPotions);
+      const itemUpgradeTokens = sanitizeSnapshotCounter(parsed.itemUpgradeTokens);
+      const sectorDamageTakenStartRaw = Number.parseInt(parsed.sectorDamageTakenStart, 10);
+      const sectorDamageTakenStart = Number.isInteger(sectorDamageTakenStartRaw)
+        ? Math.max(0, sectorDamageTakenStartRaw)
+        : runStats.damageTaken;
       if (phase === "reward" && rewardChoices.length === 0) {
         return null;
       }
-      if (phase === "interlude" && !interlude) {
+      if (phase === "world_map" && !interlude) {
         return null;
       }
 
       return {
         phase,
+        combatSubphase,
         turn,
         turnCardsPlayed,
+        turnSpellActionsUsed,
         sectorIndex,
         runSeed,
+        stageNodeIndex,
+        stageNodesBySector,
+        stageProgress,
         nextCardInstanceId,
         nextTelegraphId,
         player,
@@ -636,10 +932,20 @@
         interludeDeck,
         encounterModifier,
         artifacts: sanitizeSnapshotArtifacts(parsed.artifacts),
+        gearInventory: runGear.gearInventory,
+        equippedGear: runGear.equippedGear,
+        questState,
+        rewardTreeState,
+        classState,
+        classItems,
+        gold,
+        healingPotions,
+        itemUpgradeTokens,
+        sectorDamageTakenStart,
         upgrades,
         metaUnlocks,
         metaBranches,
-        runStats: sanitizeSnapshotRunStats(parsed.runStats),
+        runStats,
         runTimeline: sanitizeSnapshotRunTimeline(parsed.runTimeline),
         showFullTimeline: Boolean(parsed.showFullTimeline),
         log: typeof parsed.log === "string" ? parsed.log.trim() : "",
@@ -654,6 +960,27 @@
       snapshot,
       game,
       createDefaultRecordHighlights = () => ({}),
+      createDefaultQuestState = () => ({
+        activeQuestIds: [],
+        completedQuestIds: [],
+      }),
+      createDefaultClassState = () => ({
+        classId: "",
+        level: 1,
+        xp: 0,
+        skillPoints: 0,
+        statPoints: 0,
+        allocatedStats: {
+          strength: 0,
+          dexterity: 0,
+          vitality: 0,
+          energy: 0,
+        },
+        nodeRanks: {},
+        cooldowns: {},
+        baseStats: {},
+        baseResistances: {},
+      }),
       disarmMetaReset = () => {},
       disarmRunRecordsReset = () => {},
       applyUpgradeDerivedCaps = () => {},
@@ -673,11 +1000,43 @@
     }
 
     game.phase = snapshot.phase;
+    game.combatSubphase = snapshot.phase === "encounter" ? snapshot.combatSubphase || "player_turn" : null;
     game.turn = snapshot.turn;
     game.turnCardsPlayed = Number.isInteger(snapshot.turnCardsPlayed)
       ? Math.max(0, snapshot.turnCardsPlayed)
       : 0;
+    game.turnSpellActionsUsed = Number.isInteger(snapshot.turnSpellActionsUsed)
+      ? Math.max(0, snapshot.turnSpellActionsUsed)
+      : 0;
     game.sectorIndex = snapshot.sectorIndex;
+    game.stageNodeIndex = Number.isInteger(snapshot.stageNodeIndex)
+      ? Math.max(0, snapshot.stageNodeIndex)
+      : 0;
+    game.stageNodesBySector = (Array.isArray(snapshot.stageNodesBySector) ? snapshot.stageNodesBySector : []).map(
+      (nodes) => (Array.isArray(nodes) ? nodes : []).map((node) => ({ ...node }))
+    );
+    game.stageProgress =
+      snapshot.stageProgress && typeof snapshot.stageProgress === "object"
+        ? {
+            totalNodes: Number.isInteger(snapshot.stageProgress.totalNodes)
+              ? Math.max(0, snapshot.stageProgress.totalNodes)
+              : 0,
+            completedNodes: Number.isInteger(snapshot.stageProgress.completedNodes)
+              ? Math.max(0, snapshot.stageProgress.completedNodes)
+              : 0,
+            nodesInSector: Number.isInteger(snapshot.stageProgress.nodesInSector)
+              ? Math.max(1, snapshot.stageProgress.nodesInSector)
+              : 1,
+            stageNodeIndex: Number.isInteger(snapshot.stageProgress.stageNodeIndex)
+              ? Math.max(0, snapshot.stageProgress.stageNodeIndex)
+              : 0,
+          }
+        : {
+            totalNodes: 0,
+            completedNodes: 0,
+            nodesInSector: 1,
+            stageNodeIndex: 0,
+          };
     game.runSeed = Number.isInteger(snapshot.runSeed) && snapshot.runSeed > 0 ? snapshot.runSeed : 1;
     game.nextCardInstanceId = snapshot.nextCardInstanceId;
     game.nextTelegraphId = snapshot.nextTelegraphId;
@@ -713,7 +1072,7 @@
           }))
         : [];
     game.interlude =
-      snapshot.phase === "interlude" && snapshot.interlude
+      snapshot.phase === "world_map" && snapshot.interlude
         ? {
             ...snapshot.interlude,
             options: (Array.isArray(snapshot.interlude.options) ? snapshot.interlude.options : []).map(
@@ -722,7 +1081,7 @@
           }
         : null;
     game.interludeDeck =
-      snapshot.phase === "interlude"
+      snapshot.phase === "world_map"
         ? (Array.isArray(snapshot.interludeDeck) ? snapshot.interludeDeck : []).map((instance) => ({
             ...instance,
           }))
@@ -732,6 +1091,66 @@
         ? { ...snapshot.encounterModifier }
         : null;
     game.artifacts = (Array.isArray(snapshot.artifacts) ? snapshot.artifacts : []).slice();
+    game.gearInventory = (Array.isArray(snapshot.gearInventory) ? snapshot.gearInventory : []).slice();
+    game.equippedGear =
+      snapshot.equippedGear && typeof snapshot.equippedGear === "object"
+        ? { ...snapshot.equippedGear }
+        : { weapon: "", armor: "", trinket: "" };
+    game.questState = cloneQuestState(snapshot.questState || createDefaultQuestState());
+    game.rewardTreeState =
+      snapshot.rewardTreeState && typeof snapshot.rewardTreeState === "object"
+        ? {
+            objectives:
+              snapshot.rewardTreeState.objectives &&
+              typeof snapshot.rewardTreeState.objectives === "object"
+                ? { ...snapshot.rewardTreeState.objectives }
+                : {},
+            unlockedNodeIds: Array.isArray(snapshot.rewardTreeState.unlockedNodeIds)
+              ? [...snapshot.rewardTreeState.unlockedNodeIds]
+              : [],
+          }
+        : {
+            objectives: {},
+            unlockedNodeIds: [],
+          };
+    game.classState =
+      snapshot.classState && typeof snapshot.classState === "object"
+        ? {
+            ...snapshot.classState,
+            allocatedStats:
+              snapshot.classState.allocatedStats && typeof snapshot.classState.allocatedStats === "object"
+                ? { ...snapshot.classState.allocatedStats }
+                : { strength: 0, dexterity: 0, vitality: 0, energy: 0 },
+            nodeRanks:
+              snapshot.classState.nodeRanks && typeof snapshot.classState.nodeRanks === "object"
+                ? { ...snapshot.classState.nodeRanks }
+                : {},
+            cooldowns:
+              snapshot.classState.cooldowns && typeof snapshot.classState.cooldowns === "object"
+                ? { ...snapshot.classState.cooldowns }
+                : {},
+            baseStats:
+              snapshot.classState.baseStats && typeof snapshot.classState.baseStats === "object"
+                ? { ...snapshot.classState.baseStats }
+                : {},
+            baseResistances:
+              snapshot.classState.baseResistances &&
+              typeof snapshot.classState.baseResistances === "object"
+                ? { ...snapshot.classState.baseResistances }
+                : {},
+          }
+        : createDefaultClassState();
+    game.classItems = (Array.isArray(snapshot.classItems) ? snapshot.classItems : []).slice();
+    game.gold = Number.isInteger(snapshot.gold) ? Math.max(0, snapshot.gold) : 0;
+    game.healingPotions = Number.isInteger(snapshot.healingPotions)
+      ? Math.max(0, snapshot.healingPotions)
+      : 0;
+    game.itemUpgradeTokens = Number.isInteger(snapshot.itemUpgradeTokens)
+      ? Math.max(0, snapshot.itemUpgradeTokens)
+      : 0;
+    game.sectorDamageTakenStart = Number.isInteger(snapshot.sectorDamageTakenStart)
+      ? Math.max(0, snapshot.sectorDamageTakenStart)
+      : 0;
     game.upgrades = { ...(snapshot.upgrades || {}) };
     game.metaUnlocks = { ...(snapshot.metaUnlocks || {}) };
     game.metaBranches = { ...(snapshot.metaBranches || {}) };
@@ -778,9 +1197,42 @@
       savedAt: nowMs,
       routeSignature: getRunRouteSignature(),
       phase: game.phase,
+      combatSubphase:
+        game.phase === "encounter" && game.combatSubphase === "enemy_resolve"
+          ? "enemy_resolve"
+          : game.phase === "encounter"
+            ? "player_turn"
+            : null,
       turn: game.turn,
       turnCardsPlayed: Number.isInteger(game.turnCardsPlayed) ? Math.max(0, game.turnCardsPlayed) : 0,
+      turnSpellActionsUsed: Number.isInteger(game.turnSpellActionsUsed) ? Math.max(0, game.turnSpellActionsUsed) : 0,
       sectorIndex: game.sectorIndex,
+      stageNodeIndex: Number.isInteger(game.stageNodeIndex) ? Math.max(0, game.stageNodeIndex) : 0,
+      stageNodesBySector: (Array.isArray(game.stageNodesBySector) ? game.stageNodesBySector : []).map((nodes) =>
+        (Array.isArray(nodes) ? nodes : []).map((node) => ({ ...node }))
+      ),
+      stageProgress:
+        game.stageProgress && typeof game.stageProgress === "object"
+          ? {
+              totalNodes: Number.isInteger(game.stageProgress.totalNodes)
+                ? Math.max(0, game.stageProgress.totalNodes)
+                : 0,
+              completedNodes: Number.isInteger(game.stageProgress.completedNodes)
+                ? Math.max(0, game.stageProgress.completedNodes)
+                : 0,
+              nodesInSector: Number.isInteger(game.stageProgress.nodesInSector)
+                ? Math.max(1, game.stageProgress.nodesInSector)
+                : 1,
+              stageNodeIndex: Number.isInteger(game.stageProgress.stageNodeIndex)
+                ? Math.max(0, game.stageProgress.stageNodeIndex)
+                : 0,
+            }
+          : {
+              totalNodes: 0,
+              completedNodes: 0,
+              nodesInSector: 1,
+              stageNodeIndex: 0,
+            },
       runSeed: Number.isInteger(game.runSeed) && game.runSeed > 0 ? game.runSeed : 1,
       nextCardInstanceId: game.nextCardInstanceId,
       nextTelegraphId: game.nextTelegraphId,
@@ -824,6 +1276,60 @@
           ? { ...game.encounterModifier }
           : null,
       artifacts: (Array.isArray(game.artifacts) ? game.artifacts : []).slice(),
+      gearInventory: (Array.isArray(game.gearInventory) ? game.gearInventory : []).slice(),
+      equippedGear:
+        game.equippedGear && typeof game.equippedGear === "object"
+          ? { ...game.equippedGear }
+          : { weapon: "", armor: "", trinket: "" },
+      questState: cloneQuestState(game.questState),
+      rewardTreeState:
+        game.rewardTreeState && typeof game.rewardTreeState === "object"
+          ? {
+              objectives:
+                game.rewardTreeState.objectives && typeof game.rewardTreeState.objectives === "object"
+                  ? { ...game.rewardTreeState.objectives }
+                  : {},
+              unlockedNodeIds: Array.isArray(game.rewardTreeState.unlockedNodeIds)
+                ? [...game.rewardTreeState.unlockedNodeIds]
+                : [],
+            }
+          : {
+              objectives: {},
+              unlockedNodeIds: [],
+            },
+      classState:
+        game.classState && typeof game.classState === "object"
+          ? {
+              ...game.classState,
+              allocatedStats:
+                game.classState.allocatedStats && typeof game.classState.allocatedStats === "object"
+                  ? { ...game.classState.allocatedStats }
+                  : { strength: 0, dexterity: 0, vitality: 0, energy: 0 },
+              nodeRanks:
+                game.classState.nodeRanks && typeof game.classState.nodeRanks === "object"
+                  ? { ...game.classState.nodeRanks }
+                  : {},
+              cooldowns:
+                game.classState.cooldowns && typeof game.classState.cooldowns === "object"
+                  ? { ...game.classState.cooldowns }
+                  : {},
+              baseStats:
+                game.classState.baseStats && typeof game.classState.baseStats === "object"
+                  ? { ...game.classState.baseStats }
+                  : {},
+              baseResistances:
+                game.classState.baseResistances && typeof game.classState.baseResistances === "object"
+                  ? { ...game.classState.baseResistances }
+                  : {},
+            }
+          : null,
+      classItems: (Array.isArray(game.classItems) ? game.classItems : []).slice(),
+      gold: Number.isInteger(game.gold) ? Math.max(0, game.gold) : 0,
+      healingPotions: Number.isInteger(game.healingPotions) ? Math.max(0, game.healingPotions) : 0,
+      itemUpgradeTokens: Number.isInteger(game.itemUpgradeTokens) ? Math.max(0, game.itemUpgradeTokens) : 0,
+      sectorDamageTakenStart: Number.isInteger(game.sectorDamageTakenStart)
+        ? Math.max(0, game.sectorDamageTakenStart)
+        : 0,
       upgrades: {
         ...(game.upgrades || {}),
       },

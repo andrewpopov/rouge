@@ -26,7 +26,8 @@ async function setupScenario(page, scenarioName) {
       dbg.initGame();
 
       const g = dbg.game;
-      g.phase = "player";
+      g.phase = "encounter";
+      g.combatSubphase = "player_turn";
       g.openEnemyTooltipId = null;
       g.highlightLanes = [];
       g.highlightLockKey = null;

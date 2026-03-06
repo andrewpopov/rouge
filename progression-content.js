@@ -364,6 +364,193 @@
     },
   };
 
+  function normalizeId(value) {
+    return typeof value === "string" ? value.trim().toLowerCase() : "";
+  }
+
+  function toActLabel(actNumber) {
+    const roman = ["I", "II", "III", "IV", "V", "VI"];
+    const index = Number.parseInt(actNumber, 10) - 1;
+    const suffix = roman[index] || String(actNumber);
+    return `Act ${suffix}`;
+  }
+
+  function getSeedBundle() {
+    const bundle = window.BRASSLINE_SEEDS_D2;
+    if (!bundle || typeof bundle !== "object") {
+      return null;
+    }
+    return bundle;
+  }
+
+  function collectActEnemyIds(poolEntry) {
+    if (!poolEntry || typeof poolEntry !== "object") {
+      return [];
+    }
+    const entries = [
+      ...(Array.isArray(poolEntry.enemies) ? poolEntry.enemies : []),
+      ...(Array.isArray(poolEntry.nativeEnemies) ? poolEntry.nativeEnemies : []),
+    ];
+
+    return entries
+      .map((entry) => normalizeId(entry?.id))
+      .filter(Boolean)
+      .filter((id, index, source) => source.indexOf(id) === index);
+  }
+
+  function buildZoneEnemyEntries({ enemyIds, zoneIndex = 0, actPower = 1 }) {
+    if (!Array.isArray(enemyIds) || enemyIds.length === 0) {
+      return [];
+    }
+    const sampleSize = Math.min(enemyIds.length, 8);
+    const start = (zoneIndex * 3) % enemyIds.length;
+    const picked = [];
+    for (let i = 0; i < sampleSize; i += 1) {
+      picked.push(enemyIds[(start + i) % enemyIds.length]);
+    }
+
+    return picked.map((enemyId, index) => ({
+      key: enemyId,
+      power: Number((actPower + zoneIndex * 0.015 + index * 0.01).toFixed(2)),
+      elite: index === 0 && zoneIndex > 0 && zoneIndex % 5 === 0,
+      weight: Math.max(1, 3 - (index % 3)),
+    }));
+  }
+
+  function buildBossSectorEnemies({ bossId, enemyIds, zoneIndex = 0, actPower = 1 }) {
+    const support = buildZoneEnemyEntries({
+      enemyIds,
+      zoneIndex,
+      actPower: actPower + 0.12,
+    })
+      .slice(0, 4)
+      .map((entry, index) => ({
+        ...entry,
+        elite: index === 0,
+        power: Number((entry.power + 0.08).toFixed(2)),
+      }));
+
+    return [
+      {
+        key: bossId,
+        power: Number((actPower + 0.35).toFixed(2)),
+        weight: 5,
+      },
+      ...support,
+    ];
+  }
+
+  function buildSeedRunSectors({ zonesDoc, enemyPoolsDoc }) {
+    const acts = Array.isArray(zonesDoc?.acts) ? zonesDoc.acts : [];
+    const enemyPools = Array.isArray(enemyPoolsDoc?.enemyPools) ? enemyPoolsDoc.enemyPools : [];
+    if (acts.length === 0 || enemyPools.length === 0) {
+      return [];
+    }
+
+    const poolByAct = new Map(
+      enemyPools
+        .map((entry) => [Number.parseInt(entry?.act, 10), collectActEnemyIds(entry)])
+        .filter(([act, ids]) => Number.isInteger(act) && ids.length > 0)
+    );
+
+    const sectors = [];
+    acts.forEach((actEntry, actIndex) => {
+      const actNumber = Number.parseInt(actEntry?.act, 10);
+      if (!Number.isInteger(actNumber)) {
+        return;
+      }
+      const actEnemyIds = poolByAct.get(actNumber) || [];
+      const mainlineZones = Array.isArray(actEntry?.mainlineZones) ? actEntry.mainlineZones : [];
+      const bossZoneName = normalizeId(actEntry?.boss?.zone);
+      const bossId = normalizeId(actEntry?.boss?.id);
+      const actPower = 0.95 + actIndex * 0.14;
+
+      mainlineZones.forEach((zoneNameRaw, zoneIndex) => {
+        const zoneName = typeof zoneNameRaw === "string" && zoneNameRaw.trim() ? zoneNameRaw.trim() : `Zone ${zoneIndex + 1}`;
+        const isBossZone = normalizeId(zoneName) === bossZoneName && Boolean(bossId);
+        const encounterSize = isBossZone ? 3 : 1 + (zoneIndex % 3);
+        const enemies = isBossZone
+          ? buildBossSectorEnemies({
+              bossId,
+              enemyIds: actEnemyIds,
+              zoneIndex,
+              actPower,
+            })
+          : buildZoneEnemyEntries({
+              enemyIds: actEnemyIds,
+              zoneIndex,
+              actPower,
+            });
+
+        if (enemies.length === 0) {
+          return;
+        }
+
+        sectors.push({
+          name: `${toActLabel(actNumber)} - ${zoneName}`,
+          boss: isBossZone,
+          encounterSize,
+          enemies,
+        });
+      });
+    });
+
+    return sectors;
+  }
+
+  function buildSeedInterludes(seedSectors) {
+    const sectors = Array.isArray(seedSectors) ? seedSectors : [];
+    const actBreakpoints = sectors
+      .map((sector, index) => ({ index, sector }))
+      .filter(({ sector }) => sector?.boss);
+
+    return actBreakpoints
+      .filter(({ index }) => index < sectors.length - 1)
+      .map(({ index, sector }, entryIndex) => ({
+        afterSector: index + 1,
+        type: "event",
+        title: `${sector.name} - Camp`,
+        description: "Choose one recovery option before entering the next act.",
+        options: [
+          {
+            label: "Recover and regroup (+10 Hull, -8 Heat)",
+            hull: 10,
+            heat: -8,
+          },
+          {
+            label: "Press tempo (+1 Steam card draw setup)",
+            hull: 4,
+            heat: -4,
+            addCard: entryIndex % 2 === 0 ? "relay_uplink" : "condenser_tap",
+          },
+          {
+            label: "Trim dead weight (remove Pressure Vent)",
+            removeCard: "pressure_vent",
+            hull: 2,
+            heat: -2,
+          },
+        ],
+      }));
+  }
+
+  function buildSeedProgressionContent() {
+    const bundle = getSeedBundle();
+    const runSectors = buildSeedRunSectors({
+      zonesDoc: bundle?.zones,
+      enemyPoolsDoc: bundle?.enemyPools,
+    });
+    if (runSectors.length === 0) {
+      return null;
+    }
+
+    return {
+      runSectors,
+      interludes: buildSeedInterludes(runSectors),
+    };
+  }
+
+  const SEEDED_PROGRESSION_CONTENT = buildSeedProgressionContent();
+
   function cloneRunSectors(sectors) {
     return (Array.isArray(sectors) ? sectors : []).map((sector) => ({
       name: sector?.name,
@@ -421,7 +608,7 @@
   }
 
   function getDefaultRunSectors() {
-    return cloneRunSectors(RUN_SECTORS);
+    return cloneRunSectors(SEEDED_PROGRESSION_CONTENT?.runSectors || RUN_SECTORS);
   }
 
   function getDefaultStarterDeckRecipe() {
@@ -433,7 +620,7 @@
   }
 
   function getDefaultInterludes() {
-    return [...INTERLUDES];
+    return [...(SEEDED_PROGRESSION_CONTENT?.interludes || INTERLUDES)];
   }
 
   function getDefaultArtifactCatalog() {

@@ -116,3 +116,230 @@ test("drawRewardChoices supports upgrade choices with branch ids", () => {
     ].includes(choices[0].branchId)
   );
 });
+
+test("drawRewardChoices includes gear rewards when available", () => {
+  const runFlow = loadRunFlowModule();
+
+  const choices = runFlow.drawRewardChoices({
+    rewardPool: [],
+    rewardChoiceCount: 2,
+    shuffleInPlace: () => {},
+    getUpgradeablePathIds: () => [],
+    getUpgradeablePathChoices: () => [],
+    getAvailableArtifactIds: () => [],
+    getAvailableGearIds: () => [
+      { id: "nightfang_blade", weight: 4 },
+      { id: "bloodmail_plate", weight: 2 },
+    ],
+    randomInt: () => 0,
+  });
+
+  assert.ok(choices.some((choice) => choice?.type === "gear"));
+  const gearIds = choices.filter((choice) => choice?.type === "gear").map((choice) => choice.gearId);
+  assert.equal(new Set(gearIds).size, gearIds.length);
+});
+
+test("applyRewardAndAdvance supports gear rewards and advances sector", () => {
+  const runFlow = loadRunFlowModule();
+  const stats = {
+    rewardsClaimed: 0,
+    cardsRewarded: 0,
+    gearRewarded: 0,
+    upgradesRewarded: 0,
+    rewardSkips: 0,
+  };
+  const game = {
+    phase: "reward",
+    rewardChoices: [{ type: "gear", gearId: "nightfang_blade" }],
+    player: {
+      hull: 20,
+      maxHull: 30,
+    },
+    sectorIndex: 0,
+    artifacts: [],
+  };
+  let passiveCapsCalls = 0;
+  let nextBattleStarted = false;
+
+  runFlow.applyRewardAndAdvance({
+    game,
+    rewardChoice: { type: "gear", gearId: "nightfang_blade" },
+    normalizeRewardChoice: (choice) => choice,
+    getRewardChoiceKey: (choice) => `gear:${choice.gearId}`,
+    setLog: () => {},
+    renderRewardPanel: () => {},
+    collectDeckInstances: () => [],
+    rewardHealSkip: 4,
+    rewardHealChosen: 8,
+    cardCatalog: {},
+    artifactCatalog: {},
+    gearCatalog: {
+      nightfang_blade: { id: "nightfang_blade", title: "Nightfang Blade", slot: "weapon" },
+    },
+    applyGearReward: () => ({
+      gear: { id: "nightfang_blade", title: "Nightfang Blade", slot: "weapon" },
+      slot: "weapon",
+      replacedGear: null,
+    }),
+    getArtifactRewardHealBonus: () => 0,
+    applyRunPassiveCaps: () => {
+      passiveCapsCalls += 1;
+    },
+    makeCardInstance: () => null,
+    ensureRunStats: () => stats,
+    appendRunTimelineEntry: () => {},
+    applyUpgradePath: () => null,
+    clamp: (value, min, max) => Math.max(min, Math.min(max, value)),
+    runSectorsLength: 3,
+    recordRunOutcome: () => {},
+    renderEnemies: () => {},
+    renderCards: () => {},
+    renderTrackMap: () => {},
+    updateHud: () => {},
+    getInterludeForAfterSector: () => null,
+    beginInterlude: () => false,
+    beginSectorBattle: () => {
+      nextBattleStarted = true;
+    },
+  });
+
+  assert.equal(game.sectorIndex, 1);
+  assert.equal(game.player.hull, 28);
+  assert.equal(stats.rewardsClaimed, 1);
+  assert.equal(stats.gearRewarded, 1);
+  assert.equal(passiveCapsCalls, 1);
+  assert.equal(nextBattleStarted, true);
+});
+
+test("applyRewardAndAdvance can convert duplicate class-card rewards into rank ups", () => {
+  const runFlow = loadRunFlowModule();
+  const stats = {
+    rewardsClaimed: 0,
+    cardsRewarded: 0,
+    gearRewarded: 0,
+    upgradesRewarded: 0,
+    rewardSkips: 0,
+  };
+  const game = {
+    phase: "reward",
+    rewardChoices: [{ type: "card", cardId: "sorceress_fireball_spell" }],
+    player: {
+      hull: 12,
+      maxHull: 20,
+    },
+    sectorIndex: 0,
+    artifacts: [],
+  };
+  let nextDeck = null;
+
+  runFlow.applyRewardAndAdvance({
+    game,
+    rewardChoice: { type: "card", cardId: "sorceress_fireball_spell" },
+    normalizeRewardChoice: (choice) => choice,
+    getRewardChoiceKey: (choice) => `card:${choice.cardId}`,
+    setLog: () => {},
+    renderRewardPanel: () => {},
+    collectDeckInstances: () => [
+      { cardId: "sorceress_fireball_spell", instanceId: "c_1_fireball" },
+      { cardId: "sorceress_fireball_spell", instanceId: "c_2_fireball" },
+    ],
+    rewardHealSkip: 4,
+    rewardHealChosen: 8,
+    cardCatalog: {
+      sorceress_fireball_spell: { id: "sorceress_fireball_spell", title: "Fireball" },
+    },
+    artifactCatalog: {},
+    gearCatalog: {},
+    applyGearReward: () => null,
+    getArtifactRewardHealBonus: () => 0,
+    applyRunPassiveCaps: () => {},
+    makeCardInstance: (cardId) => ({ cardId, instanceId: `made_${cardId}` }),
+    ensureRunStats: () => stats,
+    appendRunTimelineEntry: () => {},
+    applyUpgradePath: () => null,
+    clamp: (value, min, max) => Math.max(min, Math.min(max, value)),
+    runSectorsLength: 2,
+    recordRunOutcome: () => {},
+    renderEnemies: () => {},
+    renderCards: () => {},
+    renderTrackMap: () => {},
+    updateHud: () => {},
+    getInterludeForAfterSector: () => null,
+    beginInterlude: () => {},
+    beginSectorBattle: (deck) => {
+      nextDeck = deck;
+    },
+    resolveCardRewardFn: () => ({
+      mode: "rank_up",
+      timelineText: "Reward: empowered Fireball to Rank 2/5.",
+      rewardMessage: "Empowered Fireball to Rank 2/5. Hull repaired by 8.",
+    }),
+  });
+
+  assert.equal(stats.cardsRewarded, 1);
+  assert.equal(nextDeck.length, 2);
+  assert.equal(nextDeck.every((entry) => entry.cardId === "sorceress_fireball_spell"), true);
+  assert.equal(game.player.hull, 20);
+});
+
+test("applyRewardAndAdvance defers post-reward flow when custom resolver handles it", () => {
+  const runFlow = loadRunFlowModule();
+  const game = {
+    phase: "reward",
+    rewardChoices: [{ type: "card", cardId: "spark_lance" }],
+    player: {
+      hull: 18,
+      maxHull: 30,
+    },
+    sectorIndex: 0,
+    artifacts: [],
+  };
+  let postRewardHandled = false;
+
+  runFlow.applyRewardAndAdvance({
+    game,
+    rewardChoice: { type: "card", cardId: "spark_lance" },
+    normalizeRewardChoice: (choice) => choice,
+    getRewardChoiceKey: (choice) => `card:${choice.cardId}`,
+    setLog: () => {},
+    renderRewardPanel: () => {},
+    collectDeckInstances: () => [],
+    rewardHealSkip: 4,
+    rewardHealChosen: 8,
+    cardCatalog: {
+      spark_lance: { title: "Spark Lance" },
+    },
+    artifactCatalog: {},
+    gearCatalog: {},
+    applyGearReward: () => null,
+    getArtifactRewardHealBonus: () => 0,
+    applyRunPassiveCaps: () => {},
+    makeCardInstance: (cardId) => ({ cardId, instanceId: "c_1_test" }),
+    ensureRunStats: () => ({
+      rewardsClaimed: 0,
+      cardsRewarded: 0,
+      gearRewarded: 0,
+      upgradesRewarded: 0,
+      rewardSkips: 0,
+    }),
+    appendRunTimelineEntry: () => {},
+    applyUpgradePath: () => null,
+    clamp: (value, min, max) => Math.max(min, Math.min(max, value)),
+    runSectorsLength: 3,
+    recordRunOutcome: () => {},
+    renderEnemies: () => {},
+    renderCards: () => {},
+    renderTrackMap: () => {},
+    updateHud: () => {},
+    getInterludeForAfterSector: () => null,
+    beginInterlude: () => false,
+    beginSectorBattle: () => {},
+    resolvePostRewardFlowFn: () => {
+      postRewardHandled = true;
+      return true;
+    },
+  });
+
+  assert.equal(postRewardHandled, true);
+  assert.equal(game.sectorIndex, 0);
+});

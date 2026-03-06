@@ -326,6 +326,7 @@ test("ensureRunStats normalizes missing and invalid values", () => {
     enemiesDestroyed: 4,
     rewardsClaimed: 0,
     cardsRewarded: 0,
+    gearRewarded: 0,
     upgradesRewarded: 0,
     rewardSkips: 0,
   });
@@ -435,4 +436,82 @@ test("normalizeRewardChoice and getRewardChoiceKey preserve upgrade branch ids",
     progression.getRewardChoiceKey(normalized),
     "upgrade:condenser_bank#condenser_bank_branch_cold_baffles"
   );
+});
+
+test("normalizeRewardChoice and getRewardChoiceKey support gear rewards", () => {
+  const progression = loadProgressionModule();
+  const normalized = progression.normalizeRewardChoice({
+    type: "gear",
+    gearId: "nightfang_blade",
+  });
+
+  assert.equal(normalized?.type, "gear");
+  assert.equal(normalized?.gearId, "nightfang_blade");
+  assert.equal(progression.getRewardChoiceKey(normalized), "gear:nightfang_blade");
+});
+
+test("buildStageNodeRoute produces deterministic node paths with enemy-first sectors", () => {
+  const progression = loadProgressionModule();
+  const runSectors = [
+    { name: "Act I - Blood Moor", boss: false, enemies: [{ key: "fallen", power: 1 }] },
+    { name: "Act I - Catacombs", boss: true, enemies: [{ key: "andariel", power: 1 }] },
+  ];
+  const encounterModel = {
+    encountersPerStage: { min: 2, max: 3 },
+    actNodeWeights: {
+      1: { enemy: 0.6, chest: 0.25, shrine: 0.15 },
+    },
+  };
+
+  const routeA = progression.buildStageNodeRoute({
+    runSectors,
+    runSeed: 77,
+    encounterModel,
+  });
+  const routeB = progression.buildStageNodeRoute({
+    runSectors,
+    runSeed: 77,
+    encounterModel,
+  });
+
+  assert.deepEqual(routeA, routeB);
+  assert.equal(routeA.stageNodesBySector.length, 2);
+  assert.equal(routeA.stageNodesBySector[0][0].type, "enemy");
+  assert.ok(routeA.stageNodesBySector[0].length >= 2);
+  assert.ok(routeA.stageNodesBySector[0].slice(1).every((node) => node.type === "chest" || node.type === "shrine"));
+  assert.deepEqual(
+    Array.from(routeA.stageNodesBySector[1]).map((node) => node.type),
+    ["enemy"]
+  );
+});
+
+test("sanitizeStageNodeRoute and getStageProgress normalize route state safely", () => {
+  const progression = loadProgressionModule();
+  const sanitized = progression.sanitizeStageNodeRoute({
+    runSectors: [
+      { name: "Act I - Blood Moor" },
+      { name: "Act I - Catacombs", boss: true },
+    ],
+    rawStageNodesBySector: [
+      [{ type: "shrine" }, { type: "chest" }],
+      [{ type: "chest" }, { type: "shrine" }],
+    ],
+  });
+
+  assert.equal(sanitized.stageNodesBySector[0][0].type, "enemy");
+  assert.equal(sanitized.stageNodesBySector[1].length, 1);
+  assert.equal(sanitized.stageNodesBySector[1][0].type, "enemy");
+
+  const progress = progression.getStageProgress({
+    stageNodesBySector: sanitized.stageNodesBySector,
+    sectorIndex: 0,
+    stageNodeIndex: 1,
+    runSectorsLength: 2,
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(progress)), {
+    totalNodes: 3,
+    completedNodes: 1,
+    nodesInSector: 2,
+    stageNodeIndex: 1,
+  });
 });

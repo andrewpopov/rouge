@@ -1,5 +1,9 @@
 # Attribution
 
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- This file includes both legacy prototype attribution and the current Diablo-inspired asset attribution.
+
 ## Kenney (CC0)
 - UI Pack - Sci-Fi
 - UI Pack - Adventure
@@ -10,7 +14,9 @@
 ## Game-icons (CC BY 3.0)
 - Source: https://game-icons.net
 - License: CC BY 3.0
-- Tags used: `steampunk`, `machine`, `smoke`, `light`, `energy`
+- Tags used:
+  - Base set: `steampunk`, `machine`, `smoke`, `light`, `energy`
+  - Diablo-inspired set: `medieval-fantasy`, `weapon`, `blade`, `skull`, `blood`, `fire`, `poison`, `armor`, `zombie`, `vampire`, `death`, `mask`
 - Contributors used in curated set:
   - Lorc
   - Delapouite
@@ -20,6 +26,9 @@
   - Skoll
   - Cathelineau
   - Sbed
+- Diablo-inspired curated icon source map:
+  - `assets/curated/themes/diablo-inspired/icons/SOURCES.txt`
+  - `assets/curated/themes/diablo-inspired/icons/AUTHORS.txt`
 
 ## Credit Text (Drop-in)
 

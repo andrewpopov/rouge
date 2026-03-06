@@ -6,6 +6,8 @@
   "scripts": {
     "assets:download": "./scripts/download-assets.sh",
     "assets:curate": "./scripts/curate-mvp-icons.sh",
+    "assets:download:dark-fantasy": "./scripts/download-dark-fantasy-assets.sh",
+    "assets:curate:dark-fantasy": "./scripts/curate-dark-fantasy-icons.sh",
     "start": "python3 -m http.server 4173",
     "test": "node --test tests/*.test.js"
   },

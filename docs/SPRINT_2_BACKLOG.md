@@ -1,5 +1,9 @@
 # Sprint 2 Backlog (March 2026)
 
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- This backlog is subordinate to the current master-plan task tracks.
+
 ## Baseline Snapshot
 
 - Tests: `123/123` passing

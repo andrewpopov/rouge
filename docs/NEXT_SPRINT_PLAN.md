@@ -1,5 +1,9 @@
 # Next Sprint Plan
 
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- This is historical planning context and should not override the current master plan.
+
 ## Objective
 
 Deepen run-to-run variety and deckbuilding decisions while keeping the current stable loop and test discipline.
@@ -17,6 +21,7 @@ Current baseline (February 2026):
 
 - Content Pack v1 shipped (`5` sectors, `12` enemies, `20` cards)
 - Run structure v1 shipped (event/shop interludes + route branch option)
+- Quest contracts v1 shipped (seeded chest/shrine/boss contracts with relic/stat/skill rewards)
 - Onboarding v1 shipped (panel, dismiss/toggle, highlighted controls)
 - Save/Resume v1 shipped (snapshot restore + corrupt fallback)
 - Modularization progress landed:
@@ -25,7 +30,7 @@ Current baseline (February 2026):
 
 ## Current Biggest Gaps
 
-1. Mid-run variety still relies on a static route and fixed enemy pools.
+1. Mid-run variety is improved by seeded stage nodes and quest contracts, but route branching and encounter-pool variety are still limited.
 2. Deckbuilding depth is mostly numeric tuning; there are few interaction mechanics.
 3. Meta progression is linear and capped to four paths with limited strategic tradeoff.
 4. `main.js` still coordinates many concerns and should be reduced further.

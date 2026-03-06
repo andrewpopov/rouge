@@ -1,0 +1,166 @@
+{
+  "version": "d2-canon-2026-03-05",
+  "source": "https://classic.battle.net/diablo2exp/maps/",
+  "encounterModel": {
+    "encountersPerStage": {
+      "min": 1,
+      "max": 3
+    },
+    "nodeTypes": [
+      "enemy",
+      "chest",
+      "shrine"
+    ],
+    "actNodeWeights": {
+      "1": { "enemy": 0.6, "chest": 0.25, "shrine": 0.15 },
+      "2": { "enemy": 0.65, "chest": 0.2, "shrine": 0.15 },
+      "3": { "enemy": 0.7, "chest": 0.18, "shrine": 0.12 },
+      "4": { "enemy": 0.75, "chest": 0.15, "shrine": 0.1 },
+      "5": { "enemy": 0.75, "chest": 0.15, "shrine": 0.1 }
+    }
+  },
+  "acts": [
+    {
+      "act": 1,
+      "name": "The Sightless Eye",
+      "town": "Rogue Encampment",
+      "boss": {
+        "id": "andariel",
+        "name": "Andariel",
+        "zone": "Catacombs"
+      },
+      "mainlineZones": [
+        "Rogue Encampment",
+        "Blood Moor",
+        "Cold Plains",
+        "Stony Field",
+        "The Underground Passage",
+        "Dark Wood",
+        "Black Marsh",
+        "Tamoe Highland",
+        "Monastery Gate",
+        "Outer Cloister",
+        "Barracks",
+        "Jail",
+        "Inner Cloister",
+        "Cathedral",
+        "Catacombs"
+      ],
+      "sideZones": [
+        "Burial Grounds",
+        "Tristram"
+      ]
+    },
+    {
+      "act": 2,
+      "name": "The Secret of the Vizjerei",
+      "town": "Lut Gholein",
+      "boss": {
+        "id": "duriel",
+        "name": "Duriel",
+        "zone": "Tal Rasha's Chamber"
+      },
+      "mainlineZones": [
+        "Lut Gholein",
+        "Rocky Waste",
+        "Dry Hills",
+        "Far Oasis",
+        "Lost City",
+        "Harem",
+        "The Palace Cellar",
+        "Arcane Sanctuary",
+        "Canyon of the Magi",
+        "Tal Rasha's Tomb",
+        "Tal Rasha's Chamber"
+      ],
+      "sideZones": [
+        "Sewers",
+        "Halls of the Dead",
+        "Maggot Lair",
+        "Valley of Snakes"
+      ]
+    },
+    {
+      "act": 3,
+      "name": "The Infernal Gate",
+      "town": "Kurast Docks",
+      "boss": {
+        "id": "mephisto",
+        "name": "Mephisto",
+        "zone": "Durance of Hate"
+      },
+      "mainlineZones": [
+        "Kurast Docks",
+        "Spider Forest",
+        "Great Marsh",
+        "Flayer Jungle",
+        "Lower Kurast",
+        "Kurast Bazaar",
+        "Upper Kurast",
+        "Kurast Causeway",
+        "Travincal",
+        "Durance of Hate"
+      ],
+      "sideZones": [
+        "Spider Cavern",
+        "Flayer Dungeon",
+        "Sewers"
+      ]
+    },
+    {
+      "act": 4,
+      "name": "The Harrowing",
+      "town": "Pandemonium Fortress",
+      "boss": {
+        "id": "diablo",
+        "name": "Diablo",
+        "zone": "Chaos Sanctuary"
+      },
+      "mainlineZones": [
+        "Pandemonium Fortress",
+        "Outer Steppes",
+        "Plains of Despair",
+        "City of the Damned",
+        "River of Flame",
+        "Chaos Sanctuary"
+      ],
+      "sideZones": []
+    },
+    {
+      "act": 5,
+      "name": "Lord of Destruction",
+      "town": "Harrogath",
+      "boss": {
+        "id": "baal",
+        "name": "Baal",
+        "zone": "The Worldstone Chamber"
+      },
+      "mainlineZones": [
+        "Harrogath",
+        "Bloody Foothills",
+        "Frigid Highlands",
+        "Arreat Plateau",
+        "Crystalline Passage",
+        "Glacial Trail",
+        "Frozen Tundra",
+        "The Ancients' Way",
+        "Arreat Summit",
+        "Worldstone Keep",
+        "Throne of Destruction",
+        "The Worldstone Chamber"
+      ],
+      "sideZones": [
+        "Nihlathak's Temple",
+        "Halls of Anguish",
+        "Halls of Pain",
+        "Halls of Vaught",
+        "Abaddon",
+        "Pit of Acheron",
+        "Frozen River",
+        "Drifter Cavern",
+        "Infernal Pit",
+        "Icy Cellar"
+      ]
+    }
+  ]
+}

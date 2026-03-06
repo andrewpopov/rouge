@@ -122,6 +122,42 @@
     return node;
   }
 
+  function createGearNode({
+    gear,
+    onClick,
+    reactorFrame,
+    escapeHtml,
+  }) {
+    const rarity = normalizeArtifactRarity(gear);
+    const rarityLabel = getArtifactRarityLabel(gear);
+    const slotLabel =
+      gear?.slot === "weapon"
+        ? "Weapon"
+        : gear?.slot === "armor"
+          ? "Armor"
+          : gear?.slot === "trinket"
+            ? "Trinket"
+            : "Gear";
+    const node = document.createElement("article");
+    node.className = "card reward-gear";
+    node.classList.add(`rarity-${rarity}`);
+    node.style.setProperty("--card-frame", `url("${reactorFrame}")`);
+    node.innerHTML = `
+    <div class="card-top">
+      <div>
+        <p class="card-type">Gear // ${safeEscape(escapeHtml, slotLabel)} // ${safeEscape(escapeHtml, rarityLabel)}</p>
+        <h3 class="card-title">${safeEscape(escapeHtml, gear.title)}</h3>
+      </div>
+      <span class="card-cost">Equip</span>
+    </div>
+    <img class="card-icon" src="${gear.icon}" alt="${safeEscape(escapeHtml, gear.title)}" />
+    <p class="card-text">${safeEscape(escapeHtml, gear.description)}</p>
+    <span class="card-foot">${safeEscape(escapeHtml, `Run Gear // Slot ${slotLabel.toUpperCase()}`)}</span>
+  `;
+    node.addEventListener("click", onClick);
+    return node;
+  }
+
   function getSuggestedUpgradePathId({ upgradePathCatalog, getUpgradeLevel }) {
     const suggested = Object.values(upgradePathCatalog)
       .map((path) => ({
@@ -254,6 +290,190 @@
   `;
   }
 
+  function renderGearStrip({
+    gearStripEl,
+    gearCatalog,
+    gearInventory,
+    equippedGear,
+    escapeHtml,
+  }) {
+    if (!gearStripEl) {
+      return;
+    }
+
+    const inventory = Array.isArray(gearInventory) ? gearInventory : [];
+    const headRow = `
+    <div class="upgrade-head-row">
+      <p class="upgrade-head">Run Gear</p>
+      <span class="upgrade-progress-pill">${safeEscape(escapeHtml, `${inventory.length}`)}</span>
+    </div>
+  `;
+
+    const slots = [
+      { id: "weapon", label: "Weapon" },
+      { id: "armor", label: "Armor" },
+      { id: "trinket", label: "Trinket" },
+    ];
+
+    const chips = slots
+      .map((slot) => {
+        const gearId =
+          typeof equippedGear?.[slot.id] === "string" && equippedGear[slot.id].trim()
+            ? equippedGear[slot.id].trim()
+            : "";
+        const gear = gearId ? gearCatalog?.[gearId] : null;
+        if (!gear) {
+          return `
+          <div class="gear-chip empty">
+            <strong>${safeEscape(escapeHtml, slot.label)}: Empty</strong>
+            <small>No gear equipped.</small>
+          </div>
+        `;
+        }
+        return `
+          <div class="gear-chip rarity-${safeEscape(escapeHtml, normalizeArtifactRarity(gear))}">
+            <strong>${safeEscape(escapeHtml, `${slot.label}: ${gear.title}`)}</strong>
+            <small>${safeEscape(escapeHtml, gear.description)}</small>
+          </div>
+        `;
+      })
+      .join("");
+
+    gearStripEl.innerHTML = `
+    ${headRow}
+    <div class="upgrade-grid">${chips}</div>
+  `;
+  }
+
+  function renderRewardTreeStrip({
+    rewardTreeStripEl,
+    rewardTreeCatalog,
+    rewardTreeState,
+    formatNodeRequirementLabelFn = () => "",
+    escapeHtml,
+  }) {
+    if (!rewardTreeStripEl) {
+      return;
+    }
+
+    const catalog = rewardTreeCatalog && typeof rewardTreeCatalog === "object" ? rewardTreeCatalog : {};
+    const allNodes = Object.values(catalog);
+    const unlockedSet = new Set(
+      (Array.isArray(rewardTreeState?.unlockedNodeIds) ? rewardTreeState.unlockedNodeIds : [])
+        .map((nodeId) => (typeof nodeId === "string" ? nodeId.trim() : ""))
+        .filter(Boolean)
+    );
+    const objectives = rewardTreeState?.objectives && typeof rewardTreeState.objectives === "object"
+      ? rewardTreeState.objectives
+      : {};
+    const unlockedNodes = allNodes.filter((node) => unlockedSet.has(node.id));
+    const lockedNodes = allNodes.filter((node) => !unlockedSet.has(node.id));
+
+    const headRow = `
+    <div class="upgrade-head-row">
+      <p class="upgrade-head">Reward Tree Skills</p>
+      <span class="upgrade-progress-pill">${safeEscape(escapeHtml, `${unlockedNodes.length}/${allNodes.length}`)}</span>
+    </div>
+  `;
+
+    const objectiveSummary = `
+    <p class="reward-tree-objectives">
+      Sectors ${safeEscape(escapeHtml, String(objectives.sectorsCleared || 0))} // Boss ${safeEscape(escapeHtml, String(objectives.bossKills || 0))} // Flawless ${safeEscape(escapeHtml, String(objectives.flawlessClears || 0))} // Speed ${safeEscape(escapeHtml, String(objectives.speedClears || 0))}
+    </p>
+  `;
+
+    const unlockedChips =
+      unlockedNodes.length === 0
+        ? '<p class="upgrade-empty">none unlocked.</p>'
+        : `<div class="upgrade-grid">${unlockedNodes
+            .map(
+              (node) => `
+          <div class="reward-tree-chip unlocked">
+            <strong>${safeEscape(escapeHtml, node.title)}</strong>
+            <small>${safeEscape(escapeHtml, node.description)}</small>
+          </div>
+        `
+            )
+            .join("")}</div>`;
+
+    const lockedHints = lockedNodes
+      .slice(0, 2)
+      .map((node) => {
+        const needText = formatNodeRequirementLabelFn({
+          node,
+          objectives,
+        });
+        return `<small class="reward-tree-lock">${safeEscape(
+          escapeHtml,
+          `${node.title}: ${needText || "locked"}`
+        )}</small>`;
+      })
+      .join("");
+
+    rewardTreeStripEl.innerHTML = `
+    ${headRow}
+    ${objectiveSummary}
+    ${unlockedChips}
+    ${lockedHints}
+  `;
+  }
+
+  function renderQuestPanel({
+    questPanelEl,
+    questEntries,
+    escapeHtml,
+  }) {
+    if (!questPanelEl) {
+      return;
+    }
+
+    const entries = Array.isArray(questEntries) ? questEntries : [];
+    const completedCount = entries.filter((entry) => entry?.completed).length;
+    const headRow = `
+    <div class="upgrade-head-row">
+      <p class="upgrade-head">Quests</p>
+      <span class="upgrade-progress-pill">${safeEscape(escapeHtml, `${completedCount}/${entries.length}`)}</span>
+    </div>
+  `;
+
+    if (entries.length === 0) {
+      questPanelEl.innerHTML = `
+      ${headRow}
+      <p class="upgrade-empty">no active quests.</p>
+    `;
+      return;
+    }
+
+    questPanelEl.innerHTML = `
+    ${headRow}
+    <div class="quest-grid">${entries
+      .map(
+        (entry) => `
+        <article class="quest-chip ${entry.completed ? "completed" : ""} ${entry.failed ? "failed" : ""}">
+          <div class="quest-chip-head">
+            <div class="quest-chip-title">
+              ${entry.icon ? `<img class="quest-chip-icon" src="${safeEscape(escapeHtml, entry.icon)}" alt="" />` : ""}
+              <strong>${safeEscape(escapeHtml, entry.title)}</strong>
+            </div>
+            <span class="quest-chip-progress">${safeEscape(
+              escapeHtml,
+              entry.progressLabel || entry.statusLabel || `${entry.current}/${entry.target}`
+            )}</span>
+          </div>
+          <p class="quest-chip-text">${safeEscape(escapeHtml, entry.description || entry.objectiveLabel)}</p>
+          <small class="quest-chip-foot location">${safeEscape(escapeHtml, entry.locationLabel || "Unknown route target")}</small>
+          <small class="quest-chip-foot">${safeEscape(
+            escapeHtml,
+            entry.objectiveLabel || "No quest objective."
+          )}</small>
+          <small class="quest-chip-foot reward">${safeEscape(escapeHtml, `Reward: ${entry.rewardSummary}`)}</small>
+        </article>
+      `
+      )
+      .join("")}</div>
+  `;
+  }
+
   function renderRewardMetaSummary({
     rewardMetaEl,
     upgradePathCatalog,
@@ -326,11 +546,13 @@
     nextSectorIntel = null,
     rewardChoices,
     artifactCatalog,
+    gearCatalog = {},
     getSuggestedUpgradePathIdFn,
     renderRewardMetaSummaryFn,
     upgradePathCatalog,
     createUpgradeNodeFn,
     createArtifactNodeFn,
+    createGearNodeFn,
     createCardNodeFn,
     cardCatalog,
     onApplyRewardAndAdvance,
@@ -348,7 +570,7 @@
     }
 
     const suggestedPathId = getSuggestedUpgradePathIdFn();
-    rewardSubtitleEl.textContent = `Sector ${sectorIndex + 1}/${runSectors.length} cleared (${sector.name}). Pick 1 reward (card, artifact, or upgrade path) and repair +${intermissionHealing} Hull.`;
+    rewardSubtitleEl.textContent = `Sector ${sectorIndex + 1}/${runSectors.length} cleared (${sector.name}). Pick 1 reward (card, gear, artifact, or upgrade path) and repair +${intermissionHealing} Hull.`;
     renderRewardMetaSummaryFn();
     if (rewardIntelEl) {
       const nextSector = nextSectorIntel || runSectors[sectorIndex + 1] || null;
@@ -469,6 +691,22 @@
         return;
       }
 
+      if (choice?.type === "gear") {
+        const gear = gearCatalog?.[choice.gearId];
+        if (!gear) {
+          return;
+        }
+        const node = createGearNodeFn({
+          gear,
+          onClick: () => {
+            onApplyRewardAndAdvance(choice);
+          },
+        });
+        node.classList.add("reward-choice");
+        rewardChoicesEl.appendChild(node);
+        return;
+      }
+
       const cardId = typeof choice === "string" ? choice : choice?.cardId;
       const card = cardCatalog[cardId];
       if (!card) {
@@ -497,7 +735,7 @@
       return;
     }
 
-    const visible = phase === "interlude" && Boolean(interlude);
+    const visible = phase === "world_map" && Boolean(interlude);
     interludePanelEl.classList.toggle("hidden", !visible);
     if (!visible) {
       interludeTitleEl.textContent = "Interlude";
@@ -535,6 +773,7 @@
     sectorCount,
     deckSize,
     artifactCount,
+    gearCount,
     installedLevels,
     possibleLevels,
   }) {
@@ -548,6 +787,7 @@
       { label: "Rewards Taken", value: String(stats.rewardsClaimed) },
       { label: "Reward Skips", value: String(stats.rewardSkips) },
       { label: "Deck Size", value: String(deckSize) },
+      { label: "Run Gear", value: String(gearCount) },
       { label: "Artifacts", value: String(artifactCount) },
       { label: "Meta Levels", value: `${installedLevels}/${possibleLevels}` },
       { label: "Profile Runs", value: String(records.totalRuns) },
@@ -620,6 +860,7 @@
     toggleRunTimelineBtnEl,
     artifactCatalog = {},
     artifacts = [],
+    gearInventory = [],
     phase,
     turn,
     sectorIndex,
@@ -634,6 +875,7 @@
     getMetaInstalledLevelsTotalFn,
     getMetaPossibleLevelsTotalFn,
     collectDeckInstancesFn,
+    timelineTypeIcons = {},
     clamp,
     escapeHtml,
   }) {
@@ -647,7 +889,7 @@
       return;
     }
 
-    const visible = phase === "run_victory" || phase === "gameover";
+    const visible = phase === "run_complete" || phase === "run_failed";
     runSummaryPanelEl.classList.toggle("hidden", !visible);
     if (!visible) {
       runSummaryTitleEl.textContent = "Run Summary";
@@ -663,7 +905,7 @@
 
     const stats = ensureRunStatsFn();
     const records = ensureRunRecordsFn();
-    const won = phase === "run_victory";
+    const won = phase === "run_complete";
     const installedLevels = getMetaInstalledLevelsTotalFn();
     const possibleLevels = getMetaPossibleLevelsTotalFn();
     const deckSize = collectDeckInstancesFn().length;
@@ -688,6 +930,7 @@
       sectorCount: runSectors.length,
       deckSize,
       artifactCount: (Array.isArray(artifacts) ? artifacts : []).length,
+      gearCount: (Array.isArray(gearInventory) ? gearInventory : []).length,
       installedLevels,
       possibleLevels,
     });
@@ -735,27 +978,27 @@
     const typeMeta = {
       info: {
         label: "INFO",
-        icon: "./assets/curated/icons/ui/idea_light-bulb.svg",
+        icon: timelineTypeIcons.info || "./assets/curated/icons/ui/idea_light-bulb.svg",
       },
       system: {
         label: "SYSTEM",
-        icon: "./assets/curated/icons/ui/idea_light-bulb.svg",
+        icon: timelineTypeIcons.system || "./assets/curated/icons/ui/idea_light-bulb.svg",
       },
       sector: {
         label: "SECTOR",
-        icon: "./assets/curated/icons/ui/turn_pocket-watch.svg",
+        icon: timelineTypeIcons.sector || "./assets/curated/icons/ui/turn_pocket-watch.svg",
       },
       reward: {
         label: "REWARD",
-        icon: "./assets/curated/icons/ui/energy_battery-50.svg",
+        icon: timelineTypeIcons.reward || "./assets/curated/icons/ui/energy_battery-50.svg",
       },
       danger: {
         label: "DANGER",
-        icon: "./assets/curated/icons/ui/crit_cross-flare.svg",
+        icon: timelineTypeIcons.danger || "./assets/curated/icons/ui/crit_cross-flare.svg",
       },
       victory: {
         label: "VICTORY",
-        icon: "./assets/curated/icons/ui/hp_life-bar.svg",
+        icon: timelineTypeIcons.victory || "./assets/curated/icons/ui/hp_life-bar.svg",
       },
     };
     const timelineHtml = timelineItems
@@ -802,9 +1045,13 @@
   window.BRASSLINE_RUN_UI = {
     createUpgradeNode,
     createArtifactNode,
+    createGearNode,
     getSuggestedUpgradePathId,
     renderUpgradeStrip,
     renderArtifactStrip,
+    renderGearStrip,
+    renderRewardTreeStrip,
+    renderQuestPanel,
     renderRewardMetaSummary,
     renderRewardPanel,
     renderInterludePanel,

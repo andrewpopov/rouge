@@ -34,6 +34,9 @@
     const hullHit = damage - absorbed;
     enemy.block -= absorbed;
     enemy.hp = Math.max(0, enemy.hp - hullHit);
+    if (hullHit > 0) {
+      enemy.tookDamageThisTurn = true;
+    }
     if (hullHit > 0 && typeof ensureRunStats === "function") {
       ensureRunStats().damageDealt += hullHit;
     }
@@ -97,8 +100,10 @@
       return baseAmount;
     }
     const multiplier = game.player.nextAttackMultiplier;
+    const flatBonus = Math.max(0, Number.parseInt(game.player.nextAttackFlatBonus, 10) || 0);
     game.player.nextAttackMultiplier = 1;
-    return baseAmount * multiplier;
+    game.player.nextAttackFlatBonus = 0;
+    return baseAmount * multiplier + flatBonus;
   }
 
   function collectDeckInstances({ game }) {
@@ -108,11 +113,26 @@
     return [...game.drawPile, ...game.discardPile, ...game.hand, ...game.exhaustPile];
   }
 
+  function getCombatSubphase(game) {
+    if (!game || typeof game !== "object") {
+      return "";
+    }
+    return game.combatSubphase === "enemy_resolve" ? "enemy_resolve" : "player_turn";
+  }
+
+  function isPlayerTurn(game) {
+    return game?.phase === "encounter" && getCombatSubphase(game) === "player_turn";
+  }
+
+  function isRunTerminalPhase(phase) {
+    return phase === "run_complete" || phase === "run_failed";
+  }
+
   function isCardPlayable({ game, card, selectedEnemy }) {
     if (!game || !card) {
       return false;
     }
-    if (game.phase !== "player") {
+    if (!isPlayerTurn(game)) {
       return false;
     }
     if (game.player.energy < card.cost) {
@@ -139,13 +159,13 @@
     renderEnemies,
     renderTrackMap,
   }) {
-    if (!game || game.phase !== "player") {
-      return;
+    if (!game || !isPlayerTurn(game)) {
+      return false;
     }
 
     const handIndex = game.hand.findIndex((instance) => instance.instanceId === instanceId);
     if (handIndex < 0) {
-      return;
+      return false;
     }
 
     const instance = game.hand[handIndex];
@@ -160,15 +180,18 @@
       if (typeof updateHud === "function") {
         updateHud();
       }
-      return;
+      return false;
     }
 
     game.player.energy -= card.cost;
     game.hand.splice(handIndex, 1);
 
-    const ctx = typeof buildContextFn === "function" ? buildContextFn(selectedEnemy) : null;
+    const ctx = typeof buildContextFn === "function" ? buildContextFn(selectedEnemy, card) : null;
     if (ctx) {
       card.play(ctx);
+    }
+    if (card.type === "Spell") {
+      game.turnSpellActionsUsed = Number.isInteger(game.turnSpellActionsUsed) ? game.turnSpellActionsUsed + 1 : 1;
     }
     game.turnCardsPlayed = Number.isInteger(game.turnCardsPlayed) ? game.turnCardsPlayed + 1 : 1;
     if (typeof ensureRunStats === "function") {
@@ -189,12 +212,13 @@
       if (typeof renderEnemies === "function") renderEnemies();
       if (typeof renderTrackMap === "function") renderTrackMap();
       if (typeof updateHud === "function") updateHud();
-      return;
+      return true;
     }
 
     if (typeof renderCards === "function") renderCards();
     if (typeof renderEnemies === "function") renderEnemies();
     if (typeof updateHud === "function") updateHud();
+    return true;
   }
 
   function discardHand({ game }) {
@@ -219,13 +243,13 @@
     if (!game) {
       return;
     }
-    if (game.phase === "gameover" || game.phase === "run_victory") {
+    if (isRunTerminalPhase(game.phase)) {
       if (typeof initGame === "function") {
         initGame();
       }
       return;
     }
-    if (game.phase !== "player") {
+    if (!isPlayerTurn(game)) {
       return;
     }
     if (game.player.energy < 1) {
@@ -271,7 +295,7 @@
     overclockStrainHeatThreshold,
     overclockStrainDamage,
   }) {
-    if (!game || game.phase !== "player") {
+    if (!game || !isPlayerTurn(game)) {
       return;
     }
     if (game.player.overclockUsed) {
@@ -310,10 +334,10 @@
     if (!game) {
       return;
     }
-    if (game.phase === "gameover" || game.phase === "run_victory") {
+    if (isRunTerminalPhase(game.phase)) {
       return;
     }
-    if (game.phase !== "player") {
+    if (!isPlayerTurn(game)) {
       return;
     }
     if (game.player.movedThisTurn) {
@@ -349,6 +373,7 @@
 
   function startPlayerTurn({
     game,
+    setGamePhaseFn = null,
     gainHeatFn,
     gainEnergyFn,
     getTurnStartCoolingAmount,
@@ -362,20 +387,41 @@
     if (!game || !game.player) {
       return;
     }
-    game.phase = "player";
+    if (typeof setGamePhaseFn === "function") {
+      setGamePhaseFn("encounter", "start_player_turn", {
+        turn: game.turn + 1,
+        combatSubphase: "player_turn",
+      });
+    } else {
+      game.phase = "encounter";
+      game.combatSubphase = "player_turn";
+    }
+    game.combatSubphase = "player_turn";
     game.turn += 1;
     game.player.energy = game.player.maxEnergy;
     game.player.block = typeof getTurnStartBlockAmount === "function" ? getTurnStartBlockAmount() : 0;
     game.player.movedThisTurn = false;
     game.player.overclockUsed = false;
     game.player.nextAttackMultiplier = 1;
+    game.player.nextAttackFlatBonus = 0;
     game.turnCardsPlayed = 0;
+    game.turnSpellActionsUsed = 0;
+    const pendingEnergyNextTurn = Math.max(0, Number.parseInt(game.player.pendingEnergyNextTurn, 10) || 0);
+    game.player.pendingEnergyNextTurn = 0;
+    if (Array.isArray(game.enemies)) {
+      game.enemies.forEach((enemy) => {
+        if (enemy && typeof enemy === "object") {
+          enemy.tookDamageThisTurn = false;
+        }
+      });
+    }
     const energyBonus =
       typeof getTurnStartEnergyBonus === "function"
         ? Math.max(0, Number.parseInt(getTurnStartEnergyBonus(), 10) || 0)
         : 0;
-    if (energyBonus > 0 && typeof gainEnergyFn === "function") {
-      gainEnergyFn(energyBonus);
+    const totalEnergyBonus = energyBonus + pendingEnergyNextTurn;
+    if (totalEnergyBonus > 0 && typeof gainEnergyFn === "function") {
+      gainEnergyFn(totalEnergyBonus);
     }
     if (typeof gainHeatFn === "function" && typeof getTurnStartCoolingAmount === "function") {
       gainHeatFn(-getTurnStartCoolingAmount());
@@ -393,6 +439,7 @@
 
   function endTurn({
     game,
+    setGamePhaseFn = null,
     setLog,
     discardHandFn,
     damagePlayerFn,
@@ -406,11 +453,19 @@
     resolveEnemyIntent,
     startPlayerTurnFn,
   }) {
-    if (!game || game.phase !== "player") {
+    if (!game || !isPlayerTurn(game)) {
       return;
     }
 
-    game.phase = "enemy";
+    if (typeof setGamePhaseFn === "function") {
+      setGamePhaseFn("encounter", "end_turn_enemy_phase", {
+        combatSubphase: "enemy_resolve",
+      });
+    } else {
+      game.phase = "encounter";
+      game.combatSubphase = "enemy_resolve";
+    }
+    game.combatSubphase = "enemy_resolve";
     if (typeof discardHandFn === "function") {
       discardHandFn();
     }

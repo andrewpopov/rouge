@@ -31,11 +31,24 @@ test("createInitialGameState builds a full default state payload", () => {
     createDefaultRunRecordsFn: () => ({ totalRuns: 0 }),
     createDefaultRecordHighlightsFn: () => ({ bestDamageDealt: false }),
     createDefaultRunTimelineFn: () => [],
+    createDefaultQuestStateFn: () => ({
+      activeQuestIds: ["graveyard_shift", "black_road_supplies"],
+      completedQuestIds: ["graveyard_shift"],
+    }),
   });
 
-  assert.equal(state.phase, "player");
+  assert.equal(state.phase, "encounter");
+  assert.equal(state.combatSubphase, "player_turn");
   assert.equal(state.turn, 1);
   assert.equal(state.sectorIndex, 0);
+  assert.equal(state.stageNodeIndex, 0);
+  assert.deepEqual(Array.from(state.stageNodesBySector), []);
+  assert.deepEqual(JSON.parse(JSON.stringify(state.stageProgress)), {
+    totalNodes: 0,
+    completedNodes: 0,
+    nodesInSector: 1,
+    stageNodeIndex: 0,
+  });
   assert.equal(state.runSeed, 42);
   assert.equal(state.turnCardsPlayed, 0);
   assert.equal(state.encounterModifier, null);
@@ -52,6 +65,44 @@ test("createInitialGameState builds a full default state payload", () => {
   assert.deepEqual(state.runRecordHighlights, { bestDamageDealt: false });
   assert.deepEqual(Array.from(state.runTimeline), []);
   assert.deepEqual(Array.from(state.artifacts), []);
+  assert.deepEqual(Array.from(state.gearInventory), []);
+  assert.deepEqual({ ...state.equippedGear }, { weapon: "", armor: "", trinket: "" });
+  assert.deepEqual(JSON.parse(JSON.stringify(state.questState)), {
+    activeQuestIds: ["graveyard_shift", "black_road_supplies"],
+    completedQuestIds: ["graveyard_shift"],
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(state.rewardTreeState)), {
+    objectives: {
+      sectorsCleared: 0,
+      bossKills: 0,
+      flawlessClears: 0,
+      speedClears: 0,
+    },
+    unlockedNodeIds: [],
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(state.classState)), {
+    classId: "",
+    level: 1,
+    xp: 0,
+    skillPoints: 0,
+    statPoints: 0,
+    allocatedStats: {
+      strength: 0,
+      dexterity: 0,
+      vitality: 0,
+      energy: 0,
+    },
+    nodeRanks: {},
+    cooldowns: {},
+    spellRanks: {},
+    baseStats: {},
+    baseResistances: {},
+  });
+  assert.deepEqual(Array.from(state.classItems), []);
+  assert.equal(state.gold, 0);
+  assert.equal(state.healingPotions, 0);
+  assert.equal(state.itemUpgradeTokens, 0);
+  assert.equal(state.sectorDamageTakenStart, 0);
 });
 
 test("applyFreshRunState resets transient run fields without touching meta state", () => {
@@ -64,6 +115,14 @@ test("applyFreshRunState resets transient run fields without touching meta state
     phase: "reward",
     turn: 9,
     sectorIndex: 4,
+    stageNodeIndex: 2,
+    stageNodesBySector: [[{ type: "enemy" }]],
+    stageProgress: {
+      totalNodes: 9,
+      completedNodes: 3,
+      nodesInSector: 2,
+      stageNodeIndex: 1,
+    },
     runSeed: 19,
     turnCardsPlayed: 6,
     player: {
@@ -92,6 +151,10 @@ test("applyFreshRunState resets transient run fields without touching meta state
     artifacts: ["aegis_booster"],
     interlude: { title: "Depot" },
     interludeDeck: [{ instanceId: "c9" }],
+    questState: {
+      activeQuestIds: ["graveyard_shift"],
+      completedQuestIds: ["graveyard_shift"],
+    },
     runStats: { cardsPlayed: 99 },
     runRecordHighlights: { bestDamageDealt: true },
     runTimeline: [{ line: "old entry" }],
@@ -115,11 +178,24 @@ test("applyFreshRunState resets transient run fields without touching meta state
     createDefaultRunStatsFn: () => ({ cardsPlayed: 0 }),
     createDefaultRecordHighlightsFn: () => ({ bestDamageDealt: false }),
     createDefaultRunTimelineFn: () => [],
+    createDefaultQuestStateFn: () => ({
+      activeQuestIds: ["graveyard_shift", "black_road_supplies"],
+      completedQuestIds: [],
+    }),
   });
 
-  assert.equal(game.phase, "player");
+  assert.equal(game.phase, "encounter");
+  assert.equal(game.combatSubphase, "player_turn");
   assert.equal(game.turn, 1);
   assert.equal(game.sectorIndex, 0);
+  assert.equal(game.stageNodeIndex, 0);
+  assert.deepEqual(Array.from(game.stageNodesBySector), []);
+  assert.deepEqual(JSON.parse(JSON.stringify(game.stageProgress)), {
+    totalNodes: 0,
+    completedNodes: 0,
+    nodesInSector: 1,
+    stageNodeIndex: 0,
+  });
   assert.equal(game.runSeed, 77);
   assert.equal(game.turnCardsPlayed, 0);
   assert.equal(game.encounterModifier, null);
@@ -132,6 +208,44 @@ test("applyFreshRunState resets transient run fields without touching meta state
   assert.deepEqual(Array.from(game.telegraphs), []);
   assert.deepEqual(Array.from(game.runTimeline), []);
   assert.deepEqual(Array.from(game.artifacts), []);
+  assert.deepEqual(Array.from(game.gearInventory), []);
+  assert.deepEqual({ ...game.equippedGear }, { weapon: "", armor: "", trinket: "" });
+  assert.deepEqual(JSON.parse(JSON.stringify(game.questState)), {
+    activeQuestIds: ["graveyard_shift", "black_road_supplies"],
+    completedQuestIds: [],
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(game.rewardTreeState)), {
+    objectives: {
+      sectorsCleared: 0,
+      bossKills: 0,
+      flawlessClears: 0,
+      speedClears: 0,
+    },
+    unlockedNodeIds: [],
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(game.classState)), {
+    classId: "",
+    level: 1,
+    xp: 0,
+    skillPoints: 0,
+    statPoints: 0,
+    allocatedStats: {
+      strength: 0,
+      dexterity: 0,
+      vitality: 0,
+      energy: 0,
+    },
+    nodeRanks: {},
+    cooldowns: {},
+    spellRanks: {},
+    baseStats: {},
+    baseResistances: {},
+  });
+  assert.deepEqual(Array.from(game.classItems), []);
+  assert.equal(game.gold, 0);
+  assert.equal(game.healingPotions, 0);
+  assert.equal(game.itemUpgradeTokens, 0);
+  assert.equal(game.sectorDamageTakenStart, 0);
   assert.deepEqual(game.runStats, { cardsPlayed: 0 });
   assert.deepEqual(game.runRecordHighlights, { bestDamageDealt: false });
   assert.equal(game.upgrades.condenser_bank, 2);

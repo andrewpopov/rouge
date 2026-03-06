@@ -6,9 +6,10 @@
     getUpgradeablePathIds,
     getUpgradeablePathChoices = null,
     getAvailableArtifactIds = () => [],
+    getAvailableGearIds = () => [],
     randomInt = null,
   }) {
-    function normalizeArtifactPool(rawPool) {
+    function normalizeWeightedIdPool(rawPool) {
       const source = Array.isArray(rawPool) ? rawPool : [];
       const normalized = source
         .map((entry) => {
@@ -73,7 +74,7 @@
       });
     }
 
-    function pickWeightedArtifactIndex(pool) {
+    function pickWeightedIndex(pool) {
       if (!Array.isArray(pool) || pool.length === 0) {
         return -1;
       }
@@ -107,14 +108,24 @@
           : [];
     const upgradePool = normalizeUpgradePool(rawUpgradePool);
     shuffleInPlace(upgradePool);
-    const artifactPool = normalizeArtifactPool(getAvailableArtifactIds());
+    const artifactPool = normalizeWeightedIdPool(getAvailableArtifactIds());
+    const gearPool = normalizeWeightedIdPool(getAvailableGearIds());
 
     function takeArtifactId() {
-      const artifactIndex = pickWeightedArtifactIndex(artifactPool);
+      const artifactIndex = pickWeightedIndex(artifactPool);
       if (artifactIndex < 0) {
         return "";
       }
       const [picked] = artifactPool.splice(artifactIndex, 1);
+      return picked?.id || "";
+    }
+
+    function takeGearId() {
+      const gearIndex = pickWeightedIndex(gearPool);
+      if (gearIndex < 0) {
+        return "";
+      }
+      const [picked] = gearPool.splice(gearIndex, 1);
       return picked?.id || "";
     }
 
@@ -126,6 +137,16 @@
         upgradeId: nextUpgrade.upgradeId,
         ...(nextUpgrade.branchId ? { branchId: nextUpgrade.branchId } : {}),
       });
+    }
+
+    if (gearPool.length > 0 && choices.length < rewardChoiceCount) {
+      const gearId = takeGearId();
+      if (gearId) {
+        choices.push({
+          type: "gear",
+          gearId,
+        });
+      }
     }
 
     if (artifactPool.length > 0 && choices.length < rewardChoiceCount) {
@@ -142,6 +163,17 @@
       choices.push({
         type: "card",
         cardId: cardPool.shift(),
+      });
+    }
+
+    while (choices.length < rewardChoiceCount && gearPool.length > 0) {
+      const gearId = takeGearId();
+      if (!gearId) {
+        break;
+      }
+      choices.push({
+        type: "gear",
+        gearId,
       });
     }
 
@@ -171,6 +203,7 @@
 
   function beginInterlude({
     game,
+    setGamePhaseFn = null,
     interlude,
     deckInstances,
     rewardMessage,
@@ -186,7 +219,14 @@
     if (!interlude) {
       return false;
     }
-    game.phase = "interlude";
+    if (typeof setGamePhaseFn === "function") {
+      setGamePhaseFn("world_map", "begin_interlude", {
+        title: interlude.title,
+      });
+    } else {
+      game.phase = "world_map";
+      game.combatSubphase = null;
+    }
     game.interlude = {
       ...interlude,
       options: interlude.options.map((option) => ({ ...option })),
@@ -222,7 +262,7 @@
     appendRunTimelineEntry,
     beginSectorBattle,
   }) {
-    if (game.phase !== "interlude" || !game.interlude) {
+    if (game.phase !== "world_map" || !game.interlude) {
       return;
     }
 
@@ -290,6 +330,7 @@
 
   function beginSectorBattle({
     game,
+    setGamePhaseFn = null,
     deckInstances,
     freshStart = false,
     getCurrentSector,
@@ -318,7 +359,12 @@
   }) {
     const sector = getCurrentSector();
     if (!sector) {
-      game.phase = "run_victory";
+      if (typeof setGamePhaseFn === "function") {
+        setGamePhaseFn("run_complete", "no_sector_found");
+      } else {
+        game.phase = "run_complete";
+        game.combatSubphase = null;
+      }
       game.encounterModifier = null;
       game.openEnemyTooltipId = null;
       game.highlightLanes = [];
@@ -330,7 +376,16 @@
       return;
     }
 
-    game.phase = "player";
+    if (typeof setGamePhaseFn === "function") {
+      setGamePhaseFn("encounter", "begin_sector_battle", {
+        sectorName: sector.name,
+        combatSubphase: "player_turn",
+      });
+    } else {
+      game.phase = "encounter";
+      game.combatSubphase = "player_turn";
+    }
+    game.combatSubphase = "player_turn";
     game.turn = 1;
     game.turnCardsPlayed = 0;
     game.rewardChoices = [];
@@ -395,6 +450,7 @@
 
   function applyRewardAndAdvance({
     game,
+    setGamePhaseFn = null,
     rewardChoice = null,
     normalizeRewardChoice,
     getRewardChoiceKey,
@@ -405,7 +461,10 @@
     rewardHealChosen,
     cardCatalog,
     artifactCatalog = {},
+    gearCatalog = {},
+    applyGearReward = () => null,
     getArtifactRewardHealBonus = () => 0,
+    applyRunPassiveCaps = () => {},
     makeCardInstance,
     ensureRunStats,
     appendRunTimelineEntry,
@@ -420,6 +479,8 @@
     getInterludeForAfterSector,
     beginInterlude,
     beginSectorBattle,
+    resolveCardRewardFn = null,
+    resolvePostRewardFlowFn = null,
   }) {
     if (game.phase !== "reward") {
       return;
@@ -445,18 +506,31 @@
     const deck = collectDeckInstances();
     let rewardMessage = "";
     let healAmountBase = rewardHealSkip;
+    let passiveCapsDirty = false;
 
     if (normalizedChoice) {
       healAmountBase = rewardHealChosen;
       if (normalizedChoice.type === "card" && normalizedChoice.cardId && cardCatalog[normalizedChoice.cardId]) {
-        deck.push(makeCardInstance(normalizedChoice.cardId));
+        const cardRewardResult =
+          typeof resolveCardRewardFn === "function"
+            ? resolveCardRewardFn({
+                cardId: normalizedChoice.cardId,
+                deck,
+                game,
+              })
+            : null;
+        if (!cardRewardResult || cardRewardResult.mode !== "rank_up") {
+          deck.push(makeCardInstance(normalizedChoice.cardId));
+        }
         ensureRunStats().rewardsClaimed += 1;
         ensureRunStats().cardsRewarded += 1;
-        appendRunTimelineEntry(`Reward: added ${cardCatalog[normalizedChoice.cardId].title}.`, {
+        appendRunTimelineEntry(cardRewardResult?.timelineText || `Reward: added ${cardCatalog[normalizedChoice.cardId].title}.`, {
           sectorIndex: game.sectorIndex,
           type: "reward",
         });
-        rewardMessage = `Added ${cardCatalog[normalizedChoice.cardId].title}. Hull repaired by ${rewardHealChosen}.`;
+        rewardMessage =
+          cardRewardResult?.rewardMessage ||
+          `Added ${cardCatalog[normalizedChoice.cardId].title}. Hull repaired by ${rewardHealChosen}.`;
       } else if (normalizedChoice.type === "upgrade" && normalizedChoice.upgradeId) {
         const upgradeResult = applyUpgradePath(normalizedChoice.upgradeId, normalizedChoice.branchId || "");
         if (!upgradeResult) {
@@ -501,6 +575,35 @@
           type: "reward",
         });
         rewardMessage = `Secured artifact ${artifact.title}. ${artifact.description} Hull repaired by ${rewardHealChosen}.`;
+        passiveCapsDirty = true;
+      } else if (normalizedChoice.type === "gear" && normalizedChoice.gearId) {
+        const gear = gearCatalog[normalizedChoice.gearId];
+        if (!gear) {
+          setLog("Invalid reward selection.");
+          renderRewardPanel();
+          return;
+        }
+        const rewardResult = applyGearReward(normalizedChoice.gearId);
+        if (!rewardResult || !rewardResult.gear) {
+          setLog("Gear already claimed. Pick a different reward.");
+          renderRewardPanel();
+          return;
+        }
+        const slotLabel =
+          rewardResult.slot && typeof rewardResult.slot === "string"
+            ? rewardResult.slot.charAt(0).toUpperCase() + rewardResult.slot.slice(1)
+            : "Slot";
+        const replacedText = rewardResult.replacedGear?.title
+          ? ` Replaced ${rewardResult.replacedGear.title}.`
+          : "";
+        ensureRunStats().rewardsClaimed += 1;
+        ensureRunStats().gearRewarded += 1;
+        appendRunTimelineEntry(`Reward: equipped ${rewardResult.gear.title} (${slotLabel}).`, {
+          sectorIndex: game.sectorIndex,
+          type: "reward",
+        });
+        rewardMessage = `Equipped ${rewardResult.gear.title} (${slotLabel}).${replacedText} Hull repaired by ${rewardHealChosen}.`;
+        passiveCapsDirty = true;
       } else {
         setLog("Invalid reward selection.");
         renderRewardPanel();
@@ -515,23 +618,54 @@
       rewardMessage = `Skipped reward. Hull repaired by ${rewardHealSkip}.`;
     }
 
-    const artifactHealBonus = Math.max(0, Number.parseInt(getArtifactRewardHealBonus(), 10) || 0);
-    const healAmount = healAmountBase + artifactHealBonus;
-    if (artifactHealBonus > 0) {
-      rewardMessage += ` (+${artifactHealBonus} from artifacts)`;
+    if (passiveCapsDirty && typeof applyRunPassiveCaps === "function") {
+      applyRunPassiveCaps();
+    }
+
+    const runHealBonus = Math.max(0, Number.parseInt(getArtifactRewardHealBonus(), 10) || 0);
+    const healAmount = healAmountBase + runHealBonus;
+    if (runHealBonus > 0) {
+      rewardMessage += ` (+${runHealBonus} from run relics)`;
     }
     game.player.hull = clamp(game.player.hull + healAmount, 0, game.player.maxHull);
+
+    if (typeof resolvePostRewardFlowFn === "function") {
+      const handled = resolvePostRewardFlowFn({
+        game,
+        deck,
+        rewardMessage,
+        setGamePhaseFn,
+        runSectorsLength,
+        appendRunTimelineEntry,
+        recordRunOutcome,
+        renderEnemies,
+        renderCards,
+        renderTrackMap,
+        updateHud,
+        beginInterlude,
+        beginSectorBattle,
+      });
+      if (handled) {
+        return;
+      }
+    }
+
     game.sectorIndex += 1;
 
     if (game.sectorIndex >= runSectorsLength) {
-      game.phase = "run_victory";
+      if (typeof setGamePhaseFn === "function") {
+        setGamePhaseFn("run_complete", "route_secured");
+      } else {
+        game.phase = "run_complete";
+        game.combatSubphase = null;
+      }
       game.telegraphs = [];
       appendRunTimelineEntry("Route secured.", {
         sectorIndex: runSectorsLength - 1,
         turn: game.turn,
         type: "victory",
       });
-      recordRunOutcome("run_victory");
+      recordRunOutcome("run_complete");
       setLog("Route secured. Click Restart Run to play again.");
       renderEnemies();
       renderCards();
@@ -552,6 +686,7 @@
 
   function checkEndStates({
     game,
+    setGamePhaseFn = null,
     livingEnemies,
     runSectorsLength,
     discardHand,
@@ -559,10 +694,16 @@
     recordRunOutcome,
     drawRewardChoices,
     getCurrentSector,
+    onSectorCleared = null,
     setLog,
   }) {
     if (game.player.hull <= 0) {
-      game.phase = "gameover";
+      if (typeof setGamePhaseFn === "function") {
+        setGamePhaseFn("run_failed", "player_hull_depleted");
+      } else {
+        game.phase = "run_failed";
+        game.combatSubphase = null;
+      }
       game.encounterModifier = null;
       game.interlude = null;
       game.interludeDeck = [];
@@ -576,7 +717,7 @@
         turn: game.turn,
         type: "danger",
       });
-      recordRunOutcome("gameover");
+      recordRunOutcome("run_failed");
       setLog("Reactor lost. Click Restart Run.");
       return true;
     }
@@ -591,26 +732,44 @@
       game.telegraphs = [];
       discardHand();
       const finalSector = game.sectorIndex >= runSectorsLength - 1;
+      const sector = typeof getCurrentSector === "function" ? getCurrentSector() : null;
+      if (typeof onSectorCleared === "function") {
+        onSectorCleared({
+          sector,
+          sectorIndex: game.sectorIndex,
+          turn: game.turn,
+          finalSector,
+        });
+      }
       if (finalSector) {
-        game.phase = "run_victory";
+        if (typeof setGamePhaseFn === "function") {
+          setGamePhaseFn("run_complete", "final_sector_cleared");
+        } else {
+          game.phase = "run_complete";
+          game.combatSubphase = null;
+        }
         appendRunTimelineEntry("Foundry Crown secured.", {
           sectorIndex: game.sectorIndex,
           turn: game.turn,
           type: "victory",
         });
-        recordRunOutcome("run_victory");
+        recordRunOutcome("run_complete");
         setLog("Foundry Crown secured. Click Restart Run.");
       } else {
-        game.phase = "reward";
+        if (typeof setGamePhaseFn === "function") {
+          setGamePhaseFn("reward", "sector_cleared_reward");
+        } else {
+          game.phase = "reward";
+          game.combatSubphase = null;
+        }
         game.rewardChoices = drawRewardChoices();
-        const sector = getCurrentSector();
         const sectorName = sector ? sector.name : `Sector ${game.sectorIndex + 1}`;
         appendRunTimelineEntry(`${sectorName} cleared.`, {
           sectorIndex: game.sectorIndex,
           turn: game.turn,
           type: "sector",
         });
-        setLog("Sector cleared. Choose 1 reward (card, artifact, or upgrade path) to continue.");
+        setLog("Sector cleared. Choose 1 reward (card, gear, artifact, or upgrade path) to continue.");
       }
       return true;
     }

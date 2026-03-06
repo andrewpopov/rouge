@@ -51,10 +51,19 @@ body::before {
 }
 
 .hud-shell {
-  width: min(1120px, 96vw);
+  width: min(1360px, 97vw);
   margin: 1.25rem auto;
   display: grid;
   gap: 1rem;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "status"
+    "battle"
+    "hand"
+    "controls"
+    "reward"
+    "interlude"
+    "summary";
 }
 
 .panel {
@@ -71,6 +80,7 @@ body::before {
 }
 
 .status-strip {
+  grid-area: status;
   display: grid;
   gap: 1rem;
   padding: 1rem 1.1rem;
@@ -160,6 +170,7 @@ body::before {
 }
 
 .battlefield {
+  grid-area: battle;
   padding: 1rem;
 }
 
@@ -169,12 +180,51 @@ body::before {
   letter-spacing: 0.03em;
 }
 
-.battlefield-header p {
+.flow-label {
+  margin: 0.2rem 0 0.3rem;
+  font-size: 0.76rem;
+  color: #dceffe;
+  letter-spacing: 0.02em;
+  border-left: 2px solid rgba(143, 211, 255, 0.72);
+  padding-left: 0.46rem;
+}
+
+.battlefield-header #sectorLabel {
   margin: 0.2rem 0 0.9rem;
   font-size: 0.85rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.zone-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #d8ebfb;
+}
+
+.enemy-zone-head {
+  display: grid;
+  gap: 0.14rem;
+  margin-bottom: 0.36rem;
+}
+
+.enemy-zone-title {
+  margin-bottom: 0;
+}
+
+.zone-hint {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #c4d5e4;
+}
+
+.target-hint {
+  margin: 0.58rem 0 0;
+  font-size: 0.74rem;
+  color: #b8cad8;
 }
 
 .map-wrap {
@@ -200,6 +250,13 @@ body::before {
   text-transform: none;
   letter-spacing: 0;
   font-size: 0.72rem;
+}
+
+.map-role-note {
+  margin: 0.42rem 0 0;
+  color: #bdd5e8;
+  font-size: 0.67rem;
+  letter-spacing: 0.01em;
 }
 
 .cook-legend {
@@ -515,13 +572,64 @@ body::before {
 
 .train-marker {
   position: absolute;
-  bottom: 0.35rem;
+  bottom: 0.26rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 26px;
-  height: 26px;
-  filter: brightness(0) invert(1);
+  width: 28px;
+  height: 28px;
+  padding: 0.12rem;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 211, 255, 0.82);
+  background: radial-gradient(circle at center, rgba(34, 72, 102, 0.9), rgba(14, 24, 34, 0.95));
+  filter: brightness(0) saturate(100%) invert(79%) sepia(12%) saturate(1107%) hue-rotate(170deg)
+    brightness(101%) contrast(99%);
   z-index: 4;
+}
+
+.player-lane-badge {
+  position: absolute;
+  top: 0.22rem;
+  right: 0.22rem;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 211, 255, 0.9);
+  background: rgba(32, 77, 110, 0.9);
+  color: #f1fbff;
+  padding: 0.09rem 0.24rem;
+  font-size: 0.56rem;
+  font-family: "Share Tech Mono", "Consolas", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 5;
+}
+
+.lane-impact {
+  position: absolute;
+  inset: 0.2rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 170, 92, 0.82);
+  background: radial-gradient(circle, rgba(255, 188, 126, 0.42), rgba(255, 150, 82, 0.08));
+  box-shadow: 0 0 14px rgba(255, 150, 82, 0.42);
+  pointer-events: none;
+  animation: laneImpactBurst 460ms ease-out;
+  z-index: 3;
+}
+
+.lane-impact-lob {
+  border-color: rgba(255, 114, 114, 0.88);
+  background: radial-gradient(circle, rgba(255, 129, 129, 0.46), rgba(255, 84, 84, 0.1));
+  box-shadow: 0 0 15px rgba(255, 92, 92, 0.42);
+}
+
+.lane-impact-sweep {
+  border-color: rgba(255, 204, 102, 0.86);
+  background: linear-gradient(90deg, rgba(255, 224, 143, 0.35), rgba(255, 184, 102, 0.12));
+  box-shadow: 0 0 15px rgba(255, 184, 102, 0.34);
+}
+
+.lane-impact-hull {
+  border-color: rgba(232, 74, 95, 0.9);
+  background: radial-gradient(circle, rgba(255, 132, 149, 0.45), rgba(232, 74, 95, 0.12));
+  box-shadow: 0 0 16px rgba(232, 74, 95, 0.44);
 }
 
 .telegraph {
@@ -697,6 +805,14 @@ body::before {
 .enemy:hover {
   transform: translateY(-1px);
   border-color: rgba(255, 209, 102, 0.62);
+}
+
+.enemy.hit-flash {
+  animation: enemyHitFlash 260ms ease-out;
+}
+
+.enemy.destroy-flash {
+  animation: enemyDestroyFlash 520ms ease-out;
 }
 
 .enemy.active {
@@ -949,6 +1065,7 @@ body::before {
 }
 
 .hand-zone {
+  grid-area: hand;
   padding: 1rem;
 }
 
@@ -1070,9 +1187,34 @@ body::before {
 }
 
 .controls {
+  grid-area: controls;
   padding: 0.9rem;
   display: grid;
   gap: 0.8rem;
+}
+
+.turn-loop {
+  margin: -0.1rem 0 0;
+  border: 1px solid rgba(143, 211, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(11, 19, 27, 0.54);
+  padding: 0.34rem 0.42rem;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.turn-loop-label {
+  margin: 0;
+  color: #d7ecfb;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.turn-loop-text {
+  margin: 0;
+  color: #dbeaf7;
+  font-size: 0.7rem;
 }
 
 .button-row {
@@ -1144,12 +1286,198 @@ body::before {
   filter: grayscale(0);
 }
 
+body[data-ui-scale="comfort"] .control-btn {
+  min-height: 52px;
+  padding: 0.9rem 1rem;
+  font-size: 0.94rem;
+}
+
+body[data-ui-scale="comfort"] .lane-action-btn {
+  min-height: 42px;
+  font-size: 0.68rem;
+  padding: 0.32rem 0.3rem;
+}
+
+body[data-ui-scale="comfort"] .enemy {
+  min-height: 178px;
+  padding: 0.75rem;
+}
+
+body[data-ui-scale="comfort"] .enemy-tooltip-toggle {
+  width: 1.42rem;
+  height: 1.42rem;
+  font-size: 0.78rem;
+}
+
+body[data-ui-scale="comfort"] .card {
+  min-height: 214px;
+  padding: 0.62rem;
+}
+
+body[data-ui-scale="comfort"] .reward-choice {
+  min-height: 198px;
+}
+
+body[data-ui-scale="comfort"] .interlude-choice-btn {
+  min-height: 64px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+body[data-ui-scale="comfort"] .quick-guide-goal {
+  font-size: 0.8rem;
+}
+
+body[data-ui-scale="comfort"] .quick-guide-step {
+  font-size: 0.75rem;
+}
+
 .onboarding-toggle-btn {
   min-width: 0;
   width: fit-content;
   padding: 0.46rem 0.76rem;
   font-size: 0.67rem;
   letter-spacing: 0.07em;
+}
+
+.quick-guide {
+  margin-top: 0.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(13, 22, 30, 0.62), rgba(8, 12, 16, 0.56)),
+    rgba(8, 12, 16, 0.56);
+  padding: 0.4rem 0.56rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.quick-guide-goal,
+.quick-guide-step {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.quick-guide-goal {
+  font-size: 0.73rem;
+  color: #d9ebf8;
+}
+
+.quick-guide-step {
+  font-size: 0.68rem;
+  color: #afc8d9;
+}
+
+.quest-panel {
+  margin-top: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(12, 20, 27, 0.72), rgba(8, 12, 16, 0.58)),
+    rgba(8, 12, 16, 0.58);
+  padding: 0.48rem 0.58rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.42rem;
+}
+
+.quest-chip {
+  border-radius: 8px;
+  border: 1px solid rgba(143, 211, 255, 0.22);
+  background: rgba(15, 28, 37, 0.74);
+  padding: 0.34rem 0.42rem;
+  display: grid;
+  gap: 0.14rem;
+}
+
+.quest-chip.completed {
+  border-color: rgba(255, 209, 120, 0.48);
+  background: rgba(54, 39, 17, 0.52);
+  box-shadow: 0 0 0 1px rgba(255, 209, 120, 0.14) inset;
+}
+
+.quest-chip.failed {
+  border-color: rgba(235, 116, 112, 0.4);
+  background: rgba(57, 22, 24, 0.6);
+  box-shadow: 0 0 0 1px rgba(235, 116, 112, 0.14) inset;
+}
+
+.quest-chip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.quest-chip-title {
+  display: flex;
+  align-items: center;
+  gap: 0.36rem;
+  min-width: 0;
+}
+
+.quest-chip-title strong {
+  font-size: 0.72rem;
+  color: #e6f1fa;
+}
+
+.quest-chip.completed .quest-chip-title strong {
+  color: #ffe7b8;
+}
+
+.quest-chip-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.quest-chip-progress {
+  border-radius: 999px;
+  border: 1px solid rgba(143, 211, 255, 0.3);
+  background: rgba(19, 38, 51, 0.7);
+  color: #d7eaf9;
+  padding: 0.08rem 0.34rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.quest-chip.completed .quest-chip-progress {
+  border-color: rgba(255, 209, 120, 0.44);
+  background: rgba(62, 47, 22, 0.78);
+  color: #ffe6b0;
+}
+
+.quest-chip.failed .quest-chip-progress {
+  border-color: rgba(235, 116, 112, 0.44);
+  background: rgba(75, 28, 31, 0.82);
+  color: #ffc4bf;
+}
+
+.quest-chip-text {
+  margin: 0;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  color: #b8cbda;
+}
+
+.quest-chip-foot {
+  color: #97aec0;
+  font-size: 0.6rem;
+  line-height: 1.25;
+}
+
+.quest-chip-foot.location {
+  color: #d9e9f6;
+}
+
+.quest-chip-foot.reward {
+  color: #d9e9f6;
 }
 
 .onboarding-panel {
@@ -1280,6 +1608,7 @@ body[data-onboarding="active"] .onboarding-panel {
 }
 
 .reward-panel {
+  grid-area: reward;
   padding: 0.95rem;
   display: grid;
   gap: 0.8rem;
@@ -1290,6 +1619,7 @@ body[data-onboarding="active"] .onboarding-panel {
 }
 
 .interlude-panel {
+  grid-area: interlude;
   padding: 0.95rem;
   display: grid;
   gap: 0.75rem;
@@ -1556,6 +1886,28 @@ body[data-onboarding="active"] .onboarding-panel {
     0 0 12px rgba(255, 180, 117, 0.2);
 }
 
+.reward-gear {
+  border-color: rgba(205, 169, 120, 0.6);
+  background-image:
+    linear-gradient(180deg, rgba(39, 26, 16, 0.74), rgba(12, 9, 8, 0.56)),
+    var(--card-frame);
+}
+
+.reward-gear .card-type {
+  color: #f0d8b7;
+}
+
+.reward-gear.rarity-uncommon {
+  border-color: rgba(133, 223, 171, 0.64);
+}
+
+.reward-gear.rarity-rare {
+  border-color: rgba(255, 183, 126, 0.78);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.35),
+    0 0 12px rgba(255, 183, 126, 0.2);
+}
+
 .reward-upgrade.suggested-upgrade {
   border-color: rgba(255, 215, 128, 0.9);
   box-shadow:
@@ -1587,6 +1939,24 @@ body[data-onboarding="active"] .onboarding-panel {
 }
 
 .artifact-strip {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(10, 15, 20, 0.52);
+  padding: 0.48rem 0.58rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.gear-strip {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(10, 15, 20, 0.52);
+  padding: 0.48rem 0.58rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.reward-tree-strip {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 10px;
   background: rgba(10, 15, 20, 0.52);
@@ -1707,6 +2077,203 @@ body[data-onboarding="active"] .onboarding-panel {
   color: #ffd4a3;
 }
 
+.gear-chip {
+  min-width: 156px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 224, 148, 0.44);
+  background: rgba(36, 29, 14, 0.45);
+  padding: 0.28rem 0.4rem;
+  display: grid;
+  gap: 0.14rem;
+}
+
+.gear-chip strong {
+  font-size: 0.64rem;
+  color: #fff2cc;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gear-chip small {
+  font-size: 0.63rem;
+  color: #f4dca2;
+  line-height: 1.25;
+}
+
+.gear-chip.empty {
+  border-style: dashed;
+  border-color: rgba(169, 183, 197, 0.4);
+  background: rgba(19, 25, 31, 0.48);
+}
+
+.gear-chip.rarity-uncommon {
+  border-color: rgba(133, 223, 171, 0.62);
+}
+
+.gear-chip.rarity-rare {
+  border-color: rgba(255, 183, 126, 0.78);
+}
+
+.reward-tree-objectives {
+  margin: 0;
+  font-size: 0.66rem;
+  color: #d3e1ee;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.reward-tree-chip {
+  min-width: 156px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 224, 148, 0.46);
+  background: rgba(36, 29, 14, 0.52);
+  padding: 0.28rem 0.4rem;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.reward-tree-chip strong {
+  font-size: 0.64rem;
+  color: #fff2cc;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.reward-tree-chip small {
+  font-size: 0.63rem;
+  color: #f4dca2;
+  line-height: 1.25;
+}
+
+.reward-tree-lock {
+  display: block;
+  color: #afc0ce;
+  font-size: 0.63rem;
+  line-height: 1.25;
+}
+
+.class-skill-panel {
+  margin-top: 0.85rem;
+  border: 1px solid rgba(255, 214, 176, 0.28);
+  border-radius: 10px;
+  background: rgba(26, 15, 11, 0.6);
+  padding: 0.58rem 0.66rem;
+}
+
+.class-summary {
+  margin: 0 0 0.42rem;
+  color: #ffdcbf;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+
+.class-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.class-picker-row label {
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffd8b3;
+}
+
+.class-select {
+  min-width: 130px;
+  padding: 0.24rem 0.34rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 214, 176, 0.38);
+  background: rgba(38, 22, 15, 0.8);
+  color: #ffedd9;
+  font-size: 0.7rem;
+}
+
+.stat-allocation {
+  display: grid;
+  gap: 0.28rem;
+  margin-bottom: 0.4rem;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 214, 176, 0.24);
+  border-radius: 7px;
+  background: rgba(45, 24, 15, 0.7);
+  padding: 0.24rem 0.36rem;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: #ffe6cc;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 0.66rem;
+  color: #fff1e1;
+}
+
+.stat-value small {
+  color: #ffcda2;
+}
+
+.stat-btn {
+  border: 1px solid rgba(255, 214, 176, 0.34);
+  border-radius: 6px;
+  background: rgba(68, 33, 22, 0.82);
+  color: #ffe6cd;
+  font-size: 0.61rem;
+  padding: 0.2rem 0.34rem;
+  cursor: pointer;
+}
+
+.stat-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.skill-tree-nodes,
+.skill-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  margin-bottom: 0.38rem;
+}
+
+.skill-tree-node,
+.skill-btn {
+  border: 1px solid rgba(255, 214, 176, 0.3);
+  border-radius: 7px;
+  background: rgba(50, 28, 18, 0.72);
+  color: #fff0df;
+  padding: 0.3rem 0.46rem;
+  font-size: 0.67rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.skill-tree-node small,
+.skill-btn small {
+  display: block;
+  color: #ffcfac;
+  opacity: 0.84;
+  font-size: 0.61rem;
+}
+
+.skill-tree-node:disabled,
+.skill-btn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
 .meta-reset-btn {
   min-width: 0;
   width: fit-content;
@@ -1745,6 +2312,7 @@ body[data-onboarding="active"] .onboarding-panel {
 }
 
 .run-summary-panel {
+  grid-area: summary;
   padding: 0.95rem;
   display: grid;
   gap: 0.65rem;
@@ -2009,6 +2577,18 @@ body[data-alert="critical"] #heatFill {
   animation: dangerPulse 700ms ease-in-out infinite alternate;
 }
 
+body.impact-hull .status-strip {
+  animation: hullImpactPulse 240ms ease-out;
+}
+
+body.impact-track .map-wrap {
+  animation: trackImpactPulse 210ms ease-out;
+}
+
+body.impact-enemy #enemyRow {
+  animation: enemyRowPulse 190ms ease-out;
+}
+
 body[data-phase="enemy"] .phase-badge {
   color: #1a1f25;
   background: var(--warning);
@@ -2092,6 +2672,113 @@ body[data-phase="run_victory"] .phase-badge {
     box-shadow:
       0 0 0 2px rgba(255, 209, 102, 0.95),
       0 0 17px rgba(255, 209, 102, 0.4);
+  }
+}
+
+@keyframes enemyHitFlash {
+  from {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow:
+      0 0 0 1px rgba(255, 170, 120, 0.5) inset,
+      0 0 14px rgba(255, 150, 92, 0.35);
+  }
+  to {
+    transform: translateY(0) scale(1);
+    box-shadow: none;
+  }
+}
+
+@keyframes enemyDestroyFlash {
+  from {
+    filter: saturate(1.2) brightness(1.1);
+    box-shadow:
+      0 0 0 1px rgba(255, 120, 120, 0.68) inset,
+      0 0 18px rgba(232, 74, 95, 0.45);
+  }
+  to {
+    filter: saturate(0.85) brightness(0.95);
+    box-shadow: none;
+  }
+}
+
+@keyframes laneImpactBurst {
+  from {
+    opacity: 0.95;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.14);
+  }
+}
+
+@keyframes hullImpactPulse {
+  from {
+    box-shadow:
+      0 0 0 1px rgba(232, 74, 95, 0.42) inset,
+      0 0 24px rgba(232, 74, 95, 0.26);
+  }
+  to {
+    box-shadow: none;
+  }
+}
+
+@keyframes trackImpactPulse {
+  from {
+    box-shadow:
+      0 0 0 1px rgba(255, 154, 92, 0.35) inset,
+      0 0 18px rgba(255, 154, 92, 0.28);
+  }
+  to {
+    box-shadow: none;
+  }
+}
+
+@keyframes enemyRowPulse {
+  from {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+  }
+  to {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+}
+
+@media (min-width: 1100px) {
+  .hud-shell {
+    grid-template-columns: minmax(420px, 1.35fr) minmax(330px, 1fr) minmax(290px, 0.95fr);
+    grid-template-areas:
+      "status status status"
+      "battle hand controls"
+      "reward reward reward"
+      "interlude interlude interlude"
+      "summary summary summary";
+    align-items: start;
+  }
+
+  .battlefield,
+  .hand-zone,
+  .controls {
+    min-height: 100%;
+  }
+
+  .enemy-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .controls .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .controls .control-btn {
+    width: 100%;
+    min-width: 0;
   }
 }
 

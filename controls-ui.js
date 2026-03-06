@@ -109,10 +109,12 @@
 
   function bindPrimaryControls({
     overclockBtn,
+    usePotionBtn,
     endTurnBtn,
     shiftLeftBtn,
     shiftRightBtn,
     cycleHandBtn,
+    toggleComfortModeBtn,
     toggleOnboardingBtn,
     dismissOnboardingBtn,
     resetMetaBtn,
@@ -120,10 +122,12 @@
     toggleRunTimelineBtn,
     skipRewardBtn,
     onUseOverclock,
+    onUsePotion,
     onEndTurn,
     onShiftLeft,
     onShiftRight,
     onCycleHand,
+    onToggleComfortMode,
     onToggleOnboarding,
     onDismissOnboarding,
     onResetMeta,
@@ -133,6 +137,9 @@
   }) {
     if (overclockBtn && typeof onUseOverclock === "function") {
       overclockBtn.addEventListener("click", onUseOverclock);
+    }
+    if (usePotionBtn && typeof onUsePotion === "function") {
+      usePotionBtn.addEventListener("click", onUsePotion);
     }
     if (endTurnBtn && typeof onEndTurn === "function") {
       endTurnBtn.addEventListener("click", onEndTurn);
@@ -145,6 +152,9 @@
     }
     if (cycleHandBtn && typeof onCycleHand === "function") {
       cycleHandBtn.addEventListener("click", onCycleHand);
+    }
+    if (toggleComfortModeBtn && typeof onToggleComfortMode === "function") {
+      toggleComfortModeBtn.addEventListener("click", onToggleComfortMode);
     }
     if (toggleOnboardingBtn && typeof onToggleOnboarding === "function") {
       toggleOnboardingBtn.addEventListener("click", onToggleOnboarding);

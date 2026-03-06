@@ -651,6 +651,7 @@
       enemiesDestroyed: 0,
       rewardsClaimed: 0,
       cardsRewarded: 0,
+      gearRewarded: 0,
       upgradesRewarded: 0,
       rewardSkips: 0,
     };
@@ -756,6 +757,296 @@
     return game.runRecords;
   }
 
+  const STAGE_NODE_TYPES = ["enemy", "chest", "shrine"];
+
+  function normalizeStageNodeType(type) {
+    const normalized = typeof type === "string" ? type.trim().toLowerCase() : "";
+    return STAGE_NODE_TYPES.includes(normalized) ? normalized : "enemy";
+  }
+
+  function normalizeEncounterWeights(rawWeights = {}) {
+    const safeSource = rawWeights && typeof rawWeights === "object" ? rawWeights : {};
+    const normalized = Object.fromEntries(
+      STAGE_NODE_TYPES.map((type) => {
+        const value = Number.isFinite(safeSource[type]) ? safeSource[type] : 0;
+        return [type, Math.max(0, value)];
+      })
+    );
+
+    const sum = STAGE_NODE_TYPES.reduce((total, type) => total + normalized[type], 0);
+    if (sum <= 0) {
+      return {
+        enemy: 1,
+        chest: 0,
+        shrine: 0,
+      };
+    }
+    return normalized;
+  }
+
+  function parseActNumberFromSectorName(name) {
+    if (typeof name !== "string" || !name.trim()) {
+      return null;
+    }
+
+    const directMatch = /\bact\s+(\d+)\b/i.exec(name);
+    if (directMatch) {
+      const value = Number.parseInt(directMatch[1], 10);
+      return Number.isInteger(value) && value > 0 ? value : null;
+    }
+
+    const romanMatch = /\bact\s+([ivx]+)\b/i.exec(name);
+    if (!romanMatch) {
+      return null;
+    }
+    const token = romanMatch[1].toUpperCase();
+    const romanMap = {
+      I: 1,
+      II: 2,
+      III: 3,
+      IV: 4,
+      V: 5,
+      VI: 6,
+      VII: 7,
+      VIII: 8,
+      IX: 9,
+      X: 10,
+    };
+    return romanMap[token] || null;
+  }
+
+  function getSectorActNumber(sector) {
+    const explicitAct = Number.parseInt(sector?.act, 10);
+    if (Number.isInteger(explicitAct) && explicitAct > 0) {
+      return explicitAct;
+    }
+    return parseActNumberFromSectorName(sector?.name);
+  }
+
+  function sanitizeEncounterModel(encounterModel = null) {
+    const source = encounterModel && typeof encounterModel === "object" ? encounterModel : {};
+    const minRaw = Number.parseInt(source?.encountersPerStage?.min, 10);
+    const maxRaw = Number.parseInt(source?.encountersPerStage?.max, 10);
+    const min = Number.isInteger(minRaw) && minRaw > 0 ? minRaw : 1;
+    const maxUnclamped = Number.isInteger(maxRaw) && maxRaw > 0 ? maxRaw : min;
+    const max = Math.max(min, maxUnclamped);
+
+    const actNodeWeightsSource =
+      source?.actNodeWeights && typeof source.actNodeWeights === "object" ? source.actNodeWeights : {};
+    const actNodeWeights = Object.fromEntries(
+      Object.entries(actNodeWeightsSource)
+        .map(([actKey, weights]) => {
+          const act = Number.parseInt(actKey, 10);
+          if (!Number.isInteger(act) || act <= 0) {
+            return null;
+          }
+          return [String(act), normalizeEncounterWeights(weights)];
+        })
+        .filter(Boolean)
+    );
+
+    const defaultWeights = normalizeEncounterWeights({
+      enemy: Number.isFinite(source?.defaultNodeWeights?.enemy) ? source.defaultNodeWeights.enemy : 1,
+      chest: Number.isFinite(source?.defaultNodeWeights?.chest) ? source.defaultNodeWeights.chest : 0,
+      shrine: Number.isFinite(source?.defaultNodeWeights?.shrine) ? source.defaultNodeWeights.shrine : 0,
+    });
+
+    return {
+      encountersPerStage: {
+        min,
+        max,
+      },
+      actNodeWeights,
+      defaultNodeWeights: defaultWeights,
+    };
+  }
+
+  function pickNodeTypeByWeight(weights, random) {
+    const entries = STAGE_NODE_TYPES.map((type) => ({
+      type,
+      weight: Number.isFinite(weights?.[type]) ? Math.max(0, weights[type]) : 0,
+    }));
+    const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0);
+    if (totalWeight <= 0) {
+      return "enemy";
+    }
+
+    let roll = random() * totalWeight;
+    for (let index = 0; index < entries.length; index += 1) {
+      roll -= entries[index].weight;
+      if (roll <= 0) {
+        return entries[index].type;
+      }
+    }
+    return entries[entries.length - 1].type;
+  }
+
+  function sanitizeStageNodeRoute({
+    runSectors,
+    rawStageNodesBySector,
+    fallbackNodeType = "enemy",
+  }) {
+    const sectors = Array.isArray(runSectors) ? runSectors : [];
+    const source = Array.isArray(rawStageNodesBySector) ? rawStageNodesBySector : [];
+    const nodesBySector = sectors.map((sector, sectorIndex) => {
+      const rawNodes = Array.isArray(source[sectorIndex]) ? source[sectorIndex] : [];
+      const normalized = rawNodes
+        .map((node, nodeIndex) => {
+          const type = normalizeStageNodeType(node?.type);
+          const labelCandidate =
+            typeof node?.label === "string" && node.label.trim() ? node.label.trim() : "";
+          return {
+            id: `s${sectorIndex + 1}_n${nodeIndex + 1}_${type}`,
+            type,
+            label: labelCandidate || type.charAt(0).toUpperCase() + type.slice(1),
+          };
+        })
+        .filter(Boolean);
+
+      if (normalized.length === 0) {
+        normalized.push({
+          id: `s${sectorIndex + 1}_n1_${normalizeStageNodeType(fallbackNodeType)}`,
+          type: normalizeStageNodeType(fallbackNodeType),
+          label: normalizeStageNodeType(fallbackNodeType).charAt(0).toUpperCase() + normalizeStageNodeType(fallbackNodeType).slice(1),
+        });
+      }
+
+      // Keep deterministic combat cadence: first node in every sector is always an enemy.
+      normalized[0] = {
+        id: `s${sectorIndex + 1}_n1_enemy`,
+        type: "enemy",
+        label: "Enemy",
+      };
+
+      if (sector?.boss) {
+        return [normalized[0]];
+      }
+
+      return normalized;
+    });
+
+    const totalNodes = nodesBySector.reduce((sum, nodes) => sum + nodes.length, 0);
+    return {
+      stageNodesBySector: nodesBySector,
+      totalNodes,
+    };
+  }
+
+  function buildStageNodeRoute({
+    runSectors,
+    runSeed = 1,
+    encounterModel = null,
+    createRandomFn = createDeterministicRandom,
+  }) {
+    const sectors = Array.isArray(runSectors) ? runSectors : [];
+    if (sectors.length === 0) {
+      return {
+        stageNodesBySector: [],
+        totalNodes: 0,
+        encounterModel: sanitizeEncounterModel(encounterModel),
+      };
+    }
+
+    const safeModel = sanitizeEncounterModel(encounterModel);
+    const seedValue = Number.isInteger(runSeed) && runSeed > 0 ? runSeed : 1;
+    const random = createRandomFn((seedValue ^ 0x9e3779b9) >>> 0);
+
+    const route = sectors.map((sector, sectorIndex) => {
+      const act = getSectorActNumber(sector);
+      const actWeights =
+        act !== null && safeModel.actNodeWeights[String(act)]
+          ? safeModel.actNodeWeights[String(act)]
+          : safeModel.defaultNodeWeights;
+      const min = safeModel.encountersPerStage.min;
+      const max = safeModel.encountersPerStage.max;
+      const nodeCount = sector?.boss ? 1 : min + Math.floor(random() * (max - min + 1));
+      const nodes = [];
+
+      for (let nodeIndex = 0; nodeIndex < nodeCount; nodeIndex += 1) {
+        let type = "enemy";
+        if (nodeIndex > 0 && !sector?.boss) {
+          const nonCombatWeights = {
+            enemy: 0,
+            chest: actWeights.chest,
+            shrine: actWeights.shrine,
+          };
+          type = pickNodeTypeByWeight(nonCombatWeights, random);
+          if (type === "enemy") {
+            type = pickNodeTypeByWeight(actWeights, random);
+          }
+          if (type === "enemy") {
+            type = random() < 0.5 ? "chest" : "shrine";
+          }
+        }
+
+        nodes.push({
+          id: `s${sectorIndex + 1}_n${nodeIndex + 1}_${type}`,
+          type,
+          label: type.charAt(0).toUpperCase() + type.slice(1),
+        });
+      }
+
+      if (nodes.length === 0) {
+        nodes.push({
+          id: `s${sectorIndex + 1}_n1_enemy`,
+          type: "enemy",
+          label: "Enemy",
+        });
+      }
+
+      nodes[0] = {
+        id: `s${sectorIndex + 1}_n1_enemy`,
+        type: "enemy",
+        label: "Enemy",
+      };
+
+      return nodes;
+    });
+
+    return {
+      ...sanitizeStageNodeRoute({
+        runSectors: sectors,
+        rawStageNodesBySector: route,
+      }),
+      encounterModel: safeModel,
+    };
+  }
+
+  function getStageProgress({ stageNodesBySector, sectorIndex = 0, stageNodeIndex = 0, runSectorsLength = 0 }) {
+    const nodesBySector = Array.isArray(stageNodesBySector) ? stageNodesBySector : [];
+    const totalNodesRaw = nodesBySector.reduce(
+      (sum, nodes) => sum + (Array.isArray(nodes) && nodes.length > 0 ? nodes.length : 1),
+      0
+    );
+    const fallbackTotal = Number.isInteger(runSectorsLength) ? Math.max(0, runSectorsLength) : 0;
+    const totalNodes = Math.max(totalNodesRaw, fallbackTotal);
+    const safeSectorIndex = Number.isInteger(sectorIndex) ? Math.max(0, sectorIndex) : 0;
+
+    const nodesInSector = (() => {
+      const currentNodes = nodesBySector[safeSectorIndex];
+      if (Array.isArray(currentNodes) && currentNodes.length > 0) {
+        return currentNodes.length;
+      }
+      return 1;
+    })();
+
+    const safeStageNodeIndex = Number.isInteger(stageNodeIndex)
+      ? Math.max(0, Math.min(nodesInSector - 1, stageNodeIndex))
+      : 0;
+
+    const completedBeforeSector = nodesBySector
+      .slice(0, safeSectorIndex)
+      .reduce((sum, nodes) => sum + (Array.isArray(nodes) && nodes.length > 0 ? nodes.length : 1), 0);
+
+    const completedNodes = Math.min(totalNodes, completedBeforeSector + safeStageNodeIndex);
+    return {
+      totalNodes,
+      completedNodes,
+      nodesInSector,
+      stageNodeIndex: safeStageNodeIndex,
+    };
+  }
+
   function normalizeRewardChoice(choice) {
     if (!choice) {
       return null;
@@ -787,6 +1078,12 @@
         artifactId: choice.artifactId,
       };
     }
+    if (choice.type === "gear" && typeof choice.gearId === "string") {
+      return {
+        type: "gear",
+        gearId: choice.gearId,
+      };
+    }
     return null;
   }
 
@@ -800,6 +1097,9 @@
     }
     if (normalized.type === "artifact") {
       return `artifact:${normalized.artifactId}`;
+    }
+    if (normalized.type === "gear") {
+      return `gear:${normalized.gearId}`;
     }
     return normalized.branchId
       ? `upgrade:${normalized.upgradeId}#${normalized.branchId}`
@@ -844,6 +1144,11 @@
     sanitizeConfiguredInterludes,
     buildConfiguredProgression,
     buildRunRouteSignature,
+    normalizeStageNodeType,
+    sanitizeEncounterModel,
+    sanitizeStageNodeRoute,
+    buildStageNodeRoute,
+    getStageProgress,
     pickSectorEncounter,
     estimateEncounterEliteChance,
     estimateEncounterKeyInclusionChances,

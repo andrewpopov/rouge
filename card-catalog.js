@@ -3,7 +3,65 @@
     const tuneCard = typeof cardTune === "function" ? cardTune : (_cardId, _key, fallback) => fallback;
     const isComboActive = (ctx) => typeof ctx?.hasCombo === "function" && ctx.hasCombo();
     const isFirstfireReady = (ctx) => Number.isInteger(ctx?.game?.turnCardsPlayed) && ctx.game.turnCardsPlayed === 0;
-    return {
+    const getEmbeddedSpellCatalog = () => {
+      if (typeof window !== "object" || !window?.BRASSLINE_CLASS_CONTENT) {
+        return {};
+      }
+      try {
+        return typeof window.BRASSLINE_CLASS_CONTENT.getSpellCatalog === "function"
+          ? window.BRASSLINE_CLASS_CONTENT.getSpellCatalog()
+          : {};
+      } catch (_error) {
+        return {};
+      }
+    };
+    const getClassCardType = (spell) => {
+      const role = typeof spell?.cardRole === "string" ? spell.cardRole.trim().toLowerCase() : "spell";
+      if (role === "attack") {
+        return "Attack";
+      }
+      if (role === "utility") {
+        return "Skill";
+      }
+      return "Spell";
+    };
+    const getClassCardTarget = (spell) => {
+      const kind = typeof spell?.effect?.kind === "string" ? spell.effect.kind.trim().toLowerCase() : "";
+      if (kind === "damage_selected") {
+        return "enemy";
+      }
+      if (kind === "damage_all") {
+        return "all";
+      }
+      return "none";
+    };
+    const buildClassSpellText = (spell) => {
+      const value = Number.parseInt(spell?.effect?.value, 10) || 0;
+      const rankBonus = Math.max(0, Number.parseInt(spell?.rankBonusPerLevel, 10) || 0);
+      const supportCount = Array.isArray(spell?.deckSynergy?.supportSkillIds) ? spell.deckSynergy.supportSkillIds.length : 0;
+      const sameTreeBonus = Math.max(0, Number.parseInt(spell?.deckSynergy?.sameTreeDistinctBonus, 10) || 0);
+      const kind = typeof spell?.effect?.kind === "string" ? spell.effect.kind.trim().toLowerCase() : "";
+      if (kind === "damage_all") {
+        return `Deal ${value} to all enemies. +${rankBonus}/Rank. Same-tree cards add +${sameTreeBonus}.`;
+      }
+      if (kind === "damage_selected") {
+        return `Deal ${value} damage. +${rankBonus}/Rank.${supportCount > 0 ? ` Support cards in-tree add power.` : ""}`;
+      }
+      if (kind === "gain_block") {
+        return `Gain ${value} Block. +${rankBonus}/Rank.`;
+      }
+      if (kind === "heal_self") {
+        return `Restore ${value} Hull. +${rankBonus}/Rank.`;
+      }
+      if (kind === "gain_energy") {
+        return `Gain ${value} Steam. +${rankBonus}/Rank.`;
+      }
+      if (kind === "draw_cards") {
+        return `Draw ${value} card${value === 1 ? "" : "s"}. +${rankBonus}/Rank.`;
+      }
+      return typeof spell?.description === "string" ? spell.description : "Class skill card.";
+    };
+    const baseCatalog = {
   stoke_burners: {
     id: "stoke_burners",
     title: "Stoke Burners",
@@ -702,7 +760,264 @@
       ctx.log(`Purge Blast hit ${ctx.target.name} for ${dealt}${drew > 0 ? ` and drew ${drew}.` : "."}`);
     },
   },
+  strike: {
+    id: "strike",
+    title: "Strike",
+    type: "Attack",
+    cost: tuneCard("strike", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/03_broadsword.svg",
+    text: tuneCard("strike", "text", "Deal 6 damage."),
+    heatText: "",
+    target: "enemy",
+    exhaust: false,
+    play: (ctx) => {
+      const damage = ctx.consumeAttackMultiplier(6);
+      const dealt = ctx.damageEnemy(ctx.target, damage);
+      ctx.log(`Strike hit ${ctx.target.name} for ${dealt}.`);
+    },
+  },
+  guard: {
+    id: "guard",
+    title: "Guard",
+    type: "Skill",
+    cost: tuneCard("guard", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/13_armor-upgrade.svg",
+    text: tuneCard("guard", "text", "Gain 6 Block."),
+    heatText: "",
+    target: "none",
+    exhaust: false,
+    play: (ctx) => {
+      ctx.gainBlock(6);
+      ctx.log("Guard granted 6 Block.");
+    },
+  },
+  advance: {
+    id: "advance",
+    title: "Advance",
+    type: "Skill",
+    cost: tuneCard("advance", "cost", 0),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/13_armor-upgrade.svg",
+    text: tuneCard("advance", "text", "Gain 1 Energy. Draw 1. Exhaust."),
+    heatText: "",
+    target: "none",
+    exhaust: true,
+    play: (ctx) => {
+      const drew = ctx.drawCards(1);
+      ctx.gainEnergy(1);
+      ctx.log(`Advance granted 1 Energy and drew ${drew}.`);
+    },
+  },
+  recover: {
+    id: "recover",
+    title: "Recover",
+    type: "Skill",
+    cost: tuneCard("recover", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/15_ghost.svg",
+    text: tuneCard("recover", "text", "Heal 4. Exhaust."),
+    heatText: "",
+    target: "none",
+    exhaust: true,
+    play: (ctx) => {
+      const before = ctx.game.player.hull;
+      ctx.game.player.hull = Math.min(ctx.game.player.maxHull, ctx.game.player.hull + 4);
+      const healed = ctx.game.player.hull - before;
+      ctx.log(`Recover restored ${healed} Hull.`);
+    },
+  },
+  crushing_swing: {
+    id: "crushing_swing",
+    title: "Crushing Swing",
+    type: "Attack",
+    cost: tuneCard("crushing_swing", "cost", 2),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/03_broadsword.svg",
+    text: tuneCard("crushing_swing", "text", "Deal 11 damage. If the target already took damage this turn, deal 4 more."),
+    heatText: "",
+    target: "enemy",
+    exhaust: false,
+    play: (ctx) => {
+      const bonus = ctx.target?.tookDamageThisTurn ? 4 : 0;
+      const damage = ctx.consumeAttackMultiplier(11 + bonus);
+      const dealt = ctx.damageEnemy(ctx.target, damage);
+      ctx.log(`Crushing Swing hit ${ctx.target.name} for ${dealt}.`);
+    },
+  },
+  war_shout: {
+    id: "war_shout",
+    title: "War Shout",
+    type: "Skill",
+    cost: tuneCard("war_shout", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+    text: tuneCard("war_shout", "text", "Gain 5 Block. Your next Attack this turn deals +4 damage."),
+    heatText: "",
+    target: "none",
+    exhaust: false,
+    play: (ctx) => {
+      ctx.gainBlock(5);
+      ctx.game.player.nextAttackFlatBonus = Math.max(0, Number.parseInt(ctx.game.player.nextAttackFlatBonus, 10) || 0) + 4;
+      ctx.log("War Shout granted 5 Block and primed your next attack.");
+    },
+  },
+  battle_instinct: {
+    id: "battle_instinct",
+    title: "Battle Instinct",
+    type: "Skill",
+    cost: tuneCard("battle_instinct", "cost", 0),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+    text: tuneCard("battle_instinct", "text", "Draw 2. If your hand contains 2 or more Attack cards, gain 1 Energy. Exhaust."),
+    heatText: "",
+    target: "none",
+    exhaust: true,
+    play: (ctx) => {
+      const drew = ctx.drawCards(2);
+      const attackCount = Array.isArray(ctx.game?.hand)
+        ? ctx.game.hand.filter((instance) => baseCatalog[instance?.cardId]?.type === "Attack").length
+        : 0;
+      if (attackCount >= 2) {
+        ctx.gainEnergy(1);
+      }
+      ctx.log(`Battle Instinct drew ${drew}${attackCount >= 2 ? " and granted 1 Energy." : "."}`);
+    },
+  },
+  blood_rush: {
+    id: "blood_rush",
+    title: "Blood Rush",
+    type: "Attack",
+    cost: tuneCard("blood_rush", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/03_broadsword.svg",
+    text: tuneCard("blood_rush", "text", "Lose 3 HP. Deal 14 damage."),
+    heatText: "",
+    target: "enemy",
+    exhaust: false,
+    play: (ctx) => {
+      if (typeof ctx.damagePlayer === "function") {
+        ctx.damagePlayer(3, true);
+      }
+      const damage = ctx.consumeAttackMultiplier(14);
+      const dealt = ctx.damageEnemy(ctx.target, damage);
+      ctx.log(`Blood Rush hit ${ctx.target.name} for ${dealt}.`);
+    },
+  },
+  flame_spark: {
+    id: "flame_spark",
+    title: "Flame Spark",
+    type: "Spell",
+    cost: tuneCard("flame_spark", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+    text: tuneCard("flame_spark", "text", "Deal 7 damage. If this is the first Spell you played this turn, gain 1 Energy."),
+    heatText: "",
+    target: "enemy",
+    exhaust: false,
+    play: (ctx) => {
+      const firstSpell = (Number.isInteger(ctx.game?.turnSpellActionsUsed) ? ctx.game.turnSpellActionsUsed : 0) === 0;
+      const dealt = ctx.damageEnemy(ctx.target, 7);
+      if (firstSpell) {
+        ctx.gainEnergy(1);
+      }
+      ctx.log(`Flame Spark hit ${ctx.target.name} for ${dealt}${firstSpell ? " and granted 1 Energy." : "."}`);
+    },
+  },
+  cold_snap: {
+    id: "cold_snap",
+    title: "Cold Snap",
+    type: "Spell",
+    cost: tuneCard("cold_snap", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/15_ghost.svg",
+    text: tuneCard("cold_snap", "text", "Deal 5 damage. Gain 4 Block."),
+    heatText: "",
+    target: "enemy",
+    exhaust: false,
+    play: (ctx) => {
+      const dealt = ctx.damageEnemy(ctx.target, 5);
+      ctx.gainBlock(4);
+      ctx.log(`Cold Snap hit ${ctx.target.name} for ${dealt} and granted 4 Block.`);
+    },
+  },
+  warmth_card: {
+    id: "warmth_card",
+    title: "Warmth",
+    type: "Skill",
+    cost: tuneCard("warmth_card", "cost", 1),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+    text: tuneCard("warmth_card", "text", "Gain 1 Energy now and 1 Energy next turn. Exhaust."),
+    heatText: "",
+    target: "none",
+    exhaust: true,
+    play: (ctx) => {
+      ctx.gainEnergy(1);
+      ctx.game.player.pendingEnergyNextTurn = Math.max(
+        0,
+        Number.parseInt(ctx.game.player.pendingEnergyNextTurn, 10) || 0
+      ) + 1;
+      ctx.log("Warmth granted 1 Energy now and 1 next turn.");
+    },
+  },
+  arc_surge: {
+    id: "arc_surge",
+    title: "Arc Surge",
+    type: "Spell",
+    cost: tuneCard("arc_surge", "cost", 2),
+    icon: "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+    text: tuneCard("arc_surge", "text", "Deal 4 damage to all enemies. If you played another Spell this turn, draw 1."),
+    heatText: "",
+    target: "all",
+    exhaust: false,
+    play: (ctx) => {
+      const priorSpells = Number.isInteger(ctx.game?.turnSpellActionsUsed) ? ctx.game.turnSpellActionsUsed : 0;
+      let total = 0;
+      ctx.livingEnemies().forEach((enemy) => {
+        total += ctx.damageEnemy(enemy, 4);
+      });
+      let drew = 0;
+      if (priorSpells > 0) {
+        drew = ctx.drawCards(1);
+      }
+      ctx.log(`Arc Surge dealt ${total} total damage${drew > 0 ? ` and drew ${drew}.` : "."}`);
+    },
+  },
     };
+
+    const classSpellCatalog = getEmbeddedSpellCatalog();
+    Object.values(classSpellCatalog).forEach((spell) => {
+      if (!spell || typeof spell !== "object" || typeof spell.id !== "string" || baseCatalog[spell.id]) {
+        return;
+      }
+      const cardType = getClassCardType(spell);
+      const target = getClassCardTarget(spell);
+      const linkedSkillId = typeof spell.linkedSkillId === "string" ? spell.linkedSkillId : "";
+      const defaultCostRaw = Number.parseInt(
+        window?.BRASSLINE_CLASS_CONTENT?.getSkillCatalog?.()?.[linkedSkillId]?.energyCost,
+        10
+      );
+      const defaultCost = Number.isInteger(defaultCostRaw) ? Math.max(0, defaultCostRaw) : 1;
+      baseCatalog[spell.id] = {
+        id: spell.id,
+        title: typeof spell.title === "string" ? spell.title : spell.id,
+        type: cardType,
+        cost: tuneCard(spell.id, "cost", defaultCost),
+        icon: typeof spell.icon === "string" ? spell.icon : "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        text: tuneCard(spell.id, "text", buildClassSpellText(spell)),
+        heatText: tuneCard(spell.id, "heatText", ""),
+        target,
+        exhaust: false,
+        linkedSkillId,
+        spellId: spell.id,
+        classCard: true,
+        play: (ctx) => {
+          if (typeof ctx?.castClassSpellCard !== "function") {
+            ctx.log(`${spell.title || spell.id} fizzled.`);
+            return;
+          }
+          const outcome = ctx.castClassSpellCard({
+            spellId: spell.id,
+            effect: spell.effect,
+            sourceCardType: cardType,
+          });
+          ctx.log(outcome?.message || `${spell.title || spell.id} resolved.`);
+        },
+      };
+    });
+
+    return baseCatalog;
   }
 
   window.BRASSLINE_CARD_CATALOG = {

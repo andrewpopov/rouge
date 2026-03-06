@@ -1,4 +1,8 @@
 (() => {
+  function isPlayerTurnPhase({ phase, combatSubphase }) {
+    return phase === "encounter" && (combatSubphase || "player_turn") === "player_turn";
+  }
+
   function describeTelegraphForTooltip({
     telegraph,
     cookTierLabel,
@@ -173,6 +177,7 @@
     enemies,
     selectedEnemy,
     phase,
+    combatSubphase = "player_turn",
     openEnemyTooltipId,
     getLockedAimLane,
     buildEnemyThreatRowsFn,
@@ -188,6 +193,7 @@
     }
 
     const safeEscape = typeof escapeHtml === "function" ? escapeHtml : (value) => String(value);
+    const now = Date.now();
     enemyRowEl.innerHTML = "";
 
     (Array.isArray(enemies) ? enemies : []).forEach((enemy) => {
@@ -204,6 +210,12 @@
       }
       if (selectedEnemy && selectedEnemy.id === enemy.id && enemy.alive) {
         card.classList.add("active");
+      }
+      if (Number.isFinite(enemy.hitFlashAt) && now - enemy.hitFlashAt < 260) {
+        card.classList.add("hit-flash");
+      }
+      if (!enemy.alive && Number.isFinite(enemy.destroyedAt) && now - enemy.destroyedAt < 520) {
+        card.classList.add("destroy-flash");
       }
 
       const hpLabel = `${enemy.hp}/${enemy.maxHp}`;
@@ -305,7 +317,13 @@
         );
       }
 
-      if (enemy.alive && phase === "player") {
+      if (
+        enemy.alive &&
+        isPlayerTurnPhase({
+          phase,
+          combatSubphase,
+        })
+      ) {
         card.addEventListener("click", () => {
           if (typeof onEnemySelect === "function") {
             onEnemySelect(enemy.id);

@@ -128,6 +128,7 @@
     playerLane,
     highlightLanes,
     telegraphs,
+    recentImpacts,
     aimedThreats,
     telegraphAffectsLaneFn,
     getTelegraphProgress,
@@ -140,6 +141,10 @@
 
     const highlightSet = new Set(Array.isArray(highlightLanes) ? highlightLanes : []);
     const activeTelegraphs = Array.isArray(telegraphs) ? telegraphs : [];
+    const now = Date.now();
+    const activeImpacts = (Array.isArray(recentImpacts) ? recentImpacts : []).filter(
+      (impact) => Number.isFinite(impact?.until) && impact.until > now
+    );
     const laneThreats = aimedThreats instanceof Map ? aimedThreats : new Map();
     rootEl.innerHTML = "";
 
@@ -196,6 +201,15 @@
         laneEl.appendChild(marker);
       });
 
+      const laneImpact = activeImpacts.find(
+        (impact) => Array.isArray(impact?.lanes) && impact.lanes.includes(lane)
+      );
+      if (laneImpact) {
+        const impactEl = document.createElement("span");
+        impactEl.className = `lane-impact lane-impact-${laneImpact.type || "hit"}`;
+        laneEl.appendChild(impactEl);
+      }
+
       if (laneThreats.has(lane)) {
         const threat = laneThreats.get(lane);
         const marker = document.createElement("span");
@@ -206,10 +220,15 @@
       }
 
       if (lane === playerLane) {
+        const playerBadge = document.createElement("span");
+        playerBadge.className = "player-lane-badge";
+        playerBadge.textContent = "YOU";
+        laneEl.appendChild(playerBadge);
+
         const marker = document.createElement("img");
         marker.className = "train-marker";
         marker.src = trainMarkerSrc;
-        marker.alt = "Player Train";
+        marker.alt = "Your Position";
         laneEl.appendChild(marker);
       }
 

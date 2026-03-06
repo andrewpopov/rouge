@@ -1,4 +1,8 @@
 (() => {
+  function isPlayerTurnPhase({ phase, combatSubphase }) {
+    return phase === "encounter" && (combatSubphase || "player_turn") === "player_turn";
+  }
+
   function applyProjectedDamage(simState, amount, ignoreBlock = false) {
     const damage = Math.max(0, Math.floor(amount));
     let hullHit = damage;
@@ -78,8 +82,14 @@
     };
   }
 
-  function getShiftCapability({ phase, playerLane, movedThisTurn, playerEnergy, trackLanes }) {
-    const canShiftNow = phase === "player" && !movedThisTurn && playerEnergy >= 1;
+  function getShiftCapability({ phase, combatSubphase, playerLane, movedThisTurn, playerEnergy, trackLanes }) {
+    const canShiftNow =
+      isPlayerTurnPhase({
+        phase,
+        combatSubphase,
+      }) &&
+      !movedThisTurn &&
+      playerEnergy >= 1;
     return {
       canShiftNow,
       canShiftLeft: canShiftNow && playerLane > 0,
@@ -318,6 +328,7 @@
     shiftCapability,
     endTurnLockedByLethal,
     phase,
+    combatSubphase,
   }) {
     const laneDelta = projection.bestReachableLane - projection.currentLane;
     const shiftAction = laneDelta < 0 ? "shift_left" : laneDelta > 0 ? "shift_right" : null;
@@ -333,7 +344,14 @@
         return "shift_right";
       }
     }
-    if (adviceCode === "safe_end_turn" && phase === "player" && !endTurnLockedByLethal) {
+    if (
+      adviceCode === "safe_end_turn" &&
+      isPlayerTurnPhase({
+        phase,
+        combatSubphase,
+      }) &&
+      !endTurnLockedByLethal
+    ) {
       return "end_turn";
     }
     return null;
@@ -341,6 +359,7 @@
 
   function createForecastUiState({
     phase,
+    combatSubphase,
     trackLanes,
     player,
     telegraphs,
@@ -362,6 +381,7 @@
 
     const shiftCapability = getShiftCapability({
       phase,
+      combatSubphase,
       playerLane: player?.lane ?? 0,
       movedThisTurn: Boolean(player?.movedThisTurn),
       playerEnergy: Number.isFinite(player?.energy) ? player.energy : 0,
@@ -387,13 +407,18 @@
       playerHull: player?.hull ?? 0,
     });
 
-    const endTurnLockedByLethal = phase === "player" && projection.canEscapeCurrentLethal;
+    const endTurnLockedByLethal =
+      isPlayerTurnPhase({
+        phase,
+        combatSubphase,
+      }) && projection.canEscapeCurrentLethal;
     const recommendedAction = getForecastRecommendedAction({
       projection,
       adviceCode: advice.code,
       shiftCapability,
       endTurnLockedByLethal,
       phase,
+      combatSubphase,
     });
 
     return {
@@ -429,6 +454,7 @@
   function renderLaneThreatForecast({
     rootEl,
     phase,
+    combatSubphase,
     playerLane,
     forecastUi,
     getForecastThreatClassNameFn,
@@ -447,11 +473,15 @@
     const totalLaneDamage = forecast.laneDamage.reduce((sum, value) => sum + value, 0);
     const hasThreats =
       totalLaneDamage > 0 || forecast.unavoidableDamage > 0 || projection.heatFaultDamage > 0;
-    const phaseLabel = phase === "player" ? "Next Enemy Phase" : "Enemy Pressure";
+    const playerTurn = isPlayerTurnPhase({
+      phase,
+      combatSubphase,
+    });
+    const phaseLabel = playerTurn ? "If You End Turn Now" : "Enemy Pressure";
     const unavoidableClass = forecast.unavoidableDamage > 0 ? "hot" : "safe";
     const canShiftLeft = shiftCapability.canShiftLeft;
     const canShiftRight = shiftCapability.canShiftRight;
-    const canEndTurn = phase === "player";
+    const canEndTurn = playerTurn;
     const disableEndTurnAction = !canEndTurn || endTurnLockedByLethal;
     const chipsHtml = forecast.laneDamage
       .map((damage, lane) => {
@@ -525,12 +555,12 @@
 
     rootEl.innerHTML = `
     <div class="lane-threat-head">
-      <span>${phaseLabel} Damage (raw)</span>
+      <span>${phaseLabel} (enemy damage preview)</span>
       <small class="lane-threat-unavoidable ${unavoidableClass}">Unavoidable ${forecast.unavoidableDamage}</small>
     </div>
     <div class="lane-threat-grid">${chipsHtml}</div>
     <div class="lane-threat-projection ${projectionClass}">
-      <strong>End Turn Projection</strong>
+      <strong>End Turn Outcome</strong>
       <span>Current T${projection.currentLane + 1}: ${projection.currentTotalLoss} dmg -> Hull ${projection.hullAfterCurrent}</span>
       <span>Best Reachable T${projection.bestReachableLane + 1}: ${projection.bestReachableTotalLoss} dmg -> Hull ${projection.hullAfterBestReachable}</span>
       ${heatFaultNote}

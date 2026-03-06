@@ -1,0 +1,118 @@
+{
+  "version": "d2-canon-2026-03-05",
+  "notes": [
+    "shipping_safe assets are from curated or raw game-icons/kenney sources already in this repo.",
+    "reference_only assets are Diablo-derived extracts in assets/diablo2_downloads and should not be shipped without legal review."
+  ],
+  "nodeIcons": {
+    "enemy": {
+      "licenseTier": "shipping_safe",
+      "path": "assets/raw/game-icons/weapon/icons/000000/transparent/1x1/lorc/crossed-swords.svg"
+    },
+    "chest": {
+      "licenseTier": "shipping_safe",
+      "path": "assets/raw/game-icons/armor/icons/000000/transparent/1x1/delapouite/chest-armor.svg"
+    },
+    "shrine": {
+      "licenseTier": "shipping_safe",
+      "path": "assets/raw/game-icons/light/icons/000000/transparent/1x1/delapouite/fire-shrine.svg"
+    }
+  },
+  "classes": {
+    "amazon": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54286__Amazon_Light_/54286.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/03_broadsword.svg"
+    },
+    "assassin": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54288__Assassin_Light_/54288.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/04_crescent-blade.svg"
+    },
+    "barbarian": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54292__Barbarian_Medium_/54292.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/20_bone-mace.svg"
+    },
+    "druid": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54295__Druid_Medium_/54295.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/23_dragon-breath.svg"
+    },
+    "necromancer": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54298__Necromancer_Medium_/54298.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/17_grim-reaper.svg"
+    },
+    "paladin": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54302__Paladin_Light_/54302.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/18_chest-armor.svg"
+    },
+    "sorceress": {
+      "reference_only": "assets/diablo2_downloads/potential_art/classes/sprites/54300__Sorceress_Light_/54300.gif",
+      "shipping_safe": "assets/curated/themes/diablo-inspired/icons/cards/01_ember-shot.svg"
+    }
+  },
+  "skillTreeIcons": {
+    "bow_and_crossbow": "assets/raw/game-icons/weapon/icons/000000/transparent/1x1/delapouite/bow-arrow.svg",
+    "javelin_and_spear": "assets/raw/game-icons/weapon/icons/000000/transparent/1x1/lorc/sword-spade.svg",
+    "passive_and_magic": "assets/raw/game-icons/energy/icons/000000/transparent/1x1/lorc/unstable-orb.svg",
+    "martial_arts": "assets/raw/game-icons/blade/icons/000000/transparent/1x1/lorc/crossed-swords.svg",
+    "shadow_disciplines": "assets/raw/game-icons/skull/icons/000000/transparent/1x1/lorc/skull-mask.svg",
+    "traps": "assets/curated/themes/diablo-inspired/icons/cards/09_candle-holder.svg",
+    "combat_skills": "assets/raw/game-icons/weapon/icons/000000/transparent/1x1/delapouite/sword-brandish.svg",
+    "combat_masteries": "assets/raw/game-icons/weapon/icons/000000/transparent/1x1/delapouite/war-axe.svg",
+    "warcries": "assets/raw/game-icons/skull/icons/000000/transparent/1x1/lorc/diablo-skull.svg",
+    "elemental": "assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+    "shape_shifting": "assets/curated/themes/diablo-inspired/icons/cards/19_fangs.svg",
+    "summoning": "assets/curated/themes/diablo-inspired/icons/cards/15_ghost.svg",
+    "curses": "assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+    "poison_and_bone": "assets/curated/themes/diablo-inspired/icons/cards/02_poison-bottle.svg",
+    "defensive_auras": "assets/curated/themes/diablo-inspired/icons/cards/13_armor-upgrade.svg",
+    "offensive_auras": "assets/curated/themes/diablo-inspired/icons/cards/11_blast.svg",
+    "cold": "assets/curated/themes/diablo-inspired/icons/cards/15_ghost.svg",
+    "fire": "assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+    "lightning": "assets/curated/themes/diablo-inspired/icons/cards/24_burning-eye.svg"
+  },
+  "actBosses": {
+    "andariel": "assets/diablo2_downloads/potential_art/bosses/sprites/54306__Andariel/54306.png",
+    "duriel": "assets/diablo2_downloads/potential_art/bosses/sprites/84214__Duriel/84214.png",
+    "mephisto": "assets/diablo2_downloads/potential_art/bosses/sprites/109347__Mephisto/extracted/Mephisto/idle.png",
+    "diablo": "assets/diablo2_downloads/potential_art/bosses/sprites/55535__Diablo/55535.png",
+    "baal": "assets/diablo2_downloads/potential_art/bosses/sprites/99987__Baals_Minion_Light_Weaponless_/99987.png"
+  },
+  "questBosses": {
+    "blood_raven": "assets/diablo2_downloads/potential_art/monsters_random/sprites/84128__Rogue_Mercenary/84128.png",
+    "griswold": "assets/diablo2_downloads/potential_art/armor_sets/sprites/54321__Griswold/54321.gif",
+    "radament": "assets/diablo2_downloads/potential_art/bosses/sprites/90075__Radament/extracted/Radament/idle.png",
+    "the_summoner": "assets/diablo2_downloads/potential_art/bosses/sprites/54331__The_Summoner/54331.gif",
+    "izual": "assets/diablo2_downloads/potential_art/bosses/sprites/54322__Izual/54322.png",
+    "putrid_defiler": "assets/diablo2_downloads/potential_art/monsters_random/sprites/93322__Putrid_Defiler/extracted/Putrid Defiler/idle.png",
+    "nihlathak": "assets/diablo2_downloads/potential_art/bosses/sprites/71208__Nihlathak/71208.png"
+  },
+  "enemySpriteSamples": {
+    "fallen": "assets/diablo2_downloads/potential_art/monsters_random/sprites/92837__Fallen_Body/92837.png",
+    "fallen_shaman": "assets/diablo2_downloads/potential_art/monsters_random/sprites/54314__Fallen_Shaman/54314.png",
+    "zombie": "assets/diablo2_downloads/potential_art/monsters_random/sprites/88433__Zombie_Body_Light_/88433.png",
+    "skeleton": "assets/diablo2_downloads/potential_art/monsters_random/sprites/78125__Skeleton_Chest_/78125.png",
+    "goatman": "assets/diablo2_downloads/potential_art/monsters_random/sprites/84900__Goatman_Weaponless_/84900.png",
+    "scarab_demon": "assets/diablo2_downloads/potential_art/monsters_random/sprites/70375__Scarabs/70375.png",
+    "sand_maggot": "assets/diablo2_downloads/potential_art/monsters_random/sprites/54325__Sand_Maggot/54325.gif",
+    "zakarum_zealot": "assets/diablo2_downloads/potential_art/monsters_random/sprites/86994__Zealot_Body_3/86994.png",
+    "tentacle_beast": "assets/diablo2_downloads/organized/sprites/extracted/94077/Tentacle Beast/idle.png",
+    "thorned_hulk": "assets/diablo2_downloads/organized/sprites/extracted/93975/Thorned Hulk (Head 1)/idle.png",
+    "vile_mother": "assets/curated/themes/diablo-inspired/icons/enemies/05_troll.svg",
+    "demon_imp": "assets/diablo2_downloads/potential_art/monsters_random/sprites/94832__Demon_Imp/94832.png",
+    "blood_lord": "assets/diablo2_downloads/potential_art/monsters_random/sprites/92875__Balrog/92875.png",
+    "succubus": "assets/diablo2_downloads/potential_art/monsters_random/sprites/54333__Vampire/54333.gif"
+  },
+  "zoneVisuals": {
+    "act_1_surface": "assets/diablo2_downloads/opengameart/grassland_tiles.png",
+    "act_1_dungeon": "assets/curated/themes/diablo-inspired/icons/cards/16_crypt-entrance.svg",
+    "act_2_desert": "assets/curated/themes/diablo-inspired/icons/cards/22_graveyard.svg",
+    "act_3_jungle": "assets/curated/themes/diablo-inspired/icons/cards/12_snake-bite.svg",
+    "act_4_hell": "assets/diablo2_downloads/potential_art/bosses/sprites/56962__Diablos_Lair_Floor/56962.png",
+    "act_5_worldstone": "assets/diablo2_downloads/potential_art/bosses/sprites/57337__Worldstone_Baal_Lair_Floor/57337.png"
+  },
+  "interactionSfx": {
+    "chest_open": "assets/diablo2_downloads/potential_art/items/potions/sounds/420305__Items_and_Objects/Items & Objects/Object/burialchest.wav",
+    "shrine_activate": "assets/diablo2_downloads/potential_art/items/potions/sounds/420305__Items_and_Objects/Items & Objects/Object/magicshrine1.wav",
+    "potion_pickup": "assets/diablo2_downloads/potential_art/items/potions/sounds/420305__Items_and_Objects/Items & Objects/Item/potion.wav",
+    "gold_pickup": "assets/diablo2_downloads/potential_art/items/potions/sounds/420305__Items_and_Objects/Items & Objects/Item/gold.wav"
+  }
+}
