@@ -1,0 +1,2741 @@
+{
+  "version": "d2-runes-2026-03-07",
+  "generatedAt": "2026-03-07T01:48:26.861Z",
+  "source": {
+    "indexPageTitle": "Runes (Diablo II)",
+    "indexPage": "https://diablo-archive.fandom.com/wiki/Runes_(Diablo_II)",
+    "api": "https://diablo-archive.fandom.com/api.php",
+    "pageSource": "Diablo Archive Fandom MediaWiki API",
+    "downloadedWikiImageDir": "assets/diablo2_downloads/potential_art/runes/wiki",
+    "notes": "All downloaded rune art is reference-only and not shipping-safe production art."
+  },
+  "counts": {
+    "total": 33,
+    "highRunes": 11,
+    "byBestDropDifficulty": {
+      "Normal": 2,
+      "Nightmare": 14,
+      "Hell": 17
+    },
+    "byBestDropBoss": {
+      "The Countess": 24,
+      "Andariel": 4,
+      "Duriel": 2,
+      "Mephisto": 2,
+      "Baal": 1
+    },
+    "uniqueWikiSourceImages": 33
+  },
+  "entries": [
+    {
+      "id": "el",
+      "name": "El",
+      "rank": 1,
+      "pageTitle": "El (Diablo II)",
+      "pageId": 1158,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/El_(Diablo_II)",
+      "summary": "El is a common rune in Diablo II. It is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 11,
+      "levelRequirementRaw": "11",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Normal",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "50.0570%",
+        "percent": 50.057,
+        "rate": 0.5005700000000001
+      },
+      "socketBonuses": {
+        "weapon": "+50 to Attack Rating, +1 to Light Radius",
+        "armor": "+15 Defense, +1 to Light Radius",
+        "helm": "+15 Defense, +1 to Light Radius",
+        "shield": "+15 Defense, +1 to Light Radius"
+      },
+      "cubeUpgradeRecipe": null,
+      "runewords": {
+        "standard": [
+          "Breath of the Dying",
+          "Honor",
+          "Malice",
+          "Steel",
+          "Wind"
+        ],
+        "ladderOnly": [
+          "Death",
+          "Fortitude Weapon",
+          "Fortitude Armor",
+          "Voice of Reason"
+        ],
+        "total": 9
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "El is the Swedish word for electricity."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "El Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/El_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/9/92/El_Rune.png/revision/latest?cb=20110914105706",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:El_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "eld",
+      "name": "Eld",
+      "rank": 2,
+      "pageTitle": "Eld (Diablo II)",
+      "pageId": 1163,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Eld_(Diablo_II)",
+      "summary": "Eld is a common rune in Diablo II. Three El runes are needed to create one Eld through the Horadric Cube.\nEld is needed in six Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 11,
+      "levelRequirementRaw": "11",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Normal",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "35.7067%",
+        "percent": 35.7067,
+        "rate": 0.35706699999999997
+      },
+      "socketBonuses": {
+        "weapon": "+75% Damage to Undead, +50 Attack Rating Against Undead",
+        "armor": "15% Slower Stamina Drain",
+        "helm": "15% Slower Stamina Drain",
+        "shield": "7% Increased Chance of Blocking"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "El",
+            "id": "el"
+          }
+        ],
+        "output": {
+          "name": "Eld",
+          "id": "eld"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Breath of the Dying",
+          "Passion",
+          "Principle",
+          "Silence"
+        ],
+        "ladderOnly": [
+          "Faith",
+          "Voice of Reason"
+        ],
+        "total": 6
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Eld is the Swedish word for fire."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Eld Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Eld_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/6/64/Eld_Rune.png/revision/latest?cb=20110926184148",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Eld_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "tir",
+      "name": "Tir",
+      "rank": 3,
+      "pageTitle": "Tir (Diablo II)",
+      "pageId": 1166,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Tir_(Diablo_II)",
+      "summary": "Tir is a common rune in Diablo II. Three Eld runes are needed to create one Tir through the Horadric Cube.\nTir is needed in fourteen Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 13,
+      "levelRequirementRaw": "13",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "25.2019%",
+        "percent": 25.2019,
+        "rate": 0.252019
+      },
+      "socketBonuses": {
+        "weapon": "+2 to Mana After Each Kill",
+        "armor": "+2 to Mana After Each Kill",
+        "helm": "+2 to Mana After Each Kill",
+        "shield": "+2 to Mana After Each Kill"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Eld",
+            "id": "eld"
+          }
+        ],
+        "output": {
+          "name": "Tir",
+          "id": "tir"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Beast",
+          "Crescent Moon",
+          "Honor",
+          "Leaf",
+          "Nadir",
+          "Prudence",
+          "Silence",
+          "Steel",
+          "Strength",
+          "Wealth"
+        ],
+        "ladderOnly": [
+          "Edge",
+          "Grief",
+          "Harmony",
+          "Insight"
+        ],
+        "total": 14
+      },
+      "craftedItemUses": [
+        "Hit Power weapons",
+        "Caster weapons"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Tir Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Tir_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/3/33/Tir_Rune.png/revision/latest?cb=20110926184258",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Tir_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "nef",
+      "name": "Nef",
+      "rank": 4,
+      "pageTitle": "Nef (Diablo II)",
+      "pageId": 1167,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Nef_(Diablo_II)",
+      "summary": "Nef is a common rune in Diablo II. Three Tir runes are needed to create one Nef through the Horadric Cube.\nNef is needed in six Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 13,
+      "levelRequirementRaw": "13",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "17.3264%",
+        "percent": 17.3264,
+        "rate": 0.173264
+      },
+      "socketBonuses": {
+        "weapon": "Knockback",
+        "armor": "+30 Defense Vs. Missile",
+        "helm": "+30 Defense Vs. Missile",
+        "shield": "+30 Defense Vs. Missile"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Tir",
+            "id": "tir"
+          }
+        ],
+        "output": {
+          "name": "Nef",
+          "id": "nef"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Black",
+          "Melody",
+          "Myth",
+          "Nadir",
+          "Radiance",
+          "Smoke"
+        ],
+        "ladderOnly": [],
+        "total": 6
+      },
+      "craftedItemUses": [
+        "Hit Power Body Armor",
+        "Blood Gloves",
+        "Caster Helms",
+        "Safety Shields"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Nef Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Nef_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/c/cb/Nef_Rune.png/revision/latest?cb=20110926184314",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Nef_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "eth",
+      "name": "Eth",
+      "rank": 5,
+      "pageTitle": "Eth (Diablo II)",
+      "pageId": 1168,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Eth_(Diablo_II)",
+      "summary": "Eth is a common rune in Diablo II. Three Nef runes are needed to create one Eth through the Horadric Cube.\nEth is needed in twelve Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 15,
+      "levelRequirementRaw": "15",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "18.1371%",
+        "percent": 18.1371,
+        "rate": 0.181371
+      },
+      "socketBonuses": {
+        "weapon": "-25% Target Defense",
+        "armor": "Regenerate Mana 15%",
+        "helm": "Regenerate Mana 15%",
+        "shield": "Regenerate Mana 15%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Nef",
+            "id": "nef"
+          }
+        ],
+        "output": {
+          "name": "Eth",
+          "id": "eth"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Bramble",
+          "Breath of the Dying",
+          "Fury",
+          "Holy Thunder",
+          "Malice",
+          "Memory",
+          "Rhyme",
+          "Splendor",
+          "Stealth",
+          "Zephyr"
+        ],
+        "ladderOnly": [
+          "Grief",
+          "Obedience"
+        ],
+        "total": 12
+      },
+      "craftedItemUses": [
+        "Hit Power Shields",
+        "Blood Boots",
+        "Caster Shields",
+        "Safety Body Armor"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Eth Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Eth_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/9/9e/Eth_Rune.png/revision/latest?cb=20110926184336",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Eth_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ith",
+      "name": "Ith",
+      "rank": 6,
+      "pageTitle": "Ith (Diablo II)",
+      "pageId": 1169,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ith_(Diablo_II)",
+      "summary": "Ith is a common rune in Diablo II. Three Eth runes are needed to create one Ith through the Horadric Cube.\nIth is needed in six Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 15,
+      "levelRequirementRaw": "15",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "12.3528%",
+        "percent": 12.3528,
+        "rate": 0.123528
+      },
+      "socketBonuses": {
+        "weapon": "+9 to Maximum Damage",
+        "armor": "15% Damage Taken Goes to Mana",
+        "helm": "15% Damage Taken Goes to Mana",
+        "shield": "15% Damage Taken Goes to Mana"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Eth",
+            "id": "eth"
+          }
+        ],
+        "output": {
+          "name": "Ith",
+          "id": "ith"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Enigma",
+          "Honor",
+          "Malice",
+          "Radiance",
+          "Rain"
+        ],
+        "ladderOnly": [
+          "Harmony"
+        ],
+        "total": 6
+      },
+      "craftedItemUses": [
+        "Hit Power Helms",
+        "Blood Shields",
+        "Caster Belts",
+        "Safety Helms"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Ith Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ith_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/7/77/Ith_Rune.png/revision/latest?cb=20110926184356",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ith_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "tal",
+      "name": "Tal",
+      "rank": 7,
+      "pageTitle": "Tal (Diablo II)",
+      "pageId": 1170,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Tal_(Diablo_II)",
+      "summary": "Tal is a common rune in Diablo II. Three Ith runes are needed to create one Tal through the Horadric Cube.\nTal is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 17,
+      "levelRequirementRaw": "17",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "15.2770%",
+        "percent": 15.277,
+        "rate": 0.15277
+      },
+      "socketBonuses": {
+        "weapon": "+75 Poison Damage Over 5 Seconds",
+        "armor": "Poison Resist +30%",
+        "helm": "Poison Resist +30%",
+        "shield": "Poison Resist +35%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Ith",
+            "id": "ith"
+          }
+        ],
+        "output": {
+          "name": "Tal",
+          "id": "tal"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Ancient's Pledge",
+          "Holy Thunder",
+          "Stealth",
+          "Venom"
+        ],
+        "ladderOnly": [
+          "Edge",
+          "Insight",
+          "Spirit Weapon",
+          "Spirit Shield"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [
+        "Hit Power Belt",
+        "Blood Belt",
+        "Caster Body Armor",
+        "Safety Belt"
+      ],
+      "trivia": [
+        "Tal is the Swedish word for speech or number."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Tal Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Tal_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/3/35/Tal_Rune.png/revision/latest?cb=20110926184416",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Tal_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ral",
+      "name": "Ral",
+      "rank": 8,
+      "pageTitle": "Ral (Diablo II)",
+      "pageId": 1171,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ral_(Diablo_II)",
+      "summary": "Ral is a common rune in Diablo II. Three Tal runes are needed to create one Ral through the Horadric Cube.\nRal is needed in ten Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 19,
+      "levelRequirementRaw": "19",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "10.3674%",
+        "percent": 10.3674,
+        "rate": 0.103674
+      },
+      "socketBonuses": {
+        "weapon": "Adds 5-30 Fire Damage",
+        "armor": "Fire Resist +30%",
+        "helm": "Fire Resist +30%",
+        "shield": "Fire Resist +35%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Tal",
+            "id": "tal"
+          }
+        ],
+        "output": {
+          "name": "Ral",
+          "id": "ral"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Ancient's Pledge",
+          "Bramble",
+          "Call to Arms",
+          "Enlightenment",
+          "Holy Thunder",
+          "King's Grace",
+          "Leaf",
+          "Principle"
+        ],
+        "ladderOnly": [
+          "Grief",
+          "Insight"
+        ],
+        "total": 10
+      },
+      "craftedItemUses": [
+        "Hit Power Boots",
+        "Blood Helms",
+        "Caster Amulets",
+        "Safety Gloves"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Ral Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ral_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/4/47/Ral_Rune.png/revision/latest?cb=20110926184435",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ral_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ort",
+      "name": "Ort",
+      "rank": 9,
+      "pageTitle": "Ort (Diablo II)",
+      "pageId": 1172,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ort_(Diablo_II)",
+      "summary": "Ort is a common rune in Diablo II. Three Ral runes are needed to create one Ort through the Horadric Cube.\nOrt is needed in nine Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 21,
+      "levelRequirementRaw": "21",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "10.8664%",
+        "percent": 10.8664,
+        "rate": 0.10866400000000001
+      },
+      "socketBonuses": {
+        "weapon": "Adds 1-50 Lightning Damage",
+        "armor": "Lightning Resist +30%",
+        "helm": "Lightning Resist +30%",
+        "shield": "Lightning Resist +35%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Ral",
+            "id": "ral"
+          }
+        ],
+        "output": {
+          "name": "Ort",
+          "id": "ort"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Ancient's Pledge",
+          "Famine",
+          "Holy Thunder",
+          "Lore",
+          "Passion",
+          "Rain",
+          "Zephyr"
+        ],
+        "ladderOnly": [
+          "Death",
+          "Spirit Weapon",
+          "Spirit Shield"
+        ],
+        "total": 10
+      },
+      "craftedItemUses": [
+        "Hit Power Gloves",
+        "Blood Weapon",
+        "Caster Gloves",
+        "Safety Boots"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Ort Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ort_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/4/40/Ort_Rune.png/revision/latest?cb=20110926184509",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ort_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "thul",
+      "name": "Thul",
+      "rank": 10,
+      "pageTitle": "Thul (Diablo II)",
+      "pageId": 1173,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Thul_(Diablo_II)",
+      "summary": "Thul is a common rune in Diablo II. Three Ort runes are needed to create one Thul through the Horadric Cube.\nThul is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 23,
+      "levelRequirementRaw": "23",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "7.3346%",
+        "percent": 7.3346,
+        "rate": 0.073346
+      },
+      "socketBonuses": {
+        "weapon": "Adds 3-14 Cold Damage - 3 Second Duration",
+        "armor": "Cold Resist +30%",
+        "helm": "Cold Resist +30%",
+        "shield": "Cold Resist +35%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Ort",
+            "id": "ort"
+          }
+        ],
+        "output": {
+          "name": "Thul",
+          "id": "thul"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Black",
+          "Duress",
+          "Heart of the Oak",
+          "King's Grace",
+          "Peace",
+          "Treachery"
+        ],
+        "ladderOnly": [
+          "Obedience",
+          "Spirit Weapon",
+          "Spirit Shield"
+        ],
+        "total": 9
+      },
+      "craftedItemUses": [
+        "Hit Power Amulet",
+        "Blood Body Armor",
+        "Caster Boots",
+        "Safety Amulet"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Thul Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Thul_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/d/df/Thul_Rune.png/revision/latest?cb=20110926184533",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Thul_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "amn",
+      "name": "Amn",
+      "rank": 11,
+      "pageTitle": "Amn (Diablo II)",
+      "pageId": 1174,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Amn_(Diablo_II)",
+      "summary": "Amn is a common rune in Diablo II. Three Thul runes and one Chipped Topaz are needed to create one Amn through the Horadric Cube.\nAmn is needed in eleven Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 25,
+      "levelRequirementRaw": "25",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "6.7373%",
+        "percent": 6.7373,
+        "rate": 0.067373
+      },
+      "socketBonuses": {
+        "weapon": "7% Life Stolen Per Hit",
+        "armor": "Attacker Takes Damage of 14",
+        "helm": "Attacker Takes Damage of 14",
+        "shield": "Attacker Takes Damage of 14"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Thul",
+            "id": "thul"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Chipped Topaz",
+            "id": "chipped_topaz"
+          }
+        ],
+        "output": {
+          "name": "Amn",
+          "id": "amn"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Eternity",
+          "Hand of Justice",
+          "Honor",
+          "King's Grace",
+          "Myth",
+          "Peace",
+          "Strength"
+        ],
+        "ladderOnly": [
+          "Edge",
+          "Ice",
+          "Lawbringer",
+          "Spirit Weapon",
+          "Spirit Shield"
+        ],
+        "total": 12
+      },
+      "craftedItemUses": [
+        "Hit Power Rings",
+        "Blood Amulets",
+        "Caster Rings",
+        "Safety Rings"
+      ],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Amn Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Amn_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/5/5a/Amn_Rune.png/revision/latest?cb=20110926184552",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Amn_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "sol",
+      "name": "Sol",
+      "rank": 12,
+      "pageTitle": "Sol (Diablo II)",
+      "pageId": 1175,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Sol_(Diablo_II)",
+      "summary": "Sol is a rune in Diablo II. Three Amn runes and one Chipped Amethyst are needed to create one Sol through the Horadric Cube.\nSol is needed in eleven Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 27,
+      "levelRequirementRaw": "27",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "4.5255%",
+        "percent": 4.5255,
+        "rate": 0.045255000000000004
+      },
+      "socketBonuses": {
+        "weapon": "+9 to Minimum Damage",
+        "armor": "Damage Reduced by 7",
+        "helm": "Damage Reduced by 7",
+        "shield": "Damage Reduced by 7"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Amn",
+            "id": "amn"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Chipped Amethyst",
+            "id": "chipped_amethyst"
+          }
+        ],
+        "output": {
+          "name": "Sol",
+          "id": "sol"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Bone",
+          "Enlightenment",
+          "Eternity",
+          "Honor",
+          "Lore",
+          "Memory",
+          "Radiance"
+        ],
+        "ladderOnly": [
+          "Dragon",
+          "Fortitude Armor",
+          "Fortitude Weapon",
+          "Harmony",
+          "Insight"
+        ],
+        "total": 12
+      },
+      "craftedItemUses": [
+        "Blood Ring",
+        "Safety Weapon"
+      ],
+      "trivia": [
+        "Sol is the Swedish word for sun."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Sol Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Sol_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/d/de/Sol_Rune.png/revision/latest?cb=20110926184614",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Sol_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "shael",
+      "name": "Shael",
+      "rank": 13,
+      "pageTitle": "Shael (Diablo II)",
+      "pageId": 1176,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Shael_(Diablo_II)",
+      "summary": "Shael is a rune in Diablo II. Shae was the original name of the rune, Blizzard renamed it to Shael at patch 1.09. Three Sol runes and one Chipped Sapphire are needed to create one Shael through the Horadric Cube.\nShael is needed in nine Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 29,
+      "levelRequirementRaw": "29",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "3.5940%",
+        "percent": 3.594,
+        "rate": 0.03594
+      },
+      "socketBonuses": {
+        "weapon": "20% Increased Attack Speed",
+        "armor": "20% Faster Hit Recovery",
+        "helm": "20% Faster Hit Recovery",
+        "shield": "20% Faster Block Rate"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Sol",
+            "id": "sol"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Chipped Sapphire",
+            "id": "chipped_sapphire"
+          }
+        ],
+        "output": {
+          "name": "Shael",
+          "id": "shael"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Crescent Moon",
+          "Duress",
+          "Melody",
+          "Peace",
+          "Rhyme",
+          "Stone",
+          "Treachery"
+        ],
+        "ladderOnly": [
+          "Ice",
+          "Oath"
+        ],
+        "total": 9
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Prior to Patch 1.09, Shael Runes were called Shae."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Shael Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Shael_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/5/53/Shael_Rune.png/revision/latest?cb=20110926184633",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Shael_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "dol",
+      "name": "Dol",
+      "rank": 14,
+      "pageTitle": "Dol (Diablo II)",
+      "pageId": 1177,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Dol_(Diablo_II)",
+      "summary": "Dol is a rune in Diablo II. Three Shael runes and one Chipped Ruby are needed to create one Dol through the Horadric Cube.\nDol is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 31,
+      "levelRequirementRaw": "31",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "2.4055%",
+        "percent": 2.4055,
+        "rate": 0.024055
+      },
+      "socketBonuses": {
+        "weapon": "Hit Causes Monster to Flee 25%",
+        "armor": "Replenish Life +7",
+        "helm": "Replenish Life +7",
+        "shield": "Replenish Life +7"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Shael",
+            "id": "shael"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Chipped Ruby",
+            "id": "chipped_ruby"
+          }
+        ],
+        "output": {
+          "name": "Dol",
+          "id": "dol"
+        },
+        "note": null
+      },
+      "runewords": {
+        "standard": [
+          "Chains of Honor",
+          "Exile",
+          "Passion",
+          "Silence",
+          "Venom",
+          "White"
+        ],
+        "ladderOnly": [
+          "Fortitude Armor",
+          "Fortitude Weapon"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Dol Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Dol_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/5/53/Dol_Rune.png/revision/latest?cb=20110926184836",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Dol_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "hel",
+      "name": "Hel",
+      "rank": 15,
+      "pageTitle": "Hel (Diablo II)",
+      "pageId": 1178,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Hel_(Diablo_II)",
+      "summary": "Hel is a rune in Diablo II. Three Dol runes and one Chipped Emerald are needed to create one Hel through the Horadric Cube (this does not work on regular Battle.net). Hel is the only rune that does not have a level requirement.\nHel is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": null,
+      "levelRequirementRaw": null,
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "1.8576%",
+        "percent": 1.8576,
+        "rate": 0.018576
+      },
+      "socketBonuses": {
+        "weapon": "Requirements -20%",
+        "armor": "Requirements -15%",
+        "helm": "Requirements -15%",
+        "shield": "Requirements -15%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Dol",
+            "id": "dol"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Chipped Emerald",
+            "id": "chipped_emerald"
+          }
+        ],
+        "output": {
+          "name": "Hel",
+          "id": "hel"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Breath of the Dying",
+          "Doom",
+          "Lionheart",
+          "Myth",
+          "Silence"
+        ],
+        "ladderOnly": [
+          "Death",
+          "Obedience",
+          "Rift"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Hel is the name of the ruler of the Underworld in Norse mythology"
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Hel Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Hel_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/5/56/Hel_Rune.png/revision/latest?cb=20110926184855",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Hel_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "io",
+      "name": "Io",
+      "rank": 16,
+      "pageTitle": "Io (Diablo II)",
+      "pageId": 1179,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Io_(Diablo_II)",
+      "summary": "Io is a rune in Diablo II. Three Hel runes and one Chipped Diamond are needed to create one Io through the Horadric Cube (this does not work on regular Battle.net).\nIo is needed in six Rune Words",
+      "isHighRune": false,
+      "levelRequirement": 35,
+      "levelRequirementRaw": "35",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Nightmare",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "1.2409%",
+        "percent": 1.2409,
+        "rate": 0.012408999999999998
+      },
+      "socketBonuses": {
+        "weapon": "+10 to Vitality",
+        "armor": "+10 to Vitality",
+        "helm": "+10 to Vitality",
+        "shield": "+10 to Vitality"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Hel",
+            "id": "hel"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Chipped Diamond",
+            "id": "chipped_diamond"
+          }
+        ],
+        "output": {
+          "name": "Io",
+          "id": "io"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Black",
+          "Delirium",
+          "Memory",
+          "White"
+        ],
+        "ladderOnly": [
+          "Dream",
+          "Pride"
+        ],
+        "total": 6
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Prior to Patch 1.09, Io Runes were called Po."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Io Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Io_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/d/de/Io_Rune.png/revision/latest?cb=20110926184920",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Io_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "lum",
+      "name": "Lum",
+      "rank": 17,
+      "pageTitle": "Lum (Diablo II)",
+      "pageId": 1180,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Lum_(Diablo_II)",
+      "summary": "Lum is a rune in Diablo II. Three Io runes and one Flawed Topaz are needed to create one Lum through the Horadric Cube (this does not work on regular Battle.net).\nLum is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 37,
+      "levelRequirementRaw": "37",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.9323%",
+        "percent": 0.9323,
+        "rate": 0.009323
+      },
+      "socketBonuses": {
+        "weapon": "+10 to Energy",
+        "armor": "+10 to Energy",
+        "helm": "+10 to Energy",
+        "shield": "+10 to Energy"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Io",
+            "id": "io"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawed Topaz",
+            "id": "flawed_topaz"
+          }
+        ],
+        "output": {
+          "name": "Lum",
+          "id": "lum"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Beast",
+          "Lionheart",
+          "Memory",
+          "Smoke",
+          "Splendor",
+          "Stone"
+        ],
+        "ladderOnly": [
+          "Oath",
+          "Wrath"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Lum Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Lum_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/d/d7/Lum_Rune.png/revision/latest?cb=20120120162414",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Lum_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ko",
+      "name": "Ko",
+      "rank": 18,
+      "pageTitle": "Ko (Diablo II)",
+      "pageId": 1181,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ko_(Diablo_II)",
+      "summary": "Ko is a rune in Diablo II. Three Lum runes and one Flawed Amethyst are needed to create one Ko through the Horadric Cube (this does not work on regular Battle.net).\nKo is needed in ten Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 39,
+      "levelRequirementRaw": "39",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.6222%",
+        "percent": 0.6222,
+        "rate": 0.006222
+      },
+      "socketBonuses": {
+        "weapon": "+10 to Dexterity",
+        "armor": "+10 to Dexterity",
+        "helm": "+10 to Dexterity",
+        "shield": "+10 to Dexterity"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Lum",
+            "id": "lum"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawed Amethyst",
+            "id": "flawed_amethyst"
+          }
+        ],
+        "output": {
+          "name": "Ko",
+          "id": "ko"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Heart of the Oak",
+          "Melody",
+          "Sanctuary",
+          "Wealth"
+        ],
+        "ladderOnly": [
+          "Destruction",
+          "Harmony",
+          "Lawbringer",
+          "Obedience",
+          "Rift",
+          "Voice of Reason"
+        ],
+        "total": 10
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Ko is the Swedish word for cow."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Ko Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ko_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/f/ff/Ko_Rune.png/revision/latest?cb=20110926185057",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ko_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "fal",
+      "name": "Fal",
+      "rank": 19,
+      "pageTitle": "Fal (Diablo II)",
+      "pageId": 1182,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Fal_(Diablo_II)",
+      "summary": "Fal is a rune in Diablo II. Three Ko runes and one Flawed Sapphire are needed to create one Fal through the Horadric Cube (this does not work on regular Battle.net).\nFal is needed in six Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 41,
+      "levelRequirementRaw": "41",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.4701%",
+        "percent": 0.4701,
+        "rate": 0.004701
+      },
+      "socketBonuses": {
+        "weapon": "+10 to Strength",
+        "armor": "+10 to Strength",
+        "helm": "+10 to Strength",
+        "shield": "+10 to Strength"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Ko",
+            "id": "ko"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawed Sapphire",
+            "id": "flawed_sapphire"
+          }
+        ],
+        "output": {
+          "name": "Fal",
+          "id": "fal"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Chaos",
+          "Famine",
+          "Gloom",
+          "Kingslayer",
+          "Lionheart"
+        ],
+        "ladderOnly": [
+          "Obedience"
+        ],
+        "total": 6
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Fal Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Fal_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/d/da/Fal_Rune.png/revision/latest?cb=20110926185117",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Fal_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "lem",
+      "name": "Lem",
+      "rank": 20,
+      "pageTitle": "Lem (Diablo II)",
+      "pageId": 1183,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Lem_(Diablo_II)",
+      "summary": "Lem is a rune in Diablo II. Three Fal runes and one Flawed Ruby are needed to create one Lem through the Horadric Cube (this does not work on regular Battle.net).\nLem is needed in eight Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 43,
+      "levelRequirementRaw": "43",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.3136%",
+        "percent": 0.3136,
+        "rate": 0.003136
+      },
+      "socketBonuses": {
+        "weapon": "75% Extra Gold From Monsters",
+        "armor": "50% Extra Gold From Monsters",
+        "helm": "50% Extra Gold From Monsters",
+        "shield": "50% Extra Gold From Monsters"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Fal",
+            "id": "fal"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawed Ruby",
+            "id": "flawed_ruby"
+          }
+        ],
+        "output": {
+          "name": "Lem",
+          "id": "lem"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Delirium",
+          "Passion",
+          "Treachery",
+          "Wealth"
+        ],
+        "ladderOnly": [
+          "Faith",
+          "Lawbringer",
+          "Rift",
+          "Voice of Reason"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Lem Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Lem_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/c/c1/Lem_Rune.png/revision/latest?cb=20110926185141",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Lem_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "pul",
+      "name": "Pul",
+      "rank": 21,
+      "pageTitle": "Pul (Diablo II)",
+      "pageId": 1184,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Pul_(Diablo_II)",
+      "summary": "Pul is a rune in Diablo II. Three Lem runes and one Flawed Emerald are needed to create one Pul through the Horadric Cube (this does not work on regular Battle.net).\nPul is needed in seven Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 45,
+      "levelRequirementRaw": "45",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.2361%",
+        "percent": 0.2361,
+        "rate": 0.0023610000000000003
+      },
+      "socketBonuses": {
+        "weapon": "+75% Damage to Demons, +100 Attack Rating Against Demons",
+        "armor": "30% Enhanced Defense",
+        "helm": "30% Enhanced Defense",
+        "shield": "30% Enhanced Defense"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 3,
+            "name": "Lem",
+            "id": "lem"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawed Emerald",
+            "id": "flawed_emerald"
+          }
+        ],
+        "output": {
+          "name": "Pul",
+          "id": "pul"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Enlightenment",
+          "Gloom",
+          "Heart of the Oak",
+          "Stone"
+        ],
+        "ladderOnly": [
+          "Dream",
+          "Oath",
+          "Wrath"
+        ],
+        "total": 7
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Pul Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Pul_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/2/24/Pul_Rune.png/revision/latest?cb=20110926185219",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Pul_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "um",
+      "name": "Um",
+      "rank": 22,
+      "pageTitle": "Um (Diablo II)",
+      "pageId": 1185,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Um_(Diablo_II)",
+      "summary": "Um is a rune in Diablo II. Two Pul runes and one Flawed Diamond are needed to create one Um through the Horadric Cube (this does not work on regular Battle.net).\nUm is needed in ten Rune Words.",
+      "isHighRune": false,
+      "levelRequirement": 47,
+      "levelRequirementRaw": "47",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.1574%",
+        "percent": 0.1574,
+        "rate": 0.001574
+      },
+      "socketBonuses": {
+        "weapon": "25% Chance of Open Wounds",
+        "armor": "All Resistances +15",
+        "helm": "All Resistances +15",
+        "shield": "All Resistances +22"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Pul",
+            "id": "pul"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawed Diamond",
+            "id": "flawed_diamond"
+          }
+        ],
+        "output": {
+          "name": "Um",
+          "id": "um"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Beast",
+          "Bone",
+          "Chaos",
+          "Chains of Honor",
+          "Crescent Moon",
+          "Doom",
+          "Duress",
+          "Gloom",
+          "Kingslayer",
+          "Stone"
+        ],
+        "ladderOnly": [],
+        "total": 10
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/10_burning-embers.svg",
+        "referenceOnly": {
+          "sourceImage": "Um Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Um_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/4/4c/Um_Rune.png/revision/latest?cb=20110926185238",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Um_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "mal",
+      "name": "Mal",
+      "rank": 23,
+      "pageTitle": "Mal (Diablo II)",
+      "pageId": 1186,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Mal_(Diablo_II)",
+      "summary": "Mal is a rare rune in Diablo II. Two Um runes and one Topaz are needed to create one Mal through the Horadric Cube (this does not work on regular Battle.net).\nMal is needed in twelve Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 49,
+      "levelRequirementRaw": "49",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.1352%",
+        "percent": 0.1352,
+        "rate": 0.001352
+      },
+      "socketBonuses": {
+        "weapon": "Prevent Monster Heal",
+        "armor": "Magic Damage Reduced by 7",
+        "helm": "Magic Damage Reduced by 7",
+        "shield": "Magic Damage Reduced by 7"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Um",
+            "id": "um"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Topaz",
+            "id": "topaz"
+          }
+        ],
+        "output": {
+          "name": "Mal",
+          "id": "mal"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Beast",
+          "Call to Arms",
+          "Kingslayer",
+          "Prudence",
+          "Rain",
+          "Sanctuary",
+          "Venom"
+        ],
+        "ladderOnly": [
+          "Brand",
+          "Grief",
+          "Infinity",
+          "Last Wish",
+          "Oath",
+          "Wrath"
+        ],
+        "total": 13
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Mal Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Mal_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/3/39/Mal_Rune.png/revision/latest?cb=20110926185258",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Mal_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ist",
+      "name": "Ist",
+      "rank": 24,
+      "pageTitle": "Ist (Diablo II)",
+      "pageId": 1187,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ist_(Diablo_II)",
+      "summary": "Ist is a rare rune in Diablo II. Two Mal runes and one Amethyst are needed to create one Ist through the Horadric Cube (this does not work on regular Battle.net).\nIst is needed in seven Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 51,
+      "levelRequirementRaw": "51",
+      "bestDropSource": {
+        "bossName": "The Countess",
+        "bossPageTitle": "The Countess (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/The_Countess_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0901%",
+        "percent": 0.0901,
+        "rate": 0.000901
+      },
+      "socketBonuses": {
+        "weapon": "30% Better Chance of Getting Magic Items",
+        "armor": "25% Better Chance of Getting Magic Items",
+        "helm": "25% Better Chance of Getting Magic Items",
+        "shield": "25% Better Chance of Getting Magic Items"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Mal",
+            "id": "mal"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Amethyst",
+            "id": "amethyst"
+          }
+        ],
+        "output": {
+          "name": "Ist",
+          "id": "ist"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Call to Arms",
+          "Chains of Honor",
+          "Delirium",
+          "Eternity",
+          "Exile",
+          "Silence"
+        ],
+        "ladderOnly": [
+          "Infinity"
+        ],
+        "total": 7
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Ist Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ist_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/3/37/Ist_Rune.png/revision/latest?cb=20110926185320",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ist_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "gul",
+      "name": "Gul",
+      "rank": 25,
+      "pageTitle": "Gul (Diablo II)",
+      "pageId": 1188,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Gul_(Diablo_II)",
+      "summary": "Gul is a rare rune in Diablo II. Two Ist runes and one Sapphire are needed to create one Gul through the Horadric Cube (this does not work on regular Battle.net).\nGul is needed in six Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 53,
+      "levelRequirementRaw": "53",
+      "bestDropSource": {
+        "bossName": "Andariel",
+        "bossPageTitle": "Andariel (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Andariel_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0011%",
+        "percent": 0.0011,
+        "rate": 0.000011000000000000001
+      },
+      "socketBonuses": {
+        "weapon": "20% Bonus to Attack Rating",
+        "armor": "+5% to Maximum Poison Resist",
+        "helm": "+5% to Maximum Poison Resist",
+        "shield": "+5% to Maximum Poison Resist"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Ist",
+            "id": "ist"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Sapphire",
+            "id": "sapphire"
+          }
+        ],
+        "output": {
+          "name": "Gul",
+          "id": "gul"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Fury",
+          "Kingslayer",
+          "Principle"
+        ],
+        "ladderOnly": [
+          "Brand",
+          "Death",
+          "Rift"
+        ],
+        "total": 6
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Gul is the Swedish word for yellow."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Gul Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Gul_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/a/ad/Gul_Rune.png/revision/latest?cb=20110926185338",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Gul_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "vex",
+      "name": "Vex",
+      "rank": 26,
+      "pageTitle": "Vex (Diablo II)",
+      "pageId": 1189,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Vex_(Diablo_II)",
+      "summary": "Vex is a rare rune in Diablo II. Two Gul runes and one Ruby are needed to create one Vex through the Horadric Cube (this does not work on regular Battle.net).\nVex is needed in seven Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 55,
+      "levelRequirementRaw": "55",
+      "bestDropSource": {
+        "bossName": "Andariel",
+        "bossPageTitle": "Andariel (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Andariel_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0008%",
+        "percent": 0.0008,
+        "rate": 0.000008
+      },
+      "socketBonuses": {
+        "weapon": "7% Mana Stolen Per Hit",
+        "armor": "+5% to Maximum Fire Resist",
+        "helm": "+5% to Maximum Fire Resist",
+        "shield": "+5% to Maximum Fire Resist"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Gul",
+            "id": "gul"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Ruby",
+            "id": "ruby"
+          }
+        ],
+        "output": {
+          "name": "Vex",
+          "id": "vex"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Breath of the Dying",
+          "Exile",
+          "Heart of the Oak",
+          "Silence"
+        ],
+        "ladderOnly": [
+          "Death",
+          "Destruction",
+          "Phoenix Shield",
+          "Phoenix Weapon"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Vex Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Vex_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/e/e1/Vex_Rune.png/revision/latest?cb=20110926185356",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Vex_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ohm",
+      "name": "Ohm",
+      "rank": 27,
+      "pageTitle": "Ohm (Diablo II)",
+      "pageId": 1191,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ohm_(Diablo_II)",
+      "summary": "Ohm is a rare rune in Diablo II. Two Vex runes and one Emerald are needed to create one Ohm through the Horadric Cube (this does not work on regular Battle.net).\nOhm is needed in seven Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 57,
+      "levelRequirementRaw": "57",
+      "bestDropSource": {
+        "bossName": "Andariel",
+        "bossPageTitle": "Andariel (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Andariel_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0011%",
+        "percent": 0.0011,
+        "rate": 0.000011000000000000001
+      },
+      "socketBonuses": {
+        "weapon": "50% Enhanced Damage",
+        "armor": "+5% to Maximum Cold Resist",
+        "helm": "+5% to Maximum Cold Resist",
+        "shield": "+5% to Maximum Cold Resist"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Vex",
+            "id": "vex"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Emerald",
+            "id": "emerald"
+          }
+        ],
+        "output": {
+          "name": "Ohm",
+          "id": "ohm"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Bramble",
+          "Call to Arms",
+          "Chaos",
+          "Doom",
+          "Exile",
+          "Famine"
+        ],
+        "ladderOnly": [
+          "Faith"
+        ],
+        "total": 7
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Ohm Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ohm_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/c/c7/Ohm_Rune.png/revision/latest?cb=20110926185415",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ohm_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "lo",
+      "name": "Lo",
+      "rank": 28,
+      "pageTitle": "Lo (Diablo II)",
+      "pageId": 1192,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Lo_(Diablo_II)",
+      "summary": "Lo is a rare rune in Diablo II. Two Ohm runes and one Diamond are needed to create one Lo through the Horadric Cube (this does not work on regular Battle.net).\nLo is needed in ten Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 59,
+      "levelRequirementRaw": "59",
+      "bestDropSource": {
+        "bossName": "Andariel",
+        "bossPageTitle": "Andariel (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Andariel_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0004%",
+        "percent": 0.0004,
+        "rate": 0.000004
+      },
+      "socketBonuses": {
+        "weapon": "20% Deadly Strike",
+        "armor": "+5% to Maximum Lightning Resist",
+        "helm": "+5% to Maximum Lightning Resist",
+        "shield": "+5% to Maximum Lightning Resist"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Ohm",
+            "id": "ohm"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Diamond",
+            "id": "diamond"
+          }
+        ],
+        "output": {
+          "name": "Lo",
+          "id": "lo"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Doom",
+          "Hand of Justice"
+        ],
+        "ladderOnly": [
+          "Brand",
+          "Destruction",
+          "Dragon",
+          "Fortitude Armor",
+          "Fortitude Weapon",
+          "Grief",
+          "Ice",
+          "Phoenix Shield",
+          "Phoenix Weapon",
+          "Pride"
+        ],
+        "total": 12
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Lo is the Swedish word for lynx."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Lo Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Lo_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/c/cd/Lo_Rune.png/revision/latest?cb=20110926185434",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Lo_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "sur",
+      "name": "Sur",
+      "rank": 29,
+      "pageTitle": "Sur (Diablo II)",
+      "pageId": 1193,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Sur_(Diablo_II)",
+      "summary": "Sur is one of the rarest runes in Diablo II. Two Lo runes and one Flawless Topaz are needed to create one Sur through the Horadric Cube (this does not work on regular Battle.net).\nSur is needed in seven Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 61,
+      "levelRequirementRaw": "61",
+      "bestDropSource": {
+        "bossName": "Duriel",
+        "bossPageTitle": "Duriel (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Duriel_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0004%",
+        "percent": 0.0004,
+        "rate": 0.000004
+      },
+      "socketBonuses": {
+        "weapon": "Hit Blinds Target",
+        "armor": "Increase Maximum Mana 5%",
+        "helm": "Increase Maximum Mana 5%",
+        "shield": "+50 to Mana"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Lo",
+            "id": "lo"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawless Topaz",
+            "id": "flawless_topaz"
+          }
+        ],
+        "output": {
+          "name": "Sur",
+          "id": "sur"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Bramble",
+          "Eternity",
+          "Hand of Justice",
+          "Wind"
+        ],
+        "ladderOnly": [
+          "Dragon",
+          "Last Wish",
+          "Pride"
+        ],
+        "total": 7
+      },
+      "craftedItemUses": [],
+      "trivia": [
+        "Sur is the Swedish, Danish and Norwegian word for sour."
+      ],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Sur Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Sur_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/b/b3/Sur_Rune.png/revision/latest?cb=20110926185451",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Sur_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "ber",
+      "name": "Ber",
+      "rank": 30,
+      "pageTitle": "Ber (Diablo II)",
+      "pageId": 330,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Ber_(Diablo_II)",
+      "summary": "Ber is one of the rarest runes in Diablo II. Two Sur runes and one Flawless Amethyst are needed to create one Ber through the Horadric Cube (this does not work on regular Battle.net).\nBer is needed in eight Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 63,
+      "levelRequirementRaw": "63",
+      "bestDropSource": {
+        "bossName": "Duriel",
+        "bossPageTitle": "Duriel (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Duriel_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0002%",
+        "percent": 0.0002,
+        "rate": 0.000002
+      },
+      "socketBonuses": {
+        "weapon": "20% Chance of Crushing Blow",
+        "armor": "Damage Reduced by 8%",
+        "helm": "Damage Reduced by 8%",
+        "shield": "Damage Reduced by 8%"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Sur",
+            "id": "sur"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawless Amethyst",
+            "id": "flawless_amethyst"
+          }
+        ],
+        "output": {
+          "name": "Ber",
+          "id": "ber"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Beast",
+          "Chains of Honor",
+          "Enigma",
+          "Eternity"
+        ],
+        "ladderOnly": [
+          "Destruction",
+          "Infinity",
+          "Last Wish",
+          "Wrath"
+        ],
+        "total": 8
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Ber Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Ber_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/7/7e/Ber_Rune.png/revision/latest?cb=20110926185513",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Ber_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "jah",
+      "name": "Jah",
+      "rank": 31,
+      "pageTitle": "Jah (Diablo II)",
+      "pageId": 33,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Jah_(Diablo_II)",
+      "summary": "Jah is one of the rarest runes in Diablo II. Two Ber runes and one Flawless Sapphire are needed to create one Jah through the Horadric Cube (this does not work on regular Battle.net).\nJah is needed in ten Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 65,
+      "levelRequirementRaw": "65",
+      "bestDropSource": {
+        "bossName": "Mephisto",
+        "bossPageTitle": "Mephisto (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Mephisto_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0002%",
+        "percent": 0.0002,
+        "rate": 0.000002
+      },
+      "socketBonuses": {
+        "weapon": "Ignore Target's Defense",
+        "armor": "Increase Maximum Life 5%",
+        "helm": "Increase Maximum Life 5%",
+        "shield": "+50 to Life"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Ber",
+            "id": "ber"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawless Sapphire",
+            "id": "flawless_sapphire"
+          }
+        ],
+        "output": {
+          "name": "Jah",
+          "id": "jah"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Enigma",
+          "Famine",
+          "Fury"
+        ],
+        "ladderOnly": [
+          "Brand",
+          "Destruction",
+          "Dream",
+          "Faith",
+          "Ice",
+          "Last Wish",
+          "Phoenix Shield",
+          "Phoenix Weapon"
+        ],
+        "total": 11
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Jah Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Jah_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/3/3f/Jah_Rune.png/revision/latest?cb=20110926185531",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Jah_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "cham",
+      "name": "Cham",
+      "rank": 32,
+      "pageTitle": "Cham (Diablo II)",
+      "pageId": 32,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Cham_(Diablo_II)",
+      "summary": "Cham is one of the rarest runes in Diablo II. Two Jah runes and one Flawless Ruby are needed to create one Cham through the Horadric Cube (this does not work on regular Battle.net).\nCham is needed in three Rune Words.",
+      "isHighRune": true,
+      "levelRequirement": 67,
+      "levelRequirementRaw": "67",
+      "bestDropSource": {
+        "bossName": "Mephisto",
+        "bossPageTitle": "Mephisto (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Mephisto_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.0001%",
+        "percent": 0.0001,
+        "rate": 0.000001
+      },
+      "socketBonuses": {
+        "weapon": "Freezes Target +3",
+        "armor": "Cannot be Frozen",
+        "helm": "Cannot be Frozen",
+        "shield": "Cannot be Frozen"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Jah",
+            "id": "jah"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawless Ruby",
+            "id": "flawless_ruby"
+          }
+        ],
+        "output": {
+          "name": "Cham",
+          "id": "cham"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Doom",
+          "Hand of Justice"
+        ],
+        "ladderOnly": [
+          "Pride"
+        ],
+        "total": 3
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Cham Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Cham_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/8/8c/Cham_Rune.png/revision/latest?cb=20110926185549",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Cham_Rune.png"
+        }
+      }
+    },
+    {
+      "id": "zod",
+      "name": "Zod",
+      "rank": 33,
+      "pageTitle": "Zod (Diablo II)",
+      "pageId": 31,
+      "sourceUrl": "https://diablo-archive.fandom.com/wiki/Zod_(Diablo_II)",
+      "summary": "Zod is the rarest rune in Diablo II. It can only be obtained in Hell difficulty, from Baal, Diablo, Hephasto the Armorer, Hell Bovines, Nihlathak, unique monsters or ranged minions or wraith-class minions in areas of level 78 or higher, champion monsters or melee minions in areas of level 79 or higher, regular ranged or wraith-class monsters in areas of level 81 or higher, or regular melee monsters in areas in areas of level 82 or higher. Two Cham runes and one Flawless Emerald are needed to create one Zod through the Horadric Cube (this does not work on regular Battle.net).\nZod is only required for one Rune Word.",
+      "isHighRune": true,
+      "levelRequirement": 69,
+      "levelRequirementRaw": "69",
+      "bestDropSource": {
+        "bossName": "Baal",
+        "bossPageTitle": "Baal (Diablo II)",
+        "difficulty": "Hell",
+        "bossSourceUrl": "https://diablo-archive.fandom.com/wiki/Baal_(Diablo_II)"
+      },
+      "dropChance": {
+        "raw": "0.00003%",
+        "percent": 0.00003,
+        "rate": 3e-7
+      },
+      "socketBonuses": {
+        "weapon": "Indestructible",
+        "armor": "Indestructible",
+        "helm": "Indestructible",
+        "shield": "Indestructible"
+      },
+      "cubeUpgradeRecipe": {
+        "sources": [
+          {
+            "type": "rune",
+            "count": 2,
+            "name": "Cham",
+            "id": "cham"
+          },
+          {
+            "type": "gem",
+            "count": 1,
+            "name": "Flawless Emerald",
+            "id": "flawless_emerald"
+          }
+        ],
+        "output": {
+          "name": "Zod",
+          "id": "zod"
+        },
+        "note": "this does not work on regular Battle.net"
+      },
+      "runewords": {
+        "standard": [
+          "Breath of the Dying"
+        ],
+        "ladderOnly": [],
+        "total": 1
+      },
+      "craftedItemUses": [],
+      "trivia": [],
+      "availability": {
+        "internalWiki": true,
+        "rewardPool": false,
+        "gearCatalog": false,
+        "note": "D2 rune reference only; runes, runewords, and socketing are not implemented in the Rouge runtime."
+      },
+      "assetRefs": {
+        "shippingSafeIcon": "./assets/curated/themes/diablo-inspired/icons/cards/06_burning-skull.svg",
+        "referenceOnly": {
+          "sourceImage": "Zod Rune.png",
+          "downloadedImage": "assets/diablo2_downloads/potential_art/runes/wiki/Zod_Rune.png",
+          "imageUrl": "https://static.wikia.nocookie.net/diablo_gamepedia/images/e/e0/Zod_Rune.png/revision/latest?cb=20110926185604",
+          "descriptionUrl": "https://diablo-archive.fandom.com/wiki/File:Zod_Rune.png"
+        }
+      }
+    }
+  ]
+}

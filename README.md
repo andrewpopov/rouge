@@ -1,29 +1,42 @@
 # rouge
 
-High-fidelity Diablo II-inspired dark-fantasy roguelite deckbuilder.
+Diablo II-inspired roguelite deckbuilder, reset around a new combat foundation.
 
-## Start Here
+## Current State
 
-Read [docs/PROJECT_MASTER.md](/Users/andrew/proj/rouge/docs/PROJECT_MASTER.md) first.
+The old lane/steam prototype has been removed from the active app surface.
 
-That document is the canonical entry point for:
+The live repo now contains a small browser combat foundation centered on:
 
-- current project direction
-- implementation status
-- documentation precedence
-- active task tracks
-- open design decisions
+- one player character
+- one mercenary companion
+- an encounter-sized enemy pack
+- hand-based skill play
+- visible enemy intents
+- potion support actions
 
-## Key Supporting Docs
+Start with [docs/PROJECT_MASTER.md](/Users/andrew/proj/rouge/docs/PROJECT_MASTER.md), then read [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md).
 
-- [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md): target gameplay architecture and run flow
-- [docs/CORE_ENGINE_LOOP.md](/Users/andrew/proj/rouge/docs/CORE_ENGINE_LOOP.md): current engine/phase implementation contract
-- [docs/VISUAL_DESIGN_TRD.md](/Users/andrew/proj/rouge/docs/VISUAL_DESIGN_TRD.md): UI surface and layout direction
-- [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md): canonical Diablo II reference baseline
+## Restored Guidance
+
+The repo also has restored target-state docs for the Diablo II direction:
+
+- [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md): full app structure and build order for the complete game loop
+- [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md): run loop and application flow
+- [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md): classes, skills, and deck grammar
+- [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md): shared card and vendor economy
+- [docs/CLASS_REWARD_TIERS.md](/Users/andrew/proj/rouge/docs/CLASS_REWARD_TIERS.md): mid-tier class rewards
+- [docs/CLASS_CAPSTONES.md](/Users/andrew/proj/rouge/docs/CLASS_CAPSTONES.md): late-run class payoffs
+- [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md): canonical D2 reference baseline
+
+Treat those as design guidance. Treat the current combat files as live build truth.
 
 ## Commands
 
 ```bash
+npm run lint
 npm test
+npm run build
+npm run check
 npm start
 ```

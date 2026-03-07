@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+dist/
+generated/
+*.tsbuildinfo
 
 # OS/editor
 .DS_Store

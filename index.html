@@ -3,233 +3,101 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brassline: Last Reactor HUD</title>
+    <title>Rouge Combat Foundation</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="hud-shell">
-      <header class="panel status-strip reveal reveal-1">
-        <div class="status-item">
-          <span class="status-label">Hull</span>
-          <strong id="hullValue">72</strong>
-          <span class="status-sub">Block <strong id="blockValue">0</strong></span>
-        </div>
-
-        <section class="heat-cluster">
-          <div class="cluster-head">
-            <span class="status-label">Reactor Heat</span>
-            <strong id="heatValue">35%</strong>
-          </div>
-          <div class="heat-track">
-            <div id="heatFill"></div>
-          </div>
-          <p id="heatState" class="heat-state">Stable Pressure</p>
-        </section>
-
-        <div class="status-item right">
-          <span class="status-label">Turn</span>
-          <strong id="turnValue">1</strong>
-          <span class="status-sub">Steam <strong id="energyValue">3</strong></span>
-          <span class="status-sub">Track <strong id="laneValue">3</strong></span>
-          <span class="status-sub">Lvl <strong id="classLevelValue">1</strong> // Skill <strong id="skillPointValue">0</strong> // Stat <strong id="statPointValue">0</strong></span>
-          <span class="status-sub">Gold <strong id="goldValue">0</strong> // Potions <strong id="potionValue">0</strong> // Upgrade <strong id="itemUpgradeValue">0</strong></span>
-        </div>
+    <main class="page-shell">
+      <header class="hero-banner panel">
+        <p class="eyebrow">Diablo-Inspired Combat Reset</p>
+        <h1>Player + Mercenary Vs Enemy Pack</h1>
+        <p id="encounterBlurb" class="hero-copy">
+          The old lane/steam prototype is gone. This build is the new combat floor: one hero, one mercenary, and an encounter-sized enemy group.
+        </p>
       </header>
 
-      <section class="panel battlefield reveal reveal-2">
-        <div class="battlefield-header">
-          <h1>Brassline: Last Reactor</h1>
-          <p id="flowLabel" class="flow-label">
-            You are the blue marker on the track map. Click an enemy card below to target it.
-          </p>
-          <p id="sectorLabel">Sector 1/5 // Freight Corridor</p>
-        </div>
-        <div class="map-wrap">
-          <div class="map-head">
-            <span>Your Track + Incoming Enemy Telegraphs</span>
-            <small class="cook-legend">
-              <b class="tier-fast">FAST 1t</b>
-              <b class="tier-medium">MED 2t</b>
-              <b class="tier-slow">SLOW 3t</b>
-            </small>
-          </div>
-          <div id="trackMap" class="track-map"></div>
-          <div id="laneThreatForecast" class="lane-threat-forecast"></div>
-          <p id="mapRoleNote" class="map-role-note">YOU = blue marker. Red telegraphs = enemy attacks that trigger when timers end.</p>
-        </div>
-        <div class="enemy-zone-head">
-          <h2 class="zone-title enemy-zone-title">Enemy Units (Click to Target)</h2>
-          <p id="enemySectionHint" class="zone-hint">These cards are enemies. Reduce their Hull to 0 to clear the sector.</p>
-        </div>
-        <div id="enemyRow" class="enemy-row"></div>
-        <p id="targetHint" class="target-hint">Click an enemy card to target it before playing attack cards.</p>
+      <section class="control-bar panel">
+        <label class="picker">
+          <span>Encounter</span>
+          <select id="encounterSelect"></select>
+        </label>
+        <label class="picker">
+          <span>Mercenary</span>
+          <select id="mercenarySelect"></select>
+        </label>
+        <button id="restartBtn" class="primary-btn">Start Encounter</button>
       </section>
 
-      <section class="panel hand-zone reveal reveal-3">
-        <h2 class="zone-title">Step 2: Play Combat Cards</h2>
-        <p id="handZoneHint" class="zone-hint">
-          Hand cards are one-turn actions. Permanent upgrades only appear after battles.
-        </p>
-        <div class="deck-meta">
-          <span><img class="ui-icon" src="./assets/curated/icons/ui/power_plug.svg" alt="" />Draw: <strong id="drawCount">18</strong></span>
-          <span><img class="ui-icon" src="./assets/curated/icons/ui/energy_battery-50.svg" alt="" />Discard: <strong id="discardCount">4</strong></span>
-          <span><img class="ui-icon" src="./assets/curated/icons/ui/turn_pocket-watch.svg" alt="" />Hand: <strong id="handCount">5</strong></span>
+      <section class="status-strip panel">
+        <div class="status-item">
+          <span class="status-label">Turn</span>
+          <strong id="turnValue">1</strong>
         </div>
-        <div id="cardRow" class="card-row"></div>
-      </section>
-
-      <footer class="panel controls reveal reveal-4">
-        <h2 class="zone-title">Step 3: Move and End Turn</h2>
-        <section class="turn-loop" aria-live="polite">
-          <p class="turn-loop-label">Turn Loop</p>
-          <p id="turnFlowText" class="turn-loop-text">Your Turn: play cards and move. Enemy Turn: enemy telegraphs resolve. Repeat.</p>
-        </section>
-        <div class="button-row">
-          <button id="overclockBtn" class="control-btn hot">Overclock (+1 Steam, +12 Heat)</button>
-          <button id="usePotionBtn" class="control-btn neutral">Use Potion (0)</button>
-          <button id="endTurnBtn" class="control-btn neutral" aria-keyshortcuts="Space Enter">End Turn [Space/Enter]</button>
-          <button id="shiftLeftBtn" class="control-btn cool" aria-keyshortcuts="Q">Shift Left [Q] (1 Steam)</button>
-          <button id="shiftRightBtn" class="control-btn cool" aria-keyshortcuts="E">Shift Right [E] (1 Steam)</button>
-          <button id="cycleHandBtn" class="control-btn cool">Purge Hand (1 Steam)</button>
-          <button id="toggleComfortModeBtn" class="control-btn neutral">Larger Targets: Off</button>
-          <button id="toggleOnboardingBtn" class="control-btn neutral onboarding-toggle-btn" aria-expanded="false">
-            How to Play
-          </button>
+        <div class="status-item">
+          <span class="status-label">Phase</span>
+          <strong id="phaseValue">Player Turn</strong>
         </div>
-        <section class="quick-guide" aria-live="polite">
-          <p id="quickGuideGoal" class="quick-guide-goal">Goal: Destroy all enemies in this sector.</p>
-          <p id="quickGuideStep" class="quick-guide-step">Step: Click an enemy, play cards, then end turn.</p>
-        </section>
-        <section id="questPanel" class="quest-panel" aria-live="polite"></section>
-        <section class="class-skill-panel" aria-live="polite">
-          <div class="class-picker-row">
-            <label for="classSelect">Class</label>
-            <select id="classSelect" class="class-select"></select>
-            <button id="applyClassBtn" class="control-btn neutral">Restart As Class</button>
-          </div>
-          <p id="classSummary" class="class-summary"></p>
-          <div id="statAllocation" class="stat-allocation"></div>
-          <div id="skillTreeNodes" class="skill-tree-nodes"></div>
-          <div id="skillBar" class="skill-bar"></div>
-        </section>
-        <section id="onboardingPanel" class="onboarding-panel hidden" aria-live="polite">
-          <div class="onboarding-head">
-            <h2>How to Play</h2>
-            <button id="dismissOnboardingBtn" class="control-btn neutral onboarding-dismiss-btn">Dismiss Tips</button>
-          </div>
-          <div class="onboarding-grid">
-            <p class="onboarding-tip">
-              <strong>Who You Are</strong>
-              You control the blue marker on the track map. Enemy units are the cards directly under the map.
-            </p>
-            <p class="onboarding-tip">
-              <strong>Main Goal</strong>
-              Clear every enemy in the current sector. After each clear, pick one reward and continue.
-            </p>
-            <p class="onboarding-tip">
-              <strong>Your Turn</strong>
-              1) Click an enemy. 2) Play combat cards using Steam. 3) Shift once with <kbd>Q</kbd>/<kbd>E</kbd> if needed.
-            </p>
-            <p class="onboarding-tip">
-              <strong>Cards vs Upgrades</strong>
-              Hand cards are temporary battle actions. Upgrades and artifacts appear only after sector clears.
-            </p>
-            <p class="onboarding-tip">
-              <strong>Enemy Warnings</strong>
-              Red circles/lines on the track are incoming attacks. When their timer finishes, they hit.
-            </p>
-            <p class="onboarding-tip">
-              <strong>Heat + End Turn</strong>
-              Heat above 90 causes direct damage. If End Turn is locked, move to the safer lane first.
-            </p>
-          </div>
-        </section>
-        <div class="upgrade-strip-wrap">
-          <div id="rewardTreeStrip" class="reward-tree-strip"></div>
-          <div id="gearStrip" class="gear-strip"></div>
-          <div id="upgradeStrip" class="upgrade-strip"></div>
-          <div id="artifactStrip" class="artifact-strip"></div>
-          <div class="meta-actions">
-            <button id="resetMetaBtn" class="control-btn neutral meta-reset-btn">Reset Meta Paths</button>
-            <button id="resetRunRecordsBtn" class="control-btn neutral records-reset-btn">Reset Run Records</button>
-          </div>
+        <div class="status-item">
+          <span class="status-label">Energy</span>
+          <strong id="energyValue">3</strong>
         </div>
-
-        <div class="warning-wrap">
-          <span id="warningLamp" class="warning-lamp"></span>
-          <p id="warningText">Reactor stable. Push output when ready.</p>
-          <span id="phaseBadge" class="phase-badge">Player Phase</span>
+        <div class="status-item">
+          <span class="status-label">Potions</span>
+          <strong id="potionValue">2</strong>
         </div>
-        <p id="combatLog" class="combat-log">Select an enemy, then play cards.</p>
-      </footer>
-
-      <section id="rewardPanel" class="panel reward-panel hidden">
-        <div class="reward-head">
-          <h2>Intermission Reward</h2>
-          <p id="rewardSubtitle">Choose one card to add before the next sector.</p>
+        <div class="status-item">
+          <span class="status-label">Deck</span>
+          <strong id="deckValue">0</strong>
         </div>
-        <div id="rewardMeta" class="reward-meta-summary"></div>
-        <div id="rewardIntel" class="reward-intel"></div>
-        <div id="rewardChoices" class="reward-choices"></div>
-        <div class="reward-actions">
-          <button id="skipRewardBtn" class="control-btn neutral">Skip Reward (+4 Hull)</button>
+        <div class="status-item">
+          <span class="status-label">Discard</span>
+          <strong id="discardValue">0</strong>
         </div>
       </section>
 
-      <section id="interludePanel" class="panel interlude-panel hidden">
-        <div class="reward-head">
-          <h2 id="interludeTitle">Interlude</h2>
-          <p id="interludeSubtitle"></p>
-        </div>
-        <div id="interludeChoices" class="interlude-choices"></div>
+      <section class="battle-grid">
+        <article class="panel battle-panel">
+          <div class="panel-head">
+            <h2>Party</h2>
+            <p>Your mercenary acts automatically when you end your turn.</p>
+          </div>
+          <div id="partyRow" class="entity-row"></div>
+          <div class="action-row">
+            <button id="potionHeroBtn" class="neutral-btn">Potion Hero</button>
+            <button id="potionMercBtn" class="neutral-btn">Potion Mercenary</button>
+            <button id="endTurnBtn" class="primary-btn">End Turn</button>
+          </div>
+        </article>
+
+        <article class="panel battle-panel">
+          <div class="panel-head">
+            <h2>Enemies</h2>
+            <p>Choose a target for single-target skills. Enemy intents resolve after your mercenary.</p>
+          </div>
+          <div id="enemyRow" class="entity-row enemy-row"></div>
+          <p id="targetHint" class="target-hint">Select an enemy to focus your next card.</p>
+        </article>
       </section>
 
-      <section id="runSummaryPanel" class="panel run-summary-panel hidden">
-        <div class="run-summary-head">
-          <h2 id="runSummaryTitle">Run Summary</h2>
-          <p id="runSummarySubtitle"></p>
+      <section class="panel hand-panel">
+        <div class="panel-head">
+          <h2>Hand</h2>
+          <p>Cards are your skill actions. Potions and mercenary support sit outside the deck.</p>
         </div>
-        <div id="runSummaryStats" class="run-summary-stats"></div>
-        <div class="run-summary-tools">
-          <button id="toggleRunTimelineBtn" class="control-btn neutral run-timeline-toggle hidden">
-            Show Full Timeline
-          </button>
+        <div id="handRow" class="hand-row"></div>
+      </section>
+
+      <section class="panel log-panel">
+        <div class="panel-head">
+          <h2>Combat Log</h2>
+          <p>Latest events appear first.</p>
         </div>
-        <div id="runSummaryTimeline" class="run-summary-timeline"></div>
+        <ol id="logList" class="log-list"></ol>
       </section>
     </main>
 
-    <script src="./balance.js"></script>
-    <script src="./utils.js"></script>
-    <script src="./runtime-utils.js"></script>
-    <script src="./engine-core.js"></script>
-    <script src="./persistence.js"></script>
-    <script src="./progression.js"></script>
-    <script src="./d2-seed-loader.js"></script>
-    <script src="./progression-content.js"></script>
-    <script src="./tuning-readers.js"></script>
-    <script src="./encounter-modifiers.js"></script>
-    <script src="./enemy-catalog.js"></script>
-    <script src="./card-catalog.js"></script>
-    <script src="./forecast.js"></script>
-    <script src="./threats.js"></script>
-    <script src="./enemy-phase.js"></script>
-    <script src="./combat-core.js"></script>
-    <script src="./player-actions.js"></script>
-    <script src="./run-flow.js"></script>
-    <script src="./meta-progression.js"></script>
-    <script src="./theme-assets.js"></script>
-    <script src="./gear-system.js"></script>
-    <script src="./reward-tree.js"></script>
-    <script src="./quest-system.js"></script>
-    <script src="./class-content.js"></script>
-    <script src="./class-system.js"></script>
-    <script src="./game-state.js"></script>
-    <script src="./hud-state.js"></script>
-    <script src="./enemy-ui.js"></script>
-    <script src="./controls-ui.js"></script>
-    <script src="./run-snapshot.js"></script>
-    <script src="./run-ui.js"></script>
+    <script src="./content.js"></script>
+    <script src="./combat-engine.js"></script>
     <script src="./main.js"></script>
   </body>
 </html>

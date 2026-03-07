@@ -27,7 +27,7 @@ async function downloadTagArchive(page, tag, outputDir) {
       const exactTransparent = hrefs.find(
         (href) => href.includes(`/archives/000000/transparent/${currentTag}.svg.zip`),
       );
-      if (exactTransparent) return exactTransparent;
+      if (exactTransparent) {return exactTransparent;}
 
       const anySvg = hrefs.find((href) => href.includes(`${currentTag}.svg.zip`));
       return anySvg || null;

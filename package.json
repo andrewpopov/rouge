@@ -1,13 +1,20 @@
 {
   "name": "rouge",
   "version": "1.0.0",
-  "description": "",
+  "description": "Diablo II-inspired roguelite deckbuilder combat foundation",
   "main": "index.js",
   "scripts": {
     "assets:download": "./scripts/download-assets.sh",
     "assets:curate": "./scripts/curate-mvp-icons.sh",
     "assets:download:dark-fantasy": "./scripts/download-dark-fantasy-assets.sh",
     "assets:curate:dark-fantasy": "./scripts/curate-dark-fantasy-icons.sh",
+    "seeds:sync:monsters": "node ./scripts/sync-d2-monsters.js",
+    "seeds:sync:items": "node ./scripts/sync-d2-items.js",
+    "seeds:sync:runes": "node ./scripts/sync-d2-runes.js",
+    "seeds:sync:runewords": "node ./scripts/sync-d2-runewords.js",
+    "lint": "eslint .",
+    "build": "node ./scripts/build.js",
+    "check": "npm run lint && npm run build && npm test",
     "start": "python3 -m http.server 4173",
     "test": "node --test tests/*.test.js"
   },
@@ -16,6 +23,12 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "playwright": "^1.58.2"
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "eslint": "^10.0.2",
+    "globals": "^17.4.0",
+    "playwright": "^1.58.2",
+    "typescript": "^5.9.2"
   }
 }
