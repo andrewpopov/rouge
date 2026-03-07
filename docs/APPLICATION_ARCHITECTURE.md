@@ -4,91 +4,121 @@ Last updated: March 7, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
-- Use this document for the application structure needed to build the full game loop from the current combat foundation.
-- Treat `COMBAT_FOUNDATION.md` as current runtime truth and `GAME_ENGINE_FLOW_PLAN.md` as product-direction truth.
+- Use `CODEBASE_RULES.md` for live module ownership and architecture patterns.
+- Use `IMPLEMENTATION_PROGRESS.md` for the live milestone snapshot.
+- Use this document as the engineering bridge between the current runtime and the next product-manager-approved build targets.
+- Treat `COMBAT_FOUNDATION.md` as current combat truth and `GAME_ENGINE_FLOW_PLAN.md` as broader product-direction guidance.
 
 ## Purpose
 
 This document answers one question:
 
-- how do we grow the current hero-plus-mercenary combat prototype into the full Diablo II-inspired roguelite loop without rebuilding the repo blindly.
+- how do we grow the current party-combat prototype into the full Diablo II-inspired run loop without losing the working architecture.
 
 It defines:
 
 - the top-level game loop
-- the runtime state model
-- the system boundaries
-- the file/module ownership plan
-- the recommended implementation order
+- the live runtime state model
+- the current domain boundaries
+- the next extraction and build seams
+- the implementation order that should drive team work
 
-## Current Starting Point
+## Current Runtime Truth
 
-The live app currently has three active runtime surfaces:
+The live workspace already has four active implementation layers.
 
-1. `content.js`
-- static content catalogs for hero, mercenaries, cards, enemies, and sample encounters
+### 1. Browser delivery layer
 
-2. `combat-engine.js`
-- deterministic encounter resolver for:
-  - hero turn
-  - mercenary action
-  - enemy intents
-  - potions
-  - victory / defeat
+- `index.html` defines script order and boot wiring.
+- the browser loads emitted runtime files from `generated/src/**`.
 
-3. `main.js`
-- browser shell for encounter selection, target selection, card play, potions, restart, and render
+### 2. TypeScript source modules under `src/`
 
-This is enough to serve as the combat core for the real game.
+- `src/content/game-content.ts` owns authored cards, hero defaults, mercenaries, and fallback content
+- `src/content/seed-loader.ts` loads the live seed bundle
+- `src/content/content-validator.ts` validates seed, generated, world-node, and affix content
+- `src/content/encounter-registry.ts` derives act encounter, boss, elite-affix, and archetype-behavior catalogs from seed data
+- `src/character/class-registry.ts` adapts class seeds into hero shells and starter decks
+- `src/quests/world-node-engine.ts` owns quest, shrine, aftermath-event, and opportunity node families plus reward-flow resolution
+- `src/run/run-factory.ts` owns run creation, route generation, progression actions, reward application, and act advancement
+- `src/combat/combat-engine.ts` owns deterministic encounter resolution
+- `src/items/item-system.ts` owns loadout, inventory, stash, sockets, runes, and runewords
+- `src/town/service-registry.ts` owns healer, belt, vendor, mercenary, and progression town actions
+- `src/state/*.ts` owns run or profile persistence and migrations
+- `src/app/app-engine.ts` owns top-level phase transitions and app-level orchestration
+- `src/app/main.ts` is a thin DOM and event bridge into phase-owned `src/ui/*` modules
 
-It is not enough to own:
+### 3. Seed and authored data
 
-- run generation
-- class selection
-- town flow
-- rewards
-- items and runes
-- quests and shrines
-- persistence
-- meta progression
+- `data/seeds/d2/*.json` currently supply classes, zones, enemy pools, monsters, bosses, items, runes, and runewords
+- `skills.json` and `assets-manifest.json` exist in the repo but are not yet wired into the live runtime
+- `src/types/game.d.ts` owns shared runtime contracts across app, run, combat, content, items, persistence, and tests
+
+### 4. Verification and packaging
+
+- `tests/*.test.ts` compile into `generated/tests/*.test.js` and load the browser runtime in a VM harness
+- `scripts/build.js` copies `index.html`, emitted runtime files, assets, and seed data into `dist/`
+
+## What The Live Runtime Already Owns
+
+- boot-time seed loading
+- seed and generated-content validation
+- front door, character select, safe zone, world map, encounter, reward, act transition, and run-end phases
+- front-door saved-run review plus continue or explicit abandon flow, profile summary, and onboarding surfaces
+- phase-owned UI modules under `src/ui/*` with `src/app/main.ts` kept thin
+- class-derived hero setup and mercenary selection
+- five-act route generation and generated encounter pools
+- act-specific boss scripting, multi-affix elite packages, and act-tuned archetype behavior
+- quest, shrine, aftermath-event, and opportunity nodes routed through the existing reward flow
+- safe-zone recovery, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell, inventory or stash actions, and town-hub presentation panels
+- deterministic combat plus choice-based reward carry-through
+- run snapshots, profile-backed stash persistence, run-history tracking, and lightweight profile meta defaults
+
+## What The Live Runtime Still Does Not Own
+
+- class skill trees and `skills.json` integrated into live progression
+- manual stat allocation beyond the current vitality, focus, and command training model
+- broader meta or profile UX such as unlocks, settings, and tutorial flags
+- broader mercenary pool and richer mercenary scaling rules
+- broader authored node catalogs beyond the current quest, shrine, aftermath-event, and opportunity set
+- broader item breadth and wider runeword coverage
 
 ## Product Loop
 
-The target application loop should be:
+The live and target loop should stay structurally aligned:
 
 ```mermaid
 flowchart TD
   A["Boot"] --> B["Front Door"]
-  B --> C["Profile / Meta Load"]
-  C --> D["Character Select"]
-  D --> E["Act Safe Zone"]
-  E --> F["Town Services"]
-  F --> G["World Map"]
-  G --> H{"Node Type"}
-  H -->|"Battle"| I["Encounter"]
-  H -->|"Miniboss"| I
-  H -->|"Boss"| I
-  H -->|"Shrine"| J["Shrine Resolution"]
-  H -->|"Quest Event"| K["Quest / Event Resolution"]
-  I --> L["Reward"]
-  J --> G
-  K --> G
-  L --> M{"Act Boss Cleared?"}
-  M -->|"No"| G
-  M -->|"Yes"| N["Act Transition"]
-  N --> O{"Act V Cleared?"}
-  O -->|"No"| E
-  O -->|"Yes"| P["Run Complete"]
-  I --> Q["Run Failed"]
+  B --> C["Character Select or Continue Run"]
+  C --> D["Act Safe Zone"]
+  D --> E["Town Services"]
+  E --> F["World Map"]
+  F --> G{"Node Type"}
+  G -->|"Battle"| H["Encounter"]
+  G -->|"Miniboss"| H
+  G -->|"Boss"| H
+  G -->|"Quest"| I["Node Reward"]
+  G -->|"Shrine"| I
+  G -->|"Aftermath Event"| I
+  G -->|"Opportunity"| I
+  H --> J["Reward"]
+  I --> F
+  J --> K{"Act Boss Cleared?"}
+  K -->|"No"| F
+  K -->|"Yes"| L["Act Transition"]
+  L --> M{"Act V Cleared?"}
+  M -->|"No"| D
+  M -->|"Yes"| N["Run Complete"]
+  H --> O["Run Failed"]
 ```
 
 ## Phase Contract
 
-Use one top-level phase enum for the full app:
+The runtime now uses one explicit top-level phase enum:
 
 - `boot`
 - `front_door`
-- `meta_sync`
 - `character_select`
 - `safe_zone`
 - `world_map`
@@ -98,68 +128,44 @@ Use one top-level phase enum for the full app:
 - `run_complete`
 - `run_failed`
 
+Reserved future addition:
+
+- `meta_sync`
+
 Rules:
 
-- Only the app shell changes top-level phase.
-- Combat turn flow is not a top-level app phase.
-- Town dialogs, vendor panels, and hire flows are subviews inside `safe_zone`.
-- Reward screens are subviews inside `reward`.
-- Tooltips and confirmation modals never become phases.
+- only the app shell changes top-level phase
+- combat turn flow is not a top-level app phase
+- vendor, stash, and progression spend flows are subviews inside `safe_zone`
+- tooltips and confirmation panels never become top-level phases
 
-## Encounter Contract
+## Live State Model
 
-The encounter layer should stay deterministic and self-contained.
-
-Encounter owns:
-
-- hero combat stats for the current fight
-- mercenary combat stats for the current fight
-- enemy pack state
-- hand, draw, discard, and exhaust zones
-- turn order
-- card resolution
-- potion usage inside combat
-- status effects
-- combat log
-- victory / defeat result
-
-Encounter does not own:
-
-- act routing
-- gold economy
-- reward choice persistence
-- town services
-- quest ledger
-- permanent inventory
-- meta unlocks
-
-Those belong to `RunState` or `MetaState`.
-
-## State Model
-
-The application should stabilize around five state buckets.
+The current runtime effectively stabilizes around five state buckets.
 
 ### `AppState`
 
 Owns shell-level control:
 
 - current top-level phase
-- loaded registries
-- current view/subview
-- active profile ID
-- active run ID
-- dirty/save-needed flags
+- loaded registries and content
+- selected class and mercenary UI state
+- current profile
+- active run
+- active combat state
+- shell error state
 
-### `MetaState`
+### `ProfileState`
 
-Owns account-level progress:
+Owns account-level persisted state that already exists:
 
-- unlocked classes
-- long-run legacy upgrades
-- seen tutorials
+- active run snapshot
+- stash entries
 - run history
-- settings
-- unlock flags for vendors, mercenary pools, and future systems
+
+Future extraction target:
+
+- a broader `MetaState` can eventually absorb unlocks, settings, tutorials, and legacy progression if that surface grows enough to justify separation
 
 ### `RunState`
 
@@ -169,15 +175,16 @@ Owns one run across acts:
 - selected mercenary contract
 - current act, zone, and node
 - route graph and reachable nodes
-- deck, draw rules, and card upgrades carried between fights
+- deck and card upgrades carried between fights
 - equipped items
-- rune inventory and socket state
+- carried inventory and stash transfer boundaries
+- rune and socket state
 - potion belt and refill state
-- quests
-- shrine resolutions
-- gold, XP, level, stats, and skill points
+- quest, shrine, and event outcomes
+- follow-up consequence flags
+- gold, XP, level, training ranks, and skill points
 - reward queue
-- town service availability
+- town service state including vendor stock
 
 ### `CombatState`
 
@@ -188,23 +195,23 @@ Owns one encounter only:
 - intent schedule
 - temporary statuses
 - temporary buffs and debuffs
-- combat-only summons and temporary cards
+- draw, hand, and discard state
 - encounter outcome
 
 ### `UIState`
 
 Owns interaction state only:
 
+- selected class and mercenary
+- pending abandon confirmation
 - selected target
-- hovered card / item / node
 - open panel
-- pending confirm action
-- focused reward option
-- recent message / notification state
+- hovered card, item, or node
+- recent message or notification state
 
 ## Domain Boundaries
 
-The application should be split into these domains.
+The application should keep these domain boundaries intact.
 
 ### 1. App Shell
 
@@ -213,49 +220,61 @@ Responsibility:
 - boot the game
 - load registries
 - load or create profile
-- load or create run
+- load or create or continue run
 - enforce top-level phase transitions
 - hand the correct state slice to the correct screen
 
-Recommended files:
+Current files:
 
-- `src/app/app-shell.js`
-- `src/app/phase-controller.js`
-- `src/app/navigation-state.js`
+- `src/app/app-engine.ts`
+- `src/app/main.ts`
+
+Future extraction targets:
+
+- `src/app/phase-controller.ts`
+- `src/app/navigation-state.ts`
 
 ### 2. Content Registry
 
 Responsibility:
 
-- load normalized content from:
-  - `data/seeds/d2/*.json`
-  - authored JS or JSON combat content
+- load normalized content from seed and authored sources
 - validate IDs and references
-- expose immutable registries for classes, skills, items, runes, runewords, enemies, mercenaries, zones, bosses, and cards
+- expose immutable registries for classes, items, runes, runewords, enemies, mercenaries, zones, bosses, cards, and world nodes
 
-Recommended files:
+Current files:
 
-- `src/content/content-registry.js`
-- `src/content/seed-loader.js`
-- `src/content/content-validator.js`
-- `src/content/content-normalizers.js`
+- `src/content/game-content.ts`
+- `src/content/seed-loader.ts`
+- `src/content/encounter-registry.ts`
+- `src/content/content-validator.ts`
 
-### 3. Character Domain
+Next expansion:
+
+- load and validate `skills.json`
+- add normalization support for broader content families
+
+### 3. Character and Progression Domain
 
 Responsibility:
 
 - class baselines
-- stat growth
-- skill tree allocation
+- level-based training growth
+- future class-family progression
+- future stat allocation
 - derived combat values
-- class starter decks and skill bars
+- class starter decks
 
-Recommended files:
+Current files:
 
-- `src/character/class-registry.js`
-- `src/character/stat-system.js`
-- `src/character/skill-tree-system.js`
-- `src/character/deck-builder.js`
+- `src/character/class-registry.ts`
+- `src/run/run-factory.ts`
+
+Future extraction targets:
+
+- `src/character/stat-system.ts`
+- `src/character/skill-tree-system.ts`
+- `src/character/deck-builder.ts`
 
 ### 4. Run Domain
 
@@ -264,16 +283,19 @@ Responsibility:
 - create a run
 - generate act routes
 - advance nodes
-- hand off into encounter, shrine, event, and reward resolution
+- hand off into encounter, quest, shrine, event, and reward resolution
 - decide act transitions and run completion
 
-Recommended files:
+Current file:
 
-- `src/run/run-state.js`
-- `src/run/run-factory.js`
-- `src/run/world-map-generator.js`
-- `src/run/node-resolver.js`
-- `src/run/act-transition.js`
+- `src/run/run-factory.ts`
+
+Future extraction targets:
+
+- `src/run/run-state.ts`
+- `src/run/world-map-generator.ts`
+- `src/run/node-resolver.ts`
+- `src/run/act-transition.ts`
 
 ### 5. Combat Domain
 
@@ -284,109 +306,122 @@ Responsibility:
 - status resolution
 - enemy AI
 - mercenary AI
-- encounter win/loss result
+- encounter win or loss result
 
 Current bridge:
 
-- `combat-engine.js`
+- `src/combat/combat-engine.ts`
 
-Recommended future split:
+Future split:
 
-- `src/combat/combat-state.js`
-- `src/combat/combat-engine.js`
-- `src/combat/card-resolution.js`
-- `src/combat/enemy-ai.js`
-- `src/combat/mercenary-ai.js`
-- `src/combat/status-system.js`
+- `src/combat/combat-state.ts`
+- `src/combat/card-resolution.ts`
+- `src/combat/enemy-ai.ts`
+- `src/combat/mercenary-ai.ts`
+- `src/combat/status-system.ts`
 
-### 6. Reward and Economy Domain
+### 6. Rewards and Economy Domain
 
 Responsibility:
 
-- reward offers after fights
+- reward offers after fights and nodes
 - gold payouts
-- potion drops
-- item drops
+- potion payouts
+- item and rune offers
 - card rewards
-- card-family upgrades
-- shrine payouts
-- vendor stock generation
+- progression spend hooks
+- vendor stock generation and pricing
 
-Recommended files:
+Current files:
 
-- `src/rewards/reward-engine.js`
-- `src/rewards/card-reward-system.js`
-- `src/rewards/drop-tables.js`
-- `src/economy/vendor-system.js`
-- `src/economy/gold-ledger.js`
+- `src/rewards/reward-engine.ts`
+- `src/items/item-system.ts`
+- `src/town/service-registry.ts`
+
+Future extraction targets:
+
+- `src/rewards/card-reward-system.ts`
+- `src/rewards/drop-tables.ts`
+- `src/economy/vendor-system.ts`
+- `src/economy/gold-ledger.ts`
 
 ### 7. Itemization Domain
 
 Responsibility:
 
 - inventory
+- stash handoff
 - equipment slots
-- affixes
 - runes
 - sockets
 - runewords
-- item effects that modify combat and deck behavior
+- combat bonuses derived from loadout
 
-Recommended files:
+Current file:
 
-- `src/items/item-system.js`
-- `src/items/equipment-system.js`
-- `src/items/rune-system.js`
-- `src/items/runeword-system.js`
+- `src/items/item-system.ts`
+
+Future extraction targets:
+
+- `src/items/equipment-system.ts`
+- `src/items/rune-system.ts`
+- `src/items/runeword-system.ts`
 
 ### 8. Town and Services Domain
 
 Responsibility:
 
-- safe-zone layout and service availability
+- safe-zone service availability
 - healing
-- vendors
-- stash-equivalent decisions if added later
-- mercenary hire / replace / revive
-- quest/NPC interactions
+- vendor flows
+- stash transfer
+- progression spend actions
+- mercenary hire or replace or revive
 
-Recommended files:
+Current file:
 
-- `src/town/town-state.js`
-- `src/town/service-registry.js`
-- `src/town/mercenary-hall.js`
-- `src/town/vendor-inventory.js`
+- `src/town/service-registry.ts`
+
+Future extraction targets:
+
+- `src/town/town-state.ts`
+- `src/town/mercenary-hall.ts`
+- `src/town/vendor-inventory.ts`
 
 ### 9. Quest and Event Domain
 
 Responsibility:
 
 - quest generation
-- quest progress updates
+- quest follow-up consequences
 - shrine effects
-- special event outcomes
-- boss quest milestones
+- aftermath-event outcomes
+- opportunity-chain outcomes
+- future special-event families
 
-Recommended files:
+Current file:
 
-- `src/quests/quest-system.js`
-- `src/quests/shrine-system.js`
-- `src/events/event-system.js`
+- `src/quests/world-node-engine.ts`
+
+Future extraction targets:
+
+- `src/quests/quest-system.ts`
+- `src/events/event-system.ts`
 
 ### 10. Persistence Domain
 
 Responsibility:
 
-- save/load profile and run snapshots
+- save or load profile and run snapshots
 - versioning and migrations
 - run history records
 - crash-safe resume
 
-Recommended files:
+Current files:
 
-- `src/state/persistence.js`
-- `src/state/save-migrations.js`
-- `src/state/run-history.js`
+- `src/state/persistence.ts`
+- `src/state/save-migrations.ts`
+- `src/state/profile-migrations.ts`
 
 ### 11. UI Domain
 
@@ -398,31 +433,35 @@ Responsibility:
 - world map
 - combat HUD
 - reward panels
+- act transition
 - run summary
 
-Recommended files:
+Current files:
 
-- `src/ui/front-door-view.js`
-- `src/ui/character-select-view.js`
-- `src/ui/safe-zone-view.js`
-- `src/ui/world-map-view.js`
-- `src/ui/combat-view.js`
-- `src/ui/reward-view.js`
-- `src/ui/run-summary-view.js`
+- `src/app/main.ts`
+- `src/ui/ui-common.ts`
+- `src/ui/front-door-view.ts`
+- `src/ui/character-select-view.ts`
+- `src/ui/safe-zone-view.ts`
+- `src/ui/world-map-view.ts`
+- `src/ui/combat-view.ts`
+- `src/ui/reward-view.ts`
+- `src/ui/act-transition-view.ts`
+- `src/ui/run-summary-view.ts`
 
 ## Data Ownership Rules
 
-These rules keep the full loop coherent.
+These rules keep the loop coherent.
 
 1. Content data is read-only at runtime.
-- Do not mutate registries.
+- do not mutate registries
 
 2. `RunState` owns permanent-in-run changes.
 - gained gold
 - deck changes
-- equipped items
-- quest progress
-- shrine outcomes
+- inventory and loadout changes
+- quest, shrine, and event outcomes
+- progression and vendor state
 
 3. `CombatState` owns temporary encounter changes.
 - damage
@@ -432,7 +471,7 @@ These rules keep the full loop coherent.
 - next-attack buffs
 
 4. Combat rewards are applied only after encounter resolution.
-- a fight cannot directly mutate run inventory without going through reward resolution.
+- fights and nodes resolve through app or run reward seams, not direct permanent mutation from UI code
 
 5. Mercenary definition and mercenary combat instance are separate.
 - catalog data lives in content
@@ -441,35 +480,38 @@ These rules keep the full loop coherent.
 
 ## Screen Ownership
 
-The first complete playable application should have these screens:
+The live prototype already ships thin versions of these screens. The next build should deepen them without collapsing their boundaries.
 
 1. `Front Door`
 - start run
 - continue run
-- run history
-- legacy/meta entry
+- abandon run
+- saved-run summary
+- run-history and stash summary
 
 2. `Character Select`
 - class pick
 - class preview
-- starter deck and skill preview
-- mercenary preview if unlocked early
+- starter deck preview
+- mercenary preview
 
 3. `Safe Zone`
 - healing
 - vendor
-- mercenary hire/replace/revive
-- quest/NPC context
+- inventory and stash
+- mercenary hire or replace or revive
+- progression spend actions
 - leave town
 
 4. `World Map`
 - act and zone labels
 - reachable nodes
-- quest markers
+- node prerequisites
+- quest, shrine, aftermath, and opportunity visibility
 - boss route visibility
 
 5. `Encounter`
-- current combat HUD
+- combat HUD
 - target selection
 - card play
 - potion belt
@@ -477,176 +519,139 @@ The first complete playable application should have these screens:
 - visible enemy intents
 
 6. `Reward`
-- post-fight card/item/gold/potion choices
-- level-up/stat allocation when triggered
-- quest payout if completed
+- post-fight and post-node rewards
+- card, item, rune, or boon choices
+- quest, shrine, event, and opportunity outcome summaries
 
 7. `Run End`
 - win or loss summary
 - build recap
-- progression earned
-- restart or return to menu
-
-## Current-To-Target File Strategy
-
-Do not rewrite the whole repo at once.
-
-Use this extraction path:
-
-### Step 1
-
-Keep current root runtime files working:
-
-- `content.js`
-- `combat-engine.js`
-- `main.js`
-
-### Step 2
-
-Introduce `src/` modules for new domains first:
-
-- app shell
-- content registry
-- run state
-- rewards
-- persistence
-
-### Step 3
-
-Move current combat logic behind the same public API:
-
-- `createCombatState`
-- `playCard`
-- `endTurn`
-- `usePotion`
-
-This lets the UI keep working while combat internals move under `src/combat`.
-
-### Step 4
-
-Replace the current encounter sandbox UI with phase-aware screens one by one:
-
-- front door
-- character select
-- safe zone
-- world map
-- encounter
-- reward
-
-### Step 5
-
-Retire root-level compatibility files only after the `src/` path is active and tested.
+- run-history handoff
 
 ## Full Game Loop Build Order
 
-Implement in this order.
+Implement in this order. Current status is noted so the live workspace and plan stay aligned.
 
-### Milestone 1: Content and Bootstrap
+### Milestone 1: Content and Bootstrap (`implemented`)
 
-Ship:
+Live:
 
 - seed loader
-- content validation
 - class registry
-- enemy and boss registry
-- item/rune registry
+- encounter registry
+- content validation
+- build packaging
 
-Exit:
+Still missing:
 
-- boot can load all required content and fail clearly on broken IDs
+- skill-tree and asset-manifest content wired into the runtime
+- broader normalization
 
-### Milestone 2: App Shell and Run Lifecycle
+### Milestone 2: App Shell and Run Lifecycle (`implemented`)
 
-Ship:
+Live:
 
 - front door
+- continue or abandon run
+- profile hall and onboarding guidance
 - character select
-- phase controller
-- new run creation
-- save/load scaffold
+- app engine
+- run creation
+- safe-zone handoff
+- profile-backed snapshot bootstrap
 
-Exit:
+Still missing:
 
-- player can start, resume, and abandon a run cleanly
+- broader profile settings or unlock surfaces beyond the current shell
 
-### Milestone 3: World Map Loop
+### Milestone 3: World Map Loop (`implemented`)
 
-Ship:
+Live:
 
 - act route generator
 - node traversal
-- battle/miniboss/boss node types
-- return-to-map after encounter
+- battle, miniboss, boss, quest, shrine, aftermath, and opportunity nodes
+- return-to-map after encounter or node
+- act transitions through Act V
 
-Exit:
+Still missing:
 
-- player can complete one act through map traversal and combat
+- richer routing and broader authored node catalogs
 
-### Milestone 4: Rewards and Progression
+### Milestone 4: Rewards and Progression (`partial`)
 
-Ship:
+Live:
 
 - reward screens
-- card additions
-- card-family upgrades
-- XP, level, stat points, and skill points
+- gold, XP, and potion payouts
+- card additions and upgrades
+- party boons
+- item and rune reward choices
+- training-rank spends in town
 
-Exit:
+Still missing:
 
-- the run changes meaningfully after each encounter
+- class-family progression
+- skill-tree progression
+- manual stat allocation
 
-### Milestone 5: Safe Zone and Mercenary Management
+### Milestone 5: Safe Zone and Mercenary Management (`partial`)
 
-Ship:
+Live:
 
 - town services
-- mercenary hire/replace/revive
-- vendor stock
-- potion refill rules
+- mercenary hire or replace or revive
+- vendor stock refresh and buy or sell flows
+- stash and inventory actions
 
-Exit:
+Still missing:
 
-- acts feel structurally different from encounters
+- broader service differentiation
+- broader mercenary roster and scaling
 
-### Milestone 6: Itemization
+### Milestone 6: Itemization (`partial`)
 
-Ship:
+Live:
 
-- item drops
-- equipment
+- item and rune rewards
+- equipment and inventory
+- stash transfer
 - sockets
-- runes
-- runewords
+- early runewords
 
-Exit:
+Still missing:
 
-- loot becomes a first-class build driver
+- broader loot breadth
+- deeper replacement pressure
+- wider runeword coverage
 
-### Milestone 7: Quests, Shrines, and Events
+### Milestone 7: Quests, Shrines, and Events (`partial`)
 
-Ship:
+Live:
 
-- quest ledger
-- shrine nodes
-- special events
-- quest rewards
+- quest, shrine, aftermath-event, and opportunity nodes
+- consequence flags and multi-step chain state
+- node reward resolution through the existing phase machine
 
-Exit:
+Still missing:
 
-- pathing decisions matter beyond raw combat EV
+- broader authored route-side catalogs
 
-### Milestone 8: Run Completion and Meta
+### Milestone 8: Run Completion and Meta (`partial`)
 
-Ship:
+Live:
 
 - act transitions through Act V
 - run summary
 - run history
-- legacy/meta progression
+- active-run and stash persistence
 
-Exit:
+Still missing:
 
-- full start-to-finish run loop exists
+- unlocks
+- settings
+- tutorial state
+- broader meta progression
 
 ## Guardrails
 
@@ -654,8 +659,8 @@ Do not:
 
 - reintroduce lane movement as a core combat system
 - make forecast UI solve turns for the player
-- let town logic leak into combat resolver
-- let combat directly mutate account/meta state
+- let town logic leak into the combat resolver
+- let combat directly mutate profile or meta state
 - hardcode item, rune, or mercenary behavior in UI files
 
 Do:
@@ -664,25 +669,17 @@ Do:
 - keep content data-driven
 - keep encounter state separate from run state
 - keep top-level app phases explicit
-- build the game loop by adding domains, not by expanding `main.js`
+- keep growing the game by adding domains, not by expanding `src/app/main.ts`
 
 ## Immediate Next Execution Targets
 
-The next implementation work should produce these concrete artifacts:
+The next implementation work should follow the product-manager-owned lanes:
 
-1. `src/content/seed-loader.js`
-- loads and validates D2 seed JSON
+1. Agent 1
+- deepen front-door and town UX around the current profile, vendor, stash, progression, and node systems
 
-2. `src/app/phase-controller.js`
-- owns top-level phase transitions
+2. Agent 2
+- load skill-tree seed content and build class-family progression, manual stat allocation, broader loot breadth, and deeper profile or meta persistence
 
-3. `src/run/run-factory.js`
-- creates the first real `RunState`
-
-4. `src/ui/front-door-view.js`
-- replaces direct encounter sandbox boot
-
-5. `src/ui/character-select-view.js`
-- starts the run from class choice instead of fixed hero content
-
-These are the minimum pieces needed to stop thinking in terms of isolated combat tests and start building the full game loop.
+3. Agent 3
+- broaden node families, deepen quest chains, expand elite or archetype variety, and harden the content pipeline for those new authored surfaces

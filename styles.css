@@ -71,7 +71,8 @@ body {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   margin: 0;
   font-family: var(--font-display);
   letter-spacing: 0.02em;
@@ -188,9 +189,19 @@ h2 {
   gap: 18px;
 }
 
+.safe-zone-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 18px;
+}
+
 .battle-panel,
 .hand-panel,
 .log-panel {
+  padding: 22px 20px;
+}
+
+.flow-panel {
   padding: 22px 20px;
 }
 
@@ -235,6 +246,14 @@ h2 {
 .entity-card {
   padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+button.entity-card {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
 .entity-card.ally {
@@ -367,11 +386,243 @@ h2 {
   line-height: 1.5;
 }
 
+.status-strip-wide {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+.feature-grid,
+.selection-grid,
+.map-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.front-door-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.feature-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.selection-grid,
+.map-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.selection-grid-mercs {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.feature-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feature-card strong {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.front-door-snapshot-grid .feature-grid {
+  margin-top: 12px;
+  grid-template-columns: 1fr;
+}
+
+.town-ledger .feature-card strong,
+.service-card strong {
+  margin-bottom: 0;
+}
+
+.feature-card p,
+.flow-copy,
+.notice-panel p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.cta-row > * {
+  flex: 1 1 180px;
+}
+
+.cta-row-tight > * {
+  flex-basis: 140px;
+}
+
+.badge-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.notice-panel {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  padding: 16px 18px;
+  border-color: rgba(213, 159, 74, 0.45);
+}
+
+.notice-panel strong {
+  color: var(--accent);
+}
+
+.confirm-panel {
+  margin-top: 18px;
+  border-color: rgba(197, 96, 82, 0.5);
+}
+
+.service-card,
+.mercenary-card {
+  min-height: 100%;
+}
+
+.snapshot-card,
+.loadout-bench-card {
+  min-height: 100%;
+}
+
+.service-card {
+  background:
+    linear-gradient(180deg, rgba(213, 159, 74, 0.08), rgba(255, 255, 255, 0)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.service-card-disabled,
+.mercenary-card-disabled {
+  opacity: 0.8;
+}
+
+.service-subtitle {
+  margin: 8px 0 0;
+  color: var(--accent);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.service-preview {
+  margin-top: 12px;
+}
+
+.town-service-grid,
+.mercenary-hall-grid {
+  align-items: start;
+}
+
+.town-operations-grid,
+.loadout-bench-grid,
+.reward-state-grid {
+  margin-top: 18px;
+}
+
+.ledger-list {
+  margin-top: 12px;
+}
+
+.safe-zone-cta {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(213, 159, 74, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(213, 159, 74, 0.12), transparent 42%),
+    rgba(20, 14, 11, 0.72);
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.safe-zone-cta .eyebrow {
+  margin-bottom: 6px;
+}
+
+.class-card {
+  min-height: 100%;
+}
+
+.map-node {
+  min-height: 100%;
+}
+
+.map-node-details {
+  margin-top: 12px;
+  min-height: 0;
+}
+
+.map-node.available {
+  border-color: rgba(93, 143, 120, 0.45);
+}
+
+.map-node.locked {
+  opacity: 0.68;
+}
+
+.map-node.cleared {
+  border-color: rgba(213, 159, 74, 0.45);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.badge-available {
+  background: rgba(93, 143, 120, 0.22);
+  color: #caefd8;
+}
+
+.badge-locked {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.badge-cleared {
+  background: rgba(213, 159, 74, 0.2);
+  color: #ffe2b1;
+}
+
+.reward-list {
+  min-height: 100%;
+}
+
 @media (max-width: 900px) {
   .control-bar,
   .status-strip,
   .battle-grid,
+  .safe-zone-grid,
   .action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .status-strip-wide,
+  .feature-grid,
+  .selection-grid,
+  .map-grid,
+  .front-door-snapshot-grid {
     grid-template-columns: 1fr;
   }
 
@@ -382,5 +633,14 @@ h2 {
 
   .panel-head p {
     text-align: left;
+  }
+
+  .cta-row {
+    flex-direction: column;
+  }
+
+  .safe-zone-cta {
+    flex-direction: column;
+    align-items: start;
   }
 }

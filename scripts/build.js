@@ -70,7 +70,7 @@ function main() {
 
   fs.writeFileSync(
     path.join(DIST, "build-manifest.json"),
-    JSON.stringify(buildManifest, null, 2) + "\n",
+    `${JSON.stringify(buildManifest, null, 2)}\n`,
     "utf8"
   );
 

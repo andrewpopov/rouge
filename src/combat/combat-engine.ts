@@ -1,8 +1,13 @@
 (() => {
-  const runtimeWindow = typeof window === "object" ? window : {};
+  const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  function parseInteger(value, fallback) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) ? parsed : fallback;
   }
 
   function appendLog(state, message) {
@@ -26,23 +31,46 @@
     return { instanceId, cardId };
   }
 
-  function createHero(content) {
-    return {
+  function createHero(content, heroState = null) {
+    const definition = {
       ...content.hero,
-      life: content.hero.maxLife,
+      ...(heroState && typeof heroState === "object" ? heroState : {}),
+    };
+    const maxLife = Math.max(1, parseInteger(definition.maxLife, content.hero.maxLife || 1));
+    const maxEnergy = Math.max(1, parseInteger(definition.maxEnergy, content.hero.maxEnergy || 1));
+    const handSize = Math.max(1, parseInteger(definition.handSize, content.hero.handSize || 1));
+    const potionHeal = Math.max(1, parseInteger(definition.potionHeal, content.hero.potionHeal || 1));
+    const life = clamp(parseInteger(heroState?.life ?? heroState?.currentLife, maxLife), 0, maxLife);
+    return {
+      ...definition,
+      maxLife,
+      maxEnergy,
+      handSize,
+      potionHeal,
+      life,
       guard: 0,
-      energy: content.hero.maxEnergy,
-      alive: true,
+      energy: maxEnergy,
+      alive: life > 0,
+      damageBonus: Math.max(0, parseInteger(definition.damageBonus, 0)),
+      guardBonus: Math.max(0, parseInteger(definition.guardBonus, 0)),
+      burnBonus: Math.max(0, parseInteger(definition.burnBonus, 0)),
     };
   }
 
-  function createMercenary(content, mercenaryId) {
+  function createMercenary(content, mercenaryId, mercenaryState = null) {
     const definition = content.mercenaryCatalog[mercenaryId];
-    return {
+    const merged = {
       ...definition,
-      life: definition.maxLife,
+      ...(mercenaryState && typeof mercenaryState === "object" ? mercenaryState : {}),
+    };
+    const maxLife = Math.max(1, parseInteger(merged.maxLife, definition.maxLife || 1));
+    const life = clamp(parseInteger(mercenaryState?.life ?? mercenaryState?.currentLife, maxLife), 0, maxLife);
+    return {
+      ...merged,
+      maxLife,
+      life,
       guard: 0,
-      alive: true,
+      alive: life > 0,
       nextAttackBonus: 0,
       markedEnemyId: "",
       markBonus: 0,
@@ -66,8 +94,9 @@
     };
   }
 
-  function createDeck(state, content) {
-    const deck = content.starterDeck.map((cardId) => makeCardInstance(state, cardId));
+  function createDeck(state, content, starterDeck = null) {
+    const deckSource = Array.isArray(starterDeck) && starterDeck.length > 0 ? starterDeck : content.starterDeck;
+    const deck = deckSource.map((cardId) => makeCardInstance(state, cardId));
     return shuffleInPlace(deck, state.randomFn);
   }
 
@@ -171,11 +200,26 @@
     if (intent.kind === "attack") {
       return `${intent.label}: ${intent.value} damage`;
     }
+    if (intent.kind === "attack_all") {
+      return `${intent.label}: ${intent.value} damage to both allies`;
+    }
+    if (intent.kind === "attack_and_guard") {
+      return `${intent.label}: ${intent.value} damage, then gain Guard`;
+    }
+    if (intent.kind === "drain_attack") {
+      return `${intent.label}: ${intent.value} damage and self-heal`;
+    }
     if (intent.kind === "guard") {
       return `${intent.label}: +${intent.value} Guard`;
     }
+    if (intent.kind === "guard_allies") {
+      return `${intent.label}: +${intent.value} Guard to all enemies`;
+    }
     if (intent.kind === "heal_ally") {
       return `${intent.label}: heal ally ${intent.value}`;
+    }
+    if (intent.kind === "sunder_attack") {
+      return `${intent.label}: break Guard, then hit for ${intent.value}`;
     }
     return intent.label || "Unknown";
   }
@@ -189,12 +233,14 @@
 
   function resolveCardEffect(state, effect, targetEnemy) {
     if (effect.kind === "damage") {
-      const dealt = dealDamage(state, targetEnemy, effect.value);
+      const damage = Math.max(0, effect.value + state.hero.damageBonus);
+      const dealt = dealDamage(state, targetEnemy, damage);
       return `dealt ${dealt} to ${targetEnemy.name}.`;
     }
     if (effect.kind === "gain_guard_self") {
-      applyGuard(state.hero, effect.value);
-      return `gained ${effect.value} Guard.`;
+      const guardValue = Math.max(0, effect.value + state.hero.guardBonus);
+      applyGuard(state.hero, guardValue);
+      return `gained ${guardValue} Guard.`;
     }
     if (effect.kind === "mark_enemy_for_mercenary") {
       state.mercenary.markedEnemyId = targetEnemy?.alive ? targetEnemy.id : "";
@@ -203,22 +249,25 @@
     }
     if (effect.kind === "apply_burn") {
       if (targetEnemy && targetEnemy.alive) {
-        targetEnemy.burn = Math.max(0, targetEnemy.burn + effect.value);
-        return `applied ${effect.value} Burn.`;
+        const burnValue = Math.max(0, effect.value + state.hero.burnBonus);
+        targetEnemy.burn = Math.max(0, targetEnemy.burn + burnValue);
+        return `applied ${burnValue} Burn.`;
       }
       return "";
     }
     if (effect.kind === "gain_guard_party") {
-      applyGuard(state.hero, effect.value);
-      applyGuard(state.mercenary, effect.value);
-      return `granted ${effect.value} Guard to the party.`;
+      const guardValue = Math.max(0, effect.value + state.hero.guardBonus);
+      applyGuard(state.hero, guardValue);
+      applyGuard(state.mercenary, guardValue);
+      return `granted ${guardValue} Guard to the party.`;
     }
     if (effect.kind === "buff_mercenary_next_attack") {
       state.mercenary.nextAttackBonus = Math.max(0, state.mercenary.nextAttackBonus + effect.value);
       return `buffed the mercenary's next attack by ${effect.value}.`;
     }
     if (effect.kind === "damage_all") {
-      const total = getLivingEnemies(state).reduce((sum, enemy) => sum + dealDamage(state, enemy, effect.value), 0);
+      const damage = Math.max(0, effect.value + state.hero.damageBonus);
+      const total = getLivingEnemies(state).reduce((sum, enemy) => sum + dealDamage(state, enemy, damage), 0);
       return `dealt ${total} total damage.`;
     }
     if (effect.kind === "heal_mercenary") {
@@ -366,6 +415,15 @@
       return;
     }
 
+    if (intent.kind === "guard_allies") {
+      const livingEnemies = getLivingEnemies(state);
+      livingEnemies.forEach((livingEnemy) => {
+        applyGuard(livingEnemy, intent.value);
+      });
+      appendLog(state, `${enemy.name} uses ${intent.label} and fortifies the enemy line.`);
+      return;
+    }
+
     if (intent.kind === "heal_ally") {
       const target =
         getLivingEnemies(state)
@@ -375,6 +433,50 @@
         const healed = healEntity(target, intent.value);
         appendLog(state, `${enemy.name} uses ${intent.label} and heals ${target.name} for ${healed}.`);
       }
+      return;
+    }
+
+    if (intent.kind === "attack_all") {
+      const partyTargets = [state.hero, state.mercenary].filter((target) => target?.alive);
+      const segments = partyTargets.map((target) => {
+        const dealt = dealDamage(state, target, intent.value);
+        return `${target.name} for ${dealt}`;
+      });
+      appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}.`);
+      return;
+    }
+
+    if (intent.kind === "attack_and_guard") {
+      const target = chooseEnemyTarget(state, intent.target);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, intent.value);
+      const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 2)));
+      appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and gains ${guardGained} Guard.`);
+      return;
+    }
+
+    if (intent.kind === "sunder_attack") {
+      const target = chooseEnemyTarget(state, intent.target);
+      if (!target) {
+        return;
+      }
+      const removedGuard = target.guard;
+      target.guard = 0;
+      const dealt = dealDamage(state, target, intent.value);
+      appendLog(state, `${enemy.name} uses ${intent.label}, shattering ${removedGuard} Guard and hitting ${target.name} for ${dealt}.`);
+      return;
+    }
+
+    if (intent.kind === "drain_attack") {
+      const target = chooseEnemyTarget(state, intent.target);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, intent.value);
+      const healed = healEntity(enemy, intent.secondaryValue || Math.max(1, Math.ceil(dealt / 2)));
+      appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and heals ${healed}.`);
       return;
     }
 
@@ -466,7 +568,16 @@
     return { ok: true, message: "Potion used." };
   }
 
-  function createCombatState({ content, encounterId, mercenaryId, randomFn = Math.random }) {
+  function createCombatState({
+    content,
+    encounterId,
+    mercenaryId,
+    randomFn = Math.random,
+    heroState = null,
+    mercenaryState = null,
+    starterDeck = null,
+    initialPotions = 2,
+  }) {
     const encounter = content.encounterCatalog[encounterId];
     const state = {
       encounter,
@@ -475,9 +586,9 @@
       turn: 0,
       phase: "player",
       outcome: null,
-      potions: 2,
-      hero: createHero(content),
-      mercenary: createMercenary(content, mercenaryId),
+      potions: Math.max(0, parseInteger(initialPotions, 0)),
+      hero: createHero(content, heroState),
+      mercenary: createMercenary(content, mercenaryId, mercenaryState),
       enemies: encounter.enemies.map((enemyEntry) => createEnemy(content, enemyEntry)),
       drawPile: [],
       discardPile: [],
@@ -486,7 +597,7 @@
       selectedEnemyId: "",
     };
 
-    state.drawPile = createDeck(state, content);
+    state.drawPile = createDeck(state, content, starterDeck);
     state.selectedEnemyId = getFirstLivingEnemyId(state);
     appendLog(state, `${encounter.name}: ${encounter.description}`);
     startPlayerTurn(state);

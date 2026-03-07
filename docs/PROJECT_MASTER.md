@@ -9,6 +9,7 @@ This file is the repo entry point.
 Use it to separate:
 
 - current implementation truth
+- live architecture patterns
 - restored target-state guidance
 - retired prototype material that should stay deleted
 
@@ -20,33 +21,39 @@ Rouge is now a Diablo II-inspired roguelite deckbuilder built around party comba
 - one mercenary companion
 - an encounter-sized enemy pack
 
-The retired lane/steam/telegraph prototype has been removed from the active repo surface.
+The retired lane or steam or telegraph prototype remains deleted from the active repo surface.
 
 ## Current Build
 
-The live browser build is a combat foundation, not a full run loop.
+The live browser build is a multi-screen app-loop prototype built on the combat foundation.
 
 Implemented now:
 
-- one hero action deck
+- boot-time seed loading from `data/seeds/d2/*.json`
+- seed, runtime, world-node, and elite-affix validation with clearer failure messages
+- front door, character select, safe zone, world map, encounter, reward, act transition, and run-end phases
+- front-door saved-snapshot review with explicit continue or abandon flow plus profile, stash, run-history, and onboarding panels
+- seed-driven class selection and class-derived hero shells
 - three mercenary profiles
-- three sample encounters
-- visible enemy intent cycling
-- potions as support actions
-- automatic mercenary action on the ally turn
-- browser UI for repeated combat iteration
+- generated act encounter catalogs and zone routes across Acts I-V
+- act-specific boss scripting plus multi-affix elite packages and act-tuned base archetype behavior
+- potions as support actions and automatic mercenary turns
+- quest, shrine, aftermath-event, and opportunity world nodes on the map, all routed through the existing reward flow
+- quest outcome tracking plus shrine, event, and opportunity ledgers with explicit multi-step chain consequences on the run
+- reward choice screens with deck growth, card upgrades, party boons, item or rune progression, and progression-point rewards
+- `skills.json`-backed class trees with level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
+- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader rune catalogs, expanded runeword coverage, and combat bonus handoff
+- stronger shell UX with front-door profile surfaces plus town, map, combat, and reward guidance panels
+- safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell, and inventory or stash actions
+- return-to-town flow from the world map without losing route progress
+- schema-versioned run snapshots plus profile-backed active-run, stash, run-history, settings, and profile-meta persistence
 
 Not implemented now:
 
-- world map
-- quests
-- items
-- runes
-- shrines
-- town services
-- progression
-- card rewards
-- mercenary hiring economy
+- account-level unlock trees and tutorial-state management
+- broader mercenary pool and richer mercenary scaling rules beyond the current three-profile roster
+- broader authored route-side node catalogs beyond the current quest, shrine, aftermath-event, and opportunity chain
+- deeper late-run loot tuning beyond the current curated item, rune, and runeword catalog
 
 ## Documentation Layers
 
@@ -54,16 +61,57 @@ When docs conflict, use this order.
 
 ### 1. Current build truth
 
-- [combat-engine.js](/Users/andrew/proj/rouge/combat-engine.js)
-- [content.js](/Users/andrew/proj/rouge/content.js)
-- [main.js](/Users/andrew/proj/rouge/main.js)
+- [index.html](/Users/andrew/proj/rouge/index.html)
+- [styles.css](/Users/andrew/proj/rouge/styles.css)
+- [src/content/game-content.ts](/Users/andrew/proj/rouge/src/content/game-content.ts)
+- [src/content/seed-loader.ts](/Users/andrew/proj/rouge/src/content/seed-loader.ts)
+- [src/content/content-validator.ts](/Users/andrew/proj/rouge/src/content/content-validator.ts)
+- [src/content/encounter-registry.ts](/Users/andrew/proj/rouge/src/content/encounter-registry.ts)
+- [src/character/class-registry.ts](/Users/andrew/proj/rouge/src/character/class-registry.ts)
+- [src/quests/world-node-engine.ts](/Users/andrew/proj/rouge/src/quests/world-node-engine.ts)
+- [src/run/run-factory.ts](/Users/andrew/proj/rouge/src/run/run-factory.ts)
+- [src/combat/combat-engine.ts](/Users/andrew/proj/rouge/src/combat/combat-engine.ts)
+- [src/app/app-engine.ts](/Users/andrew/proj/rouge/src/app/app-engine.ts)
+- [src/app/main.ts](/Users/andrew/proj/rouge/src/app/main.ts)
+- [src/town/service-registry.ts](/Users/andrew/proj/rouge/src/town/service-registry.ts)
+- [src/items/item-system.ts](/Users/andrew/proj/rouge/src/items/item-system.ts)
+- [src/state/persistence.ts](/Users/andrew/proj/rouge/src/state/persistence.ts)
+- [src/state/save-migrations.ts](/Users/andrew/proj/rouge/src/state/save-migrations.ts)
+- [src/state/profile-migrations.ts](/Users/andrew/proj/rouge/src/state/profile-migrations.ts)
+- [src/ui/ui-common.ts](/Users/andrew/proj/rouge/src/ui/ui-common.ts)
+- [src/ui/app-shell.ts](/Users/andrew/proj/rouge/src/ui/app-shell.ts)
+- [src/ui/front-door-view.ts](/Users/andrew/proj/rouge/src/ui/front-door-view.ts)
+- [src/ui/character-select-view.ts](/Users/andrew/proj/rouge/src/ui/character-select-view.ts)
+- [src/ui/safe-zone-view.ts](/Users/andrew/proj/rouge/src/ui/safe-zone-view.ts)
+- [src/ui/world-map-view.ts](/Users/andrew/proj/rouge/src/ui/world-map-view.ts)
+- [src/ui/combat-view.ts](/Users/andrew/proj/rouge/src/ui/combat-view.ts)
+- [src/ui/reward-view.ts](/Users/andrew/proj/rouge/src/ui/reward-view.ts)
+- [src/ui/act-transition-view.ts](/Users/andrew/proj/rouge/src/ui/act-transition-view.ts)
+- [src/ui/run-summary-view.ts](/Users/andrew/proj/rouge/src/ui/run-summary-view.ts)
+- [src/ui/render-utils.ts](/Users/andrew/proj/rouge/src/ui/render-utils.ts)
+- [src/types/game.d.ts](/Users/andrew/proj/rouge/src/types/game.d.ts)
+- [tests/combat-engine.test.ts](/Users/andrew/proj/rouge/tests/combat-engine.test.ts)
+- [tests/app-engine.test.ts](/Users/andrew/proj/rouge/tests/app-engine.test.ts)
 - [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md)
+- [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md)
+- [docs/CODEBASE_RULES.md](/Users/andrew/proj/rouge/docs/CODEBASE_RULES.md)
+- [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
+- [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
+- [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
+- [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 
-These describe what is actually playable now.
+These describe what is actually authored and playable now. `generated/` and `dist/` are runtime outputs, not editable source.
 
-### 2. Restored target-state guidance
+Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md) as the canonical live progress tracker for implementation status and milestone state.
+
+### 2. Product-direction guidance
 
 - [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md)
+- [docs/TEAM_WORKSTREAMS.md](/Users/andrew/proj/rouge/docs/TEAM_WORKSTREAMS.md)
+- [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
+- [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
+- [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
+- [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
 - [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md)
@@ -74,9 +122,9 @@ These describe what is actually playable now.
 - [docs/DIABLO_INSPIRED_MIGRATION_PLAN.md](/Users/andrew/proj/rouge/docs/DIABLO_INSPIRED_MIGRATION_PLAN.md)
 - [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md)
 
-These capture the intended Diablo II structure, run flow, class/build grammar, and UI direction. They are planning truth, not current runtime truth.
+These capture intended Diablo II structure and next execution targets. They are product-direction truth, not automatic runtime truth.
 
-Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md) as the engineering bridge between the current combat foundation and the restored product-direction docs.
+Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md) as the engineering bridge between the live repo and the target loop. Use the agent docs as the current product-manager-approved execution lanes.
 
 ### 3. Operational support
 
@@ -85,34 +133,6 @@ Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION
 
 These support sourcing and legal tracking.
 
-## Active Canonical Files
-
-- [README.md](/Users/andrew/proj/rouge/README.md)
-- [combat-engine.js](/Users/andrew/proj/rouge/combat-engine.js)
-- [content.js](/Users/andrew/proj/rouge/content.js)
-- [main.js](/Users/andrew/proj/rouge/main.js)
-- [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md)
-- [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md)
-- [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
-- [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
-- [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md)
-
 ## Working Rule
 
-Any future system work should extend the new party combat model directly. Do not reintroduce train lanes, reactor heat, overclock, telegraph tracks, or other legacy prototype mechanics.
-
-## Restore Boundary
-
-Restored:
-
-- D2 direction docs
-- run-flow guidance
-- class/build progression guidance
-- UI/feature planning docs
-- asset and attribution docs
-
-Intentionally still deleted:
-
-- legacy train-game runtime modules
-- old screenshots and prototype art references
-- current-build docs that described removed mechanics as live truth
+Future system work should extend the party-combat model and the current phase-driven app shell directly. Do not reintroduce train lanes, reactor heat, telegraph tracks, or other legacy prototype mechanics.

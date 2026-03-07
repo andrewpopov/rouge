@@ -3,101 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rouge Combat Foundation</title>
+    <title>Rouge App Loop Prototype</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="page-shell">
-      <header class="hero-banner panel">
-        <p class="eyebrow">Diablo-Inspired Combat Reset</p>
-        <h1>Player + Mercenary Vs Enemy Pack</h1>
-        <p id="encounterBlurb" class="hero-copy">
-          The old lane/steam prototype is gone. This build is the new combat floor: one hero, one mercenary, and an encounter-sized enemy group.
-        </p>
-      </header>
+    <main id="appRoot" class="page-shell"></main>
 
-      <section class="control-bar panel">
-        <label class="picker">
-          <span>Encounter</span>
-          <select id="encounterSelect"></select>
-        </label>
-        <label class="picker">
-          <span>Mercenary</span>
-          <select id="mercenarySelect"></select>
-        </label>
-        <button id="restartBtn" class="primary-btn">Start Encounter</button>
-      </section>
-
-      <section class="status-strip panel">
-        <div class="status-item">
-          <span class="status-label">Turn</span>
-          <strong id="turnValue">1</strong>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Phase</span>
-          <strong id="phaseValue">Player Turn</strong>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Energy</span>
-          <strong id="energyValue">3</strong>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Potions</span>
-          <strong id="potionValue">2</strong>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Deck</span>
-          <strong id="deckValue">0</strong>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Discard</span>
-          <strong id="discardValue">0</strong>
-        </div>
-      </section>
-
-      <section class="battle-grid">
-        <article class="panel battle-panel">
-          <div class="panel-head">
-            <h2>Party</h2>
-            <p>Your mercenary acts automatically when you end your turn.</p>
-          </div>
-          <div id="partyRow" class="entity-row"></div>
-          <div class="action-row">
-            <button id="potionHeroBtn" class="neutral-btn">Potion Hero</button>
-            <button id="potionMercBtn" class="neutral-btn">Potion Mercenary</button>
-            <button id="endTurnBtn" class="primary-btn">End Turn</button>
-          </div>
-        </article>
-
-        <article class="panel battle-panel">
-          <div class="panel-head">
-            <h2>Enemies</h2>
-            <p>Choose a target for single-target skills. Enemy intents resolve after your mercenary.</p>
-          </div>
-          <div id="enemyRow" class="entity-row enemy-row"></div>
-          <p id="targetHint" class="target-hint">Select an enemy to focus your next card.</p>
-        </article>
-      </section>
-
-      <section class="panel hand-panel">
-        <div class="panel-head">
-          <h2>Hand</h2>
-          <p>Cards are your skill actions. Potions and mercenary support sit outside the deck.</p>
-        </div>
-        <div id="handRow" class="hand-row"></div>
-      </section>
-
-      <section class="panel log-panel">
-        <div class="panel-head">
-          <h2>Combat Log</h2>
-          <p>Latest events appear first.</p>
-        </div>
-        <ol id="logList" class="log-list"></ol>
-      </section>
-    </main>
-
-    <script src="./content.js"></script>
-    <script src="./combat-engine.js"></script>
-    <script src="./main.js"></script>
+    <script src="./generated/src/content/game-content.js"></script>
+    <script src="./generated/src/combat/combat-engine.js"></script>
+    <script src="./generated/src/content/content-validator.js"></script>
+    <script src="./generated/src/content/seed-loader.js"></script>
+    <script src="./generated/src/content/encounter-registry.js"></script>
+    <script src="./generated/src/character/class-registry.js"></script>
+    <script src="./generated/src/ui/render-utils.js"></script>
+    <script src="./generated/src/items/item-system.js"></script>
+    <script src="./generated/src/rewards/reward-engine.js"></script>
+    <script src="./generated/src/quests/world-node-engine.js"></script>
+    <script src="./generated/src/run/run-factory.js"></script>
+    <script src="./generated/src/town/service-registry.js"></script>
+    <script src="./generated/src/state/save-migrations.js"></script>
+    <script src="./generated/src/state/profile-migrations.js"></script>
+    <script src="./generated/src/state/persistence.js"></script>
+    <script src="./generated/src/app/app-engine.js"></script>
+    <script src="./generated/src/ui/ui-common.js"></script>
+    <script src="./generated/src/ui/front-door-view.js"></script>
+    <script src="./generated/src/ui/character-select-view.js"></script>
+    <script src="./generated/src/ui/safe-zone-view.js"></script>
+    <script src="./generated/src/ui/world-map-view.js"></script>
+    <script src="./generated/src/ui/combat-view.js"></script>
+    <script src="./generated/src/ui/reward-view.js"></script>
+    <script src="./generated/src/ui/act-transition-view.js"></script>
+    <script src="./generated/src/ui/run-summary-view.js"></script>
+    <script src="./generated/src/ui/app-shell.js"></script>
+    <script src="./generated/src/ui/action-dispatcher.js"></script>
+    <script src="./generated/src/app/main.js"></script>
   </body>
 </html>

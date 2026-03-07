@@ -1,188 +1,226 @@
-# Game Engine and Flow Plan (High-Fidelity D2 Run Structure)
+# Game Engine and Flow Plan
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
-- This document describes the target gameplay/run-flow architecture, not the exact current runtime implementation.
+- This document describes product-direction run-flow architecture.
+- It is grounded in the live runtime, but it is not limited to what is already implemented.
 
-## 1) Product Targets
+## 1. Product Targets
+
 - Build target: turn-based roguelite deckbuilder with high-fidelity Diablo II structure.
-- Content spine: Acts I-V, canonical towns, canonical zones, canonical enemies/bosses, class skill trees, and recognizable quest beats.
+- Content spine: Acts I-V, canonical towns, canonical zones, canonical enemies and bosses, class build identity, and recognizable quest beats.
 - Core readability rule: every state answers `who am I`, `what can I do`, and `what happens next`.
-- Fidelity rule: preserve canonical D2 structure and names where feasible; compress only for run readability and production scope.
+- Fidelity rule: preserve canonical D2 structure and names where feasible, but compress for run readability where needed.
 
-## 2) Engine Architecture
+## 2. Current Reality Versus Target
 
-### 2.1 Data-Driven Content Layer
-- Source of truth files:
-  - `data/seeds/d2/classes.json`
-  - `data/seeds/d2/skills.json`
-  - `data/seeds/d2/zones.json`
-  - `data/seeds/d2/enemy-pools.json`
-  - `data/seeds/d2/assets-manifest.json`
-- Runtime should normalize these into immutable registries keyed by ID.
-- New content should be add-only in JSON first, logic second.
+### Live now
 
-### 2.2 Runtime State Model
-- `MetaState`: unlocked classes, global upgrades, profile settings.
-- `RunState`: class, stats, deck, gear, current act/zone/node, run economy.
-- `CombatState`: turn order, intents, statuses, cooldowns, timeline log.
-- `UIState`: selected target, open panel, hovered tooltips, pending confirmations.
+- party combat between hero, mercenary, and encounter-sized enemy packs
+- explicit phases: `boot`, `front_door`, `character_select`, `safe_zone`, `world_map`, `encounter`, `reward`, `act_transition`, `run_complete`, `run_failed`
+- five-act route generation
+- quest, shrine, and aftermath-event world nodes
+- training-rank progression with banked skill points
+- vendor, inventory, stash, and run-history persistence hooks
+- three mercenary profiles
 
-### 2.3 Core Systems
-- `ProgressionSystem`: builds act/zone route, tracks stage completion.
-- `EncounterSystem`: resolves world-tree nodes such as `battle`, `miniboss`, `boss`, and later `special_event`.
-- `CombatSystem`: deterministic turn resolver (player phase -> enemy phase -> end-turn effects).
-- `RewardSystem`: battle rewards, miniboss rewards, post-boss rewards, level-up points, and town-economy handoff.
-- `CharacterSystem`: class baseline + level stats + gear + tree bonuses.
-- `SkillTreeSystem`: validates prerequisites, spend points, grants passive/active unlocks.
-- `PersistenceSystem`: save/load snapshots with schema versioning.
+### Still target-state
 
-### 2.4 Flow Coordinator
-- Use one explicit run phase enum (single source):
-  - `run_setup`
-  - `character_select`
-  - `safe_zone`
-  - `world_map`
-  - `encounter`
-  - `reward`
-  - `act_transition`
-  - `run_complete`
-  - `run_failed`
-- Hard rule: no UI action may mutate state outside current phase contract.
+- class skill trees wired from `skills.json`
+- manual stat allocation beyond the current training model
+- broader meta or profile progression
+- broader mercenary pool and scaling rules
+- broader event families and deeper quest chains
+- asset-manifest-driven presentation and content lookups
 
-## 3) Run Flow (High-Level)
+## 3. Engine Architecture
+
+### 3.1 Data-Driven Content Layer
+
+Live runtime inputs:
+
+- `data/seeds/d2/classes.json`
+- `data/seeds/d2/zones.json`
+- `data/seeds/d2/enemy-pools.json`
+- `data/seeds/d2/monsters.json`
+- `data/seeds/d2/items.json`
+- `data/seeds/d2/runes.json`
+- `data/seeds/d2/runewords.json`
+- `data/seeds/d2/bosses.json`
+
+Planned next runtime inputs:
+
+- `data/seeds/d2/skills.json`
+- `data/seeds/d2/assets-manifest.json`
+
+Rules:
+
+- runtime content should normalize these into immutable registries keyed by ID
+- new content should be data-first whenever possible
+- validation should fail loudly on bad references before the player reaches the shell
+
+### 3.2 Runtime State Model
+
+Live model:
+
+- `AppState`: phase, loaded content, registries, UI state, active profile, active run, active combat
+- `ProfileState`: active run snapshot, stash, run history
+- `RunState`: class, mercenary, route state, inventory, loadout, economy, node outcomes, progression
+- `CombatState`: turn order, intents, statuses, deck state, combat log
+- `UIState`: selections, confirmations, and panel state
+
+Planned next extension:
+
+- expand `ProfileState` into a broader meta surface for unlocks, settings, tutorials, and long-run progression when the live data justifies it
+
+### 3.3 Core Systems
+
+- `ProgressionSystem`: builds act or zone routes, tracks completion, and owns class-growth mutation
+- `EncounterSystem`: resolves `battle`, `miniboss`, `boss`, `quest`, `shrine`, `aftermath`, and future node families
+- `CombatSystem`: deterministic turn resolver
+- `RewardSystem`: battle or node rewards, boss floors, progression handoff, and town-economy handoff
+- `CharacterSystem`: class baseline plus level growth plus future class-tree bonuses plus gear bonuses
+- `SkillTreeSystem`: future validation and spend layer for class-family progression
+- `PersistenceSystem`: run and profile save or load with schema versioning
+
+### 3.4 Flow Coordinator
+
+Use one explicit run phase enum:
+
+- `boot`
+- `front_door`
+- `character_select`
+- `safe_zone`
+- `world_map`
+- `encounter`
+- `reward`
+- `act_transition`
+- `run_complete`
+- `run_failed`
+
+Reserved future addition:
+
+- `meta_sync`
+
+Hard rule: no UI action may mutate state outside the current phase contract.
+
+## 4. Run Flow
 
 ```mermaid
 flowchart TD
-  A["Start Run"] --> B["Character Select"]
-  B --> C["Act Safe Zone"]
-  C --> D["Town Vendors / Mercenary / Info"]
-  D --> E["Exit Town To World Map"]
-  E --> F["Act World Tree"]
+  A["Boot"] --> B["Front Door"]
+  B --> C["Character Select or Continue Run"]
+  C --> D["Act Safe Zone"]
+  D --> E["Town Services"]
+  E --> F["Act World Map"]
   F --> G{"Node Type"}
   G -->|"Battle"| H["Combat Encounter"]
-  G -->|"Miniboss"| I["Major Combat Encounter"]
-  G -->|"Boss"| J["Act Boss"]
-  G -->|"Special Event"| K["Placeholder Event Flow"]
-  H --> L["Reward / Return To World Map"]
-  I --> L
-  K --> L
-  L --> M{"More Reachable Nodes?"}
-  M -->|"Yes"| F
-  M -->|"No"| J
-  J --> N["Exit To Next Act Safe Zone"]
-  N --> O{"Act V Cleared?"}
-  O -->|"No"| C
-  O -->|"Yes"| P["Run Complete"]
+  G -->|"Miniboss"| H
+  G -->|"Boss"| H
+  G -->|"Quest"| I["Node Reward Flow"]
+  G -->|"Shrine"| I
+  G -->|"Aftermath"| I
+  H --> J["Reward"]
+  I --> F
+  J --> K{"Act Boss Cleared?"}
+  K -->|"No"| F
+  K -->|"Yes"| L["Next Act Safe Zone"]
+  L --> M{"Act V Cleared?"}
+  M -->|"No"| D
+  M -->|"Yes"| N["Run Complete"]
+  H --> O["Run Failed"]
 ```
 
-## 4) Combat Flow (Turn-Based)
-1. Start Turn:
-- apply start-turn statuses, cooldown ticks, shrine buffs.
-- refresh energy/action points and draw.
-2. Player Phase:
-- play cards, cast skills, use item, end turn.
-3. Enemy Telegraph Phase:
-- intents are visible before resolve (including lob and directional cook-time attacks).
-4. Enemy Resolve Phase:
-- execute intents in initiative order.
-- handle delayed telegraphs that finish this turn.
-5. End Turn:
-- discard/retain rules, overcap cleanup, death checks.
+## 5. Combat Flow
 
-## 5) Economy and Progression Rules
-- Each act owns a traversal tree and contains named zones as progression elements.
-- Vendors are town-only.
-- Node rewards:
-  - `battle`: XP + gold + low potion chance.
-  - `miniboss`: elevated XP/gold + stronger reward floor.
-  - `boss`: act-completion reward and transition.
-  - `special_event`: placeholder for later authored outcomes.
-- Artifacts are drop-only, not vendor inventory.
-- Leveling: +5 stat points per level (already in system), skill points on defined milestones.
+1. Start turn
+- apply start-turn statuses
+- refresh energy and draw
 
-### 5.1 Concrete Curve Targets (Acts I-V)
-| Act | Expected Start->End Level | XP / Regular Fight | XP / Elite Fight | Gold / Regular Fight | Gold / Elite Fight | Potion Drop Chance | Item Upgrade Token Chance |
-|---|---|---:|---:|---:|---:|---:|---:|
-| I | 1 -> 6 | 8-10 | 16-20 | 6-12 | 12-20 | 22% | 8% |
-| II | 6 -> 11 | 10-12 | 20-24 | 8-14 | 14-24 | 20% | 10% |
-| III | 11 -> 16 | 12-14 | 24-28 | 10-16 | 16-28 | 18% | 12% |
-| IV | 16 -> 20 | 14-16 | 28-32 | 12-18 | 18-32 | 16% | 14% |
-| V | 20 -> 25 | 16-20 | 32-40 | 14-22 | 22-38 | 14% | 16% |
+2. Player phase
+- play cards
+- use potions
+- end turn
 
-### 5.2 Boss Reward Floors
-- Every act boss guarantees:
-  - `+1` level-up equivalent XP burst (minimum 1 level in Acts I-III if under curve).
-  - `1` high-value reward choice including at least one of: gear, skill-tree power node, rare class item.
-  - exit to the next act safe zone after reward resolution.
+3. Mercenary action
+- mercenary resolves deterministically
 
-### 5.3 Encounter EV Guardrails
-- World-tree composition target:
-  - `battle` should make up the bulk of traversal
-  - `miniboss` should appear `1-2` times per act
-  - `boss` should appear once as the act-ending encounter
-  - `special_event` remains placeholder scope for later authored content
-- Town economy rule:
-  - vendors exist only in safe zones, not in the field.
+4. Enemy resolve phase
+- execute visible intents in order
 
-## 6) Implementation Milestones
-1. Load seeds at startup and validate references.
-2. Replace hardcoded sectors with act/zone stage generator.
-3. Implement node resolver for `battle/miniboss/boss` with `special_event` placeholder support.
-4. Wire canonical enemy pools and boss encounters.
-5. Bind assets through manifest lookups with safe fallback.
-6. Add progression UI (Act/Zone/Node labels + minimap clarity).
-7. Add regression tests for full Act I-V autoplay.
+5. End turn
+- death checks
+- hand cleanup
+- next-turn setup
 
-## 7) Non-Negotiable UX Clarity Checks
-- Top bar always shows `Class`, `Act`, `Zone`, and current map position.
-- The world map always shows current node, next reachable branches, and a ghosted outline of the larger tree.
-- Next threat preview shown before commit.
-- On action resolution, a short combat log line explains outcome.
+## 6. Economy and Progression Rules
 
-## 8) Technical Risks and Controls
-- Risk: content drift between seeds and runtime IDs.
-  - Control: startup schema + reference validator.
-- Risk: phase bugs from mixed UI actions.
-  - Control: strict phase gating + integration tests.
-- Risk: legal risk from direct extracted D2 assets.
-  - Control: separate `shipping_safe` and `reference_only` manifests.
+### 6.1 Live baseline
 
-## 9) Mercenary System Contract (MVP)
-- One mercenary slot per run.
-- Hiring windows:
-  - act safe zones (player may hire or replace according to progression rules).
-- Initial merc pool:
-  - `rogue_scout` (ranged pressure), `desert_guard` (defense aura), `iron_wolf` (spell utility), `barbarian_guard` (frontline burst).
-- Mercenary stats scale from player level and act:
-  - `maxHp = baseHp + (playerLevel * hpPerLevel) + actBonus`.
-  - `attack = baseAttack + floor(playerLevel / 2)`.
-- Mercenary turn behavior (deterministic):
-  - if player HP below threshold: prioritize guard/support action.
-  - else if marked priority target exists: attack marked target.
-  - else attack highest threat enemy.
-- Death rules:
-  - mercenary can be downed in combat and returns at the next safe zone with revive cost.
-  - no permanent death in MVP.
-- Data contract:
-  - mercs defined in config JSON; no hardcoded class logic in combat resolver.
+- each act owns a route of combat and non-combat nodes
+- vendors are town-only
+- node rewards resolve through the same run or reward seam
+- leveling currently produces banked skill points and automatic training-rank growth
+- town currently spends those points through `vitality`, `focus`, and `command` drills
 
-## 10) Onboarding Contract (Clarity-First)
-- First-run onboarding must answer in under 30 seconds:
-  - `Who am I?`
-  - `Where am I starting?`
-  - `How do I leave town?`
-  - `Who is the enemy?`
-  - `What do I click first?`
-- Required UI prompts:
-  - persistent role label: `You are <class>`.
-  - safe-zone exit label that makes it obvious how to leave for the world.
-  - enemy panel header: `Enemies (click to target)`.
-  - turn loop panel with two explicit phases: player then enemy.
-- Forced first-battle tutorial checkpoints:
-  - select enemy target once.
-  - play one card.
-  - end turn once.
-- Exit criteria:
-  - player can dismiss tutorial after first sector clear.
-  - reminder tooltip returns if player stalls >20 seconds without action.
+### 6.2 Target progression direction
+
+- class-family progression should sit on top of the current training scaffold rather than replacing the run loop
+- `skills.json` should drive future class-tree unlocks and spend validation
+- manual stat allocation should become explicit if it adds real build tension beyond the existing training system
+- boss rewards should remain a major inflection point for class, gear, or economy growth
+
+### 6.3 Economy direction
+
+- vendor stock remains town-only
+- inventory and stash stay outside combat
+- item, rune, and runeword progression should become a real build axis rather than a thin support layer
+- gold sinks should stay meaningful across heal, refill, mercenary, vendor, and future crafting flows
+
+## 7. Mercenary System Contract
+
+### Live now
+
+- one mercenary slot per run
+- hiring or replacing or reviving happens in safe zones
+- current roster:
+  - `rogue_scout`
+  - `desert_guard`
+  - `iron_wolf`
+- current mercenary behavior is deterministic and tied to authored behavior packages
+
+### Target next step
+
+- broaden the roster
+- deepen act or level scaling rules
+- keep mercenary data in content rather than hardcoding class logic in the combat resolver
+
+## 8. Onboarding Contract
+
+This is still a target-state requirement, not a fully implemented system.
+
+First-run onboarding should answer in under 30 seconds:
+
+- `Who am I?`
+- `Where am I starting?`
+- `How do I leave town?`
+- `Who is the enemy?`
+- `What do I click first?`
+
+Required clarity surfaces:
+
+- persistent class or role labeling
+- a safe-zone exit label that clearly points to the world map
+- enemy target labeling in combat
+- clear player-phase then enemy-phase explanation
+
+## 9. Product-Manager Build Priorities
+
+These are the next approved directions for implementation:
+
+1. deepen front-door, town, and profile UX around the systems already live
+2. wire class progression and `skills.json` into the runtime
+3. add manual stat allocation only if it creates real build differentiation
+4. broaden item or rune or mercenary breadth
+5. broaden node families, quest chains, and encounter variety
+6. keep all new content behind strong validation and deterministic runtime contracts

@@ -1,35 +1,42 @@
 # rouge
 
-Diablo II-inspired roguelite deckbuilder, reset around a new combat foundation.
+Diablo II-inspired roguelite deckbuilder built around a phase-driven app loop and deterministic party combat.
 
 ## Current State
 
-The old lane/steam prototype has been removed from the active app surface.
+The live repo now contains a TypeScript-first browser prototype with:
 
-The live repo now contains a small browser combat foundation centered on:
+- boot-time seed loading from `data/seeds/d2/*.json`
+- seed and generated-content validation
+- front door, character select, safe zone, world map, encounter, reward, act transition, and run-end screens
+- class-derived hero shells and one mercenary companion chosen at run start
+- act-based zone routing with `world_map -> encounter -> reward` repetition across Acts I-V
+- quest, shrine, and aftermath-event world nodes routed through the same reward flow
+- visible enemy intents, automatic mercenary turns, boss scripting, and elite affix behavior
+- reward choices that can add cards, upgrade cards, grant boons, and grant item or rune progression
+- town services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell, and inventory or stash actions
+- profile-backed active-run persistence, stash persistence, and run-history tracking
 
-- one player character
-- one mercenary companion
-- an encounter-sized enemy pack
-- hand-based skill play
-- visible enemy intents
-- potion support actions
+Editable source lives in `src/**/*.ts`. The browser runs emitted JS from `generated/`, and `dist/` is packaged output.
 
-Start with [docs/PROJECT_MASTER.md](/Users/andrew/proj/rouge/docs/PROJECT_MASTER.md), then read [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md).
+Start with [docs/PROJECT_MASTER.md](/Users/andrew/proj/rouge/docs/PROJECT_MASTER.md), then read [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md), [docs/CODEBASE_RULES.md](/Users/andrew/proj/rouge/docs/CODEBASE_RULES.md), [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md), and [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md).
 
-## Restored Guidance
+For team execution, use [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md), [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md), [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md), and [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md).
 
-The repo also has restored target-state docs for the Diablo II direction:
+## Guidance Layers
 
-- [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md): full app structure and build order for the complete game loop
-- [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md): run loop and application flow
-- [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md): classes, skills, and deck grammar
-- [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md): shared card and vendor economy
-- [docs/CLASS_REWARD_TIERS.md](/Users/andrew/proj/rouge/docs/CLASS_REWARD_TIERS.md): mid-tier class rewards
+The repo separates live engineering truth from target-state planning:
+
+- [docs/CODEBASE_RULES.md](/Users/andrew/proj/rouge/docs/CODEBASE_RULES.md): live source-of-truth map and architecture patterns
+- [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md): current implementation tracker and milestone snapshot
+- [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md): current combat contract
+- [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md): live application structure plus the next build seams
+- [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md): product-direction run loop and target system contracts
+- [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md): class and build direction
+- [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md): card and vendor economy direction
+- [docs/CLASS_REWARD_TIERS.md](/Users/andrew/proj/rouge/docs/CLASS_REWARD_TIERS.md): class reward structure
 - [docs/CLASS_CAPSTONES.md](/Users/andrew/proj/rouge/docs/CLASS_CAPSTONES.md): late-run class payoffs
 - [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md): canonical D2 reference baseline
-
-Treat those as design guidance. Treat the current combat files as live build truth.
 
 ## Commands
 
