@@ -5,49 +5,46 @@ import vm from "node:vm";
 const ROOT = path.resolve(__dirname, "../../..");
 const GENERATED_ROOT = path.join(ROOT, "generated");
 
-const COMBAT_RUNTIME_FILES = [
+const SHARED_RUNTIME_FILES = [
   "src/content/game-content.js",
   "src/combat/combat-engine.js",
-  "src/content/content-validator-world-paths.js",
-  "src/content/content-validator-world-opportunities.js",
-  "src/content/content-validator-runtime-content.js",
-  "src/content/content-validator.js",
-  "src/content/encounter-registry-enemy-builders.js",
-  "src/content/encounter-registry-builders.js",
-  "src/character/class-registry.js",
-  "src/quests/world-node-engine.js",
-  "src/content/encounter-registry.js",
 ];
 
-const APP_RUNTIME_FILES = [
-  "src/content/game-content.js",
-  "src/combat/combat-engine.js",
+const VALIDATOR_RUNTIME_FILES = [
   "src/content/content-validator-world-paths.js",
   "src/content/content-validator-world-opportunities.js",
   "src/content/content-validator-runtime-content.js",
   "src/content/content-validator.js",
+];
+
+const ENCOUNTER_REGISTRY_HELPER_FILES = [
   "src/content/encounter-registry-enemy-builders.js",
   "src/content/encounter-registry-builders.js",
-  "src/content/encounter-registry.js",
-  "src/character/class-registry.js",
-  "src/ui/render-utils.js",
+];
+
+const ITEM_RUNTIME_FILES = [
   "src/items/item-data.js",
   "src/items/item-catalog.js",
   "src/items/item-loadout.js",
   "src/items/item-town.js",
   "src/items/item-system.js",
-  "src/rewards/reward-engine.js",
-  "src/quests/world-node-engine.js",
+];
+
+const RUN_RUNTIME_FILES = [
   "src/run/run-state.js",
   "src/run/run-route-builder.js",
   "src/run/run-progression.js",
   "src/run/run-reward-flow.js",
   "src/run/run-factory.js",
-  "src/town/service-registry.js",
+];
+
+const PERSISTENCE_RUNTIME_FILES = [
   "src/state/save-migrations.js",
   "src/state/profile-migrations.js",
   "src/state/persistence.js",
-  "src/app/app-engine.js",
+];
+
+const APP_UI_RUNTIME_FILES = [
   "src/ui/ui-common.js",
   "src/ui/front-door-view.js",
   "src/ui/character-select-view.js",
@@ -59,6 +56,34 @@ const APP_RUNTIME_FILES = [
   "src/ui/run-summary-view.js",
   "src/ui/app-shell.js",
   "src/ui/action-dispatcher.js",
+];
+
+const CONTENT_HELPER_RUNTIME_FILES = [
+  ...SHARED_RUNTIME_FILES,
+  ...VALIDATOR_RUNTIME_FILES,
+  ...ENCOUNTER_REGISTRY_HELPER_FILES,
+];
+
+const COMBAT_RUNTIME_FILES = [
+  ...CONTENT_HELPER_RUNTIME_FILES,
+  "src/character/class-registry.js",
+  "src/quests/world-node-engine.js",
+  "src/content/encounter-registry.js",
+];
+
+const APP_RUNTIME_FILES = [
+  ...CONTENT_HELPER_RUNTIME_FILES,
+  "src/content/encounter-registry.js",
+  "src/character/class-registry.js",
+  "src/ui/render-utils.js",
+  ...ITEM_RUNTIME_FILES,
+  "src/rewards/reward-engine.js",
+  "src/quests/world-node-engine.js",
+  ...RUN_RUNTIME_FILES,
+  "src/town/service-registry.js",
+  ...PERSISTENCE_RUNTIME_FILES,
+  "src/app/app-engine.js",
+  ...APP_UI_RUNTIME_FILES,
 ];
 
 function loadBrowserScript(filename: string, sandbox: vm.Context): void {

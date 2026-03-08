@@ -91,7 +91,7 @@
   }
 
   function getPlannedRuneword(slot, profile, content) {
-    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot));
+    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot, content));
     return runeword?.slot === slot ? runeword : null;
   }
 
@@ -120,6 +120,22 @@
     );
 
     return [...upgradeItems].sort((left, right) => {
+      const rightParagonPremium = Number(
+        features.paragonExchange &&
+          isLateActPivotZone(zone, actNumber) &&
+          toNumber(right?.progressionTier, 0) >= Math.max(6, actNumber + 1) &&
+          toNumber(right?.maxSockets, 0) >= 3
+      );
+      const leftParagonPremium = Number(
+        features.paragonExchange &&
+          isLateActPivotZone(zone, actNumber) &&
+          toNumber(left?.progressionTier, 0) >= Math.max(6, actNumber + 1) &&
+          toNumber(left?.maxSockets, 0) >= 3
+      );
+      if (rightParagonPremium !== leftParagonPremium) {
+        return rightParagonPremium - leftParagonPremium;
+      }
+
       const rightPreserves = Number(toNumber(right?.maxSockets, 0) >= preservedSockets);
       const leftPreserves = Number(toNumber(left?.maxSockets, 0) >= preservedSockets);
       if (rightPreserves !== leftPreserves) {
@@ -145,7 +161,7 @@
     const availableItems = getAvailableItemsForSlot(slot, actNumber, zone, run, content);
     const features = getAccountEconomyFeatures(profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
-    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
     if (!equipment) {
       const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled);
       if (plannedRuneword && (features.runewordCodex || features.treasuryExchange || features.economyFocus)) {
@@ -231,6 +247,9 @@
     }
     if (options.lateActPivot && features.treasuryExchange) {
       previewLines.push("Treasury Exchange is preserving this reward as a premium replacement instead of a short-term sidegrade.");
+    }
+    if (options.lateActPivot && features.paragonExchange) {
+      previewLines.push("Paragon Exchange is escalating this into a premium replacement pivot instead of another incremental upgrade.");
     }
 
     return {
@@ -332,11 +351,13 @@
     const currentRunewordId = resolveRunewordId(equipment, content);
     const currentBaseIsStale = toNumber(currentItem?.progressionTier, 0) <= Math.max(1, actNumber - 2);
     const economyPressure = features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus;
+    const paragonPressure = features.paragonExchange && actNumber >= 5;
 
     return (
       tierDelta >= 2 ||
       (Boolean(currentRunewordId) && tierDelta >= 1) ||
       (economyPressure && (tierDelta >= 1 || socketDelta >= 1)) ||
+      (paragonPressure && (tierDelta >= 1 || socketDelta >= 1)) ||
       (zone?.kind === "boss" && currentBaseIsStale && tierDelta >= 1)
     );
   }
@@ -346,7 +367,7 @@
     const equipment = loadout[slot];
     const upgradeItem = getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
-    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
 
     if (!equipment) {
       return upgradeItem
@@ -362,7 +383,7 @@
     const item = getItemDefinition(content, equipment.itemId);
     const targetRuneword = equipment.runewordId
       ? null
-      : getPreferredRunewordForEquipment(equipment, run, content, getPlannedRunewordId(profile, slot));
+      : getPreferredRunewordForEquipment(equipment, run, content, getPlannedRunewordId(profile, slot, content));
 
     const planningPivot =
       upgradeItem &&

@@ -220,6 +220,32 @@
       ],
     },
   ];
+  const ACCOUNT_CONVERGENCES = [
+    {
+      id: "chronicle_exchange",
+      title: "Chronicle Exchange",
+      description: "Bind Eternal Annals to Treasury Exchange so archive memory turns into premium trade leverage.",
+      rewardFeatureId: "chronicle_exchange",
+      effectSummary: "Deepens archive retention, refresh leverage, and stash-planning pressure in town.",
+      requiredFeatureIds: ["eternal_annals", "treasury_exchange"],
+    },
+    {
+      id: "war_annals",
+      title: "War Annals",
+      description: "Bind Eternal Annals to Apex Doctrine so archived expeditions sharpen late-act mastery pivots.",
+      rewardFeatureId: "war_annals",
+      effectSummary: "Adds archive-backed weight to late-act boss and miniboss progression rewards.",
+      requiredFeatureIds: ["eternal_annals", "apex_doctrine"],
+    },
+    {
+      id: "paragon_exchange",
+      title: "Paragon Exchange",
+      description: "Bind Treasury Exchange to Apex Doctrine so peak trade leverage and mastery doctrine demand premium replacements.",
+      rewardFeatureId: "paragon_exchange",
+      effectSummary: "Pushes late-act vendors and equipment rewards toward premium socket-ready pivots.",
+      requiredFeatureIds: ["treasury_exchange", "apex_doctrine"],
+    },
+  ];
 
   function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -242,6 +268,51 @@
       return "Capstone";
     }
     return `Tier ${Math.max(1, toNumber(milestone?.tier, 1))}`;
+  }
+
+  function sanitizePlannedRunewordId(runewordId, slot, content = null) {
+    if (typeof runewordId !== "string" || !runewordId) {
+      return "";
+    }
+    if (!content?.runewordCatalog) {
+      return runewordId;
+    }
+    const runeword = content.runewordCatalog[runewordId] || null;
+    return runeword?.slot === slot ? runeword.id : "";
+  }
+
+  function sanitizeRunHistoryPlanningEntry(entry, content = null) {
+    if (!entry || !content?.runewordCatalog) {
+      return;
+    }
+
+    const plannedWeaponRunewordId = sanitizePlannedRunewordId(entry.plannedWeaponRunewordId, "weapon", content);
+    const plannedArmorRunewordId = sanitizePlannedRunewordId(entry.plannedArmorRunewordId, "armor", content);
+    const allowedRunewordIds = new Set([plannedWeaponRunewordId, plannedArmorRunewordId].filter(Boolean));
+    entry.plannedWeaponRunewordId = plannedWeaponRunewordId;
+    entry.plannedArmorRunewordId = plannedArmorRunewordId;
+    entry.completedPlannedRunewordIds = uniqueStrings((entry.completedPlannedRunewordIds || []).filter((runewordId) => allowedRunewordIds.has(runewordId)));
+  }
+
+  function sanitizePlanningState(profile, content = null) {
+    if (!profile?.meta?.planning || !content?.runewordCatalog) {
+      return;
+    }
+
+    profile.meta.planning.weaponRunewordId = sanitizePlannedRunewordId(profile.meta.planning.weaponRunewordId, "weapon", content);
+    profile.meta.planning.armorRunewordId = sanitizePlannedRunewordId(profile.meta.planning.armorRunewordId, "armor", content);
+    (Array.isArray(profile.runHistory) ? profile.runHistory : []).forEach((entry) => sanitizeRunHistoryPlanningEntry(entry, content));
+  }
+
+  function getAccountFeatureTitle(featureId) {
+    for (let treeIndex = 0; treeIndex < ACCOUNT_PROGRESSION_TREES.length; treeIndex += 1) {
+      const milestone = ACCOUNT_PROGRESSION_TREES[treeIndex].nodes.find((entry) => entry.id === featureId || entry.rewardFeatureId === featureId);
+      if (milestone?.title) {
+        return milestone.title;
+      }
+    }
+    const convergence = ACCOUNT_CONVERGENCES.find((entry) => entry.id === featureId || entry.rewardFeatureId === featureId);
+    return convergence?.title || featureId;
   }
 
   function createDefaultMeta() {
@@ -411,6 +482,47 @@
     });
   }
 
+  function listUnlockedMilestoneFeatureIds(profile) {
+    return uniqueStrings(
+      listAccountMilestoneSummaries(profile)
+        .filter((milestone) => milestone.unlocked)
+        .map((milestone) => milestone.rewardFeatureId)
+    );
+  }
+
+  function getAccountConvergenceSummaries(profile) {
+    const unlockedMilestoneFeatureIds = listUnlockedMilestoneFeatureIds(profile);
+    const availableFeatureIds = new Set(uniqueStrings([...(profile?.meta?.unlocks?.townFeatureIds || []), ...unlockedMilestoneFeatureIds]));
+    return ACCOUNT_CONVERGENCES.map((convergence) => {
+      const requiredFeatureIds = uniqueStrings(convergence.requiredFeatureIds || []);
+      const unlockedRequirementCount = requiredFeatureIds.filter((featureId) => availableFeatureIds.has(featureId)).length;
+      const missingFeatureIds = requiredFeatureIds.filter((featureId) => !availableFeatureIds.has(featureId));
+      const unlocked = availableFeatureIds.has(convergence.rewardFeatureId) || missingFeatureIds.length === 0;
+      let status: ProfileAccountConvergenceSummary["status"] = "locked";
+      if (unlocked) {
+        status = "unlocked";
+      } else if (unlockedRequirementCount > 0) {
+        status = "available";
+      }
+
+      return {
+        id: convergence.id,
+        title: convergence.title,
+        description: convergence.description,
+        rewardFeatureId: convergence.rewardFeatureId,
+        effectSummary: convergence.effectSummary,
+        status,
+        unlocked,
+        unlockedRequirementCount,
+        requiredFeatureCount: requiredFeatureIds.length,
+        requiredFeatureIds,
+        requiredFeatureTitles: requiredFeatureIds.map((featureId) => getAccountFeatureTitle(featureId)),
+        missingFeatureIds,
+        missingFeatureTitles: missingFeatureIds.map((featureId) => getAccountFeatureTitle(featureId)),
+      };
+    });
+  }
+
   function hasAccountFeature(profile, featureId) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
   }
@@ -423,18 +535,22 @@
       (hasAccountFeature(profile, "heroic_annals") ? 10 : 0) +
       (hasAccountFeature(profile, "mythic_annals") ? 10 : 0) +
       (hasAccountFeature(profile, "eternal_annals") ? 15 : 0) +
+      (hasAccountFeature(profile, "chronicle_exchange") ? 5 : 0) +
       (archiveFocusActive ? 5 : 0)
     );
   }
 
   function applyDerivedAccountUnlocks(profile) {
-    const unlockedFeatureIds = listAccountMilestoneSummaries(profile)
-      .filter((milestone) => milestone.unlocked)
-      .map((milestone) => milestone.rewardFeatureId);
-    profile.meta.unlocks.townFeatureIds = uniqueStrings([...(profile.meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS, ...unlockedFeatureIds]);
+    const unlockedMilestoneFeatureIds = listUnlockedMilestoneFeatureIds(profile);
+    const unlockedFeatureIds = uniqueStrings([...(profile.meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS, ...unlockedMilestoneFeatureIds]);
+    const unlockedFeatureIdSet = new Set(unlockedFeatureIds);
+    const unlockedConvergenceFeatureIds = ACCOUNT_CONVERGENCES.filter((convergence) => {
+      return uniqueStrings(convergence.requiredFeatureIds || []).every((featureId) => unlockedFeatureIdSet.has(featureId));
+    }).map((convergence) => convergence.rewardFeatureId);
+    profile.meta.unlocks.townFeatureIds = uniqueStrings([...unlockedFeatureIds, ...unlockedConvergenceFeatureIds]);
   }
 
-  function ensureMeta(profile) {
+  function ensureMeta(profile, content = null) {
     const defaultMeta = createDefaultMeta();
     profile.meta = profile.meta || defaultMeta;
     profile.meta.settings = {
@@ -474,13 +590,14 @@
       ...(profile.meta.accountProgression || {}),
     };
     profile.meta.accountProgression.focusedTreeId = getFocusedTreeId(profile);
+    sanitizePlanningState(profile, content);
     applyDerivedAccountUnlocks(profile);
   }
 
-  function createProfileEnvelope(profile) {
+  function createProfileEnvelope(profile, content = null) {
     if (profile?.profile) {
       const clonedProfile = deepClone(profile.profile);
-      ensureMeta(clonedProfile);
+      ensureMeta(clonedProfile, content);
       return {
         schemaVersion: PROFILE_SCHEMA_VERSION,
         savedAt: new Date().toISOString(),
@@ -489,7 +606,7 @@
     }
 
     const clonedProfile = deepClone(profile || createEmptyProfile());
-    ensureMeta(clonedProfile);
+    ensureMeta(clonedProfile, content);
     return {
       schemaVersion: PROFILE_SCHEMA_VERSION,
       savedAt: new Date().toISOString(),
@@ -511,26 +628,26 @@
     }
   }
 
-  function serializeProfile(profileOrEnvelope) {
-    return JSON.stringify(createProfileEnvelope(profileOrEnvelope));
+  function serializeProfile(profileOrEnvelope, content = null) {
+    return JSON.stringify(createProfileEnvelope(profileOrEnvelope, content));
   }
 
-  function restoreProfile(profileOrSerialized) {
+  function restoreProfile(profileOrSerialized, content = null) {
     try {
       const parsed =
         typeof profileOrSerialized === "string" ? JSON.parse(profileOrSerialized) : deepClone(profileOrSerialized || null);
-      return runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.migrateProfile(parsed) || null;
+      return runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.migrateProfile(parsed, content) || null;
     } catch {
       return null;
     }
   }
 
-  function saveProfileToStorage(profile, storage = getDefaultStorage()) {
+  function saveProfileToStorage(profile, storage = getDefaultStorage(), content = null) {
     if (!storage?.setItem) {
       return { ok: false, message: "No storage provider is available." };
     }
 
-    const serialized = typeof profile === "string" ? profile : serializeProfile(profile);
+    const serialized = typeof profile === "string" ? profile : serializeProfile(profile, content);
 
     try {
       storage.setItem(PROFILE_STORAGE_KEY, serialized);
@@ -546,7 +663,7 @@
     }
   }
 
-  function loadProfileFromStorage(storage = getDefaultStorage()) {
+  function loadProfileFromStorage(storage = getDefaultStorage(), content = null) {
     if (!storage?.getItem) {
       return null;
     }
@@ -554,7 +671,7 @@
     try {
       const serializedProfile = storage.getItem(PROFILE_STORAGE_KEY);
       if (serializedProfile) {
-        return restoreProfile(serializedProfile)?.profile || null;
+        return restoreProfile(serializedProfile, content)?.profile || null;
       }
 
       const serializedLegacyRun = storage.getItem(STORAGE_KEY);
@@ -562,21 +679,21 @@
         return null;
       }
 
-      const migratedEnvelope = restoreProfile(serializedLegacyRun);
+      const migratedEnvelope = restoreProfile(serializedLegacyRun, content);
       if (!migratedEnvelope) {
         return null;
       }
 
-      saveProfileToStorage(migratedEnvelope, storage);
+      saveProfileToStorage(migratedEnvelope, storage, content);
       return migratedEnvelope.profile;
     } catch {
       return null;
     }
   }
 
-  function getProfileSummary(profile) {
+  function getProfileSummary(profile, content = null) {
     const source = profile || createEmptyProfile();
-    ensureMeta(source);
+    ensureMeta(source, content);
     const metrics = buildProfileMetrics(source);
     return {
       hasActiveRun: Boolean(source.activeRunSnapshot),
@@ -675,9 +792,14 @@
     };
   }
 
-  function buildAccountReviewSummary(milestones) {
+  function buildAccountReviewSummary(milestones, convergences = []) {
     const capstones = (Array.isArray(milestones) ? milestones : []).filter((milestone) => milestone?.isCapstone);
     const nextCapstone = capstones.find((milestone) => milestone.status === "available") || capstones.find((milestone) => !milestone.unlocked) || null;
+    const convergenceEntries = Array.isArray(convergences) ? convergences : [];
+    const nextConvergence =
+      convergenceEntries.find((convergence) => convergence.status === "available") ||
+      convergenceEntries.find((convergence) => !convergence.unlocked) ||
+      null;
     return {
       capstoneCount: capstones.length,
       unlockedCapstoneCount: capstones.filter((milestone) => milestone.unlocked).length,
@@ -685,10 +807,17 @@
       readyCapstoneCount: capstones.filter((milestone) => milestone.status === "available").length,
       nextCapstoneId: nextCapstone?.id || "",
       nextCapstoneTitle: nextCapstone?.title || "",
+      convergenceCount: convergenceEntries.length,
+      unlockedConvergenceCount: convergenceEntries.filter((convergence) => convergence.unlocked).length,
+      blockedConvergenceCount: convergenceEntries.filter((convergence) => convergence.status === "locked").length,
+      availableConvergenceCount: convergenceEntries.filter((convergence) => convergence.status === "available").length,
+      nextConvergenceId: nextConvergence?.id || "",
+      nextConvergenceTitle: nextConvergence?.title || "",
     };
   }
 
-  function buildPlanningSummary(profile) {
+  function buildPlanningSummary(profile, content = null) {
+    sanitizePlanningState(profile, content);
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
     const weaponRunewordId = typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "";
     const armorRunewordId = typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "";
@@ -729,10 +858,10 @@
     };
   }
 
-  function getAccountProgressSummary(profile) {
+  function getAccountProgressSummary(profile, content = null) {
     const source = profile || createEmptyProfile();
-    ensureMeta(source);
-    const profileSummary = getProfileSummary(source);
+    ensureMeta(source, content);
+    const profileSummary = getProfileSummary(source, content);
     const completedTutorialIds = source.meta.tutorials?.completedIds || [];
     const dismissedTutorialIds = source.meta.tutorials?.dismissedIds || [];
     const activeTutorialIds = (source.meta.tutorials?.seenIds || []).filter((tutorialId) => {
@@ -740,12 +869,13 @@
     });
     const trees = getAccountTreeSummaries(source);
     const milestones = trees.flatMap((tree) => tree.milestones);
+    const convergences = getAccountConvergenceSummaries(source);
     const focusedTree = trees.find((tree) => tree.isFocused) || trees[0] || null;
     const nextMilestone = focusedTree?.milestones.find((milestone) => milestone.status === "available") || focusedTree?.milestones.find((milestone) => !milestone.unlocked) || milestones.find((milestone) => milestone.status === "available") || milestones.find((milestone) => !milestone.unlocked) || null;
     const stashSummary = buildStashSummary(source);
     const archiveSummary = buildArchiveSummary(source);
-    const reviewSummary = buildAccountReviewSummary(milestones);
-    const planningSummary = buildPlanningSummary(source);
+    const reviewSummary = buildAccountReviewSummary(milestones, convergences);
+    const planningSummary = buildPlanningSummary(source, content);
 
     return {
       profile: profileSummary,
@@ -759,6 +889,7 @@
       stash: stashSummary,
       archive: archiveSummary,
       review: reviewSummary,
+      convergences,
       focusedTreeId: focusedTree?.id || "",
       focusedTreeTitle: focusedTree?.title || "",
       treeCount: trees.length,
@@ -797,13 +928,13 @@
     profile.meta.progression.preferredClassId = classId;
   }
 
-  function setPlannedRuneword(profile, slot, runewordId) {
-    ensureMeta(profile);
+  function setPlannedRuneword(profile, slot, runewordId, content = null) {
+    ensureMeta(profile, content);
     if (slot !== "weapon" && slot !== "armor") {
       return;
     }
     const key = slot === "weapon" ? "weaponRunewordId" : "armorRunewordId";
-    profile.meta.planning[key] = typeof runewordId === "string" ? runewordId : "";
+    profile.meta.planning[key] = sanitizePlannedRunewordId(runewordId, slot, content);
   }
 
   function setAccountProgressionFocus(profile, treeId) {
@@ -946,8 +1077,8 @@
     const progressionSummary = content ? runtimeWindow.ROUGE_RUN_FACTORY?.getProgressionSummary?.(run, content) || null : null;
     const loadoutMetrics = getRunHistoryLoadoutMetrics(run, content);
     const stashCounts = getProfileStashCounts(profile);
-    const plannedWeaponRunewordId = typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "";
-    const plannedArmorRunewordId = typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "";
+    const plannedWeaponRunewordId = sanitizePlannedRunewordId(profile?.meta?.planning?.weaponRunewordId, "weapon", content);
+    const plannedArmorRunewordId = sanitizePlannedRunewordId(profile?.meta?.planning?.armorRunewordId, "armor", content);
     const activeRunewordIds = uniqueStrings(run?.progression?.activatedRunewords || []);
     const completedPlannedRunewordIds = uniqueStrings([plannedWeaponRunewordId, plannedArmorRunewordId].filter((runewordId) => activeRunewordIds.includes(runewordId)));
     return {

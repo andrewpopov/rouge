@@ -30,31 +30,31 @@ The live browser build is a multi-screen app-loop prototype built on the combat 
 Implemented now:
 
 - boot-time seed loading from `data/seeds/d2/*.json`
-- seed, runtime, world-node, and elite-affix validation with clearer failure messages
+- seed, runtime, world-node, and elite-affix validation with clearer failure messages through a split content-validator helper chain
 - front door, character select, safe zone, world map, encounter, reward, act transition, and run-end phases
 - front-door saved-snapshot review with explicit continue or abandon flow plus profile, stash, run-history, and onboarding panels
 - seed-driven class selection and class-derived hero shells
 - seven mercenary contracts with distinct targeting or support behaviors plus route-linked combat perk packages, including crossroad-linked compound scaling hooks and reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late-route payoffs
 - generated act encounter catalogs and zone routes across Acts I-V with broader opening, branch-battle, and miniboss pools
-- act-specific boss scripting, deeper boss escorts, four elite-affix families per act, a fourteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and act-tuned archetype behavior
+- act-specific boss scripting, deeper boss escorts, four elite-affix families per act, a sixteen-kind encounter-local modifier catalog, six branch-battle and six branch-miniboss packages per act, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, and act-tuned archetype behavior
 - potions as support actions and automatic mercenary turns
-- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
+- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, detour-lane payoffs, escalation-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
 - quest outcome tracking plus shrine, event, and opportunity ledgers with explicit multi-step chain consequences on the run
 - reward choice screens with deck growth, card upgrades, party boons, item or rune progression, progression-point rewards, milestone-aware encounter payouts, profile-aware late-act equipment replacement pivots, and stronger account-gated boss pivots up through `apex_doctrine`
 - `skills.json`-backed class trees with capped tree investment, favored-tree summaries, level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
-- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, profile-owned runeword planning charters plus archive-backed charter ledgers that steer vendor and reward curation, profile-aware reward-side replacement curation, and combat bonus handoff
-- account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange economy pressure, and training-grounds or war-college or paragon-doctrine or apex-doctrine reward pivots
-- stronger shell UX with a navigable front-door account hall, a primary expedition wing, a vault or archive wing, town navigators, service drilldowns, route-intel panels, explicit reward or run-end delta reviews, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, and interactive archived-run review from the account hall
+- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, profile-owned runeword planning charters plus archive-backed charter ledgers that steer vendor and reward curation, live planning-id sanitization against the current runeword catalog during hydrate or archive review or town routing, cross-tree convergence pressure like `chronicle_exchange` or `paragon_exchange`, profile-aware reward-side replacement curation, and combat bonus handoff
+- account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange economy pressure, training-grounds or war-college or paragon-doctrine or apex-doctrine reward pivots, and cross-tree convergence bundles like `chronicle_exchange`, `war_annals`, and `paragon_exchange`
+- stronger shell UX with a navigable front-door account hall, a primary expedition wing, a vault or archive wing, town navigators, service drilldowns, route-intel panels, explicit reward or run-end delta reviews, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, interactive archived-run review from the account hall, a hall decision desk, a town prep comparison board, and a run-end hall handoff
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, and departure-readiness framing
 - return-to-town flow from the world map without losing route progress
-- schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates
+- schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates plus content-aware planning-charter sanitization during hydrate and migration
 
 Not implemented now:
 
-- broader account-level unlock trees and broader account UX beyond the current archive or economy or mastery trees, capstone review, navigable account hall, town drilldowns, route-intel shell, preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, and interactive archive-review desk
+- broader account-level unlock trees and broader account UX beyond the current archive or economy or mastery trees, current capstone or convergence review, navigable account hall, town drilldowns, route-intel shell, preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, interactive archive-review desk, and the current hall or town or run-end decision-support layer
 - broader mercenary route-perk breadth tied to future route families beyond the current twelve-per-contract route-perk baseline and reserve-or-relay-or-culmination-or-legacy-or-reckoning-or-recovery-or-accord-or-covenant-linked payoff pass
-- broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant per act
-- broader encounter-local modifier catalogs and escort or boss scripting beyond the current fourteen-modifier combat baseline
+- broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant before opening detour and escalation per act
+- broader encounter-local modifier catalogs and escort or boss scripting beyond the current sixteen-modifier combat baseline
 - final late-run loot tuning and broader feature-gated reward variety beyond the current higher-tier item, rune, and runeword catalog
 
 ## Documentation Layers
@@ -68,6 +68,7 @@ When docs conflict, use this order.
 - [src/content/game-content.ts](/Users/andrew/proj/rouge/src/content/game-content.ts)
 - [src/content/seed-loader.ts](/Users/andrew/proj/rouge/src/content/seed-loader.ts)
 - [src/content/content-validator-world-paths.ts](/Users/andrew/proj/rouge/src/content/content-validator-world-paths.ts)
+- [src/content/content-validator-world-opportunities.ts](/Users/andrew/proj/rouge/src/content/content-validator-world-opportunities.ts)
 - [src/content/content-validator-runtime-content.ts](/Users/andrew/proj/rouge/src/content/content-validator-runtime-content.ts)
 - [src/content/content-validator.ts](/Users/andrew/proj/rouge/src/content/content-validator.ts)
 - [src/content/encounter-registry-enemy-builders.ts](/Users/andrew/proj/rouge/src/content/encounter-registry-enemy-builders.ts)
@@ -109,6 +110,7 @@ When docs conflict, use this order.
 - [tests/helpers/browser-harness.ts](/Users/andrew/proj/rouge/tests/helpers/browser-harness.ts)
 - [tests/app-engine-shell.test.ts](/Users/andrew/proj/rouge/tests/app-engine-shell.test.ts)
 - [tests/app-engine-world-nodes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes.test.ts)
+- [tests/app-engine-world-nodes-late-routes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-late-routes.test.ts)
 - [tests/app-engine-world-node-validation.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-node-validation.test.ts)
 - [tests/app-engine-progression.test.ts](/Users/andrew/proj/rouge/tests/app-engine-progression.test.ts)
 - [tests/combat-engine.test.ts](/Users/andrew/proj/rouge/tests/combat-engine.test.ts)

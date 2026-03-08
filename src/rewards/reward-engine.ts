@@ -192,7 +192,17 @@
       warCollege: hasTownFeature(profile, "war_college"),
       paragonDoctrine: hasTownFeature(profile, "paragon_doctrine"),
       apexDoctrine: hasTownFeature(profile, "apex_doctrine"),
+      warAnnals: hasTownFeature(profile, "war_annals"),
       masteryFocus: focusedTreeId === "mastery" && masteryUnlocked,
+    };
+  }
+
+  function getArchiveRewardSignals(profile) {
+    const accountSummary = runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile) || null;
+    return {
+      completedCount: clamp(accountSummary?.archive?.completedCount || 0, 0, 999),
+      featureUnlockCount: clamp(accountSummary?.archive?.featureUnlockCount || 0, 0, 999),
+      favoredTreeName: typeof accountSummary?.archive?.favoredTreeName === "string" ? accountSummary.archive.favoredTreeName : "",
     };
   }
 
@@ -350,6 +360,7 @@
     const progressionSummary = runtimeWindow.ROUGE_RUN_FACTORY?.getProgressionSummary?.(run, content) || null;
     const focusedTreeName = progressionSummary?.favoredTreeName || run.className || "Current build";
     const features = getRewardAccountFeatures(profile);
+    const archiveSignals = getArchiveRewardSignals(profile);
     const trainingGroundsClassBonus =
       features.trainingGrounds && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") ? 1 : 0;
     const masteryFocusClassBonus = features.masteryFocus && zone.kind === "boss" ? 1 : 0;
@@ -358,11 +369,19 @@
       features.paragonDoctrine && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 4 ? 1 : 0;
     const apexDoctrineClassBonus =
       features.apexDoctrine && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 5 ? 1 : 0;
+    const warAnnalsClassBonus =
+      features.warAnnals && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 4
+        ? 1 + Number(zone.kind === "boss" && actNumber >= 5 && archiveSignals.completedCount >= 4)
+        : 0;
     const trainingGroundsAttributeBonus = features.trainingGrounds && zone.kind === "boss" && actNumber >= 4 ? 1 : 0;
     const masteryFocusAttributeBonus = features.masteryFocus && zone.kind === "boss" && actNumber >= 5 ? 1 : 0;
     const warCollegeAttributeBonus = features.warCollege && zone.kind === "boss" && actNumber >= 4 ? 1 : 0;
     const paragonDoctrineAttributeBonus = features.paragonDoctrine && zone.kind === "boss" && actNumber >= 5 ? 1 : 0;
     const apexDoctrineAttributeBonus = features.apexDoctrine && zone.kind === "boss" && actNumber >= 5 ? 1 : 0;
+    const warAnnalsAttributeBonus =
+      features.warAnnals && zone.kind === "boss" && actNumber >= 4
+        ? 1 + Number(actNumber >= 5 && archiveSignals.featureUnlockCount >= 3)
+        : 0;
     const scaledEffects = definition.effects.map((effect) => {
       if (effect.kind === "class_point") {
         return {
@@ -375,6 +394,7 @@
             warCollegeClassBonus +
             paragonDoctrineClassBonus +
             apexDoctrineClassBonus +
+            warAnnalsClassBonus +
             masteryFocusClassBonus,
         };
       }
@@ -390,6 +410,7 @@
             warCollegeAttributeBonus +
             paragonDoctrineAttributeBonus +
             apexDoctrineAttributeBonus +
+            warAnnalsAttributeBonus +
             masteryFocusAttributeBonus,
         };
       }
@@ -432,6 +453,12 @@
       scaledEffects.unshift({ kind: "class_point", value: 1 });
       scaledEffects.push({ kind: "attribute_point", value: 1 });
     }
+    if (features.warAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect) => effect.kind === "class_point")) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 + Number(zone.kind === "boss" && actNumber >= 5) });
+    }
+    if (features.warAnnals && zone.kind === "boss" && actNumber >= 4 && !scaledEffects.some((effect) => effect.kind === "attribute_point")) {
+      scaledEffects.push({ kind: "attribute_point", value: 1 + Number(actNumber >= 5 && archiveSignals.completedCount >= 4) });
+    }
 
     const choice = buildBoonChoice({
       ...definition,
@@ -464,6 +491,10 @@
     }
     if (features.apexDoctrine && (zone.kind === "miniboss" || zone.kind === "boss") && actNumber >= 5) {
       choice.previewLines.push("Apex Doctrine is converting the archive of boss kills into an apex late-act mastery swing.");
+    }
+    if (features.warAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && actNumber >= 4) {
+      const favoredTreeLine = archiveSignals.favoredTreeName ? ` Archived memory is still centered on ${archiveSignals.favoredTreeName}.` : "";
+      choice.previewLines.push(`War Annals is translating archived expeditions into another mastery pivot.${favoredTreeLine}`);
     }
     if (features.economyLedger && scaledEffects.some((effect) => effect.kind === "gold_bonus")) {
       choice.previewLines.push("Economy Ledger dividend is active on this build payout.");

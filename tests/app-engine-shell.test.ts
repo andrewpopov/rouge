@@ -258,11 +258,18 @@ test("action dispatcher drives the front-door continue and abandon shell flow", 
     });
   };
 
+  state.profile.meta.unlocks.townFeatureIds.push("eternal_annals", "treasury_exchange", "apex_doctrine");
+  persistence.ensureProfileMeta(state.profile);
+
   appEngine.startCharacterSelect(state);
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
   appEngine.returnToFrontDoor(state);
   render();
+
+  assert.match(root.innerHTML, /Chronicle Exchange/);
+  assert.match(root.innerHTML, /War Annals/);
+  assert.match(root.innerHTML, /Paragon Exchange/);
 
   let handled = actionDispatcher.handleClick({
     target: createActionTarget({ action: "set-account-progression-focus", accountTreeId: "mastery" }),

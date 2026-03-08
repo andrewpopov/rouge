@@ -37,8 +37,9 @@ The live workspace already has four active implementation layers.
 - `src/content/game-content.ts` owns authored cards, hero defaults, mercenaries, and fallback content
 - `src/content/seed-loader.ts` loads the live seed bundle
 - `src/content/content-validator-world-paths.ts` owns authored-path state collectors, reference-state assembly, and opportunity-variant matching helpers for validation-heavy world content
+- `src/content/content-validator-world-opportunities.ts` owns late-route opportunity-family validation plus shared reward, grant, and string-id helpers for world-node validation
 - `src/content/content-validator-runtime-content.ts` owns runtime-content validation for starter decks, class progression, mercenary route perks, generated encounter coverage, and consequence encounter packages
-- `src/content/content-validator.ts` remains the public validator entry and error-reporting surface for seed, runtime-content, and world-node validation
+- `src/content/content-validator.ts` remains the public validator entry, error-reporting surface, and the home for the remaining early world-node validation
 - `src/content/encounter-registry-enemy-builders.ts` owns role grouping, elite-affix lookups, and generated enemy template or intent builders for encounter content
 - `src/content/encounter-registry-builders.ts` owns act encounter-set assembly on top of the private enemy-builder seam
 - `src/content/encounter-registry.ts` remains the public registry entry that derives act encounter, boss, elite-affix, and archetype-behavior catalogs from seed data
@@ -70,7 +71,8 @@ The live workspace already has four active implementation layers.
 ### 4. Verification and packaging
 
 - `tests/*.test.ts` compile into `generated/tests/*.test.js` and load the browser runtime in a VM harness
-- `tests/helpers/browser-harness.ts` owns the shared compiled-browser harness used by the split app-engine and combat suites
+- `tests/helpers/browser-harness.ts` owns the shared compiled-browser harness used by the split app-engine and combat suites and centralizes the runtime manifest arrays for validator, encounter, item, run, persistence, and UI helper chains
+- `index.html` and `tests/helpers/browser-harness.ts` now load the validator helpers in the order `content-validator-world-paths` -> `content-validator-world-opportunities` -> `content-validator-runtime-content` -> `content-validator`
 - `scripts/build.js` copies `index.html`, emitted runtime files, assets, and seed data into `dist/`
 
 ## What The Live Runtime Already Owns
@@ -83,20 +85,20 @@ The live workspace already has four active implementation layers.
 - class-derived hero setup and mercenary selection
 - five-act route generation and generated encounter pools
 - act-specific boss scripting, multi-affix elite packages, and act-tuned archetype behavior
-- quest, shrine, aftermath-event, and opportunity nodes routed through the existing reward flow
+- quest, shrine, aftermath-event, and opportunity nodes routed through the existing reward flow, including the late-route covenant, detour, and escalation follow-through families
 - safe-zone recovery, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, and town-hub presentation panels
 - deterministic combat plus choice-based reward carry-through
 - milestone-aware reward payouts and boss progression pivots driven by account feature gates, training-grounds or war-college or paragon-doctrine or apex-doctrine unlocks, mastery focus, and profile-aware late-act equipment replacement curation
 - `skills.json`-backed class progression, favored-tree summaries, manual stat allocation, and derived combat-bonus handoff
-- expanded item, rune, runeword, and vendor-economy curation with a higher late-game loot band, stronger replacement pressure, milestone-aware vendor stock or rune routing or pricing rules across carried and stash-planned bases plus salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange and economy-focus pressure, direct vendor-to-stash consignment, profile-owned runeword planning charters, archive-backed charter-ledger pressure for unfulfilled plans, and profile-aware reward-side replacement pivots
-- run snapshots, profile-backed stash persistence, richer archived run-history summaries, account unlock milestones, mutable preferred-class or tutorial or settings APIs, focused account-tree controls, prerequisite-aware account-tree capstones, profile-owned runeword planning targets, archived charter-target fulfillment data, and account-facing stash or archive or capstone-review summaries that now feed live archive retention, town economy, or reward gates, including heroic-annals or mythic-annals or eternal-annals retention
-- front-door, safe-zone, and run-end shell panels that surface the live account unlock, tutorial, and profile-summary seams plus focused-tree review or control surfaces, with direct front-door preferred-class or settings or tutorial or planning controls, charter-ledger review, and interactive archive review over richer archived runs
+- expanded item, rune, runeword, and vendor-economy curation with a higher late-game loot band, stronger replacement pressure, milestone-aware vendor stock or rune routing or pricing rules across carried and stash-planned bases plus salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange and economy-focus pressure, direct vendor-to-stash consignment, profile-owned runeword planning charters, archive-backed charter-ledger pressure for unfulfilled plans, content-aware planning-id sanitization across hydrate or town routing or reward pivots, cross-tree convergence pressure through `chronicle_exchange` or `paragon_exchange`, and profile-aware reward-side replacement pivots
+- run snapshots, profile-backed stash persistence, richer archived run-history summaries, account unlock milestones, mutable preferred-class or tutorial or settings APIs, focused account-tree controls, prerequisite-aware account-tree capstones, profile-owned runeword planning targets, archived charter-target fulfillment data, cross-tree convergence bundles, and account-facing stash or archive or capstone-review summaries that now feed live archive retention, town economy, or reward gates, including heroic-annals or mythic-annals or eternal-annals retention, plus live planning-charter sanitization during profile hydrate and migration
+- front-door, safe-zone, and run-end shell panels that surface the live account unlock, tutorial, and profile-summary seams plus focused-tree review or control surfaces, with direct front-door preferred-class or settings or tutorial or planning controls, charter-ledger review, cross-tree convergence review, and interactive archive review over richer archived runs
 
 ## What The Live Runtime Still Does Not Own
 
-- broader meta or profile UX beyond the current unlock buckets, archive or economy or mastery trees plus the present heroic-annals or mythic-annals or eternal-annals, artisan-stock or brokerage-charter or treasury-exchange, and war-college or paragon-doctrine or apex-doctrine pass, current account-hall controls including runeword planning, charter-ledger review, and the current archive-review surfaces
+- broader meta or profile UX beyond the current unlock buckets, archive or economy or mastery trees plus the present heroic-annals or mythic-annals or eternal-annals, artisan-stock or brokerage-charter or treasury-exchange, and war-college or paragon-doctrine or apex-doctrine pass, current convergence layer, current account-hall controls including runeword planning, charter-ledger review, convergence review, and the current archive-review surfaces
 - broader mercenary pool and richer mercenary scaling rules
-- broader authored node catalogs beyond the current quest, shrine, aftermath-event, and opportunity set
+- broader authored node catalogs beyond the current quest, shrine, aftermath-event, and opportunity set, including anything materially beyond the current covenant-plus-detour-plus-escalation late-route fabric
 - broader authored item breadth, feature-gated reward variety, and final late-run loot tuning beyond the current higher-tier catalog, current treasury-exchange consignment sink, current runeword-planning charters, and current charter-ledger pressure
 
 ## Product Loop
@@ -267,6 +269,7 @@ Current files:
 - `src/content/game-content.ts`
 - `src/content/seed-loader.ts`
 - `src/content/content-validator-world-paths.ts`
+- `src/content/content-validator-world-opportunities.ts`
 - `src/content/content-validator-runtime-content.ts`
 - `src/content/encounter-registry-enemy-builders.ts`
 - `src/content/encounter-registry-builders.ts`
@@ -276,14 +279,15 @@ Current files:
 Live seams:
 
 - `src/content/content-validator-world-paths.ts` centralizes authored-path state collection, act reference-state assembly, and opportunity-variant matching helpers that used to live inline in `src/content/content-validator.ts`
+- `src/content/content-validator-world-opportunities.ts` centralizes late-route opportunity-family validation plus shared reward, grant, and string-id helpers that used to live inline in `src/content/content-validator.ts`
 - `src/content/content-validator-runtime-content.ts` centralizes starter-deck, class-progression, mercenary route-perk, generated-encounter, and consequence-package validation that used to live inline in `src/content/content-validator.ts`
 - `src/content/encounter-registry-enemy-builders.ts` centralizes act enemy-pool normalization, role grouping, elite-affix lookups, and enemy template or intent builders that used to live inline in `src/content/encounter-registry.ts`
 - `src/content/encounter-registry-builders.ts` centralizes act encounter-set assembly while keeping `src/content/encounter-registry.ts` as the public browser entry
-- `src/content/content-validator.ts` remains the public validator entry and error-reporting surface for the content domain
+- `src/content/content-validator.ts` remains the public validator entry and error-reporting surface for the content domain, and it no longer needs a `max-lines` suppression after the late-route opportunity split
 
 Next extraction targets:
 
-- follow-on validator passes should build from `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` instead of re-expanding `src/content/content-validator.ts`
+- follow-on validator passes should build from `src/content/content-validator-world-paths.ts`, `src/content/content-validator-world-opportunities.ts`, and `src/content/content-validator-runtime-content.ts` instead of re-expanding `src/content/content-validator.ts`
 - any eventual `world-node-engine` extraction should build on the thinner content-domain seams now surrounding it
 
 Next expansion:

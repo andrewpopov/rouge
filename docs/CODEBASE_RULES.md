@@ -62,11 +62,14 @@ Rules:
 - `src/content/content-validator-world-paths.ts`
   - owns authored-path state collectors, reference-state assembly, and opportunity-variant matching helpers for content validation
 
+- `src/content/content-validator-world-opportunities.ts`
+  - owns late-route opportunity-family validation plus shared reward, grant, and string-id helpers for world-node validation
+
 - `src/content/content-validator-runtime-content.ts`
   - owns runtime-content validation for starter decks, class progression, mercenary route perks, generated encounters, and consequence encounter packages
 
 - `src/content/content-validator.ts`
-  - remains the public validator entry and error-reporting surface for seed, runtime-content, and world-node validation
+  - remains the public validator entry and error-reporting surface for seed, runtime-content, and the remaining early world-node validation
 
 - `src/content/encounter-registry-enemy-builders.ts`
   - owns act enemy-pool normalization, role grouping, elite-affix lookups, and enemy template or intent builders for generated encounter content
@@ -132,6 +135,7 @@ Rules:
 
 - `tests/helpers/browser-harness.ts`
   - owns the shared `vm` browser harness that loads emitted runtime scripts for the compiled-browser test surface
+  - centralizes the compiled-browser runtime manifest arrays for validator, encounter, item, run, persistence, and UI helper chains
 
 The tests intentionally exercise `generated/` output through a shared `vm` browser sandbox. That is part of the architecture.
 
@@ -166,6 +170,8 @@ The tests intentionally exercise `generated/` output through a shared `vm` brows
 - The live browser and tests depend on `window.ROUGE_*` exports.
 - Internal extraction is allowed, but the public browser contract should stay stable until the entry strategy changes everywhere together.
 - If a public browser entry depends on a private helper script, keep that load order aligned in both `index.html` and `tests/helpers/browser-harness.ts`.
+- Treat the manifest arrays in `tests/helpers/browser-harness.ts` as the compiled-browser source of truth for helper boot order; do not duplicate those lists into ad hoc suite-local loaders.
+- The validator helper chain currently loads as `content-validator-world-paths`, `content-validator-world-opportunities`, `content-validator-runtime-content`, then `content-validator`; keep that order aligned in both browser and compiled-browser test boot paths.
 - If a public runtime name changes, update `index.html`, tests, and docs in the same change.
 
 ### 4. Single-Writer State Ownership
@@ -208,7 +214,7 @@ The tests intentionally exercise `generated/` output through a shared `vm` brows
 ### 10. Owner-Preserving Helper Extraction
 
 - A hotspot can split into helper files inside the same domain without changing who owns mutation.
-- `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` are private content-domain helpers, but callers still enter validation through `window.ROUGE_CONTENT_VALIDATOR`.
+- `src/content/content-validator-world-paths.ts`, `src/content/content-validator-world-opportunities.ts`, and `src/content/content-validator-runtime-content.ts` are private content-domain helpers, but callers still enter validation through `window.ROUGE_CONTENT_VALIDATOR`.
 - `src/content/encounter-registry-enemy-builders.ts` and `src/content/encounter-registry-builders.ts` are private content-domain helpers, but callers still enter generated encounter assembly through `window.ROUGE_ENCOUNTER_REGISTRY`.
 - `src/run/run-state.ts`, `src/run/run-route-builder.ts`, `src/run/run-progression.ts`, and `src/run/run-reward-flow.ts` are run-domain helpers, but `src/app/*`, `src/ui/*`, and `src/town/*` still enter the run domain through `window.ROUGE_RUN_FACTORY`.
 - `src/items/item-data.ts`, `src/items/item-catalog.ts`, `src/items/item-loadout.ts`, and `src/items/item-town.ts` are item-domain helpers, but cross-domain callers still enter itemization through `window.ROUGE_ITEM_SYSTEM`.

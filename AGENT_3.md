@@ -54,7 +54,7 @@ Live now:
 
 Still weak:
 
-- route topology now reaches quest -> event -> opportunity plus shrine -> shrine-opportunity plus crossroad -> reserve -> relay -> culmination with parallel legacy, reckoning, recovery, and accord lanes that converge again in covenant, but it still needs broader alternate fabrics or deeper combat-linked payoff beyond the current late-route convergence per act
+- route topology now reaches quest -> event -> opportunity plus shrine -> shrine-opportunity plus crossroad -> reserve -> relay -> culmination with parallel legacy, reckoning, recovery, and accord lanes that converge again in covenant before opening detour and escalation follow-through lanes, but it still needs broader alternate fabrics or deeper combat-linked payoff beyond the current late-route fabric per act
 - quest and event chains still need more downstream payoff beyond the current follow-up, shrine branch, crossroad, reserve, relay, culmination, legacy, reckoning, recovery, accord, and covenant handoffs
 - encounter packs still need broader modifier catalogs or stronger escort or boss scripting beyond the current sixteen-modifier, linebreaker-charge, ritual-cadence, boss-screen, sniper-nest, and phalanx-march baseline
 - mercenary route-perk catalogs now have a twelve-per-contract baseline with reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked scaling, but later route families could still grow late-run contract payoff further beyond the current covenant-linked perk pass
@@ -64,9 +64,10 @@ Still weak:
 
 Build the next route-depth and combat-depth pass beyond the current baseline:
 
-- deepen quest, shrine, aftermath-event, and opportunity chains so later nodes, encounters, and rewards pay off earlier consequences beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-or-miniboss-or-boss encounter and reward retunes
-- broaden route consequence payoff so the current covenant convergence changes more than reward text and the current branch-or-miniboss-or-boss encounter and reward retunes
-- only deepen mercenary route-perk breadth again when new route families or combat packages create a meaningful later payoff seam beyond the current covenant-linked perk pass
+- build on the now-live covenant -> detour or escalation late-route fabric instead of re-establishing it, and deepen those late-route families into stronger act-facing payoff packages
+- deepen quest, shrine, aftermath-event, and opportunity chains so later nodes, encounters, and rewards pay off earlier consequences beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus detour-or-escalation follow-through and branch-or-miniboss-or-boss encounter and reward retunes
+- push more of that consequence payoff into actual encounter packages, boss scripts, and reward consequences instead of only text or flat number shifts
+- only deepen mercenary route-perk breadth again when the late-route follow-through or a newly added route family creates a meaningful later payoff seam beyond the current covenant-or-detour-or-escalation-linked perk pass
 - harden validation and normalization around every new authored content seam you add
 
 This batch should make Acts I-V feel materially broader, not just numerically larger.
@@ -75,28 +76,29 @@ This batch should make Acts I-V feel materially broader, not just numerically la
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. consequence payoff extension only if it changes more than the current encounter retunes
-- make earlier quest, shrine, and opportunity outcomes influence later nodes, encounter packages, or reward consequences more deeply than the current branch-or-miniboss-or-boss retune baseline
-- extend node and validation coverage in `tests/app-engine-world-nodes.test.ts` and `tests/app-engine-world-node-validation.test.ts`
+1. detour-and-escalation follow-through pass
+- deepen the live post-covenant late-route fabric so detour and escalation feel materially different across acts instead of only acting as one more unlock gate after covenant
+- if you introduce a second late-route family beyond detour and escalation, keep it act-facing, materially different, and reachable through authored-path validation
 
-2. route-topology extension only if it creates a real new payoff seam
-- only add more route families if they change consequence payoff materially beyond the current covenant convergence
-- keep route resolution deterministic and reachable through authored-path validation
+2. consequence-to-combat pass
+- make earlier quest, shrine, and opportunity outcomes influence later nodes, detour or escalation packages, encounter packages, boss scripts, or reward consequences more deeply than the current branch-or-miniboss-or-boss retune baseline
+- extend node and validation coverage in `tests/app-engine-world-nodes.test.ts`, `tests/app-engine-world-nodes-late-routes.test.ts`, and `tests/app-engine-world-node-validation.test.ts`
 
-3. mercenary extension only if justified
-- only add more mercenary route-perk depth if the new route fabric creates a real new payoff seam
+3. boss, escort, and mercenary follow-through
+- only add more mercenary route-perk depth if the detour-or-escalation follow-through or a new route family creates a real new payoff seam
 - if you do, keep the new perks validated and covered in both runtime validation and combat or node tests
+- broaden modifier, escort, or boss packages only where they materially express the new route consequences
 
 ## Chunk 1: Consequence Payoff And Late-Route Follow-Through
 
-Expand the non-combat side of the run into a richer act loop now that covenant exists.
+Expand the non-combat side of the run into a richer act loop now that covenant, detour, and escalation all exist.
 
 This includes:
 
 - making earlier node outcomes change later node resolution, encounter packages, or reward meaning more materially
 - deepening authored quest, shrine, event, and opportunity chains beyond the current covenant close
 - broadening the node catalog only when it creates a stronger payoff seam instead of another shallow branch
-- introducing clearer route identities such as detour, escalation, recovery, or gamble lanes without breaking the current phase machine
+- deepening the now-live detour and escalation identities or introducing a further late-route family only when it materially changes payoff structure without breaking the current phase machine
 - adding stronger downstream consequence payoff into later route nodes, encounters, or rewards
 - preserving the current `world_map -> reward -> world_map` resolution seam for non-combat nodes
 
@@ -168,7 +170,7 @@ Expectations:
 
 ## Acceptance Criteria
 
-- the route loop offers materially more authored variety than the current baseline
+- the route loop offers materially more authored variety than the current covenant-plus-detour-plus-escalation baseline
 - quest and event chains have deeper payoff than the current simple follow-up structure
 - route fabrics feel materially different from each other, not just like longer chains
 - act combat content feels broader through encounter mix, elite behavior, boss scripting, mercenary breadth, or equivalent systems
@@ -178,4 +180,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Agent 3's next world-content pass beyond the current seven-contract, twelve-route-perk-per-mercenary, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-conditioned branch-or-miniboss-or-boss encounter and reward packages, four-affix-per-act, six-branch-battle and six-branch-miniboss encounter pools, and sixteen-modifier combat baseline with linebreaker-charge and ritual-cadence boss retunes. Prioritize deeper downstream quest, shrine, event, and opportunity payoff beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-or-miniboss-or-boss encounter and reward retunes. Only extend mercenary route perks further if new consequence or combat packages create a real later-run payoff seam beyond the current covenant-linked perk pass. Keep node logic in content, quest, app, and run seams, keep combat deterministic, and make the larger authored surface fail clearly when content is incomplete.
+Build Agent 3's next world-content pass beyond the current seven-contract, twelve-route-perk-per-mercenary, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, and escalation-lane baseline, plus consequence-conditioned branch-or-miniboss-or-boss encounter and reward packages, four-affix-per-act, six-branch-battle and six-branch-miniboss encounter pools, and the sixteen-modifier combat baseline with linebreaker-charge and ritual-cadence boss retunes. Build on the live post-covenant detour and escalation lanes by making earlier quest, shrine, event, and opportunity outcomes change later encounters, bosses, and rewards more deeply than the current retune baseline, and only extend mercenary route perks further if the late-route follow-through creates a real later-run payoff seam. Keep node logic in content, quest, app, and run seams, keep combat deterministic, and make the larger authored surface fail clearly when content is incomplete.

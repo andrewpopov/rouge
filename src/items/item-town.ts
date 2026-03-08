@@ -64,6 +64,8 @@
       hasTownFeature(profile, "brokerage_charter") ||
       hasTownFeature(profile, "artisan_stock") ||
       hasTownFeature(profile, "treasury_exchange") ||
+      hasTownFeature(profile, "chronicle_exchange") ||
+      hasTownFeature(profile, "paragon_exchange") ||
       salvageTithes;
     return {
       advancedVendorStock: hasTownFeature(profile, "advanced_vendor_stock"),
@@ -73,20 +75,27 @@
       artisanStock: hasTownFeature(profile, "artisan_stock"),
       brokerageCharter: hasTownFeature(profile, "brokerage_charter"),
       treasuryExchange: hasTownFeature(profile, "treasury_exchange"),
+      chronicleExchange: hasTownFeature(profile, "chronicle_exchange"),
+      paragonExchange: hasTownFeature(profile, "paragon_exchange"),
       economyFocus: focusedTreeId === "economy" && economyUnlocked,
     };
   }
 
-  function getPlannedRunewordId(profile, slot) {
+  function getPlannedRunewordId(profile, slot, content = null) {
     if (slot !== "weapon" && slot !== "armor") {
       return "";
     }
     const planningKey = slot === "weapon" ? "weaponRunewordId" : "armorRunewordId";
-    return typeof profile?.meta?.planning?.[planningKey] === "string" ? profile.meta.planning[planningKey] : "";
+    const runewordId = typeof profile?.meta?.planning?.[planningKey] === "string" ? profile.meta.planning[planningKey] : "";
+    if (!content?.runewordCatalog) {
+      return runewordId;
+    }
+    const runeword = getRunewordDefinition(content, runewordId);
+    return runeword?.slot === slot ? runeword.id : "";
   }
 
   function getPlannedRuneword(profile, slot, content) {
-    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot));
+    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot, content));
     return runeword?.slot === slot ? runeword : null;
   }
 
@@ -96,9 +105,9 @@
       .filter(Boolean);
   }
 
-  function getPlanningSummary(profile) {
+  function getPlanningSummary(profile, content = null) {
     return (
-      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile)?.planning || {
+      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
         weaponRunewordId: "",
         armorRunewordId: "",
         plannedRunewordCount: 0,
@@ -114,8 +123,12 @@
     );
   }
 
-  function getPlannedRunewordArchiveState(profile, slot) {
-    const planning = getPlanningSummary(profile);
+  function hasOpenPlanningCharter(profile, content = null) {
+    return toNumber(getPlanningSummary(profile, content)?.unfulfilledPlanCount, 0) > 0;
+  }
+
+  function getPlannedRunewordArchiveState(profile, slot, content = null) {
+    const planning = getPlanningSummary(profile, content);
     return {
       runewordId: slot === "weapon" ? planning.weaponRunewordId : planning.armorRunewordId,
       archivedRunCount: slot === "weapon" ? planning.weaponArchivedRunCount : planning.armorArchivedRunCount,
@@ -233,8 +246,11 @@
     return { ok: true, message: `Sold for ${sellPrice} gold.` };
   }
 
-  function getVendorRefreshCost(run, profile = null) {
+  function getVendorRefreshCost(run, profile = null, content = null) {
     const features = getAccountEconomyFeatures(profile);
+    const planningPressure = getStashPlanningPressure(profile);
+    const chronicleDiscount =
+      features.chronicleExchange ? 1 + Number(hasOpenPlanningCharter(profile, content) || planningPressure.stashEntries > 0) : 0;
     const discount =
       (features.advancedVendorStock ? 2 : 0) +
       (features.economyLedger ? 4 : 0) +
@@ -242,6 +258,8 @@
       (features.artisanStock ? 2 : 0) +
       (features.brokerageCharter ? 2 : 0) +
       (features.treasuryExchange ? 3 : 0) +
+      chronicleDiscount +
+      (features.paragonExchange && run.actNumber >= 5 ? 1 : 0) +
       (features.economyFocus ? 1 : 0);
     return Math.max(8, 10 + run.actNumber * 4 + toNumber(run.town?.vendor?.refreshCount, 0) * 6 - discount);
   }
@@ -257,10 +275,20 @@
     const stashLoadFee = Math.min(6, planningPressure.stashEntries);
     const planningFee = planningPressure.socketReadyEntries + planningPressure.runewordEntries;
     const planningMatch = getEntryPlanningMatch(entry, content, profile);
-    const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot) : null;
+    const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot, content) : null;
     const planningDiscount =
       planningMatch ? 3 + Number(features.economyFocus) + Number(planningArchiveState?.unfulfilled) * 2 : 0;
-    const fee = baseFee + Math.floor(buyPrice * 0.12) + stashLoadFee + planningFee - Number(features.economyFocus) - planningDiscount;
+    const chronicleDiscount = features.chronicleExchange ? 2 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
+    const paragonDiscount = features.paragonExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) : 0;
+    const fee =
+      baseFee +
+      Math.floor(buyPrice * 0.12) +
+      stashLoadFee +
+      planningFee -
+      Number(features.economyFocus) -
+      planningDiscount -
+      chronicleDiscount -
+      paragonDiscount;
     return Math.max(entry.kind === "rune" ? 4 : 8, fee);
   }
 
@@ -281,6 +309,7 @@
 
   function getVendorTierAllowance(run, profile = null) {
     const features = getAccountEconomyFeatures(profile);
+    const chroniclePressure = features.chronicleExchange;
     return (
       Math.min(2, Math.floor(Math.max(0, toNumber(run.level, 1) - 1) / 3)) +
       Math.min(1, toNumber(run.progression?.bossTrophies?.length, 0)) +
@@ -288,6 +317,8 @@
       Number(features.advancedVendorStock) +
       Number(features.brokerageCharter && run.actNumber >= 4) +
       Number(features.artisanStock && run.actNumber >= 5) +
+      Number(chroniclePressure && run.actNumber >= 4) +
+      Number(features.paragonExchange && run.actNumber >= 5) +
       Number(features.treasuryExchange && run.actNumber >= 5)
     );
   }
@@ -363,7 +394,25 @@
             })[0] || null
         : null;
     const plannedRuneword = getPlannedRuneword(profile, slot, content);
-    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
+    const chronicleOffer =
+      features.chronicleExchange && (run.actNumber >= 4 || planningArchiveState.unfulfilled || hasOpenPlanningCharter(profile, content))
+        ? [...upgradeOptions, ...options]
+            .filter((item) => {
+              if (!plannedRuneword) {
+                return toNumber(item.maxSockets, 0) >= 3;
+              }
+              return isRunewordCompatibleWithItem(item, plannedRuneword);
+            })
+            .sort((left, right) => {
+              const rightSocketDelta = toNumber(right.maxSockets, 0);
+              const leftSocketDelta = toNumber(left.maxSockets, 0);
+              if (rightSocketDelta !== leftSocketDelta) {
+                return rightSocketDelta - leftSocketDelta;
+              }
+              return toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+            })[0] || null
+        : null;
     const planningOffer =
       plannedRuneword
         ? [...upgradeOptions, ...options]
@@ -387,6 +436,18 @@
               return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
+    const paragonOffer =
+      features.paragonExchange && run.actNumber >= 5
+        ? [...upgradeOptions, ...options]
+            .filter((item) => toNumber(item.maxSockets, 0) >= 3)
+            .sort((left, right) => {
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
     const primaryUpgrade =
       upgradeOptions[(lateBias ? upgradeOptions.length - 1 : 0)] ||
       options[Math.max(0, options.length - 1)] ||
@@ -398,7 +459,7 @@
     const sidegrade = options[(seed + (slot === "weapon" ? 0 : 1)) % options.length] || null;
 
     return pickUniqueDefinitions(
-      [planningOffer, primaryUpgrade, secondaryUpgrade, socketReadyOffer, artisanOffer, treasuryOffer, sidegrade],
+      [planningOffer, chronicleOffer, primaryUpgrade, paragonOffer, secondaryUpgrade, socketReadyOffer, artisanOffer, treasuryOffer, sidegrade],
       options,
       desiredCount,
       seed
@@ -441,8 +502,12 @@
     }
     if (features.runewordCodex || features.treasuryExchange) {
       getPlannedRunewordTargets(profile, content).forEach((runeword) => {
-        const archiveState = getPlannedRunewordArchiveState(profile, runeword.slot);
-        const planningTargetCount = 2 + Number(archiveState.unfulfilled && (features.treasuryExchange || features.economyFocus));
+        const archiveState = getPlannedRunewordArchiveState(profile, runeword.slot, content);
+        const planningTargetCount =
+          2 +
+          Number(archiveState.unfulfilled && (features.treasuryExchange || features.economyFocus)) +
+          Number(archiveState.unfulfilled && features.chronicleExchange) +
+          Number(run.actNumber >= 5 && features.paragonExchange);
         runeword.requiredRunes.slice(0, planningTargetCount).forEach((runeId) => uniquePush(targetRuneIds, runeId));
       });
     }
@@ -500,6 +565,10 @@
     const focusOfferBonus = Number(features.economyFocus && (features.advancedVendorStock || features.salvageTithes));
     const artisanOfferBonus = Number(features.artisanStock && run.actNumber >= 5);
     const brokerageOfferBonus = Number(features.brokerageCharter && run.actNumber >= 4);
+    const chronicleOfferBonus =
+      Number(features.chronicleExchange && run.actNumber >= 4) +
+      Number(features.chronicleExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).stashEntries > 0));
+    const paragonOfferBonus = Number(features.paragonExchange && run.actNumber >= 5);
     const treasuryOfferBonus = Number(features.treasuryExchange && run.actNumber >= 5);
     const weaponOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 4)) +
@@ -507,6 +576,8 @@
       focusOfferBonus +
       artisanOfferBonus +
       brokerageOfferBonus +
+      chronicleOfferBonus +
+      paragonOfferBonus +
       treasuryOfferBonus;
     const armorOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 3)) +
@@ -514,6 +585,8 @@
       focusOfferBonus +
       artisanOfferBonus +
       brokerageOfferBonus +
+      chronicleOfferBonus +
+      paragonOfferBonus +
       treasuryOfferBonus;
     const runeOfferCount =
       (run.actNumber >= 5 ? 4 : 2 + Number(run.actNumber >= 3)) +
@@ -522,6 +595,8 @@
       focusOfferBonus +
       artisanOfferBonus +
       brokerageOfferBonus +
+      chronicleOfferBonus +
+      paragonOfferBonus +
       treasuryOfferBonus;
     const selectedWeapons = fillDefinitionSelection(
       pickVendorEquipmentOffers(
@@ -653,7 +728,7 @@
 
   function buildVendorRefreshAction(run, content, profile = null) {
     const features = getAccountEconomyFeatures(profile);
-    const cost = getVendorRefreshCost(run, profile);
+    const cost = getVendorRefreshCost(run, profile, content);
     const affordable = run.gold >= cost;
     const previewLines = [`Refresh fee ${cost} gold.`, `Current refresh count ${run.town.vendor.refreshCount}.`];
     if (features.advancedVendorStock) {
@@ -665,8 +740,14 @@
     if (features.economyLedger) {
       previewLines.push("Economy Ledger discount is active on town trading.");
     }
+    if (features.chronicleExchange) {
+      previewLines.push("Chronicle Exchange is turning archive review into live trade leverage for planning and stash pressure.");
+    }
     if (features.treasuryExchange) {
       previewLines.push("Treasury Exchange is opening premium late-act leverage around stash and vendor planning.");
+    }
+    if (features.paragonExchange) {
+      previewLines.push("Paragon Exchange is binding mastery doctrine to trade leverage for premium late-act replacements.");
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content)
       .map((runeword) => runeword?.name)
@@ -676,7 +757,7 @@
     }
     const unfulfilledPlannedRunewords = (["weapon", "armor"] as const)
       .map((slot) => {
-        const archiveState = getPlannedRunewordArchiveState(profile, slot);
+        const archiveState = getPlannedRunewordArchiveState(profile, slot, content);
         if (!archiveState.unfulfilled) {
           return "";
         }
@@ -850,7 +931,7 @@
     hydrateRunInventory(run, content, profile);
 
     if (actionId === "vendor_refresh_stock") {
-      const cost = getVendorRefreshCost(run, profile);
+      const cost = getVendorRefreshCost(run, profile, content);
       if (run.gold < cost) {
         return { ok: false, message: "Not enough gold to refresh vendor stock." };
       }
@@ -969,7 +1050,7 @@
     if (plannedRunewords.length > 0) {
       lines.push(`Planning charters: ${plannedRunewords.map((runeword) => runeword.name).join(" / ")}.`);
     }
-    const planning = getPlanningSummary(profile);
+    const planning = getPlanningSummary(profile, content);
     if (planning.plannedRunewordCount > 0) {
       lines.push(
         `Planning record: ${planning.fulfilledPlanCount}/${planning.plannedRunewordCount} active charter${

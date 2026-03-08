@@ -107,11 +107,11 @@
 
   function loadProfile(content: GameContent): ProfileState {
     const persistence = getPersistence();
-    const storedProfile = persistence?.loadProfileFromStorage?.() || null;
+    const storedProfile = persistence?.loadProfileFromStorage?.(undefined, content) || null;
     const profile = storedProfile || persistence?.createEmptyProfile?.() || createFallbackProfile();
     const serializedBeforeHydration = JSON.stringify(profile);
 
-    persistence?.ensureProfileMeta?.(profile);
+    persistence?.ensureProfileMeta?.(profile, content);
     persistence?.markTutorialSeen?.(profile, "front_door_profile_hall");
     runtimeWindow.ROUGE_ITEM_SYSTEM?.hydrateProfileStash?.(profile, content);
 
@@ -453,8 +453,8 @@
     const persistence = getPersistence();
     const profile = state?.profile || persistence?.loadProfileFromStorage?.() || null;
     return (
-      persistence?.getAccountProgressSummary?.(profile) ||
-      persistence?.getAccountProgressSummary?.(null) || {
+      persistence?.getAccountProgressSummary?.(profile, state?.content || null) ||
+      persistence?.getAccountProgressSummary?.(null, state?.content || null) || {
         profile: getProfileSummary(state),
         settings: {
           showHints: true,
@@ -517,7 +517,14 @@
           readyCapstoneCount: 0,
           nextCapstoneId: "",
           nextCapstoneTitle: "",
+          convergenceCount: 0,
+          unlockedConvergenceCount: 0,
+          blockedConvergenceCount: 0,
+          availableConvergenceCount: 0,
+          nextConvergenceId: "",
+          nextConvergenceTitle: "",
         },
+        convergences: [],
         focusedTreeId: "",
         focusedTreeTitle: "",
         treeCount: 0,
@@ -577,7 +584,7 @@
       }
     }
     return mutateProfileMeta(state, (persistence, profile) => {
-      persistence.setPlannedRuneword(profile, slot, runewordId);
+      persistence.setPlannedRuneword(profile, slot, runewordId, state.content);
     });
   }
 

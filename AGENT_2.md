@@ -57,7 +57,7 @@ Live now:
 Still weak:
 
 - class progression still needs to feel like a full build system instead of a basic tree-unlock scaffold
-- account unlock and tutorial ownership now include prerequisite-aware archive or economy or mastery progression trees, focused-tree APIs, later-tier gates like `heroic_annals`, `mythic_annals`, `eternal_annals`, `artisan_stock`, `brokerage_charter`, `treasury_exchange`, `war_college`, `paragon_doctrine`, and `apex_doctrine`, richer archived run summaries, and shell-level focus review or control surfaces, but broader cross-tree identity and broader account-review depth still need to be built
+- account unlock and tutorial ownership now include prerequisite-aware archive or economy or mastery progression trees, focused-tree APIs, later-tier gates like `heroic_annals`, `mythic_annals`, `eternal_annals`, `artisan_stock`, `brokerage_charter`, `treasury_exchange`, `war_college`, `paragon_doctrine`, and `apex_doctrine`, richer archived run summaries, shell-level focus review or control surfaces, and derived cross-tree convergence bundles like `chronicle_exchange`, `war_annals`, and `paragon_exchange`, but broader future tree breadth and deeper account-review read models still need to be built
 - late-run loot replacement pressure and item curation now include profile-aware reward-side replacement pivots and late-act premium trade leverage, but still need more authored breadth and tuning beyond the current higher-tier loot band
 - vendor and stash flows now speak the account feature language for stock, rune routing, refresh pressure, pricing, archive retention, stash planning, direct `treasury_exchange` consignment, and account-review summaries, but the broader economy still needs stronger long-horizon sinks and stronger stash or archive planning value
 - reward curation now has account-tree-driven encounter payouts, boss pivots, and apex mastery inflection points, but it still needs broader late-act authored variety and deeper feature-gated inflection points
@@ -83,20 +83,22 @@ Completed work:
 - vendor consignment previews, vendor equipment or rune routing, and reward-side equipment pivots now all read those planning charters so long-horizon runeword targets materially affect town and late-act reward behavior
 - archived run history now also records planned weapon or armor runewords plus which charter targets were actually fulfilled on that expedition, so planning is preserved as account history instead of a temporary current-profile toggle
 - account planning summaries now expose archive-backed charter ledgers, including archived or fulfilled counts and best-act records for the current weapon or armor targets, and town or reward behavior now reacts more strongly while a charter is still unfulfilled across the account
+- profile hydrate, migration, archive summaries, town previews, vendor routing, and reward pivots now sanitize planned runeword ids against the live runeword catalog, so stale or cross-slot ids cannot survive as phantom charter pressure
 - focused account trees now bias live runtime behavior, including archive retention, vendor pressure, and mastery-side boss rewards
+- cross-tree convergence bundles are now live above the current capstones, with `chronicle_exchange` deepening archive retention and trade leverage, `war_annals` feeding archive-backed mastery pivots into late-act rewards, and `paragon_exchange` pushing late-act vendors and equipment rewards toward premium replacement bases
 - archived run history now stores richer progression or economy snapshots, favored-tree carry-through, active runewords, loadout-tier or socket state, stash-planning state, and newly unlocked account-feature deltas
-- account-facing read models now include richer stash, archive, and capstone-review summaries so shell consumers can stay off raw profile internals
+- account-facing read models now include richer stash, archive, capstone-review, and cross-tree convergence summaries so shell consumers can stay off raw profile internals
 - front door, safe zone, and run-end shell surfaces now read the live unlock, tutorial, and account-summary seams instead of reserving that space as a future placeholder
 - front door, safe zone, and run-end shell surfaces now also expose focused-tree review and live account-focus controls through the existing shell action path
 - front door now also exposes live profile-settings toggles plus tutorial complete or dismiss or restore controls through the existing account mutation path
 - front door now also exposes direct preferred-class controls, and character select now honors explicit preferred class over recent class while still following recent history when the account preference has not diverged
 - front door now also exposes an interactive archive-review desk over richer archived run summaries, with latest or older or newer navigation routed through app-engine instead of a shell-owned persistence layer
 - regression coverage exists for migration backfill, capped progression investment, archived profile meta, account-tree or settings or tutorial or preferred-class or archive-review mutation behavior, later-tier archive or economy or mastery gate behavior, capstone gating or read-model behavior, reward-side milestone behavior, late-act economy or replacement-pivot behavior, and account-surface rendering
-- `npm run check` currently passes against this slice, with compiled tests `157/157`
+- `npm run check` currently passes against this slice, with compiled tests `169/169`
 
 Still open-ended:
 
-- broader unlock rules, further progression-tree breadth beyond the current archive or economy or mastery trees plus `heroic_annals` or `mythic_annals` or `eternal_annals`, `artisan_stock` or `brokerage_charter` or `treasury_exchange`, and `war_college` or `paragon_doctrine` or `apex_doctrine`, and broader account UX beyond the current focused-tree review controls, archive-review desk, shell summaries, current runeword-planning desk, and current charter-ledger review
+- broader unlock rules, further progression-tree breadth beyond the current archive or economy or mastery trees plus `heroic_annals` or `mythic_annals` or `eternal_annals`, `artisan_stock` or `brokerage_charter` or `treasury_exchange`, and `war_college` or `paragon_doctrine` or `apex_doctrine`, plus broader cross-tree growth beyond the current convergence pass and broader account UX beyond the current focused-tree review controls, archive-review desk, shell summaries, current runeword-planning desk, convergence review, and current charter-ledger review
 - deeper authored loot breadth, broader feature-gated reward variety, and longer-horizon economy tuning
 - broader future meta loops built on the current account seams and richer archive data plus stash or archive review models
 
@@ -107,7 +109,7 @@ Build the next long-horizon economy and planning pass on top of the systems that
 - deepen the account model that sits behind the live preferred-class or settings or tutorial or focused-tree or planning mutation APIs instead of rebuilding those APIs
 - deepen Act IV-V item, rune, runeword, vendor, and boss-reward pressure so later acts force real replacement decisions instead of simple linear upgrades
 - turn the current stash, archive, vendor, and reward seams into stronger long-horizon planning systems with better economy sinks built on the existing ownership seams and current read models
-- broaden future tree growth past the current capstone pass without fragmenting the profile seam or pushing logic into shell consumers
+- broaden future tree growth past the current capstone and convergence pass without fragmenting the profile seam or pushing logic into shell consumers
 
 This batch should materially improve the durability of the whole game spine, not just add more values to store.
 
@@ -115,17 +117,17 @@ This batch should materially improve the durability of the whole game spine, not
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. late-act economy and replacement-pressure pass
+1. second-wave account-growth pass
+- broaden the archive, economy, mastery, and convergence graph beyond the current capstones without fragmenting the profile seam
+- expose stable summary APIs so Agent 1 can consume the new read models without raw profile access
+
+2. late-act economy and replacement-pressure pass
 - deepen Acts IV-V item, rune, runeword, reward, and vendor pressure through `src/items/*`, `src/rewards/*`, and `src/run/*`
 - make the player choose between replacement, stash planning, and economy sinks instead of only taking obvious upgrades
 
-2. long-horizon planning and sink pass
-- build stronger stash, archive, and vendor planning value on top of the current capstones and account read models
-- deepen the account model behind the existing preferred-class or settings or tutorial or focus or planning APIs instead of replacing those seams
-
 3. integration and regression pass
 - ensure reward, town, stash, restore, and archive flows all agree on the same progression model
-- extend `tests/app-engine-progression.test.ts`, `tests/app-engine.test.ts`, and any affected domain tests to cover the new capstones and economy behavior
+- extend `tests/app-engine-progression.test.ts`, `tests/app-engine.test.ts`, and any affected domain tests to cover the new account-growth and economy behavior
 
 ## Chunk 1: Account Tree Capstones And Feature Gates
 
@@ -236,4 +238,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Rouge's next progression and account batch. Push the archive or economy or mastery trees into a capstone-style second wave of account systems, deepen the multi-act item or rune or runeword economy so Acts IV-V force meaningful replacement decisions, strengthen stash or archive or economy read models for the shell, and make rewards and town services operate through one coherent build-growth model with stronger long-horizon sinks. Keep mutation in run, rewards, items, character, and state modules, keep combat deterministic, and expose stable summary APIs for the shell.
+Build Rouge's next progression and account batch on top of the now-live planning-charter sanitization and convergence layer. Push the archive or economy or mastery trees into a broader second wave beyond the current capstones and convergences, deepen the multi-act item or rune or runeword economy so Acts IV-V force meaningful replacement decisions, strengthen stash or archive or economy read models for the shell, and keep rewards and town services operating through one coherent build-growth model with stronger long-horizon sinks. Keep mutation in run, rewards, items, character, and state modules, keep combat deterministic, and expose stable summary APIs for the shell.

@@ -51,7 +51,16 @@ function getRuntimeFiles() {
 }
 
 function cleanDist() {
-  fs.rmSync(DIST, { recursive: true, force: true });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      fs.rmSync(DIST, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
+      break;
+    } catch (error) {
+      if (attempt === 2) {
+        throw error;
+      }
+    }
+  }
   fs.mkdirSync(DIST, { recursive: true });
 }
 

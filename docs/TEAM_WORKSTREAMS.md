@@ -36,13 +36,14 @@ Already landed in the live runtime:
 - front-door saved-run review plus continue or abandon flow
 - active-run autosave and restore with save migrations
 - profile-backed stash, settings, preferred class, unlock, tutorial, and run-history persistence
+- prerequisite-aware account trees, capstones, and cross-tree convergence bundles with shell-facing account summaries
 - `skills.json` progression catalog wiring plus manual class and attribute spending
 - vendor refresh or buy or sell flows plus carried inventory and profile stash transfer
 - sockets, rune insertion, and expanded runeword activation
 - split run-domain helpers under `src/run/*` plus split item-domain helpers under `src/items/*`
 - seed, runtime, world-node, and elite-affix validation
-- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
-- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools, a fourteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and deeper boss escorts
+- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
+- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools with six branch battles and six branch minibosses per act, a sixteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, and deeper boss escorts
 
 The active team split is now four larger workstreams:
 
@@ -123,52 +124,53 @@ Use the standalone assignment sheets as the source of truth for the detailed tas
 The current chunking is:
 
 1. Agent 1 owns the full player-facing shell:
-   - account hall navigation and drilldowns
+   - account-hall decision support and convergence visibility
    - onboarding and tutorial continuity
-   - town-prep and run-management UX
-   - route intel, reward, and run-end change summaries
+   - town-prep comparison and run-management UX
+   - route intel, reward, and run-end change summaries on top of the now-live hall decision desk, prep comparison board, and hall handoff
 2. Agent 2 owns the progression and account backbone:
-   - account-tree capstones and feature gates
+   - second-wave account growth beyond the current capstones, convergences, and live planning-charter layer
    - late-act item or rune or runeword economy depth
    - archive, stash, and profile read-model depth
    - reward and town integration around one progression model
 3. Agent 3 owns world-content and combat depth:
-   - second alternate route fabrics per act and route-side node catalogs
-   - deeper quest and event consequence chains
-   - encounter-pack breadth on top of the live fourteen-modifier baseline
+   - deeper detour or escalation follow-through and broader late-route node catalogs
+   - deeper quest and event consequence chains that feed later encounters and rewards across the live covenant-plus-detour-plus-escalation fabric
+   - encounter-pack breadth on top of the live sixteen-modifier baseline
    - elite or boss depth and mercenary payoff growth only where new route fabrics justify it
    - content validation and reachability hardening
 4. Agent 4 owns architecture and code quality:
-   - compiled-browser test-surface cleanup
-   - maintain the new `content-validator-world-paths` and `content-validator-runtime-content` seams
+   - compiled-browser harness and test-surface cleanup on top of the now-centralized browser manifest seams
+   - maintain the `content-validator-world-paths`, `content-validator-world-opportunities`, and `content-validator-runtime-content` seams
    - maintain the new `encounter-registry` helper chain
-   - `content-validator` world-node follow-on extraction next
-   - follow-on hotspot extraction
+   - keep `content-validator.ts` thin and keep late-route validation out of the public entry
+   - first safe `world-node-engine` helper extraction
    - lint suppression and structural debt reduction
    - architecture rule maintenance
 
 Current start order for this round:
 
 1. Agent 4
-   - keep `tests/helpers/browser-harness.ts` and `tests/app-engine*.test.ts` aligned
-   - resume the remaining world-node hotspot pass in `src/content/content-validator.ts`
+   - keep `tests/helpers/browser-harness.ts` as the single boot-order source of truth
+   - continue the remaining app-engine suite cleanup, starting with the biggest world-node-heavy suite
+   - stage the first safe `world-node-engine` helper extraction with Agent 3 after the harness pass is stable
 2. Agent 2
-   - land account-tree capstones plus richer archive or stash or economy read models
-   - then deepen late-act replacement pressure and economy sinks
+   - land second-wave account growth plus richer archive or stash or economy read models
+   - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter layer
 3. Agent 3
-   - broaden modifier or escort or boss scripting on top of the current branch-and-boss consequence package seam
-   - then deepen consequence-linked reward payoff beyond the covenant convergence lane
+   - deepen the live detour and escalation lanes into broader act-facing payoff and encounter packages
+   - then push consequence-linked encounter, boss, and reward payoff deeper across the late-route fabric
 4. Agent 1
-   - land the next broader account-surface pass on top of the now-live hall navigator, town drilldowns, route-intel, and delta-summary shell
+   - land the next route-intel and reward continuity pass on top of the now-live hall navigator, hall decision desk, prep comparison board, convergence review, and delta-summary shell
 
 Current landing guidance:
 
 1. land shared type, profile, and progression contract changes first
-2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and land the next `content-validator` world-node follow-on extraction early, because the validator helper pair and encounter-registry helper chain are now in place
-3. let Agent 2 land shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
-4. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts
-5. let Agent 1 land the next shell pass on top of the latest profile, route, archive, reward, and node surfaces
-6. let Agent 4 only stage any coordinated `world-node-engine` work after the remaining `src/content/content-validator.ts` world-node pass lands cleanly
+2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and only do further validator or `world-node-engine` follow-on work from the new helper chain and coordinated extraction seam
+3. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
+4. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts, building on the live detour or escalation fabric instead of re-establishing it
+5. let Agent 1 land the next shell pass on top of the latest profile, route, archive, reward, and node surfaces, using the new hall or town or run-end decision-support model as the baseline
+6. let Agent 4 only keep expanding `world-node-engine` extractions after the first coordinated helper pass lands cleanly
 
 ## Integration Checklist
 

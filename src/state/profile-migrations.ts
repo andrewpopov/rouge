@@ -153,6 +153,23 @@
       ],
     },
   ];
+  const ACCOUNT_CONVERGENCES = [
+    {
+      id: "chronicle_exchange",
+      rewardFeatureId: "chronicle_exchange",
+      requiredFeatureIds: ["eternal_annals", "treasury_exchange"],
+    },
+    {
+      id: "war_annals",
+      rewardFeatureId: "war_annals",
+      requiredFeatureIds: ["eternal_annals", "apex_doctrine"],
+    },
+    {
+      id: "paragon_exchange",
+      rewardFeatureId: "paragon_exchange",
+      requiredFeatureIds: ["treasury_exchange", "apex_doctrine"],
+    },
+  ];
 
   function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -170,13 +187,38 @@
     return Array.from(new Set((Array.isArray(values) ? values : []).filter((entry) => typeof entry === "string" && entry)));
   }
 
-  function ensureHistoryEntry(entry) {
+  function sanitizePlannedRunewordId(runewordId, slot, content = null) {
+    if (typeof runewordId !== "string" || !runewordId) {
+      return "";
+    }
+    if (!content?.runewordCatalog) {
+      return runewordId;
+    }
+    const runeword = content.runewordCatalog[runewordId] || null;
+    return runeword?.slot === slot ? runeword.id : "";
+  }
+
+  function sanitizeHistoryPlanningEntry(entry, content = null) {
+    if (!entry || !content?.runewordCatalog) {
+      return entry;
+    }
+
+    const plannedWeaponRunewordId = sanitizePlannedRunewordId(entry.plannedWeaponRunewordId, "weapon", content);
+    const plannedArmorRunewordId = sanitizePlannedRunewordId(entry.plannedArmorRunewordId, "armor", content);
+    const allowedRunewordIds = new Set([plannedWeaponRunewordId, plannedArmorRunewordId].filter(Boolean));
+    entry.plannedWeaponRunewordId = plannedWeaponRunewordId;
+    entry.plannedArmorRunewordId = plannedArmorRunewordId;
+    entry.completedPlannedRunewordIds = uniqueStrings((entry.completedPlannedRunewordIds || []).filter((runewordId) => allowedRunewordIds.has(runewordId)));
+    return entry;
+  }
+
+  function ensureHistoryEntry(entry, content = null) {
     if (!isObject(entry)) {
       return null;
     }
 
     const outcome = typeof entry.outcome === "string" ? entry.outcome : "abandoned";
-    return {
+    return sanitizeHistoryPlanningEntry({
       runId: typeof entry.runId === "string" ? entry.runId : "",
       classId: typeof entry.classId === "string" ? entry.classId : "",
       className: typeof entry.className === "string" ? entry.className : "",
@@ -206,7 +248,7 @@
       newFeatureIds: uniqueStrings(entry.newFeatureIds),
       completedAt: typeof entry.completedAt === "string" ? entry.completedAt : new Date(0).toISOString(),
       outcome: outcome === "completed" || outcome === "failed" || outcome === "abandoned" ? outcome : "abandoned",
-    };
+    }, content);
   }
 
   function createDefaultMeta() {
@@ -288,15 +330,26 @@
     });
   }
 
-  function applyDerivedAccountUnlocks(meta, runHistory) {
+  function listUnlockedMilestoneFeatureIds(meta, runHistory) {
     const unlockedMilestoneIds = new Set(listUnlockedMilestones(meta, runHistory));
-    const unlockedFeatureIds = ACCOUNT_PROGRESSION_TREES.flatMap((tree) => {
-      return tree.nodes.filter((milestone) => unlockedMilestoneIds.has(milestone.id)).map((milestone) => milestone.rewardFeatureId);
-    });
-    meta.unlocks.townFeatureIds = uniqueStrings([...(meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS, ...unlockedFeatureIds]);
+    return uniqueStrings(
+      ACCOUNT_PROGRESSION_TREES.flatMap((tree) => {
+        return tree.nodes.filter((milestone) => unlockedMilestoneIds.has(milestone.id)).map((milestone) => milestone.rewardFeatureId);
+      })
+    );
   }
 
-  function ensureMeta(meta, runHistory, activeRunSnapshot) {
+  function applyDerivedAccountUnlocks(meta, runHistory) {
+    const unlockedMilestoneFeatureIds = listUnlockedMilestoneFeatureIds(meta, runHistory);
+    const unlockedFeatureIds = uniqueStrings([...(meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS, ...unlockedMilestoneFeatureIds]);
+    const unlockedFeatureIdSet = new Set(unlockedFeatureIds);
+    const unlockedConvergenceFeatureIds = ACCOUNT_CONVERGENCES.filter((convergence) => {
+      return uniqueStrings(convergence.requiredFeatureIds || []).every((featureId) => unlockedFeatureIdSet.has(featureId));
+    }).map((convergence) => convergence.rewardFeatureId);
+    meta.unlocks.townFeatureIds = uniqueStrings([...unlockedFeatureIds, ...unlockedConvergenceFeatureIds]);
+  }
+
+  function ensureMeta(meta, runHistory, activeRunSnapshot, content = null) {
     const source = isObject(meta) ? meta : {};
     const history = Array.isArray(runHistory) ? runHistory : [];
     const defaultMeta = createDefaultMeta();
@@ -372,14 +425,19 @@
     )
       ? normalizedMeta.accountProgression.focusedTreeId
       : getDefaultFocusedTreeId(normalizedMeta, history);
+    if (content?.runewordCatalog) {
+      normalizedMeta.planning.weaponRunewordId = sanitizePlannedRunewordId(normalizedMeta.planning.weaponRunewordId, "weapon", content);
+      normalizedMeta.planning.armorRunewordId = sanitizePlannedRunewordId(normalizedMeta.planning.armorRunewordId, "armor", content);
+      history.forEach((entry) => sanitizeHistoryPlanningEntry(entry, content));
+    }
     applyDerivedAccountUnlocks(normalizedMeta, history);
     return normalizedMeta;
   }
 
-  function ensureProfileState(profile) {
+  function ensureProfileState(profile, content = null) {
     const source = isObject(profile) ? profile : {};
     const activeRunSnapshot = source.activeRunSnapshot ? runtimeWindow.ROUGE_SAVE_MIGRATIONS?.migrateSnapshot(source.activeRunSnapshot) || null : null;
-    const runHistory = Array.isArray(source.runHistory) ? source.runHistory.map(ensureHistoryEntry).filter(Boolean) : [];
+    const runHistory = Array.isArray(source.runHistory) ? source.runHistory.map((entry) => ensureHistoryEntry(entry, content)).filter(Boolean) : [];
     return {
       activeRunSnapshot,
       stash: {
@@ -388,16 +446,16 @@
           : [],
       },
       runHistory,
-      meta: ensureMeta(source.meta, runHistory, activeRunSnapshot),
+      meta: ensureMeta(source.meta, runHistory, activeRunSnapshot, content),
     };
   }
 
-  function normalizeProfileEnvelope(profile) {
+  function normalizeProfileEnvelope(profile, content = null) {
     if (!profile) {
       return {
         schemaVersion: CURRENT_PROFILE_SCHEMA_VERSION,
         savedAt: new Date(0).toISOString(),
-        profile: ensureProfileState(null),
+        profile: ensureProfileState(null, content),
       };
     }
 
@@ -405,7 +463,7 @@
       return {
         schemaVersion: Number.parseInt(String(profile.schemaVersion || CURRENT_PROFILE_SCHEMA_VERSION), 10) || CURRENT_PROFILE_SCHEMA_VERSION,
         savedAt: typeof profile.savedAt === "string" ? profile.savedAt : new Date(0).toISOString(),
-        profile: ensureProfileState(profile.profile),
+        profile: ensureProfileState(profile.profile, content),
       };
     }
 
@@ -420,15 +478,15 @@
             entries: [],
           },
           runHistory: [],
-        }),
+        }, content),
       };
     }
 
     return null;
   }
 
-  function migrateProfile(profile) {
-    let envelope = normalizeProfileEnvelope(profile);
+  function migrateProfile(profile, content = null) {
+    let envelope = normalizeProfileEnvelope(profile, content);
     if (!envelope) {
       return null;
     }
@@ -438,7 +496,7 @@
         envelope = {
           schemaVersion: 2,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -446,7 +504,7 @@
         envelope = {
           schemaVersion: 3,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -454,7 +512,7 @@
         envelope = {
           schemaVersion: 4,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -462,7 +520,7 @@
         envelope = {
           schemaVersion: 5,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -470,7 +528,7 @@
         envelope = {
           schemaVersion: 6,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -478,7 +536,7 @@
         envelope = {
           schemaVersion: 7,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -486,7 +544,7 @@
         envelope = {
           schemaVersion: 8,
           savedAt: envelope.savedAt,
-          profile: ensureProfileState(envelope.profile),
+          profile: ensureProfileState(envelope.profile, content),
         };
         continue;
       }
@@ -496,7 +554,7 @@
     if (envelope.schemaVersion !== CURRENT_PROFILE_SCHEMA_VERSION) {
       return null;
     }
-    envelope.profile = ensureProfileState(envelope.profile);
+    envelope.profile = ensureProfileState(envelope.profile, content);
     return envelope;
   }
 

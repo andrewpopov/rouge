@@ -153,16 +153,16 @@ Current expectation:
 
 Current Agent 4 priority order:
 
-1. keep `tests/app-engine*.test.ts` aligned with `tests/helpers/browser-harness.ts` whenever browser script order or boot seams change
-2. keep shrinking `src/content/content-validator.ts` from the new `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` seams when a follow-on pass is warranted
+1. keep the centralized manifests in `tests/helpers/browser-harness.ts` as the single compiled-browser boot-order source of truth and keep `tests/app-engine*.test.ts` aligned whenever browser script order or boot seams change
+2. keep late-route validation behind `src/content/content-validator-world-opportunities.ts` and only shrink the remaining early world-node checks out of `src/content/content-validator.ts` when a follow-on pass is warranted
 3. keep `src/content/encounter-registry.ts` thin by preventing logic drift back out of `src/content/encounter-registry-builders.ts` or `src/content/encounter-registry-enemy-builders.ts`
 4. keep the run helpers small by avoiding new logic drift back into `src/run/run-factory.ts` or `src/run/run-reward-flow.ts`
-5. only then coordinate the first safe extractions out of `src/quests/world-node-engine.ts` with Agent 3
+5. then coordinate the first safe extractions out of `src/quests/world-node-engine.ts` with Agent 3
 
 Current sequencing guidance:
 
-1. let Agent 4 keep the compiled-browser harness aligned and start the remaining world-node follow-on pass in `src/content/content-validator.ts`
-2. let Agent 2 land the next shared progression, account, reward, and economy contracts, starting with account-tree capstones and richer archive or stash read models
-3. let Agent 3 land the next route and combat content expansion on those stable contracts, starting with the second late-route fabric per act
-4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with front-door structure and safe-zone preparation
-5. let Agent 4 only stage any coordinated `src/quests/world-node-engine.ts` work after the remaining `src/content/content-validator.ts` world-node pass lands cleanly
+1. let Agent 4 keep the compiled-browser harness aligned, continue the remaining app-engine suite cleanup, and only do validator or `world-node-engine` follow-on work from the existing helper chain and coordinated extraction seam
+2. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
+3. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
+4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with account-hall decision support and safe-zone comparison surfaces
+5. let Agent 4 only expand `src/quests/world-node-engine.ts` extraction further after the first helper pass and the next suite split settle cleanly

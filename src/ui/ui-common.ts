@@ -17,6 +17,36 @@
     return Number.parseInt(String(value ?? 0), 10) || 0;
   }
 
+  function getConvergenceTone(convergence: ProfileAccountConvergenceSummary): string {
+    if (convergence.unlocked) {
+      return "cleared";
+    }
+    if (convergence.status === "available") {
+      return "available";
+    }
+    return "locked";
+  }
+
+  function getConvergenceBadgeLabel(convergence: ProfileAccountConvergenceSummary): string {
+    if (convergence.unlocked) {
+      return "Unlocked";
+    }
+    if (convergence.status === "available") {
+      return `${convergence.unlockedRequirementCount}/${convergence.requiredFeatureCount} Ready`;
+    }
+    return "Locked";
+  }
+
+  function getConvergenceStatusLabel(convergence: ProfileAccountConvergenceSummary): string {
+    if (convergence.unlocked) {
+      return "Unlocked";
+    }
+    if (convergence.status === "available") {
+      return "Available";
+    }
+    return "Locked";
+  }
+
   function getDerivedPartyState(run: RunState, content: GameContent, itemSystem: ItemSystemApi): DerivedPartyState {
     const bonuses = runtimeWindow.ROUGE_RUN_FACTORY?.buildCombatBonuses?.(run, content) || itemSystem?.buildCombatBonuses(run, content) || {};
     const heroMaxLife = run.hero.maxLife + getBonusValue(bonuses.heroMaxLife);
@@ -218,6 +248,8 @@
         return "Mythic Annals";
       case "eternal_annals":
         return "Eternal Annals";
+      case "chronicle_exchange":
+        return "Chronicle Exchange";
       case "boss_trophy_gallery":
         return "Boss Trophy Gallery";
       case "runeword_codex":
@@ -244,6 +276,10 @@
         return "Paragon Doctrine";
       case "apex_doctrine":
         return "Apex Doctrine";
+      case "war_annals":
+        return "War Annals";
+      case "paragon_exchange":
+        return "Paragon Exchange";
       default:
         return featureId
           .split("_")
@@ -322,7 +358,14 @@
       readyCapstoneCount: 0,
       nextCapstoneId: "",
       nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
     };
+    const convergences = Array.isArray(accountSummary?.convergences) ? accountSummary.convergences : [];
 
     if (trees.length === 0) {
       return '<p class="flow-copy">Account progression trees have not unlocked yet.</p>';
@@ -339,11 +382,13 @@
             ${buildStat("Trees", accountSummary.treeCount)}
             ${buildStat("Milestones", `${accountSummary.unlockedMilestoneCount}/${accountSummary.milestoneCount}`)}
             ${buildStat("Capstones", `${review.unlockedCapstoneCount}/${review.capstoneCount}`)}
+            ${buildStat("Convergences", `${review.unlockedConvergenceCount}/${review.convergenceCount}`)}
             ${buildStat("Archive Cap", accountSummary.runHistoryCapacity)}
           </div>
           <p>${escapeHtml(focusedTree?.description || "Focus can be redirected between archive, economy, and mastery lanes.")}</p>
           <p>${escapeHtml(nextMilestone ? `Next milestone: ${nextMilestone.title}.` : "All account milestones are currently unlocked.")}</p>
           <p>${escapeHtml(review.nextCapstoneTitle ? `Next capstone: ${review.nextCapstoneTitle}.` : "Every current capstone is already online.")}</p>
+          <p>${escapeHtml(review.nextConvergenceTitle ? `Next convergence: ${review.nextConvergenceTitle}.` : "Every current cross-tree convergence is already online.")}</p>
           ${
             showControls
               ? `
@@ -403,6 +448,39 @@
             `;
           })
           .join("")}
+        ${
+          convergences.length > 0
+            ? convergences
+                .map((convergence) => {
+                  const convergenceTone = getConvergenceTone(convergence);
+                  return `
+                    <article class="feature-card">
+                      <div class="entity-name-row">
+                        <strong>${escapeHtml(convergence.title)}</strong>
+                        ${buildBadge(getConvergenceBadgeLabel(convergence), convergenceTone)}
+                      </div>
+                      <div class="entity-stat-grid">
+                        ${buildStat("Requirements", `${convergence.unlockedRequirementCount}/${convergence.requiredFeatureCount}`)}
+                        ${buildStat("Missing", convergence.missingFeatureIds.length)}
+                        ${buildStat("Status", getConvergenceStatusLabel(convergence))}
+                      </div>
+                      ${buildStringList(
+                        [
+                          convergence.description,
+                          `Requirements: ${getPreviewLabel(convergence.requiredFeatureTitles, "none")}.`,
+                          convergence.missingFeatureTitles.length > 0
+                            ? `Missing links: ${getPreviewLabel(convergence.missingFeatureTitles, "none")}.`
+                            : "Every required capstone is already in place.",
+                          `Effect: ${convergence.effectSummary}`,
+                        ],
+                        "log-list reward-list ledger-list"
+                      )}
+                    </article>
+                  `;
+                })
+                .join("")
+            : ""
+        }
       </div>
     `;
   }

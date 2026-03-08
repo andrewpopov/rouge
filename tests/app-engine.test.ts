@@ -550,6 +550,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.ok(unlockedFeatureIds.has("war_college"));
   assert.ok(unlockedFeatureIds.has("paragon_doctrine"));
   assert.ok(unlockedFeatureIds.has("apex_doctrine"));
+  assert.ok(unlockedFeatureIds.has("chronicle_exchange"));
+  assert.ok(unlockedFeatureIds.has("war_annals"));
+  assert.ok(unlockedFeatureIds.has("paragon_exchange"));
   assert.equal(accountSummary.unlockedMilestoneCount, 18);
   assert.equal(accountSummary.milestoneCount, 18);
   assert.equal(accountSummary.focusedTreeId, "archives");
@@ -558,11 +561,15 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.ok(accountSummary.unlockedFeatureIds.includes("economy_ledger"));
   assert.ok(accountSummary.unlockedFeatureIds.includes("brokerage_charter"));
   assert.equal(accountSummary.treeCount, 3);
-  assert.equal(accountSummary.runHistoryCapacity, 70);
+  assert.equal(accountSummary.runHistoryCapacity, 75);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 5);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 7);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 6);
   assert.equal(accountSummary.review.unlockedCapstoneCount, 3);
+  assert.equal(accountSummary.review.unlockedConvergenceCount, 3);
+  assert.equal(accountSummary.review.nextConvergenceTitle, "");
+  assert.equal(accountSummary.convergences.length, 3);
+  assert.equal(accountSummary.convergences.find((entry) => entry.id === "chronicle_exchange")?.status, "unlocked");
   assert.equal(accountSummary.archive.highestLoadoutTier, 7);
   assert.equal(accountSummary.archive.planningArchiveCount, 6);
   assert.equal(accountSummary.profile.dismissedTutorialCount, 0);
@@ -1296,10 +1303,24 @@ test("account progression trees drive archive retention, economy focus, and mast
     ["advanced_vendor_stock", "runeword_codex", "economy_ledger", "salvage_tithes", "artisan_stock", "brokerage_charter", "treasury_exchange"],
     "economy"
   );
+  const chronicleEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "chronicle_exchange",
+    ],
+    "economy"
+  );
   prepareLateActState(lateEconomyBaselineState, true);
   prepareLateActState(lateEconomyArtisanState, true);
   prepareLateActState(lateEconomyBrokerageState, true);
   prepareLateActState(lateEconomyTreasuryState, true);
+  prepareLateActState(chronicleEconomyState, true);
 
   const baselineLateSocketOffers = lateEconomyBaselineState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
@@ -1317,6 +1338,10 @@ test("account progression trees drive archive retention, economy focus, and mast
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
     .filter((item) => (item?.maxSockets || 0) >= 3);
+  const chronicleLateSocketOffers = chronicleEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 3);
   const baselineLateRefreshAction = itemSystem
     .listTownActions(lateEconomyBaselineState.run, lateEconomyBaselineState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
@@ -1329,39 +1354,54 @@ test("account progression trees drive archive retention, economy focus, and mast
   const treasuryLateRefreshAction = itemSystem
     .listTownActions(lateEconomyTreasuryState.run, lateEconomyTreasuryState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
+  const chronicleLateRefreshAction = itemSystem
+    .listTownActions(chronicleEconomyState.run, chronicleEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
 
   assert.ok(baselineLateRefreshAction);
   assert.ok(artisanLateRefreshAction);
   assert.ok(brokerageLateRefreshAction);
   assert.ok(treasuryLateRefreshAction);
+  assert.ok(chronicleLateRefreshAction);
   assert.ok(artisanLateRefreshAction.cost < baselineLateRefreshAction.cost);
   assert.ok(brokerageLateRefreshAction.cost < artisanLateRefreshAction.cost);
   assert.ok(treasuryLateRefreshAction.cost < brokerageLateRefreshAction.cost);
+  assert.ok(chronicleLateRefreshAction.cost <= treasuryLateRefreshAction.cost);
   assert.ok(artisanLateSocketOffers.length >= baselineLateSocketOffers.length);
   assert.ok(brokerageLateSocketOffers.length >= artisanLateSocketOffers.length);
   assert.ok(treasuryLateSocketOffers.length >= brokerageLateSocketOffers.length);
+  assert.ok(chronicleLateSocketOffers.length >= treasuryLateSocketOffers.length);
   assert.ok(artisanLateSocketOffers.length > 0);
   assert.ok(lateEconomyBrokerageState.run.town.vendor.stock.length >= lateEconomyArtisanState.run.town.vendor.stock.length);
   assert.ok(lateEconomyTreasuryState.run.town.vendor.stock.length >= lateEconomyBrokerageState.run.town.vendor.stock.length);
+  assert.ok(chronicleEconomyState.run.town.vendor.stock.length >= lateEconomyTreasuryState.run.town.vendor.stock.length);
   assert.match(treasuryLateRefreshAction.previewLines.join(" "), /Treasury Exchange/i);
+  assert.match(chronicleLateRefreshAction.previewLines.join(" "), /Chronicle Exchange/i);
 
   const baselineMasteryState = buildState(["boss_trophy_gallery", "training_grounds"], "mastery");
   const focusedMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college"], "mastery");
   const paragonMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine"], "mastery");
   const apexMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine"], "mastery");
+  const warAnnalsState = buildState(
+    ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "war_annals"],
+    "mastery"
+  );
   prepareLateActState(baselineMasteryState);
   prepareLateActState(focusedMasteryState);
   prepareLateActState(paragonMasteryState);
   prepareLateActState(apexMasteryState);
+  prepareLateActState(warAnnalsState);
   const baselineBossZone = runFactory.getCurrentZones(baselineMasteryState.run).find((zone) => zone.kind === "boss");
   const focusedBossZone = runFactory.getCurrentZones(focusedMasteryState.run).find((zone) => zone.kind === "boss");
   const paragonBossZone = runFactory.getCurrentZones(paragonMasteryState.run).find((zone) => zone.kind === "boss");
   const apexBossZone = runFactory.getCurrentZones(apexMasteryState.run).find((zone) => zone.kind === "boss");
+  const warAnnalsBossZone = runFactory.getCurrentZones(warAnnalsState.run).find((zone) => zone.kind === "boss");
 
   assert.ok(baselineBossZone);
   assert.ok(focusedBossZone);
   assert.ok(paragonBossZone);
   assert.ok(apexBossZone);
+  assert.ok(warAnnalsBossZone);
 
   const baselineBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
@@ -1395,16 +1435,26 @@ test("account progression trees drive archive retention, economy focus, and mast
     encounterNumber: 1,
     profile: apexMasteryState.profile,
   });
+  const warAnnalsBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: warAnnalsState.run,
+    zone: warAnnalsBossZone,
+    actNumber: warAnnalsBossZone.actNumber,
+    encounterNumber: 1,
+    profile: warAnnalsState.profile,
+  });
 
   const baselineBossProgression = baselineBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const focusedBossProgression = focusedBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const paragonBossProgression = paragonBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const apexBossProgression = apexBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const warAnnalsBossProgression = warAnnalsBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
 
   assert.ok(baselineBossProgression);
   assert.ok(focusedBossProgression);
   assert.ok(paragonBossProgression);
   assert.ok(apexBossProgression);
+  assert.ok(warAnnalsBossProgression);
 
   const baselineBossProgressionPoints = baselineBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
@@ -1418,13 +1468,18 @@ test("account progression trees drive archive retention, economy focus, and mast
   const apexBossProgressionPoints = apexBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
   }, 0);
+  const warAnnalsBossProgressionPoints = warAnnalsBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
 
   assert.ok(focusedBossProgressionPoints > baselineBossProgressionPoints);
   assert.ok(paragonBossProgressionPoints > focusedBossProgressionPoints);
   assert.ok(apexBossProgressionPoints > paragonBossProgressionPoints);
+  assert.ok(warAnnalsBossProgressionPoints > apexBossProgressionPoints);
   assert.match(focusedBossProgression.previewLines.join(" "), /Training Grounds|Mastery Hall focus|War College/i);
   assert.match(paragonBossProgression.previewLines.join(" "), /Paragon Doctrine/i);
   assert.match(apexBossProgression.previewLines.join(" "), /Apex Doctrine/i);
+  assert.match(warAnnalsBossProgression.previewLines.join(" "), /War Annals/i);
 
   const archiveProfile = persistence.createEmptyProfile();
   archiveProfile.meta.unlocks.townFeatureIds.push("archive_ledger", "chronicle_vault", "heroic_annals", "mythic_annals", "eternal_annals");
@@ -1434,13 +1489,20 @@ test("account progression trees drive archive retention, economy focus, and mast
   persistence.setAccountProgressionFocus(archiveProfile, "archives");
   assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 70);
 
+  archiveProfile.meta.unlocks.townFeatureIds.push("treasury_exchange", "chronicle_exchange");
+  persistence.ensureProfileMeta(archiveProfile);
+  persistence.setAccountProgressionFocus(archiveProfile, "economy");
+  assert.ok(persistence.getRunHistoryCapacity(archiveProfile) >= 70);
+  persistence.setAccountProgressionFocus(archiveProfile, "archives");
+  assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 75);
+
   for (let index = 0; index < 75; index += 1) {
     const archivedRun = JSON.parse(JSON.stringify(focusedEconomyState.run)) as RunState;
     archivedRun.id = `archive_focus_${index}`;
     persistence.recordRunHistory(archiveProfile, archivedRun, "abandoned", content);
   }
 
-  assert.equal(archiveProfile.runHistory.length, 70);
+  assert.equal(archiveProfile.runHistory.length, 75);
 });
 
 test("late-act reward equipment choices prioritize replacement pivots and honor economy-gated curation", () => {
@@ -1539,6 +1601,8 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
   assert.match(baselineEquipmentChoice.previewLines.join(" "), /Late-act pivot/i);
 
   const featured = buildLateActState(["artisan_stock", "brokerage_charter"], "economy");
+  const treasuryFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange"], "economy");
+  const paragonFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange", "paragon_exchange"], "economy");
   const featuredChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
     run: featured.state.run,
@@ -1557,6 +1621,44 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
   assert.ok(featuredRewardItem);
   assert.ok((featuredRewardItem.maxSockets || 0) >= (baselineRewardItem.maxSockets || 0));
   assert.match(featuredEquipmentChoice.previewLines.join(" "), /Trade Network/i);
+
+  const treasuryChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: treasuryFeatured.state.run,
+    zone: treasuryFeatured.bossZone,
+    actNumber: treasuryFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: treasuryFeatured.state.profile,
+  });
+  const treasuryEquipmentChoice = treasuryChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  assert.ok(treasuryEquipmentChoice);
+  assert.equal(treasuryEquipmentChoice.kind, "item");
+  const treasuryRewardItemId = treasuryEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const treasuryRewardItem = content.itemCatalog[treasuryRewardItemId];
+  assert.ok(treasuryRewardItem);
+  assert.match(treasuryEquipmentChoice.previewLines.join(" "), /Treasury Exchange/i);
+
+  const paragonChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: paragonFeatured.state.run,
+    zone: paragonFeatured.bossZone,
+    actNumber: paragonFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: paragonFeatured.state.profile,
+  });
+  const paragonEquipmentChoice = paragonChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  assert.ok(paragonEquipmentChoice);
+  assert.equal(paragonEquipmentChoice.kind, "item");
+  const paragonRewardItemId = paragonEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const paragonRewardItem = content.itemCatalog[paragonRewardItemId];
+  assert.ok(paragonRewardItem);
+  assert.ok((paragonRewardItem.maxSockets || 0) >= (treasuryRewardItem.maxSockets || 0));
+  assert.ok(paragonRewardItem.progressionTier >= treasuryRewardItem.progressionTier);
+  assert.match(paragonEquipmentChoice.previewLines.join(" "), /Paragon Exchange/i);
 });
 
 test("createAppState sanitizes persisted stash entries before town actions consume them", () => {
@@ -1624,8 +1726,51 @@ test("createAppState sanitizes persisted stash entries before town actions consu
   assert.equal(state.profile.stash.entries.length, 3);
 });
 
-test("legacy mercenary route perks feed the next combat after the full post-culmination route resolves", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+test("createAppState sanitizes stale planning charters before archive and town systems consume them", () => {
+  const { content, combatEngine, appEngine, itemSystem, persistence, seedBundle, storage } = createHarness();
+  const seededProfile = persistence.createEmptyProfile();
+
+  seededProfile.meta.unlocks.townFeatureIds = Array.from(
+    new Set([...(seededProfile.meta.unlocks.townFeatureIds || []), "chronicle_exchange"])
+  );
+  seededProfile.meta.planning.weaponRunewordId = "lionheart";
+  seededProfile.meta.planning.armorRunewordId = "ghost_word";
+  seededProfile.runHistory = [
+    {
+      runId: "stale_planning",
+      classId: "necromancer",
+      className: "Necromancer",
+      level: 8,
+      actsCleared: 4,
+      bossesDefeated: 2,
+      goldGained: 220,
+      runewordsForged: 1,
+      skillPointsEarned: 0,
+      classPointsEarned: 0,
+      attributePointsEarned: 0,
+      trainingRanksGained: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      unlockedClassSkills: 0,
+      loadoutTier: 5,
+      loadoutSockets: 2,
+      carriedEquipmentCount: 0,
+      carriedRuneCount: 0,
+      stashEntryCount: 0,
+      stashEquipmentCount: 0,
+      stashRuneCount: 0,
+      activeRunewordIds: ["white"],
+      plannedWeaponRunewordId: "lionheart",
+      plannedArmorRunewordId: "ghost_word",
+      completedPlannedRunewordIds: ["lionheart", "ghost_word", "white"],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-08T00:00:00.000Z").toISOString(),
+      outcome: "completed",
+    },
+  ];
+
+  storage.setItem(persistence.PROFILE_STORAGE_KEY, persistence.serializeProfile(seededProfile));
+
   const state = appEngine.createAppState({
     content,
     seedBundle,
@@ -1633,1159 +1778,33 @@ test("legacy mercenary route perks feed the next combat after the full post-culm
     randomFn: () => 0,
   });
 
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
+  assert.equal(state.profile.meta.planning.weaponRunewordId, "");
+  assert.equal(state.profile.meta.planning.armorRunewordId, "");
+  assert.equal(state.profile.runHistory[0].plannedWeaponRunewordId, "");
+  assert.equal(state.profile.runHistory[0].plannedArmorRunewordId, "");
+  assert.deepEqual([...state.profile.runHistory[0].completedPlannedRunewordIds], []);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  assert.ok(branchZone);
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
+  const accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.plannedRunewordCount, 0);
+  assert.equal(accountSummary.planning.fulfilledPlanCount, 0);
+  assert.equal(accountSummary.planning.unfulfilledPlanCount, 0);
+  assert.equal(accountSummary.archive.planningArchiveCount, 0);
+  assert.equal(accountSummary.archive.planningCompletionCount, 0);
+  assert.deepEqual([...accountSummary.archive.recentPlannedRunewordIds], []);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, legacyZone.id);
-  assert.equal(result.ok, true);
-  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
-  assert.ok(legacyChoice);
-  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
-
-  result = appEngine.selectZone(state, branchZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.combat.mercenary.contractAttackBonus, 5);
-  assert.equal(state.combat.mercenary.contractBehaviorBonus, 5);
-  assert.equal(state.combat.mercenary.contractStartGuard, 0);
-  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 5);
-  assert.equal(state.combat.mercenary.contractHeroStartGuard, 5);
-  assert.equal(state.combat.mercenary.contractOpeningDraw, 5);
-  assert.equal(state.combat.hero.guard, 5);
-  assert.equal(state.combat.hero.damageBonus, 5);
-  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 5);
-  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Legacy")));
-  assert.ok(state.combat.log.some((line) => line.includes("Last Wayfinders")));
-});
-
-test("reckoning opportunity lanes unlock alongside legacy and pay off reserve plus culmination together", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
+  const persistedProfile = persistence.loadProfileFromStorage(undefined, content);
+  assert.ok(persistedProfile);
+  assert.equal(persistedProfile.meta.planning.weaponRunewordId, "");
+  assert.equal(persistedProfile.meta.planning.armorRunewordId, "");
+  assert.deepEqual([...persistedProfile.runHistory[0].completedPlannedRunewordIds], []);
 
   appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.equal(reckoningZone.status, "locked");
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  assert.equal(runFactory.getZoneById(state.run, legacyZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, reckoningZone.id).status, "available");
-
-  result = appEngine.selectZone(state, reckoningZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.run.pendingReward.kind, "opportunity");
-  assert.equal(state.run.pendingReward.title, "Wayfinder Reckoning");
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier reserve lane: ${reserveChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
-
-  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
-  assert.ok(reckoningChoice);
-  const reckoningEffect = reckoningChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(reckoningEffect);
-  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
-
-  assert.equal(state.run.world.opportunityOutcomes[reckoningEffect.nodeId].outcomeId, reckoningEffect.outcomeId);
-  assert.ok(state.run.world.worldFlags.includes("rogue_reckoning_chapel_ledger"));
-  assert.ok(runFactory.getZoneById(state.run, reckoningZone.id).cleared);
-});
-
-test("recovery opportunity lanes unlock alongside legacy and reckoning and pay off shrine plus culmination together", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
-  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.ok(recoveryZone);
-  assert.ok(accordZone);
-  assert.equal(recoveryZone.status, "locked");
-  assert.equal(accordZone.status, "locked");
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  assert.equal(runFactory.getZoneById(state.run, legacyZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, reckoningZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, recoveryZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, accordZone.id).status, "available");
-
-  result = appEngine.selectZone(state, recoveryZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.run.pendingReward.kind, "opportunity");
-  assert.equal(state.run.pendingReward.title, "Lantern Recovery");
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier shrine lane: ${shrineOpportunityChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
-
-  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
-  assert.ok(recoveryChoice);
-  const recoveryEffect = recoveryChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(recoveryEffect);
-  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
-
-  assert.equal(state.run.world.opportunityOutcomes[recoveryEffect.nodeId].outcomeId, recoveryEffect.outcomeId);
-  assert.ok(state.run.world.worldFlags.includes("rogue_recovery_chapel_lanterns"));
-  assert.ok(runFactory.getZoneById(state.run, recoveryZone.id).cleared);
-});
-
-test("accord opportunity lanes unlock alongside the other late routes and pay off shrine plus crossroad plus culmination together", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
-  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.ok(recoveryZone);
-  assert.ok(accordZone);
-  assert.equal(accordZone.status, "locked");
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  assert.equal(runFactory.getZoneById(state.run, legacyZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, reckoningZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, recoveryZone.id).status, "available");
-  assert.equal(runFactory.getZoneById(state.run, accordZone.id).status, "available");
-
-  result = appEngine.selectZone(state, accordZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.run.pendingReward.kind, "opportunity");
-  assert.equal(state.run.pendingReward.title, "Wayfinder Accord");
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier shrine lane: ${shrineOpportunityChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier crossroad: ${crossroadChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
-
-  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
-  assert.ok(accordChoice);
-  const accordEffect = accordChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(accordEffect);
-  appEngine.claimRewardAndAdvance(state, accordChoice.id);
-
-  assert.equal(state.run.world.opportunityOutcomes[accordEffect.nodeId].outcomeId, accordEffect.outcomeId);
-  assert.ok(state.run.world.worldFlags.includes("rogue_accord_cloister_paths"));
-  assert.ok(runFactory.getZoneById(state.run, accordZone.id).cleared);
-});
-
-test("covenant opportunity lanes unlock after the full late-route quartet resolves and pay off every late lane together", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
-  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
-  const covenantZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "covenant_opportunity");
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.ok(recoveryZone);
-  assert.ok(accordZone);
-  assert.ok(covenantZone);
-  assert.equal(covenantZone.status, "locked");
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, legacyZone.id);
-  assert.equal(result.ok, true);
-  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
-  assert.ok(legacyChoice);
-  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
-
-  result = appEngine.selectZone(state, reckoningZone.id);
-  assert.equal(result.ok, true);
-  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
-  assert.ok(reckoningChoice);
-  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
-
-  result = appEngine.selectZone(state, recoveryZone.id);
-  assert.equal(result.ok, true);
-  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
-  assert.ok(recoveryChoice);
-  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
-
-  result = appEngine.selectZone(state, accordZone.id);
-  assert.equal(result.ok, true);
-  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
-  assert.ok(accordChoice);
-  appEngine.claimRewardAndAdvance(state, accordChoice.id);
-
-  assert.equal(runFactory.getZoneById(state.run, covenantZone.id).status, "available");
-
-  result = appEngine.selectZone(state, covenantZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.run.pendingReward.kind, "opportunity");
-  assert.equal(state.run.pendingReward.title, "Wayfinder Covenant");
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier legacy lane: ${legacyChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier reckoning lane: ${reckoningChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier recovery lane: ${recoveryChoice.title}.`)));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier accord lane: ${accordChoice.title}.`)));
-
-  const covenantChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Seal the Wayfinder Ledger");
-  assert.ok(covenantChoice);
-  const covenantEffect = covenantChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(covenantEffect);
-  appEngine.claimRewardAndAdvance(state, covenantChoice.id);
-
-  assert.equal(state.run.world.opportunityOutcomes[covenantEffect.nodeId].outcomeId, covenantEffect.outcomeId);
-  assert.ok(state.run.world.worldFlags.includes("rogue_covenant_wayfinder_ledger"));
-  assert.ok(runFactory.getZoneById(state.run, covenantZone.id).cleared);
-});
-
-test("accord mercenary route perks feed the next combat once the accord lane resolves", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
-  assert.ok(branchZone);
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(accordZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, accordZone.id);
-  assert.equal(result.ok, true);
-  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
-  assert.ok(accordChoice);
-  appEngine.claimRewardAndAdvance(state, accordChoice.id);
-
-  result = appEngine.selectZone(state, branchZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.combat.mercenary.contractAttackBonus, 5);
-  assert.equal(state.combat.mercenary.contractBehaviorBonus, 5);
-  assert.equal(state.combat.mercenary.contractStartGuard, 0);
-  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 5);
-  assert.equal(state.combat.mercenary.contractHeroStartGuard, 5);
-  assert.equal(state.combat.mercenary.contractOpeningDraw, 5);
-  assert.equal(state.combat.hero.guard, 5);
-  assert.equal(state.combat.hero.damageBonus, 5);
-  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 5);
-  assert.ok(state.combat.log.some((line) => line.includes("Cloister Accord")));
-});
-
-test("reckoning mercenary route perks stack with legacy after the parallel post-culmination lanes resolve", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  assert.ok(branchZone);
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, legacyZone.id);
-  assert.equal(result.ok, true);
-  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
-  assert.ok(legacyChoice);
-  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
-
-  result = appEngine.selectZone(state, reckoningZone.id);
-  assert.equal(result.ok, true);
-  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
-  assert.ok(reckoningChoice);
-  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
-
-  result = appEngine.selectZone(state, branchZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.combat.mercenary.contractAttackBonus, 6);
-  assert.equal(state.combat.mercenary.contractBehaviorBonus, 6);
-  assert.equal(state.combat.mercenary.contractStartGuard, 0);
-  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 6);
-  assert.equal(state.combat.mercenary.contractHeroStartGuard, 6);
-  assert.equal(state.combat.mercenary.contractOpeningDraw, 6);
-  assert.equal(state.combat.hero.guard, 6);
-  assert.equal(state.combat.hero.damageBonus, 6);
-  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 6);
-  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Legacy")));
-  assert.ok(state.combat.log.some((line) => line.includes("Chapel Reckoning")));
-});
-
-test("recovery mercenary route perks stack with the parallel post-culmination lanes after recovery resolves", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
-  assert.ok(branchZone);
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.ok(recoveryZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, legacyZone.id);
-  assert.equal(result.ok, true);
-  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
-  assert.ok(legacyChoice);
-  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
-
-  result = appEngine.selectZone(state, reckoningZone.id);
-  assert.equal(result.ok, true);
-  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
-  assert.ok(reckoningChoice);
-  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
-
-  result = appEngine.selectZone(state, recoveryZone.id);
-  assert.equal(result.ok, true);
-  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
-  assert.ok(recoveryChoice);
-  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
-
-  result = appEngine.selectZone(state, branchZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.combat.mercenary.contractAttackBonus, 7);
-  assert.equal(state.combat.mercenary.contractBehaviorBonus, 7);
-  assert.equal(state.combat.mercenary.contractStartGuard, 0);
-  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 7);
-  assert.equal(state.combat.mercenary.contractHeroStartGuard, 7);
-  assert.equal(state.combat.mercenary.contractOpeningDraw, 7);
-  assert.equal(state.combat.hero.guard, 7);
-  assert.equal(state.combat.hero.damageBonus, 7);
-  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 7);
-  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Legacy")));
-  assert.ok(state.combat.log.some((line) => line.includes("Chapel Reckoning")));
-  assert.ok(state.combat.log.some((line) => line.includes("Lantern Recovery")));
-});
-
-test("covenant mercenary route perks feed the next combat once the covenant lane resolves", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
-  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
-  const covenantZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "covenant_opportunity");
-  assert.ok(branchZone);
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.ok(recoveryZone);
-  assert.ok(accordZone);
-  assert.ok(covenantZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, legacyZone.id);
-  assert.equal(result.ok, true);
-  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
-  assert.ok(legacyChoice);
-  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
-
-  result = appEngine.selectZone(state, reckoningZone.id);
-  assert.equal(result.ok, true);
-  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
-  assert.ok(reckoningChoice);
-  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
-
-  result = appEngine.selectZone(state, recoveryZone.id);
-  assert.equal(result.ok, true);
-  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
-  assert.ok(recoveryChoice);
-  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
-
-  result = appEngine.selectZone(state, accordZone.id);
-  assert.equal(result.ok, true);
-  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
-  assert.ok(accordChoice);
-  appEngine.claimRewardAndAdvance(state, accordChoice.id);
-
-  result = appEngine.selectZone(state, covenantZone.id);
-  assert.equal(result.ok, true);
-  const covenantChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Seal the Wayfinder Ledger");
-  assert.ok(covenantChoice);
-  appEngine.claimRewardAndAdvance(state, covenantChoice.id);
-
-  result = appEngine.selectZone(state, branchZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.combat.mercenary.contractAttackBonus, 9);
-  assert.equal(state.combat.mercenary.contractBehaviorBonus, 9);
-  assert.equal(state.combat.mercenary.contractStartGuard, 0);
-  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 9);
-  assert.equal(state.combat.mercenary.contractHeroStartGuard, 9);
-  assert.equal(state.combat.mercenary.contractOpeningDraw, 9);
-  assert.equal(state.combat.hero.guard, 9);
-  assert.equal(state.combat.hero.damageBonus, 9);
-  assert.equal(state.combat.hand.length, Math.min(state.run.deck.length, state.combat.hero.handSize + 9));
-  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Covenant")));
+  const refreshAction = itemSystem
+    .listTownActions(state.run, state.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  assert.ok(refreshAction);
+  assert.doesNotMatch(refreshAction.previewLines.join(" "), /Planning charters active/i);
+  assert.doesNotMatch(refreshAction.previewLines.join(" "), /Archive charter still open/i);
 });
