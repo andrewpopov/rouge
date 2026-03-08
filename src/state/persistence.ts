@@ -5,6 +5,220 @@
   const PROFILE_SCHEMA_VERSION = runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.CURRENT_PROFILE_SCHEMA_VERSION || 1;
   const STORAGE_KEY = "rouge.run.snapshot";
   const PROFILE_STORAGE_KEY = "rouge.profile";
+  const CORE_TOWN_FEATURE_IDS = [
+    "front_door_profile_hall",
+    "safe_zone_services",
+    "vendor_economy",
+    "profile_stash",
+    "mercenary_contracts",
+    "class_progression",
+  ];
+  const ACCOUNT_PROGRESSION_TREES = [
+    {
+      id: "archives",
+      title: "Archive Discipline",
+      description: "Turn archived expeditions into a deeper account memory seam.",
+      nodes: [
+        {
+          id: "archive_ledger",
+          title: "Archive Ledger",
+          description: "Archive your first expedition.",
+          rewardFeatureId: "archive_ledger",
+          tier: 1,
+          prerequisiteIds: [],
+          target: 1,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
+        {
+          id: "chronicle_vault",
+          title: "Chronicle Vault",
+          description: "Archive four expeditions to widen the retained account ledger.",
+          rewardFeatureId: "chronicle_vault",
+          tier: 2,
+          prerequisiteIds: ["archive_ledger"],
+          target: 4,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
+        {
+          id: "heroic_annals",
+          title: "Heroic Annals",
+          description: "Complete two expeditions to deepen the long-form account chronicle.",
+          rewardFeatureId: "heroic_annals",
+          tier: 2,
+          prerequisiteIds: ["archive_ledger"],
+          target: 2,
+          getProgress: (metrics) => metrics.completedRuns,
+        },
+        {
+          id: "mythic_annals",
+          title: "Mythic Annals",
+          description: "Archive six expeditions to preserve a deeper long-horizon account record.",
+          rewardFeatureId: "mythic_annals",
+          tier: 3,
+          prerequisiteIds: ["chronicle_vault"],
+          target: 6,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
+        {
+          id: "eternal_annals",
+          title: "Eternal Annals",
+          description: "Complete four expeditions after establishing Mythic Annals to unlock comparison-grade archive review.",
+          rewardFeatureId: "eternal_annals",
+          tier: 4,
+          isCapstone: true,
+          prerequisiteIds: ["heroic_annals", "mythic_annals"],
+          target: 4,
+          getProgress: (metrics) => metrics.completedRuns,
+        },
+      ],
+    },
+    {
+      id: "economy",
+      title: "Trade Network",
+      description: "Grow the long-horizon town economy beyond one-off vendor perks.",
+      nodes: [
+        {
+          id: "advanced_vendor_stock",
+          title: "Advanced Vendor Stock",
+          description: "Clear through Act III to unlock deeper town economy support.",
+          rewardFeatureId: "advanced_vendor_stock",
+          tier: 1,
+          prerequisiteIds: [],
+          target: 3,
+          getProgress: (metrics) => metrics.highestActCleared,
+        },
+        {
+          id: "runeword_codex",
+          title: "Runeword Codex",
+          description: "Forge and archive your first runeword.",
+          rewardFeatureId: "runeword_codex",
+          tier: 1,
+          prerequisiteIds: [],
+          target: 1,
+          getProgress: (metrics) => metrics.unlockedRunewordCount,
+        },
+        {
+          id: "economy_ledger",
+          title: "Economy Ledger",
+          description: "Collect 500 total gold across archived expeditions.",
+          rewardFeatureId: "economy_ledger",
+          tier: 2,
+          prerequisiteIds: ["advanced_vendor_stock"],
+          target: 500,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
+        {
+          id: "salvage_tithes",
+          title: "Salvage Tithes",
+          description: "Collect 1200 total gold to deepen buy or sell leverage across the account.",
+          rewardFeatureId: "salvage_tithes",
+          tier: 2,
+          prerequisiteIds: ["economy_ledger"],
+          target: 1200,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
+        {
+          id: "artisan_stock",
+          title: "Artisan Stock",
+          description: "Clear through Act V to bias late vendors toward socket-ready endgame stock.",
+          rewardFeatureId: "artisan_stock",
+          tier: 3,
+          prerequisiteIds: ["advanced_vendor_stock"],
+          target: 5,
+          getProgress: (metrics) => metrics.highestActCleared,
+        },
+        {
+          id: "brokerage_charter",
+          title: "Brokerage Charter",
+          description: "Collect 2500 total gold to widen late-account trade leverage and vendor depth.",
+          rewardFeatureId: "brokerage_charter",
+          tier: 3,
+          prerequisiteIds: ["salvage_tithes"],
+          target: 2500,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
+        {
+          id: "treasury_exchange",
+          title: "Treasury Exchange",
+          description: "Collect 4000 total gold after late-act trade expansion to unlock deeper stash planning and premium market leverage.",
+          rewardFeatureId: "treasury_exchange",
+          tier: 4,
+          isCapstone: true,
+          prerequisiteIds: ["artisan_stock", "brokerage_charter"],
+          target: 4000,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
+      ],
+    },
+    {
+      id: "mastery",
+      title: "Mastery Hall",
+      description: "Turn class breadth and boss trophies into stronger build pivots.",
+      nodes: [
+        {
+          id: "boss_trophy_gallery",
+          title: "Boss Trophy Gallery",
+          description: "Defeat and archive your first boss trophy.",
+          rewardFeatureId: "boss_trophy_gallery",
+          tier: 1,
+          prerequisiteIds: [],
+          target: 1,
+          getProgress: (metrics) => metrics.unlockedBossCount,
+        },
+        {
+          id: "class_roster_archive",
+          title: "Class Roster Archive",
+          description: "Play three different classes across the account.",
+          rewardFeatureId: "class_roster_archive",
+          tier: 1,
+          prerequisiteIds: [],
+          target: 3,
+          getProgress: (metrics) => metrics.classesPlayedCount,
+        },
+        {
+          id: "training_grounds",
+          title: "Training Grounds",
+          description: "Reach level 10 on the account to unlock stronger progression pivots.",
+          rewardFeatureId: "training_grounds",
+          tier: 2,
+          prerequisiteIds: ["class_roster_archive"],
+          target: 10,
+          getProgress: (metrics) => metrics.highestLevel,
+        },
+        {
+          id: "war_college",
+          title: "War College",
+          description: "Defeat five bosses across the account to sharpen late-run build pivots.",
+          rewardFeatureId: "war_college",
+          tier: 3,
+          prerequisiteIds: ["boss_trophy_gallery", "training_grounds"],
+          target: 5,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
+        {
+          id: "paragon_doctrine",
+          title: "Paragon Doctrine",
+          description: "Defeat eight bosses across the account to codify stronger late-act mastery pivots.",
+          rewardFeatureId: "paragon_doctrine",
+          tier: 3,
+          prerequisiteIds: ["war_college"],
+          target: 8,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
+        {
+          id: "apex_doctrine",
+          title: "Apex Doctrine",
+          description: "Defeat twelve bosses after codifying Paragon Doctrine to unlock apex late-act mastery pivots.",
+          rewardFeatureId: "apex_doctrine",
+          tier: 4,
+          isCapstone: true,
+          prerequisiteIds: ["war_college", "paragon_doctrine"],
+          target: 12,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
+      ],
+    },
+  ];
 
   function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -12,6 +226,55 @@
 
   function getDefaultStorage() {
     return runtimeWindow.localStorage || null;
+  }
+
+  function uniqueStrings(values) {
+    return Array.from(new Set((Array.isArray(values) ? values : []).filter((entry) => typeof entry === "string" && entry)));
+  }
+
+  function toNumber(value, fallback = 0) {
+    return Number.parseInt(String(value ?? fallback), 10) || fallback;
+  }
+
+  function getMilestoneTierLabel(milestone) {
+    if (milestone?.isCapstone) {
+      return "Capstone";
+    }
+    return `Tier ${Math.max(1, toNumber(milestone?.tier, 1))}`;
+  }
+
+  function createDefaultMeta() {
+    return {
+      settings: {
+        showHints: true,
+        reduceMotion: false,
+        compactMode: false,
+      },
+      progression: {
+        highestLevel: 1,
+        highestActCleared: 0,
+        totalBossesDefeated: 0,
+        totalGoldCollected: 0,
+        totalRunewordsForged: 0,
+        classesPlayed: [],
+        preferredClassId: "",
+        lastPlayedClassId: "",
+      },
+      unlocks: {
+        classIds: [],
+        bossIds: [],
+        runewordIds: [],
+        townFeatureIds: [...CORE_TOWN_FEATURE_IDS],
+      },
+      tutorials: {
+        seenIds: [],
+        completedIds: [],
+        dismissedIds: [],
+      },
+      accountProgression: {
+        focusedTreeId: ACCOUNT_PROGRESSION_TREES[0].id,
+      },
+    };
   }
 
   function createSnapshot({ phase, selectedClassId, selectedMercenaryId, run }) {
@@ -32,51 +295,194 @@
         entries: [],
       },
       runHistory: [],
-      meta: {
-        settings: {
-          showHints: true,
-          reduceMotion: false,
-          compactMode: false,
-        },
-        progression: {
-          highestLevel: 1,
-          totalBossesDefeated: 0,
-          classesPlayed: [],
-          preferredClassId: "",
-          lastPlayedClassId: "",
-        },
-      },
+      meta: createDefaultMeta(),
     };
   }
 
+  function buildProfileMetrics(profile) {
+    const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
+    const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
+    return {
+      runHistoryCount: history.length,
+      completedRuns: history.filter((entry) => entry?.outcome === "completed").length,
+      failedRuns: history.filter((entry) => entry?.outcome === "failed").length,
+      highestLevel: toNumber(profile?.meta?.progression?.highestLevel, 1),
+      highestActCleared: toNumber(profile?.meta?.progression?.highestActCleared, 0),
+      totalBossesDefeated: toNumber(profile?.meta?.progression?.totalBossesDefeated, 0),
+      totalGoldCollected: toNumber(profile?.meta?.progression?.totalGoldCollected, 0),
+      totalRunewordsForged: toNumber(profile?.meta?.progression?.totalRunewordsForged, 0),
+      classesPlayedCount: Array.isArray(profile?.meta?.progression?.classesPlayed) ? profile.meta.progression.classesPlayed.length : 0,
+      unlockedBossCount: Array.isArray(profile?.meta?.unlocks?.bossIds) ? profile.meta.unlocks.bossIds.length : 0,
+      unlockedRunewordCount: Array.isArray(profile?.meta?.unlocks?.runewordIds) ? profile.meta.unlocks.runewordIds.length : 0,
+      stashEntryCount: stashEntries.length,
+      stashEquipmentCount: stashEntries.filter((entry) => entry?.kind === "equipment").length,
+      stashRuneCount: stashEntries.filter((entry) => entry?.kind === "rune").length,
+    };
+  }
+
+  function listAccountMilestoneSummaries(profile) {
+    const metrics = buildProfileMetrics(profile);
+    return ACCOUNT_PROGRESSION_TREES.flatMap((tree) => {
+      const unlockedMilestoneIds = new Set();
+      return tree.nodes.map((milestone) => {
+        const progress = Math.max(0, toNumber(milestone.getProgress(metrics), 0));
+        const prerequisiteIds = uniqueStrings(milestone.prerequisiteIds || []);
+        const blockedByIds = prerequisiteIds.filter((milestoneId) => !unlockedMilestoneIds.has(milestoneId));
+        const blockedByTitles = blockedByIds.map((milestoneId) => {
+          return tree.nodes.find((treeMilestone) => treeMilestone.id === milestoneId)?.title || milestoneId;
+        });
+        const unlocked = blockedByIds.length === 0 && progress >= milestone.target;
+        if (unlocked) {
+          unlockedMilestoneIds.add(milestone.id);
+        }
+        let status: ProfileAccountMilestoneSummary["status"] = "locked";
+        if (unlocked) {
+          status = "unlocked";
+        } else if (blockedByIds.length === 0) {
+          status = "available";
+        }
+
+        return {
+          id: milestone.id,
+          title: milestone.title,
+          description: milestone.description,
+          rewardFeatureId: milestone.rewardFeatureId,
+          treeId: tree.id,
+          treeTitle: tree.title,
+          tier: Math.max(1, toNumber(milestone.tier, 1)),
+          tierLabel: getMilestoneTierLabel(milestone),
+          isCapstone: Boolean(milestone.isCapstone),
+          isEligible: blockedByIds.length === 0,
+          status,
+          blockedByIds,
+          blockedByTitles,
+          unlocked,
+          progress: Math.min(progress, milestone.target),
+          target: milestone.target,
+        };
+      });
+    });
+  }
+
+  function getDefaultFocusedTreeId(profile) {
+    const milestones = listAccountMilestoneSummaries(profile);
+    const firstIncompleteTree = ACCOUNT_PROGRESSION_TREES.find((tree) => {
+      return milestones.some((milestone) => milestone.treeId === tree.id && !milestone.unlocked);
+    });
+    return firstIncompleteTree?.id || ACCOUNT_PROGRESSION_TREES[0].id;
+  }
+
+  function getFocusedTreeId(profile) {
+    const focusedTreeId = typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
+    return ACCOUNT_PROGRESSION_TREES.some((tree) => tree.id === focusedTreeId) ? focusedTreeId : getDefaultFocusedTreeId(profile);
+  }
+
+  function getAccountTreeSummaries(profile) {
+    const milestones = listAccountMilestoneSummaries(profile);
+    const focusedTreeId = getFocusedTreeId(profile);
+    return ACCOUNT_PROGRESSION_TREES.map((tree) => {
+      const treeMilestones = milestones.filter((milestone) => milestone.treeId === tree.id);
+      const nextMilestone = treeMilestones.find((milestone) => milestone.status === "available") || treeMilestones.find((milestone) => !milestone.unlocked) || null;
+      const capstone = [...treeMilestones].reverse().find((milestone) => milestone.isCapstone) || null;
+      const capstoneStatus: ProfileAccountTreeSummary["capstoneStatus"] = capstone?.status || "locked";
+      return {
+        id: tree.id,
+        title: tree.title,
+        description: tree.description,
+        isFocused: tree.id === focusedTreeId,
+        currentRank: treeMilestones.filter((milestone) => milestone.unlocked).length,
+        maxRank: treeMilestones.length,
+        eligibleMilestoneCount: treeMilestones.filter((milestone) => milestone.isEligible && !milestone.unlocked).length,
+        blockedMilestoneCount: treeMilestones.filter((milestone) => !milestone.isEligible && !milestone.unlocked).length,
+        nextMilestoneId: nextMilestone?.id || "",
+        nextMilestoneTitle: nextMilestone?.title || "",
+        capstoneId: capstone?.id || "",
+        capstoneTitle: capstone?.title || "",
+        capstoneUnlocked: Boolean(capstone?.unlocked),
+        capstoneStatus,
+        unlockedFeatureIds: treeMilestones.filter((milestone) => milestone.unlocked).map((milestone) => milestone.rewardFeatureId),
+        milestones: treeMilestones,
+      };
+    });
+  }
+
+  function hasAccountFeature(profile, featureId) {
+    return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
+  }
+
+  function getRunHistoryCapacity(profile) {
+    const archiveFocusActive = getFocusedTreeId(profile) === "archives" && hasAccountFeature(profile, "archive_ledger");
+    return (
+      20 +
+      (hasAccountFeature(profile, "chronicle_vault") ? 10 : 0) +
+      (hasAccountFeature(profile, "heroic_annals") ? 10 : 0) +
+      (hasAccountFeature(profile, "mythic_annals") ? 10 : 0) +
+      (hasAccountFeature(profile, "eternal_annals") ? 15 : 0) +
+      (archiveFocusActive ? 5 : 0)
+    );
+  }
+
+  function applyDerivedAccountUnlocks(profile) {
+    const unlockedFeatureIds = listAccountMilestoneSummaries(profile)
+      .filter((milestone) => milestone.unlocked)
+      .map((milestone) => milestone.rewardFeatureId);
+    profile.meta.unlocks.townFeatureIds = uniqueStrings([...(profile.meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS, ...unlockedFeatureIds]);
+  }
+
   function ensureMeta(profile) {
-    profile.meta = profile.meta || createEmptyProfile().meta;
+    const defaultMeta = createDefaultMeta();
+    profile.meta = profile.meta || defaultMeta;
     profile.meta.settings = {
-      ...createEmptyProfile().meta.settings,
+      ...defaultMeta.settings,
       ...(profile.meta.settings || {}),
     };
     profile.meta.progression = {
-      ...createEmptyProfile().meta.progression,
+      ...defaultMeta.progression,
       ...(profile.meta.progression || {}),
-      classesPlayed: Array.isArray(profile.meta.progression?.classesPlayed)
-        ? Array.from(new Set(profile.meta.progression.classesPlayed.filter((entry) => typeof entry === "string" && entry)))
-        : [],
+      classesPlayed: uniqueStrings(profile.meta.progression?.classesPlayed),
     };
+    profile.meta.unlocks = {
+      ...defaultMeta.unlocks,
+      ...(profile.meta.unlocks || {}),
+      classIds: uniqueStrings(profile.meta.unlocks?.classIds),
+      bossIds: uniqueStrings(profile.meta.unlocks?.bossIds),
+      runewordIds: uniqueStrings(profile.meta.unlocks?.runewordIds),
+      townFeatureIds: uniqueStrings([...(profile.meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS]),
+    };
+    const completedTutorialIds = uniqueStrings(profile.meta.tutorials?.completedIds);
+    const dismissedTutorialIds = uniqueStrings((profile.meta.tutorials?.dismissedIds || []).filter((tutorialId) => !completedTutorialIds.includes(tutorialId)));
+    profile.meta.tutorials = {
+      ...defaultMeta.tutorials,
+      ...(profile.meta.tutorials || {}),
+      seenIds: uniqueStrings([...(profile.meta.tutorials?.seenIds || []), ...completedTutorialIds, ...dismissedTutorialIds]),
+      completedIds: completedTutorialIds,
+      dismissedIds: dismissedTutorialIds,
+    };
+    profile.meta.accountProgression = {
+      ...defaultMeta.accountProgression,
+      ...(profile.meta.accountProgression || {}),
+    };
+    profile.meta.accountProgression.focusedTreeId = getFocusedTreeId(profile);
+    applyDerivedAccountUnlocks(profile);
   }
 
   function createProfileEnvelope(profile) {
     if (profile?.profile) {
+      const clonedProfile = deepClone(profile.profile);
+      ensureMeta(clonedProfile);
       return {
         schemaVersion: PROFILE_SCHEMA_VERSION,
         savedAt: new Date().toISOString(),
-        profile: deepClone(profile.profile),
+        profile: clonedProfile,
       };
     }
 
+    const clonedProfile = deepClone(profile || createEmptyProfile());
+    ensureMeta(clonedProfile);
     return {
       schemaVersion: PROFILE_SCHEMA_VERSION,
       savedAt: new Date().toISOString(),
-      profile: deepClone(profile || createEmptyProfile()),
+      profile: clonedProfile,
     };
   }
 
@@ -160,42 +566,357 @@
   function getProfileSummary(profile) {
     const source = profile || createEmptyProfile();
     ensureMeta(source);
-    const history = Array.isArray(source.runHistory) ? source.runHistory : [];
+    const metrics = buildProfileMetrics(source);
     return {
       hasActiveRun: Boolean(source.activeRunSnapshot),
       stashEntries: Array.isArray(source.stash?.entries) ? source.stash.entries.length : 0,
-      runHistoryCount: history.length,
-      completedRuns: history.filter((entry) => entry?.outcome === "completed").length,
-      failedRuns: history.filter((entry) => entry?.outcome === "failed").length,
-      highestLevel: Number.parseInt(String(source.meta.progression?.highestLevel || 1), 10) || 1,
-      totalBossesDefeated: Number.parseInt(String(source.meta.progression?.totalBossesDefeated || 0), 10) || 0,
-      classesPlayedCount: Array.isArray(source.meta.progression?.classesPlayed) ? source.meta.progression.classesPlayed.length : 0,
+      runHistoryCount: metrics.runHistoryCount,
+      completedRuns: metrics.completedRuns,
+      failedRuns: metrics.failedRuns,
+      highestLevel: metrics.highestLevel,
+      highestActCleared: metrics.highestActCleared,
+      totalBossesDefeated: metrics.totalBossesDefeated,
+      totalGoldCollected: metrics.totalGoldCollected,
+      totalRunewordsForged: metrics.totalRunewordsForged,
+      classesPlayedCount: metrics.classesPlayedCount,
       preferredClassId: typeof source.meta.progression?.preferredClassId === "string" ? source.meta.progression.preferredClassId : "",
+      lastPlayedClassId: typeof source.meta.progression?.lastPlayedClassId === "string" ? source.meta.progression.lastPlayedClassId : "",
+      unlockedClassCount: Array.isArray(source.meta.unlocks?.classIds) ? source.meta.unlocks.classIds.length : 0,
+      unlockedBossCount: metrics.unlockedBossCount,
+      unlockedRunewordCount: metrics.unlockedRunewordCount,
+      townFeatureCount: Array.isArray(source.meta.unlocks?.townFeatureIds) ? source.meta.unlocks.townFeatureIds.length : 0,
+      seenTutorialCount: Array.isArray(source.meta.tutorials?.seenIds) ? source.meta.tutorials.seenIds.length : 0,
+      completedTutorialCount: Array.isArray(source.meta.tutorials?.completedIds) ? source.meta.tutorials.completedIds.length : 0,
+      dismissedTutorialCount: Array.isArray(source.meta.tutorials?.dismissedIds) ? source.meta.tutorials.dismissedIds.length : 0,
     };
   }
 
-  function recordRunHistory(profile, run, outcome) {
+  function buildStashSummary(profile) {
+    const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
+    const equipmentEntries = entries.filter((entry) => entry?.kind === "equipment");
+    const runeEntries = entries.filter((entry) => entry?.kind === "rune");
+    return {
+      entryCount: entries.length,
+      equipmentCount: equipmentEntries.length,
+      runeCount: runeEntries.length,
+      socketReadyEquipmentCount: equipmentEntries.filter((entry) => toNumber(entry?.equipment?.socketsUnlocked, 0) > 0).length,
+      socketedRuneCount: equipmentEntries.reduce((total, entry) => total + toNumber(entry?.equipment?.insertedRunes?.length, 0), 0),
+      runewordEquipmentCount: equipmentEntries.filter((entry) => entry?.equipment?.runewordId).length,
+      itemIds: uniqueStrings(equipmentEntries.map((entry) => entry?.equipment?.itemId)).slice(0, 4),
+      runeIds: uniqueStrings(runeEntries.map((entry) => entry?.runeId)).slice(0, 4),
+    };
+  }
+
+  function buildArchiveSummary(profile) {
+    const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
+    const latestEntry = history[0] || null;
+    const favoredTreeCounts = new Map();
+    history.forEach((entry) => {
+      if (!entry?.favoredTreeId) {
+        return;
+      }
+      const existing = favoredTreeCounts.get(entry.favoredTreeId) || {
+        count: 0,
+        title: entry.favoredTreeName || entry.favoredTreeId,
+      };
+      existing.count += 1;
+      if (entry.favoredTreeName) {
+        existing.title = entry.favoredTreeName;
+      }
+      favoredTreeCounts.set(entry.favoredTreeId, existing);
+    });
+    const topFavoredTree = [...favoredTreeCounts.entries()].sort((left, right) => right[1].count - left[1].count)[0] || null;
+
+    return {
+      entryCount: history.length,
+      completedCount: history.filter((entry) => entry?.outcome === "completed").length,
+      failedCount: history.filter((entry) => entry?.outcome === "failed").length,
+      abandonedCount: history.filter((entry) => entry?.outcome === "abandoned").length,
+      latestClassId: latestEntry?.classId || "",
+      latestClassName: latestEntry?.className || "",
+      latestOutcome: latestEntry?.outcome || "",
+      latestCompletedAt: latestEntry?.completedAt || "",
+      highestLevel: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.level, 0)), 0),
+      highestActsCleared: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
+      highestGoldGained: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.goldGained, 0)), 0),
+      highestLoadoutTier: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.loadoutTier, 0)), 0),
+      runewordArchiveCount: history.filter((entry) => Array.isArray(entry?.activeRunewordIds) && entry.activeRunewordIds.length > 0).length,
+      featureUnlockCount: uniqueStrings(history.flatMap((entry) => entry?.newFeatureIds || [])).length,
+      favoredTreeId: topFavoredTree?.[0] || "",
+      favoredTreeName: topFavoredTree?.[1]?.title || "",
+      planningArchiveCount: history.filter((entry) => {
+        return toNumber(entry?.stashEntryCount, 0) > 0 || toNumber(entry?.carriedEquipmentCount, 0) > 0 || toNumber(entry?.carriedRuneCount, 0) > 0;
+      }).length,
+      recentFeatureIds: uniqueStrings(history.slice(0, 4).flatMap((entry) => entry?.newFeatureIds || [])).slice(0, 6),
+    };
+  }
+
+  function buildAccountReviewSummary(milestones) {
+    const capstones = (Array.isArray(milestones) ? milestones : []).filter((milestone) => milestone?.isCapstone);
+    const nextCapstone = capstones.find((milestone) => milestone.status === "available") || capstones.find((milestone) => !milestone.unlocked) || null;
+    return {
+      capstoneCount: capstones.length,
+      unlockedCapstoneCount: capstones.filter((milestone) => milestone.unlocked).length,
+      blockedCapstoneCount: capstones.filter((milestone) => milestone.status === "locked").length,
+      readyCapstoneCount: capstones.filter((milestone) => milestone.status === "available").length,
+      nextCapstoneId: nextCapstone?.id || "",
+      nextCapstoneTitle: nextCapstone?.title || "",
+    };
+  }
+
+  function getAccountProgressSummary(profile) {
+    const source = profile || createEmptyProfile();
+    ensureMeta(source);
+    const profileSummary = getProfileSummary(source);
+    const completedTutorialIds = source.meta.tutorials?.completedIds || [];
+    const dismissedTutorialIds = source.meta.tutorials?.dismissedIds || [];
+    const activeTutorialIds = (source.meta.tutorials?.seenIds || []).filter((tutorialId) => {
+      return !completedTutorialIds.includes(tutorialId) && !dismissedTutorialIds.includes(tutorialId);
+    });
+    const trees = getAccountTreeSummaries(source);
+    const milestones = trees.flatMap((tree) => tree.milestones);
+    const focusedTree = trees.find((tree) => tree.isFocused) || trees[0] || null;
+    const nextMilestone = focusedTree?.milestones.find((milestone) => milestone.status === "available") || focusedTree?.milestones.find((milestone) => !milestone.unlocked) || milestones.find((milestone) => milestone.status === "available") || milestones.find((milestone) => !milestone.unlocked) || null;
+    const stashSummary = buildStashSummary(source);
+    const archiveSummary = buildArchiveSummary(source);
+    const reviewSummary = buildAccountReviewSummary(milestones);
+
+    return {
+      profile: profileSummary,
+      settings: {
+        ...source.meta.settings,
+      },
+      unlockedFeatureIds: [...(source.meta.unlocks?.townFeatureIds || [])],
+      activeTutorialIds,
+      dismissedTutorialCount: profileSummary.dismissedTutorialCount,
+      stash: stashSummary,
+      archive: archiveSummary,
+      review: reviewSummary,
+      focusedTreeId: focusedTree?.id || "",
+      focusedTreeTitle: focusedTree?.title || "",
+      treeCount: trees.length,
+      trees,
+      runHistoryCapacity: getRunHistoryCapacity(source),
+      nextMilestoneId: nextMilestone?.id || "",
+      nextMilestoneTitle: nextMilestone?.title || "",
+      unlockedMilestoneCount: milestones.filter((milestone) => milestone.unlocked).length,
+      milestoneCount: milestones.length,
+      milestones,
+    };
+  }
+
+  function unlockProfileEntries(profile, category, ids) {
     ensureMeta(profile);
-    profile.runHistory = Array.isArray(profile.runHistory) ? profile.runHistory : [];
-    profile.runHistory.unshift({
+    const existing = Array.isArray(profile.meta.unlocks?.[category]) ? profile.meta.unlocks[category] : [];
+    profile.meta.unlocks[category] = uniqueStrings([...existing, ...(Array.isArray(ids) ? ids : [])]);
+    applyDerivedAccountUnlocks(profile);
+  }
+
+  function updateProfileSettings(profile, patch) {
+    ensureMeta(profile);
+    const nextSettings = patch && typeof patch === "object" ? patch : {};
+    ["showHints", "reduceMotion", "compactMode"].forEach((settingKey) => {
+      if (typeof nextSettings[settingKey] === "boolean") {
+        profile.meta.settings[settingKey] = nextSettings[settingKey];
+      }
+    });
+  }
+
+  function setPreferredClass(profile, classId) {
+    ensureMeta(profile);
+    if (typeof classId !== "string") {
+      return;
+    }
+    profile.meta.progression.preferredClassId = classId;
+  }
+
+  function setAccountProgressionFocus(profile, treeId) {
+    ensureMeta(profile);
+    if (!ACCOUNT_PROGRESSION_TREES.some((tree) => tree.id === treeId)) {
+      profile.meta.accountProgression.focusedTreeId = getDefaultFocusedTreeId(profile);
+      return;
+    }
+    profile.meta.accountProgression.focusedTreeId = treeId;
+  }
+
+  function markTutorialSeen(profile, tutorialId) {
+    ensureMeta(profile);
+    if (!tutorialId) {
+      return;
+    }
+    profile.meta.tutorials.seenIds = uniqueStrings([...(profile.meta.tutorials.seenIds || []), tutorialId]);
+    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+  }
+
+  function markTutorialCompleted(profile, tutorialId) {
+    ensureMeta(profile);
+    if (!tutorialId) {
+      return;
+    }
+    markTutorialSeen(profile, tutorialId);
+    profile.meta.tutorials.completedIds = uniqueStrings([...(profile.meta.tutorials.completedIds || []), tutorialId]);
+    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+  }
+
+  function dismissTutorial(profile, tutorialId) {
+    ensureMeta(profile);
+    if (!tutorialId) {
+      return;
+    }
+    markTutorialSeen(profile, tutorialId);
+    if ((profile.meta.tutorials?.completedIds || []).includes(tutorialId)) {
+      profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+      return;
+    }
+    profile.meta.tutorials.dismissedIds = uniqueStrings([...(profile.meta.tutorials.dismissedIds || []), tutorialId]);
+  }
+
+  function restoreTutorial(profile, tutorialId) {
+    ensureMeta(profile);
+    if (!tutorialId) {
+      return;
+    }
+    markTutorialSeen(profile, tutorialId);
+    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+  }
+
+  function getWorldOutcomeCount(run) {
+    return (
+      Object.keys(run?.world?.questOutcomes || {}).length +
+      Object.keys(run?.world?.shrineOutcomes || {}).length +
+      Object.keys(run?.world?.eventOutcomes || {}).length +
+      Object.keys(run?.world?.opportunityOutcomes || {}).length
+    );
+  }
+
+  function getRunHistoryLoadoutMetrics(run, content) {
+    const loadoutEntries = [run?.loadout?.weapon, run?.loadout?.armor].filter(Boolean);
+    const carriedEntries = Array.isArray(run?.inventory?.carried) ? run.inventory.carried : [];
+    return {
+      loadoutTier: loadoutEntries.reduce((total, entry) => {
+        return total + toNumber(content?.itemCatalog?.[entry.itemId]?.progressionTier, 0);
+      }, 0),
+      loadoutSockets: loadoutEntries.reduce((total, entry) => total + toNumber(entry?.socketsUnlocked, 0), 0),
+      carriedEquipmentCount: carriedEntries.filter((entry) => entry?.kind === "equipment").length,
+      carriedRuneCount: carriedEntries.filter((entry) => entry?.kind === "rune").length,
+    };
+  }
+
+  function getProfileStashCounts(profile) {
+    const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
+    return {
+      stashEntryCount: entries.length,
+      stashEquipmentCount: entries.filter((entry) => entry?.kind === "equipment").length,
+      stashRuneCount: entries.filter((entry) => entry?.kind === "rune").length,
+    };
+  }
+
+  function syncProfileMetaFromRun(profile, run) {
+    ensureMeta(profile);
+    if (!run) {
+      return;
+    }
+
+    const previousLastPlayedClassId = profile.meta.progression.lastPlayedClassId || "";
+    const previousPreferredClassId = profile.meta.progression.preferredClassId || "";
+    profile.meta.progression.highestLevel = Math.max(profile.meta.progression.highestLevel || 1, run?.level || 1);
+    profile.meta.progression.highestActCleared = Math.max(profile.meta.progression.highestActCleared || 0, run?.summary?.actsCleared || 0);
+    profile.meta.progression.lastPlayedClassId = run?.classId || profile.meta.progression.lastPlayedClassId || "";
+    if (!previousPreferredClassId || previousPreferredClassId === previousLastPlayedClassId) {
+      profile.meta.progression.preferredClassId = run?.classId || previousPreferredClassId || "";
+    }
+    profile.meta.progression.classesPlayed = uniqueStrings([...(profile.meta.progression.classesPlayed || []), run?.classId]);
+    unlockProfileEntries(profile, "classIds", [run?.classId || ""]);
+    unlockProfileEntries(profile, "bossIds", Array.isArray(run?.progression?.bossTrophies) ? run.progression.bossTrophies : []);
+    unlockProfileEntries(
+      profile,
+      "runewordIds",
+      Array.isArray(run?.progression?.activatedRunewords) ? run.progression.activatedRunewords : []
+    );
+    unlockProfileEntries(profile, "townFeatureIds", CORE_TOWN_FEATURE_IDS);
+
+    markTutorialSeen(profile, "front_door_profile_hall");
+    markTutorialSeen(profile, "first_run_overview");
+    if (
+      (run.progression?.skillPointsAvailable || 0) > 0 ||
+      (run.progression?.classPointsAvailable || 0) > 0 ||
+      (run.progression?.attributePointsAvailable || 0) > 0
+    ) {
+      markTutorialSeen(profile, "safe_zone_progression_board");
+    }
+    if (
+      (run.progression?.trainingPointsSpent || 0) > 0 ||
+      (run.progression?.classPointsSpent || 0) > 0 ||
+      (run.progression?.attributePointsSpent || 0) > 0
+    ) {
+      markTutorialCompleted(profile, "safe_zone_progression_board");
+    }
+    if (Array.isArray(profile.stash?.entries) && profile.stash.entries.length > 0) {
+      markTutorialCompleted(profile, "profile_stash");
+    }
+    if ((run.town?.vendor?.refreshCount || 0) > 0 || (run.inventory?.carried?.length || 0) > 0) {
+      markTutorialCompleted(profile, "safe_zone_vendor_economy");
+    }
+    if (Array.isArray(run.progression?.activatedRunewords) && run.progression.activatedRunewords.length > 0) {
+      markTutorialCompleted(profile, "runeword_forging");
+    }
+    if (getWorldOutcomeCount(run) > 0) {
+      markTutorialCompleted(profile, "world_node_rewards");
+    }
+    applyDerivedAccountUnlocks(profile);
+  }
+
+  function buildRunHistoryEntry(profile, run, outcome, content, newFeatureIds = []) {
+    const progressionSummary = content ? runtimeWindow.ROUGE_RUN_FACTORY?.getProgressionSummary?.(run, content) || null : null;
+    const loadoutMetrics = getRunHistoryLoadoutMetrics(run, content);
+    const stashCounts = getProfileStashCounts(profile);
+    return {
       runId: run.id,
       classId: run.classId,
       className: run.className,
       level: run.level,
-      actsCleared: run.summary?.actsCleared || 0,
-      bossesDefeated: run.summary?.bossesDefeated || 0,
+      actsCleared: toNumber(run.summary?.actsCleared, 0),
+      bossesDefeated: toNumber(run.summary?.bossesDefeated, 0),
+      goldGained: toNumber(run.summary?.goldGained, 0),
+      runewordsForged: toNumber(run.summary?.runewordsForged, 0),
+      skillPointsEarned: toNumber(run.summary?.skillPointsEarned, 0),
+      classPointsEarned: toNumber(run.summary?.classPointsEarned, 0),
+      attributePointsEarned: toNumber(run.summary?.attributePointsEarned, 0),
+      trainingRanksGained: toNumber(run.summary?.trainingRanksGained, 0),
+      favoredTreeId: progressionSummary?.favoredTreeId || run?.progression?.classProgression?.favoredTreeId || "",
+      favoredTreeName: progressionSummary?.favoredTreeName || "",
+      unlockedClassSkills: progressionSummary?.unlockedClassSkills || (Array.isArray(run?.progression?.classProgression?.unlockedSkillIds) ? run.progression.classProgression.unlockedSkillIds.length : 0),
+      loadoutTier: loadoutMetrics.loadoutTier,
+      loadoutSockets: loadoutMetrics.loadoutSockets,
+      carriedEquipmentCount: loadoutMetrics.carriedEquipmentCount,
+      carriedRuneCount: loadoutMetrics.carriedRuneCount,
+      stashEntryCount: stashCounts.stashEntryCount,
+      stashEquipmentCount: stashCounts.stashEquipmentCount,
+      stashRuneCount: stashCounts.stashRuneCount,
+      activeRunewordIds: uniqueStrings(run?.progression?.activatedRunewords || []),
+      newFeatureIds: uniqueStrings(newFeatureIds),
       completedAt: new Date().toISOString(),
       outcome,
-    });
-    profile.runHistory = profile.runHistory.slice(0, 20);
-    profile.meta.progression.highestLevel = Math.max(profile.meta.progression.highestLevel || 1, run.level || 1);
+    };
+  }
+
+  function recordRunHistory(profile, run, outcome, content = null) {
+    ensureMeta(profile);
+    profile.runHistory = Array.isArray(profile.runHistory) ? profile.runHistory : [];
+    const previousFeatureIds = uniqueStrings(profile.meta.unlocks?.townFeatureIds || []);
+    syncProfileMetaFromRun(profile, run);
     profile.meta.progression.totalBossesDefeated =
-      (Number.parseInt(String(profile.meta.progression.totalBossesDefeated || 0), 10) || 0) + (run.summary?.bossesDefeated || 0);
-    profile.meta.progression.lastPlayedClassId = run.classId || profile.meta.progression.lastPlayedClassId || "";
-    profile.meta.progression.preferredClassId = run.classId || profile.meta.progression.preferredClassId || "";
-    profile.meta.progression.classesPlayed = Array.from(
-      new Set([...(profile.meta.progression.classesPlayed || []), run.classId].filter(Boolean))
-    );
+      (Number.parseInt(String(profile.meta.progression.totalBossesDefeated || 0), 10) || 0) + (run?.summary?.bossesDefeated || 0);
+    profile.meta.progression.totalGoldCollected =
+      (Number.parseInt(String(profile.meta.progression.totalGoldCollected || 0), 10) || 0) + (run?.summary?.goldGained || 0);
+    profile.meta.progression.totalRunewordsForged =
+      (Number.parseInt(String(profile.meta.progression.totalRunewordsForged || 0), 10) || 0) + (run?.summary?.runewordsForged || 0);
+    markTutorialCompleted(profile, "first_run_overview");
+    const entry = buildRunHistoryEntry(profile, run, outcome, content);
+    profile.runHistory.unshift(entry);
+    applyDerivedAccountUnlocks(profile);
+    profile.runHistory = profile.runHistory.slice(0, getRunHistoryCapacity(profile));
+    entry.newFeatureIds = uniqueStrings((profile.meta.unlocks?.townFeatureIds || []).filter((featureId) => !previousFeatureIds.includes(featureId)));
   }
 
   function saveToStorage(snapshot, storage = getDefaultStorage()) {
@@ -248,7 +969,19 @@
     restoreProfile,
     saveProfileToStorage,
     loadProfileFromStorage,
+    ensureProfileMeta: ensureMeta,
+    unlockProfileEntries,
+    updateProfileSettings,
+    setPreferredClass,
+    setAccountProgressionFocus,
+    markTutorialSeen,
+    markTutorialCompleted,
+    dismissTutorial,
+    restoreTutorial,
+    syncProfileMetaFromRun,
     getProfileSummary,
+    getAccountProgressSummary,
+    getRunHistoryCapacity,
     recordRunHistory,
     saveToStorage,
     loadFromStorage,

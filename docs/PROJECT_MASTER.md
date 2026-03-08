@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: March 7, 2026.
+Last updated: March 8, 2026.
 
 ## Purpose
 
@@ -34,26 +34,28 @@ Implemented now:
 - front door, character select, safe zone, world map, encounter, reward, act transition, and run-end phases
 - front-door saved-snapshot review with explicit continue or abandon flow plus profile, stash, run-history, and onboarding panels
 - seed-driven class selection and class-derived hero shells
-- three mercenary profiles
-- generated act encounter catalogs and zone routes across Acts I-V
-- act-specific boss scripting plus multi-affix elite packages and act-tuned base archetype behavior
+- seven mercenary contracts with distinct targeting or support behaviors plus route-linked combat perk packages, including crossroad-linked compound scaling hooks and reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late-route payoffs
+- generated act encounter catalogs and zone routes across Acts I-V with broader opening, branch-battle, and miniboss pools
+- act-specific boss scripting, deeper boss escorts, four elite-affix families per act, a thirteen-kind encounter-local modifier catalog, stronger escort, support-screen, sniper-nest, and phalanx-march scripting, and act-tuned archetype behavior
 - potions as support actions and automatic mercenary turns
-- quest, shrine, aftermath-event, and opportunity world nodes on the map, all routed through the existing reward flow
+- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch encounter packages
 - quest outcome tracking plus shrine, event, and opportunity ledgers with explicit multi-step chain consequences on the run
-- reward choice screens with deck growth, card upgrades, party boons, item or rune progression, and progression-point rewards
-- `skills.json`-backed class trees with level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
-- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader rune catalogs, expanded runeword coverage, and combat bonus handoff
-- stronger shell UX with front-door profile surfaces plus town, map, combat, and reward guidance panels
-- safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell, and inventory or stash actions
+- reward choice screens with deck growth, card upgrades, party boons, item or rune progression, progression-point rewards, milestone-aware encounter payouts, profile-aware late-act equipment replacement pivots, and stronger account-gated boss pivots up through `apex_doctrine`
+- `skills.json`-backed class trees with capped tree investment, favored-tree summaries, level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
+- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, profile-aware reward-side replacement curation, and combat bonus handoff
+- account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange economy pressure, and training-grounds or war-college or paragon-doctrine or apex-doctrine reward pivots
+- stronger shell UX with front-door profile surfaces, town or map or combat or reward guidance panels, run-end account review, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial controls, and interactive archived-run review from the account hall
+- safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, and inventory or stash actions
 - return-to-town flow from the world map without losing route progress
-- schema-versioned run snapshots plus profile-backed active-run, stash, run-history, settings, and profile-meta persistence
+- schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates
 
 Not implemented now:
 
-- account-level unlock trees and tutorial-state management
-- broader mercenary pool and richer mercenary scaling rules beyond the current three-profile roster
-- broader authored route-side node catalogs beyond the current quest, shrine, aftermath-event, and opportunity chain
-- deeper late-run loot tuning beyond the current curated item, rune, and runeword catalog
+- broader account-level unlock trees and broader account UX beyond the current archive or economy or mastery trees, capstone review, account hall, focused-tree controls, preferred-class or settings or tutorial controls, and interactive archive-review desk
+- broader mercenary route-perk breadth tied to future route families beyond the current twelve-per-contract route-perk baseline and reserve-or-relay-or-culmination-or-legacy-or-reckoning-or-recovery-or-accord-or-covenant-linked payoff pass
+- broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant per act
+- broader encounter-local modifier catalogs and escort or boss scripting beyond the current thirteen-modifier combat baseline
+- final late-run loot tuning and broader feature-gated reward variety beyond the current higher-tier item, rune, and runeword catalog
 
 ## Documentation Layers
 
@@ -65,21 +67,34 @@ When docs conflict, use this order.
 - [styles.css](/Users/andrew/proj/rouge/styles.css)
 - [src/content/game-content.ts](/Users/andrew/proj/rouge/src/content/game-content.ts)
 - [src/content/seed-loader.ts](/Users/andrew/proj/rouge/src/content/seed-loader.ts)
+- [src/content/content-validator-world-paths.ts](/Users/andrew/proj/rouge/src/content/content-validator-world-paths.ts)
 - [src/content/content-validator.ts](/Users/andrew/proj/rouge/src/content/content-validator.ts)
+- [src/content/encounter-registry-enemy-builders.ts](/Users/andrew/proj/rouge/src/content/encounter-registry-enemy-builders.ts)
+- [src/content/encounter-registry-builders.ts](/Users/andrew/proj/rouge/src/content/encounter-registry-builders.ts)
 - [src/content/encounter-registry.ts](/Users/andrew/proj/rouge/src/content/encounter-registry.ts)
 - [src/character/class-registry.ts](/Users/andrew/proj/rouge/src/character/class-registry.ts)
 - [src/quests/world-node-engine.ts](/Users/andrew/proj/rouge/src/quests/world-node-engine.ts)
+- [src/run/run-state.ts](/Users/andrew/proj/rouge/src/run/run-state.ts)
+- [src/run/run-route-builder.ts](/Users/andrew/proj/rouge/src/run/run-route-builder.ts)
+- [src/run/run-progression.ts](/Users/andrew/proj/rouge/src/run/run-progression.ts)
+- [src/run/run-reward-flow.ts](/Users/andrew/proj/rouge/src/run/run-reward-flow.ts)
 - [src/run/run-factory.ts](/Users/andrew/proj/rouge/src/run/run-factory.ts)
 - [src/combat/combat-engine.ts](/Users/andrew/proj/rouge/src/combat/combat-engine.ts)
 - [src/app/app-engine.ts](/Users/andrew/proj/rouge/src/app/app-engine.ts)
 - [src/app/main.ts](/Users/andrew/proj/rouge/src/app/main.ts)
+- [src/rewards/reward-engine.ts](/Users/andrew/proj/rouge/src/rewards/reward-engine.ts)
 - [src/town/service-registry.ts](/Users/andrew/proj/rouge/src/town/service-registry.ts)
+- [src/items/item-data.ts](/Users/andrew/proj/rouge/src/items/item-data.ts)
+- [src/items/item-catalog.ts](/Users/andrew/proj/rouge/src/items/item-catalog.ts)
+- [src/items/item-loadout.ts](/Users/andrew/proj/rouge/src/items/item-loadout.ts)
+- [src/items/item-town.ts](/Users/andrew/proj/rouge/src/items/item-town.ts)
 - [src/items/item-system.ts](/Users/andrew/proj/rouge/src/items/item-system.ts)
 - [src/state/persistence.ts](/Users/andrew/proj/rouge/src/state/persistence.ts)
 - [src/state/save-migrations.ts](/Users/andrew/proj/rouge/src/state/save-migrations.ts)
 - [src/state/profile-migrations.ts](/Users/andrew/proj/rouge/src/state/profile-migrations.ts)
 - [src/ui/ui-common.ts](/Users/andrew/proj/rouge/src/ui/ui-common.ts)
 - [src/ui/app-shell.ts](/Users/andrew/proj/rouge/src/ui/app-shell.ts)
+- [src/ui/action-dispatcher.ts](/Users/andrew/proj/rouge/src/ui/action-dispatcher.ts)
 - [src/ui/front-door-view.ts](/Users/andrew/proj/rouge/src/ui/front-door-view.ts)
 - [src/ui/character-select-view.ts](/Users/andrew/proj/rouge/src/ui/character-select-view.ts)
 - [src/ui/safe-zone-view.ts](/Users/andrew/proj/rouge/src/ui/safe-zone-view.ts)
@@ -90,6 +105,11 @@ When docs conflict, use this order.
 - [src/ui/run-summary-view.ts](/Users/andrew/proj/rouge/src/ui/run-summary-view.ts)
 - [src/ui/render-utils.ts](/Users/andrew/proj/rouge/src/ui/render-utils.ts)
 - [src/types/game.d.ts](/Users/andrew/proj/rouge/src/types/game.d.ts)
+- [tests/helpers/browser-harness.ts](/Users/andrew/proj/rouge/tests/helpers/browser-harness.ts)
+- [tests/app-engine-shell.test.ts](/Users/andrew/proj/rouge/tests/app-engine-shell.test.ts)
+- [tests/app-engine-world-nodes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes.test.ts)
+- [tests/app-engine-world-node-validation.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-node-validation.test.ts)
+- [tests/app-engine-progression.test.ts](/Users/andrew/proj/rouge/tests/app-engine-progression.test.ts)
 - [tests/combat-engine.test.ts](/Users/andrew/proj/rouge/tests/combat-engine.test.ts)
 - [tests/app-engine.test.ts](/Users/andrew/proj/rouge/tests/app-engine.test.ts)
 - [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md)
@@ -98,6 +118,7 @@ When docs conflict, use this order.
 - [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
 - [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
 - [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
+- [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md)
 - [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 
 These describe what is actually authored and playable now. `generated/` and `dist/` are runtime outputs, not editable source.
@@ -111,6 +132,7 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
 - [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
 - [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
+- [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md)
 - [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)

@@ -119,6 +119,53 @@
         appEngine.returnToFrontDoor(appState);
         render();
         return true;
+      case "set-account-progression-focus":
+        appEngine.setAccountProgressionFocus(appState, actionEl.dataset.accountTreeId || "");
+        render();
+        return true;
+      case "toggle-profile-setting":
+        if (actionEl.dataset.settingKey === "showHints") {
+          appEngine.updateProfileSettings(appState, {
+            showHints: actionEl.dataset.settingValue === "true",
+          });
+          render();
+          return true;
+        }
+        if (actionEl.dataset.settingKey === "reduceMotion") {
+          appEngine.updateProfileSettings(appState, {
+            reduceMotion: actionEl.dataset.settingValue === "true",
+          });
+          render();
+          return true;
+        }
+        if (actionEl.dataset.settingKey === "compactMode") {
+          appEngine.updateProfileSettings(appState, {
+            compactMode: actionEl.dataset.settingValue === "true",
+          });
+          render();
+          return true;
+        }
+        return false;
+      case "set-preferred-class":
+        appEngine.setPreferredClass(appState, actionEl.dataset.classId || "");
+        render();
+        return true;
+      case "set-run-history-review":
+        appEngine.setRunHistoryReviewIndex(appState, Number.parseInt(actionEl.dataset.historyIndex || "0", 10) || 0);
+        render();
+        return true;
+      case "complete-tutorial":
+        appEngine.completeTutorial(appState, actionEl.dataset.tutorialId || "");
+        render();
+        return true;
+      case "dismiss-tutorial":
+        appEngine.dismissTutorial(appState, actionEl.dataset.tutorialId || "");
+        render();
+        return true;
+      case "restore-tutorial":
+        appEngine.restoreTutorial(appState, actionEl.dataset.tutorialId || "");
+        render();
+        return true;
       default:
         return false;
     }

@@ -3,11 +3,16 @@
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
-    const { escapeHtml, buildStat } = services.renderUtils;
+    const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
     const run = appState.run;
     const combat = appState.combat;
     const zone = services.runFactory.getZoneById(run, run.activeZoneId);
     const selectedEnemy = combat.enemies.find((enemy) => enemy.id === combat.selectedEnemyId && enemy.alive) || null;
+    const livingEnemies = combat.enemies.filter((enemy) => enemy.alive).length;
+    const playableCards = combat.hand.filter((instance) => {
+      const card = appState.content.cardCatalog[instance.cardId];
+      return card && combat.hero.energy >= card.cost;
+    }).length;
     let phaseText = "Enemy Turn";
     if (combat.outcome === "victory") {
       phaseText = "Victory";
@@ -17,54 +22,79 @@
       phaseText = "Player Turn";
     }
 
-    let targetHint = "Select a living enemy.";
+    let targetHint = "Select a living enemy before using a targeted card.";
     if (selectedEnemy) {
-      targetHint = `Selected target: ${selectedEnemy.name}`;
+      targetHint = `Target locked: ${selectedEnemy.name}.`;
     } else if (combat.outcome === "victory") {
-      targetHint = "Encounter cleared. Claim the reward to continue the run.";
+      targetHint = "Encounter cleared. The next click on a reward advances the run.";
     } else if (combat.outcome === "defeat") {
-      targetHint = "The hero fell. Return to the front door to start a new run.";
+      targetHint = "The expedition failed here. Review the run-end summary and return to the front door.";
+    }
+
+    const actionWindowLabel = combat.phase === "player" && !combat.outcome ? "Your Turn" : phaseText;
+    const actionWindowTone = combat.phase === "player" && !combat.outcome ? "available" : "locked";
+    let exitBadgeLabel = `${livingEnemies} hostiles`;
+    let exitBadgeTone = "available";
+    let exitCopy = "Defeat every hostile to hand back into the reward phase.";
+    if (combat.outcome === "victory") {
+      exitBadgeLabel = "Reward Ready";
+      exitBadgeTone = "cleared";
+      exitCopy = "Claim a reward to mutate the run and return to the route.";
+    } else if (combat.outcome === "defeat") {
+      exitBadgeLabel = "Run Ended";
+      exitBadgeTone = "locked";
+      exitCopy = "The run summary now owns the failure review.";
     }
 
     services.renderUtils.buildShell(root, {
       eyebrow: "Encounter",
-      title: `${zone?.title || combat.encounter.name}`,
+      title: zone?.title || combat.encounter.name,
       copy:
-        "This screen is still powered by the deterministic combat engine, but it now sits inside the larger run phase model and carries state back into the app loop.",
+        "Combat still runs through the deterministic engine, but the surrounding shell now explains encounter progress, target selection, turn flow, and how victory feeds back into the map.",
       body: `
         ${common.renderRunStatus(run, phaseText, services.renderUtils)}
-        <section class="status-strip panel">
-          <div class="status-item">
-            <span class="status-label">Encounter</span>
-            <strong>${escapeHtml(`${(zone?.encountersCleared || 0) + 1}/${zone?.encounterTotal || 1}`)}</strong>
+        <section class="panel flow-panel">
+          <div class="panel-head">
+            <h2>Encounter Brief</h2>
+            <p>${escapeHtml(`${zone?.title || combat.encounter.name} is one stop in the current route. Life, belt charges, and loadout bonuses will all carry back out when this fight resolves.`)}</p>
           </div>
-          <div class="status-item">
-            <span class="status-label">Turn</span>
-            <strong>${escapeHtml(combat.turn)}</strong>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Energy</span>
-            <strong>${escapeHtml(`${combat.hero.energy}/${combat.hero.maxEnergy}`)}</strong>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Potions</span>
-            <strong>${escapeHtml(combat.potions)}</strong>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Deck</span>
-            <strong>${escapeHtml(combat.drawPile.length)}</strong>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Discard</span>
-            <strong>${escapeHtml(combat.discardPile.length)}</strong>
+          <div class="feature-grid feature-grid-wide">
+            <article class="feature-card">
+              <div class="entity-name-row">
+                <strong>Encounter Count</strong>
+                ${buildBadge(`${(zone?.encountersCleared || 0) + 1}/${zone?.encounterTotal || 1}`, "available")}
+              </div>
+              <p>${escapeHtml(zone ? `${zone.title} keeps its cleared progress if you later return to town.` : "This encounter resolves against the active route state.")}</p>
+            </article>
+            <article class="feature-card">
+              <div class="entity-name-row">
+                <strong>Target Rail</strong>
+                ${buildBadge(selectedEnemy ? selectedEnemy.name : "No Target", selectedEnemy ? "available" : "locked")}
+              </div>
+              <p>${escapeHtml(targetHint)}</p>
+            </article>
+            <article class="feature-card">
+              <div class="entity-name-row">
+                <strong>Action Window</strong>
+                ${buildBadge(actionWindowLabel, actionWindowTone)}
+              </div>
+              <p>${escapeHtml(`${playableCards} card${playableCards === 1 ? "" : "s"} are currently affordable with ${combat.hero.energy} energy.`)}</p>
+            </article>
+            <article class="feature-card">
+              <div class="entity-name-row">
+                <strong>Exit Condition</strong>
+                ${buildBadge(exitBadgeLabel, exitBadgeTone)}
+              </div>
+              <p>${escapeHtml(exitCopy)}</p>
+            </article>
           </div>
         </section>
 
         <section class="battle-grid">
           <article class="panel battle-panel">
             <div class="panel-head">
-              <h2>Party</h2>
-              <p>Run-state life and potion values are carried into this encounter and will be written back out on resolution.</p>
+              <h2>Allied Line</h2>
+              <p>Party state is run-owned. Potions, damage taken, and mercenary survival will all write back into the expedition on resolution.</p>
             </div>
             <div class="entity-row">
               <article class="entity-card ally ${combat.hero.alive ? "" : "dead"}">
@@ -78,7 +108,7 @@
                   ${buildStat("Energy", `${combat.hero.energy}/${combat.hero.maxEnergy}`)}
                   ${buildStat("Hand", combat.hand.length)}
                 </div>
-                <p class="entity-passive">Cards remain the primary input surface. Potions and mercenary support stay outside the hand.</p>
+                <p class="entity-passive">Targeted skills need a locked enemy. Potions and party-wide tools do not.</p>
               </article>
               <article class="entity-card ally ${combat.mercenary.alive ? "" : "dead"}">
                 <div class="entity-name-row">
@@ -103,8 +133,8 @@
 
           <article class="panel battle-panel">
             <div class="panel-head">
-              <h2>Enemies</h2>
-              <p>Select a target for single-target skills. Enemies resolve after the mercenary.</p>
+              <h2>Enemy Front</h2>
+              <p>Select a hostile to anchor targeted card play. Enemy intent text stays visible so the shell communicates pressure without touching combat rules.</p>
             </div>
             <div class="entity-row enemy-row">
               ${combat.enemies
@@ -137,21 +167,25 @@
 
         <section class="panel flow-panel">
           <div class="panel-head">
-            <h2>Turn Guide</h2>
-            <p>The shell now explains targeting and turn order without changing the combat engine.</p>
+            <h2>Battle Orders</h2>
+            <p>The shell now tells the player what to do next in combat without adding new combat-side state.</p>
           </div>
-          <div class="feature-grid">
+          <div class="feature-grid feature-grid-wide">
             <article class="feature-card">
-              <strong>Select Target</strong>
+              <strong>1. Lock A Target</strong>
               <p>${escapeHtml(targetHint)}</p>
             </article>
             <article class="feature-card">
-              <strong>Spend Actions</strong>
-              <p>Play cards while you have energy. Targeted skills require a selected living enemy; potions and party skills do not.</p>
+              <strong>2. Spend Energy</strong>
+              <p>Play cards while you have energy. If a skill says enemy target, the shell expects a selected living hostile.</p>
             </article>
             <article class="feature-card">
-              <strong>Advance The Run</strong>
-              <p>End the turn to let the mercenary and enemies act, then claim the reward after victory to return to the route.</p>
+              <strong>3. Keep The Party Alive</strong>
+              <p>Potions are scarce and carry between encounters. Use them when preserving run momentum matters, not just to perfect a single fight.</p>
+            </article>
+            <article class="feature-card">
+              <strong>4. End Turn Cleanly</strong>
+              <p>Once your line is spent, end the turn so the mercenary and enemy intents can resolve. Victory sends you to reward; defeat sends you to run-end review.</p>
             </article>
           </div>
         </section>
@@ -159,7 +193,7 @@
         <section class="panel hand-panel">
           <div class="panel-head">
             <h2>Hand</h2>
-            <p>Areas can require one to five encounters. The deck resets each encounter, but life and potions carry through the run.</p>
+            <p>Encounter decks reset per fight, but the route remembers what happened to Life, potions, and build state after the outcome is synced.</p>
           </div>
           <div class="hand-row">
             ${combat.hand
@@ -189,7 +223,7 @@
         <section class="panel log-panel">
           <div class="panel-head">
             <h2>Combat Log</h2>
-            <p>Latest events appear first.</p>
+            <p>Most recent actions stay at the top so the player can reconstruct why the encounter state looks the way it does.</p>
           </div>
           <ol class="log-list">
             ${combat.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}

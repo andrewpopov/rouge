@@ -198,6 +198,7 @@
     if (
       actionId === "vendor_refresh_stock" ||
       actionId.startsWith("vendor_buy_") ||
+      actionId.startsWith("vendor_consign_") ||
       actionId.startsWith("inventory_") ||
       actionId.startsWith("stash_")
     ) {

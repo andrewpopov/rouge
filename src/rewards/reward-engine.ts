@@ -168,6 +168,42 @@
     return Math.min(max, Math.max(min, value));
   }
 
+  function hasTownFeature(profile, featureId) {
+    return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
+  }
+
+  function getFocusedAccountTreeId(profile) {
+    return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
+  }
+
+  function getRewardAccountFeatures(profile) {
+    const focusedTreeId = getFocusedAccountTreeId(profile);
+    const masteryUnlocked =
+      hasTownFeature(profile, "boss_trophy_gallery") ||
+      hasTownFeature(profile, "class_roster_archive") ||
+      hasTownFeature(profile, "training_grounds") ||
+      hasTownFeature(profile, "war_college") ||
+      hasTownFeature(profile, "paragon_doctrine") ||
+      hasTownFeature(profile, "apex_doctrine");
+    return {
+      economyLedger: hasTownFeature(profile, "economy_ledger"),
+      bossTrophyGallery: hasTownFeature(profile, "boss_trophy_gallery"),
+      trainingGrounds: hasTownFeature(profile, "training_grounds"),
+      warCollege: hasTownFeature(profile, "war_college"),
+      paragonDoctrine: hasTownFeature(profile, "paragon_doctrine"),
+      apexDoctrine: hasTownFeature(profile, "apex_doctrine"),
+      masteryFocus: focusedTreeId === "mastery" && masteryUnlocked,
+    };
+  }
+
+  function scaleGoldValue(value, profile) {
+    const features = getRewardAccountFeatures(profile);
+    if (!features.economyLedger) {
+      return value;
+    }
+    return Math.max(0, Math.ceil(value * 1.25));
+  }
+
   function getDeckProfileId(content, classId) {
     return content.classDeckProfiles?.[classId] || "warrior";
   }
@@ -282,21 +318,161 @@
     return "Run improves.";
   }
 
-  function pickBoonChoice(zoneRole, seed) {
+  function pickBoonChoice(zoneRole, seed, profile = null, actNumber = 1) {
     const pool = BOON_POOLS[zoneRole] || BOON_POOLS.opening;
     const definition = pool[seed % pool.length];
-    return buildBoonChoice(definition);
+    const scaledEffects = definition.effects.map((effect) => {
+      if (effect.kind === "gold_bonus") {
+        return {
+          ...effect,
+          value: scaleGoldValue(effect.value + Math.max(0, actNumber - 1) * 2, profile),
+        };
+      }
+      return { ...effect };
+    });
+    const choice = buildBoonChoice({
+      ...definition,
+      effects: scaledEffects,
+    });
+    if (getRewardAccountFeatures(profile).economyLedger && scaledEffects.some((effect) => effect.kind === "gold_bonus")) {
+      choice.previewLines.push("Economy Ledger dividend is active on this payout.");
+    }
+    return choice;
   }
 
-  function pickProgressionChoice(zone, seed) {
+  function pickProgressionChoice(zone, seed, run, actNumber, content, profile = null) {
     const pool = PROGRESSION_BOON_POOLS[zone.kind] || PROGRESSION_BOON_POOLS[zone.zoneRole] || [];
     if (pool.length === 0) {
       return null;
     }
-    return buildBoonChoice(pool[seed % pool.length]);
+
+    const definition = pool[seed % pool.length];
+    const progressionSummary = runtimeWindow.ROUGE_RUN_FACTORY?.getProgressionSummary?.(run, content) || null;
+    const focusedTreeName = progressionSummary?.favoredTreeName || run.className || "Current build";
+    const features = getRewardAccountFeatures(profile);
+    const trainingGroundsClassBonus =
+      features.trainingGrounds && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") ? 1 : 0;
+    const masteryFocusClassBonus = features.masteryFocus && zone.kind === "boss" ? 1 : 0;
+    const warCollegeClassBonus = features.warCollege && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") ? 1 : 0;
+    const paragonDoctrineClassBonus =
+      features.paragonDoctrine && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 4 ? 1 : 0;
+    const apexDoctrineClassBonus =
+      features.apexDoctrine && (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 5 ? 1 : 0;
+    const trainingGroundsAttributeBonus = features.trainingGrounds && zone.kind === "boss" && actNumber >= 4 ? 1 : 0;
+    const masteryFocusAttributeBonus = features.masteryFocus && zone.kind === "boss" && actNumber >= 5 ? 1 : 0;
+    const warCollegeAttributeBonus = features.warCollege && zone.kind === "boss" && actNumber >= 4 ? 1 : 0;
+    const paragonDoctrineAttributeBonus = features.paragonDoctrine && zone.kind === "boss" && actNumber >= 5 ? 1 : 0;
+    const apexDoctrineAttributeBonus = features.apexDoctrine && zone.kind === "boss" && actNumber >= 5 ? 1 : 0;
+    const scaledEffects = definition.effects.map((effect) => {
+      if (effect.kind === "class_point") {
+        return {
+          ...effect,
+          value:
+            effect.value +
+            (zone.kind === "boss" ? Math.min(2, Math.floor(Math.max(0, actNumber - 1) / 2)) : 0) +
+            (features.bossTrophyGallery && zone.kind === "boss" ? 1 : 0) +
+            trainingGroundsClassBonus +
+            warCollegeClassBonus +
+            paragonDoctrineClassBonus +
+            apexDoctrineClassBonus +
+            masteryFocusClassBonus,
+        };
+      }
+
+      if (effect.kind === "attribute_point") {
+        return {
+          ...effect,
+          value:
+            effect.value +
+            (zone.kind === "boss" && actNumber >= 4 ? 1 : 0) +
+            (features.bossTrophyGallery && zone.kind === "boss" && actNumber >= 5 ? 1 : 0) +
+            trainingGroundsAttributeBonus +
+            warCollegeAttributeBonus +
+            paragonDoctrineAttributeBonus +
+            apexDoctrineAttributeBonus +
+            masteryFocusAttributeBonus,
+        };
+      }
+
+      if (effect.kind === "gold_bonus") {
+        return {
+          ...effect,
+          value: scaleGoldValue(effect.value + actNumber * 4, profile),
+        };
+      }
+
+      return { ...effect };
+    });
+
+    if ((zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 3) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+    } else if (zone.zoneRole === "branchBattle" && actNumber >= 4) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+    }
+    if (features.trainingGrounds && !scaledEffects.some((effect) => effect.kind === "class_point") && (zone.kind === "miniboss" || zone.kind === "boss")) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+    }
+    if (features.trainingGrounds && zone.kind === "boss" && !scaledEffects.some((effect) => effect.kind === "attribute_point")) {
+      scaledEffects.push({ kind: "attribute_point", value: 1 + Number(actNumber >= 4) + Number(features.masteryFocus && actNumber >= 5) });
+    }
+    if (features.warCollege && (zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss")) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 + Number(actNumber >= 4) });
+    }
+    if (features.warCollege && zone.kind === "boss") {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+      scaledEffects.push({ kind: "attribute_point", value: 1 + Number(actNumber >= 5) });
+    }
+    if (features.paragonDoctrine && (zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 4) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+    }
+    if (features.apexDoctrine && (zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss") && actNumber >= 5) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+    }
+    if (features.apexDoctrine && zone.kind === "boss" && actNumber >= 5) {
+      scaledEffects.unshift({ kind: "class_point", value: 1 });
+      scaledEffects.push({ kind: "attribute_point", value: 1 });
+    }
+
+    const choice = buildBoonChoice({
+      ...definition,
+      id: `${definition.id}_${zone.id}_${actNumber}`,
+      title: zone.kind === "boss" ? `${focusedTreeName} Mastery` : definition.title,
+      description:
+        zone.kind === "boss"
+          ? `Gain a late-act build pivot that reinforces ${focusedTreeName.toLowerCase()} and keeps the run growing into town spends.`
+          : `${definition.description} Current focus: ${focusedTreeName}.`,
+      effects: scaledEffects,
+    });
+
+    if (progressionSummary?.nextClassUnlock) {
+      choice.previewLines.push(progressionSummary.nextClassUnlock);
+    }
+    if (features.bossTrophyGallery && zone.kind === "boss") {
+      choice.previewLines.push("Boss Trophy Gallery is reinforcing this post-boss build pivot.");
+    }
+    if (features.trainingGrounds && (zone.kind === "miniboss" || zone.kind === "boss")) {
+      choice.previewLines.push("Training Grounds is converting account mastery into extra progression points.");
+    }
+    if (features.masteryFocus && zone.kind === "boss") {
+      choice.previewLines.push("Mastery Hall focus is sharpening this reward pivot.");
+    }
+    if (features.warCollege && (zone.kind === "miniboss" || zone.kind === "boss")) {
+      choice.previewLines.push("War College is hardening this late-run progression pivot.");
+    }
+    if (features.paragonDoctrine && (zone.kind === "miniboss" || zone.kind === "boss") && actNumber >= 4) {
+      choice.previewLines.push("Paragon Doctrine is codifying an extra late-act mastery dividend.");
+    }
+    if (features.apexDoctrine && (zone.kind === "miniboss" || zone.kind === "boss") && actNumber >= 5) {
+      choice.previewLines.push("Apex Doctrine is converting the archive of boss kills into an apex late-act mastery swing.");
+    }
+    if (features.economyLedger && scaledEffects.some((effect) => effect.kind === "gold_bonus")) {
+      choice.previewLines.push("Economy Ledger dividend is active on this build payout.");
+    }
+
+    return choice;
   }
 
-  function ensureThreeChoices(choices, run, zone, content, seed, usedCardIds) {
+  function ensureThreeChoices(choices, run, zone, content, seed, usedCardIds, profile = null, actNumber = 1) {
     const profileId = getDeckProfileId(content, run.classId);
     const fallbackPools = [
       content.rewardPools?.profileCards?.[profileId] || [],
@@ -315,13 +491,13 @@
     }
 
     while (choices.length < 3) {
-      choices.push(pickBoonChoice(zone.zoneRole, seed + choices.length));
+      choices.push(pickBoonChoice(zone.zoneRole, seed + choices.length, profile, actNumber));
     }
 
     return choices.slice(0, 3);
   }
 
-  function buildRewardChoices({ content, run, zone, actNumber, encounterNumber }) {
+  function buildRewardChoices({ content, run, zone, actNumber, encounterNumber, profile = null }) {
     const seed = getChoiceSeed(run, zone, actNumber, encounterNumber);
     const itemSystem = runtimeWindow.ROUGE_ITEM_SYSTEM;
     const usedCardIds = new Set();
@@ -339,8 +515,9 @@
       zone,
       actNumber,
       encounterNumber,
+      profile,
     });
-    const progressionChoice = pickProgressionChoice(zone, seed + 3);
+    const progressionChoice = pickProgressionChoice(zone, seed + 3, run, actNumber, content, profile);
 
     const firstCardPool = zone.kind === "boss" ? [...bossPool, ...profilePool] : [...profilePool, ...zonePool];
     const firstCardId = pickUniqueCardId(firstCardPool, seed, usedCardIds, content);
@@ -359,7 +536,7 @@
 
     if (zone.kind === "boss") {
       if (choices.length < 3) {
-        choices.push(pickBoonChoice("boss", seed + 9));
+        choices.push(pickBoonChoice("boss", seed + 9, profile, actNumber));
       }
       if (upgradeChoice && choices.length < 3) {
         choices.push(upgradeChoice);
@@ -374,7 +551,7 @@
 
     const boonRole = zone.kind === "boss" ? "boss" : zone.zoneRole;
     if (zone.kind !== "boss" && choices.length < 3) {
-      choices.push(pickBoonChoice(boonRole, seed + 9));
+      choices.push(pickBoonChoice(boonRole, seed + 9, profile, actNumber));
     }
 
     const secondCardPool = zone.kind === "boss" ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool];
@@ -386,7 +563,7 @@
       }
     }
 
-    return ensureThreeChoices(choices, run, zone, content, seed + 13, usedCardIds);
+    return ensureThreeChoices(choices, run, zone, content, seed + 13, usedCardIds, profile, actNumber);
   }
 
   function addCardToDeck(run, cardId, content) {

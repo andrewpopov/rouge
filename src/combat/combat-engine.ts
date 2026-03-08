@@ -74,6 +74,13 @@
       nextAttackBonus: 0,
       markedEnemyId: "",
       markBonus: 0,
+      contractAttackBonus: Math.max(0, parseInteger(merged.contractAttackBonus, 0)),
+      contractBehaviorBonus: Math.max(0, parseInteger(merged.contractBehaviorBonus, 0)),
+      contractStartGuard: Math.max(0, parseInteger(merged.contractStartGuard, 0)),
+      contractHeroDamageBonus: Math.max(0, parseInteger(merged.contractHeroDamageBonus, 0)),
+      contractHeroStartGuard: Math.max(0, parseInteger(merged.contractHeroStartGuard, 0)),
+      contractOpeningDraw: Math.max(0, parseInteger(merged.contractOpeningDraw, 0)),
+      contractPerkLabels: Array.isArray(merged.contractPerkLabels) ? [...merged.contractPerkLabels] : [],
     };
   }
 
@@ -83,6 +90,7 @@
       id: enemyEntry.id,
       templateId: template.templateId,
       name: template.name,
+      role: template.role || "",
       maxLife: template.maxLife,
       life: template.maxLife,
       guard: 0,
@@ -218,6 +226,12 @@
     if (intent.kind === "heal_ally") {
       return `${intent.label}: heal ally ${intent.value}`;
     }
+    if (intent.kind === "heal_allies") {
+      return `${intent.label}: heal all enemies ${intent.value}`;
+    }
+    if (intent.kind === "heal_and_guard") {
+      return `${intent.label}: heal an ally and gain Guard`;
+    }
     if (intent.kind === "sunder_attack") {
       return `${intent.label}: break Guard, then hit for ${intent.value}`;
     }
@@ -338,21 +352,65 @@
   }
 
   function chooseMercenaryTarget(state) {
-    const marked = getLivingEnemies(state).find((enemy) => enemy.id === state.mercenary.markedEnemyId);
+    const livingEnemies = getLivingEnemies(state);
+    const marked = livingEnemies.find((enemy) => enemy.id === state.mercenary.markedEnemyId);
     if (marked) {
       return marked;
     }
 
-    const selected = getLivingEnemies(state).find((enemy) => enemy.id === state.selectedEnemyId);
+    if (state.mercenary.behavior === "backline_hunter") {
+      const backlineTarget =
+        livingEnemies.find((enemy) => enemy.role === "support") ||
+        livingEnemies.find((enemy) => enemy.role === "ranged") ||
+        null;
+      if (backlineTarget) {
+        return backlineTarget;
+      }
+    }
+
+    if (state.mercenary.behavior === "guard_breaker") {
+      const guardedTarget =
+        livingEnemies
+          .slice()
+          .sort((left, right) => right.guard - left.guard)[0] || null;
+      if (guardedTarget?.guard > 0) {
+        return guardedTarget;
+      }
+    }
+
+    if (state.mercenary.behavior === "boss_hunter") {
+      const priorityTarget =
+        livingEnemies.find((enemy) => enemy.templateId.endsWith("_boss")) ||
+        livingEnemies.find((enemy) => enemy.templateId.includes("_elite")) ||
+        null;
+      if (priorityTarget) {
+        return priorityTarget;
+      }
+    }
+
+    if (state.mercenary.behavior === "wounded_hunter") {
+      const woundedTarget =
+        livingEnemies
+          .slice()
+          .sort((left, right) => {
+            const leftRatio = left.maxLife > 0 ? left.life / left.maxLife : 1;
+            const rightRatio = right.maxLife > 0 ? right.life / right.maxLife : 1;
+            if (leftRatio !== rightRatio) {
+              return leftRatio - rightRatio;
+            }
+            return left.life - right.life;
+          })[0] || null;
+      if (woundedTarget) {
+        return woundedTarget;
+      }
+    }
+
+    const selected = livingEnemies.find((enemy) => enemy.id === state.selectedEnemyId);
     if (selected) {
       return selected;
     }
 
-    return (
-      getLivingEnemies(state)
-        .slice()
-        .sort((left, right) => left.life - right.life)[0] || null
-    );
+    return livingEnemies.slice().sort((left, right) => left.life - right.life)[0] || null;
   }
 
   function resolveMercenaryAction(state) {
@@ -365,20 +423,36 @@
       return;
     }
 
-    let damage = state.mercenary.attack + state.mercenary.nextAttackBonus;
+    let damage = state.mercenary.attack + state.mercenary.nextAttackBonus + state.mercenary.contractAttackBonus;
     if (state.mercenary.behavior === "mark_hunter" && target.id === state.mercenary.markedEnemyId) {
-      damage += state.mercenary.markBonus;
+      damage += state.mercenary.markBonus + state.mercenary.contractBehaviorBonus;
     }
     if (state.mercenary.behavior === "burn_finisher" && target.burn > 0) {
-      damage += 2;
+      damage += 2 + state.mercenary.contractBehaviorBonus;
+    }
+    if (state.mercenary.behavior === "guard_breaker" && target.guard > 0) {
+      const removedGuard = target.guard;
+      target.guard = 0;
+      damage += 2 + state.mercenary.contractBehaviorBonus;
+      appendLog(state, `${state.mercenary.name} shatters ${target.name}'s Guard (${removedGuard}).`);
+    }
+    if (state.mercenary.behavior === "boss_hunter" && (target.templateId.endsWith("_boss") || target.templateId.includes("_elite"))) {
+      damage += 3 + state.mercenary.contractBehaviorBonus;
+    }
+    if (state.mercenary.behavior === "backline_hunter" && (target.role === "support" || target.role === "ranged")) {
+      damage += 2 + state.mercenary.contractBehaviorBonus;
+    }
+    if (state.mercenary.behavior === "wounded_hunter" && target.life <= Math.ceil(target.maxLife / 2)) {
+      damage += 3 + state.mercenary.contractBehaviorBonus;
     }
 
     const dealt = dealDamage(state, target, damage);
     appendLog(state, `${state.mercenary.name} hits ${target.name} for ${dealt}.`);
 
     if (state.mercenary.behavior === "guard_after_attack") {
-      applyGuard(state.mercenary, 2);
-      appendLog(state, `${state.mercenary.name} gains 2 Guard.`);
+      const guardGained = 2 + state.mercenary.contractBehaviorBonus;
+      applyGuard(state.mercenary, guardGained);
+      appendLog(state, `${state.mercenary.name} gains ${guardGained} Guard.`);
     }
 
     state.mercenary.nextAttackBonus = 0;
@@ -433,6 +507,39 @@
         const healed = healEntity(target, intent.value);
         appendLog(state, `${enemy.name} uses ${intent.label} and heals ${target.name} for ${healed}.`);
       }
+      return;
+    }
+
+    if (intent.kind === "heal_allies") {
+      const livingEnemies = getLivingEnemies(state);
+      const healedTargets = livingEnemies
+        .map((target) => {
+          const healed = healEntity(target, intent.value);
+          return healed > 0 ? `${target.name} for ${healed}` : "";
+        })
+        .filter(Boolean);
+      appendLog(
+        state,
+        healedTargets.length > 0
+          ? `${enemy.name} uses ${intent.label} and restores ${healedTargets.join(", ")}.`
+          : `${enemy.name} uses ${intent.label}, but the enemy line is already healthy.`
+      );
+      return;
+    }
+
+    if (intent.kind === "heal_and_guard") {
+      const target =
+        getLivingEnemies(state)
+          .slice()
+          .sort((left, right) => left.life - right.life)[0] || null;
+      const healed = target ? healEntity(target, intent.value) : 0;
+      const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 2)));
+      appendLog(
+        state,
+        target
+          ? `${enemy.name} uses ${intent.label}, restoring ${target.name} for ${healed} and gaining ${guardGained} Guard.`
+          : `${enemy.name} uses ${intent.label} and gains ${guardGained} Guard.`
+      );
       return;
     }
 
@@ -498,6 +605,235 @@
       enemy.intentIndex = (enemy.intentIndex + 1) % enemy.intents.length;
       enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
     });
+  }
+
+  function advanceEnemyIntent(enemy, steps) {
+    if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
+      return;
+    }
+
+    const stepCount = Math.max(0, parseInteger(steps, 0));
+    enemy.intentIndex = (enemy.intentIndex + stepCount) % enemy.intents.length;
+    enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
+  }
+
+  function boostEnemyIntentValues(enemy, supportedKinds, amount) {
+    if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
+      return false;
+    }
+
+    const bonus = Math.max(0, parseInteger(amount, 0));
+    if (bonus <= 0) {
+      return false;
+    }
+
+    let changed = false;
+    enemy.intents = enemy.intents.map((intent) => {
+      if (!intent || !supportedKinds.has(intent.kind)) {
+        return intent;
+      }
+
+      changed = true;
+      return {
+        ...intent,
+        value: Math.max(0, parseInteger(intent.value, 0) + bonus),
+      };
+    });
+
+    if (changed) {
+      enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
+    }
+
+    return changed;
+  }
+
+  function applyEncounterModifiers(state) {
+    const modifiers = Array.isArray(state?.encounter?.modifiers) ? state.encounter.modifiers : [];
+    const attackIntentKinds = new Set(["attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack"]);
+    const healingIntentKinds = new Set(["heal_ally", "heal_allies", "heal_and_guard"]);
+
+    modifiers.forEach((modifier) => {
+      if (modifier.kind === "fortified_line") {
+        const guardValue = Math.max(0, parseInteger(modifier.value, 0));
+        state.enemies.forEach((enemy) => applyGuard(enemy, guardValue));
+        appendLog(state, `${state.encounter.name} begins fortified. The enemy line gains ${guardValue} Guard.`);
+        return;
+      }
+
+      if (modifier.kind === "ambush_opening") {
+        const stepCount = Math.max(1, parseInteger(modifier.value, 1));
+        const ambushers = state.enemies.filter((enemy) => enemy.role === "raider" || enemy.role === "ranged");
+        ambushers.forEach((enemy) => advanceEnemyIntent(enemy, stepCount));
+        if (ambushers.length > 0) {
+          appendLog(state, `${state.encounter.name} opens as an ambush. Raider and ranged enemies shift their first intent.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "escort_bulwark") {
+        const guardValue = Math.max(0, parseInteger(modifier.value, 0));
+        const escortTargets = state.enemies.filter((enemy) => {
+          return enemy.role === "support" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+        });
+        escortTargets.forEach((enemy) => applyGuard(enemy, guardValue));
+        if (escortTargets.length > 0) {
+          appendLog(state, `${state.encounter.name} forms an escort bulwark. Elite and support enemies gain ${guardValue} Guard.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "backline_screen") {
+        const guardValue = Math.max(0, parseInteger(modifier.value, 0));
+        const backlineTargets = state.enemies.filter((enemy) => enemy.role === "support" || enemy.role === "ranged");
+        backlineTargets.forEach((enemy) => applyGuard(enemy, guardValue));
+        if (backlineTargets.length > 0) {
+          appendLog(state, `${state.encounter.name} establishes a backline screen. Ranged and support enemies gain ${guardValue} Guard.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "vanguard_rush") {
+        const stepCount = Math.max(1, parseInteger(modifier.value, 1));
+        const vanguardTargets = state.enemies.filter((enemy) => enemy.role === "raider" || enemy.role === "brute");
+        vanguardTargets.forEach((enemy) => advanceEnemyIntent(enemy, stepCount));
+        if (vanguardTargets.length > 0) {
+          appendLog(state, `${state.encounter.name} surges forward. Raider and brute enemies shift their first intent.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "escort_command") {
+        const stepCount = Math.max(1, parseInteger(modifier.value, 1));
+        const commandTargets = state.enemies.filter((enemy) => {
+          return enemy.role === "support" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+        });
+        commandTargets.forEach((enemy) => advanceEnemyIntent(enemy, stepCount));
+        if (commandTargets.length > 0) {
+          appendLog(state, `${state.encounter.name} opens under escort command. Elite and support enemies advance their script.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "crossfire_lanes") {
+        const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
+        const rangedTargets = state.enemies.filter((enemy) => enemy.role === "ranged");
+        const boostedCount = rangedTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, damageBonus) ? 1 : 0);
+        }, 0);
+        if (boostedCount > 0) {
+          appendLog(state, `${state.encounter.name} establishes crossfire lanes. Ranged enemies hit ${damageBonus} harder.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "war_drums") {
+        const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
+        const vanguardTargets = state.enemies.filter((enemy) => enemy.role === "raider" || enemy.role === "brute");
+        const boostedCount = vanguardTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, damageBonus) ? 1 : 0);
+        }, 0);
+        if (boostedCount > 0) {
+          appendLog(state, `${state.encounter.name} beats war drums. Raider and brute enemies hit ${damageBonus} harder.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "triage_command") {
+        const healingBonus = Math.max(0, parseInteger(modifier.value, 0));
+        const supportTargets = state.enemies.filter((enemy) => enemy.role === "support");
+        const boostedCount = supportTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, healingIntentKinds, healingBonus) ? 1 : 0);
+        }, 0);
+        if (boostedCount > 0) {
+          appendLog(state, `${state.encounter.name} opens under triage command. Support enemies restore ${healingBonus} more life.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "triage_screen") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const supportTargets = state.enemies.filter((enemy) => enemy.role === "support");
+        const guardTargets = supportTargets.filter((enemy) => enemy.alive);
+        guardTargets.forEach((enemy) => applyGuard(enemy, value));
+        const boostedCount = supportTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, healingIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (guardTargets.length > 0 || boostedCount > 0) {
+          appendLog(state, `${state.encounter.name} forms a triage screen. Support enemies gain ${value} Guard and restore ${value} more life.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "elite_onslaught") {
+        const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
+        const eliteTargets = state.enemies.filter((enemy) => enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss"));
+        eliteTargets.forEach((enemy) => advanceEnemyIntent(enemy, 1));
+        eliteTargets.forEach((enemy) => {
+          boostEnemyIntentValues(enemy, attackIntentKinds, damageBonus);
+        });
+        if (eliteTargets.length > 0) {
+          appendLog(state, `${state.encounter.name} opens under elite onslaught. Elite enemies advance their script and hit ${damageBonus} harder.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "sniper_nest") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const backlineTargets = state.enemies.filter((enemy) => enemy.role === "ranged" || enemy.role === "support");
+        backlineTargets.forEach((enemy) => applyGuard(enemy, value));
+        const boostedCount = backlineTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (backlineTargets.length > 0 || boostedCount > 0) {
+          appendLog(state, `${state.encounter.name} opens from a sniper nest. Backline enemies gain ${value} Guard and ranged attackers hit ${value} harder.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "phalanx_march") {
+        const guardValue = Math.max(0, parseInteger(modifier.value, 0));
+        const marchTargets = state.enemies.filter((enemy) => {
+          return enemy.role === "brute" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+        });
+        marchTargets.forEach((enemy) => applyGuard(enemy, guardValue));
+        marchTargets.forEach((enemy) => advanceEnemyIntent(enemy, 1));
+        if (marchTargets.length > 0) {
+          appendLog(state, `${state.encounter.name} advances in phalanx formation. Brute and elite enemies gain ${guardValue} Guard and advance their script.`);
+        }
+      }
+    });
+  }
+
+  function applyMercenaryContractBonuses(state) {
+    if (!state?.mercenary?.alive) {
+      return;
+    }
+
+    if (state.mercenary.contractHeroStartGuard > 0) {
+      applyGuard(state.hero, state.mercenary.contractHeroStartGuard);
+      appendLog(state, `The Wanderer enters with ${state.mercenary.contractHeroStartGuard} Guard from contract route support.`);
+    }
+
+    if (state.mercenary.contractHeroDamageBonus > 0) {
+      state.hero.damageBonus += state.mercenary.contractHeroDamageBonus;
+      appendLog(state, `${state.mercenary.name} route support sharpens the Wanderer's attacks by ${state.mercenary.contractHeroDamageBonus}.`);
+    }
+
+    if (state.mercenary.contractOpeningDraw > 0) {
+      const drawn = drawCards(state, state.mercenary.contractOpeningDraw);
+      if (drawn > 0) {
+        appendLog(state, `${state.mercenary.name} route intel draws ${drawn} extra card${drawn === 1 ? "" : "s"} for the opening hand.`);
+      }
+    }
+
+    if (state.mercenary.contractStartGuard > 0) {
+      applyGuard(state.mercenary, state.mercenary.contractStartGuard);
+      appendLog(state, `${state.mercenary.name} enters with ${state.mercenary.contractStartGuard} Guard from contract route support.`);
+    }
+
+    if (state.mercenary.contractPerkLabels.length > 0) {
+      appendLog(state, `${state.mercenary.name} route perks active: ${state.mercenary.contractPerkLabels.join(", ")}.`);
+    }
   }
 
   function startPlayerTurn(state) {
@@ -600,7 +936,9 @@
     state.drawPile = createDeck(state, content, starterDeck);
     state.selectedEnemyId = getFirstLivingEnemyId(state);
     appendLog(state, `${encounter.name}: ${encounter.description}`);
+    applyEncounterModifiers(state);
     startPlayerTurn(state);
+    applyMercenaryContractBonuses(state);
     return state;
   }
 

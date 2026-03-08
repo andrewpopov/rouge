@@ -16,9 +16,9 @@
       return {
         title: "Quest Resolution",
         lines: [
-          "This choice writes a quest outcome into the run ledger.",
-          "Quest rewards clear the node immediately and can unlock an aftermath node later in the act.",
-          "No combat restarts after you choose an outcome here.",
+          "This claim writes a quest outcome into the run ledger.",
+          "Quest rewards clear the node immediately and can unlock aftermath content later in the act.",
+          "No combat restarts after you choose here.",
         ],
       };
     }
@@ -27,9 +27,9 @@
       return {
         title: "Shrine Blessing",
         lines: [
-          "This choice applies a persistent blessing to the current run.",
-          "Shrine rewards resolve immediately through the shared reward surface.",
-          "No combat restarts after the blessing is chosen.",
+          "This claim applies a persistent blessing to the current expedition.",
+          "Shrines resolve immediately through the shared reward surface.",
+          "No combat restarts after the blessing is taken.",
         ],
       };
     }
@@ -40,7 +40,7 @@
         lines: [
           linkedQuestRecord
             ? `Triggered by ${linkedQuestRecord.title}: ${linkedQuestRecord.outcomeTitle}.`
-            : "Triggered by an earlier quest outcome on the same act route.",
+            : "Triggered by an earlier quest result on this act route.",
           "This choice records a follow-up consequence back into the quest ledger.",
           "Aftermath rewards resolve immediately and return to the route.",
         ],
@@ -55,7 +55,7 @@
             ? `Triggered by ${linkedQuestRecord.outcomeTitle} -> ${linkedQuestRecord.followUpOutcomeTitle}.`
             : "Triggered by the full quest chain on this act route.",
           "This choice records the final chain consequence back into the run ledger.",
-          "Opportunity rewards still resolve immediately through the shared reward surface.",
+          "Opportunity rewards still resolve through the shared reward surface.",
         ],
       };
     }
@@ -63,9 +63,7 @@
     return {
       title: "Combat Reward",
       lines: [
-        reward.clearsZone
-          ? "This choice clears the current area before the route resumes."
-          : "This area still has more encounters after the reward resolves.",
+        reward.clearsZone ? "This claim clears the current area before the route resumes." : "This area still has more encounters after the claim resolves.",
         "Combat rewards can mutate deck, loadout, progression, or run inventory state.",
         "Choose one reward, then continue the route from the world map.",
       ],
@@ -76,21 +74,23 @@
     if (reward.endsRun) {
       return [
         "Choose one reward effect.",
-        "Finish the run summary after the permanent mutation is applied.",
+        "Apply the mutation.",
+        "Move directly into the run-end review.",
       ];
     }
 
     if (reward.endsAct) {
       return [
         "Choose one reward effect.",
-        "Advance into the next act wrapper after the mutation is applied.",
+        "Apply the mutation.",
+        "Move into the act transition wrapper and then the next town.",
       ];
     }
 
     return [
       "Choose one reward effect.",
-      "The reward mutates the current run immediately.",
-      "Return to the world map or next route state after the choice resolves.",
+      "Apply the mutation immediately to the current expedition.",
+      "Return to the world map or next route state after the claim resolves.",
     ];
   }
 
@@ -111,36 +111,43 @@
       buttonLabel = "Travel To Next Act";
     }
 
+    // Reward remains a read-and-choose surface; the actual mutation still happens when app-engine claims the choice.
     services.renderUtils.buildShell(root, {
       eyebrow: "Reward",
       title: reward.title,
       copy:
-        "The reward phase is the seam between one encounter and the next. It applies run-state changes before the loop returns to the world map.",
+        "The reward screen is the mutation seam of the run. Every claim applies persistent changes before the shell hands control back to the map, the next act wrapper, or the run-end archive.",
       body: `
         ${common.renderRunStatus(run, "Reward", services.renderUtils)}
         ${common.renderNotice(appState, services.renderUtils)}
         <section class="battle-grid">
           <article class="panel battle-panel">
             <div class="panel-head">
-              <h2>Reward Summary</h2>
+              <h2>Mutation Ledger</h2>
               <p>${escapeHtml(reward.zoneTitle)}</p>
             </div>
             ${buildStringList(reward.lines)}
-            <div class="feature-grid reward-metadata-grid">
+            <div class="feature-grid feature-grid-wide reward-metadata-grid">
               <article class="feature-card">
                 <div class="entity-name-row">
                   <strong>Reward Kind</strong>
                   ${buildBadge(reward.kind, "available")}
                 </div>
-                <p>${escapeHtml(buttonLabel)} after choosing a reward.</p>
+                <p>${escapeHtml(`${buttonLabel} after the claim is applied.`)}</p>
               </article>
               <article class="feature-card">
                 <strong>Grant Preview</strong>
-                <p>${escapeHtml(`+${reward.grants.gold} gold, +${reward.grants.xp} XP, +${reward.grants.potions} potions.`)}</p>
+                <div class="entity-stat-grid">
+                  ${buildStat("Gold", `+${reward.grants.gold}`)}
+                  ${buildStat("XP", `+${reward.grants.xp}`)}
+                  ${buildStat("Potions", `+${reward.grants.potions}`)}
+                  ${buildStat("Encounter", reward.encounterNumber)}
+                </div>
+                <p>These grants land no matter which choice you pick.</p>
               </article>
               <article class="feature-card">
-                <strong>Permanent Run Mutation</strong>
-                <p>Choice effects mutate deck, loadout, progression, or quest ledger state before the route resumes.</p>
+                <strong>Permanent Mutation</strong>
+                <p>Choice effects can alter deck composition, party stats, equipment, socket state, runeword setup, or the world ledger before the route continues.</p>
               </article>
               <article class="feature-card">
                 <strong>${escapeHtml(rewardContext.title)}</strong>
@@ -152,24 +159,28 @@
               </article>
             </div>
             <div class="panel-head">
-              <h2>Current Loadout</h2>
-              <p>Equipped gear and runes already feed the next combat state.</p>
+              <h2>Current Build</h2>
+              <p>The loadout and active runewords shown here are already feeding the next combat override if the route continues.</p>
             </div>
-            ${buildStringList(derivedParty.loadoutLines)}
+            ${
+              derivedParty.loadoutLines.length > 0
+                ? buildStringList(derivedParty.loadoutLines, "log-list reward-list reward-preview-list")
+                : '<p class="flow-copy">No equipped loadout lines are active yet.</p>'
+            }
           </article>
 
           <article class="panel battle-panel">
             <div class="panel-head">
-              <h2>Choose One Reward</h2>
-              <p>${escapeHtml(`${buttonLabel} after selecting a reward. Preview badges call out the permanent mutation seam for each option.`)}</p>
+              <h2>Choose A Mutation</h2>
+              <p>${escapeHtml(`${buttonLabel} only after selecting one choice. The preview badges call out the systems each option will change.`)}</p>
             </div>
             ${buildChoiceList(reward.choices)}
           </article>
 
           <article class="panel battle-panel">
             <div class="panel-head">
-              <h2>Party State</h2>
-              <p>These values persist into the next encounter after your reward choice is applied.</p>
+              <h2>Carry Forward</h2>
+              <p>These expedition-facing values remain after the reward is applied. This is where reward readability ties back into town, map, and the next combat state.</p>
             </div>
             <div class="entity-row">
               <article class="entity-card ally">
@@ -197,7 +208,7 @@
                 </div>
               </article>
             </div>
-            <div class="feature-grid reward-state-grid">
+            <div class="feature-grid feature-grid-wide reward-state-grid">
               <article class="feature-card">
                 <strong>Progression State</strong>
                 <div class="entity-stat-grid">
@@ -206,15 +217,15 @@
                   ${buildStat("Trophies", run.progression.bossTrophies.length)}
                   ${buildStat("Runewords", derivedParty.activeRunewords.length)}
                 </div>
-                <p>These run-facing values persist through the next node after your reward choice resolves.</p>
+                <p>These values stay on the expedition after the claim resolves.</p>
               </article>
               <article class="feature-card">
                 <strong>Quest And Loadout Hooks</strong>
-                <p>${escapeHtml(`${questOutcomeCount} resolved quest outcomes and ${derivedParty.loadoutLines.length} loadout lines are already active on this run.`)}</p>
+                <p>${escapeHtml(`${questOutcomeCount} resolved quest outcomes and ${derivedParty.loadoutLines.length} active loadout lines are already part of this run.`)}</p>
                 ${buildStringList(
                   [
-                    "Reward previews can add deck growth, equipment swaps, rune insertion, or quest outcomes.",
-                    "Shrine and special-event rewards can plug into this surface without changing the phase model.",
+                    "Reward previews can add deck growth, equipment swaps, rune insertion, or world-ledger outcomes.",
+                    "Shrine and special-event rewards land here without forcing a custom shell path.",
                   ],
                   "log-list reward-list reward-preview-list"
                 )}

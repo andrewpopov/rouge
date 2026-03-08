@@ -46,8 +46,10 @@
         <h1>${escapeHtml(title)}</h1>
         <p class="hero-copy">${escapeHtml(copy)}</p>
       </section>
-      ${body}
-      ${footer}
+      <div class="shell-body">
+        ${body}
+      </div>
+      ${footer ? `<div class="shell-footer">${footer}</div>` : ""}
     `;
   }
 
@@ -140,27 +142,40 @@
   }
 
   function buildWorldMapNodeCard({ zone, reachable, actionLabel, prerequisiteLabel, hookLabel, summaryLine = "", detailLines = [] }) {
-    let hookTone = "locked";
+    let tone = "locked";
     if (zone.status === "cleared") {
-      hookTone = "cleared";
+      tone = "cleared";
     } else if (reachable) {
-      hookTone = "available";
+      tone = "available";
+    }
+
+    const resolutionLabel = ["quest", "shrine", "event", "opportunity"].includes(zone.kind) ? "Reward Resolution" : "Combat Route";
+    const roleLabel = zone.zoneRole ? zone.zoneRole.replaceAll("_", " ") : "Route";
+    let statusLabel = "Locked";
+    if (zone.status === "available") {
+      statusLabel = "Open";
+    } else if (zone.status === "cleared") {
+      statusLabel = "Resolved";
     }
 
     return `
-      <article class="entity-card map-node ${escapeHtml(zone.status)}">
+      <article class="entity-card map-node ${escapeHtml(zone.status)} map-node-${escapeHtml(zone.kind)}">
         <div class="entity-name-row">
           <strong class="entity-name">${escapeHtml(zone.title)}</strong>
-          <span class="badge badge-${escapeHtml(zone.status)}">${escapeHtml(zone.kind)}</span>
+          <div class="badge-stack">
+            ${buildBadge(zone.kind, tone)}
+            ${buildBadge(statusLabel, tone)}
+          </div>
         </div>
+        <p class="service-subtitle">${escapeHtml(roleLabel)}</p>
         <p class="entity-passive">${escapeHtml(summaryLine || zone.description)}</p>
-        ${buildBadgeRow([hookLabel], hookTone)}
+        ${buildBadgeRow([hookLabel, resolutionLabel], tone)}
         ${detailLines.length > 0 ? buildStringList(detailLines, "log-list reward-list map-node-details") : ""}
         <div class="entity-stat-grid">
           ${buildStat("Encounters", `${zone.encountersCleared}/${zone.encounterTotal}`)}
-          ${buildStat("Prereqs", prerequisiteLabel)}
+          ${buildStat("Requires", prerequisiteLabel)}
           ${buildStat("Reachable", reachable ? "Yes" : "No")}
-          ${buildStat("World Hook", hookLabel)}
+          ${buildStat("Pressure", actionLabel)}
         </div>
         <div class="cta-row cta-row-tight">
           <button class="primary-btn" data-action="select-zone" data-zone-id="${escapeHtml(zone.id)}" ${zone.status !== "available" ? "disabled" : ""}>${escapeHtml(actionLabel)}</button>
@@ -173,6 +188,7 @@
     const buttonLabel = action.cost > 0 ? `${action.actionLabel} (${action.cost}g)` : action.actionLabel;
     const badgeLabel = action.cost > 0 ? `${action.cost}g` : action.actionLabel;
     const badgeTone = getActionBadgeTone(action);
+
     return `
       <article class="feature-card service-card ${action.disabled ? "service-card-disabled" : "service-card-ready"}">
         <div class="entity-name-row">
@@ -193,6 +209,7 @@
     const buttonLabel = action.cost > 0 ? `${action.actionLabel} (${action.cost}g)` : action.actionLabel;
     const badgeLabel = action.cost > 0 ? `${action.cost}g` : action.actionLabel;
     const badgeTone = getActionBadgeTone(action);
+
     return `
       <article class="entity-card ally mercenary-card ${action.disabled ? "mercenary-card-disabled" : ""}">
         <div class="entity-name-row">

@@ -19,17 +19,16 @@ Documentation note:
 - party combat between hero, mercenary, and encounter-sized enemy packs
 - explicit phases: `boot`, `front_door`, `character_select`, `safe_zone`, `world_map`, `encounter`, `reward`, `act_transition`, `run_complete`, `run_failed`
 - five-act route generation
-- quest, shrine, and aftermath-event world nodes
-- training-rank progression with banked skill points
-- vendor, inventory, stash, and run-history persistence hooks
-- three mercenary profiles
+- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch encounter packages
+- `skills.json`-backed class trees plus manual class-point and attribute-point spending
+- vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
+- seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools, a thirteen-kind encounter-local modifier catalog, stronger escort, support-screen, sniper-nest, and phalanx-march scripting, and four elite-affix families per act
 
 ### Still target-state
 
-- class skill trees wired from `skills.json`
-- manual stat allocation beyond the current training model
-- broader meta or profile progression
-- broader mercenary pool and scaling rules
+- broader class-tree depth and stronger class identity beyond the current live scaffold
+- broader account-level unlock trees and profile UX beyond the current ownership seam
+- broader mercenary route-perk breadth tied to future route families beyond the current covenant-linked perk pass
 - broader event families and deeper quest chains
 - asset-manifest-driven presentation and content lookups
 
@@ -50,7 +49,6 @@ Live runtime inputs:
 
 Planned next runtime inputs:
 
-- `data/seeds/d2/skills.json`
 - `data/seeds/d2/assets-manifest.json`
 
 Rules:
@@ -64,19 +62,19 @@ Rules:
 Live model:
 
 - `AppState`: phase, loaded content, registries, UI state, active profile, active run, active combat
-- `ProfileState`: active run snapshot, stash, run history
+- `ProfileState`: active run snapshot, stash, run history, settings, unlocks, tutorials, and account-progression focus state
 - `RunState`: class, mercenary, route state, inventory, loadout, economy, node outcomes, progression
 - `CombatState`: turn order, intents, statuses, deck state, combat log
 - `UIState`: selections, confirmations, and panel state
 
 Planned next extension:
 
-- expand `ProfileState` into a broader meta surface for unlocks, settings, tutorials, and long-run progression when the live data justifies it
+- grow shell-facing account UX and later-tier progression trees on top of the current profile seam without splitting the profile state too early
 
 ### 3.3 Core Systems
 
 - `ProgressionSystem`: builds act or zone routes, tracks completion, and owns class-growth mutation
-- `EncounterSystem`: resolves `battle`, `miniboss`, `boss`, `quest`, `shrine`, `aftermath`, and future node families
+- `EncounterSystem`: resolves `battle`, `miniboss`, `boss`, `quest`, `shrine`, `aftermath`, `opportunity`, and future node families
 - `CombatSystem`: deterministic turn resolver
 - `RewardSystem`: battle or node rewards, boss floors, progression handoff, and town-economy handoff
 - `CharacterSystem`: class baseline plus level growth plus future class-tree bonuses plus gear bonuses
@@ -120,6 +118,7 @@ flowchart TD
   G -->|"Quest"| I["Node Reward Flow"]
   G -->|"Shrine"| I
   G -->|"Aftermath"| I
+  G -->|"Opportunity"| I
   H --> J["Reward"]
   I --> F
   J --> K{"Act Boss Cleared?"}
@@ -160,15 +159,16 @@ flowchart TD
 - each act owns a route of combat and non-combat nodes
 - vendors are town-only
 - node rewards resolve through the same run or reward seam
-- leveling currently produces banked skill points and automatic training-rank growth
-- town currently spends those points through `vitality`, `focus`, and `command` drills
+- leveling currently produces skill points, class points, attribute points, and automatic training-rank growth
+- town currently spends those points through `vitality`, `focus`, and `command` drills plus manual class-point and attribute-point allocation
+- archive or economy or mastery account trees already influence parts of archive retention, town economy, and reward behavior
 
 ### 6.2 Target progression direction
 
 - class-family progression should sit on top of the current training scaffold rather than replacing the run loop
-- `skills.json` should drive future class-tree unlocks and spend validation
-- manual stat allocation should become explicit if it adds real build tension beyond the existing training system
-- boss rewards should remain a major inflection point for class, gear, or economy growth
+- `skills.json` already drives live class-tree unlocks and spend validation; the next step is broader class identity and later-tree depth
+- manual stat allocation is already live; keep it only while it continues to create real build tension beyond the training system
+- boss rewards and account-tree gates should remain major inflection points for class, gear, or economy growth
 
 ### 6.3 Economy direction
 
@@ -187,12 +187,16 @@ flowchart TD
   - `rogue_scout`
   - `desert_guard`
   - `iron_wolf`
+  - `kurast_shadow`
+  - `templar_vanguard`
+  - `harrogath_captain`
+  - `pandemonium_scout`
 - current mercenary behavior is deterministic and tied to authored behavior packages
+- route-linked perk definitions can convert authored world flags into flat attack, behavior, opening Guard, hero Guard, hero damage, and opening-draw bonuses for the next combat
 
 ### Target next step
 
-- broaden the roster
-- deepen act or level scaling rules
+- deepen route-perk breadth only when new route families create a real later-run payoff seam beyond the current covenant-linked perk pass
 - keep mercenary data in content rather than hardcoding class logic in the combat resolver
 
 ## 8. Onboarding Contract
@@ -218,9 +222,9 @@ Required clarity surfaces:
 
 These are the next approved directions for implementation:
 
-1. deepen front-door, town, and profile UX around the systems already live
-2. wire class progression and `skills.json` into the runtime
-3. add manual stat allocation only if it creates real build differentiation
-4. broaden item or rune or mercenary breadth
-5. broaden node families, quest chains, and encounter variety
-6. keep all new content behind strong validation and deterministic runtime contracts
+1. deepen front-door, town, map, reward, and run-end UX around the systems already live, with clearer navigation and change summaries
+2. grow the account seam into broader capstone-style archive or economy or mastery systems plus richer archive or stash or economy read models
+3. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern
+4. deepen late-act item or rune breadth, reward variety, and account-gated economy pressure
+5. broaden modifier catalogs and escort scripting beyond the current thirteen-modifier baseline, and only extend mercenary payoff where new route families justify it
+6. keep all new content behind strong validation and deterministic runtime contracts while continuing architecture extraction on the biggest hotspots

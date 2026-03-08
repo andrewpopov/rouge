@@ -11,17 +11,19 @@ The live repo now contains a TypeScript-first browser prototype with:
 - front door, character select, safe zone, world map, encounter, reward, act transition, and run-end screens
 - class-derived hero shells and one mercenary companion chosen at run start
 - act-based zone routing with `world_map -> encounter -> reward` repetition across Acts I-V
-- quest, shrine, and aftermath-event world nodes routed through the same reward flow
-- visible enemy intents, automatic mercenary turns, boss scripting, and elite affix behavior
+- quest, shrine, aftermath-event, and multiple opportunity world nodes routed through the same reward flow
+- visible enemy intents, automatic mercenary turns, boss scripting, elite affix behavior, and encounter-local modifiers
 - reward choices that can add cards, upgrade cards, grant boons, and grant item or rune progression
+- `skills.json`-backed class trees, manual class or attribute spending, split item-domain helpers for inventory or stash flow, sockets, runes, and runewords
 - town services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell, and inventory or stash actions
-- profile-backed active-run persistence, stash persistence, and run-history tracking
+- profile-backed active-run persistence, stash persistence, run-history tracking, preferred class, settings, tutorial state, archive review, and account-level unlock or progression ownership
+- split compiled-browser app-engine suites in `tests/app-engine*.test.ts` backed by `tests/helpers/browser-harness.ts`
 
 Editable source lives in `src/**/*.ts`. The browser runs emitted JS from `generated/`, and `dist/` is packaged output.
 
 Start with [docs/PROJECT_MASTER.md](/Users/andrew/proj/rouge/docs/PROJECT_MASTER.md), then read [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md), [docs/CODEBASE_RULES.md](/Users/andrew/proj/rouge/docs/CODEBASE_RULES.md), [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md), and [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md).
 
-For team execution, use [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md), [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md), [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md), and [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md).
+For team execution, use [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md), [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md), [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md), [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md), and [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md).
 
 ## Guidance Layers
 

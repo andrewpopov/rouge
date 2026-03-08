@@ -1,6 +1,6 @@
 # Application Architecture
 
-Last updated: March 7, 2026.
+Last updated: March 8, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -36,13 +36,24 @@ The live workspace already has four active implementation layers.
 
 - `src/content/game-content.ts` owns authored cards, hero defaults, mercenaries, and fallback content
 - `src/content/seed-loader.ts` loads the live seed bundle
-- `src/content/content-validator.ts` validates seed, generated, world-node, and affix content
-- `src/content/encounter-registry.ts` derives act encounter, boss, elite-affix, and archetype-behavior catalogs from seed data
+- `src/content/content-validator-world-paths.ts` owns authored-path state collectors, reference-state assembly, and opportunity-variant matching helpers for validation-heavy world content
+- `src/content/content-validator.ts` remains the public validator entry for seed, generated, world-node, and affix content
+- `src/content/encounter-registry-enemy-builders.ts` owns role grouping, elite-affix lookups, and generated enemy template or intent builders for encounter content
+- `src/content/encounter-registry-builders.ts` owns act encounter-set assembly on top of the private enemy-builder seam
+- `src/content/encounter-registry.ts` remains the public registry entry that derives act encounter, boss, elite-affix, and archetype-behavior catalogs from seed data
 - `src/character/class-registry.ts` adapts class seeds into hero shells and starter decks
 - `src/quests/world-node-engine.ts` owns quest, shrine, aftermath-event, and opportunity node families plus reward-flow resolution
-- `src/run/run-factory.ts` owns run creation, route generation, progression actions, reward application, and act advancement
+- `src/run/run-state.ts` owns run defaults plus shared value-normalization helpers for the run domain
+- `src/run/run-route-builder.ts` owns act-route generation, world-node normalization, and current-act zone lookup helpers for the run domain
+- `src/run/run-progression.ts` owns level growth, class-tree progression, and derived run bonuses
+- `src/run/run-reward-flow.ts` owns encounter reward assembly, reward application, and act-completion transitions
+- `src/run/run-factory.ts` owns run creation plus the public orchestration surface for the run domain
 - `src/combat/combat-engine.ts` owns deterministic encounter resolution
-- `src/items/item-system.ts` owns loadout, inventory, stash, sockets, runes, and runewords
+- `src/items/item-data.ts` owns authored item, rune, runeword, and rune-reward templates
+- `src/items/item-catalog.ts` owns runtime item, rune, and runeword catalog helpers plus equipment normalization
+- `src/items/item-loadout.ts` owns loadout, inventory, stash, sockets, and derived-combat-bonus helpers
+- `src/items/item-town.ts` owns vendor stock, pricing, direct vendor-to-stash consignment, and town-facing item-economy helpers
+- `src/items/item-system.ts` owns reward-facing item curation and the public item-domain orchestration surface
 - `src/town/service-registry.ts` owns healer, belt, vendor, mercenary, and progression town actions
 - `src/state/*.ts` owns run or profile persistence and migrations
 - `src/app/app-engine.ts` owns top-level phase transitions and app-level orchestration
@@ -51,12 +62,14 @@ The live workspace already has four active implementation layers.
 ### 3. Seed and authored data
 
 - `data/seeds/d2/*.json` currently supply classes, zones, enemy pools, monsters, bosses, items, runes, and runewords
-- `skills.json` and `assets-manifest.json` exist in the repo but are not yet wired into the live runtime
+- `skills.json` now feeds class-progression normalization, tree metadata, and runtime spend summaries
+- `assets-manifest.json` exists in the repo but is not yet wired into the live runtime
 - `src/types/game.d.ts` owns shared runtime contracts across app, run, combat, content, items, persistence, and tests
 
 ### 4. Verification and packaging
 
 - `tests/*.test.ts` compile into `generated/tests/*.test.js` and load the browser runtime in a VM harness
+- `tests/helpers/browser-harness.ts` owns the shared compiled-browser harness used by the split app-engine and combat suites
 - `scripts/build.js` copies `index.html`, emitted runtime files, assets, and seed data into `dist/`
 
 ## What The Live Runtime Already Owns
@@ -70,18 +83,20 @@ The live workspace already has four active implementation layers.
 - five-act route generation and generated encounter pools
 - act-specific boss scripting, multi-affix elite packages, and act-tuned archetype behavior
 - quest, shrine, aftermath-event, and opportunity nodes routed through the existing reward flow
-- safe-zone recovery, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell, inventory or stash actions, and town-hub presentation panels
+- safe-zone recovery, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, and town-hub presentation panels
 - deterministic combat plus choice-based reward carry-through
-- run snapshots, profile-backed stash persistence, run-history tracking, and lightweight profile meta defaults
+- milestone-aware reward payouts and boss progression pivots driven by account feature gates, training-grounds or war-college or paragon-doctrine or apex-doctrine unlocks, mastery focus, and profile-aware late-act equipment replacement curation
+- `skills.json`-backed class progression, favored-tree summaries, manual stat allocation, and derived combat-bonus handoff
+- expanded item, rune, runeword, and vendor-economy curation with a higher late-game loot band, stronger replacement pressure, milestone-aware vendor stock or rune routing or pricing rules across carried and stash-planned bases plus salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange and economy-focus pressure, direct vendor-to-stash consignment, and profile-aware reward-side replacement pivots
+- run snapshots, profile-backed stash persistence, richer archived run-history summaries, account unlock milestones, mutable preferred-class or tutorial or settings APIs, focused account-tree controls, prerequisite-aware account-tree capstones, and account-facing stash or archive or capstone-review summaries that now feed live archive retention, town economy, or reward gates, including heroic-annals or mythic-annals or eternal-annals retention
+- front-door, safe-zone, and run-end shell panels that surface the live account unlock, tutorial, and profile-summary seams plus focused-tree review or control surfaces, with direct front-door preferred-class or settings or tutorial controls and interactive archive review over richer archived runs
 
 ## What The Live Runtime Still Does Not Own
 
-- class skill trees and `skills.json` integrated into live progression
-- manual stat allocation beyond the current vitality, focus, and command training model
-- broader meta or profile UX such as unlocks, settings, and tutorial flags
+- broader meta or profile UX beyond the current unlock buckets, archive or economy or mastery trees plus the present heroic-annals or mythic-annals or eternal-annals, artisan-stock or brokerage-charter or treasury-exchange, and war-college or paragon-doctrine or apex-doctrine pass, current account-hall controls, and the current archive-review surfaces
 - broader mercenary pool and richer mercenary scaling rules
 - broader authored node catalogs beyond the current quest, shrine, aftermath-event, and opportunity set
-- broader item breadth and wider runeword coverage
+- broader authored item breadth, feature-gated reward variety, and final late-run loot tuning beyond the current higher-tier catalog and current treasury-exchange consignment sink
 
 ## Product Loop
 
@@ -162,6 +177,10 @@ Owns account-level persisted state that already exists:
 - active run snapshot
 - stash entries
 - run history
+- settings
+- preferred class
+- unlock and tutorial ownership
+- account-tree focus and milestone summaries
 
 Future extraction target:
 
@@ -246,13 +265,28 @@ Current files:
 
 - `src/content/game-content.ts`
 - `src/content/seed-loader.ts`
+- `src/content/content-validator-world-paths.ts`
+- `src/content/encounter-registry-enemy-builders.ts`
+- `src/content/encounter-registry-builders.ts`
 - `src/content/encounter-registry.ts`
 - `src/content/content-validator.ts`
 
+Live seams:
+
+- `src/content/content-validator-world-paths.ts` centralizes authored-path state collection, act reference-state assembly, and opportunity-variant matching helpers that used to live inline in `src/content/content-validator.ts`
+- `src/content/encounter-registry-enemy-builders.ts` centralizes act enemy-pool normalization, role grouping, elite-affix lookups, and enemy template or intent builders that used to live inline in `src/content/encounter-registry.ts`
+- `src/content/encounter-registry-builders.ts` centralizes act encounter-set assembly while keeping `src/content/encounter-registry.ts` as the public browser entry
+- `src/content/content-validator.ts` remains the public validator entry and error-reporting surface for the content domain
+
+Next extraction targets:
+
+- follow-on validator passes should build from `src/content/content-validator-world-paths.ts` instead of re-expanding `src/content/content-validator.ts`
+- any eventual `world-node-engine` extraction should build on the thinner content-domain seams now surrounding it
+
 Next expansion:
 
-- load and validate `skills.json`
-- add normalization support for broader content families
+- add broader normalization support for content families beyond the current `skills.json`, item, rune, and runeword adapters
+- wire future asset-manifest support into the live runtime
 
 ### 3. Character and Progression Domain
 
@@ -260,14 +294,16 @@ Responsibility:
 
 - class baselines
 - level-based training growth
-- future class-family progression
-- future stat allocation
+- class-tree progression
+- manual stat allocation
+- favored-tree summaries
 - derived combat values
 - class starter decks
 
 Current files:
 
 - `src/character/class-registry.ts`
+- `src/run/run-progression.ts`
 - `src/run/run-factory.ts`
 
 Future extraction targets:
@@ -286,16 +322,26 @@ Responsibility:
 - hand off into encounter, quest, shrine, event, and reward resolution
 - decide act transitions and run completion
 
-Current file:
-
-- `src/run/run-factory.ts`
-
-Future extraction targets:
+Current files:
 
 - `src/run/run-state.ts`
-- `src/run/world-map-generator.ts`
-- `src/run/node-resolver.ts`
-- `src/run/act-transition.ts`
+- `src/run/run-route-builder.ts`
+- `src/run/run-progression.ts`
+- `src/run/run-reward-flow.ts`
+- `src/run/run-factory.ts`
+
+Live seams:
+
+- `src/run/run-state.ts` centralizes run defaults plus reusable numeric or bonus helpers
+- `src/run/run-route-builder.ts` centralizes act-route generation and world-node normalization
+- `src/run/run-progression.ts` centralizes class progression, training growth, and derived combat bonuses
+- `src/run/run-reward-flow.ts` centralizes reward assembly, reward application, and act completion logic
+- `src/run/run-factory.ts` remains the single public entry point for run mutation and cross-domain callers
+
+Operating rule:
+
+- keep `src/run/run-factory.ts` as the thin public orchestration surface
+- keep route, progression, and reward logic in the existing run helpers instead of drifting back into `src/run/run-factory.ts`
 
 ### 5. Combat Domain
 
@@ -335,6 +381,7 @@ Responsibility:
 Current files:
 
 - `src/rewards/reward-engine.ts`
+- `src/items/item-town.ts`
 - `src/items/item-system.ts`
 - `src/town/service-registry.ts`
 
@@ -357,15 +404,18 @@ Responsibility:
 - runewords
 - combat bonuses derived from loadout
 
-Current file:
+Current files:
 
+- `src/items/item-data.ts`
+- `src/items/item-catalog.ts`
+- `src/items/item-loadout.ts`
+- `src/items/item-town.ts`
 - `src/items/item-system.ts`
 
 Future extraction targets:
 
-- `src/items/equipment-system.ts`
-- `src/items/rune-system.ts`
-- `src/items/runeword-system.ts`
+- keep `src/items/item-loadout.ts` and `src/items/item-town.ts` small enough that `src/items/item-system.ts` stays an orchestration surface
+- only split deeper item helpers if one of those private modules grows back into a hotspot
 
 ### 8. Town and Services Domain
 
@@ -473,7 +523,12 @@ These rules keep the loop coherent.
 4. Combat rewards are applied only after encounter resolution.
 - fights and nodes resolve through app or run reward seams, not direct permanent mutation from UI code
 
-5. Mercenary definition and mercenary combat instance are separate.
+5. Internal helper seams do not change public ownership.
+- `run-state`, `run-route-builder`, `run-progression`, and `run-reward-flow` can be called by `run-factory`
+- `item-data`, `item-catalog`, `item-loadout`, and `item-town` can be called inside the item domain while other domains still enter through `item-system`
+- other domains still use `run-factory` instead of reaching into those helpers directly
+
+6. Mercenary definition and mercenary combat instance are separate.
 - catalog data lives in content
 - hired mercenary state lives in `RunState`
 - combat copy lives in `CombatState`
@@ -578,7 +633,7 @@ Still missing:
 
 - richer routing and broader authored node catalogs
 
-### Milestone 4: Rewards and Progression (`partial`)
+### Milestone 4: Rewards and Progression (`implemented`)
 
 Live:
 
@@ -588,12 +643,12 @@ Live:
 - party boons
 - item and rune reward choices
 - training-rank spends in town
+- `skills.json`-backed class trees, manual stat allocation, and favored-tree summaries
+- stronger boss progression pivots and derived combat-bonus handoff
 
 Still missing:
 
-- class-family progression
-- skill-tree progression
-- manual stat allocation
+- deeper reward tiers and more authored late-act reward curation
 
 ### Milestone 5: Safe Zone and Mercenary Management (`partial`)
 
@@ -609,7 +664,7 @@ Still missing:
 - broader service differentiation
 - broader mercenary roster and scaling
 
-### Milestone 6: Itemization (`partial`)
+### Milestone 6: Itemization (`implemented`)
 
 Live:
 
@@ -617,13 +672,14 @@ Live:
 - equipment and inventory
 - stash transfer
 - sockets
-- early runewords
+- expanded runewords
+- broader item and rune catalogs
+- higher late-game loot band, socket-ready late vendor stock, and stronger replacement pressure
 
 Still missing:
 
-- broader loot breadth
-- deeper replacement pressure
-- wider runeword coverage
+- broader authored loot breadth
+- final late-run loot tuning
 
 ### Milestone 7: Quests, Shrines, and Events (`partial`)
 
@@ -637,7 +693,7 @@ Still missing:
 
 - broader authored route-side catalogs
 
-### Milestone 8: Run Completion and Meta (`partial`)
+### Milestone 8: Run Completion and Meta (`implemented`)
 
 Live:
 
@@ -645,13 +701,14 @@ Live:
 - run summary
 - run history
 - active-run and stash persistence
+- account unlock buckets
+- tutorial-state ownership
+- profile summary APIs, focused-tree shell controls, and migration coverage
 
 Still missing:
 
-- unlocks
-- settings
-- tutorial state
-- broader meta progression
+- broader profile and account UX
+- future unlock trees beyond the current buckets
 
 ## Guardrails
 
@@ -679,7 +736,7 @@ The next implementation work should follow the product-manager-owned lanes:
 - deepen front-door and town UX around the current profile, vendor, stash, progression, and node systems
 
 2. Agent 2
-- load skill-tree seed content and build class-family progression, manual stat allocation, broader loot breadth, and deeper profile or meta persistence
+- continue late-run loot tuning beyond the current higher-tier economy band, broaden authored progression or economy content, and grow future meta loops beyond the current milestone-driven unlock, tutorial, settings, and account-summary seams
 
 3. Agent 3
 - broaden node families, deepen quest chains, expand elite or archetype variety, and harden the content pipeline for those new authored surfaces

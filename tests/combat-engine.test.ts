@@ -1,53 +1,13 @@
 export {};
 
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import vm from "node:vm";
 import { test } from "node:test";
+import { createCombatHarness } from "./helpers/browser-harness";
 
-const ROOT = path.resolve(__dirname, "../..");
-const GENERATED_ROOT = path.join(ROOT, "generated");
-
-function loadBrowserScript(filename, sandbox) {
-  const fullPath = path.join(GENERATED_ROOT, filename);
-  const source = fs.readFileSync(fullPath, "utf8");
-  new vm.Script(source, { filename: fullPath }).runInContext(sandbox);
-}
-
-function createHarness() {
-  const sandbox = {
-    window: {},
-    console,
-    Math,
-    Date,
-  };
-  vm.createContext(sandbox);
-  loadBrowserScript("src/content/game-content.js", sandbox);
-  loadBrowserScript("src/combat/combat-engine.js", sandbox);
-  loadBrowserScript("src/content/content-validator.js", sandbox);
-  loadBrowserScript("src/character/class-registry.js", sandbox);
-  loadBrowserScript("src/content/encounter-registry.js", sandbox);
-  const browserWindow = sandbox.window as Window;
-  const seedBundle = {
-    classes: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/classes.json"), "utf8")),
-    skills: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/skills.json"), "utf8")),
-    zones: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/zones.json"), "utf8")),
-    bosses: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/bosses.json"), "utf8")),
-    enemyPools: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/enemy-pools.json"), "utf8")),
-  };
-  const classRuntimeContent = browserWindow.ROUGE_CLASS_REGISTRY.createRuntimeContent(browserWindow.ROUGE_GAME_CONTENT, seedBundle);
-  const runtimeContent = browserWindow.ROUGE_ENCOUNTER_REGISTRY.createRuntimeContent(classRuntimeContent, seedBundle);
-  return {
-    content: runtimeContent,
-    engine: browserWindow.ROUGE_COMBAT_ENGINE,
-    validator: browserWindow.ROUGE_CONTENT_VALIDATOR,
-    seedBundle,
-  };
-}
+const createHarness = createCombatHarness;
 
 test("createCombatState builds hero, mercenary, and encounter pack", () => {
-  const { content, engine } = createHarness();
+  const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({
     content,
     encounterId: "blood_moor_raiders",
@@ -64,7 +24,7 @@ test("createCombatState builds hero, mercenary, and encounter pack", () => {
 });
 
 test("playCard spends energy and damages the selected enemy", () => {
-  const { content, engine } = createHarness();
+  const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({
     content,
     encounterId: "blood_moor_raiders",
@@ -84,7 +44,7 @@ test("playCard spends energy and damages the selected enemy", () => {
 });
 
 test("endTurn triggers the mercenary before enemies resolve", () => {
-  const { content, engine } = createHarness();
+  const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({
     content,
     encounterId: "catacombs_gate",
@@ -105,7 +65,7 @@ test("endTurn triggers the mercenary before enemies resolve", () => {
 });
 
 test("usePotion heals the mercenary and consumes a charge", () => {
-  const { content, engine } = createHarness();
+  const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({
     content,
     encounterId: "blood_moor_raiders",
@@ -123,7 +83,7 @@ test("usePotion heals the mercenary and consumes a charge", () => {
 });
 
 test("createCombatState accepts run-state overrides for hero, mercenary, deck, and potions", () => {
-  const { content, engine } = createHarness();
+  const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({
     content,
     encounterId: "blood_moor_raiders",
@@ -156,8 +116,56 @@ test("createCombatState accepts run-state overrides for hero, mercenary, deck, a
   assert.equal(state.drawPile.length + state.hand.length, 4);
 });
 
+test("mercenary contract bonuses can add opening guard and deterministic damage bonuses", () => {
+  const { content, engine } = createCombatHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "blood_moor_raiders",
+    mercenaryId: "rogue_scout",
+    mercenaryState: {
+      contractAttackBonus: 2,
+      contractBehaviorBonus: 1,
+      contractStartGuard: 2,
+      contractHeroDamageBonus: 1,
+      contractHeroStartGuard: 3,
+      contractOpeningDraw: 1,
+      contractPerkLabels: ["Forward Spotters"],
+    },
+    randomFn: () => 0,
+  });
+  const target = state.enemies[0];
+
+  assert.equal(state.hero.guard, 3);
+  assert.equal(state.hero.damageBonus, 1);
+  assert.equal(state.hand.length, state.hero.handSize + 1);
+  assert.equal(state.mercenary.guard, 2);
+  assert.ok(state.log.some((line) => line.includes("Forward Spotters")));
+
+  state.hand = [{ instanceId: "card_test", cardId: "quick_slash" }];
+  state.hero.energy = 3;
+  const cardResult = engine.playCard(state, content, "card_test", target.id);
+  assert.equal(cardResult.ok, true);
+  assert.equal(target.life, target.maxLife - 8);
+  target.life = target.maxLife;
+
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== target.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  state.mercenary.markedEnemyId = target.id;
+  state.mercenary.markBonus = 4;
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.equal(target.life, target.maxLife - (state.mercenary.attack + 2 + 4 + 1));
+});
+
 test("content validation fails clearly when a seeded act boss reference is missing", () => {
-  const { seedBundle, validator } = createHarness();
+  const { seedBundle, validator } = createCombatHarness();
   const brokenSeedBundle = {
     ...seedBundle,
     bosses: {
@@ -172,7 +180,7 @@ test("content validation fails clearly when a seeded act boss reference is missi
 });
 
 test("content validation fails clearly when an elite affix is invalid", () => {
-  const { content, validator } = createHarness();
+  const { content, validator } = createCombatHarness();
   const eliteTemplateId = Object.keys(content.enemyCatalog).find((templateId) => templateId.startsWith("act_1_") && templateId.endsWith("_elite"));
   assert.ok(eliteTemplateId);
   const brokenContent = {
@@ -192,8 +200,46 @@ test("content validation fails clearly when an elite affix is invalid", () => {
   }, new RegExp(`Enemy template "${eliteTemplateId}" has unsupported affix "bad_affix" at index 0\\.`));
 });
 
-test("generated encounters include multiple elite affix families inside each act package", () => {
+test("content validation fails clearly when a mercenary behavior is invalid", () => {
+  const { content, validator } = createCombatHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        behavior: "bad_behavior",
+      },
+    },
+  };
+
+  assert.throws(() => {
+    validator.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout\.behavior "bad_behavior" is not supported\./);
+});
+
+test("content validation fails clearly when an encounter modifier is invalid", () => {
+  const { content, validator } = createHarness();
+  const brokenContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      act_1_opening_skirmish: {
+        ...content.encounterCatalog.act_1_opening_skirmish,
+        modifiers: [{ kind: "bad_modifier", value: 1 }],
+      },
+    },
+  };
+
+  assert.throws(() => {
+    validator.assertValidRuntimeContent(brokenContent);
+  }, /Encounter "act_1_opening_skirmish" has unsupported modifier "bad_modifier" at index 0\./);
+});
+
+test("generated encounters include broader elite and encounter-package breadth inside each act", () => {
   const { content } = createHarness();
+
+  assert.ok(Object.keys(content.mercenaryCatalog).length >= 7);
 
   for (let actNumber = 1; actNumber <= 5; actNumber += 1) {
     const affixIds = new Set(
@@ -201,9 +247,47 @@ test("generated encounters include multiple elite affix families inside each act
         .filter((template) => template.templateId.startsWith(`act_${actNumber}_`) && template.variant === "elite")
         .flatMap((template) => template.affixes || [])
     );
+    const modifierKinds = new Set(
+      Object.values(content.encounterCatalog)
+        .filter((encounter) => encounter.id.startsWith(`act_${actNumber}_`))
+        .flatMap((encounter) => encounter.modifiers || [])
+        .map((modifier) => modifier.kind)
+    );
 
-    assert.ok(affixIds.size >= 2, `expected act ${actNumber} to have at least two elite affix families`);
+    assert.ok(affixIds.size >= 4, `expected act ${actNumber} to have at least four elite affix families`);
+    assert.ok(modifierKinds.size >= 13, `expected act ${actNumber} to expose at least thirteen encounter modifier families`);
+    assert.ok(content.generatedActEncounterIds[actNumber].opening.length >= 6);
+    assert.ok(content.generatedActEncounterIds[actNumber].branchBattle.length >= 5);
+    assert.ok(content.generatedActEncounterIds[actNumber].branchMiniboss.length >= 4);
   }
+});
+
+test("content validation fails clearly when an act exposes too few encounter modifier families", () => {
+  const { content, validator } = createHarness();
+  const actOneEncounterIds = new Set(
+    Object.values(content.generatedActEncounterIds[1]).flatMap((encounterIds) => encounterIds)
+  );
+  const brokenContent = {
+    ...content,
+    encounterCatalog: Object.fromEntries(
+      Object.entries(content.encounterCatalog).map(([encounterId, encounter]) => {
+        if (!actOneEncounterIds.has(encounterId)) {
+          return [encounterId, encounter];
+        }
+        return [
+          encounterId,
+          {
+            ...encounter,
+            modifiers: encounter.modifiers?.length ? [{ kind: "fortified_line", value: 1 }] : [],
+          },
+        ];
+      })
+    ),
+  };
+
+  assert.throws(() => {
+    validator.assertValidRuntimeContent(brokenContent);
+  }, /generatedActEncounterIds\.1 must expose at least 13 encounter modifier families\./);
 });
 
 test("scripted boss intents can shatter guard before dealing damage", () => {
@@ -233,6 +317,36 @@ test("scripted boss intents can shatter guard before dealing damage", () => {
   assert.equal(result.ok, true);
   assert.equal(state.hero.guard, 0);
   assert.ok(state.hero.life < state.hero.maxLife);
+});
+
+test("fortified encounters start with Guard on the full enemy line", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_screen",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+
+  state.enemies.forEach((enemy) => {
+    assert.equal(enemy.guard, 2);
+  });
+});
+
+test("ambush encounters advance raider and ranged enemies to their second scripted intent", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_raid",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const raider = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "raider");
+  assert.ok(raider);
+
+  const template = content.enemyCatalog[raider.templateId];
+  assert.equal(raider.intentIndex, 1);
+  assert.equal(raider.currentIntent.label, template.intents[1].label);
 });
 
 test("act-specific support archetypes can fortify the enemy line", () => {
@@ -266,6 +380,227 @@ test("act-specific support archetypes can fortify the enemy line", () => {
   assert.ok(ally.guard > 0);
 });
 
+test("escort bulwark modifiers harden elite escorts but not the whole enemy pack", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_5_branch_warhost",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("_elite"));
+  const brute = state.enemies.find((enemy) => {
+    return content.enemyCatalog[enemy.templateId].role === "brute" && !enemy.templateId.includes("_elite");
+  });
+  assert.ok(elite);
+  assert.ok(brute);
+
+  assert.equal(elite.guard, 6);
+  assert.equal(brute.guard, 0);
+});
+
+test("backline screen modifiers harden ranged and support enemies without shielding the frontline", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_3_opening_pressure",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const ranged = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "ranged");
+  const support = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "support");
+  const raider = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "raider");
+  assert.ok(ranged);
+  assert.ok(support);
+  assert.ok(raider);
+
+  assert.equal(ranged.guard, 3);
+  assert.equal(support.guard, 3);
+  assert.equal(raider.guard, 0);
+});
+
+test("crossfire lane modifiers sharpen ranged scripts without buffing the frontline opener", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const ranged = state.enemies.find((enemy) => enemy.role === "ranged");
+  const raider = state.enemies.find((enemy) => enemy.role === "raider");
+  assert.ok(ranged);
+  assert.ok(raider);
+
+  const rangedTemplate = content.enemyCatalog[ranged.templateId];
+  const raiderTemplate = content.enemyCatalog[raider.templateId];
+  assert.equal(ranged.currentIntent.value, rangedTemplate.intents[0].value + 1);
+  assert.equal(raider.currentIntent.value, raiderTemplate.intents[0].value);
+});
+
+test("vanguard rush modifiers advance frontline scripts without changing the backline opener", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_3_opening_horde",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const raider = state.enemies.find((enemy) => enemy.role === "raider");
+  const backline = state.enemies.find((enemy) => enemy.role === "support" || enemy.role === "ranged");
+  assert.ok(raider);
+  assert.ok(backline);
+
+  const backlineTemplate = content.enemyCatalog[backline.templateId];
+  assert.equal(raider.intentIndex, 1);
+  assert.equal(backline.intentIndex, 0);
+  assert.equal(backline.currentIntent.label, backlineTemplate.intents[0].label);
+});
+
+test("war drum modifiers harden frontline damage scripts without changing support pressure", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_2_branch_battle",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const brute = state.enemies.find((enemy) => enemy.role === "brute");
+  const support = state.enemies.find((enemy) => enemy.role === "support");
+  assert.ok(brute);
+  assert.ok(support);
+
+  const bruteTemplate = content.enemyCatalog[brute.templateId];
+  const supportTemplate = content.enemyCatalog[support.templateId];
+  assert.equal(brute.currentIntent.value, bruteTemplate.intents[0].value + 1);
+  assert.equal(support.currentIntent.value, supportTemplate.intents[0].value);
+});
+
+test("escort command modifiers advance elite and support scripts before the first turn", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_branch_sanctum",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("_elite"));
+  const support = state.enemies.find((enemy) => enemy.role === "support");
+  const nonCommandTarget = state.enemies.find((enemy) => {
+    return enemy.id !== elite?.id && enemy.role !== "support" && !enemy.templateId.endsWith("_boss");
+  });
+  assert.ok(elite);
+  assert.ok(support);
+  assert.ok(nonCommandTarget);
+
+  assert.equal(elite.intentIndex, 1);
+  assert.equal(support.intentIndex, 1);
+  assert.equal(nonCommandTarget.intentIndex, 0);
+});
+
+test("triage command modifiers deepen support recovery scripts without changing raider pressure", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_3_branch_counterpush",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const support = state.enemies.find((enemy) => enemy.role === "support");
+  const raider = state.enemies.find((enemy) => enemy.role === "raider");
+  assert.ok(support);
+  assert.ok(raider);
+
+  const supportTemplate = content.enemyCatalog[support.templateId];
+  const raiderTemplate = content.enemyCatalog[raider.templateId];
+  assert.equal(support.currentIntent.value, supportTemplate.intents[0].value + 1);
+  assert.equal(raider.currentIntent.value, raiderTemplate.intents[0].value);
+});
+
+test("triage screen modifiers fortify support units while deepening their opening heal", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_3_branch_bulwark",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const support = state.enemies.find((enemy) => enemy.role === "support");
+  const brute = state.enemies.find((enemy) => enemy.role === "brute" && !enemy.templateId.includes("_elite"));
+  assert.ok(support);
+  assert.ok(brute);
+
+  const supportTemplate = content.enemyCatalog[support.templateId];
+  assert.equal(support.guard, 4);
+  assert.equal(support.currentIntent.value, supportTemplate.intents[0].value + 4);
+  assert.equal(brute.guard, 0);
+});
+
+test("elite onslaught modifiers push elite packs into their harder follow-up without advancing non-elites", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_5_branch_warhost",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("_elite"));
+  const brute = state.enemies.find((enemy) => enemy.role === "brute" && !enemy.templateId.includes("_elite"));
+  assert.ok(elite);
+  assert.ok(brute);
+
+  const eliteTemplate = content.enemyCatalog[elite.templateId];
+  const bruteTemplate = content.enemyCatalog[brute.templateId];
+  assert.equal(elite.intentIndex, 1);
+  assert.equal(elite.currentIntent.value, eliteTemplate.intents[1].value + 1);
+  assert.equal(brute.intentIndex, 0);
+  assert.equal(brute.currentIntent.label, bruteTemplate.intents[0].label);
+});
+
+test("sniper nest modifiers fortify ranged enemies while sharpening only their opening shots", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_nest",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const ranged = state.enemies.find((enemy) => enemy.role === "ranged");
+  const raider = state.enemies.find((enemy) => enemy.role === "raider");
+  assert.ok(ranged);
+  assert.ok(raider);
+
+  const rangedTemplate = content.enemyCatalog[ranged.templateId];
+  const raiderTemplate = content.enemyCatalog[raider.templateId];
+  assert.equal(ranged.guard, 2);
+  assert.equal(ranged.currentIntent.value, rangedTemplate.intents[0].value + 2);
+  assert.equal(raider.guard, 0);
+  assert.equal(raider.currentIntent.value, raiderTemplate.intents[0].value);
+});
+
+test("phalanx march modifiers advance elite and brute escorts without moving support scripts", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_4_branch_phalanx",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("_elite"));
+  const brute = state.enemies.find((enemy) => enemy.role === "brute" && !enemy.templateId.includes("_elite"));
+  const support = state.enemies.find((enemy) => enemy.role === "support");
+  assert.ok(elite);
+  assert.ok(brute);
+  assert.ok(support);
+
+  assert.equal(elite.guard, 4);
+  assert.equal(brute.guard, 4);
+  assert.equal(support.guard, 0);
+  assert.equal(elite.intentIndex, 1);
+  assert.equal(brute.intentIndex, 1);
+  assert.equal(support.intentIndex, 0);
+});
+
 test("elite affix intents can hit and fortify in the same action", () => {
   const { content, engine } = createHarness();
   const state = engine.createCombatState({
@@ -292,4 +627,185 @@ test("elite affix intents can hit and fortify in the same action", () => {
   assert.equal(result.ok, true);
   assert.ok(state.hero.life < state.hero.maxLife);
   assert.ok(elite.guard > 0);
+});
+
+test("act five support archetypes can heal the full enemy line", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_5_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const support = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "support");
+  const ally = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "raider");
+  assert.ok(support);
+  assert.ok(ally);
+
+  state.mercenary.life = 0;
+  state.mercenary.alive = false;
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== support.id && enemy.id !== ally.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  support.life -= 5;
+  ally.life -= 4;
+  support.currentIntent = support.intents.find((intent) => intent.kind === "heal_allies");
+  assert.ok(support.currentIntent);
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.ok(support.life > support.maxLife - 5);
+  assert.ok(ally.life > ally.maxLife - 4);
+});
+
+test("support elites can heal an ally and fortify themselves in one action", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_2_branch_siege",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("sandwarden"));
+  const ally = state.enemies.find((enemy) => enemy.id !== elite?.id && content.enemyCatalog[enemy.templateId].role === "brute");
+  assert.ok(elite);
+  assert.ok(ally);
+
+  state.mercenary.life = 0;
+  state.mercenary.alive = false;
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== elite.id && enemy.id !== ally.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  ally.life -= 7;
+  elite.currentIntent = elite.intents.find((intent) => intent.kind === "heal_and_guard");
+  assert.ok(elite.currentIntent);
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.ok(ally.life > ally.maxLife - 7);
+  assert.ok(elite.guard > 0);
+});
+
+test("kurast shadow prioritizes ranged backline enemies over the selected frontliner", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "kurast_shadow",
+    randomFn: () => 0,
+  });
+  const ranged = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "ranged");
+  const raider = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "raider");
+  assert.ok(ranged);
+  assert.ok(raider);
+
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== ranged.id && enemy.id !== raider.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  state.selectedEnemyId = raider.id;
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.equal(ranged.life, ranged.maxLife - (state.mercenary.attack + 2));
+  assert.equal(raider.life, raider.maxLife);
+});
+
+test("pandemonium scout prioritizes wounded targets and executes them harder", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_4_opening_skirmish",
+    mercenaryId: "pandemonium_scout",
+    randomFn: () => 0,
+  });
+  const woundedTarget = state.enemies.find((enemy) => content.enemyCatalog[enemy.templateId].role === "support");
+  const otherTarget = state.enemies.find((enemy) => enemy.id !== woundedTarget?.id);
+  assert.ok(woundedTarget);
+  assert.ok(otherTarget);
+
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== woundedTarget.id && enemy.id !== otherTarget.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  woundedTarget.life = 16;
+  state.selectedEnemyId = otherTarget.id;
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.equal(woundedTarget.life, 16 - (state.mercenary.attack + 3));
+});
+
+test("templar vanguard shatters guard before striking", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "catacombs_gate",
+    mercenaryId: "templar_vanguard",
+    randomFn: () => 0,
+  });
+  const target = state.enemies.find((enemy) => enemy.templateId === "corrupted_knight");
+  assert.ok(target);
+
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== target.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  target.guard = 7;
+  state.selectedEnemyId = target.id;
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.equal(target.guard, 0);
+  assert.equal(target.life, target.maxLife - (state.mercenary.attack + 2));
+});
+
+test("harrogath captain prioritizes elite targets and deals bonus damage", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_branch_miniboss",
+    mercenaryId: "harrogath_captain",
+    randomFn: () => 0,
+  });
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("_elite"));
+  const nonElite = state.enemies.find((enemy) => !enemy.templateId.includes("_elite"));
+  assert.ok(elite);
+  assert.ok(nonElite);
+
+  state.enemies.forEach((enemy) => {
+    if (enemy.id !== elite.id) {
+      enemy.life = 0;
+      enemy.alive = false;
+    }
+  });
+  state.selectedEnemyId = nonElite.id;
+  state.hand = [];
+
+  const result = engine.endTurn(state);
+
+  assert.equal(result.ok, true);
+  assert.equal(elite.life, elite.maxLife - (state.mercenary.attack + 3));
 });

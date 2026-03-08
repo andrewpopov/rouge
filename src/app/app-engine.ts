@@ -33,17 +33,41 @@
         },
         progression: {
           highestLevel: 1,
+          highestActCleared: 0,
           totalBossesDefeated: 0,
+          totalGoldCollected: 0,
+          totalRunewordsForged: 0,
           classesPlayed: [],
           preferredClassId: "",
           lastPlayedClassId: "",
+        },
+        unlocks: {
+          classIds: [],
+          bossIds: [],
+          runewordIds: [],
+          townFeatureIds: [
+            "front_door_profile_hall",
+            "safe_zone_services",
+            "vendor_economy",
+            "profile_stash",
+            "mercenary_contracts",
+            "class_progression",
+          ],
+        },
+        tutorials: {
+          seenIds: [],
+          completedIds: [],
+          dismissedIds: [],
+        },
+        accountProgression: {
+          focusedTreeId: "archives",
         },
       },
     };
   }
 
   function getPreferredClassId(classes: ClassDefinition[], profile: ProfileState): string {
-    const candidates = [profile?.meta?.progression?.lastPlayedClassId, profile?.meta?.progression?.preferredClassId];
+    const candidates = [profile?.meta?.progression?.preferredClassId, profile?.meta?.progression?.lastPlayedClassId];
     return candidates.find((classId) => classes.some((entry) => entry.id === classId)) || classes[0]?.id || "";
   }
 
@@ -52,6 +76,7 @@
       return;
     }
 
+    const persistence = getPersistence();
     const defaultMeta = createFallbackProfile().meta;
     profile.meta = profile.meta || defaultMeta;
     profile.meta.settings = {
@@ -63,24 +88,30 @@
       ...(profile.meta.progression || {}),
       classesPlayed: Array.isArray(profile.meta.progression?.classesPlayed) ? [...profile.meta.progression.classesPlayed] : [],
     };
+    const previousLastPlayedClassId = profile.meta.progression.lastPlayedClassId || "";
+    const previousPreferredClassId = profile.meta.progression.preferredClassId || "";
     profile.meta.progression.lastPlayedClassId = classId;
-    if (!profile.meta.progression.preferredClassId) {
+    if (!previousPreferredClassId || previousPreferredClassId === previousLastPlayedClassId) {
       profile.meta.progression.preferredClassId = classId;
     }
     profile.meta.progression.classesPlayed = Array.from(
       new Set([...(profile.meta.progression.classesPlayed || []), classId].filter(Boolean))
     );
+    persistence?.unlockProfileEntries?.(profile, "classIds", [classId]);
+    persistence?.markTutorialSeen?.(profile, "first_run_overview");
   }
 
   function loadProfile(content: GameContent): ProfileState {
     const persistence = getPersistence();
     const storedProfile = persistence?.loadProfileFromStorage?.() || null;
     const profile = storedProfile || persistence?.createEmptyProfile?.() || createFallbackProfile();
-    const serializedBeforeHydration = storedProfile ? JSON.stringify(storedProfile) : "";
+    const serializedBeforeHydration = JSON.stringify(profile);
 
+    persistence?.ensureProfileMeta?.(profile);
+    persistence?.markTutorialSeen?.(profile, "front_door_profile_hall");
     runtimeWindow.ROUGE_ITEM_SYSTEM?.hydrateProfileStash?.(profile, content);
 
-    if (storedProfile && serializedBeforeHydration !== JSON.stringify(profile)) {
+    if (serializedBeforeHydration !== JSON.stringify(profile)) {
       persistence?.saveProfileToStorage?.(profile);
     }
 
@@ -100,8 +131,9 @@
   function recordRunHistory(state: AppState, outcome: RunHistoryEntry["outcome"]): void {
     const persistence = getPersistence();
     if (persistence?.recordRunHistory && state.run) {
-      persistence.recordRunHistory(state.profile, state.run, outcome);
+      persistence.recordRunHistory(state.profile, state.run, outcome, state.content);
     }
+    state.ui.reviewedHistoryIndex = 0;
     clearActiveRunProfile(state);
   }
 
@@ -109,8 +141,9 @@
     const persistence = getPersistence();
     const snapshot = state.profile.activeRunSnapshot || persistence?.loadFromStorage?.() || null;
     if (persistence?.recordRunHistory && snapshot?.run) {
-      persistence.recordRunHistory(state.profile, snapshot.run, outcome);
+      persistence.recordRunHistory(state.profile, snapshot.run, outcome, state.content);
     }
+    state.ui.reviewedHistoryIndex = 0;
     clearActiveRunProfile(state);
   }
 
@@ -118,6 +151,63 @@
     return ["vitality", "focus", "command"].reduce((total, track) => {
       return total + (Number.parseInt(String(training?.[track] ?? 0), 10) || 0);
     }, 0);
+  }
+
+  function parseInteger(value: unknown, fallback = 0): number {
+    const parsed = Number.parseInt(String(value ?? fallback), 10);
+    return Number.isInteger(parsed) ? parsed : fallback;
+  }
+
+  function getScaledRoutePerkValue(
+    routePerk: MercenaryRoutePerkDefinition,
+    baseField: keyof Pick<
+      MercenaryRoutePerkDefinition,
+      "attackBonus" | "behaviorBonus" | "startGuard" | "heroDamageBonus" | "heroStartGuard" | "openingDraw"
+    >,
+    perActField: keyof Pick<
+      MercenaryRoutePerkDefinition,
+      "attackBonusPerAct" | "behaviorBonusPerAct" | "startGuardPerAct" | "heroDamageBonusPerAct" | "heroStartGuardPerAct" | "openingDrawPerAct"
+    >,
+    actNumber: number
+  ): number {
+    const baseValue = Math.max(0, parseInteger(routePerk?.[baseField], 0));
+    const perActValue = Math.max(0, parseInteger(routePerk?.[perActField], 0));
+    const scalingStartAct = Math.max(1, parseInteger(routePerk?.scalingStartAct, actNumber));
+    return baseValue + Math.max(0, actNumber - scalingStartAct) * perActValue;
+  }
+
+  function buildMercenaryRouteCombatBonuses(run: RunState, content: GameContent): CombatMercenaryRouteBonusState {
+    const mercenaryDefinition = content?.mercenaryCatalog?.[run?.mercenary?.id || ""] || null;
+    const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
+    const actNumber = Math.max(1, parseInteger(run?.actNumber, 1));
+    const activePerks = (Array.isArray(mercenaryDefinition?.routePerks) ? mercenaryDefinition.routePerks : []).filter((routePerk) => {
+      const requiredFlagIds = Array.isArray(routePerk?.requiredFlagIds) ? routePerk.requiredFlagIds : [];
+      return requiredFlagIds.length > 0 && requiredFlagIds.every((flagId) => worldFlags.includes(flagId));
+    });
+
+    return activePerks.reduce(
+      (bonuses, routePerk) => {
+        bonuses.contractAttackBonus += getScaledRoutePerkValue(routePerk, "attackBonus", "attackBonusPerAct", actNumber);
+        bonuses.contractBehaviorBonus += getScaledRoutePerkValue(routePerk, "behaviorBonus", "behaviorBonusPerAct", actNumber);
+        bonuses.contractStartGuard += getScaledRoutePerkValue(routePerk, "startGuard", "startGuardPerAct", actNumber);
+        bonuses.contractHeroDamageBonus += getScaledRoutePerkValue(routePerk, "heroDamageBonus", "heroDamageBonusPerAct", actNumber);
+        bonuses.contractHeroStartGuard += getScaledRoutePerkValue(routePerk, "heroStartGuard", "heroStartGuardPerAct", actNumber);
+        bonuses.contractOpeningDraw += getScaledRoutePerkValue(routePerk, "openingDraw", "openingDrawPerAct", actNumber);
+        if (routePerk?.title) {
+          bonuses.contractPerkLabels.push(routePerk.title);
+        }
+        return bonuses;
+      },
+      {
+        contractAttackBonus: 0,
+        contractBehaviorBonus: 0,
+        contractStartGuard: 0,
+        contractHeroDamageBonus: 0,
+        contractHeroStartGuard: 0,
+        contractOpeningDraw: 0,
+        contractPerkLabels: [],
+      } as CombatMercenaryRouteBonusState
+    );
   }
 
   function getPhaseLabel(phase: AppPhase): string {
@@ -141,6 +231,14 @@
 
   function resetFrontDoorUi(state: AppState): void {
     state.ui.confirmAbandonSavedRun = false;
+  }
+
+  function clampRunHistoryReviewIndex(state: AppState, historyIndex: number): number {
+    const historyLength = Array.isArray(state.profile?.runHistory) ? state.profile.runHistory.length : 0;
+    if (historyLength <= 0) {
+      return 0;
+    }
+    return Math.min(Math.max(0, parseInteger(historyIndex, 0)), historyLength - 1);
   }
 
   function createAppState({
@@ -172,6 +270,7 @@
       ui: {
         selectedClassId: getPreferredClassId(classes, profile),
         selectedMercenaryId: mercenaries[0]?.id || "",
+        reviewedHistoryIndex: 0,
         confirmAbandonSavedRun: false,
       },
       profile,
@@ -191,6 +290,10 @@
     if (state.registries.mercenaries.some((entry) => entry.id === mercenaryId)) {
       state.ui.selectedMercenaryId = mercenaryId;
     }
+  }
+
+  function setRunHistoryReviewIndex(state: AppState, historyIndex: number): void {
+    state.ui.reviewedHistoryIndex = clampRunHistoryReviewIndex(state, historyIndex);
   }
 
   function createRunSnapshot(state: AppState) {
@@ -237,7 +340,10 @@
     }
 
     const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
+    const persistence = getPersistence();
     state.run = runFactory.hydrateRun(snapshot.run, state.content);
+    runtimeWindow.ROUGE_ITEM_SYSTEM?.hydrateRunInventory?.(state.run, state.content, state.profile);
+    persistence?.syncProfileMetaFromRun?.(state.profile, state.run);
     state.profile.activeRunSnapshot = snapshot;
     state.ui.selectedClassId = snapshot.selectedClassId || state.run.classId || state.ui.selectedClassId;
     state.ui.selectedMercenaryId = snapshot.selectedMercenaryId || state.run.mercenary.id || state.ui.selectedMercenaryId;
@@ -250,6 +356,7 @@
 
   function startCharacterSelect(state: AppState): void {
     resetFrontDoorUi(state);
+    state.ui.selectedClassId = getPreferredClassId(state.registries.classes, state.profile);
     state.phase = PHASES.CHARACTER_SELECT;
     state.error = "";
     state.combat = null;
@@ -275,6 +382,9 @@
       starterDeck,
     });
     syncProfileMetaSelection(state.profile, classDefinition.id);
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
+    state.run.town.vendor.stock = [];
+    runtimeWindow.ROUGE_ITEM_SYSTEM?.hydrateRunInventory?.(state.run, state.content, state.profile);
     resetFrontDoorUi(state);
     state.phase = PHASES.SAFE_ZONE;
     state.combat = null;
@@ -308,6 +418,158 @@
     return Boolean(persistence?.loadProfileFromStorage?.()?.activeRunSnapshot || persistence?.hasSavedSnapshot?.());
   }
 
+  function getProfileSummary(state: AppState | null = null): ProfileSummary {
+    const persistence = getPersistence();
+    const profile = state?.profile || persistence?.loadProfileFromStorage?.() || null;
+    return persistence?.getProfileSummary?.(profile) || persistence?.getProfileSummary?.(null) || {
+      hasActiveRun: false,
+      stashEntries: 0,
+      runHistoryCount: 0,
+      completedRuns: 0,
+      failedRuns: 0,
+      highestLevel: 1,
+      highestActCleared: 0,
+      totalBossesDefeated: 0,
+      totalGoldCollected: 0,
+      totalRunewordsForged: 0,
+      classesPlayedCount: 0,
+      preferredClassId: "",
+      lastPlayedClassId: "",
+      unlockedClassCount: 0,
+      unlockedBossCount: 0,
+      unlockedRunewordCount: 0,
+      townFeatureCount: 0,
+      seenTutorialCount: 0,
+      completedTutorialCount: 0,
+      dismissedTutorialCount: 0,
+    };
+  }
+
+  function getAccountProgressSummary(state: AppState | null = null): ProfileAccountSummary {
+    const persistence = getPersistence();
+    const profile = state?.profile || persistence?.loadProfileFromStorage?.() || null;
+    return (
+      persistence?.getAccountProgressSummary?.(profile) ||
+      persistence?.getAccountProgressSummary?.(null) || {
+        profile: getProfileSummary(state),
+        settings: {
+          showHints: true,
+          reduceMotion: false,
+          compactMode: false,
+        },
+        unlockedFeatureIds: [],
+        activeTutorialIds: [],
+        dismissedTutorialCount: 0,
+        stash: {
+          entryCount: 0,
+          equipmentCount: 0,
+          runeCount: 0,
+          socketReadyEquipmentCount: 0,
+          socketedRuneCount: 0,
+          runewordEquipmentCount: 0,
+          itemIds: [],
+          runeIds: [],
+        },
+        archive: {
+          entryCount: 0,
+          completedCount: 0,
+          failedCount: 0,
+          abandonedCount: 0,
+          latestClassId: "",
+          latestClassName: "",
+          latestOutcome: "",
+          latestCompletedAt: "",
+          highestLevel: 0,
+          highestActsCleared: 0,
+          highestGoldGained: 0,
+          highestLoadoutTier: 0,
+          runewordArchiveCount: 0,
+          featureUnlockCount: 0,
+          favoredTreeId: "",
+          favoredTreeName: "",
+          planningArchiveCount: 0,
+          recentFeatureIds: [],
+        },
+        review: {
+          capstoneCount: 0,
+          unlockedCapstoneCount: 0,
+          blockedCapstoneCount: 0,
+          readyCapstoneCount: 0,
+          nextCapstoneId: "",
+          nextCapstoneTitle: "",
+        },
+        focusedTreeId: "",
+        focusedTreeTitle: "",
+        treeCount: 0,
+        trees: [],
+        runHistoryCapacity: 20,
+        nextMilestoneId: "",
+        nextMilestoneTitle: "",
+        unlockedMilestoneCount: 0,
+        milestoneCount: 0,
+        milestones: [],
+      }
+    );
+  }
+
+  function mutateProfileMeta(state: AppState, applyMutation: (persistence: PersistenceApi, profile: ProfileState) => void): ActionResult {
+    const persistence = getPersistence();
+    if (!persistence || !state.profile) {
+      state.error = "Profile persistence is not available.";
+      return { ok: false, message: state.error };
+    }
+    applyMutation(persistence, state.profile);
+    persistProfile(state);
+    state.error = "";
+    return { ok: true };
+  }
+
+  function updateProfileSettings(state: AppState, patch: ProfileSettingsPatch): ActionResult {
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.updateProfileSettings(profile, patch);
+    });
+  }
+
+  function setPreferredClass(state: AppState, classId: string): ActionResult {
+    const result = mutateProfileMeta(state, (persistence, profile) => {
+      persistence.setPreferredClass(profile, classId);
+    });
+    if (result.ok) {
+      state.ui.selectedClassId = getPreferredClassId(state.registries.classes, state.profile);
+    }
+    return result;
+  }
+
+  function setAccountProgressionFocus(state: AppState, treeId: string): ActionResult {
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.setAccountProgressionFocus(profile, treeId);
+    });
+  }
+
+  function markTutorialSeen(state: AppState, tutorialId: string): ActionResult {
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.markTutorialSeen(profile, tutorialId);
+    });
+  }
+
+  function completeTutorial(state: AppState, tutorialId: string): ActionResult {
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.markTutorialCompleted(profile, tutorialId);
+    });
+  }
+
+  function dismissTutorial(state: AppState, tutorialId: string): ActionResult {
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.dismissTutorial(profile, tutorialId);
+    });
+  }
+
+  function restoreTutorial(state: AppState, tutorialId: string): ActionResult {
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.restoreTutorial(profile, tutorialId);
+    });
+  }
+
   function getSavedRunSummary(): SavedRunSummary | null {
     const persistence = getPersistence();
     const snapshot = persistence?.loadProfileFromStorage?.()?.activeRunSnapshot || persistence?.loadFromStorage() || null;
@@ -332,6 +594,7 @@
       classPointsAvailable: run.progression?.classPointsAvailable || 0,
       attributePointsAvailable: run.progression?.attributePointsAvailable || 0,
       trainingRanks: getTrainingRankCount(run.progression?.training),
+      favoredTreeId: run.progression?.classProgression?.favoredTreeId || "",
       unlockedClassSkills: Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
         ? run.progression.classProgression.unlockedSkillIds.length
         : 0,
@@ -432,6 +695,7 @@
       return result;
     }
 
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
     state.error = "";
     persistRunIfPossible(state);
     return result;
@@ -443,7 +707,7 @@
     }
 
     const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
-    const result = runFactory.beginZone(state.run, zoneId);
+    const result = runFactory.beginZone(state.run, zoneId, state.content);
     if (!result.ok) {
       state.error = result.message;
       return result;
@@ -459,6 +723,7 @@
     }
 
     const overrides = runFactory.createCombatOverrides(state.run, state.content);
+    const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
     state.combat = state.combatEngine.createCombatState({
       content: {
         ...state.content,
@@ -467,7 +732,10 @@
       encounterId: result.encounterId,
       mercenaryId: state.run.mercenary.id,
       heroState: overrides.heroState,
-      mercenaryState: overrides.mercenaryState,
+      mercenaryState: {
+        ...overrides.mercenaryState,
+        ...mercenaryRouteBonuses,
+      },
       starterDeck: overrides.starterDeck,
       initialPotions: overrides.initialPotions,
       randomFn: state.randomFn,
@@ -496,6 +764,7 @@
       run: state.run,
       zone,
       combatState: state.combat,
+      profile: state.profile,
     });
     state.combat = null;
     state.phase = PHASES.REWARD;
@@ -515,6 +784,7 @@
       state.error = applyResult.message || "Reward application failed.";
       return applyResult;
     }
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
     state.run.pendingReward = null;
     state.error = "";
 
@@ -543,6 +813,7 @@
     if (!advanced) {
       return { ok: false, message: "Cannot advance acts right now." };
     }
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
     state.phase = PHASES.SAFE_ZONE;
     persistRunIfPossible(state);
     return { ok: true };
@@ -564,6 +835,16 @@
     startCharacterSelect,
     startRun,
     continueSavedRun,
+    getProfileSummary,
+    getAccountProgressSummary,
+    updateProfileSettings,
+    setPreferredClass,
+    setRunHistoryReviewIndex,
+    setAccountProgressionFocus,
+    markTutorialSeen,
+    completeTutorial,
+    dismissTutorial,
+    restoreTutorial,
     hasSavedRun,
     getSavedRunSummary,
     saveRunSnapshot,

@@ -3,29 +3,50 @@
 
   const TREE_ARCHETYPES = {
     martial: {
+      id: "martial",
       summary: "Build direct weapon pressure and unlock frontline class skills.",
       bonusPerRank: {
         heroDamageBonus: 1,
       },
+      unlockThreshold: 2,
+      unlockBonusPerThreshold: {
+        heroDamageBonus: 1,
+      },
     },
     arcane: {
+      id: "arcane",
       summary: "Build mana pressure and spell scaling for class-driven skills.",
       bonusPerRank: {
         heroMaxEnergy: 1,
         heroBurnBonus: 1,
       },
+      unlockThreshold: 2,
+      unlockBonusPerThreshold: {
+        heroBurnBonus: 1,
+      },
     },
     support: {
+      id: "support",
       summary: "Build guard, resilience, and safer sustained fights.",
       bonusPerRank: {
         heroGuardBonus: 1,
         heroMaxLife: 2,
       },
+      unlockThreshold: 2,
+      unlockBonusPerThreshold: {
+        heroMaxLife: 2,
+      },
     },
     command: {
+      id: "command",
       summary: "Build tactical support and stronger mercenary follow-through.",
       bonusPerRank: {
         heroGuardBonus: 1,
+        mercenaryAttack: 1,
+        mercenaryMaxLife: 2,
+      },
+      unlockThreshold: 2,
+      unlockBonusPerThreshold: {
         mercenaryAttack: 1,
         mercenaryMaxLife: 2,
       },
@@ -58,6 +79,26 @@
       name: skill.name,
       requiredLevel: Math.max(1, toNumber(skill.requiredLevel, 1)),
     };
+  }
+
+  function normalizeTreeSkills(skills) {
+    const seenSkillIds = new Set();
+    return (Array.isArray(skills) ? skills : [])
+      .map(normalizeSkillDefinition)
+      .filter((skill) => {
+        if (!skill || seenSkillIds.has(skill.id)) {
+          return false;
+        }
+        seenSkillIds.add(skill.id);
+        return true;
+      })
+      .sort((left, right) => {
+        const levelDelta = left.requiredLevel - right.requiredLevel;
+        if (levelDelta !== 0) {
+          return levelDelta;
+        }
+        return left.name.localeCompare(right.name);
+      });
   }
 
   function getTreeArchetype(treeName, index) {
@@ -98,7 +139,7 @@
           const trees = (Array.isArray(entry.trees) ? entry.trees : [])
             .map((tree, index) => {
               const archetype = getTreeArchetype(tree?.name, index);
-              const skills = (Array.isArray(tree?.skills) ? tree.skills : []).map(normalizeSkillDefinition).filter(Boolean);
+              const skills = normalizeTreeSkills(tree?.skills);
               if (!tree?.id || !tree?.name || skills.length === 0) {
                 return null;
               }
@@ -106,8 +147,12 @@
               return {
                 id: tree.id,
                 name: tree.name,
+                archetypeId: archetype.id,
                 summary: archetype.summary,
                 bonusPerRank: { ...(archetype.bonusPerRank || {}) },
+                maxRank: skills.length,
+                unlockThreshold: Math.max(1, toNumber(archetype.unlockThreshold, 2)),
+                unlockBonusPerThreshold: { ...(archetype.unlockBonusPerThreshold || {}) },
                 skills,
               };
             })

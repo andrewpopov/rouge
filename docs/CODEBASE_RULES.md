@@ -1,6 +1,6 @@
 # Codebase Rules
 
-Last updated: March 7, 2026.
+Last updated: March 8, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -59,14 +59,53 @@ Rules:
 - `src/content/seed-loader.ts`
   - loads the D2 seed bundle from `data/seeds/d2/*.json`
 
+- `src/content/content-validator-world-paths.ts`
+  - owns authored-path state collectors, reference-state assembly, and opportunity-variant matching helpers for content validation
+
+- `src/content/content-validator.ts`
+  - remains the public validator entry for seed, generated, world-node, and affix content
+
+- `src/content/encounter-registry-enemy-builders.ts`
+  - owns act enemy-pool normalization, role grouping, elite-affix lookups, and enemy template or intent builders for generated encounter content
+
+- `src/content/encounter-registry-builders.ts`
+  - owns act encounter-set assembly on top of the private enemy-builder helper seam
+
 - `src/content/encounter-registry.ts`
-  - merges authored content with seed-derived act encounter and enemy sets
+  - remains the public registry entry that merges authored content with generated act encounter and enemy sets
 
 - `src/character/class-registry.ts`
   - turns class seed data into hero shells and starter deck selection
 
+- `src/run/run-state.ts`
+  - owns run-domain defaults and shared numeric or bonus helpers used by the run domain
+
+- `src/run/run-route-builder.ts`
+  - owns act route generation, world-node normalization, and current-act zone lookup helpers for the run domain
+
+- `src/run/run-progression.ts`
+  - owns class-tree progression, level-based training growth, and derived combat bonuses for the run domain
+
+- `src/run/run-reward-flow.ts`
+  - owns encounter reward construction, reward application, and act-completion transition helpers for the run domain
+
 - `src/run/run-factory.ts`
-  - owns `RunState`, act generation, zone progression, reward application, and act advancement
+  - owns `RunState` creation plus the public orchestration surface for the run domain
+
+- `src/items/item-data.ts`
+  - owns authored item, rune, runeword, and rune-reward template data for the item domain
+
+- `src/items/item-catalog.ts`
+  - owns seed-to-runtime item catalog shaping, equipment normalization, and runeword lookup helpers
+
+- `src/items/item-loadout.ts`
+  - owns loadout, inventory, stash, socket, and derived-combat-bonus mutation for the item domain
+
+- `src/items/item-town.ts`
+  - owns vendor stock generation, pricing, town inventory actions, and economy-aware item summaries
+
+- `src/items/item-system.ts`
+  - remains the public browser entry and reward-choice orchestrator for the item domain
 
 - `src/combat/combat-engine.ts`
   - owns deterministic encounter resolution and encounter-local mutation
@@ -82,13 +121,16 @@ Rules:
 
 ### Verification Layer
 
-- `tests/app-engine.test.ts`
-  - validates the outer app loop against the compiled browser runtime
+- `tests/app-engine.test.ts` plus `tests/app-engine-*.test.ts`
+  - validate the outer app loop against the compiled browser runtime in smaller thematic suites
 
 - `tests/combat-engine.test.ts`
   - validates the encounter contract against the compiled browser runtime
 
-The tests intentionally exercise `generated/` output through a `vm` browser sandbox. That is part of the architecture.
+- `tests/helpers/browser-harness.ts`
+  - owns the shared `vm` browser harness that loads emitted runtime scripts for the compiled-browser test surface
+
+The tests intentionally exercise `generated/` output through a shared `vm` browser sandbox. That is part of the architecture.
 
 ## Live Data Flow
 
@@ -100,7 +142,7 @@ The tests intentionally exercise `generated/` output through a `vm` browser sand
 6. `src/app/app-engine.ts` enters an encounter by asking `src/run/run-factory.ts` for the next encounter and passing run-state overrides into `src/combat/combat-engine.ts`.
 7. `src/combat/combat-engine.ts` resolves the encounter without mutating broader run progression directly.
 8. `src/app/app-engine.ts` snapshots encounter results back into `RunState`.
-9. `src/run/run-factory.ts` applies reward and progression mutation.
+9. `src/run/run-reward-flow.ts` and `src/run/run-progression.ts` apply reward and progression mutation through the public run-domain surface.
 
 ## Architecture Patterns
 
@@ -120,12 +162,13 @@ The tests intentionally exercise `generated/` output through a `vm` browser sand
 
 - The live browser and tests depend on `window.ROUGE_*` exports.
 - Internal extraction is allowed, but the public browser contract should stay stable until the entry strategy changes everywhere together.
+- If a public browser entry depends on a private helper script, keep that load order aligned in both `index.html` and `tests/helpers/browser-harness.ts`.
 - If a public runtime name changes, update `index.html`, tests, and docs in the same change.
 
 ### 4. Single-Writer State Ownership
 
 - `app-engine` is the only owner of top-level phase changes.
-- `run-factory` is the only owner of persistent in-run progression mutation.
+- the run domain owns persistent in-run progression mutation through `run-factory`, `run-progression`, `run-reward-flow`, and `run-route-builder`.
 - `combat-engine` is the only owner of encounter-local mutation.
 - Render code reads state and dispatches actions. It does not own progression logic.
 
@@ -159,23 +202,33 @@ The tests intentionally exercise `generated/` output through a `vm` browser sand
 - Do not solve every new need by expanding `src/app/main.ts`.
 - Prefer small extractions such as `src/ui/*`, `src/rewards/*`, `src/state/*`, and `src/economy/*`.
 
-### 10. Explicit Phase Machine
+### 10. Owner-Preserving Helper Extraction
+
+- A hotspot can split into helper files inside the same domain without changing who owns mutation.
+- `src/content/content-validator-world-paths.ts` is a private content-domain helper, but callers still enter validation through `window.ROUGE_CONTENT_VALIDATOR`.
+- `src/content/encounter-registry-enemy-builders.ts` and `src/content/encounter-registry-builders.ts` are private content-domain helpers, but callers still enter generated encounter assembly through `window.ROUGE_ENCOUNTER_REGISTRY`.
+- `src/run/run-state.ts`, `src/run/run-route-builder.ts`, `src/run/run-progression.ts`, and `src/run/run-reward-flow.ts` are run-domain helpers, but `src/app/*`, `src/ui/*`, and `src/town/*` still enter the run domain through `window.ROUGE_RUN_FACTORY`.
+- `src/items/item-data.ts`, `src/items/item-catalog.ts`, `src/items/item-loadout.ts`, and `src/items/item-town.ts` are item-domain helpers, but cross-domain callers still enter itemization through `window.ROUGE_ITEM_SYSTEM`.
+- If a helper file exists only to shrink a hotspot, keep it private to the owning domain until a cross-domain contract is explicitly needed.
+
+### 11. Explicit Phase Machine
 
 - Use top-level app phases for major screens only.
 - Keep subviews like vendor panels, reward choices, and safe-zone services inside phase-local UI state.
 - Do not create top-level phases for tooltips, confirms, or one-off overlays.
 
-### 11. ID-Based Contracts
+### 12. ID-Based Contracts
 
 - Cross-domain handoffs should use IDs, snapshots, and explicit result objects.
 - Avoid hidden coupling through DOM state or mutable global references.
 - A zone points at encounter IDs; encounters point at enemy template IDs; runtime systems resolve through registries.
 
-### 12. Verification At The Public Boundary
+### 13. Verification At The Public Boundary
 
 - Lint is strict and warning-free.
 - Compile before serving or testing.
 - Tests should continue to validate the emitted browser contract, not a separate Node-only path.
+- Keep browser-boundary suites in top-level `tests/*.test.ts` files so the compiled test runner picks them up, and keep shared harness code under `tests/helpers/**`.
 
 ## Safe Change Pattern
 

@@ -4,7 +4,7 @@
 
 This file defines the project-manager role for Rouge.
 
-The project manager owns orchestration, prioritization, merge sequencing, progress tracking, blocker resolution, and documentation freshness across the agent workstreams.
+The project manager owns orchestration, prioritization, landing sequencing, progress tracking, blocker resolution, and documentation freshness across the agent workstreams.
 
 ## Core Responsibilities
 
@@ -30,6 +30,7 @@ Keep these current:
 - `AGENT_1.md`
 - `AGENT_2.md`
 - `AGENT_3.md`
+- `AGENT_4.md`
 
 After every meaningful review:
 
@@ -37,6 +38,7 @@ After every meaningful review:
 2. rewrite any agent brief that is asking for work already landed in code
 3. keep the active assignment docs focused on the next meaty subsystem slices
 4. sync `docs/TEAM_WORKSTREAMS.md` if the active split changed
+5. remove fake dependencies when the runtime already exposes the needed API seam
 
 ### 3. Assign And Sequence Work
 
@@ -45,6 +47,7 @@ Default parallel lanes:
 1. Agent 1: full player-facing shell
 2. Agent 2: progression, economy, and account backbone
 3. Agent 3: world-content and combat-depth expansion
+4. Agent 4: architecture and code-quality hardening
 
 ### 4. Manage Hotspots
 
@@ -55,36 +58,46 @@ Watch these files closely:
 - `src/app/main.ts`
 - `src/town/service-registry.ts`
 - `src/state/*.ts`
+- `src/run/run-factory.ts`
+- `src/items/*.ts`
+- `src/content/content-validator.ts`
+- `src/content/encounter-registry.ts`
+- `src/quests/world-node-engine.ts`
 - `index.html`
-- `tests/app-engine.test.ts`
+- `tests/app-engine*.test.ts`
 
 If two agents need the same hotspot:
 
 1. approve the contract change explicitly
-2. define which branch lands first
-3. require the second branch to rebase after the first lands
+2. define which workstream lands on `master` first
+3. require the second workstream to rebase or replay on top of the latest `master` before landing
 
-### 5. Gate Merges
+### 5. Gate Landings
 
-No branch is considered complete until:
+No workstream is considered ready to land on `master` until:
 
 - scope matches the assigned agent doc
 - docs are updated if the live runtime changed
+- automated tests were added or updated for the behavior that changed
 - `npm run check` passes
 - any shared-type changes are clearly called out
+- the final state is recorded in coherent commit(s) on `master`
 
 No agent doc is considered current if it mainly describes work already implemented in the repo.
 
-## Merge Order Guidance
+## Landing Order Guidance
 
-Default order when branches overlap:
+Default order when workstreams overlap:
 
 1. shared contracts and type changes
-2. Agent 2 backbone changes
-3. Agent 3 world-content and combat-depth changes
-4. Agent 1 shell integration and presentation changes
+2. Agent 4 behavior-preserving extraction or test-surface cleanup that reduces hotspot pressure without redefining product behavior
+3. Agent 2 backbone changes
+4. Agent 3 world-content and combat-depth changes
+5. Agent 1 shell-only changes that consume already-stable APIs
+6. Agent 4 follow-on hotspot extraction after the feature landings settle
+7. Agent 1 follow-on shell integration for any new APIs or content surfaces
 
-If a branch is mostly presentation-only, it can land earlier as long as it does not redefine contracts.
+If a batch is mostly presentation-only, it can land earlier as long as it does not redefine contracts.
 
 ## Blocker Policy
 
@@ -109,6 +122,10 @@ For every meaningful implementation drop, the project manager should verify:
 
 The project manager should treat stale agent briefs as a process bug and fix them immediately.
 
+The project manager should also fix stale landing instructions immediately when the delivery process changes. The current project rule is direct commits onto `master`; do not leave PR-only language in active assignment docs unless the team explicitly switches back.
+
+The project manager should not leave already-landed runtime seams assigned as future backend work. If APIs like profile-setting mutation, tutorial mutation, encounter modifiers, or mercenary route perks are already live, rewrite the briefs so agents build on them instead of waiting for them.
+
 ## Source Of Truth Order
 
 When tracking or making decisions:
@@ -118,7 +135,7 @@ When tracking or making decisions:
 3. `docs/IMPLEMENTATION_PROGRESS.md`
 4. `docs/PROJECT_MASTER.md`
 5. `docs/TEAM_WORKSTREAMS.md`
-6. `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`
+6. `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`, `AGENT_4.md`
 7. product-direction planning docs
 
 ## Immediate Operating Rule
@@ -130,3 +147,20 @@ Current expectation:
 - Agent 1 should ship a shell layer that can carry the whole product
 - Agent 2 should ship the progression and account systems that the rest of the game builds on
 - Agent 3 should ship the world-content and combat-depth that makes the acts feel materially different
+- Agent 4 should keep the codebase extensible by running a repeating loop: establish one stable seam, move code behind it, pay off the local lint or test debt, document the rule, then repeat without changing product direction
+
+Current Agent 4 priority order:
+
+1. keep `tests/app-engine*.test.ts` aligned with `tests/helpers/browser-harness.ts` whenever browser script order or boot seams change
+2. keep shrinking `src/content/content-validator.ts` from the new `src/content/content-validator-world-paths.ts` seam when a follow-on pass is warranted
+3. keep `src/content/encounter-registry.ts` thin by preventing logic drift back out of `src/content/encounter-registry-builders.ts` or `src/content/encounter-registry-enemy-builders.ts`
+4. keep the run helpers small by avoiding new logic drift back into `src/run/run-factory.ts` or `src/run/run-reward-flow.ts`
+5. only then coordinate the first safe extractions out of `src/quests/world-node-engine.ts` with Agent 3
+
+Current sequencing guidance:
+
+1. let Agent 4 keep the compiled-browser harness aligned and start the next hotspot pass in `src/content/content-validator.ts`
+2. let Agent 2 land the next shared progression, account, reward, and economy contracts, starting with account-tree capstones and richer archive or stash read models
+3. let Agent 3 land the next route and combat content expansion on those stable contracts, starting with the second late-route fabric per act
+4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with front-door structure and safe-zone preparation
+5. let Agent 4 only stage any coordinated `src/quests/world-node-engine.ts` work after the next `src/content/content-validator.ts` pass lands cleanly

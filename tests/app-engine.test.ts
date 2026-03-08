@@ -1,119 +1,8 @@
 export {};
 
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import vm from "node:vm";
 import { test } from "node:test";
-
-const ROOT = path.resolve(__dirname, "../..");
-const GENERATED_ROOT = path.join(ROOT, "generated");
-
-function loadBrowserScript(filename, sandbox) {
-  const fullPath = path.join(GENERATED_ROOT, filename);
-  const source = fs.readFileSync(fullPath, "utf8");
-  new vm.Script(source, { filename: fullPath }).runInContext(sandbox);
-}
-
-function createMemoryStorage(): StorageLike {
-  const values = new Map<string, string>();
-  return {
-    getItem(key: string) {
-      return values.has(key) ? values.get(key) || null : null;
-    },
-    setItem(key: string, value: string) {
-      values.set(key, String(value));
-    },
-    removeItem(key: string) {
-      values.delete(key);
-    },
-  };
-}
-
-class FakeElement {
-  dataset: Record<string, string>;
-
-  constructor(dataset: Record<string, string> = {}) {
-    this.dataset = dataset;
-  }
-
-  closest(selector: string): FakeElement | null {
-    return selector === "[data-action]" ? this : null;
-  }
-}
-
-function createHarness() {
-  const storage = createMemoryStorage();
-  const sandbox = {
-    window: {
-      localStorage: storage,
-      Element: FakeElement,
-    },
-    console,
-    Math,
-    Date,
-    Element: FakeElement,
-  };
-  vm.createContext(sandbox);
-  loadBrowserScript("src/content/game-content.js", sandbox);
-  loadBrowserScript("src/combat/combat-engine.js", sandbox);
-  loadBrowserScript("src/content/content-validator.js", sandbox);
-  loadBrowserScript("src/content/encounter-registry.js", sandbox);
-  loadBrowserScript("src/character/class-registry.js", sandbox);
-  loadBrowserScript("src/ui/render-utils.js", sandbox);
-  loadBrowserScript("src/items/item-system.js", sandbox);
-  loadBrowserScript("src/rewards/reward-engine.js", sandbox);
-  loadBrowserScript("src/quests/world-node-engine.js", sandbox);
-  loadBrowserScript("src/run/run-factory.js", sandbox);
-  loadBrowserScript("src/town/service-registry.js", sandbox);
-  loadBrowserScript("src/state/save-migrations.js", sandbox);
-  loadBrowserScript("src/state/profile-migrations.js", sandbox);
-  loadBrowserScript("src/state/persistence.js", sandbox);
-  loadBrowserScript("src/app/app-engine.js", sandbox);
-  loadBrowserScript("src/ui/ui-common.js", sandbox);
-  loadBrowserScript("src/ui/front-door-view.js", sandbox);
-  loadBrowserScript("src/ui/character-select-view.js", sandbox);
-  loadBrowserScript("src/ui/safe-zone-view.js", sandbox);
-  loadBrowserScript("src/ui/world-map-view.js", sandbox);
-  loadBrowserScript("src/ui/combat-view.js", sandbox);
-  loadBrowserScript("src/ui/reward-view.js", sandbox);
-  loadBrowserScript("src/ui/act-transition-view.js", sandbox);
-  loadBrowserScript("src/ui/run-summary-view.js", sandbox);
-  loadBrowserScript("src/ui/app-shell.js", sandbox);
-  loadBrowserScript("src/ui/action-dispatcher.js", sandbox);
-
-  const seedBundle = {
-    classes: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/classes.json"), "utf8")),
-    skills: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/skills.json"), "utf8")),
-    zones: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/zones.json"), "utf8")),
-    bosses: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/bosses.json"), "utf8")),
-    enemyPools: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/enemy-pools.json"), "utf8")),
-    items: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/items.json"), "utf8")),
-    runes: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/runes.json"), "utf8")),
-    runewords: JSON.parse(fs.readFileSync(path.join(ROOT, "data/seeds/d2/runewords.json"), "utf8")),
-  };
-  const browserWindow = sandbox.window as unknown as Window;
-  const classRuntimeContent = browserWindow.ROUGE_CLASS_REGISTRY.createRuntimeContent(browserWindow.ROUGE_GAME_CONTENT, seedBundle);
-  const itemizedContent = browserWindow.ROUGE_ITEM_SYSTEM.createRuntimeContent(classRuntimeContent, seedBundle);
-  const runtimeContent = browserWindow.ROUGE_ENCOUNTER_REGISTRY.createRuntimeContent(itemizedContent, seedBundle);
-
-  return {
-    content: runtimeContent,
-    combatEngine: browserWindow.ROUGE_COMBAT_ENGINE,
-    classRegistry: browserWindow.ROUGE_CLASS_REGISTRY,
-    itemSystem: browserWindow.ROUGE_ITEM_SYSTEM,
-    persistence: browserWindow.ROUGE_PERSISTENCE,
-    runFactory: browserWindow.ROUGE_RUN_FACTORY,
-    appEngine: browserWindow.ROUGE_APP_ENGINE,
-    appShell: browserWindow.ROUGE_APP_SHELL,
-    actionDispatcher: browserWindow.ROUGE_ACTION_DISPATCHER,
-    browserWindow,
-    createActionTarget: (dataset: Record<string, string>) => new FakeElement(dataset) as unknown as EventTarget,
-    seedBundle,
-    storage,
-  };
-}
-
+import { createAppHarness as createHarness } from "./helpers/browser-harness";
 test("startRun creates a class-derived run and enters the safe zone", () => {
   const { content, combatEngine, appEngine, seedBundle } = createHarness();
   const state = appEngine.createAppState({
@@ -363,6 +252,1181 @@ test("profile persistence round-trips stash and run history beyond the active ru
   assert.equal(freshState.ui.selectedClassId, lastPlayedClassId);
 });
 
+test("profile migrations backfill unlock and tutorial ownership for older envelopes", () => {
+  const { persistence } = createHarness();
+  const restoredEnvelope = persistence.restoreProfile(
+    JSON.stringify({
+      schemaVersion: 2,
+      savedAt: new Date(0).toISOString(),
+      profile: {
+        activeRunSnapshot: null,
+        stash: { entries: [] },
+        runHistory: [
+          {
+            runId: "legacy_run",
+            classId: "sorceress",
+            className: "Sorceress",
+            level: 6,
+            actsCleared: 2,
+            bossesDefeated: 2,
+            goldGained: 0,
+            runewordsForged: 0,
+            skillPointsEarned: 0,
+            classPointsEarned: 0,
+            attributePointsEarned: 0,
+            trainingRanksGained: 0,
+            favoredTreeId: "",
+            favoredTreeName: "",
+            unlockedClassSkills: 0,
+            loadoutTier: 0,
+            loadoutSockets: 0,
+            carriedEquipmentCount: 0,
+            carriedRuneCount: 0,
+            stashEntryCount: 0,
+            stashEquipmentCount: 0,
+            stashRuneCount: 0,
+            activeRunewordIds: [],
+            newFeatureIds: [],
+            completedAt: new Date(0).toISOString(),
+            outcome: "completed",
+          },
+        ],
+        meta: {
+          settings: {
+            showHints: true,
+            reduceMotion: false,
+            compactMode: false,
+          },
+          progression: {
+            highestLevel: 6,
+            highestActCleared: 0,
+            totalBossesDefeated: 0,
+            totalGoldCollected: 0,
+            totalRunewordsForged: 0,
+            classesPlayed: ["sorceress"],
+            preferredClassId: "sorceress",
+            lastPlayedClassId: "sorceress",
+          },
+        },
+      },
+    })
+  );
+
+  assert.ok(restoredEnvelope);
+  assert.equal(restoredEnvelope.profile.meta.progression.highestActCleared, 2);
+  assert.ok(restoredEnvelope.profile.meta.unlocks.classIds.includes("sorceress"));
+  assert.ok(restoredEnvelope.profile.meta.unlocks.townFeatureIds.includes("front_door_profile_hall"));
+  assert.equal(restoredEnvelope.profile.meta.accountProgression.focusedTreeId, "archives");
+
+  const profileSummary = persistence.getProfileSummary(restoredEnvelope.profile);
+  assert.equal(profileSummary.unlockedClassCount, 1);
+  assert.ok(profileSummary.townFeatureCount >= 1);
+});
+
+test("account progress summary derives milestone feature unlocks from persisted profile progress", () => {
+  const { persistence } = createHarness();
+  const profile = persistence.createEmptyProfile();
+
+  profile.runHistory = [
+    {
+      runId: "run_001",
+      classId: "amazon",
+      className: "Amazon",
+      level: 12,
+      actsCleared: 3,
+      bossesDefeated: 1,
+      goldGained: 540,
+      runewordsForged: 1,
+      skillPointsEarned: 3,
+      classPointsEarned: 2,
+      attributePointsEarned: 4,
+      trainingRanksGained: 3,
+      favoredTreeId: "amazon_bow",
+      favoredTreeName: "Bow",
+      unlockedClassSkills: 3,
+      loadoutTier: 6,
+      loadoutSockets: 2,
+      carriedEquipmentCount: 1,
+      carriedRuneCount: 1,
+      stashEntryCount: 2,
+      stashEquipmentCount: 1,
+      stashRuneCount: 1,
+      activeRunewordIds: ["steel"],
+      newFeatureIds: ["front_door_profile_hall"],
+      completedAt: new Date("2026-03-07T00:00:00.000Z").toISOString(),
+      outcome: "completed",
+    },
+    {
+      runId: "run_002",
+      classId: "sorceress",
+      className: "Sorceress",
+      level: 11,
+      actsCleared: 2,
+      bossesDefeated: 1,
+      goldGained: 330,
+      runewordsForged: 0,
+      skillPointsEarned: 2,
+      classPointsEarned: 1,
+      attributePointsEarned: 2,
+      trainingRanksGained: 2,
+      favoredTreeId: "sorceress_fire",
+      favoredTreeName: "Fire",
+      unlockedClassSkills: 2,
+      loadoutTier: 5,
+      loadoutSockets: 1,
+      carriedEquipmentCount: 1,
+      carriedRuneCount: 0,
+      stashEntryCount: 1,
+      stashEquipmentCount: 1,
+      stashRuneCount: 0,
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-06T00:00:00.000Z").toISOString(),
+      outcome: "completed",
+    },
+    {
+      runId: "run_003",
+      classId: "necromancer",
+      className: "Necromancer",
+      level: 10,
+      actsCleared: 1,
+      bossesDefeated: 1,
+      goldGained: 210,
+      runewordsForged: 0,
+      skillPointsEarned: 2,
+      classPointsEarned: 1,
+      attributePointsEarned: 1,
+      trainingRanksGained: 1,
+      favoredTreeId: "necromancer_summon",
+      favoredTreeName: "Summoning",
+      unlockedClassSkills: 2,
+      loadoutTier: 4,
+      loadoutSockets: 1,
+      carriedEquipmentCount: 0,
+      carriedRuneCount: 1,
+      stashEntryCount: 1,
+      stashEquipmentCount: 0,
+      stashRuneCount: 1,
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-05T00:00:00.000Z").toISOString(),
+      outcome: "failed",
+    },
+    {
+      runId: "run_004",
+      classId: "amazon",
+      className: "Amazon",
+      level: 9,
+      actsCleared: 1,
+      bossesDefeated: 1,
+      goldGained: 120,
+      runewordsForged: 0,
+      skillPointsEarned: 1,
+      classPointsEarned: 1,
+      attributePointsEarned: 1,
+      trainingRanksGained: 1,
+      favoredTreeId: "amazon_javelin",
+      favoredTreeName: "Javelin",
+      unlockedClassSkills: 1,
+      loadoutTier: 3,
+      loadoutSockets: 0,
+      carriedEquipmentCount: 1,
+      carriedRuneCount: 0,
+      stashEntryCount: 0,
+      stashEquipmentCount: 0,
+      stashRuneCount: 0,
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-04T00:00:00.000Z").toISOString(),
+      outcome: "completed",
+    },
+    {
+      runId: "run_005",
+      classId: "barbarian",
+      className: "Barbarian",
+      level: 13,
+      actsCleared: 4,
+      bossesDefeated: 2,
+      goldGained: 700,
+      runewordsForged: 1,
+      skillPointsEarned: 4,
+      classPointsEarned: 2,
+      attributePointsEarned: 3,
+      trainingRanksGained: 2,
+      favoredTreeId: "barbarian_mastery",
+      favoredTreeName: "Mastery",
+      unlockedClassSkills: 4,
+      loadoutTier: 7,
+      loadoutSockets: 3,
+      carriedEquipmentCount: 2,
+      carriedRuneCount: 1,
+      stashEntryCount: 3,
+      stashEquipmentCount: 2,
+      stashRuneCount: 1,
+      activeRunewordIds: ["steel"],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-03T00:00:00.000Z").toISOString(),
+      outcome: "completed",
+    },
+    {
+      runId: "run_006",
+      classId: "paladin",
+      className: "Paladin",
+      level: 8,
+      actsCleared: 1,
+      bossesDefeated: 1,
+      goldGained: 160,
+      runewordsForged: 0,
+      skillPointsEarned: 1,
+      classPointsEarned: 1,
+      attributePointsEarned: 1,
+      trainingRanksGained: 1,
+      favoredTreeId: "paladin_combat",
+      favoredTreeName: "Combat",
+      unlockedClassSkills: 2,
+      loadoutTier: 3,
+      loadoutSockets: 1,
+      carriedEquipmentCount: 0,
+      carriedRuneCount: 1,
+      stashEntryCount: 1,
+      stashEquipmentCount: 0,
+      stashRuneCount: 1,
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-02T00:00:00.000Z").toISOString(),
+      outcome: "failed",
+    },
+  ];
+  profile.meta.progression.highestLevel = 12;
+  profile.meta.progression.highestActCleared = 5;
+  profile.meta.progression.totalBossesDefeated = 12;
+  profile.meta.progression.totalGoldCollected = 4200;
+  profile.meta.progression.totalRunewordsForged = 3;
+  profile.meta.progression.classesPlayed = ["amazon", "sorceress", "necromancer", "barbarian", "paladin"];
+  profile.meta.unlocks.bossIds = ["andariel"];
+  profile.meta.unlocks.runewordIds = ["steel"];
+
+  persistence.ensureProfileMeta(profile);
+
+  const accountSummary = persistence.getAccountProgressSummary(profile);
+  const unlockedFeatureIds = new Set(profile.meta.unlocks.townFeatureIds);
+
+  assert.ok(unlockedFeatureIds.has("archive_ledger"));
+  assert.ok(unlockedFeatureIds.has("boss_trophy_gallery"));
+  assert.ok(unlockedFeatureIds.has("runeword_codex"));
+  assert.ok(unlockedFeatureIds.has("advanced_vendor_stock"));
+  assert.ok(unlockedFeatureIds.has("class_roster_archive"));
+  assert.ok(unlockedFeatureIds.has("economy_ledger"));
+  assert.ok(unlockedFeatureIds.has("chronicle_vault"));
+  assert.ok(unlockedFeatureIds.has("heroic_annals"));
+  assert.ok(unlockedFeatureIds.has("mythic_annals"));
+  assert.ok(unlockedFeatureIds.has("eternal_annals"));
+  assert.ok(unlockedFeatureIds.has("salvage_tithes"));
+  assert.ok(unlockedFeatureIds.has("artisan_stock"));
+  assert.ok(unlockedFeatureIds.has("brokerage_charter"));
+  assert.ok(unlockedFeatureIds.has("treasury_exchange"));
+  assert.ok(unlockedFeatureIds.has("training_grounds"));
+  assert.ok(unlockedFeatureIds.has("war_college"));
+  assert.ok(unlockedFeatureIds.has("paragon_doctrine"));
+  assert.ok(unlockedFeatureIds.has("apex_doctrine"));
+  assert.equal(accountSummary.unlockedMilestoneCount, 18);
+  assert.equal(accountSummary.milestoneCount, 18);
+  assert.equal(accountSummary.focusedTreeId, "archives");
+  assert.equal(accountSummary.nextMilestoneId, "");
+  assert.equal(accountSummary.nextMilestoneTitle, "");
+  assert.ok(accountSummary.unlockedFeatureIds.includes("economy_ledger"));
+  assert.ok(accountSummary.unlockedFeatureIds.includes("brokerage_charter"));
+  assert.equal(accountSummary.treeCount, 3);
+  assert.equal(accountSummary.runHistoryCapacity, 70);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 5);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 7);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 6);
+  assert.equal(accountSummary.review.unlockedCapstoneCount, 3);
+  assert.equal(accountSummary.archive.highestLoadoutTier, 7);
+  assert.equal(accountSummary.archive.planningArchiveCount, 6);
+  assert.equal(accountSummary.profile.dismissedTutorialCount, 0);
+});
+
+test("profile migrations backfill richer archived run-history fields for older entries", () => {
+  const { persistence } = createHarness();
+  const restoredEnvelope = persistence.restoreProfile(
+    JSON.stringify({
+      schemaVersion: 2,
+      savedAt: new Date("2026-03-07T00:00:00.000Z").toISOString(),
+      profile: {
+        activeRunSnapshot: null,
+        stash: { entries: [] },
+        runHistory: [
+          {
+            runId: "legacy_run",
+            classId: "sorceress",
+            className: "Sorceress",
+            level: 8,
+            actsCleared: 2,
+            bossesDefeated: 1,
+            completedAt: new Date("2026-03-07T01:00:00.000Z").toISOString(),
+            outcome: "completed",
+          },
+        ],
+        meta: {},
+      },
+    })
+  );
+
+  assert.ok(restoredEnvelope);
+  const historyEntry = restoredEnvelope.profile.runHistory[0];
+  assert.equal(historyEntry.goldGained, 0);
+  assert.equal(historyEntry.runewordsForged, 0);
+  assert.equal(historyEntry.skillPointsEarned, 0);
+  assert.equal(historyEntry.classPointsEarned, 0);
+  assert.equal(historyEntry.attributePointsEarned, 0);
+  assert.equal(historyEntry.trainingRanksGained, 0);
+  assert.equal(historyEntry.favoredTreeId, "");
+  assert.equal(historyEntry.favoredTreeName, "");
+  assert.equal(historyEntry.unlockedClassSkills, 0);
+  assert.equal(historyEntry.loadoutTier, 0);
+  assert.equal(historyEntry.loadoutSockets, 0);
+  assert.equal(historyEntry.carriedEquipmentCount, 0);
+  assert.equal(historyEntry.carriedRuneCount, 0);
+  assert.equal(historyEntry.stashEntryCount, 0);
+  assert.equal(historyEntry.stashEquipmentCount, 0);
+  assert.equal(historyEntry.stashRuneCount, 0);
+  assert.equal(Array.isArray(historyEntry.activeRunewordIds), true);
+  assert.equal(historyEntry.activeRunewordIds.length, 0);
+  assert.equal(Array.isArray(historyEntry.newFeatureIds), true);
+  assert.equal(historyEntry.newFeatureIds.length, 0);
+});
+
+test("economy ledger changes vendor prices and refresh cost in town", () => {
+  const { browserWindow, content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
+  const buildState = (featureIds = []) => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    state.run.gold = 200;
+
+    const equipResult = itemSystem.applyChoice(
+      state.run,
+      {
+        id: "economy_ledger_loadout",
+        kind: "item",
+        title: "Short Sword",
+        subtitle: "Equip Weapon",
+        description: "",
+        previewLines: [],
+        effects: [{ kind: "equip_item", itemId: "item_short_sword" }],
+      },
+      content
+    );
+    assert.equal(equipResult.ok, true);
+
+    const unequipResult = appEngine.useTownAction(state, "inventory_unequip_weapon");
+    assert.equal(unequipResult.ok, true);
+
+    state.run.town.vendor.stock = [
+      {
+        entryId: "vendor_test_blade",
+        kind: "equipment",
+        equipment: {
+          entryId: "",
+          itemId: "item_short_sword",
+          slot: "weapon",
+          socketsUnlocked: 0,
+          insertedRunes: [],
+          runewordId: "",
+        },
+      },
+    ];
+
+    return state;
+  };
+  const getTownAction = (state, actionId) => {
+    return browserWindow.ROUGE_TOWN_SERVICES.listActions(content, state.run, state.profile).find((action) => action.id === actionId) || null;
+  };
+
+  const baselineState = buildState();
+  const ledgerState = buildState(["economy_ledger"]);
+
+  const baselineRefresh = getTownAction(baselineState, "vendor_refresh_stock");
+  const ledgerRefresh = getTownAction(ledgerState, "vendor_refresh_stock");
+  const baselineBuy = getTownAction(baselineState, "vendor_buy_vendor_test_blade");
+  const ledgerBuy = getTownAction(ledgerState, "vendor_buy_vendor_test_blade");
+  const baselineInventoryEntry = baselineState.run.inventory.carried[0];
+  const ledgerInventoryEntry = ledgerState.run.inventory.carried[0];
+  assert.ok(baselineInventoryEntry);
+  assert.ok(ledgerInventoryEntry);
+  const baselineSell = getTownAction(baselineState, `inventory_sell_${baselineInventoryEntry.entryId}`);
+  const ledgerSell = getTownAction(ledgerState, `inventory_sell_${ledgerInventoryEntry.entryId}`);
+
+  assert.ok(baselineRefresh);
+  assert.ok(ledgerRefresh);
+  assert.ok(baselineBuy);
+  assert.ok(ledgerBuy);
+  assert.ok(baselineSell);
+  assert.ok(ledgerSell);
+  assert.ok(ledgerRefresh.cost < baselineRefresh.cost);
+  assert.ok(ledgerBuy.cost < baselineBuy.cost);
+
+  let result = appEngine.useTownAction(baselineState, "vendor_buy_vendor_test_blade");
+  assert.equal(result.ok, true);
+  result = appEngine.useTownAction(ledgerState, "vendor_buy_vendor_test_blade");
+  assert.equal(result.ok, true);
+  assert.ok(ledgerState.run.gold > baselineState.run.gold);
+
+  result = appEngine.useTownAction(baselineState, `inventory_sell_${baselineInventoryEntry.entryId}`);
+  assert.equal(result.ok, true);
+  result = appEngine.useTownAction(ledgerState, `inventory_sell_${ledgerInventoryEntry.entryId}`);
+  assert.equal(result.ok, true);
+  assert.ok(ledgerState.run.gold > baselineState.run.gold);
+});
+
+test("advanced vendor stock improves opening-town offer depth on a progressed account", () => {
+  const { content, combatEngine, appEngine, seedBundle } = createHarness();
+  const buildState = (featureIds = []) => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    state.run.town.vendor.refreshCount = 1;
+    return state;
+  };
+  const getMaxTier = (state) => {
+    return state.run.town.vendor.stock
+      .filter((entry) => entry.kind === "equipment")
+      .reduce((highestTier, entry) => {
+        return Math.max(highestTier, content.itemCatalog[entry.equipment.itemId]?.progressionTier || 0);
+      }, 0);
+  };
+
+  const baselineState = buildState();
+  const advancedState = buildState(["advanced_vendor_stock"]);
+
+  assert.ok(advancedState.run.town.vendor.stock.length > baselineState.run.town.vendor.stock.length);
+  assert.ok(getMaxTier(advancedState) > getMaxTier(baselineState));
+});
+
+test("runeword codex widens vendor rune routing for unfinished recipes", () => {
+  const { content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
+  const buildState = (featureIds = []) => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+
+    ([
+      {
+        id: "codex_weapon",
+        kind: "item",
+        title: "Short Sword",
+        subtitle: "Equip Weapon",
+        description: "",
+        previewLines: [],
+        effects: [{ kind: "equip_item", itemId: "item_short_sword" }],
+      },
+      {
+        id: "codex_socket_1",
+        kind: "socket",
+        title: "Socket",
+        subtitle: "Open Socket",
+        description: "",
+        previewLines: [],
+        effects: [{ kind: "add_socket", slot: "weapon" }],
+      },
+      {
+        id: "codex_socket_2",
+        kind: "socket",
+        title: "Socket",
+        subtitle: "Open Socket",
+        description: "",
+        previewLines: [],
+        effects: [{ kind: "add_socket", slot: "weapon" }],
+      },
+    ] satisfies RewardChoice[]).forEach((choice) => {
+      const applyResult = itemSystem.applyChoice(state.run, choice, content);
+      assert.equal(applyResult.ok, true);
+    });
+
+    state.run.town.vendor.stock = [];
+    itemSystem.hydrateRunInventory(state.run, content, state.profile);
+    return state;
+  };
+  const getVendorRunes = (state) => {
+    return state.run.town.vendor.stock.filter((entry) => entry.kind === "rune").map((entry) => entry.runeId);
+  };
+
+  const baselineState = buildState();
+  const codexState = buildState(["runeword_codex"]);
+  const baselineRunes = getVendorRunes(baselineState);
+  const codexRunes = getVendorRunes(codexState);
+
+  assert.ok(baselineRunes.includes("rune_tir"));
+  assert.ok(!baselineRunes.includes("rune_el"));
+  assert.ok(codexRunes.includes("rune_tir"));
+  assert.ok(codexRunes.includes("rune_el"));
+  assert.ok(codexRunes.length > baselineRunes.length);
+});
+
+test("treasury exchange adds direct vendor-to-stash consignment and stash-aware rune routing", () => {
+  const { browserWindow, content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
+  const buildState = (featureIds = []) => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    state.run.gold = 1000;
+    state.profile.stash.entries = [
+      {
+        entryId: "stash_plan_blade",
+        kind: "equipment",
+        equipment: {
+          entryId: "stash_plan_blade",
+          itemId: "item_short_sword",
+          slot: "weapon",
+          socketsUnlocked: 2,
+          insertedRunes: ["rune_tir"],
+          runewordId: "",
+        },
+      },
+    ];
+    state.run.town.vendor.refreshCount = 1;
+    state.run.town.vendor.stock = [];
+    itemSystem.hydrateRunInventory(state.run, content, state.profile);
+    return state;
+  };
+  const getVendorRunes = (state) => {
+    return state.run.town.vendor.stock.filter((entry) => entry.kind === "rune").map((entry) => entry.runeId);
+  };
+
+  const baselineState = buildState();
+  const treasuryState = buildState(["treasury_exchange"]);
+  const stashEquipment = treasuryState.profile.stash.entries.find((entry) => entry.kind === "equipment")?.equipment || null;
+  const planningRuneword = browserWindow.ROUGE_ITEM_CATALOG.getPreferredRunewordForEquipment(stashEquipment, treasuryState.run, content);
+  assert.ok(planningRuneword);
+  const targetRuneId = planningRuneword.requiredRunes[stashEquipment.insertedRunes.length];
+  assert.ok(targetRuneId);
+
+  const baselineRunes = getVendorRunes(baselineState);
+  const treasuryRunes = getVendorRunes(treasuryState);
+  assert.ok(!baselineRunes.includes(targetRuneId));
+  assert.ok(treasuryRunes.includes(targetRuneId));
+
+  const baselineActions = itemSystem.listTownActions(baselineState.run, baselineState.profile, content);
+  const treasuryActions = itemSystem.listTownActions(treasuryState.run, treasuryState.profile, content);
+  assert.equal(baselineActions.some((action) => action.id.startsWith("vendor_consign_")), false);
+
+  const consignTarget = treasuryState.run.town.vendor.stock.find((entry) => entry.kind === "equipment") || treasuryState.run.town.vendor.stock[0];
+  assert.ok(consignTarget);
+  const consignAction = treasuryActions.find((action) => action.id === `vendor_consign_${consignTarget.entryId}`);
+  assert.ok(consignAction);
+  assert.match(consignAction.previewLines.join(" "), /consignment fee/i);
+
+  const startingGold = treasuryState.run.gold;
+  const startingStashEntries = treasuryState.profile.stash.entries.length;
+  const startingCarriedEntries = treasuryState.run.inventory.carried.length;
+  const startingVendorEntries = treasuryState.run.town.vendor.stock.length;
+  const result = appEngine.useTownAction(treasuryState, consignAction.id);
+  assert.equal(result.ok, true);
+  assert.equal(treasuryState.run.gold, startingGold - consignAction.cost);
+  assert.equal(treasuryState.profile.stash.entries.length, startingStashEntries + 1);
+  assert.equal(treasuryState.run.inventory.carried.length, startingCarriedEntries);
+  assert.equal(treasuryState.run.town.vendor.stock.length, startingVendorEntries - 1);
+
+  const consignedEntry = treasuryState.profile.stash.entries.find((entry) => entry.entryId !== "stash_plan_blade");
+  assert.ok(consignedEntry);
+  const inventorySummary = itemSystem.getInventorySummary(treasuryState.run, treasuryState.profile, content);
+  assert.match(inventorySummary.join(" "), /consign vendor offers directly into stash/i);
+});
+
+test("archived run history captures progression, economy, and account feature carry-through", () => {
+  const { classRegistry, content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.startRun(state);
+
+  const classProgression = classRegistry.getClassProgression(content, state.run.classId);
+  assert.ok(classProgression);
+  const favoredTree = classProgression.trees[0];
+  assert.ok(favoredTree);
+
+  state.run.progression.classProgression.favoredTreeId = favoredTree.id;
+  state.run.progression.classProgression.treeRanks[favoredTree.id] = 1;
+  state.run.progression.classProgression.unlockedSkillIds = [favoredTree.skills[0].id];
+  state.run.progression.activatedRunewords = ["steel"];
+  state.run.progression.bossTrophies = ["andariel"];
+  state.run.loadout.weapon = {
+    entryId: "history_weapon",
+    itemId: "item_short_sword",
+    slot: "weapon",
+    socketsUnlocked: 0,
+    insertedRunes: [],
+    runewordId: "",
+  };
+  state.run.loadout.armor = {
+    entryId: "history_armor",
+    itemId: "item_quilted_armor",
+    slot: "armor",
+    socketsUnlocked: 1,
+    insertedRunes: ["rune_el"],
+    runewordId: "",
+  };
+  state.run.inventory.carried = [
+    {
+      entryId: "carry_equipment",
+      kind: "equipment",
+      equipment: {
+        entryId: "carry_equipment",
+        itemId: "item_short_sword",
+        slot: "weapon",
+        socketsUnlocked: 0,
+        insertedRunes: [],
+        runewordId: "",
+      },
+    },
+    {
+      entryId: "carry_rune",
+      kind: "rune",
+      runeId: "rune_el",
+    },
+  ];
+  state.profile.stash.entries = [
+    {
+      entryId: "stash_armor",
+      kind: "equipment",
+      equipment: {
+        entryId: "stash_armor",
+        itemId: "item_quilted_armor",
+        slot: "armor",
+        socketsUnlocked: 1,
+        insertedRunes: [],
+        runewordId: "",
+      },
+    },
+    {
+      entryId: "stash_rune",
+      kind: "rune",
+      runeId: "rune_tir",
+    },
+  ];
+  state.run.summary.actsCleared = 3;
+  state.run.summary.bossesDefeated = 1;
+  state.run.summary.goldGained = 540;
+  state.run.summary.runewordsForged = 1;
+  state.run.summary.skillPointsEarned = 4;
+  state.run.summary.classPointsEarned = 2;
+  state.run.summary.attributePointsEarned = 1;
+  state.run.summary.trainingRanksGained = 3;
+
+  const progressionSummary = runFactory.getProgressionSummary(state.run, content);
+  persistence.recordRunHistory(state.profile, state.run, "completed", content);
+
+  const historyEntry = state.profile.runHistory[0];
+  assert.equal(historyEntry.goldGained, 540);
+  assert.equal(historyEntry.runewordsForged, 1);
+  assert.equal(historyEntry.skillPointsEarned, 4);
+  assert.equal(historyEntry.classPointsEarned, 2);
+  assert.equal(historyEntry.attributePointsEarned, 1);
+  assert.equal(historyEntry.trainingRanksGained, 3);
+  assert.equal(historyEntry.favoredTreeId, progressionSummary.favoredTreeId);
+  assert.equal(historyEntry.favoredTreeName, progressionSummary.favoredTreeName);
+  assert.equal(historyEntry.unlockedClassSkills, progressionSummary.unlockedClassSkills);
+  assert.ok(historyEntry.loadoutTier > 0);
+  assert.equal(historyEntry.loadoutSockets, 1);
+  assert.equal(historyEntry.carriedEquipmentCount, 1);
+  assert.equal(historyEntry.carriedRuneCount, 1);
+  assert.equal(historyEntry.stashEntryCount, 2);
+  assert.equal(historyEntry.stashEquipmentCount, 1);
+  assert.equal(historyEntry.stashRuneCount, 1);
+  assert.ok(historyEntry.activeRunewordIds.includes("steel"));
+  assert.ok(historyEntry.newFeatureIds.includes("archive_ledger"));
+  assert.ok(historyEntry.newFeatureIds.includes("boss_trophy_gallery"));
+  assert.ok(historyEntry.newFeatureIds.includes("runeword_codex"));
+  assert.ok(historyEntry.newFeatureIds.includes("advanced_vendor_stock"));
+  assert.ok(historyEntry.newFeatureIds.includes("economy_ledger"));
+});
+
+test("reward generation consumes account milestones for payout and boss pivots", () => {
+  const { browserWindow, content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const buildState = (featureIds = []) => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    return state;
+  };
+  const fakeCombatState = (state) =>
+    ({
+      hero: { life: state.run.hero.currentLife },
+      mercenary: { life: state.run.mercenary.currentLife },
+    } as CombatState);
+
+  const baselineState = buildState();
+  const featuredState = buildState(["economy_ledger", "boss_trophy_gallery"]);
+
+  const minibossZone = runFactory.getCurrentZones(baselineState.run).find((zone) => zone.kind === "miniboss");
+  const bossZone = runFactory.getCurrentZones(baselineState.run).find((zone) => zone.kind === "boss");
+  const featuredMinibossZone = runFactory.getCurrentZones(featuredState.run).find((zone) => zone.kind === "miniboss");
+  const featuredBossZone = runFactory.getCurrentZones(featuredState.run).find((zone) => zone.kind === "boss");
+  assert.ok(minibossZone);
+  assert.ok(bossZone);
+  assert.ok(featuredMinibossZone);
+  assert.ok(featuredBossZone);
+
+  const baselineMinibossReward = runFactory.buildEncounterReward({
+    run: baselineState.run,
+    zone: minibossZone,
+    combatState: fakeCombatState(baselineState),
+    content,
+    profile: baselineState.profile,
+  });
+  const featuredMinibossReward = runFactory.buildEncounterReward({
+    run: featuredState.run,
+    zone: featuredMinibossZone,
+    combatState: fakeCombatState(featuredState),
+    content,
+    profile: featuredState.profile,
+  });
+
+  assert.ok(featuredMinibossReward.grants.gold > baselineMinibossReward.grants.gold);
+  assert.match(featuredMinibossReward.lines.join(" "), /Economy Ledger dividend/i);
+
+  const baselineMinibossGoldBonus = baselineMinibossReward.choices
+    .flatMap((choice) => choice.effects.filter((effect) => effect.kind === "gold_bonus"))
+    .reduce((highest, effect) => Math.max(highest, effect.value), 0);
+  const featuredMinibossGoldBonus = featuredMinibossReward.choices
+    .flatMap((choice) => choice.effects.filter((effect) => effect.kind === "gold_bonus"))
+    .reduce((highest, effect) => Math.max(highest, effect.value), 0);
+
+  assert.ok(featuredMinibossGoldBonus > baselineMinibossGoldBonus);
+
+  const baselineBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: baselineState.run,
+    zone: bossZone,
+    actNumber: bossZone.actNumber,
+    encounterNumber: 1,
+    profile: baselineState.profile,
+  });
+  const featuredBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: featuredState.run,
+    zone: featuredBossZone,
+    actNumber: bossZone.actNumber,
+    encounterNumber: 1,
+    profile: featuredState.profile,
+  });
+
+  const baselineBossProgression = baselineBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const featuredBossProgression = featuredBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  assert.ok(baselineBossProgression);
+  assert.ok(featuredBossProgression);
+
+  const baselineBossClassPoints = baselineBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" ? effect.value : 0);
+  }, 0);
+  const featuredBossClassPoints = featuredBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" ? effect.value : 0);
+  }, 0);
+
+  assert.ok(featuredBossClassPoints > baselineBossClassPoints);
+  assert.match(featuredBossProgression.previewLines.join(" "), /Boss Trophy Gallery/i);
+});
+
+test("account progression trees drive archive retention, economy focus, and mastery focus behavior", () => {
+  const { browserWindow, content, combatEngine, appEngine, itemSystem, persistence, runFactory, seedBundle } = createHarness();
+  const buildState = (featureIds = [], focusedTreeId = "") => {
+    persistence.clearStorage();
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+    if (focusedTreeId) {
+      const focusResult = appEngine.setAccountProgressionFocus(state, focusedTreeId);
+      assert.equal(focusResult.ok, true);
+    }
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    return state;
+  };
+  const prepareLateActState = (state: AppState, includeVendorHydration = false) => {
+    state.run.currentActIndex = 4;
+    state.run.level = 11;
+    state.run.summary.zonesCleared = 8;
+    state.run.summary.encountersCleared = 12;
+    state.run.progression.bossTrophies = ["andariel", "duriel", "mephisto"];
+    state.run.town.vendor.refreshCount = 2;
+    state.run.town.vendor.stock = [];
+    runFactory.hydrateRun(state.run, content);
+    if (includeVendorHydration) {
+      itemSystem.hydrateRunInventory(state.run, content, state.profile);
+    }
+  };
+
+  const baselineEconomyState = buildState(["advanced_vendor_stock", "runeword_codex", "economy_ledger"]);
+  const focusedEconomyState = buildState(["advanced_vendor_stock", "runeword_codex", "economy_ledger", "salvage_tithes"], "economy");
+
+  baselineEconomyState.run.town.vendor.refreshCount = 2;
+  focusedEconomyState.run.town.vendor.refreshCount = 2;
+
+  const baselineRefreshAction = itemSystem
+    .listTownActions(baselineEconomyState.run, baselineEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const focusedRefreshAction = itemSystem
+    .listTownActions(focusedEconomyState.run, focusedEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+
+  assert.ok(baselineRefreshAction);
+  assert.ok(focusedRefreshAction);
+  assert.ok(focusedEconomyState.run.town.vendor.stock.length > baselineEconomyState.run.town.vendor.stock.length);
+  assert.ok(focusedRefreshAction.cost < baselineRefreshAction.cost);
+
+  const lateEconomyBaselineState = buildState(["advanced_vendor_stock", "runeword_codex", "economy_ledger", "salvage_tithes"], "economy");
+  const lateEconomyArtisanState = buildState(
+    ["advanced_vendor_stock", "runeword_codex", "economy_ledger", "salvage_tithes", "artisan_stock"],
+    "economy"
+  );
+  const lateEconomyBrokerageState = buildState(
+    ["advanced_vendor_stock", "runeword_codex", "economy_ledger", "salvage_tithes", "artisan_stock", "brokerage_charter"],
+    "economy"
+  );
+  const lateEconomyTreasuryState = buildState(
+    ["advanced_vendor_stock", "runeword_codex", "economy_ledger", "salvage_tithes", "artisan_stock", "brokerage_charter", "treasury_exchange"],
+    "economy"
+  );
+  prepareLateActState(lateEconomyBaselineState, true);
+  prepareLateActState(lateEconomyArtisanState, true);
+  prepareLateActState(lateEconomyBrokerageState, true);
+  prepareLateActState(lateEconomyTreasuryState, true);
+
+  const baselineLateSocketOffers = lateEconomyBaselineState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 3);
+  const artisanLateSocketOffers = lateEconomyArtisanState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 3);
+  const brokerageLateSocketOffers = lateEconomyBrokerageState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 3);
+  const treasuryLateSocketOffers = lateEconomyTreasuryState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 3);
+  const baselineLateRefreshAction = itemSystem
+    .listTownActions(lateEconomyBaselineState.run, lateEconomyBaselineState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const artisanLateRefreshAction = itemSystem
+    .listTownActions(lateEconomyArtisanState.run, lateEconomyArtisanState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const brokerageLateRefreshAction = itemSystem
+    .listTownActions(lateEconomyBrokerageState.run, lateEconomyBrokerageState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const treasuryLateRefreshAction = itemSystem
+    .listTownActions(lateEconomyTreasuryState.run, lateEconomyTreasuryState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+
+  assert.ok(baselineLateRefreshAction);
+  assert.ok(artisanLateRefreshAction);
+  assert.ok(brokerageLateRefreshAction);
+  assert.ok(treasuryLateRefreshAction);
+  assert.ok(artisanLateRefreshAction.cost < baselineLateRefreshAction.cost);
+  assert.ok(brokerageLateRefreshAction.cost < artisanLateRefreshAction.cost);
+  assert.ok(treasuryLateRefreshAction.cost < brokerageLateRefreshAction.cost);
+  assert.ok(artisanLateSocketOffers.length >= baselineLateSocketOffers.length);
+  assert.ok(brokerageLateSocketOffers.length >= artisanLateSocketOffers.length);
+  assert.ok(treasuryLateSocketOffers.length >= brokerageLateSocketOffers.length);
+  assert.ok(artisanLateSocketOffers.length > 0);
+  assert.ok(lateEconomyBrokerageState.run.town.vendor.stock.length >= lateEconomyArtisanState.run.town.vendor.stock.length);
+  assert.ok(lateEconomyTreasuryState.run.town.vendor.stock.length >= lateEconomyBrokerageState.run.town.vendor.stock.length);
+  assert.match(treasuryLateRefreshAction.previewLines.join(" "), /Treasury Exchange/i);
+
+  const baselineMasteryState = buildState(["boss_trophy_gallery", "training_grounds"], "mastery");
+  const focusedMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college"], "mastery");
+  const paragonMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine"], "mastery");
+  const apexMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine"], "mastery");
+  prepareLateActState(baselineMasteryState);
+  prepareLateActState(focusedMasteryState);
+  prepareLateActState(paragonMasteryState);
+  prepareLateActState(apexMasteryState);
+  const baselineBossZone = runFactory.getCurrentZones(baselineMasteryState.run).find((zone) => zone.kind === "boss");
+  const focusedBossZone = runFactory.getCurrentZones(focusedMasteryState.run).find((zone) => zone.kind === "boss");
+  const paragonBossZone = runFactory.getCurrentZones(paragonMasteryState.run).find((zone) => zone.kind === "boss");
+  const apexBossZone = runFactory.getCurrentZones(apexMasteryState.run).find((zone) => zone.kind === "boss");
+
+  assert.ok(baselineBossZone);
+  assert.ok(focusedBossZone);
+  assert.ok(paragonBossZone);
+  assert.ok(apexBossZone);
+
+  const baselineBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: baselineMasteryState.run,
+    zone: baselineBossZone,
+    actNumber: baselineBossZone.actNumber,
+    encounterNumber: 1,
+    profile: baselineMasteryState.profile,
+  });
+  const focusedBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: focusedMasteryState.run,
+    zone: focusedBossZone,
+    actNumber: focusedBossZone.actNumber,
+    encounterNumber: 1,
+    profile: focusedMasteryState.profile,
+  });
+  const paragonBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: paragonMasteryState.run,
+    zone: paragonBossZone,
+    actNumber: paragonBossZone.actNumber,
+    encounterNumber: 1,
+    profile: paragonMasteryState.profile,
+  });
+  const apexBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: apexMasteryState.run,
+    zone: apexBossZone,
+    actNumber: apexBossZone.actNumber,
+    encounterNumber: 1,
+    profile: apexMasteryState.profile,
+  });
+
+  const baselineBossProgression = baselineBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const focusedBossProgression = focusedBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const paragonBossProgression = paragonBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const apexBossProgression = apexBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+
+  assert.ok(baselineBossProgression);
+  assert.ok(focusedBossProgression);
+  assert.ok(paragonBossProgression);
+  assert.ok(apexBossProgression);
+
+  const baselineBossProgressionPoints = baselineBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
+  const focusedBossProgressionPoints = focusedBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
+  const paragonBossProgressionPoints = paragonBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
+  const apexBossProgressionPoints = apexBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
+
+  assert.ok(focusedBossProgressionPoints > baselineBossProgressionPoints);
+  assert.ok(paragonBossProgressionPoints > focusedBossProgressionPoints);
+  assert.ok(apexBossProgressionPoints > paragonBossProgressionPoints);
+  assert.match(focusedBossProgression.previewLines.join(" "), /Training Grounds|Mastery Hall focus|War College/i);
+  assert.match(paragonBossProgression.previewLines.join(" "), /Paragon Doctrine/i);
+  assert.match(apexBossProgression.previewLines.join(" "), /Apex Doctrine/i);
+
+  const archiveProfile = persistence.createEmptyProfile();
+  archiveProfile.meta.unlocks.townFeatureIds.push("archive_ledger", "chronicle_vault", "heroic_annals", "mythic_annals", "eternal_annals");
+  persistence.ensureProfileMeta(archiveProfile);
+  persistence.setAccountProgressionFocus(archiveProfile, "economy");
+  assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 65);
+  persistence.setAccountProgressionFocus(archiveProfile, "archives");
+  assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 70);
+
+  for (let index = 0; index < 75; index += 1) {
+    const archivedRun = JSON.parse(JSON.stringify(focusedEconomyState.run)) as RunState;
+    archivedRun.id = `archive_focus_${index}`;
+    persistence.recordRunHistory(archiveProfile, archivedRun, "abandoned", content);
+  }
+
+  assert.equal(archiveProfile.runHistory.length, 70);
+});
+
+test("late-act reward equipment choices prioritize replacement pivots and honor economy-gated curation", () => {
+  const { browserWindow, content, combatEngine, appEngine, itemSystem, runFactory, seedBundle } = createHarness();
+  const allItems = Object.values(content.itemCatalog);
+  const lowestTierWeapon = [...allItems]
+    .filter((item) => item.slot === "weapon")
+    .sort((left, right) => {
+      const tierDelta = left.progressionTier - right.progressionTier;
+      if (tierDelta !== 0) {
+        return tierDelta;
+      }
+      return left.maxSockets - right.maxSockets;
+    })[0];
+  const highestTierArmor = [...allItems]
+    .filter((item) => item.slot === "armor")
+    .sort((left, right) => {
+      const tierDelta = right.progressionTier - left.progressionTier;
+      if (tierDelta !== 0) {
+        return tierDelta;
+      }
+      return right.maxSockets - left.maxSockets;
+    })[0];
+
+  assert.ok(lowestTierWeapon);
+  assert.ok(highestTierArmor);
+
+  const buildLateActState = (featureIds: string[] = [], focusedTreeId = "") => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    featureIds.forEach((featureId) => {
+      if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+        state.profile.meta.unlocks.townFeatureIds.push(featureId);
+      }
+    });
+    if (focusedTreeId) {
+      const focusResult = appEngine.setAccountProgressionFocus(state, focusedTreeId);
+      assert.equal(focusResult.ok, true);
+    }
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    state.run.currentActIndex = 4;
+    state.run.level = 11;
+    state.run.summary.zonesCleared = 8;
+    state.run.summary.encountersCleared = 12;
+    state.run.progression.bossTrophies = ["andariel", "duriel", "mephisto"];
+    runFactory.hydrateRun(state.run, content);
+    state.run.loadout.weapon = {
+      entryId: "late_reward_weapon",
+      itemId: lowestTierWeapon.id,
+      slot: "weapon",
+      socketsUnlocked: 0,
+      insertedRunes: [],
+      runewordId: "",
+    };
+    state.run.loadout.armor = {
+      entryId: "late_reward_armor",
+      itemId: highestTierArmor.id,
+      slot: "armor",
+      socketsUnlocked: Math.min(2, highestTierArmor.maxSockets || 0),
+      insertedRunes: [],
+      runewordId: "",
+    };
+    itemSystem.hydrateRunLoadout(state.run, content);
+
+    const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
+    assert.ok(bossZone);
+
+    return { state, bossZone };
+  };
+
+  const baseline = buildLateActState();
+  const baselineChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: baseline.state.run,
+    zone: baseline.bossZone,
+    actNumber: baseline.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: baseline.state.profile,
+  });
+  const baselineEquipmentChoice = baselineChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  assert.ok(baselineEquipmentChoice);
+  assert.equal(baselineEquipmentChoice.kind, "item");
+  const baselineRewardItemId = baselineEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const baselineRewardItem = content.itemCatalog[baselineRewardItemId];
+  assert.ok(baselineRewardItem);
+  assert.ok(baselineRewardItem.progressionTier > lowestTierWeapon.progressionTier);
+  assert.match(baselineEquipmentChoice.previewLines.join(" "), /Late-act pivot/i);
+
+  const featured = buildLateActState(["artisan_stock", "brokerage_charter"], "economy");
+  const featuredChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: featured.state.run,
+    zone: featured.bossZone,
+    actNumber: featured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: featured.state.profile,
+  });
+  const featuredEquipmentChoice = featuredChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  assert.ok(featuredEquipmentChoice);
+  assert.equal(featuredEquipmentChoice.kind, "item");
+  const featuredRewardItemId = featuredEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const featuredRewardItem = content.itemCatalog[featuredRewardItemId];
+  assert.ok(featuredRewardItem);
+  assert.ok((featuredRewardItem.maxSockets || 0) >= (baselineRewardItem.maxSockets || 0));
+  assert.match(featuredEquipmentChoice.previewLines.join(" "), /Trade Network/i);
+});
+
 test("createAppState sanitizes persisted stash entries before town actions consume them", () => {
   const { content, combatEngine, appEngine, persistence, seedBundle, storage } = createHarness();
   const seededProfile = persistence.createEmptyProfile();
@@ -428,300 +1492,7 @@ test("createAppState sanitizes persisted stash entries before town actions consu
   assert.equal(state.profile.stash.entries.length, 3);
 });
 
-test("front door can review, continue, and abandon an active saved run", () => {
-  const { content, combatEngine, appEngine, persistence, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  assert.equal(appEngine.hasSavedRun(), true);
-
-  appEngine.returnToFrontDoor(state);
-  assert.equal(state.phase, appEngine.PHASES.FRONT_DOOR);
-  assert.equal(appEngine.hasSavedRun(), true);
-
-  const summary = appEngine.getSavedRunSummary();
-  assert.ok(summary);
-  assert.equal(summary.phase, appEngine.PHASES.WORLD_MAP);
-  assert.equal(summary.className, state.registries.classes[0].name);
-
-  const resumedState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const resumeResult = appEngine.continueSavedRun(resumedState);
-  assert.equal(resumeResult.ok, true);
-  assert.equal(resumedState.phase, appEngine.PHASES.WORLD_MAP);
-
-  const abandonState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const abandonResult = appEngine.abandonSavedRun(abandonState);
-  assert.equal(abandonResult.ok, true);
-  assert.equal(abandonState.phase, appEngine.PHASES.FRONT_DOOR);
-  assert.equal(appEngine.hasSavedRun(), false);
-  assert.equal(appEngine.getSavedRunSummary(), null);
-  const archivedProfile = persistence.loadProfileFromStorage();
-  assert.ok(archivedProfile);
-  assert.equal(archivedProfile.runHistory.length, 1);
-  assert.equal(archivedProfile.runHistory[0].outcome, "abandoned");
-});
-
-test("app shell renders front-door, safe-zone, world-map, and reward shell surfaces", () => {
-  const { content, combatEngine, appEngine, appShell, runFactory, browserWindow, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
-
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Start Fresh/);
-  assert.match(root.innerHTML, /Profile Hall/);
-  assert.match(root.innerHTML, /First Run Guide/);
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Town Services/);
-  assert.match(root.innerHTML, /Departure Gate/);
-  assert.match(root.innerHTML, /Progression Board/);
-  assert.match(root.innerHTML, /World Ledger/);
-  assert.match(root.innerHTML, /Departure Briefing/);
-  assert.match(root.innerHTML, /Loadout Bench/);
-
-  appEngine.leaveSafeZone(state);
-  appEngine.returnToFrontDoor(state);
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Saved Snapshot/);
-  assert.match(root.innerHTML, /Continue Saved Run/);
-  assert.match(root.innerHTML, /Abandon Saved Run/);
-
-  state.ui.confirmAbandonSavedRun = true;
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Discard This Run/);
-
-  appEngine.continueSavedRun(state);
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Route Overview/);
-  assert.match(root.innerHTML, /Boss Pressure/);
-  assert.match(root.innerHTML, /Map Guide/);
-  assert.match(root.innerHTML, /Aftermath Nodes/);
-
-  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
-  appEngine.selectZone(state, openingZoneId);
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Turn Guide/);
-  state.combat.outcome = "victory";
-  appEngine.syncEncounterOutcome(state);
-
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
-  assert.match(root.innerHTML, /Choose One Reward/);
-  assert.match(root.innerHTML, /Combat Reward/);
-  assert.match(root.innerHTML, /Advance Guide/);
-  assert.match(root.innerHTML, /Permanent Run Mutation/);
-});
-
-test("world-map and reward shell render node-specific quest and aftermath guidance", () => {
-  const { content, combatEngine, appEngine, appShell, runFactory, browserWindow, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
-  const render = () => {
-    appShell.render(root, {
-      appState: state,
-      baseContent: browserWindow.ROUGE_GAME_CONTENT,
-      bootState: { status: "ready", error: "" },
-    });
-  };
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-  render();
-
-  assert.match(root.innerHTML, /Quest Nodes/);
-  assert.match(root.innerHTML, /Aftermath Nodes/);
-
-  let questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  let questUnlockAttempts = 0;
-  while (questZone?.status !== "available" && questUnlockAttempts < 5) {
-    questUnlockAttempts += 1;
-    const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
-    const openingResult = appEngine.selectZone(state, openingZoneId);
-    assert.equal(openingResult.ok, true);
-    state.combat.outcome = "victory";
-    appEngine.syncEncounterOutcome(state);
-    appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
-    assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-    questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  }
-
-  assert.ok(questZone);
-  assert.equal(questZone.status, "available");
-  const questResult = appEngine.selectZone(state, questZone.id);
-  assert.equal(questResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.REWARD);
-
-  render();
-  assert.match(root.innerHTML, /Quest Resolution/);
-  assert.match(root.innerHTML, /quest outcome/i);
-
-  appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-
-  render();
-  assert.match(root.innerHTML, /Triggered by/);
-
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  assert.ok(eventZone);
-  const eventResult = appEngine.selectZone(state, eventZone.id);
-  assert.equal(eventResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.REWARD);
-  assert.equal(state.run.pendingReward.kind, "event");
-
-  render();
-  assert.match(root.innerHTML, /Aftermath Follow-Up/);
-  assert.match(root.innerHTML, /Triggered by/);
-});
-
-test("action dispatcher drives the front-door continue and abandon shell flow", () => {
-  const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, persistence, createActionTarget, seedBundle } =
-    createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
-  const render = () => {
-    appShell.render(root, {
-      appState: state,
-      baseContent: browserWindow.ROUGE_GAME_CONTENT,
-      bootState: { status: "ready", error: "" },
-    });
-  };
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-  appEngine.returnToFrontDoor(state);
-  render();
-
-  let handled = actionDispatcher.handleClick({
-    target: createActionTarget({ action: "prompt-abandon-saved-run" }),
-    appState: state,
-    appEngine,
-    combatEngine,
-    render,
-    syncCombatResultAndRender: render,
-  });
-  assert.equal(handled, true);
-  assert.equal(state.ui.confirmAbandonSavedRun, true);
-  assert.match(root.innerHTML, /Discard This Run/);
-
-  handled = actionDispatcher.handleClick({
-    target: createActionTarget({ action: "cancel-abandon-saved-run" }),
-    appState: state,
-    appEngine,
-    combatEngine,
-    render,
-    syncCombatResultAndRender: render,
-  });
-  assert.equal(handled, true);
-  assert.equal(state.ui.confirmAbandonSavedRun, false);
-  assert.doesNotMatch(root.innerHTML, /Discard This Run/);
-
-  handled = actionDispatcher.handleClick({
-    target: createActionTarget({ action: "continue-saved-run" }),
-    appState: state,
-    appEngine,
-    combatEngine,
-    render,
-    syncCombatResultAndRender: render,
-  });
-  assert.equal(handled, true);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.match(root.innerHTML, /Route Overview/);
-
-  appEngine.returnToFrontDoor(state);
-  render();
-
-  handled = actionDispatcher.handleClick({
-    target: createActionTarget({ action: "prompt-abandon-saved-run" }),
-    appState: state,
-    appEngine,
-    combatEngine,
-    render,
-    syncCombatResultAndRender: render,
-  });
-  assert.equal(handled, true);
-
-  handled = actionDispatcher.handleClick({
-    target: createActionTarget({ action: "confirm-abandon-saved-run" }),
-    appState: state,
-    appEngine,
-    combatEngine,
-    render,
-    syncCombatResultAndRender: render,
-  });
-  assert.equal(handled, true);
-  assert.equal(appEngine.hasSavedRun(), false);
-  const archivedProfile = persistence.loadProfileFromStorage();
-  assert.ok(archivedProfile);
-  assert.equal(archivedProfile.runHistory.length, 1);
-  assert.equal(archivedProfile.runHistory[0].outcome, "abandoned");
-});
-
-test("reward choices can add a new card to the run deck", () => {
+test("legacy mercenary route perks feed the next combat after the full post-culmination route resolves", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
@@ -731,740 +1502,45 @@ test("reward choices can add a new card to the run deck", () => {
   });
 
   appEngine.startCharacterSelect(state);
-  appEngine.setSelectedClass(state, "barbarian");
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
-  const deckSizeBeforeReward = state.run.deck.length;
-  appEngine.selectZone(state, openingZoneId);
-  state.combat.outcome = "victory";
-  appEngine.syncEncounterOutcome(state);
-
-  const cardChoice = state.run.pendingReward.choices.find((choice) => choice.kind === "card");
-  assert.ok(cardChoice);
-  const cardId = cardChoice.effects.find((effect) => effect.kind === "add_card")?.cardId;
-  assert.ok(cardId);
-
-  appEngine.claimRewardAndAdvance(state, cardChoice.id);
-
-  assert.equal(state.run.deck.length, deckSizeBeforeReward + 1);
-  assert.ok(state.run.deck.includes(cardId));
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-});
-
-test("equipment rewards persist on the run and feed the next encounter state", () => {
-  const { content, combatEngine, appEngine, itemSystem, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
-  appEngine.selectZone(state, openingZoneId);
-  state.combat.outcome = "victory";
-  appEngine.syncEncounterOutcome(state);
-
-  const equipmentChoice = state.run.pendingReward.choices.find((choice) => {
-    return choice.kind === "item" || choice.kind === "rune";
-  });
-  assert.ok(equipmentChoice);
-
-  appEngine.claimRewardAndAdvance(state, equipmentChoice.id);
-
-  const equipmentEffect = equipmentChoice.effects[0];
-  if (equipmentEffect.kind === "equip_item") {
-    const item = content.itemCatalog[equipmentEffect.itemId];
-    assert.equal(state.run.loadout[item.slot]?.itemId, item.id);
-  } else {
-    const rune = content.runeCatalog[equipmentEffect.runeId];
-    const slot = equipmentEffect.slot;
-    assert.ok(slot);
-    assert.ok(state.run.loadout[slot]);
-    assert.ok(state.run.loadout[slot].insertedRunes.includes(rune.id));
-  }
-
-  const combatBonuses = itemSystem.buildCombatBonuses(state.run, content);
-  const result = appEngine.selectZone(state, openingZoneId);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.combat.hero.damageBonus, combatBonuses.heroDamageBonus || 0);
-  assert.equal(state.combat.hero.guardBonus, combatBonuses.heroGuardBonus || 0);
-  assert.equal(state.combat.hero.burnBonus, combatBonuses.heroBurnBonus || 0);
-  assert.equal(state.combat.hero.maxLife, state.run.hero.maxLife + (combatBonuses.heroMaxLife || 0));
-  assert.equal(state.combat.mercenary.attack, state.run.mercenary.attack + (combatBonuses.mercenaryAttack || 0));
-
-  const target = state.combat.enemies[0];
-  if ((combatBonuses.heroGuardBonus || 0) > 0) {
-    state.combat.hand = [{ instanceId: "card_guard", cardId: "shield_slam" }];
-    state.combat.hero.energy = 3;
-    combatEngine.playCard(state.combat, content, "card_guard", target.id);
-    assert.equal(state.combat.hero.guard, 4 + (combatBonuses.heroGuardBonus || 0));
-    return;
-  }
-
-  if ((combatBonuses.heroDamageBonus || 0) > 0) {
-    state.combat.hand = [{ instanceId: "card_damage", cardId: "quick_slash" }];
-    state.combat.hero.energy = 3;
-    combatEngine.playCard(state.combat, content, "card_damage", target.id);
-    assert.equal(target.life, target.maxLife - (7 + (combatBonuses.heroDamageBonus || 0)));
-    return;
-  }
-
-  if ((combatBonuses.heroBurnBonus || 0) > 0) {
-    state.combat.hand = [{ instanceId: "card_burn", cardId: "fire_bolt" }];
-    state.combat.hero.energy = 3;
-    combatEngine.playCard(state.combat, content, "card_burn", target.id);
-    assert.equal(target.burn, 2 + (combatBonuses.heroBurnBonus || 0));
-    return;
-  }
-
-  assert.ok((combatBonuses.heroMaxLife || 0) > 0 || (combatBonuses.mercenaryAttack || 0) > 0);
-});
-
-test("itemization progression can open sockets and activate a runeword", () => {
-  const { content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-
-  const applyChoice = (choice: RewardChoice) => {
-    const result = itemSystem.applyChoice(state.run, choice, content);
-    assert.equal(result.ok, true);
-  };
-
-  applyChoice({
-    id: "equip_short_sword",
-    kind: "item",
-    title: "Short Sword",
-    subtitle: "Equip Weapon",
-    description: "",
-    previewLines: [],
-    effects: [{ kind: "equip_item", itemId: "item_short_sword" }],
-  });
-  applyChoice({
-    id: "socket_weapon_1",
-    kind: "socket",
-    title: "Socket",
-    subtitle: "Open Socket",
-    description: "",
-    previewLines: [],
-    effects: [{ kind: "add_socket", slot: "weapon" }],
-  });
-  applyChoice({
-    id: "socket_weapon_2",
-    kind: "socket",
-    title: "Socket",
-    subtitle: "Open Socket",
-    description: "",
-    previewLines: [],
-    effects: [{ kind: "add_socket", slot: "weapon" }],
-  });
-  applyChoice({
-    id: "socket_tir",
-    kind: "rune",
-    title: "Tir",
-    subtitle: "Socket Weapon Rune",
-    description: "",
-    previewLines: [],
-    effects: [{ kind: "socket_rune", slot: "weapon", runeId: "rune_tir" }],
-  });
-  applyChoice({
-    id: "socket_el",
-    kind: "rune",
-    title: "El",
-    subtitle: "Socket Weapon Rune",
-    description: "",
-    previewLines: [],
-    effects: [{ kind: "socket_rune", slot: "weapon", runeId: "rune_el" }],
-  });
-
-  assert.equal(state.run.loadout.weapon?.itemId, "item_short_sword");
-  assert.equal(Array.from(state.run.loadout.weapon?.insertedRunes || []).join(","), "rune_tir,rune_el");
-  assert.equal(Array.from(itemSystem.getActiveRunewords(state.run, content)).join(","), "Steel");
-  assert.equal(Array.from(state.run.progression.activatedRunewords || []).join(","), "steel");
-  assert.equal(state.run.summary.runewordsForged, 1);
-
-  const combatBonuses = itemSystem.buildCombatBonuses(state.run, content);
-  assert.ok((combatBonuses.heroDamageBonus || 0) >= 5);
-});
-
-test("class and attribute progression spends survive snapshot restore and change derived combat bonuses", () => {
-  const { content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedClass(state, "sorceress");
-  appEngine.startRun(state);
-
-  const classProgression = content.classProgressionCatalog?.[state.run.classId];
-  assert.ok(classProgression);
-  assert.ok(classProgression.trees.length > 0);
-
-  const firstTreeId = classProgression.trees[0].id;
-  const summarizeBonuses = (bonuses: ItemBonusSet) => {
-    return Object.values(bonuses).reduce((total, value) => total + (Number.parseInt(String(value || 0), 10) || 0), 0);
-  };
-
-  const bonusesBefore = runFactory.buildCombatBonuses(state.run, content);
-  state.run.progression.classPointsAvailable = 1;
-  state.run.progression.attributePointsAvailable = 2;
-
-  let result = appEngine.useTownAction(state, `progression_tree_${firstTreeId}`);
-  assert.equal(result.ok, true);
-  result = appEngine.useTownAction(state, "progression_attribute_strength");
-  assert.equal(result.ok, true);
-  result = appEngine.useTownAction(state, "progression_attribute_energy");
-  assert.equal(result.ok, true);
-
-  assert.equal(state.run.progression.classProgression.treeRanks[firstTreeId], 1);
-  assert.equal(state.run.progression.classProgression.favoredTreeId, firstTreeId);
-  assert.ok(state.run.progression.classProgression.unlockedSkillIds.length >= 1);
-  assert.equal(state.run.progression.attributes.strength, 1);
-  assert.equal(state.run.progression.attributes.energy, 1);
-
-  const bonusesAfter = runFactory.buildCombatBonuses(state.run, content);
-  assert.ok(summarizeBonuses(bonusesAfter) > summarizeBonuses(bonusesBefore));
-
-  appEngine.leaveSafeZone(state);
-  const snapshot = appEngine.saveRunSnapshot(state);
-  assert.ok(snapshot);
-
-  const restoredSnapshot = persistence.restoreSnapshot(snapshot);
-  assert.ok(restoredSnapshot);
-  assert.equal(restoredSnapshot.run.progression.classProgression.treeRanks[firstTreeId], 1);
-  assert.equal(restoredSnapshot.run.progression.attributes.strength, 1);
-  assert.equal(restoredSnapshot.run.progression.attributes.energy, 1);
-  assert.ok(restoredSnapshot.run.progression.classProgression.unlockedSkillIds.length >= 1);
-
-  const importedState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const importResult = appEngine.loadRunSnapshot(importedState, snapshot);
-  assert.equal(importResult.ok, true);
-  assert.equal(importedState.run.progression.classProgression.treeRanks[firstTreeId], 1);
-  assert.equal(importedState.run.progression.attributes.strength, 1);
-  assert.equal(importedState.run.progression.attributes.energy, 1);
-  assert.ok(importedState.run.progression.classProgression.unlockedSkillIds.length >= 1);
-});
-
-test("boss rewards can grant progression points and saved summaries surface the new pools", () => {
-  const { browserWindow, content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-
-  const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
-  assert.ok(bossZone);
-
-  const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
-    content,
-    run: state.run,
-    zone: bossZone,
-    actNumber: bossZone.actNumber,
-    encounterNumber: 1,
-  });
-  const progressionChoice = rewardChoices.find((choice) => {
-    return choice.effects.some((effect) => effect.kind === "class_point" || effect.kind === "attribute_point");
-  });
-  assert.ok(progressionChoice);
-
-  const rewardResult = runFactory.applyReward(
-    state.run,
-    {
-      zoneId: bossZone.id,
-      zoneTitle: bossZone.title,
-      kind: bossZone.kind,
-      title: "Boss Reward",
-      lines: [],
-      grants: { gold: 0, xp: 0, potions: 0 },
-      choices: rewardChoices,
-      encounterNumber: 1,
-      clearsZone: false,
-      endsAct: false,
-      endsRun: false,
-      heroLifeAfterFight: state.run.hero.currentLife,
-      mercenaryLifeAfterFight: state.run.mercenary.currentLife,
-    },
-    progressionChoice.id,
-    content
-  );
-
-  assert.equal(rewardResult.ok, true);
-  assert.ok(state.run.progression.classPointsAvailable >= 1);
-  assert.ok(state.run.progression.attributePointsAvailable >= 1);
-  assert.ok(state.run.summary.classPointsEarned >= 1);
-  assert.ok(state.run.summary.attributePointsEarned >= 1);
-
-  const snapshot = appEngine.saveRunSnapshot(state);
-  assert.ok(snapshot);
-  const saveResult = persistence.saveToStorage(snapshot);
-  assert.equal(saveResult.ok, true);
-
-  const savedSummary = appEngine.getSavedRunSummary();
-  assert.ok(savedSummary);
-  assert.equal(savedSummary.classPointsAvailable, state.run.progression.classPointsAvailable);
-  assert.equal(savedSummary.attributePointsAvailable, state.run.progression.attributePointsAvailable);
-  assert.equal(savedSummary.unlockedClassSkills, state.run.progression.classProgression.unlockedSkillIds.length);
-});
-
-test("run rewards can level the party and snapshots restore the progressed run", () => {
-  const { content, combatEngine, appEngine, itemSystem, persistence, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  state.run.gold = 73;
-  const heroLifeBefore = state.run.hero.maxLife;
-  const heroEnergyBefore = state.run.hero.maxEnergy;
-  const mercenaryAttackBefore = state.run.mercenary.attack;
-
-  const openingZone = runFactory.getCurrentZones(state.run)[0];
-  const initialEquipmentChoice = itemSystem.buildEquipmentChoice({
-    content,
-    run: state.run,
-    zone: openingZone,
-    actNumber: 1,
-    encounterNumber: 1,
-  });
-  const initialItemEffect = initialEquipmentChoice?.effects.find((effect) => effect.kind === "equip_item");
-  const initialItemId = initialItemEffect?.itemId || "";
-  assert.ok(initialItemId);
-  const initialItemTier = content.itemCatalog[initialItemId].progressionTier;
-  const rewardResult = runFactory.applyReward(
-    state.run,
-    {
-      zoneId: openingZone.id,
-      zoneTitle: openingZone.title,
-      kind: openingZone.kind,
-      title: "Progress Test",
-      lines: [],
-      grants: { gold: 0, xp: 160, potions: 0 },
-      choices: [
-        {
-          id: "noop",
-          kind: "boon",
-          title: "Noop",
-          subtitle: "Noop",
-          description: "",
-          previewLines: [],
-          effects: [],
-        },
-      ],
-      encounterNumber: 1,
-      clearsZone: false,
-      endsAct: false,
-      endsRun: false,
-      heroLifeAfterFight: state.run.hero.currentLife,
-      mercenaryLifeAfterFight: state.run.mercenary.currentLife,
-    },
-    "noop",
-    content
-  );
-
-  assert.equal(rewardResult.ok, true);
-  assert.equal(state.run.level, 4);
-  assert.equal(state.run.progression.skillPointsAvailable, 3);
-  assert.equal(state.run.progression.training.vitality, 1);
-  assert.equal(state.run.progression.training.focus, 1);
-  assert.equal(state.run.progression.training.command, 1);
-  assert.equal(state.run.summary.levelsGained, 3);
-  assert.equal(state.run.summary.skillPointsEarned, 3);
-  assert.equal(state.run.summary.trainingRanksGained, 3);
-  assert.ok(state.run.hero.maxLife > heroLifeBefore);
-  assert.ok(state.run.hero.maxEnergy > heroEnergyBefore);
-  assert.ok(state.run.mercenary.attack > mercenaryAttackBefore);
-
-  const progressedCombatState = runFactory.createCombatOverrides(state.run, content);
-  assert.ok(progressedCombatState.heroState.maxLife > heroLifeBefore);
-  assert.ok(progressedCombatState.heroState.maxEnergy > heroEnergyBefore);
-  assert.ok(progressedCombatState.mercenaryState.attack > mercenaryAttackBefore);
-
-  const progressedEquipmentChoice = itemSystem.buildEquipmentChoice({
-    content,
-    run: state.run,
-    zone: openingZone,
-    actNumber: 1,
-    encounterNumber: 1,
-  });
-  const progressedItemEffect = progressedEquipmentChoice?.effects.find((effect) => effect.kind === "equip_item");
-  const progressedItemId = progressedItemEffect?.itemId || "";
-  assert.ok(progressedItemId);
-  assert.ok(content.itemCatalog[progressedItemId].progressionTier > initialItemTier);
-
-  appEngine.leaveSafeZone(state);
-  const snapshot = appEngine.saveRunSnapshot(state);
-  assert.ok(snapshot);
-
-  const restoredSnapshot = persistence.restoreSnapshot(snapshot);
-  assert.ok(restoredSnapshot);
-  assert.equal(restoredSnapshot.schemaVersion, persistence.SCHEMA_VERSION);
-  assert.equal(restoredSnapshot.run.level, state.run.level);
-  assert.equal(restoredSnapshot.run.progression.skillPointsAvailable, state.run.progression.skillPointsAvailable);
-  assert.equal(restoredSnapshot.run.progression.training.vitality, state.run.progression.training.vitality);
-  assert.equal(restoredSnapshot.run.progression.training.focus, state.run.progression.training.focus);
-  assert.equal(restoredSnapshot.run.progression.training.command, state.run.progression.training.command);
-
-  const resumedState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const resumeResult = appEngine.continueSavedRun(resumedState);
-  assert.equal(resumeResult.ok, true);
-  assert.equal(resumedState.phase, appEngine.PHASES.WORLD_MAP);
-  assert.equal(resumedState.run.level, state.run.level);
-  assert.equal(resumedState.run.gold, state.run.gold);
-  assert.equal(resumedState.run.summary.levelsGained, state.run.summary.levelsGained);
-  assert.equal(resumedState.run.progression.skillPointsAvailable, state.run.progression.skillPointsAvailable);
-  assert.equal(resumedState.run.progression.training.vitality, state.run.progression.training.vitality);
-  assert.equal(resumedState.run.progression.training.focus, state.run.progression.training.focus);
-  assert.equal(resumedState.run.progression.training.command, state.run.progression.training.command);
-
-  const importedState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const importResult = appEngine.loadRunSnapshot(importedState, snapshot);
-  assert.equal(importResult.ok, true);
-  assert.equal(importedState.phase, appEngine.PHASES.WORLD_MAP);
-  assert.equal(importedState.run.level, state.run.level);
-  assert.equal(importedState.run.progression.skillPointsAvailable, state.run.progression.skillPointsAvailable);
-  assert.equal(importedState.run.progression.training.vitality, state.run.progression.training.vitality);
-  assert.equal(importedState.run.progression.training.focus, state.run.progression.training.focus);
-  assert.equal(importedState.run.progression.training.command, state.run.progression.training.command);
-});
-
-test("legacy snapshots migrate into the socketed equipment schema", () => {
-  const { content, combatEngine, appEngine, persistence, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-
-  const legacyRun = JSON.parse(JSON.stringify(state.run));
-  const heroLifeBeforeMigration = legacyRun.hero.maxLife;
-  const heroEnergyBeforeMigration = legacyRun.hero.maxEnergy;
-  legacyRun.loadout = {
-    weapon: "item_short_sword",
-    armor: "",
-    weaponRune: "rune_el",
-    armorRune: "",
-  };
-  legacyRun.xp = 100;
-  legacyRun.level = 3;
-  legacyRun.summary.levelsGained = 2;
-  delete legacyRun.progression;
-
-  const migrated = persistence.restoreSnapshot(legacyRun);
-  assert.ok(migrated);
-  assert.equal(migrated.schemaVersion, persistence.SCHEMA_VERSION);
-  assert.equal(migrated.run.loadout.weapon?.itemId, "item_short_sword");
-  assert.equal(Array.from(migrated.run.loadout.weapon?.insertedRunes || []).join(","), "rune_el");
-  assert.equal(migrated.run.loadout.weapon?.socketsUnlocked, 1);
-  assert.equal(migrated.run.progression.skillPointsAvailable, 2);
-  assert.equal(migrated.run.progression.training.vitality, 1);
-  assert.equal(migrated.run.progression.training.focus, 1);
-  assert.equal(migrated.run.progression.training.command, 0);
-  assert.ok(migrated.run.hero.maxLife > heroLifeBeforeMigration);
-  assert.ok(migrated.run.hero.maxEnergy > heroEnergyBeforeMigration);
-});
-
-test("upgrade rewards can upgrade a card already in the deck through the app flow", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.setSelectedClass(state, "paladin");
-  appEngine.startRun(state);
-  state.run.deck = ["quick_slash"];
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone, branchMinibossZone] = runFactory.getCurrentZones(state.run);
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  appEngine.selectZone(state, branchMinibossZone.id);
-  state.combat.outcome = "victory";
-  appEngine.syncEncounterOutcome(state);
-
-  const upgradeChoice: RewardChoice = {
-    id: "manual_upgrade_quick_slash",
-    kind: "upgrade",
-    title: "Upgrade Quick Slash",
-    subtitle: "Sharpen Skill",
-    description: content.cardCatalog.quick_slash_plus.text,
-    previewLines: [
-      "Replace 1x Quick Slash with Quick Slash+.",
-      "Keep deck size the same.",
-    ],
-    effects: [{ kind: "upgrade_card", fromCardId: "quick_slash", toCardId: "quick_slash_plus" }],
-  };
-  state.run.pendingReward.choices = [upgradeChoice];
-  const upgradeEffect = upgradeChoice.effects.find((effect) => effect.kind === "upgrade_card");
-  assert.ok(upgradeEffect);
-
-  const fromCountBefore = state.run.deck.filter((cardId) => cardId === upgradeEffect.fromCardId).length;
-  const toCountBefore = state.run.deck.filter((cardId) => cardId === upgradeEffect.toCardId).length;
-
-  appEngine.claimRewardAndAdvance(state, upgradeChoice.id);
-
-  assert.equal(state.run.deck.filter((cardId) => cardId === upgradeEffect.fromCardId).length, fromCountBefore - 1);
-  assert.equal(state.run.deck.filter((cardId) => cardId === upgradeEffect.toCardId).length, toCountBefore + 1);
-});
-
-test("zone roles map to distinct encounter themes within the same act", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
-  assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_opening_")));
-  assert.ok(branchMinibossZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_branch_miniboss")));
-  assert.ok(
-    branchBattleZone.encounterIds.every(
-      (encounterId) => encounterId.startsWith("act_1_branch_battle") || encounterId.startsWith("act_1_branch_ambush")
-    )
-  );
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, branchMinibossZone.id);
-  assert.equal(result.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_1_branch_miniboss/);
-
-  appEngine.returnToFrontDoor(state);
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZoneAgain, , branchBattleZoneAgain] = runFactory.getCurrentZones(state.run);
-  openingZoneAgain.encountersCleared = openingZoneAgain.encounterTotal;
-  openingZoneAgain.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  result = appEngine.selectZone(state, branchBattleZoneAgain.id);
-  assert.equal(result.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_1_branch_battle/);
-});
-
-test("quest world nodes resolve through the reward flow and persist outcomes on the run", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  assert.ok(questZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  const selectResult = appEngine.selectZone(state, questZone.id);
-  assert.equal(selectResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.REWARD);
-  assert.equal(state.run.pendingReward.kind, "quest");
-
-  const choice = state.run.pendingReward.choices[0];
-  const recordEffect = choice.effects.find((effect) => effect.kind === "record_quest_outcome");
-  const heroLifeBefore = state.run.hero.maxLife;
-  assert.ok(recordEffect);
-
-  const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
-  assert.equal(claimResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.ok(state.run.world.resolvedNodeIds.includes(questZone.id));
-  assert.equal(state.run.world.questOutcomes[recordEffect.questId].outcomeId, recordEffect.outcomeId);
-  assert.ok(runFactory.getZoneById(state.run, questZone.id).cleared);
-  assert.ok(state.run.hero.maxLife > heroLifeBefore);
-});
-
-test("shrine world nodes resolve through the reward flow and persist shrine outcomes on the run", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  assert.ok(branchZone);
   assert.ok(shrineZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  const selectResult = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(selectResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.REWARD);
-  assert.equal(state.run.pendingReward.kind, "shrine");
-
-  const choice = state.run.pendingReward.choices[0];
-  const recordEffect = choice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(recordEffect);
-
-  const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
-  assert.equal(claimResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.ok(state.run.world.resolvedNodeIds.includes(shrineZone.id));
-  assert.equal(state.run.world.shrineOutcomes[recordEffect.nodeId].outcomeId, recordEffect.outcomeId);
-  assert.ok(state.run.world.worldFlags.includes(recordEffect.flagIds[0]));
-  assert.ok(runFactory.getZoneById(state.run, shrineZone.id).cleared);
-});
-
-test("event world nodes branch off quest outcomes and persist follow-up consequences", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.equal(eventZone.status, "locked");
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  let result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  let claimResult = appEngine.claimRewardAndAdvance(state, questChoice.id);
-  assert.equal(claimResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.equal(runFactory.getZoneById(state.run, eventZone.id).status, "available");
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.REWARD);
-  assert.equal(state.run.pendingReward.kind, "event");
-  assert.equal(state.run.pendingReward.title, "Night Watch");
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report")));
-
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  const nodeEffect = eventChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  const followUpEffect = eventChoice.effects.find((effect) => effect.kind === "record_quest_follow_up");
-  assert.ok(nodeEffect);
-  assert.ok(followUpEffect);
-
-  claimResult = appEngine.claimRewardAndAdvance(state, eventChoice.id);
-  assert.equal(claimResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.equal(state.run.world.eventOutcomes[nodeEffect.nodeId].outcomeId, nodeEffect.outcomeId);
-  assert.equal(state.run.world.questOutcomes[followUpEffect.questId].status, "follow_up_resolved");
-  assert.equal(state.run.world.questOutcomes[followUpEffect.questId].followUpOutcomeId, followUpEffect.outcomeId);
-  assert.ok(state.run.world.questOutcomes[followUpEffect.questId].consequenceIds.includes(followUpEffect.consequenceId));
-  assert.ok(state.run.world.worldFlags.includes(nodeEffect.flagIds[0]));
-});
-
-test("opportunity world nodes resolve through the reward flow and extend the quest chain", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "opportunity");
   assert.ok(questZone);
   assert.ok(eventZone);
   assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
 
   openingZone.encountersCleared = openingZone.encounterTotal;
   openingZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
-  let result = appEngine.selectZone(state, questZone.id);
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
   assert.equal(result.ok, true);
   const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
   assert.ok(questChoice);
@@ -1475,34 +1551,67 @@ test("opportunity world nodes resolve through the reward flow and extend the que
   const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
   assert.ok(eventChoice);
   appEngine.claimRewardAndAdvance(state, eventChoice.id);
-  assert.equal(runFactory.getZoneById(state.run, opportunityZone.id).status, "available");
 
   result = appEngine.selectZone(state, opportunityZone.id);
   assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.REWARD);
-  assert.equal(state.run.pendingReward.kind, "opportunity");
-  assert.equal(state.run.pendingReward.title, "Scout Detachment");
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
 
-  const opportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Equip the Vanguard");
-  assert.ok(opportunityChoice);
-  const nodeEffect = opportunityChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  const consequenceEffect = opportunityChoice.effects.find((effect) => effect.kind === "record_quest_consequence");
-  assert.ok(nodeEffect);
-  assert.ok(consequenceEffect);
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
 
-  const claimResult = appEngine.claimRewardAndAdvance(state, opportunityChoice.id);
-  assert.equal(claimResult.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.equal(state.run.world.opportunityOutcomes[nodeEffect.nodeId].outcomeId, nodeEffect.outcomeId);
-  assert.equal(state.run.world.questOutcomes[consequenceEffect.questId].status, "chain_resolved");
-  assert.ok(state.run.world.questOutcomes[consequenceEffect.questId].consequenceIds.includes(consequenceEffect.consequenceId));
-  assert.ok(state.run.world.worldFlags.includes(nodeEffect.flagIds[0]));
-  assert.ok(runFactory.getZoneById(state.run, opportunityZone.id).cleared);
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  result = appEngine.selectZone(state, legacyZone.id);
+  assert.equal(result.ok, true);
+  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
+  assert.ok(legacyChoice);
+  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
+
+  result = appEngine.selectZone(state, branchZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.combat.mercenary.contractAttackBonus, 5);
+  assert.equal(state.combat.mercenary.contractBehaviorBonus, 5);
+  assert.equal(state.combat.mercenary.contractStartGuard, 0);
+  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 5);
+  assert.equal(state.combat.mercenary.contractHeroStartGuard, 5);
+  assert.equal(state.combat.mercenary.contractOpeningDraw, 5);
+  assert.equal(state.combat.hero.guard, 5);
+  assert.equal(state.combat.hero.damageBonus, 5);
+  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 5);
+  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Legacy")));
+  assert.ok(state.combat.log.some((line) => line.includes("Last Wayfinders")));
 });
 
-test("world-node state survives snapshot restore and continue", () => {
-  const { content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
+test("reckoning opportunity lanes unlock alongside legacy and pay off reserve plus culmination together", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
     seedBundle,
@@ -1511,80 +1620,116 @@ test("world-node state survives snapshot restore and continue", () => {
   });
 
   appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "opportunity");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
   assert.ok(shrineZone);
   assert.ok(questZone);
   assert.ok(eventZone);
   assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+  assert.equal(reckoningZone.status, "locked");
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices[0];
-  const shrineEffect = shrineChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(shrineEffect);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
   appEngine.claimRewardAndAdvance(state, shrineChoice.id);
 
   result = appEngine.selectZone(state, questZone.id);
   assert.equal(result.ok, true);
   const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  const questEffect = questChoice.effects.find((effect) => effect.kind === "record_quest_outcome");
-  assert.ok(questEffect);
+  assert.ok(questChoice);
   appEngine.claimRewardAndAdvance(state, questChoice.id);
 
   result = appEngine.selectZone(state, eventZone.id);
   assert.equal(result.ok, true);
   const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  const eventEffect = eventChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(eventEffect);
+  assert.ok(eventChoice);
   appEngine.claimRewardAndAdvance(state, eventChoice.id);
 
   result = appEngine.selectZone(state, opportunityZone.id);
   assert.equal(result.ok, true);
-  const opportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
-  const opportunityEffect = opportunityChoice.effects.find((effect) => effect.kind === "record_node_outcome");
-  assert.ok(opportunityEffect);
-  appEngine.claimRewardAndAdvance(state, opportunityChoice.id);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
 
-  const snapshot = appEngine.saveRunSnapshot(state);
-  assert.ok(snapshot);
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
 
-  const restoredSnapshot = persistence.restoreSnapshot(snapshot);
-  assert.ok(restoredSnapshot);
-  assert.equal(restoredSnapshot.run.world.shrineOutcomes[shrineEffect.nodeId].outcomeId, shrineEffect.outcomeId);
-  assert.equal(restoredSnapshot.run.world.eventOutcomes[eventEffect.nodeId].outcomeId, eventEffect.outcomeId);
-  assert.equal(restoredSnapshot.run.world.opportunityOutcomes[opportunityEffect.nodeId].outcomeId, opportunityEffect.outcomeId);
-  assert.ok(restoredSnapshot.run.world.worldFlags.includes(shrineEffect.flagIds[0]));
-  assert.ok(restoredSnapshot.run.world.worldFlags.includes(eventEffect.flagIds[0]));
-  assert.ok(restoredSnapshot.run.world.worldFlags.includes(opportunityEffect.flagIds[0]));
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
 
-  const resumedState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const resumeResult = appEngine.continueSavedRun(resumedState);
-  assert.equal(resumeResult.ok, true);
-  assert.equal(resumedState.run.world.shrineOutcomes[shrineEffect.nodeId].outcomeId, shrineEffect.outcomeId);
-  assert.equal(resumedState.run.world.eventOutcomes[eventEffect.nodeId].outcomeId, eventEffect.outcomeId);
-  assert.equal(resumedState.run.world.opportunityOutcomes[opportunityEffect.nodeId].outcomeId, opportunityEffect.outcomeId);
-  assert.ok(runFactory.getCurrentZones(resumedState.run).some((zone) => zone.kind === "shrine"));
-  assert.ok(runFactory.getCurrentZones(resumedState.run).some((zone) => zone.kind === "event"));
-  assert.ok(runFactory.getCurrentZones(resumedState.run).some((zone) => zone.kind === "opportunity"));
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  assert.equal(runFactory.getZoneById(state.run, legacyZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, reckoningZone.id).status, "available");
+
+  result = appEngine.selectZone(state, reckoningZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.pendingReward.kind, "opportunity");
+  assert.equal(state.run.pendingReward.title, "Wayfinder Reckoning");
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier reserve lane: ${reserveChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
+
+  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
+  assert.ok(reckoningChoice);
+  const reckoningEffect = reckoningChoice.effects.find((effect) => effect.kind === "record_node_outcome");
+  assert.ok(reckoningEffect);
+  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
+
+  assert.equal(state.run.world.opportunityOutcomes[reckoningEffect.nodeId].outcomeId, reckoningEffect.outcomeId);
+  assert.ok(state.run.world.worldFlags.includes("rogue_reckoning_chapel_ledger"));
+  assert.ok(runFactory.getZoneById(state.run, reckoningZone.id).cleared);
 });
 
-test("legacy run snapshots backfill shrine, event, and opportunity nodes during hydrate", () => {
+test("recovery opportunity lanes unlock alongside legacy and reckoning and pay off shrine plus culmination together", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
@@ -1594,146 +1739,123 @@ test("legacy run snapshots backfill shrine, event, and opportunity nodes during 
   });
 
   appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const legacySnapshot = JSON.parse(appEngine.saveRunSnapshot(state));
-  legacySnapshot.run.acts.forEach((act) => {
-    act.zones = act.zones.filter((zone) => zone.kind !== "shrine" && zone.kind !== "event" && zone.kind !== "opportunity");
-  });
-
-  const importedState = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-  const importResult = appEngine.loadRunSnapshot(importedState, JSON.stringify(legacySnapshot));
-  assert.equal(importResult.ok, true);
-
-  const zoneKinds = runFactory.getCurrentZones(importedState.run).map((zone) => zone.kind);
-  assert.ok(zoneKinds.includes("shrine"));
-  assert.ok(zoneKinds.includes("event"));
-  assert.ok(zoneKinds.includes("opportunity"));
-
-  const [openingZone] = runFactory.getCurrentZones(importedState.run);
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(importedState.run);
-
-  const questZone = runFactory.getCurrentZones(importedState.run).find((zone) => zone.kind === "quest");
-  const shrineZone = runFactory.getCurrentZones(importedState.run).find((zone) => zone.kind === "shrine");
-  const eventZone = runFactory.getCurrentZones(importedState.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(importedState.run).find((zone) => zone.kind === "opportunity");
-  assert.equal(questZone.status, "available");
-  assert.equal(shrineZone.status, "available");
-  assert.equal(eventZone.status, "locked");
-  assert.equal(opportunityZone.status, "locked");
-});
-
-test("world-node validation fails clearly when quest follow-up data is missing", () => {
-  const { browserWindow } = createHarness();
-  const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  delete catalog.quests[1].choices[0].followUp;
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.quests\.1\.choices\[0\] is missing follow-up event content\./);
-});
-
-test("world-node validation fails clearly when an opportunity choice is missing quest consequence data", () => {
-  const { browserWindow } = createHarness();
-  const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants[0].choices[0].effects = catalog.opportunities[1].variants[0].choices[0].effects.filter((effect) => {
-    return effect.kind !== "record_quest_consequence";
-  });
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1\.variants\[0\]\.choices\[0\] is missing a valid record_quest_consequence effect\./);
-});
-
-test("event nodes fail cleanly when the required quest state is missing", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  assert.ok(questZone);
-  assert.ok(eventZone);
-
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  questZone.encountersCleared = questZone.encounterTotal;
-  questZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
-
-  const result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, false);
-  assert.match(state.error, /requires resolved quest/);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-});
-
-test("opportunity nodes fail cleanly when the required follow-up state is missing", () => {
-  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const state = appEngine.createAppState({
-    content,
-    seedBundle,
-    combatEngine,
-    randomFn: () => 0,
-  });
-
-  appEngine.startCharacterSelect(state);
-  appEngine.startRun(state);
-  appEngine.leaveSafeZone(state);
-
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "opportunity");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
+  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
+  assert.ok(shrineZone);
   assert.ok(questZone);
   assert.ok(eventZone);
   assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+  assert.ok(recoveryZone);
+  assert.ok(accordZone);
+  assert.equal(recoveryZone.status, "locked");
+  assert.equal(accordZone.status, "locked");
 
   openingZone.encountersCleared = openingZone.encounterTotal;
   openingZone.cleared = true;
-  questZone.encountersCleared = questZone.encounterTotal;
-  questZone.cleared = true;
-  eventZone.encountersCleared = eventZone.encounterTotal;
-  eventZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
-    zoneId: questZone.id,
-    actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
-    status: "primary_resolved",
-    followUpNodeId: "",
-    followUpOutcomeId: "",
-    followUpOutcomeTitle: "",
-    consequenceIds: [],
-    flags: [],
-  };
   runFactory.recomputeZoneStatuses(state.run);
 
-  const result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, false);
-  assert.match(state.error, /requires a resolved follow-up outcome/);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  assert.equal(runFactory.getZoneById(state.run, legacyZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, reckoningZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, recoveryZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, accordZone.id).status, "available");
+
+  result = appEngine.selectZone(state, recoveryZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.pendingReward.kind, "opportunity");
+  assert.equal(state.run.pendingReward.title, "Lantern Recovery");
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier shrine lane: ${shrineOpportunityChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
+
+  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
+  assert.ok(recoveryChoice);
+  const recoveryEffect = recoveryChoice.effects.find((effect) => effect.kind === "record_node_outcome");
+  assert.ok(recoveryEffect);
+  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
+
+  assert.equal(state.run.world.opportunityOutcomes[recoveryEffect.nodeId].outcomeId, recoveryEffect.outcomeId);
+  assert.ok(state.run.world.worldFlags.includes("rogue_recovery_chapel_lanterns"));
+  assert.ok(runFactory.getZoneById(state.run, recoveryZone.id).cleared);
 });
 
-test("boss rewards transition into the next act instead of ending the run early", () => {
+test("accord opportunity lanes unlock alongside the other late routes and pay off shrine plus crossroad plus culmination together", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
@@ -1743,66 +1865,900 @@ test("boss rewards transition into the next act instead of ending the run early"
   });
 
   appEngine.startCharacterSelect(state);
-  appEngine.setSelectedClass(state, "paladin");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone, branchZoneOne, branchZoneTwo] = runFactory.getCurrentZones(state.run);
-  const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
-  assert.ok(bossZone);
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
+  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
+  assert.ok(shrineZone);
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+  assert.ok(recoveryZone);
+  assert.ok(accordZone);
+  assert.equal(accordZone.status, "locked");
+
   openingZone.encountersCleared = openingZone.encounterTotal;
   openingZone.cleared = true;
-  branchZoneOne.encountersCleared = branchZoneOne.encounterTotal;
-  branchZoneOne.cleared = true;
-  branchZoneTwo.encountersCleared = branchZoneTwo.encounterTotal;
-  branchZoneTwo.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
-  const result = appEngine.selectZone(state, bossZone.id);
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  assert.equal(runFactory.getZoneById(state.run, legacyZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, reckoningZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, recoveryZone.id).status, "available");
+  assert.equal(runFactory.getZoneById(state.run, accordZone.id).status, "available");
+
+  result = appEngine.selectZone(state, accordZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.pendingReward.kind, "opportunity");
+  assert.equal(state.run.pendingReward.title, "Wayfinder Accord");
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier shrine lane: ${shrineOpportunityChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier crossroad: ${crossroadChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
+
+  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
+  assert.ok(accordChoice);
+  const accordEffect = accordChoice.effects.find((effect) => effect.kind === "record_node_outcome");
+  assert.ok(accordEffect);
+  appEngine.claimRewardAndAdvance(state, accordChoice.id);
+
+  assert.equal(state.run.world.opportunityOutcomes[accordEffect.nodeId].outcomeId, accordEffect.outcomeId);
+  assert.ok(state.run.world.worldFlags.includes("rogue_accord_cloister_paths"));
+  assert.ok(runFactory.getZoneById(state.run, accordZone.id).cleared);
+});
+
+test("covenant opportunity lanes unlock after the full late-route quartet resolves and pay off every late lane together", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
+  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
+  const covenantZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "covenant_opportunity");
+  assert.ok(shrineZone);
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+  assert.ok(recoveryZone);
+  assert.ok(accordZone);
+  assert.ok(covenantZone);
+  assert.equal(covenantZone.status, "locked");
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  result = appEngine.selectZone(state, legacyZone.id);
+  assert.equal(result.ok, true);
+  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
+  assert.ok(legacyChoice);
+  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
+
+  result = appEngine.selectZone(state, reckoningZone.id);
+  assert.equal(result.ok, true);
+  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
+  assert.ok(reckoningChoice);
+  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
+
+  result = appEngine.selectZone(state, recoveryZone.id);
+  assert.equal(result.ok, true);
+  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
+  assert.ok(recoveryChoice);
+  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
+
+  result = appEngine.selectZone(state, accordZone.id);
+  assert.equal(result.ok, true);
+  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
+  assert.ok(accordChoice);
+  appEngine.claimRewardAndAdvance(state, accordChoice.id);
+
+  assert.equal(runFactory.getZoneById(state.run, covenantZone.id).status, "available");
+
+  result = appEngine.selectZone(state, covenantZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.pendingReward.kind, "opportunity");
+  assert.equal(state.run.pendingReward.title, "Wayfinder Covenant");
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Take Scout Report -> Mark the Paths")));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier legacy lane: ${legacyChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier reckoning lane: ${reckoningChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier recovery lane: ${recoveryChoice.title}.`)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier accord lane: ${accordChoice.title}.`)));
+
+  const covenantChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Seal the Wayfinder Ledger");
+  assert.ok(covenantChoice);
+  const covenantEffect = covenantChoice.effects.find((effect) => effect.kind === "record_node_outcome");
+  assert.ok(covenantEffect);
+  appEngine.claimRewardAndAdvance(state, covenantChoice.id);
+
+  assert.equal(state.run.world.opportunityOutcomes[covenantEffect.nodeId].outcomeId, covenantEffect.outcomeId);
+  assert.ok(state.run.world.worldFlags.includes("rogue_covenant_wayfinder_ledger"));
+  assert.ok(runFactory.getZoneById(state.run, covenantZone.id).cleared);
+});
+
+test("accord mercenary route perks feed the next combat once the accord lane resolves", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
+  assert.ok(branchZone);
+  assert.ok(shrineZone);
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(accordZone);
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  result = appEngine.selectZone(state, accordZone.id);
+  assert.equal(result.ok, true);
+  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
+  assert.ok(accordChoice);
+  appEngine.claimRewardAndAdvance(state, accordChoice.id);
+
+  result = appEngine.selectZone(state, branchZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.combat.mercenary.contractAttackBonus, 5);
+  assert.equal(state.combat.mercenary.contractBehaviorBonus, 5);
+  assert.equal(state.combat.mercenary.contractStartGuard, 0);
+  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 5);
+  assert.equal(state.combat.mercenary.contractHeroStartGuard, 5);
+  assert.equal(state.combat.mercenary.contractOpeningDraw, 5);
+  assert.equal(state.combat.hero.guard, 5);
+  assert.equal(state.combat.hero.damageBonus, 5);
+  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 5);
+  assert.ok(state.combat.log.some((line) => line.includes("Cloister Accord")));
+});
 
-  state.combat.outcome = "victory";
-  appEngine.syncEncounterOutcome(state);
+test("reckoning mercenary route perks stack with legacy after the parallel post-culmination lanes resolve", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
 
-  const boonChoice = state.run.pendingReward.choices.find((choice) => choice.kind === "boon");
-  assert.ok(boonChoice);
-  const heroLifeBeforeReward = state.run.hero.maxLife;
-  const heroEnergyBeforeReward = state.run.hero.maxEnergy;
-  const mercAttackBeforeReward = state.run.mercenary.attack;
-  const beltMaxBeforeReward = state.run.belt.max;
-
-  appEngine.claimRewardAndAdvance(state, boonChoice.id);
-
-  assert.equal(state.phase, appEngine.PHASES.ACT_TRANSITION);
-  assert.equal(state.run.summary.actsCleared, 1);
-  assert.equal(state.run.summary.bossesDefeated, 1);
-  assert.equal(state.run.progression.bossTrophies.length, 1);
-  assert.equal(state.run.progression.bossTrophies[0], state.run.acts[0].boss.id);
-
-  if (boonChoice.effects.some((effect) => effect.kind === "belt_capacity")) {
-    assert.ok(state.run.belt.max > beltMaxBeforeReward);
-  }
-  if (boonChoice.effects.some((effect) => effect.kind === "hero_max_energy")) {
-    assert.ok(state.run.hero.maxEnergy > heroEnergyBeforeReward);
-  }
-  if (boonChoice.effects.some((effect) => effect.kind === "hero_max_life")) {
-    assert.ok(state.run.hero.maxLife > heroLifeBeforeReward);
-  }
-  if (boonChoice.effects.some((effect) => effect.kind === "mercenary_attack")) {
-    assert.ok(state.run.mercenary.attack > mercAttackBeforeReward);
-  }
-
-  appEngine.continueActTransition(state);
-  assert.equal(state.phase, appEngine.PHASES.SAFE_ZONE);
-  assert.equal(state.run.currentActIndex, 1);
-  assert.equal(state.run.safeZoneName, "Lut Gholein");
-  assert.equal(state.run.hero.currentLife, state.run.hero.maxLife);
-  assert.equal(state.run.belt.current, state.run.belt.max);
-
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
-  const actTwoOpeningZoneId = runFactory.getCurrentZones(state.run)[0].id;
-  const nextResult = appEngine.selectZone(state, actTwoOpeningZoneId);
-  assert.equal(nextResult.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_2_/);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  assert.ok(branchZone);
+  assert.ok(shrineZone);
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  result = appEngine.selectZone(state, legacyZone.id);
+  assert.equal(result.ok, true);
+  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
+  assert.ok(legacyChoice);
+  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
+
+  result = appEngine.selectZone(state, reckoningZone.id);
+  assert.equal(result.ok, true);
+  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
+  assert.ok(reckoningChoice);
+  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
+
+  result = appEngine.selectZone(state, branchZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.combat.mercenary.contractAttackBonus, 6);
+  assert.equal(state.combat.mercenary.contractBehaviorBonus, 6);
+  assert.equal(state.combat.mercenary.contractStartGuard, 0);
+  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 6);
+  assert.equal(state.combat.mercenary.contractHeroStartGuard, 6);
+  assert.equal(state.combat.mercenary.contractOpeningDraw, 6);
+  assert.equal(state.combat.hero.guard, 6);
+  assert.equal(state.combat.hero.damageBonus, 6);
+  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 6);
+  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Legacy")));
+  assert.ok(state.combat.log.some((line) => line.includes("Chapel Reckoning")));
+});
+
+test("recovery mercenary route perks stack with the parallel post-culmination lanes after recovery resolves", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
+  assert.ok(branchZone);
+  assert.ok(shrineZone);
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+  assert.ok(recoveryZone);
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  result = appEngine.selectZone(state, legacyZone.id);
+  assert.equal(result.ok, true);
+  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
+  assert.ok(legacyChoice);
+  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
+
+  result = appEngine.selectZone(state, reckoningZone.id);
+  assert.equal(result.ok, true);
+  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
+  assert.ok(reckoningChoice);
+  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
+
+  result = appEngine.selectZone(state, recoveryZone.id);
+  assert.equal(result.ok, true);
+  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
+  assert.ok(recoveryChoice);
+  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
+
+  result = appEngine.selectZone(state, branchZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.combat.mercenary.contractAttackBonus, 7);
+  assert.equal(state.combat.mercenary.contractBehaviorBonus, 7);
+  assert.equal(state.combat.mercenary.contractStartGuard, 0);
+  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 7);
+  assert.equal(state.combat.mercenary.contractHeroStartGuard, 7);
+  assert.equal(state.combat.mercenary.contractOpeningDraw, 7);
+  assert.equal(state.combat.hero.guard, 7);
+  assert.equal(state.combat.hero.damageBonus, 7);
+  assert.equal(state.combat.hand.length, state.combat.hero.handSize + 7);
+  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Legacy")));
+  assert.ok(state.combat.log.some((line) => line.includes("Chapel Reckoning")));
+  assert.ok(state.combat.log.some((line) => line.includes("Lantern Recovery")));
+});
+
+test("covenant mercenary route perks feed the next combat once the covenant lane resolves", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
+  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
+  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
+  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
+  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
+  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
+  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
+  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
+  const covenantZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "covenant_opportunity");
+  assert.ok(branchZone);
+  assert.ok(shrineZone);
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(opportunityZone);
+  assert.ok(shrineOpportunityZone);
+  assert.ok(crossroadZone);
+  assert.ok(reserveZone);
+  assert.ok(relayZone);
+  assert.ok(culminationZone);
+  assert.ok(legacyZone);
+  assert.ok(reckoningZone);
+  assert.ok(recoveryZone);
+  assert.ok(accordZone);
+  assert.ok(covenantZone);
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  let result = appEngine.selectZone(state, shrineZone.id);
+  assert.equal(result.ok, true);
+  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
+  assert.ok(shrineChoice);
+  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
+
+  result = appEngine.selectZone(state, questZone.id);
+  assert.equal(result.ok, true);
+  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
+  assert.ok(questChoice);
+  appEngine.claimRewardAndAdvance(state, questChoice.id);
+
+  result = appEngine.selectZone(state, eventZone.id);
+  assert.equal(result.ok, true);
+  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
+  assert.ok(eventChoice);
+  appEngine.claimRewardAndAdvance(state, eventChoice.id);
+
+  result = appEngine.selectZone(state, opportunityZone.id);
+  assert.equal(result.ok, true);
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  assert.ok(routeChoice);
+  appEngine.claimRewardAndAdvance(state, routeChoice.id);
+
+  result = appEngine.selectZone(state, shrineOpportunityZone.id);
+  assert.equal(result.ok, true);
+  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
+  assert.ok(shrineOpportunityChoice);
+  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
+
+  result = appEngine.selectZone(state, crossroadZone.id);
+  assert.equal(result.ok, true);
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  assert.ok(crossroadChoice);
+  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
+
+  result = appEngine.selectZone(state, reserveZone.id);
+  assert.equal(result.ok, true);
+  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
+  assert.ok(reserveChoice);
+  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
+
+  result = appEngine.selectZone(state, relayZone.id);
+  assert.equal(result.ok, true);
+  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
+  assert.ok(relayChoice);
+  appEngine.claimRewardAndAdvance(state, relayChoice.id);
+
+  result = appEngine.selectZone(state, culminationZone.id);
+  assert.equal(result.ok, true);
+  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
+  assert.ok(culminationChoice);
+  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
+
+  result = appEngine.selectZone(state, legacyZone.id);
+  assert.equal(result.ok, true);
+  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
+  assert.ok(legacyChoice);
+  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
+
+  result = appEngine.selectZone(state, reckoningZone.id);
+  assert.equal(result.ok, true);
+  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
+  assert.ok(reckoningChoice);
+  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
+
+  result = appEngine.selectZone(state, recoveryZone.id);
+  assert.equal(result.ok, true);
+  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
+  assert.ok(recoveryChoice);
+  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
+
+  result = appEngine.selectZone(state, accordZone.id);
+  assert.equal(result.ok, true);
+  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
+  assert.ok(accordChoice);
+  appEngine.claimRewardAndAdvance(state, accordChoice.id);
+
+  result = appEngine.selectZone(state, covenantZone.id);
+  assert.equal(result.ok, true);
+  const covenantChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Seal the Wayfinder Ledger");
+  assert.ok(covenantChoice);
+  appEngine.claimRewardAndAdvance(state, covenantChoice.id);
+
+  result = appEngine.selectZone(state, branchZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.combat.mercenary.contractAttackBonus, 9);
+  assert.equal(state.combat.mercenary.contractBehaviorBonus, 9);
+  assert.equal(state.combat.mercenary.contractStartGuard, 0);
+  assert.equal(state.combat.mercenary.contractHeroDamageBonus, 9);
+  assert.equal(state.combat.mercenary.contractHeroStartGuard, 9);
+  assert.equal(state.combat.mercenary.contractOpeningDraw, 9);
+  assert.equal(state.combat.hero.guard, 9);
+  assert.equal(state.combat.hero.damageBonus, 9);
+  assert.equal(state.combat.hand.length, Math.min(state.run.deck.length, state.combat.hero.handSize + 9));
+  assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Covenant")));
+});
+
+test("runtime content validation fails clearly when a mercenary loses its legacy-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_legacy_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 legacy-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its reckoning-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_reckoning_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 reckoning-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its recovery-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_recovery_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 recovery-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its accord-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_accord_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 accord-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its covenant-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_covenant_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 covenant-linked route perk\./);
 });
