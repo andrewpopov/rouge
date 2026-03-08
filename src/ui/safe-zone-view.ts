@@ -134,6 +134,212 @@
       .join("");
   }
 
+  function buildPrepComparisonMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    run: RunState,
+    derivedParty: DerivedPartyState,
+    routeSnapshot: SafeZoneSnapshot,
+    accountSummary: ProfileAccountSummary,
+    carriedEntries: number,
+    stashEntries: number,
+    tradeActionTitles: string[],
+    readinessIssues: string[],
+    spendablePointCount: number,
+    missingHeroLife: number,
+    missingMercenaryLife: number,
+    missingBelt: number
+  ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const stashSummary = accountSummary.stash || {
+      entryCount: stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+    };
+    const review = accountSummary.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const equippedCount = Object.values(run.loadout || {}).filter(Boolean).length;
+    const plannedWeaponLabel = planning.weaponRunewordId ? appState.content.runewordCatalog?.[planning.weaponRunewordId]?.name || planning.weaponRunewordId : "Unset";
+    const plannedArmorLabel = planning.armorRunewordId ? appState.content.runewordCatalog?.[planning.armorRunewordId]?.name || planning.armorRunewordId : "Unset";
+    const plannedRunewordLabels = [planning.weaponRunewordId, planning.armorRunewordId]
+      .filter(Boolean)
+      .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || runewordId);
+    const townFeatureLabels = (appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const liveBonusBadgeLabel = review.availableConvergenceCount > 0 ? "Convergence Ready" : accountSummary.focusedTreeTitle || "Unset";
+    let liveBonusTone = "locked";
+    if (review.availableConvergenceCount > 0) {
+      liveBonusTone = "available";
+    } else if (accountSummary.focusedTreeId) {
+      liveBonusTone = "cleared";
+    }
+
+    let nextPrepLabel = routeSnapshot.nextZone ? "Leave Town" : "Read Map";
+    let nextPrepTone = routeSnapshot.nextZone ? "cleared" : "locked";
+    let nextPrepCopy = routeSnapshot.nextZone
+      ? `${routeSnapshot.nextZone.title} is already open. Town prep is clean enough to leave.`
+      : "No route node is immediately open. Review the map and boss gate before spending more gold.";
+    let nextPrepLines = [
+      `Live route target: ${routeSnapshot.nextZone?.title || run.bossName}.`,
+      `Focused tree support stays active while you travel: ${accountSummary.focusedTreeTitle || "no focused tree"}.`,
+      readinessIssues[0] || "No immediate departure issue is blocking the route.",
+    ];
+
+    if (missingHeroLife > 0 || missingMercenaryLife > 0 || missingBelt > 0) {
+      nextPrepLabel = "Recover First";
+      nextPrepTone = "available";
+      nextPrepCopy = "Life or belt pressure is still active. Use the recovery districts before you spend elsewhere.";
+      nextPrepLines = [
+        `Recovery gap: hero ${missingHeroLife} Life, mercenary ${missingMercenaryLife} Life, belt ${missingBelt} charge${missingBelt === 1 ? "" : "s"}.`,
+        "Recovery stays run-owned; this board only makes the pressure obvious before departure.",
+        routeSnapshot.nextZone ? `${routeSnapshot.nextZone.title} remains open after the recovery pass.` : "Review the map after you stabilize the party.",
+      ];
+    } else if (spendablePointCount > 0) {
+      nextPrepLabel = "Spend Pending";
+      nextPrepTone = "available";
+      nextPrepCopy = "Unspent progression is still parked in town. Resolve that build pressure before you leave.";
+      nextPrepLines = [
+        `${run.progression.skillPointsAvailable} skill, ${run.progression.classPointsAvailable} class, and ${run.progression.attributePointsAvailable} attribute points remain.`,
+        `Training ranks already banked: ${getTrainingRanks(run)}.`,
+        `Focused tree momentum: ${accountSummary.focusedTreeTitle || "no focus"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+      ];
+    } else if (tradeActionTitles.length > 0 || planning.plannedRunewordCount > 0) {
+      nextPrepLabel = "Resolve Charter Pressure";
+      nextPrepTone = tradeActionTitles.length > 0 ? "available" : "locked";
+      nextPrepCopy = "Carry, stash, and vendor pressure still matter for the next departure, especially if you are steering around a pinned runeword target.";
+      nextPrepLines = [
+        `Trade lane: ${getPreviewLabel(tradeActionTitles, "no open trade actions")}.`,
+        `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "no active charter")}.`,
+        `Vault support: ${stashSummary.socketReadyEquipmentCount} socket-ready bases, ${stashSummary.runeCount} runes.`,
+      ];
+    } else if (review.availableConvergenceCount > 0) {
+      nextPrepLabel = "Leave With Bonus";
+      nextPrepTone = "available";
+      nextPrepCopy = "Town is already stable and the account layer is online. Leave once you are satisfied with the route target.";
+      nextPrepLines = [
+        `Ready convergence lane${review.availableConvergenceCount === 1 ? "" : "s"}: ${review.availableConvergenceCount}.`,
+        `Next convergence: ${review.nextConvergenceTitle || "every current convergence already online"}.`,
+        `Current account focus already pushing this run: ${accountSummary.focusedTreeTitle || "no focus set"}.`,
+      ];
+    }
+
+    return `
+      <section class="panel flow-panel" id="town-prep-comparison">
+        <div class="panel-head">
+          <h2>Prep Comparison Board</h2>
+          <p>Town now compares carried loadout, stash pressure, charter targets, and live account bonuses in one place so the next departure decision is readable instead of implied.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Loadout Vs Vault</strong>
+              ${buildBadge(carriedEntries > 0 ? `${carriedEntries} carried` : "Packed Clean", carriedEntries > 0 ? "available" : "cleared")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Equipped", equippedCount)}
+              ${buildStat("Carried", carriedEntries)}
+              ${buildStat("Stash", stashEntries)}
+              ${buildStat("Runewords", derivedParty.activeRunewords.length)}
+            </div>
+            ${buildStringList(
+              [
+                `Current loadout: ${getPreviewLabel(derivedParty.loadoutLines, "no equipment equipped yet")}.`,
+                `Active runewords: ${getPreviewLabel(derivedParty.activeRunewords, "none on this run yet")}.`,
+                `Vault reserve: ${stashSummary.equipmentCount} gear, ${stashSummary.runeCount} runes, ${stashSummary.socketReadyEquipmentCount} socket-ready bases.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Charter Pressure</strong>
+              ${buildBadge(planning.plannedRunewordCount > 0 ? `${planning.plannedRunewordCount} live` : "Quiet", planning.plannedRunewordCount > 0 ? "available" : "cleared")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Weapon", plannedWeaponLabel)}
+              ${buildStat("Armor", plannedArmorLabel)}
+              ${buildStat("Socket Bases", stashSummary.socketReadyEquipmentCount)}
+              ${buildStat("Missed", planning.unfulfilledPlanCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`,
+                `Trade pressure: ${getPreviewLabel(tradeActionTitles, "no open trade or stash actions")}.`,
+                `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Live Account Bonuses</strong>
+              ${buildBadge(liveBonusBadgeLabel, liveBonusTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Hero Life+", common.getBonusValue(derivedParty.bonuses.heroMaxLife))}
+              ${buildStat("Hero Energy+", common.getBonusValue(derivedParty.bonuses.heroMaxEnergy))}
+              ${buildStat("Merc Attack+", common.getBonusValue(derivedParty.bonuses.mercenaryAttack))}
+              ${buildStat("Merc Life+", common.getBonusValue(derivedParty.bonuses.mercenaryMaxLife))}
+            </div>
+            ${buildStringList(
+              [
+                `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+                `Next capstone: ${review.nextCapstoneTitle || "every current capstone is already online"}.`,
+                `Next convergence: ${review.nextConvergenceTitle || "every current convergence is already online"}.`,
+                `Town systems online: ${getPreviewLabel(townFeatureLabels, "none yet")}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Next Prep Step</strong>
+              ${buildBadge(nextPrepLabel, nextPrepTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Recovery", missingHeroLife + missingMercenaryLife + missingBelt)}
+              ${buildStat("Spend", spendablePointCount)}
+              ${buildStat("Trade", tradeActionTitles.length)}
+              ${buildStat("Route", routeSnapshot.nextZone?.title || "Map")}
+            </div>
+            <p>${escapeHtml(nextPrepCopy)}</p>
+            ${buildStringList(nextPrepLines, "log-list reward-list ledger-list")}
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
   function buildTownDistrictMarkup(
     title: string,
     copy: string,
@@ -355,6 +561,23 @@
                 )}
               </article>
             </div>
+
+            ${buildPrepComparisonMarkup(
+              appState,
+              services,
+              run,
+              derivedParty,
+              routeSnapshot,
+              accountSummary,
+              carriedEntries,
+              stashEntries,
+              tradeActionTitles,
+              readinessIssues,
+              spendablePointCount,
+              missingHeroLife,
+              missingMercenaryLife,
+              missingBelt
+            )}
 
             <div class="panel-head">
               <h2>Account Progression Focus</h2>

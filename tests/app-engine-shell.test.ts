@@ -71,6 +71,7 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   });
   assert.match(root.innerHTML, /Account Hall/);
   assert.match(root.innerHTML, /Hall Navigator/);
+  assert.match(root.innerHTML, /Decision Support Desk/);
   assert.match(root.innerHTML, /Expedition Wing/);
   assert.match(root.innerHTML, /Unlock Galleries/);
   assert.match(root.innerHTML, /Vault Logistics/);
@@ -78,6 +79,8 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Capstone Watch/);
   assert.match(root.innerHTML, /Vault And Archive/);
   assert.match(root.innerHTML, /Control Annex/);
+  assert.match(root.innerHTML, /Convergence Pressure/);
+  assert.match(root.innerHTML, /Next Move Board/);
   assert.match(root.innerHTML, /Account Tree Review/);
   assert.match(root.innerHTML, /Archive Signal Board/);
   assert.match(root.innerHTML, /Account Controls/);
@@ -104,6 +107,8 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Run State Vs Profile State/);
   assert.match(root.innerHTML, /Progression Board/);
   assert.match(root.innerHTML, /Account Signals/);
+  assert.match(root.innerHTML, /Prep Comparison Board/);
+  assert.match(root.innerHTML, /Live Account Bonuses/);
   assert.match(root.innerHTML, /Account Progression Focus/);
   assert.match(root.innerHTML, /World Ledger/);
   assert.match(root.innerHTML, /Loadout Bench/);
@@ -732,6 +737,10 @@ test("front-door account hall renders richer unlock, vault, archive-signal, and 
     bootState: { status: "ready", error: "" },
   });
 
+  assert.match(root.innerHTML, /Decision Support Desk/);
+  assert.match(root.innerHTML, /What Changed/);
+  assert.match(root.innerHTML, /Convergence Pressure/);
+  assert.match(root.innerHTML, /Next Move Board/);
   assert.match(root.innerHTML, /Unlock Galleries/);
   assert.match(root.innerHTML, /Vault Logistics/);
   assert.match(root.innerHTML, /Archive Signal Board/);
@@ -762,6 +771,7 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
   });
   assert.match(root.innerHTML, /Unlock Archive/);
   assert.match(root.innerHTML, /Tutorial Ledger/);
+  assert.match(root.innerHTML, /Decision Support Desk/);
 
   appEngine.startCharacterSelect(state);
   appEngine.startRun(state);
@@ -843,6 +853,9 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
+  assert.match(root.innerHTML, /Prep Comparison Board/);
+  assert.match(root.innerHTML, /Live Account Bonuses/);
+  assert.match(root.innerHTML, /Next Prep Step/);
   assert.match(root.innerHTML, /Account Signals/);
   assert.match(root.innerHTML, /Account Progression Focus/);
   assert.match(root.innerHTML, /Town features online:/);
@@ -857,6 +870,9 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
+  assert.match(root.innerHTML, /Hall Handoff/);
+  assert.match(root.innerHTML, /Convergence Carry-Through/);
+  assert.match(root.innerHTML, /Next Hall Decision/);
   assert.match(root.innerHTML, /Account Progress/);
   assert.match(root.innerHTML, /Archive Delta/);
   assert.match(root.innerHTML, /Hall Re-entry Guide/);

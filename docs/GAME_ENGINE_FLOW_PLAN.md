@@ -22,13 +22,13 @@ Documentation note:
 - quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch or miniboss or boss encounter and reward packages
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
-- a navigable account hall, town prep drilldowns, route-intel map panels, and explicit reward or archive delta surfaces across the active shell
+- a navigable account hall, a hall decision desk, town prep drilldowns, a town prep comparison board, route-intel map panels, and explicit reward or archive delta surfaces plus a run-end hall handoff across the active shell
 - seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools with six branch battles and six branch minibosses per act, a sixteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, act-specific covenant boss retunes, and four elite-affix families per act
 
 ### Still target-state
 
 - broader class-tree depth and stronger class identity beyond the current live scaffold
-- broader account-level unlock trees and profile UX beyond the current hall navigator, prep-drilldown shell, and account ownership seam
+- broader account-level unlock trees and profile UX beyond the current hall navigator, hall decision desk, prep-drilldown shell, and account ownership seam
 - broader mercenary route-perk breadth tied to future route families beyond the current covenant-linked perk pass
 - broader event families and deeper quest chains
 - asset-manifest-driven presentation and content lookups

@@ -595,6 +595,243 @@
     `;
   }
 
+  function buildHallDecisionSupportMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    accountSummary: ProfileAccountSummary
+  ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const stashSummary = accountSummary.stash || {
+      entryCount: profileSummary.stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+    const archiveSummary = accountSummary.archive || {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
+      latestClassId: "",
+      latestClassName: "",
+      latestOutcome: "",
+      latestCompletedAt: "",
+      highestLevel: profileSummary.highestLevel,
+      highestActsCleared: profileSummary.highestActCleared,
+      highestGoldGained: 0,
+      highestLoadoutTier: 0,
+      runewordArchiveCount: 0,
+      featureUnlockCount: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      planningArchiveCount: 0,
+      planningCompletionCount: 0,
+      planningMissCount: 0,
+      recentFeatureIds: [],
+      recentPlannedRunewordIds: [],
+    };
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+    };
+    const review = accountSummary.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const convergences = Array.isArray(accountSummary.convergences) ? accountSummary.convergences : [];
+    const nextConvergence =
+      convergences.find((convergence) => convergence.id === review.nextConvergenceId) ||
+      convergences.find((convergence) => !convergence.unlocked) ||
+      null;
+    const recentFeatureLabels = (archiveSummary.recentFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const recentPlannedRunewordLabels = (archiveSummary.recentPlannedRunewordIds || []).map((runewordId) => getRunewordLabel(appState, runewordId));
+    const plannedRunewordLabels = [planning.weaponRunewordId, planning.armorRunewordId]
+      .filter(Boolean)
+      .map((runewordId) => getRunewordLabel(appState, runewordId));
+    let convergenceTone = "locked";
+    if (review.availableConvergenceCount > 0) {
+      convergenceTone = "available";
+    } else if (review.unlockedConvergenceCount >= review.convergenceCount && review.convergenceCount > 0) {
+      convergenceTone = "cleared";
+    }
+
+    let nextMoveLabel = "Start New Draft";
+    let nextMoveTone = "cleared";
+    let nextMoveCopy = "No parked route or urgent hall pressure is blocking a fresh class draft.";
+    let nextMoveLines = [
+      `Preferred class signal: ${profileSummary.preferredClassId ? getClassName(appState, profileSummary.preferredClassId) : "no preferred class pinned yet"}.`,
+      "Enter the character hall only after the current archive and progression signals read the way you want.",
+    ];
+
+    if (savedRunSummary) {
+      nextMoveLabel = "Resume Parked Expedition";
+      nextMoveTone = getPhaseTone(savedRunSummary, services.appEngine);
+      nextMoveCopy = `A ${savedRunSummary.className} route is parked at ${savedRunSummary.phaseLabel}. Resume it if route momentum matters more than retargeting the account.`;
+      nextMoveLines = [
+        `Parked route: ${savedRunSummary.actTitle}, ${savedRunSummary.zonesCleared} zones cleared, next boss ${savedRunSummary.bossName}.`,
+        review.availableConvergenceCount > 0
+          ? `${review.availableConvergenceCount} convergence lane${review.availableConvergenceCount === 1 ? "" : "s"} are also ready in the hall.`
+          : `No ready convergence is competing with the live route right now; next lane is ${review.nextConvergenceTitle || "already online"}.`,
+        planning.plannedRunewordCount > 0
+          ? `If you archive or finish the run first, re-check Vault Logistics for ${getPreviewLabel(plannedRunewordLabels, "current charters")}.`
+          : "No charter target is currently asking you to abandon the parked route for vault work.",
+      ];
+    } else if (review.availableConvergenceCount > 0) {
+      nextMoveLabel = "Review Convergence Ready";
+      nextMoveTone = "available";
+      nextMoveCopy = `${review.availableConvergenceCount} cross-tree convergence lane${review.availableConvergenceCount === 1 ? "" : "s"} can move now. Review the progression wing before you open a new run.`;
+      nextMoveLines = [
+        `Next convergence: ${review.nextConvergenceTitle || "see the progression gallery"}.`,
+        nextConvergence ? `Effect waiting behind it: ${nextConvergence.effectSummary}` : "Review the convergence cards for the exact reward effect.",
+        planning.plannedRunewordCount > 0
+          ? `Charter pressure is still live too: ${getPreviewLabel(plannedRunewordLabels, "no charter names available")}.`
+          : "No active runeword charter is competing with that convergence review.",
+      ];
+    } else if (planning.plannedRunewordCount > 0) {
+      nextMoveLabel = "Audit Charter Pressure";
+      nextMoveTone = stashSummary.socketReadyEquipmentCount > 0 && stashSummary.runeCount > 0 ? "available" : "locked";
+      nextMoveCopy =
+        stashSummary.socketReadyEquipmentCount > 0 && stashSummary.runeCount > 0
+          ? "The hall already has vault material for the live charters. Review the vault before you commit to the next class."
+          : "Charters are pinned, but the vault is still short on base or rune depth. Review logistics before you draft.";
+      nextMoveLines = [
+        `Pinned targets: ${getPreviewLabel(plannedRunewordLabels, "no current charter labels")}.`,
+        `Vault supply: ${stashSummary.socketReadyEquipmentCount} socket-ready bases and ${stashSummary.runeCount} stored runes.`,
+        `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
+      ];
+    } else if (archiveSummary.entryCount > 0) {
+      nextMoveLabel = archiveSummary.recentFeatureIds.length > 0 ? "Review What Changed" : "Read Archive Pulse";
+      nextMoveTone = archiveSummary.recentFeatureIds.length > 0 ? "available" : "cleared";
+      nextMoveCopy =
+        archiveSummary.recentFeatureIds.length > 0
+          ? "The latest archived expedition changed account state. Review the archive and unlock wings before you draft again."
+          : "No fresh feature burst landed, but the archive pulse can still steer the next class or focus choice.";
+      nextMoveLines = [
+        `Latest expedition: ${archiveSummary.latestClassName || "unknown class"} (${archiveSummary.latestOutcome || "awaiting outcome"}).`,
+        `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "none from the latest archive")}.`,
+        `Latest favored tree: ${archiveSummary.favoredTreeName || accountSummary.focusedTreeTitle || "no favored tree archived yet"}.`,
+      ];
+    }
+
+    return `
+      <section class="panel flow-panel" id="hall-decision-support">
+        <div class="panel-head">
+          <h2>Decision Support Desk</h2>
+          <p>The hall now answers the account-level questions directly: what changed, what is blocked, and what the cleanest next move is before you resume or draft.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>What Changed</strong>
+              ${buildBadge(
+                archiveSummary.latestClassName || "No Archive",
+                archiveSummary.entryCount > 0 ? getRunOutcomeTone(archiveSummary.latestOutcome || "abandoned") : "locked"
+              )}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Outcome", archiveSummary.latestOutcome ? getLabelFromId(archiveSummary.latestOutcome) : "Awaiting")}
+              ${buildStat("Recent Features", archiveSummary.recentFeatureIds.length)}
+              ${buildStat("Charter Echoes", archiveSummary.recentPlannedRunewordIds.length)}
+              ${buildStat("Last Logged", archiveSummary.latestCompletedAt ? formatTimestamp(archiveSummary.latestCompletedAt, true) : "Awaiting")}
+            </div>
+            ${buildStringList(
+              [
+                `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "no new account features")}.`,
+                `Recent charter carry-through: ${getPreviewLabel(recentPlannedRunewordLabels, "no charter targets echoed into the archive")}.`,
+                `Archive spread now reads ${archiveSummary.completedCount} cleared, ${archiveSummary.failedCount} failed, ${archiveSummary.abandonedCount} abandoned.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Convergence Pressure</strong>
+              ${buildBadge(review.nextConvergenceTitle || "No Pending Lane", convergenceTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Ready", review.availableConvergenceCount)}
+              ${buildStat("Blocked", review.blockedConvergenceCount)}
+              ${buildStat("Unlocked", review.unlockedConvergenceCount)}
+              ${buildStat("Missing", nextConvergence?.missingFeatureIds.length || 0)}
+            </div>
+            ${buildStringList(
+              [
+                `Focused tree momentum: ${accountSummary.focusedTreeTitle || "no active tree focus"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+                `Next convergence: ${review.nextConvergenceTitle || "every current convergence is already online"}.`,
+                nextConvergence
+                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; all links are already in place")}.`
+                  : "No blocked convergence details remain because the current authored lanes are already online.",
+                nextConvergence ? `Effect: ${nextConvergence.effectSummary}` : "Review the progression gallery for the full cross-tree ledger.",
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Focus And Charter Pressure</strong>
+              ${buildBadge(accountSummary.focusedTreeTitle || "Unset", accountSummary.focusedTreeId ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Focused", accountSummary.focusedTreeTitle || "Unset")}
+              ${buildStat("Next Milestone", accountSummary.nextMilestoneTitle || "Cleared")}
+              ${buildStat("Charters", planning.plannedRunewordCount)}
+              ${buildStat("Missed", planning.unfulfilledPlanCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Pinned runewords: ${getPreviewLabel(plannedRunewordLabels, "no active runeword charter")}.`,
+                `Capstone pressure: ${review.nextCapstoneTitle || "every current capstone is online"}.`,
+                `Vault support: ${stashSummary.socketReadyEquipmentCount} socket-ready bases, ${stashSummary.runeCount} runes, ${stashSummary.runewordEquipmentCount} active runeword base${stashSummary.runewordEquipmentCount === 1 ? "" : "s"} in storage.`,
+                `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed across ${archiveSummary.planningArchiveCount} tracked planning run${archiveSummary.planningArchiveCount === 1 ? "" : "s"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Next Move Board</strong>
+              ${buildBadge(nextMoveLabel, nextMoveTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Snapshot", savedRunSummary ? savedRunSummary.phaseLabel : "Open")}
+              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
+              ${buildStat("Convergences", `${review.unlockedConvergenceCount}/${review.convergenceCount}`)}
+              ${buildStat("Charters", planning.plannedRunewordCount)}
+            </div>
+            <p>${escapeHtml(nextMoveCopy)}</p>
+            ${buildStringList(nextMoveLines, "log-list reward-list ledger-list")}
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
   function buildUnlockGalleryMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
@@ -1681,6 +1918,7 @@
       body: `
         ${buildAccountOverviewMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         ${buildHallNavigatorMarkup(appState, services, savedRunSummary, accountSummary)}
+        ${buildHallDecisionSupportMarkup(appState, services, savedRunSummary, accountSummary)}
         ${expeditionSection}
         ${buildUnlockGalleryMarkup(appState, services, accountSummary)}
         ${buildVaultLogisticsMarkup(appState, services, accountSummary)}

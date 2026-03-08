@@ -81,6 +81,184 @@
     `;
   }
 
+  function buildHallHandoffMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    accountSummary: ProfileAccountSummary,
+    latestHistoryEntry: RunHistoryEntry | null
+  ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+    };
+    const stashSummary = accountSummary.stash || {
+      entryCount: profileSummary.stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+    const review = accountSummary.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const convergences = Array.isArray(accountSummary.convergences) ? accountSummary.convergences : [];
+    const nextConvergence =
+      convergences.find((convergence) => convergence.id === review.nextConvergenceId) ||
+      convergences.find((convergence) => !convergence.unlocked) ||
+      null;
+    const latestFeatureLabels = (latestHistoryEntry?.newFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const completedPlannedRunewordLabels = (latestHistoryEntry?.completedPlannedRunewordIds || []).map((runewordId) => {
+      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
+    });
+    const plannedWeaponLabel = planning.weaponRunewordId
+      ? appState.content.runewordCatalog?.[planning.weaponRunewordId]?.name || getLabelFromId(planning.weaponRunewordId)
+      : "Unset";
+    const plannedArmorLabel = planning.armorRunewordId
+      ? appState.content.runewordCatalog?.[planning.armorRunewordId]?.name || getLabelFromId(planning.armorRunewordId)
+      : "Unset";
+    const plannedRunewordLabels = [planning.weaponRunewordId, planning.armorRunewordId]
+      .filter(Boolean)
+      .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId));
+    let convergenceTone = "locked";
+    if (review.availableConvergenceCount > 0) {
+      convergenceTone = "available";
+    } else if (review.unlockedConvergenceCount >= review.convergenceCount && review.convergenceCount > 0) {
+      convergenceTone = "cleared";
+    }
+
+    let nextHallLabel = "Enter Character Hall";
+    let nextHallTone = "cleared";
+    let nextHallCopy = "No urgent hall-side pressure outranks a fresh draft. Review the latest archive if you want context, then recruit again.";
+    let nextHallLines = [
+      `Focused tree signal: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+      `Archives now logged: ${profileSummary.runHistoryCount}.`,
+    ];
+
+    if (latestFeatureLabels.length > 0) {
+      nextHallLabel = "Review Unlock Galleries";
+      nextHallTone = "available";
+      nextHallCopy = "This run changed account state. Read the unlock and archive wings before you commit to the next route.";
+      nextHallLines = [
+        `Feature burst from this run: ${getPreviewLabel(latestFeatureLabels, "none")}.`,
+        `Latest archive now points back into ${accountSummary.focusedTreeTitle || "the current focused tree"}.`,
+        planning.plannedRunewordCount > 0
+          ? `Current charters still matter too: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`
+          : "No live runeword charter is competing with the new unlock wave.",
+      ];
+    } else if (review.availableConvergenceCount > 0) {
+      nextHallLabel = "Check Account Tree Review";
+      nextHallTone = "available";
+      nextHallCopy = "Cross-tree pressure is ready now. Review the progression wing before you start another class.";
+      nextHallLines = [
+        `Ready convergence lane${review.availableConvergenceCount === 1 ? "" : "s"}: ${review.availableConvergenceCount}.`,
+        `Next convergence: ${review.nextConvergenceTitle || "every current convergence is online"}.`,
+        nextConvergence ? `Effect waiting there: ${nextConvergence.effectSummary}` : "Review the convergence cards for the exact payoff.",
+      ];
+    } else if (planning.plannedRunewordCount > 0) {
+      nextHallLabel = "Check Vault Logistics";
+      nextHallTone = stashSummary.socketReadyEquipmentCount > 0 || stashSummary.runeCount > 0 ? "available" : "locked";
+      nextHallCopy = "The run is archived, but charter pressure is still live. Compare the vault against your pinned runeword targets before you draft again.";
+      nextHallLines = [
+        `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`,
+        `This run completed: ${getPreviewLabel(completedPlannedRunewordLabels, "no planned target completed this run")}.`,
+        `Vault support: ${stashSummary.socketReadyEquipmentCount} socket-ready bases, ${stashSummary.runeCount} runes, ${stashSummary.runewordEquipmentCount} stored runeword base${stashSummary.runewordEquipmentCount === 1 ? "" : "s"}.`,
+      ];
+    }
+
+    return `
+      <section class="panel flow-panel">
+        <div class="panel-head">
+          <h2>Hall Handoff</h2>
+          <p>The expedition is over, but the next account decision is not. These cards compare convergence, charter, and archive pressure before the hall takes over again.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Convergence Carry-Through</strong>
+              ${buildBadge(review.nextConvergenceTitle || "No Pending Lane", convergenceTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Ready", review.availableConvergenceCount)}
+              ${buildStat("Blocked", review.blockedConvergenceCount)}
+              ${buildStat("Unlocked", review.unlockedConvergenceCount)}
+              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
+            </div>
+            ${buildStringList(
+              [
+                `Focused tree momentum: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+                `Next capstone: ${review.nextCapstoneTitle || "every current capstone is already online"}.`,
+                nextConvergence
+                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; all required links are already online")}.`
+                  : "No blocked convergence details remain because the authored lanes are already online.",
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Charter Carry-Through</strong>
+              ${buildBadge(planning.plannedRunewordCount > 0 ? `${planning.plannedRunewordCount} live` : "Quiet", planning.plannedRunewordCount > 0 ? "available" : "cleared")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Weapon", plannedWeaponLabel)}
+              ${buildStat("Armor", plannedArmorLabel)}
+              ${buildStat("Fulfilled", planning.fulfilledPlanCount)}
+              ${buildStat("Missed", planning.unfulfilledPlanCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Pinned targets: ${getPreviewLabel(plannedRunewordLabels, "no active charter")}.`,
+                `This archive entry completed: ${getPreviewLabel(completedPlannedRunewordLabels, "no planned target completed this run")}.`,
+                `Vault support now reads ${stashSummary.socketReadyEquipmentCount} socket-ready bases and ${stashSummary.runeCount} stored runes.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Next Hall Decision</strong>
+              ${buildBadge(nextHallLabel, nextHallTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Archives", profileSummary.runHistoryCount)}
+              ${buildStat("Features", latestFeatureLabels.length)}
+              ${buildStat("Convergences", `${review.unlockedConvergenceCount}/${review.convergenceCount}`)}
+              ${buildStat("Charters", planning.plannedRunewordCount)}
+            </div>
+            <p>${escapeHtml(nextHallCopy)}</p>
+            ${buildStringList(nextHallLines, "log-list reward-list ledger-list")}
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml, buildBadge, buildStat, buildStringList } = services.renderUtils;
@@ -191,6 +369,8 @@
           </div>
           ${common.buildAccountTreeReviewMarkup(accountSummary, services.renderUtils)}
         </section>
+
+        ${buildHallHandoffMarkup(appState, services, accountSummary, latestHistoryEntry)}
 
         <section class="panel flow-panel">
           <div class="panel-head">

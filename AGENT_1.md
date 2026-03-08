@@ -50,12 +50,13 @@ Live now:
 - the current shell already exposes stash, run history, progression summaries, onboarding guidance, town services, world-map flow, node views, combat, rewards, and run-end screens
 - front-door UI already reads profile settings, preferred class, and account-summary signals from the live profile meta seam
 - safe zone now reads as a prep hub with a town navigator, run-vs-profile framing, loadout review, service drilldowns, and departure-readiness treatment
+- front door, safe zone, and run-end now include decision-support surfaces that summarize archive change, convergence pressure, charter pressure, live account bonuses, prep comparisons, and next-action guidance without taking ownership of progression logic
 - world-map and node views now expose route-intel panels, a consequence ledger, stronger node-family labeling, and clearer late-opportunity-family treatment
 - reward and run-end screens now include explicit before-or-after mutation or archive-delta framing instead of relying only on generic reward copy, with hall re-entry guidance that points back into the richer account hall
 
 Still weak:
 
-- the broader account-surface pass is now live, but convergence and other cross-tree meta surfaces still need clearer front-door and run-end treatment on top of the new hall structure
+- the broader account-surface pass is now live, and hall or town or run-end decision support is much stronger, but world-map and reward continuity still need the same "what changed" and "what should I do next" treatment
 - onboarding continuity is much stronger now, but future account progression or unlock data still needs better insertion points once Agent 2 extends those read models
 - town, map, reward, and run-end readability are in better shape, but future shell work should extend the current navigable model instead of rebuilding the structure again
 
@@ -67,19 +68,19 @@ Important runtime note:
 
 ## Immediate Next Batch
 
-Agent 1's broader account-surface pass is now live. The next batch is a convergence and continuity pass. Do not wait on new backend work unless the current runtime truly cannot support the view.
+Agent 1's hall decision-support pass is now live. The next batch is a continuity and delta pass on top of the live hall decision desk, prep comparison board, archive desk, and hall handoff surfaces. Do not wait on new backend work unless the runtime truly cannot support the view.
 
-Build on the richer hall and prep hub that already exist:
+Build on the richer hall, prep hub, and run-end handoff that already exist:
 
-- extend the account hall and nearby shell surfaces with clearer convergence and cross-tree meta treatment using the existing account-summary seams first
-- preserve and refine the current town, map, reward, and run-end continuity so additional account data can land without another structural rewrite
-- keep insertion points clear for broader Agent 2 unlock or progression read models and future Agent 3 node or consequence metadata
-- only ask for new APIs when the current hall navigator, archive-review, focused-tree, convergence, tutorial, settings, or planning seams truly cannot support the shell need
+- extend the same "what changed" and "what should I do next" model from hall or town or run-end into map, reward, and transition continuity
+- preserve and refine the current town, map, reward, and run-end continuity so broader Agent 2 and Agent 3 data can land without another structural rewrite
+- make the shell better at comparing run-local state, account-level pressure, and the next meaningful decision without becoming the owner of gameplay logic
+- only ask for new APIs when the current hall navigator, archive-review, focused-tree, convergence, tutorial, settings, planning, or delta seams truly cannot support the shell need
 
 This batch should stay shell-heavy and API-light:
 
 - consume the existing profile, summary, route, archive, reward, and node data first
-- use the already-live profile settings, tutorial, preferred-class, account-focus, and archive-review APIs before asking for new backend seams
+- use the already-live profile settings, tutorial, preferred-class, account-focus, archive-review, and planning APIs before asking for new backend seams
 - only request new APIs from Agent 2 or Agent 3 when the current runtime truly cannot support the shell need
 - coordinate with Agent 4 before touching shared shell test coverage or `tests/helpers/browser-harness.ts`
 - land the batch in coherent commits directly on `master` after tests and doc sync are complete
@@ -88,19 +89,19 @@ This batch should stay shell-heavy and API-light:
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. convergence visibility pass
-- extend `src/ui/front-door-view.ts`, `src/ui/run-summary-view.ts`, and any adjacent shell views with clearer convergence and cross-tree meta treatment on top of the current hall navigator and archive-delta flow
-- use the existing account summary, convergence summary, and review seams before asking for new state
-- add or update shell coverage in `tests/app-engine-shell.test.ts` and any related `tests/app-engine*.test.ts`
+1. account-hall decision-support pass
+- the hall decision desk, prep comparison board, and run-end hall handoff are now live in `src/ui/front-door-view.ts`, `src/ui/safe-zone-view.ts`, and `src/ui/run-summary-view.ts`
+- they use the existing account summary, convergence summary, planning summary, and archive-review seams without adding new runtime contracts
+- shell coverage for those surfaces now lives in `tests/app-engine-shell.test.ts`
 
-2. meta continuity pass
-- keep the current safe-zone, map, reward, and run-end continuity coherent as broader account data lands
-- add new shell-owned explanation or drilldown panels only where the current account seams already provide enough data
+2. route-intel continuity pass
+- extend `src/ui/world-map-view.ts` so the map matches the new hall or town decision-support model and answers what changed, what is blocked, and what the next route-side action is
+- keep node-family explanation, consequence ledger treatment, and act-pressure readability aligned with the now-live hall or town or run-end comparison surfaces
 
-3. shell consistency cleanup
-- keep `src/app/main.ts` thin
-- only touch `src/app/app-engine.ts` for shell-facing wiring that cannot stay in views or the dispatcher
-- sync docs if the shell’s ownership seams or visible navigation model materially change again
+3. reward and transition delta pass
+- keep reward, act-transition, and run-end continuity coherent as broader account and route data lands
+- make reward and transition screens better at showing account-impact deltas and next-action guidance without inventing shell-owned progression logic
+- keep `src/app/main.ts` thin, only touch `src/app/app-engine.ts` for shell-facing wiring that cannot stay in views or the dispatcher, and sync docs if the visible shell model changes materially
 
 ## Chunk 1: Account Hall Navigation And Drilldowns
 
@@ -217,4 +218,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Rouge's next shell batch now. Treat the richer account hall, prep hub, route-intel map, and delta-heavy reward or run-end shell as the live baseline. Expand the hall and nearby shell surfaces into clearer convergence and cross-tree meta treatment without inventing shell-owned progression state, and keep town, map, reward, and run-end continuity coherent as broader account data arrives. Use the existing settings, tutorial, preferred-class, account-focus, convergence, archive-review, and planning actions before asking for new backend seams. Keep `src/app/main.ts` thin, coordinate with Agent 4 on shared shell test coverage, and keep gameplay mutation in domain modules.
+Build Rouge's next shell batch now. Treat the live account hall, archive desk, convergence review, charter ledger, prep hub, route-intel map, and delta-heavy reward or run-end shell as the baseline. Turn those existing surfaces into clearer decision support: show what changed, what is blocked, what pressure is active, and what the player should do next without inventing shell-owned progression logic. Use the existing settings, tutorial, preferred-class, account-focus, convergence, archive-review, planning, and summary actions before asking for new backend seams. Keep `src/app/main.ts` thin, coordinate with Agent 4 on shared shell test coverage, and keep gameplay mutation in domain modules.
