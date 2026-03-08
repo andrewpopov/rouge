@@ -46,17 +46,18 @@ Live now:
 - phase-owned UI modules already exist under `src/ui/*`
 - `src/app/main.ts` is already a thin boot and dispatch bridge
 - the front door already supports saved-run review plus continue and abandon flow
+- the front door now reads as a navigable account hall with a hall navigator, primary expedition wing, vault or archive wing, focused account-tree review, and grouped settings or tutorial or preferred-class or planning controls
 - the current shell already exposes stash, run history, progression summaries, onboarding guidance, town services, world-map flow, node views, combat, rewards, and run-end screens
 - front-door UI already reads profile settings, preferred class, and account-summary signals from the live profile meta seam
-- safe-zone, world-map, and run-end views already have the structural panels needed for a larger shell pass
+- safe zone now reads as a prep hub with a town navigator, run-vs-profile framing, loadout review, service drilldowns, and departure-readiness treatment
+- world-map and node views now expose route-intel panels, a consequence ledger, stronger node-family labeling, and clearer late-opportunity-family treatment
+- reward and run-end screens now include explicit before-or-after mutation or archive-delta framing instead of relying only on generic reward copy
 
 Still weak:
 
-- the shell now exposes most of the right information, but it still reads as one large information wall instead of a product with clear navigation and drilldowns
-- onboarding is broader now, but it still needs cleaner phase-to-phase continuity from front door to class select to town to route
-- town services exist, but the safe zone still needs stronger hierarchy, clearer build-readability, service drilldowns, and clearer account-vs-run separation
-- world-map and node detail views need stronger route pressure, consequence, and reward explanation
-- reward and run-end surfaces already explain more, but they still need clearer before-or-after change summaries and next-action guidance
+- the core shell structure pass is now live, but the account layer still needs broader unlock, stash, archive, and capstone review surfaces beyond the current summary seams
+- onboarding continuity is much stronger now, but future account progression or unlock data still needs better insertion points once Agent 2 extends those read models
+- town, map, reward, and run-end readability are in better shape, but future shell work should extend the current navigable model instead of rebuilding the structure again
 
 Important runtime note:
 
@@ -66,16 +67,16 @@ Important runtime note:
 
 ## Immediate Next Batch
 
-Agent 1's next batch is the second shell-structure pass. Do not wait on new backend work unless the current runtime truly cannot support the view.
+Agent 1's second shell-structure pass is now live. The next batch is a broader account-surface pass. Do not wait on new backend work unless the current runtime truly cannot support the view.
 
-Build the next product-shell layer on top of the controls and summaries that already exist:
+Build the next product-shell layer on top of the navigable hall and prep hub that already exist:
 
-- turn the front door into a navigable account hall with clearer subareas for the active expedition, archive desk, progression trees, class preference, settings, and tutorial state
-- turn the safe zone into a build-prep hub with clearer service grouping, gear or rune readability, mercenary context, and "ready to leave town" clarity
-- turn the world map into a route-intel surface with a readable legend, clearer node identity, stronger consequence preview, and better act-pressure context
-- turn reward and run-end screens into explicit before-or-after mutation summaries so the player can immediately understand what changed and what to do next
+- grow the account hall beyond summary buckets into richer unlock, stash, archive, and capstone review surfaces using the existing profile and account-summary seams first
+- preserve and refine the current town, map, reward, and run-end continuity so new account data can land without another structural rewrite
+- keep insertion points clear for broader Agent 2 unlock or progression read models and future Agent 3 node or consequence metadata
+- only ask for new APIs when the current hall navigator, archive-review, focused-tree, tutorial, settings, or planning seams truly cannot support the shell need
 
-This batch should be shell-heavy and API-light:
+This batch should stay shell-heavy and API-light:
 
 - consume the existing profile, summary, route, archive, reward, and node data first
 - use the already-live profile settings, tutorial, preferred-class, account-focus, and archive-review APIs before asking for new backend seams
@@ -87,24 +88,19 @@ This batch should be shell-heavy and API-light:
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. front-door structure pass
-- split the hall into clearer active-expedition, archive, progression, and control regions inside `src/ui/front-door-view.ts`
-- use `src/ui/render-utils.ts`, `styles.css`, and existing profile summaries before asking for new state
+1. account-depth pass
+- extend `src/ui/front-door-view.ts` with richer unlock, stash, archive, and capstone review surfaces on top of the current navigator
+- use `src/ui/render-utils.ts`, `styles.css`, and existing profile or account summaries before asking for new state
 - add or update shell coverage in `tests/app-engine-shell.test.ts` and any related `tests/app-engine*.test.ts`
 
-2. safe-zone preparation pass
-- turn `src/ui/safe-zone-view.ts` into a clearer prep hub with service grouping, build readability, and pre-departure framing
-- add service-specific comparison or drilldown panels without moving service logic out of town, item, reward, or state modules
+2. meta continuity pass
+- keep the current safe-zone, map, reward, and run-end continuity coherent as broader account data lands
+- add new shell-owned explanation or drilldown panels only where the current account seams already provide enough data
 
-3. route, reward, and run-end delta pass
-- strengthen route-intel presentation in `src/ui/world-map-view.ts`
-- add explicit change-summary treatment in `src/ui/reward-view.ts` and `src/ui/run-summary-view.ts`
-- make node, reward, and archive consequences easier to read without adding new top-level phases
-
-4. shell consistency cleanup
+3. shell consistency cleanup
 - keep `src/app/main.ts` thin
 - only touch `src/app/app-engine.ts` for shell-facing wiring that cannot stay in views or the dispatcher
-- sync docs if the shell’s ownership seams or visible navigation model materially change
+- sync docs if the shell’s ownership seams or visible navigation model materially change again
 
 ## Chunk 1: Account Hall Navigation And Drilldowns
 
@@ -220,4 +216,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Rouge's next shell batch now. Turn the front door into a navigable account hall with clearer subareas and drilldowns, reorganize the safe zone into a clearer town-prep hub with service-specific comparison panels, and make world-map, node, reward, and run-end surfaces explain the live systems through stronger route intel and explicit before-or-after change summaries. Use the existing settings, tutorial, preferred-class, account-focus, and archive-review actions rather than inventing new shell-owned state. Keep `src/app/main.ts` thin, coordinate with Agent 4 on shared shell test coverage, and keep gameplay mutation in domain modules.
+Build Rouge's next shell batch now. Treat the navigable account hall, prep hub, route-intel map, and delta-heavy reward or run-end shell as the live baseline. Expand the front door into richer unlock, stash, archive, and capstone review surfaces without inventing shell-owned progression state, and keep town, map, reward, and run-end continuity coherent as broader account data arrives. Use the existing settings, tutorial, preferred-class, account-focus, archive-review, and planning actions before asking for new backend seams. Keep `src/app/main.ts` thin, coordinate with Agent 4 on shared shell test coverage, and keep gameplay mutation in domain modules.

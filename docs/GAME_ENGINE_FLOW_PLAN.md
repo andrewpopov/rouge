@@ -22,12 +22,13 @@ Documentation note:
 - quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch or miniboss or boss encounter and reward packages
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
+- a navigable account hall, town prep drilldowns, route-intel map panels, and explicit reward or archive delta surfaces across the active shell
 - seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools, a fourteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and four elite-affix families per act
 
 ### Still target-state
 
 - broader class-tree depth and stronger class identity beyond the current live scaffold
-- broader account-level unlock trees and profile UX beyond the current ownership seam
+- broader account-level unlock trees and profile UX beyond the current hall navigator, prep-drilldown shell, and account ownership seam
 - broader mercenary route-perk breadth tied to future route families beyond the current covenant-linked perk pass
 - broader event families and deeper quest chains
 - asset-manifest-driven presentation and content lookups
@@ -222,9 +223,9 @@ Required clarity surfaces:
 
 These are the next approved directions for implementation:
 
-1. deepen front-door, town, map, reward, and run-end UX around the systems already live, with clearer navigation and change summaries
-2. grow the account seam into broader capstone-style archive or economy or mastery systems plus richer archive or stash or economy read models
-3. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern
-4. deepen late-act item or rune breadth, reward variety, and account-gated economy pressure
-5. broaden modifier catalogs and escort scripting beyond the current fourteen-modifier baseline, and only extend mercenary payoff where new route families justify it
+1. grow the account seam into broader capstone-style archive or economy or mastery systems plus richer archive or stash or economy read models on top of the current navigable hall
+2. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern
+3. deepen late-act item or rune breadth, reward variety, and account-gated economy pressure
+4. broaden modifier catalogs and escort scripting beyond the current fourteen-modifier baseline, and only extend mercenary payoff where new route families justify it
+5. continue shell expansion only where future account systems need dedicated unlock, stash, archive, or capstone review surfaces
 6. keep all new content behind strong validation and deterministic runtime contracts while continuing architecture extraction on the biggest hotspots

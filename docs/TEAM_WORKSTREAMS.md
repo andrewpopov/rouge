@@ -159,7 +159,7 @@ Current start order for this round:
    - broaden modifier or escort or boss scripting on top of the current branch-and-boss consequence package seam
    - then deepen consequence-linked reward payoff beyond the covenant convergence lane
 4. Agent 1
-   - land the next shell structure pass on top of the latest stable profile, route, reward, and archive surfaces
+   - land the next broader account-surface pass on top of the now-live hall navigator, town drilldowns, route-intel, and delta-summary shell
 
 Current landing guidance:
 
