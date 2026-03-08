@@ -1153,6 +1153,19 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   assert.equal(state.run.activeEncounterId, "act_1_branch_recovery");
   assert.equal(state.combat.encounter.name, "Monastery Recovery Line");
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "triage_command"));
+
+  const reward = runFactory.buildEncounterReward({
+    run: state.run,
+    zone: branchZone,
+    combatState: state.combat,
+    content,
+    profile: state.profile,
+  });
+  assert.equal(reward.grants.gold, 20);
+  assert.equal(reward.grants.xp, 13);
+  assert.equal(reward.grants.potions, 1);
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Lantern Dividend.")));
+  assert.ok(reward.lines.some((line) => line.includes("Recovery stores from the chapel lantern line")));
 });
 
 test("accord lane outcomes can retune the next branch miniboss encounter package", () => {
@@ -1263,6 +1276,19 @@ test("accord lane outcomes can retune the next branch miniboss encounter package
   assert.equal(state.combat.encounter.name, "Burial Grounds Accord Host");
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_command"));
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "elite_onslaught"));
+
+  const reward = runFactory.buildEncounterReward({
+    run: state.run,
+    zone: branchZone,
+    combatState: state.combat,
+    content,
+    profile: state.profile,
+  });
+  assert.equal(reward.grants.gold, 30);
+  assert.equal(reward.grants.xp, 18);
+  assert.equal(reward.grants.potions, 2);
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Dividend.")));
+  assert.ok(reward.lines.some((line) => line.includes("next miniboss clear into a richer contract payout")));
 });
 
 test("covenant lane outcomes can retune the act boss encounter package", () => {
@@ -1411,6 +1437,19 @@ test("covenant lane outcomes can retune the act boss encounter package", () => {
   assert.equal(state.combat.encounter.name, "Catacomb Covenant");
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "boss_screen"));
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "sniper_nest"));
+
+  const reward = runFactory.buildEncounterReward({
+    run: state.run,
+    zone: bossZone,
+    combatState: state.combat,
+    content,
+    profile: state.profile,
+  });
+  assert.equal(reward.grants.gold, 50);
+  assert.equal(reward.grants.xp, 32);
+  assert.equal(reward.grants.potions, 2);
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Wayfinder Dividend.")));
+  assert.ok(reward.lines.some((line) => line.includes("act boss reward into a true late-route settlement")));
 });
 
 test("culmination mercenary route perks feed the next combat after the full post-relay route resolves", () => {

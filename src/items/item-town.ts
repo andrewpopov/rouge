@@ -95,6 +95,36 @@
       .filter(Boolean);
   }
 
+  function getPlanningSummary(profile) {
+    return (
+      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile)?.planning || {
+        weaponRunewordId: "",
+        armorRunewordId: "",
+        plannedRunewordCount: 0,
+        fulfilledPlanCount: 0,
+        unfulfilledPlanCount: 0,
+        weaponArchivedRunCount: 0,
+        weaponCompletedRunCount: 0,
+        weaponBestActsCleared: 0,
+        armorArchivedRunCount: 0,
+        armorCompletedRunCount: 0,
+        armorBestActsCleared: 0,
+      }
+    );
+  }
+
+  function getPlannedRunewordArchiveState(profile, slot) {
+    const planning = getPlanningSummary(profile);
+    return {
+      runewordId: slot === "weapon" ? planning.weaponRunewordId : planning.armorRunewordId,
+      archivedRunCount: slot === "weapon" ? planning.weaponArchivedRunCount : planning.armorArchivedRunCount,
+      completedRunCount: slot === "weapon" ? planning.weaponCompletedRunCount : planning.armorCompletedRunCount,
+      bestActsCleared: slot === "weapon" ? planning.weaponBestActsCleared : planning.armorBestActsCleared,
+      unfulfilled: Boolean(slot === "weapon" ? planning.weaponRunewordId : planning.armorRunewordId) &&
+        (slot === "weapon" ? planning.weaponCompletedRunCount : planning.armorCompletedRunCount) === 0,
+    };
+  }
+
   function getTargetRunewordForEquipment(equipment, run, content, profile = null) {
     if (!equipment) {
       return null;
@@ -226,7 +256,9 @@
     const stashLoadFee = Math.min(6, planningPressure.stashEntries);
     const planningFee = planningPressure.socketReadyEntries + planningPressure.runewordEntries;
     const planningMatch = getEntryPlanningMatch(entry, content, profile);
-    const planningDiscount = planningMatch ? 3 + Number(features.economyFocus) : 0;
+    const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot) : null;
+    const planningDiscount =
+      planningMatch ? 3 + Number(features.economyFocus) + Number(planningArchiveState?.unfulfilled) * 2 : 0;
     const fee = baseFee + Math.floor(buyPrice * 0.12) + stashLoadFee + planningFee - Number(features.economyFocus) - planningDiscount;
     return Math.max(entry.kind === "rune" ? 4 : 8, fee);
   }
@@ -330,11 +362,23 @@
             })[0] || null
         : null;
     const plannedRuneword = getPlannedRuneword(profile, slot, content);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot);
     const planningOffer =
       plannedRuneword
         ? [...upgradeOptions, ...options]
             .filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword))
             .sort((left, right) => {
+              if (planningArchiveState.unfulfilled) {
+                const rightSocketsReady = Number(toNumber(right.maxSockets, 0) >= toNumber(plannedRuneword.socketCount, 0));
+                const leftSocketsReady = Number(toNumber(left.maxSockets, 0) >= toNumber(plannedRuneword.socketCount, 0));
+                if (rightSocketsReady !== leftSocketsReady) {
+                  return rightSocketsReady - leftSocketsReady;
+                }
+                const socketDelta = toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+                if (socketDelta !== 0) {
+                  return socketDelta;
+                }
+              }
               const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
               if (progressionDelta !== 0) {
                 return progressionDelta;
@@ -396,7 +440,9 @@
     }
     if (features.runewordCodex || features.treasuryExchange) {
       getPlannedRunewordTargets(profile, content).forEach((runeword) => {
-        runeword.requiredRunes.slice(0, 2).forEach((runeId) => uniquePush(targetRuneIds, runeId));
+        const archiveState = getPlannedRunewordArchiveState(profile, runeword.slot);
+        const planningTargetCount = 2 + Number(archiveState.unfulfilled && (features.treasuryExchange || features.economyFocus));
+        runeword.requiredRunes.slice(0, planningTargetCount).forEach((runeId) => uniquePush(targetRuneIds, runeId));
       });
     }
 
@@ -626,6 +672,18 @@
       .filter(Boolean);
     if (plannedRunewords.length > 0) {
       previewLines.push(`Planning charters active for ${plannedRunewords.join(" and ")}.`);
+    }
+    const unfulfilledPlannedRunewords = (["weapon", "armor"] as const)
+      .map((slot) => {
+        const archiveState = getPlannedRunewordArchiveState(profile, slot);
+        if (!archiveState.unfulfilled) {
+          return "";
+        }
+        return getPlannedRuneword(profile, slot, content)?.name || archiveState.runewordId;
+      })
+      .filter(Boolean);
+    if (unfulfilledPlannedRunewords.length > 0) {
+      previewLines.push(`Archive charter still open for ${unfulfilledPlannedRunewords.join(" and ")}.`);
     }
     return {
       id: "vendor_refresh_stock",
@@ -910,12 +968,21 @@
     if (plannedRunewords.length > 0) {
       lines.push(`Planning charters: ${plannedRunewords.map((runeword) => runeword.name).join(" / ")}.`);
     }
+    const planning = getPlanningSummary(profile);
+    if (planning.plannedRunewordCount > 0) {
+      lines.push(
+        `Planning record: ${planning.fulfilledPlanCount}/${planning.plannedRunewordCount} active charter${
+          planning.plannedRunewordCount === 1 ? "" : "s"
+        } already fulfilled in the archive.`
+      );
+    }
     return lines;
   }
 
   runtimeWindow.ROUGE_ITEM_TOWN = {
     getAccountEconomyFeatures,
     getPlannedRunewordId,
+    getPlannedRunewordArchiveState,
     getEntryBuyPrice,
     getEntrySellPrice,
     getVendorRefreshCost,

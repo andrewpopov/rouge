@@ -68,9 +68,11 @@
   ]);
 
   const ALLOWED_CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
+  const ALLOWED_CONSEQUENCE_REWARD_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
   const MIN_GENERATED_GROUP_SIZES = { opening: 6, branchBattle: 5, branchMiniboss: 4, boss: 1 };
   const MIN_CONSEQUENCE_ENCOUNTER_PACKAGES_PER_ACT = 3;
+  const MIN_CONSEQUENCE_REWARD_PACKAGES_PER_ACT = 3;
 
   const MIN_MERCENARY_CONTRACTS = 7;
   const MIN_ROUTE_PERKS_PER_MERCENARY = 12;
@@ -127,6 +129,13 @@
       ? Array.from(new Set(encounterPackage.requiredFlagIds.filter((value) => typeof value === "string" && value))).sort()
       : [];
     return `${encounterPackage?.zoneRole || "-"}|${requiredFlagIds.join("&") || "-"}`;
+  }
+
+  function getConsequenceRewardPackageRequirementSignature(rewardPackage) {
+    const requiredFlagIds = Array.isArray(rewardPackage?.requiredFlagIds)
+      ? Array.from(new Set(rewardPackage.requiredFlagIds.filter((value) => typeof value === "string" && value))).sort()
+      : [];
+    return `${rewardPackage?.zoneRole || "-"}|${requiredFlagIds.join("&") || "-"}`;
   }
 
   function validateRuntimeContent(content) {
@@ -569,6 +578,12 @@
       }
     });
 
+    Object.keys(content?.consequenceRewardPackages || {}).forEach((actNumber) => {
+      if (!content?.generatedActEncounterIds?.[Number(actNumber)]) {
+        pushError(errors, `consequenceRewardPackages.${actNumber} references unknown act ${actNumber}.`);
+      }
+    });
+
     Object.keys(content?.generatedActEncounterIds || {}).forEach((actNumber) => {
       const encounterPackages = Array.isArray(content?.consequenceEncounterPackages?.[Number(actNumber)])
         ? content.consequenceEncounterPackages[Number(actNumber)]
@@ -654,6 +669,98 @@
       }
       if (roleCounts.boss === 0) {
         pushError(errors, `consequenceEncounterPackages.${actNumber} must include at least 1 package for zoneRole "boss".`);
+      }
+
+      const rewardPackages = Array.isArray(content?.consequenceRewardPackages?.[Number(actNumber)])
+        ? content.consequenceRewardPackages[Number(actNumber)]
+        : [];
+      if (rewardPackages.length < MIN_CONSEQUENCE_REWARD_PACKAGES_PER_ACT) {
+        pushError(
+          errors,
+          `consequenceRewardPackages.${actNumber} must define at least ${MIN_CONSEQUENCE_REWARD_PACKAGES_PER_ACT} consequence reward packages.`
+        );
+      }
+
+      const seenRewardPackageIds = new Set();
+      const seenRewardSignatures = new Map();
+      const rewardRoleCounts = {
+        branchBattle: 0,
+        branchMiniboss: 0,
+        boss: 0,
+      };
+
+      rewardPackages.forEach((rewardPackage, index) => {
+        const packageLabel = `consequenceRewardPackages.${actNumber}[${index}]`;
+        if (!rewardPackage?.id) {
+          pushError(errors, `${packageLabel} is missing an id.`);
+        } else if (seenRewardPackageIds.has(rewardPackage.id)) {
+          pushError(errors, `consequenceRewardPackages.${actNumber} reuses package id "${rewardPackage.id}".`);
+        } else {
+          seenRewardPackageIds.add(rewardPackage.id);
+        }
+
+        if (!rewardPackage?.title) {
+          pushError(errors, `${packageLabel} is missing a title.`);
+        }
+        if (!ALLOWED_CONSEQUENCE_REWARD_ZONE_ROLES.has(rewardPackage?.zoneRole)) {
+          pushError(errors, `${packageLabel}.zoneRole "${rewardPackage?.zoneRole || ""}" is not supported.`);
+        } else if (
+          rewardPackage.zoneRole === "branchBattle" ||
+          rewardPackage.zoneRole === "branchMiniboss" ||
+          rewardPackage.zoneRole === "boss"
+        ) {
+          rewardRoleCounts[rewardPackage.zoneRole] += 1;
+        }
+
+        validateStringIdList(rewardPackage?.requiredFlagIds, `${packageLabel}.requiredFlagIds`, errors);
+        if (!Array.isArray(rewardPackage?.requiredFlagIds) || rewardPackage.requiredFlagIds.length === 0) {
+          pushError(errors, `${packageLabel} must require at least one world flag.`);
+        } else {
+          validateKnownStringIds(
+            rewardPackage.requiredFlagIds,
+            knownWorldFlagIds,
+            `${packageLabel}.requiredFlagIds`,
+            errors,
+            "world flag"
+          );
+        }
+
+        const requirementSignature = getConsequenceRewardPackageRequirementSignature(rewardPackage);
+        const existingPackageId = seenRewardSignatures.get(requirementSignature);
+        if (existingPackageId) {
+          pushError(errors, `${packageLabel} reuses requirement signature with package "${existingPackageId}".`);
+        } else if (rewardPackage?.id) {
+          seenRewardSignatures.set(requirementSignature, rewardPackage.id);
+        } else {
+          seenRewardSignatures.set(requirementSignature, `[${index}]`);
+        }
+
+        if (!rewardPackage?.grants || typeof rewardPackage.grants !== "object") {
+          pushError(errors, `${packageLabel}.grants must be an object.`);
+        } else {
+          const grantValues = ["gold", "xp", "potions"].map((grantKey) => {
+            const grantValue = Number.parseInt(String(rewardPackage.grants?.[grantKey] || 0), 10);
+            if (!Number.isFinite(grantValue) || grantValue < 0) {
+              pushError(errors, `${packageLabel}.grants.${grantKey} must be a non-negative integer.`);
+            }
+            return Math.max(0, Number.isFinite(grantValue) ? grantValue : 0);
+          });
+          if (grantValues.every((grantValue) => grantValue === 0)) {
+            pushError(errors, `${packageLabel}.grants must define at least one positive reward bonus.`);
+          }
+        }
+
+        validateStringIdList(rewardPackage?.bonusLines, `${packageLabel}.bonusLines`, errors);
+      });
+
+      if (rewardRoleCounts.branchBattle === 0) {
+        pushError(errors, `consequenceRewardPackages.${actNumber} must include at least 1 package for zoneRole "branchBattle".`);
+      }
+      if (rewardRoleCounts.branchMiniboss === 0) {
+        pushError(errors, `consequenceRewardPackages.${actNumber} must include at least 1 package for zoneRole "branchMiniboss".`);
+      }
+      if (rewardRoleCounts.boss === 0) {
+        pushError(errors, `consequenceRewardPackages.${actNumber} must include at least 1 package for zoneRole "boss".`);
       }
     });
 

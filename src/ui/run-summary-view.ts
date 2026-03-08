@@ -20,6 +20,66 @@
       .join(" ");
   }
 
+  function buildArchiveDeltaMarkup(
+    latestHistoryEntry: RunHistoryEntry | null,
+    profileSummary: ProfileSummary,
+    renderUtils: RenderUtilsApi,
+    common: UiCommonApi,
+    appState: AppState
+  ): string {
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
+    if (!latestHistoryEntry) {
+      return '<p class="flow-copy">The archive already updated, but no latest history entry could be read for a delta breakdown.</p>';
+    }
+
+    const previousArchiveCount = Math.max(0, profileSummary.runHistoryCount - 1);
+    const previousGoldTotal = Math.max(0, profileSummary.totalGoldCollected - latestHistoryEntry.goldGained);
+    const previousBossTotal = Math.max(0, profileSummary.totalBossesDefeated - latestHistoryEntry.bossesDefeated);
+    const previousRunewordTotal = Math.max(0, profileSummary.totalRunewordsForged - latestHistoryEntry.runewordsForged);
+    const featureLabels = (latestHistoryEntry.newFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const runewordLabels = (latestHistoryEntry.activeRunewordIds || []).map((runewordId) => {
+      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
+    });
+
+    return `
+      <div class="feature-grid feature-grid-wide">
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>Archive Delta</strong>
+            ${buildBadge(`+1 archive`, "cleared")}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Archives", `${previousArchiveCount} -> ${profileSummary.runHistoryCount}`)}
+            ${buildStat("Gold", `${previousGoldTotal} -> ${profileSummary.totalGoldCollected}`)}
+            ${buildStat("Bosses", `${previousBossTotal} -> ${profileSummary.totalBossesDefeated}`)}
+            ${buildStat("Runewords", `${previousRunewordTotal} -> ${profileSummary.totalRunewordsForged}`)}
+          </div>
+          ${buildStringList(
+            [
+              `This run added ${latestHistoryEntry.goldGained} gold, ${latestHistoryEntry.bossesDefeated} boss kill${latestHistoryEntry.bossesDefeated === 1 ? "" : "s"}, and ${latestHistoryEntry.runewordsForged} forged runeword${latestHistoryEntry.runewordsForged === 1 ? "" : "s"}.`,
+              `Progression delta: +${latestHistoryEntry.skillPointsEarned} skill, +${latestHistoryEntry.classPointsEarned} class, +${latestHistoryEntry.attributePointsEarned} attribute, +${latestHistoryEntry.trainingRanksGained} training.`,
+              `Feature gates opened: ${getPreviewLabel(featureLabels, "none this run")}.`,
+              `Archived runeword posture: ${getPreviewLabel(runewordLabels, "none forged")}.`,
+            ],
+            "log-list reward-list ledger-list"
+          )}
+        </article>
+        <article class="feature-card">
+          <strong>Hall Re-entry Guide</strong>
+          <p>${escapeHtml("The front door now receives this archive delta immediately. Use it to decide whether to review history, retarget account focus, or step straight into another draft.")}</p>
+          ${buildStringList(
+            [
+              "Return to the account hall and check the archive desk for the newly logged expedition.",
+              "Review account-tree focus if this run changed the archive, economy, or mastery pressure you want next.",
+              "Draft a new class or resume a parked route only after you understand what this archive entry just changed.",
+            ],
+            "log-list reward-list ledger-list"
+          )}
+        </article>
+      </div>
+    `;
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml, buildBadge, buildStat, buildStringList } = services.renderUtils;
@@ -73,6 +133,11 @@
               <p>${escapeHtml(`${run.hero.currentLife}/${run.hero.maxLife} hero Life, ${run.mercenary.currentLife}/${run.mercenary.maxLife} mercenary Life, ${run.belt.current}/${run.belt.max} belt.`)}</p>
             </article>
           </div>
+          <div class="panel-head panel-head-compact">
+            <h3>Archive Delta Review</h3>
+            <p>These lines answer the key run-end question directly: what changed on the account because this expedition was logged?</p>
+          </div>
+          ${buildArchiveDeltaMarkup(latestHistoryEntry, profileSummary, services.renderUtils, common, appState)}
         </section>
 
         <section class="panel flow-panel">

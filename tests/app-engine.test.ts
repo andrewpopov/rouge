@@ -316,7 +316,7 @@ test("profile migrations backfill unlock and tutorial ownership for older envelo
   assert.equal(restoredEnvelope.profile.meta.progression.highestActCleared, 2);
   assert.ok(restoredEnvelope.profile.meta.unlocks.classIds.includes("sorceress"));
   assert.ok(restoredEnvelope.profile.meta.unlocks.townFeatureIds.includes("front_door_profile_hall"));
-  assert.equal(restoredEnvelope.schemaVersion, 7);
+  assert.equal(restoredEnvelope.schemaVersion, 8);
   assert.equal(restoredEnvelope.profile.meta.planning.weaponRunewordId, "");
   assert.equal(restoredEnvelope.profile.meta.planning.armorRunewordId, "");
   assert.equal(restoredEnvelope.profile.meta.accountProgression.focusedTreeId, "archives");
@@ -354,6 +354,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
       stashEntryCount: 2,
       stashEquipmentCount: 1,
       stashRuneCount: 1,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: ["steel"],
       newFeatureIds: ["front_door_profile_hall"],
       completedAt: new Date("2026-03-07T00:00:00.000Z").toISOString(),
@@ -382,6 +385,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
       stashEntryCount: 1,
       stashEquipmentCount: 1,
       stashRuneCount: 0,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: [],
       newFeatureIds: [],
       completedAt: new Date("2026-03-06T00:00:00.000Z").toISOString(),
@@ -410,6 +416,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
       stashEntryCount: 1,
       stashEquipmentCount: 0,
       stashRuneCount: 1,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: [],
       newFeatureIds: [],
       completedAt: new Date("2026-03-05T00:00:00.000Z").toISOString(),
@@ -438,6 +447,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
       stashEntryCount: 0,
       stashEquipmentCount: 0,
       stashRuneCount: 0,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: [],
       newFeatureIds: [],
       completedAt: new Date("2026-03-04T00:00:00.000Z").toISOString(),
@@ -466,6 +478,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
       stashEntryCount: 3,
       stashEquipmentCount: 2,
       stashRuneCount: 1,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: ["steel"],
       newFeatureIds: [],
       completedAt: new Date("2026-03-03T00:00:00.000Z").toISOString(),
@@ -494,6 +509,9 @@ test("account progress summary derives milestone feature unlocks from persisted 
       stashEntryCount: 1,
       stashEquipmentCount: 0,
       stashRuneCount: 1,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: [],
       newFeatureIds: [],
       completedAt: new Date("2026-03-02T00:00:00.000Z").toISOString(),
@@ -886,7 +904,7 @@ test("treasury exchange adds direct vendor-to-stash consignment and stash-aware 
 });
 
 test("runeword planning charters steer vendor consignment previews and reward item pivots", () => {
-  const { content, combatEngine, appEngine, itemSystem, runFactory, seedBundle } = createHarness();
+  const { browserWindow, content, combatEngine, appEngine, itemSystem, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
     seedBundle,
@@ -939,11 +957,17 @@ test("runeword planning charters steer vendor consignment previews and reward it
   const accountSummary = appEngine.getAccountProgressSummary(state);
   assert.equal(accountSummary.planning.weaponRunewordId, "white");
   assert.equal(accountSummary.planning.armorRunewordId, "lionheart");
+  assert.equal(accountSummary.planning.unfulfilledPlanCount, 2);
 
   const consignmentAction = itemSystem
     .listTownActions(state.run, state.profile, content)
     .find((action) => action.id.startsWith("vendor_consign_") && /Armor charter match: Lionheart/i.test(action.previewLines.join(" ")));
   assert.ok(consignmentAction);
+  const refreshAction = itemSystem
+    .listTownActions(state.run, state.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  assert.ok(refreshAction);
+  assert.match(refreshAction.previewLines.join(" "), /Archive charter still open for White and Lionheart/i);
 
   const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
   assert.ok(bossZone);
@@ -958,6 +982,36 @@ test("runeword planning charters steer vendor consignment previews and reward it
   assert.ok(rewardChoice);
   assert.equal(rewardChoice.kind, "item");
   assert.match(rewardChoice.previewLines.join(" "), /Planning charter: White/i);
+  assert.match(rewardChoice.previewLines.join(" "), /Archive charter still unfulfilled across the account/i);
+
+  state.run.summary.actsCleared = 4;
+  state.run.summary.runewordsForged = 1;
+  state.run.progression.activatedRunewords = ["white"];
+  browserWindow.ROUGE_PERSISTENCE.recordRunHistory(state.profile, state.run, "completed", content);
+
+  const archivedSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(archivedSummary.planning.weaponCompletedRunCount, 1);
+  assert.equal(archivedSummary.planning.unfulfilledPlanCount, 1);
+
+  state.run.town.vendor.stock = [];
+  itemSystem.hydrateRunInventory(state.run, content, state.profile);
+  const settledRefreshAction = itemSystem
+    .listTownActions(state.run, state.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  assert.ok(settledRefreshAction);
+  assert.match(settledRefreshAction.previewLines.join(" "), /Archive charter still open for Lionheart/i);
+  assert.doesNotMatch(settledRefreshAction.previewLines.join(" "), /Archive charter still open for White and Lionheart/i);
+
+  const archivedRewardChoice = itemSystem.buildEquipmentChoice({
+    content,
+    run: state.run,
+    zone: bossZone,
+    actNumber: state.run.actNumber,
+    encounterNumber: 1,
+    profile: state.profile,
+  });
+  assert.ok(archivedRewardChoice);
+  assert.doesNotMatch(archivedRewardChoice.previewLines.join(" "), /Archive charter still unfulfilled across the account/i);
 });
 
 test("archived run history captures progression, economy, and account feature carry-through", () => {
@@ -2734,109 +2788,4 @@ test("covenant mercenary route perks feed the next combat once the covenant lane
   assert.equal(state.combat.hero.damageBonus, 9);
   assert.equal(state.combat.hand.length, Math.min(state.run.deck.length, state.combat.hero.handSize + 9));
   assert.ok(state.combat.log.some((line) => line.includes("Wayfinder Covenant")));
-});
-
-test("runtime content validation fails clearly when a mercenary loses its legacy-linked route perk", () => {
-  const { browserWindow, content } = createHarness();
-  const brokenContent = {
-    ...content,
-    mercenaryCatalog: {
-      ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_legacy_")),
-        })),
-      },
-    },
-  };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 legacy-linked route perk\./);
-});
-
-test("runtime content validation fails clearly when a mercenary loses its reckoning-linked route perk", () => {
-  const { browserWindow, content } = createHarness();
-  const brokenContent = {
-    ...content,
-    mercenaryCatalog: {
-      ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_reckoning_")),
-        })),
-      },
-    },
-  };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 reckoning-linked route perk\./);
-});
-
-test("runtime content validation fails clearly when a mercenary loses its recovery-linked route perk", () => {
-  const { browserWindow, content } = createHarness();
-  const brokenContent = {
-    ...content,
-    mercenaryCatalog: {
-      ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_recovery_")),
-        })),
-      },
-    },
-  };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 recovery-linked route perk\./);
-});
-
-test("runtime content validation fails clearly when a mercenary loses its accord-linked route perk", () => {
-  const { browserWindow, content } = createHarness();
-  const brokenContent = {
-    ...content,
-    mercenaryCatalog: {
-      ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_accord_")),
-        })),
-      },
-    },
-  };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 accord-linked route perk\./);
-});
-
-test("runtime content validation fails clearly when a mercenary loses its covenant-linked route perk", () => {
-  const { browserWindow, content } = createHarness();
-  const brokenContent = {
-    ...content,
-    mercenaryCatalog: {
-      ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_covenant_")),
-        })),
-      },
-    },
-  };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 covenant-linked route perk\./);
 });

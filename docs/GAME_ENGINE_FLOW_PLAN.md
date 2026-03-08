@@ -19,7 +19,7 @@ Documentation note:
 - party combat between hero, mercenary, and encounter-sized enemy packs
 - explicit phases: `boot`, `front_door`, `character_select`, `safe_zone`, `world_map`, `encounter`, `reward`, `act_transition`, `run_complete`, `run_failed`
 - five-act route generation
-- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch and boss encounter packages
+- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch or miniboss or boss encounter and reward packages
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
 - seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools, a fourteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and four elite-affix families per act

@@ -7,6 +7,40 @@
     }, 0);
   }
 
+  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
+    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
+    if (filtered.length === 0) {
+      return emptyLabel;
+    }
+
+    const visible = filtered.slice(0, maxItems);
+    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
+  }
+
+  function buildServiceDrilldownCard(
+    title: string,
+    badgeLabel: string,
+    badgeTone: string,
+    stats: Array<{ label: string; value: string | number }>,
+    lines: string[],
+    renderUtils: RenderUtilsApi
+  ): string {
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
+
+    return `
+      <article class="feature-card service-focus-card">
+        <div class="entity-name-row">
+          <strong>${escapeHtml(title)}</strong>
+          ${buildBadge(badgeLabel, badgeTone)}
+        </div>
+        <div class="entity-stat-grid">
+          ${stats.map((stat) => buildStat(stat.label, stat.value)).join("")}
+        </div>
+        ${buildStringList(lines, "log-list reward-list ledger-list")}
+      </article>
+    `;
+  }
+
   function buildWorldLedgerMarkup(run: RunState, renderUtils: RenderUtilsApi): string {
     const questLines = Object.values(run.world?.questOutcomes || {}).map((entry) => {
       return `Quest · ${entry.title}: ${entry.outcomeTitle} (Act ${entry.actNumber})`;
@@ -176,6 +210,38 @@
     const completedTutorialIds = appState.profile?.meta?.tutorials?.completedIds || [];
     const pendingTutorialIds = seenTutorialIds.filter((tutorialId) => !completedTutorialIds.includes(tutorialId));
     const nextTutorialLabel = pendingTutorialIds.length > 0 ? common.getTutorialLabel(pendingTutorialIds[0]) : "Town guidance is caught up";
+    const missingHeroLife = Math.max(0, derivedParty.hero.maxLife - derivedParty.hero.currentLife);
+    const missingMercenaryLife = Math.max(0, derivedParty.mercenary.maxLife - derivedParty.mercenary.currentLife);
+    const missingBelt = Math.max(0, run.belt.max - run.belt.current);
+    const spendablePointCount =
+      run.progression.skillPointsAvailable + run.progression.classPointsAvailable + run.progression.attributePointsAvailable;
+    const progressionActionTitles = progressionActions.map((action) => action.title);
+    const recoveryActionTitles = [...healerActions, ...quartermasterActions].map((action) => action.title);
+    const tradeActionTitles = [...vendorActions, ...inventoryActions, ...stashActions].map((action) => action.title);
+    const mercenaryActionTitles = mercenaryActions.map((action) => action.title);
+    const readinessIssues = [
+      missingHeroLife > 0 ? `Hero is missing ${missingHeroLife} Life.` : "",
+      missingMercenaryLife > 0 ? `Mercenary is missing ${missingMercenaryLife} Life.` : "",
+      missingBelt > 0 ? `Belt can still recover ${missingBelt} charge${missingBelt === 1 ? "" : "s"}.` : "",
+      spendablePointCount > 0 ? `${spendablePointCount} spendable point${spendablePointCount === 1 ? "" : "s"} remain in training.` : "",
+      tradeActionTitles.length > 0 ? `${tradeActionTitles.length} trade or inventory action${tradeActionTitles.length === 1 ? "" : "s"} are still open.` : "",
+      routeSnapshot.nextZone ? `Next route ready: ${routeSnapshot.nextZone.title}.` : "Read the map before leaving town.",
+    ].filter(Boolean);
+    let readinessTone = "locked";
+    if (readinessIssues.length <= 1) {
+      readinessTone = "cleared";
+    } else if (routeSnapshot.nextZone) {
+      readinessTone = "available";
+    }
+    const readinessBadgeLabel = readinessIssues.length <= 1 ? "Ready To Leave" : `${readinessIssues.length - 1} prep check${readinessIssues.length - 1 === 1 ? "" : "s"}`;
+    const townJumpRow = `
+      <div class="cta-row hall-jump-row">
+        <a class="neutral-btn" href="#town-departure">Departure Board</a>
+        <a class="neutral-btn" href="#town-loadout">Loadout Bench</a>
+        <a class="neutral-btn" href="#town-drilldowns">Service Drilldowns</a>
+        <a class="neutral-btn" href="#town-districts">Town Districts</a>
+      </div>
+    `;
 
     // This split makes the town read like a hub: route/build state on the left, actionable districts on the right.
     services.renderUtils.buildShell(root, {
@@ -187,7 +253,7 @@
         ${common.renderRunStatus(run, "Safe Zone", services.renderUtils)}
         ${common.renderNotice(appState, services.renderUtils)}
         <section class="safe-zone-grid">
-          <article class="panel battle-panel">
+          <article class="panel battle-panel" id="town-departure">
             <div class="panel-head">
               <h2>Departure Board</h2>
               <p>${escapeHtml(`${routeSnapshot.currentAct?.town || run.safeZoneName} anchors the act. Leave town only when the route, party, and build all read the way you want.`)}</p>
@@ -222,6 +288,12 @@
                 <p>${escapeHtml(`${run.mercenary.name} is under contract as your ${run.mercenary.role.toLowerCase()}.`)}</p>
               </article>
             </div>
+
+            <div class="panel-head">
+              <h2>Town Navigator</h2>
+              <p>Use these anchors to move between departure, loadout, prep drilldowns, and the live district list without losing the run-vs-profile framing.</p>
+            </div>
+            ${townJumpRow}
 
             <div class="panel-head">
               <h2>Run State Vs Profile State</h2>
@@ -294,7 +366,7 @@
               <h2>Loadout Bench</h2>
               <p>Read the build before you leave. Equipped gear, sockets, runes, and runewords already feed the next combat state.</p>
             </div>
-            <div class="selection-grid loadout-bench-grid">
+            <div class="selection-grid loadout-bench-grid" id="town-loadout">
               ${loadoutBenchMarkup}
             </div>
             <div class="feature-grid feature-grid-wide town-operations-grid">
@@ -337,9 +409,97 @@
                 <p>Vendor stock, carried inventory, and profile stash all resolve through town actions here instead of leaking into map or combat UI.</p>
               </article>
             </div>
+
+            <div class="panel-head">
+              <h2>Service Drilldowns</h2>
+              <p>The hub now surfaces the most important prep comparisons directly: recovery, spend pressure, trade pressure, companion status, and whether it is actually time to leave town.</p>
+            </div>
+            <div class="feature-grid feature-grid-wide" id="town-drilldowns">
+              ${buildServiceDrilldownCard(
+                "Recovery Triage",
+                missingHeroLife > 0 || missingMercenaryLife > 0 || missingBelt > 0 ? "Action Available" : "Stable",
+                missingHeroLife > 0 || missingMercenaryLife > 0 || missingBelt > 0 ? "available" : "cleared",
+                [
+                  { label: "Hero", value: `${derivedParty.hero.currentLife}/${derivedParty.hero.maxLife}` },
+                  { label: "Merc", value: `${derivedParty.mercenary.currentLife}/${derivedParty.mercenary.maxLife}` },
+                  { label: "Belt", value: `${run.belt.current}/${run.belt.max}` },
+                  { label: "Actions", value: healerActions.length + quartermasterActions.length },
+                ],
+                [
+                  `Recovery actions: ${getPreviewLabel(recoveryActionTitles, "none queued")}.`,
+                  `Hero missing ${missingHeroLife} Life, mercenary missing ${missingMercenaryLife}, belt missing ${missingBelt} charge${missingBelt === 1 ? "" : "s"}.`,
+                  "Use recovery before departure when preserving route momentum matters more than banking gold.",
+                ],
+                services.renderUtils
+              )}
+              ${buildServiceDrilldownCard(
+                "Build Spend Board",
+                spendablePointCount > 0 ? "Spend Pending" : "Spent Clean",
+                spendablePointCount > 0 ? "available" : "cleared",
+                [
+                  { label: "Skill", value: run.progression.skillPointsAvailable },
+                  { label: "Class", value: run.progression.classPointsAvailable },
+                  { label: "Attr", value: run.progression.attributePointsAvailable },
+                  { label: "Training", value: trainingRanks },
+                ],
+                [
+                  `Training actions: ${getPreviewLabel(progressionActionTitles, "no spend actions")}.`,
+                  `Unlocked class skills ${run.progression.classProgression.unlockedSkillIds.length}, boss trophies ${run.progression.bossTrophies.length}.`,
+                  "Town only explains the spend pressure here. Progression ownership stays with the run systems.",
+                ],
+                services.renderUtils
+              )}
+              ${buildServiceDrilldownCard(
+                "Trade And Stash Pressure",
+                tradeActionTitles.length > 0 ? `${tradeActionTitles.length} live` : "Quiet",
+                tradeActionTitles.length > 0 ? "available" : "cleared",
+                [
+                  { label: "Vendor", value: vendorStock },
+                  { label: "Carried", value: carriedEntries },
+                  { label: "Stash", value: stashEntries },
+                  { label: "Charters", value: planning.plannedRunewordCount },
+                ],
+                [
+                  `Trade actions: ${getPreviewLabel(tradeActionTitles, "no open trade pressure")}.`,
+                  `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
+                  "Review this lane before leaving when you want to pivot bases, socket pressure, or stash custody ahead of the next route.",
+                ],
+                services.renderUtils
+              )}
+              ${buildServiceDrilldownCard(
+                "Mercenary Contract Desk",
+                mercenaryActions.length > 0 ? "Contract Open" : "Contract Stable",
+                mercenaryActions.length > 0 ? companionTone : "cleared",
+                [
+                  { label: "Merc", value: run.mercenary.name },
+                  { label: "Role", value: run.mercenary.role },
+                  { label: "Life", value: `${derivedParty.mercenary.currentLife}/${derivedParty.mercenary.maxLife}` },
+                  { label: "Actions", value: mercenaryActions.length },
+                ],
+                [
+                  `Contract actions: ${getPreviewLabel(mercenaryActionTitles, "no contract changes")}.`,
+                  `${run.mercenary.name} currently projects ${derivedParty.mercenary.attack} attack into the next combat.`,
+                  "Revives and contract swaps remain town actions; this panel only clarifies the pressure before departure.",
+                ],
+                services.renderUtils
+              )}
+              ${buildServiceDrilldownCard(
+                "Ready To Leave Town?",
+                readinessBadgeLabel,
+                readinessTone,
+                [
+                  { label: "Route", value: routeSnapshot.nextZone?.title || "Map Read" },
+                  { label: "World", value: worldOutcomeCount },
+                  { label: "Tutorial", value: nextTutorialLabel },
+                  { label: "Issues", value: Math.max(0, readinessIssues.length - 1) },
+                ],
+                readinessIssues,
+                services.renderUtils
+              )}
+            </div>
           </article>
 
-          <article class="panel battle-panel">
+          <article class="panel battle-panel" id="town-districts">
             <div class="panel-head">
               <h2>Town Districts</h2>
               <p>Each live service now has a named district. The shell groups recovery, supply, training, trade, stash, and companion management instead of flattening them into one list.</p>

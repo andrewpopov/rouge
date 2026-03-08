@@ -81,6 +81,8 @@ Completed work:
 - vendor rune routing now inspects both carried loadout state and stash-planned bases when `runeword_codex` and `treasury_exchange` are live, so unfinished runewords in stash can influence targeted rune offers
 - profile meta now also owns weapon or armor runeword planning charters, with app-engine mutation seams, front-door planning controls, and stable account-summary read models instead of shell-owned planning state
 - vendor consignment previews, vendor equipment or rune routing, and reward-side equipment pivots now all read those planning charters so long-horizon runeword targets materially affect town and late-act reward behavior
+- archived run history now also records planned weapon or armor runewords plus which charter targets were actually fulfilled on that expedition, so planning is preserved as account history instead of a temporary current-profile toggle
+- account planning summaries now expose archive-backed charter ledgers, including archived or fulfilled counts and best-act records for the current weapon or armor targets, and town or reward behavior now reacts more strongly while a charter is still unfulfilled across the account
 - focused account trees now bias live runtime behavior, including archive retention, vendor pressure, and mastery-side boss rewards
 - archived run history now stores richer progression or economy snapshots, favored-tree carry-through, active runewords, loadout-tier or socket state, stash-planning state, and newly unlocked account-feature deltas
 - account-facing read models now include richer stash, archive, and capstone-review summaries so shell consumers can stay off raw profile internals
@@ -90,11 +92,11 @@ Completed work:
 - front door now also exposes direct preferred-class controls, and character select now honors explicit preferred class over recent class while still following recent history when the account preference has not diverged
 - front door now also exposes an interactive archive-review desk over richer archived run summaries, with latest or older or newer navigation routed through app-engine instead of a shell-owned persistence layer
 - regression coverage exists for migration backfill, capped progression investment, archived profile meta, account-tree or settings or tutorial or preferred-class or archive-review mutation behavior, later-tier archive or economy or mastery gate behavior, capstone gating or read-model behavior, reward-side milestone behavior, late-act economy or replacement-pivot behavior, and account-surface rendering
-- `npm run check` currently passes against this slice, with compiled tests `154/154`
+- `npm run check` currently passes against this slice, with compiled tests `157/157`
 
 Still open-ended:
 
-- broader unlock rules, further progression-tree breadth beyond the current archive or economy or mastery trees plus `heroic_annals` or `mythic_annals` or `eternal_annals`, `artisan_stock` or `brokerage_charter` or `treasury_exchange`, and `war_college` or `paragon_doctrine` or `apex_doctrine`, and broader account UX beyond the current focused-tree review controls, archive-review desk, shell summaries, and current runeword-planning desk
+- broader unlock rules, further progression-tree breadth beyond the current archive or economy or mastery trees plus `heroic_annals` or `mythic_annals` or `eternal_annals`, `artisan_stock` or `brokerage_charter` or `treasury_exchange`, and `war_college` or `paragon_doctrine` or `apex_doctrine`, and broader account UX beyond the current focused-tree review controls, archive-review desk, shell summaries, current runeword-planning desk, and current charter-ledger review
 - deeper authored loot breadth, broader feature-gated reward variety, and longer-horizon economy tuning
 - broader future meta loops built on the current account seams and richer archive data plus stash or archive review models
 

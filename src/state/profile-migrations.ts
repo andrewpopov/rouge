@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  const CURRENT_PROFILE_SCHEMA_VERSION = 7;
+  const CURRENT_PROFILE_SCHEMA_VERSION = 8;
   const CORE_TOWN_FEATURE_IDS = [
     "front_door_profile_hall",
     "safe_zone_services",
@@ -199,6 +199,9 @@
       stashEntryCount: Number.parseInt(String(entry.stashEntryCount || 0), 10) || 0,
       stashEquipmentCount: Number.parseInt(String(entry.stashEquipmentCount || 0), 10) || 0,
       stashRuneCount: Number.parseInt(String(entry.stashRuneCount || 0), 10) || 0,
+      plannedWeaponRunewordId: typeof entry.plannedWeaponRunewordId === "string" ? entry.plannedWeaponRunewordId : "",
+      plannedArmorRunewordId: typeof entry.plannedArmorRunewordId === "string" ? entry.plannedArmorRunewordId : "",
+      completedPlannedRunewordIds: uniqueStrings(entry.completedPlannedRunewordIds),
       activeRunewordIds: uniqueStrings(entry.activeRunewordIds),
       newFeatureIds: uniqueStrings(entry.newFeatureIds),
       completedAt: typeof entry.completedAt === "string" ? entry.completedAt : new Date(0).toISOString(),
@@ -474,6 +477,14 @@
       if (envelope.schemaVersion === 6) {
         envelope = {
           schemaVersion: 7,
+          savedAt: envelope.savedAt,
+          profile: ensureProfileState(envelope.profile),
+        };
+        continue;
+      }
+      if (envelope.schemaVersion === 7) {
+        envelope = {
+          schemaVersion: 8,
           savedAt: envelope.savedAt,
           profile: ensureProfileState(envelope.profile),
         };

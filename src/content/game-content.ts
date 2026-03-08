@@ -9,6 +9,21 @@
     };
   }
 
+  function consequenceRewardPackage(id, title, zoneRole, requiredFlagIds, grants, bonusLines = []) {
+    return {
+      id,
+      title,
+      zoneRole,
+      requiredFlagIds: [...requiredFlagIds],
+      grants: {
+        gold: grants?.gold || 0,
+        xp: grants?.xp || 0,
+        potions: grants?.potions || 0,
+      },
+      bonusLines: Array.isArray(bonusLines) ? [...bonusLines] : [],
+    };
+  }
+
   const hero = {
     id: "hero",
     name: "Wanderer",
@@ -1267,6 +1282,139 @@
     ],
   };
 
+  const consequenceRewardPackages = {
+    1: [
+      consequenceRewardPackage(
+        "rogue_recovery_lantern_dividend",
+        "Lantern Dividend",
+        "branchBattle",
+        ["rogue_recovery_chapel_lanterns"],
+        { gold: 6, xp: 4, potions: 1 },
+        ["Recovery stores from the chapel lantern line reach the next battle payout."]
+      ),
+      consequenceRewardPackage(
+        "rogue_accord_cloister_dividend",
+        "Cloister Dividend",
+        "branchMiniboss",
+        ["rogue_accord_cloister_paths"],
+        { gold: 8, xp: 4, potions: 1 },
+        ["The cloister accord turns the next miniboss clear into a richer contract payout."]
+      ),
+      consequenceRewardPackage(
+        "rogue_covenant_wayfinder_dividend",
+        "Wayfinder Dividend",
+        "boss",
+        ["rogue_covenant_wayfinder_ledger"],
+        { gold: 12, xp: 8, potions: 1 },
+        ["The wayfinder covenant turns the act boss reward into a true late-route settlement."]
+      ),
+    ],
+    2: [
+      consequenceRewardPackage(
+        "sunwell_recovery_ward_dividend",
+        "Ward Dividend",
+        "branchBattle",
+        ["sunwell_recovery_spearline_wards"],
+        { gold: 8, xp: 4, potions: 1 },
+        ["Recovered spearline wards widen the next battle payout and refill the march."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_accord_reliquary_dividend",
+        "Reliquary Dividend",
+        "branchMiniboss",
+        ["sunwell_accord_spear_posts"],
+        { gold: 10, xp: 5, potions: 1 },
+        ["The reliquary accord pays out directly when the next miniboss line breaks."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_covenant_lance_dividend",
+        "Lance Dividend",
+        "boss",
+        ["sunwell_covenant_final_lance_ledger"],
+        { gold: 14, xp: 8, potions: 1 },
+        ["Your final lance covenant settles at the chamber doors with a stronger boss reward."]
+      ),
+    ],
+    3: [
+      consequenceRewardPackage(
+        "kurast_recovery_spellward_dividend",
+        "Spellward Dividend",
+        "branchBattle",
+        ["kurast_recovery_spellward_bins"],
+        { gold: 8, xp: 5, potions: 1 },
+        ["Recovered spellward bins reach the next jungle battle as a routed cache."]
+      ),
+      consequenceRewardPackage(
+        "kurast_accord_channel_dividend",
+        "Channel Dividend",
+        "branchMiniboss",
+        ["kurast_accord_channel_marks"],
+        { gold: 10, xp: 6, potions: 1 },
+        ["The channel accord pays out when the next dockside host goes down."]
+      ),
+      consequenceRewardPackage(
+        "kurast_covenant_harbor_dividend",
+        "Harbor Dividend",
+        "boss",
+        ["kurast_covenant_spellward_ledger"],
+        { gold: 16, xp: 9, potions: 1 },
+        ["The harbor covenant settles in full when the durance boss court falls."]
+      ),
+    ],
+    4: [
+      consequenceRewardPackage(
+        "hellforge_recovery_hellward_dividend",
+        "Hellward Dividend",
+        "branchBattle",
+        ["hellforge_recovery_hellward_screen"],
+        { gold: 10, xp: 5, potions: 1 },
+        ["Recovered hellward stores push a harsher branch reward out of the forge line."]
+      ),
+      consequenceRewardPackage(
+        "hellforge_accord_breach_dividend",
+        "Breach Dividend",
+        "branchMiniboss",
+        ["hellforge_accord_breach_rivets"],
+        { gold: 12, xp: 6, potions: 1 },
+        ["The breach accord pays out when the next hellgate host is brought down."]
+      ),
+      consequenceRewardPackage(
+        "hellforge_covenant_sanctuary_dividend",
+        "Sanctuary Dividend",
+        "boss",
+        ["hellforge_covenant_breachscreen_ledger"],
+        { gold: 18, xp: 10, potions: 1 },
+        ["The sanctuary covenant settles with a harder boss reward once the forge front holds."]
+      ),
+    ],
+    5: [
+      consequenceRewardPackage(
+        "harrogath_recovery_banner_dividend",
+        "Banner Dividend",
+        "branchBattle",
+        ["harrogath_recovery_guard_banners"],
+        { gold: 10, xp: 6, potions: 1 },
+        ["Recovered guard banners steady the next summit battle and its payout."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_accord_ancients_dividend",
+        "Ancients Dividend",
+        "branchMiniboss",
+        ["harrogath_accord_ancients_posts"],
+        { gold: 12, xp: 7, potions: 1 },
+        ["The ancients accord pays out when the next summit host breaks."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_covenant_summit_dividend",
+        "Summit Dividend",
+        "boss",
+        ["harrogath_covenant_ancients_ledger"],
+        { gold: 20, xp: 12, potions: 1 },
+        ["The final summit covenant resolves into a richer boss settlement before Baal falls."]
+      ),
+    ],
+  };
+
   const enemyCatalog = {
     fallen_cutthroat: {
       templateId: "fallen_cutthroat",
@@ -1360,6 +1508,7 @@
     classDeckProfiles,
     rewardPools,
     consequenceEncounterPackages,
+    consequenceRewardPackages,
     enemyCatalog,
     encounterCatalog,
   };

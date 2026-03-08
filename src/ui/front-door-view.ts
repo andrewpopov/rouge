@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -82,6 +83,41 @@
           .join("")}
       </div>
     `;
+  }
+
+  function getArchiveReviewState(appState: AppState, accountSummary: ProfileAccountSummary) {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const historyEntries = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory : [];
+    const reviewedHistoryIndex = Math.min(
+      Math.max(0, Number.parseInt(String(appState.ui.reviewedHistoryIndex || 0), 10) || 0),
+      Math.max(0, historyEntries.length - 1)
+    );
+    const reviewedHistoryEntry = historyEntries[reviewedHistoryIndex] || null;
+    const reviewedRunewordLabels = (reviewedHistoryEntry?.activeRunewordIds || []).map((runewordId) => {
+      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
+    });
+    const reviewedPlannedRunewordLabels = [reviewedHistoryEntry?.plannedWeaponRunewordId, reviewedHistoryEntry?.plannedArmorRunewordId]
+      .filter(Boolean)
+      .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId));
+    const reviewedCompletedPlannedRunewordLabels = (reviewedHistoryEntry?.completedPlannedRunewordIds || []).map((runewordId) => {
+      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
+    });
+    const reviewedFeatureLabels = (reviewedHistoryEntry?.newFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const reviewedFavoredTreeLabel = reviewedHistoryEntry
+      ? reviewedHistoryEntry.favoredTreeName || getLabelFromId(reviewedHistoryEntry.favoredTreeId || "unknown_tree")
+      : "No archive yet";
+
+    return {
+      historyEntries,
+      reviewedHistoryIndex,
+      reviewedHistoryEntry,
+      reviewedRunewordLabels,
+      reviewedPlannedRunewordLabels,
+      reviewedCompletedPlannedRunewordLabels,
+      reviewedFeatureLabels,
+      reviewedFavoredTreeLabel,
+      runHistoryCapacity: accountSummary.runHistoryCapacity,
+    };
   }
 
   function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
@@ -194,7 +230,7 @@
     const nextTutorialLabel = pendingTutorialIds.length > 0 ? common.getTutorialLabel(pendingTutorialIds[0]) : "All surfaced guidance complete";
 
     return `
-      <section class="panel flow-panel">
+      <section class="panel flow-panel" id="hall-overview">
         <div class="panel-head">
           <h2>Account Hall</h2>
           <p>Profile-owned state lives here: active expedition review, stash custody, run archives, settings signals, and the live account unlock or tutorial records now feeding the shell.</p>
@@ -310,6 +346,106 @@
     `;
   }
 
+  function buildHallNavigatorMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    accountSummary: ProfileAccountSummary
+  ): string {
+    const { buildBadge, buildStat, escapeHtml } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const settings = accountSummary.settings || {
+      showHints: true,
+      reduceMotion: false,
+      compactMode: false,
+    };
+    const activeTutorialIds = Array.isArray(accountSummary.activeTutorialIds) ? accountSummary.activeTutorialIds : [];
+    const archiveState = getArchiveReviewState(appState, accountSummary);
+
+    return `
+      <section class="panel flow-panel" id="hall-navigator">
+        <div class="panel-head">
+          <h2>Hall Navigator</h2>
+          <p>The account hall now has stable wings. Jump straight to the expedition, archive, progression, control, or onboarding surfaces instead of scanning one uninterrupted scroll.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Expedition Wing</strong>
+              ${buildBadge(savedRunSummary ? "Live Route" : "Fresh Draft", savedRunSummary ? "available" : "cleared")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Snapshot", savedRunSummary ? savedRunSummary.phaseLabel : "No Save")}
+              ${buildStat("Class", savedRunSummary ? savedRunSummary.className : "Open")}
+              ${buildStat("Act", savedRunSummary ? savedRunSummary.actTitle : "Start")}
+              ${buildStat("Next", savedRunSummary ? "Resume" : "Draft")}
+            </div>
+            <p>${escapeHtml(savedRunSummary ? `Resume the parked ${savedRunSummary.className} expedition without losing route momentum.` : "Open character draft and move directly into the town-prep shell.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Progression Gallery</strong>
+              ${buildBadge(accountSummary.focusedTreeTitle || "Unset", accountSummary.focusedTreeId ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Focused", accountSummary.focusedTreeTitle || "Unset")}
+              ${buildStat("Next", accountSummary.nextMilestoneTitle || "Cleared")}
+              ${buildStat("Milestones", `${accountSummary.unlockedMilestoneCount}/${accountSummary.milestoneCount}`)}
+              ${buildStat("Trees", accountSummary.treeCount)}
+            </div>
+            <p>${escapeHtml("Archive, trade, and mastery focus stay visible as a dedicated wing so progression steering is not buried under controls.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Vault And Archive</strong>
+              ${buildBadge(`${profileSummary.runHistoryCount} logged`, profileSummary.runHistoryCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Stash", profileSummary.stashEntries)}
+              ${buildStat("Archives", profileSummary.runHistoryCount)}
+              ${buildStat("Reviewed", archiveState.reviewedHistoryEntry ? archiveState.reviewedHistoryIndex + 1 : 0)}
+              ${buildStat("Runewords", profileSummary.unlockedRunewordCount)}
+            </div>
+            <p>${escapeHtml("The stash preview, recent expeditions, and focused archive desk now live together as one chronicle wing.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Control Annex</strong>
+              ${buildBadge(settings.showHints ? "Guided" : "Muted", settings.showHints ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Hints", settings.showHints ? "On" : "Off")}
+              ${buildStat("Motion", settings.reduceMotion ? "Reduced" : "Full")}
+              ${buildStat("Layout", settings.compactMode ? "Compact" : "Full")}
+              ${buildStat("Active Prompts", activeTutorialIds.length)}
+            </div>
+            <p>${escapeHtml("Settings, preferred class, runeword charters, and tutorial queue controls stay grouped in one account-owned annex.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Guided Start</strong>
+              ${buildBadge(profileSummary.completedTutorialCount > 0 ? "Returning" : "First Run", profileSummary.completedTutorialCount > 0 ? "available" : "cleared")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Seen", profileSummary.seenTutorialCount)}
+              ${buildStat("Done", profileSummary.completedTutorialCount)}
+              ${buildStat("Classes", appState.registries.classes.length)}
+              ${buildStat("Mercs", appState.registries.mercenaries.length)}
+            </div>
+            <p>${escapeHtml("Onboarding continuity now has its own wing so the hall clearly hands the player into draft, town, route, reward, and archive review.")}</p>
+          </article>
+        </div>
+        <div class="cta-row hall-jump-row">
+          <a class="neutral-btn" href="#hall-expedition">Expedition Wing</a>
+          <a class="neutral-btn" href="#hall-progression">Progression Gallery</a>
+          <a class="neutral-btn" href="#hall-archive">Vault And Archive</a>
+          <a class="neutral-btn" href="#hall-controls">Control Annex</a>
+          <a class="neutral-btn" href="#hall-guided">Guided Start</a>
+        </div>
+      </section>
+    `;
+  }
+
   function buildGuidedStartMarkup(
     appState: AppState,
     services: UiRenderServices,
@@ -320,7 +456,7 @@
     const mercCount = appState.registries.mercenaries.length;
 
     return `
-      <section class="panel flow-panel">
+      <section class="panel flow-panel" id="hall-guided">
         <div class="panel-head">
           <h2>Path To First Blood</h2>
           <p>The shell explains what to do next without inventing a separate tutorial phase. The same surfaces now reflect persistent tutorial state back out of the account model.</p>
@@ -397,25 +533,20 @@
       weaponRunewordId: "",
       armorRunewordId: "",
       plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
     };
     const getRunewordLabel = (runewordId: string): string => {
       return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
     };
     const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(planning.weaponRunewordId) : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(planning.armorRunewordId) : "Unset";
-    const historyEntries = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory : [];
-    const reviewedHistoryIndex = Math.min(
-      Math.max(0, Number.parseInt(String(appState.ui.reviewedHistoryIndex || 0), 10) || 0),
-      Math.max(0, historyEntries.length - 1)
-    );
-    const reviewedHistoryEntry = historyEntries[reviewedHistoryIndex] || null;
-    const reviewedRunewordLabels = (reviewedHistoryEntry?.activeRunewordIds || []).map((runewordId) => {
-      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
-    });
-    const reviewedFeatureLabels = (reviewedHistoryEntry?.newFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
-    const reviewedFavoredTreeLabel = reviewedHistoryEntry
-      ? reviewedHistoryEntry.favoredTreeName || getLabelFromId(reviewedHistoryEntry.favoredTreeId || "unknown_tree")
-      : "No archive yet";
 
     const buildSettingButton = (settingKey: string, enabled: boolean, enabledLabel: string, disabledLabel: string): string => {
       return `
@@ -494,7 +625,7 @@
     };
 
     return `
-      <section class="panel flow-panel">
+      <section class="panel flow-panel" id="hall-controls">
         <div class="panel-head">
           <h2>Account Controls</h2>
           <p>The hall now writes directly into persisted settings and tutorial state. These controls stay thin and route through the existing account APIs rather than inventing new shell-owned state.</p>
@@ -578,77 +709,15 @@
               [
                 "Runeword charters now live in profile-owned planning state instead of a temporary town-only preference.",
                 "Late vendor bases, rune routing, and treasury-exchange consignment pressure now read these charters when steering stash planning.",
+                planning.weaponRunewordId
+                  ? `Weapon ledger: ${planning.weaponCompletedRunCount}/${planning.weaponArchivedRunCount} archived runs fulfilled ${plannedWeaponLabel}.`
+                  : "Weapon ledger: no weapon charter archived yet.",
+                planning.armorRunewordId
+                  ? `Armor ledger: ${planning.armorCompletedRunCount}/${planning.armorArchivedRunCount} archived runs fulfilled ${plannedArmorLabel}.`
+                  : "Armor ledger: no armor charter archived yet.",
               ],
               "log-list reward-list ledger-list"
             )}
-          </article>
-          <article class="feature-card">
-            <div class="entity-name-row">
-              <strong>Archive Review Desk</strong>
-              ${buildBadge(
-                reviewedHistoryEntry ? `Entry ${reviewedHistoryIndex + 1}/${historyEntries.length}` : "No Archives",
-                reviewedHistoryEntry ? getRunOutcomeTone(reviewedHistoryEntry.outcome) : "locked"
-              )}
-            </div>
-            ${
-              reviewedHistoryEntry
-                ? `
-                    <div class="entity-stat-grid">
-                      ${buildStat("Class", reviewedHistoryEntry.className)}
-                      ${buildStat("Outcome", getLabelFromId(reviewedHistoryEntry.outcome))}
-                      ${buildStat("Level", reviewedHistoryEntry.level)}
-                      ${buildStat("Acts", reviewedHistoryEntry.actsCleared)}
-                      ${buildStat("Bosses", reviewedHistoryEntry.bossesDefeated)}
-                      ${buildStat("Gold", reviewedHistoryEntry.goldGained)}
-                      ${buildStat("Runewords", reviewedHistoryEntry.runewordsForged)}
-                      ${buildStat("Logged", formatTimestamp(reviewedHistoryEntry.completedAt, true))}
-                    </div>
-                    <div class="cta-row">
-                      ${
-                        reviewedHistoryIndex > 0
-                          ? `<button class="neutral-btn" data-action="set-run-history-review" data-history-index="${reviewedHistoryIndex - 1}">Newer Entry</button>`
-                          : ""
-                      }
-                      ${
-                        reviewedHistoryIndex < historyEntries.length - 1
-                          ? `<button class="neutral-btn" data-action="set-run-history-review" data-history-index="${reviewedHistoryIndex + 1}">Older Entry</button>`
-                          : ""
-                      }
-                      ${
-                        reviewedHistoryIndex !== 0
-                          ? '<button class="primary-btn" data-action="set-run-history-review" data-history-index="0">Latest Entry</button>'
-                          : ""
-                      }
-                    </div>
-                    ${buildStringList(
-                      [
-                        `Progression gains: ${reviewedHistoryEntry.skillPointsEarned} skill, ${reviewedHistoryEntry.classPointsEarned} class, ${reviewedHistoryEntry.attributePointsEarned} attribute, ${reviewedHistoryEntry.trainingRanksGained} training.`,
-                        `Favored tree: ${reviewedFavoredTreeLabel}. Unlocked class skills: ${reviewedHistoryEntry.unlockedClassSkills}.`,
-                        `Archived loadout: tier ${reviewedHistoryEntry.loadoutTier}, sockets ${reviewedHistoryEntry.loadoutSockets}, carried ${reviewedHistoryEntry.carriedEquipmentCount} gear and ${reviewedHistoryEntry.carriedRuneCount} runes.`,
-                        `Stash snapshot: ${reviewedHistoryEntry.stashEntryCount} stored entries (${reviewedHistoryEntry.stashEquipmentCount} gear, ${reviewedHistoryEntry.stashRuneCount} runes).`,
-                        `Active runewords: ${getPreviewLabel(reviewedRunewordLabels, "none forged")}.`,
-                        `New account features: ${getPreviewLabel(reviewedFeatureLabels, "no new feature gates")}.`,
-                      ],
-                      "log-list reward-list ledger-list"
-                    )}
-                  `
-                : `
-                    <div class="entity-stat-grid">
-                      ${buildStat("Archive Cap", accountSummary.runHistoryCapacity)}
-                      ${buildStat("Stored", historyEntries.length)}
-                      ${buildStat("Latest", "None")}
-                      ${buildStat("Outcome", "Awaiting")}
-                    </div>
-                    <p class="flow-copy">Richer archived run summaries are live, but the desk stays empty until an expedition is completed, failed, or abandoned.</p>
-                    ${buildStringList(
-                      [
-                        "Archived runs retain progression gains, favored-tree state, active runewords, and newly unlocked feature deltas.",
-                        "Latest-first review lets the hall inspect long-horizon account growth without adding another persistence surface.",
-                      ],
-                      "log-list reward-list ledger-list"
-                    )}
-                  `
-            }
           </article>
           <article class="feature-card">
             <div class="entity-name-row">
@@ -711,6 +780,94 @@
     `;
   }
 
+  function buildArchiveDeskMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
+    const { buildBadge, buildStat, buildStringList } = services.renderUtils;
+    const archiveState = getArchiveReviewState(appState, accountSummary);
+    const {
+      historyEntries,
+      reviewedHistoryIndex,
+      reviewedHistoryEntry,
+      reviewedRunewordLabels,
+      reviewedPlannedRunewordLabels,
+      reviewedCompletedPlannedRunewordLabels,
+      reviewedFeatureLabels,
+      reviewedFavoredTreeLabel,
+    } = archiveState;
+
+    return `
+      <article class="feature-card archive-focus-card">
+        <div class="entity-name-row">
+          <strong>Archive Review Desk</strong>
+          ${buildBadge(
+            reviewedHistoryEntry ? `Entry ${reviewedHistoryIndex + 1}/${historyEntries.length}` : "No Archives",
+            reviewedHistoryEntry ? getRunOutcomeTone(reviewedHistoryEntry.outcome) : "locked"
+          )}
+        </div>
+        ${
+          reviewedHistoryEntry
+            ? `
+                <div class="entity-stat-grid">
+                  ${buildStat("Class", reviewedHistoryEntry.className)}
+                  ${buildStat("Outcome", getLabelFromId(reviewedHistoryEntry.outcome))}
+                  ${buildStat("Level", reviewedHistoryEntry.level)}
+                  ${buildStat("Acts", reviewedHistoryEntry.actsCleared)}
+                  ${buildStat("Bosses", reviewedHistoryEntry.bossesDefeated)}
+                  ${buildStat("Gold", reviewedHistoryEntry.goldGained)}
+                  ${buildStat("Runewords", reviewedHistoryEntry.runewordsForged)}
+                  ${buildStat("Logged", formatTimestamp(reviewedHistoryEntry.completedAt, true))}
+                </div>
+                <div class="cta-row">
+                  ${
+                    reviewedHistoryIndex > 0
+                      ? `<button class="neutral-btn" data-action="set-run-history-review" data-history-index="${reviewedHistoryIndex - 1}">Newer Entry</button>`
+                      : ""
+                  }
+                  ${
+                    reviewedHistoryIndex < historyEntries.length - 1
+                      ? `<button class="neutral-btn" data-action="set-run-history-review" data-history-index="${reviewedHistoryIndex + 1}">Older Entry</button>`
+                      : ""
+                  }
+                  ${
+                    reviewedHistoryIndex !== 0
+                      ? '<button class="primary-btn" data-action="set-run-history-review" data-history-index="0">Latest Entry</button>'
+                      : ""
+                  }
+                </div>
+                ${buildStringList(
+                  [
+                    `Progression gains: ${reviewedHistoryEntry.skillPointsEarned} skill, ${reviewedHistoryEntry.classPointsEarned} class, ${reviewedHistoryEntry.attributePointsEarned} attribute, ${reviewedHistoryEntry.trainingRanksGained} training.`,
+                    `Favored tree: ${reviewedFavoredTreeLabel}. Unlocked class skills: ${reviewedHistoryEntry.unlockedClassSkills}.`,
+                    `Archived loadout: tier ${reviewedHistoryEntry.loadoutTier}, sockets ${reviewedHistoryEntry.loadoutSockets}, carried ${reviewedHistoryEntry.carriedEquipmentCount} gear and ${reviewedHistoryEntry.carriedRuneCount} runes.`,
+                    `Stash snapshot: ${reviewedHistoryEntry.stashEntryCount} stored entries (${reviewedHistoryEntry.stashEquipmentCount} gear, ${reviewedHistoryEntry.stashRuneCount} runes).`,
+                    `Planned charters: ${getPreviewLabel(reviewedPlannedRunewordLabels, "none archived")}.`,
+                    `Completed charter targets: ${getPreviewLabel(reviewedCompletedPlannedRunewordLabels, "none fulfilled")}.`,
+                    `Active runewords: ${getPreviewLabel(reviewedRunewordLabels, "none forged")}.`,
+                    `New account features: ${getPreviewLabel(reviewedFeatureLabels, "no new feature gates")}.`,
+                  ],
+                  "log-list reward-list ledger-list"
+                )}
+              `
+            : `
+                <div class="entity-stat-grid">
+                  ${buildStat("Archive Cap", archiveState.runHistoryCapacity)}
+                  ${buildStat("Stored", historyEntries.length)}
+                  ${buildStat("Latest", "None")}
+                  ${buildStat("Outcome", "Awaiting")}
+                </div>
+                <p class="flow-copy">Richer archived run summaries are live, but the desk stays empty until an expedition is completed, failed, or abandoned.</p>
+                ${buildStringList(
+                  [
+                    "Archived runs retain progression gains, favored-tree state, active runewords, and newly unlocked feature deltas.",
+                    "Latest-first review lets the hall inspect long-horizon account growth without adding another persistence surface.",
+                  ],
+                  "log-list reward-list ledger-list"
+                )}
+              `
+        }
+      </article>
+    `;
+  }
+
   function buildSavedRunMarkup(appState: AppState, services: UiRenderServices, savedRunSummary: SavedRunSummary): string {
     const { buildBadge, buildStat, escapeHtml, buildStringList } = services.renderUtils;
     // The front door reviews the saved route, but resume/abandon decisions still resolve through app-engine.
@@ -730,7 +887,7 @@
       : '<button class="neutral-btn" data-action="prompt-abandon-saved-run">Release This Expedition</button>';
 
     return `
-      <section class="panel flow-panel">
+      <section class="panel flow-panel" id="hall-expedition">
         <div class="panel-head">
           <h2>Resume Expedition</h2>
           <p>Only one autosaved route waits in the hall at a time. Review its state, then continue or archive it deliberately.</p>
@@ -793,7 +950,7 @@
       appState.registries.classes.find((entry) => entry.id === appState.profile?.meta?.progression?.preferredClassId)?.name || "Any Class";
 
     return `
-      <section class="panel flow-panel">
+      <section class="panel flow-panel" id="hall-expedition">
         <div class="panel-head">
           <h2>Open A New Expedition</h2>
           <p>No active autosave is blocking the hall. Step into character draft, choose a class and mercenary, then enter town with clear guidance for the first route.</p>
@@ -829,6 +986,38 @@
     `;
   }
 
+  function buildVaultChronicleMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    accountSummary: ProfileAccountSummary,
+    stashPreviewLines: string[],
+    recentRunMarkup: string
+  ): string {
+    return `
+      <section class="panel flow-panel" id="hall-archive">
+        <div class="panel-head">
+          <h2>Vault And Chronicle</h2>
+          <p>Account storage and run history now share a dedicated archive wing so stash review, recent runs, and long-form archive drilldowns stay together.</p>
+        </div>
+        <div class="front-door-snapshot-grid">
+          <article class="feature-card">
+            <strong>Stash Preview</strong>
+            ${
+              stashPreviewLines.length > 0
+                ? services.renderUtils.buildStringList(stashPreviewLines, "log-list reward-list ledger-list")
+                : '<p class="flow-copy">The profile stash is empty. Gear and runes moved out of town inventory will appear here.</p>'
+            }
+          </article>
+          <article class="feature-card">
+            <strong>Recent Expeditions</strong>
+            ${recentRunMarkup}
+          </article>
+          ${buildArchiveDeskMarkup(appState, services, accountSummary)}
+        </div>
+      </section>
+    `;
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const savedRunSummary = services.appEngine.getSavedRunSummary();
@@ -848,36 +1037,18 @@
         : "The front door is no longer a debug launcher. It surfaces profile state, guided play, future account hooks, and the next clean step into the run loop.",
       body: `
         ${buildAccountOverviewMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
-        <section class="panel flow-panel">
+        ${buildHallNavigatorMarkup(appState, services, savedRunSummary, accountSummary)}
+        ${expeditionSection}
+        <section class="panel flow-panel" id="hall-progression">
           <div class="panel-head">
             <h2>Account Tree Review</h2>
             <p>Archive, trade, and mastery focus now render through the hall itself. Redirecting focus here updates the same profile-owned tree state that drives retention, town economy, and reward pivots.</p>
           </div>
           ${common.buildAccountTreeReviewMarkup(accountSummary, services.renderUtils)}
         </section>
+        ${buildVaultChronicleMarkup(appState, services, accountSummary, stashPreviewLines, recentRunMarkup)}
         ${buildAccountControlsMarkup(appState, services, accountSummary)}
-        <section class="panel flow-panel">
-          <div class="panel-head">
-            <h2>Vault And Chronicle</h2>
-            <p>Account storage and run history stay visible beside the entry CTA so the hall can later grow into unlocks, settings, and meta progression without top-level surgery.</p>
-          </div>
-          <div class="front-door-snapshot-grid">
-            <article class="feature-card">
-              <strong>Stash Preview</strong>
-              ${
-                stashPreviewLines.length > 0
-                  ? services.renderUtils.buildStringList(stashPreviewLines, "log-list reward-list ledger-list")
-                  : '<p class="flow-copy">The profile stash is empty. Gear and runes moved out of town inventory will appear here.</p>'
-              }
-            </article>
-            <article class="feature-card">
-              <strong>Recent Expeditions</strong>
-              ${recentRunMarkup}
-            </article>
-          </div>
-        </section>
         ${buildGuidedStartMarkup(appState, services, savedRunSummary)}
-        ${expeditionSection}
       `,
     });
   }

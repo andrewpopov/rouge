@@ -15,7 +15,7 @@
     resolveRunewordId,
     toNumber,
   } = itemCatalog;
-  const { getAccountEconomyFeatures, getPlannedRunewordId } = itemTown;
+  const { getAccountEconomyFeatures, getPlannedRunewordArchiveState, getPlannedRunewordId } = itemTown;
 
   function describeBonuses(bonuses) {
     const lines = [];
@@ -95,7 +95,15 @@
     return runeword?.slot === slot ? runeword : null;
   }
 
-  function sortRewardUpgradeItems(upgradeItems, currentEquipment, actNumber, zone, profile = null) {
+  function sortRewardUpgradeItems(
+    upgradeItems,
+    currentEquipment,
+    actNumber,
+    zone,
+    profile = null,
+    plannedRuneword = null,
+    planningUnfulfilled = false
+  ) {
     const features = getAccountEconomyFeatures(profile);
     const preservedSockets = Math.max(
       toNumber(currentEquipment?.socketsUnlocked, 0),
@@ -105,7 +113,11 @@
       isLateActPivotZone(zone, actNumber) && (features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus)
         ? 3
         : 0;
-    const preferredSockets = Math.max(preservedSockets, preferredLateSockets);
+    const preferredSockets = Math.max(
+      preservedSockets,
+      preferredLateSockets,
+      planningUnfulfilled ? toNumber(plannedRuneword?.socketCount, 0) : 0
+    );
 
     return [...upgradeItems].sort((left, right) => {
       const rightPreserves = Number(toNumber(right?.maxSockets, 0) >= preservedSockets);
@@ -133,8 +145,9 @@
     const availableItems = getAvailableItemsForSlot(slot, actNumber, zone, run, content);
     const features = getAccountEconomyFeatures(profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot);
     if (!equipment) {
-      const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile);
+      const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled);
       if (plannedRuneword && (features.runewordCodex || features.treasuryExchange || features.economyFocus)) {
         const plannedItems = sortedItems.filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword));
         return plannedItems[0] || sortedItems[0] || null;
@@ -153,7 +166,15 @@
     if (candidateItems.length === 0) {
       return null;
     }
-    const sortedUpgradeItems = sortRewardUpgradeItems(candidateItems, equipment, actNumber, zone, profile);
+    const sortedUpgradeItems = sortRewardUpgradeItems(
+      candidateItems,
+      equipment,
+      actNumber,
+      zone,
+      profile,
+      plannedRuneword,
+      planningArchiveState.unfulfilled
+    );
     if (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchBattle") {
       return sortedUpgradeItems[0] || null;
     }
@@ -175,7 +196,12 @@
     itemId,
     run,
     content,
-    options: { profile?: ProfileState | null; lateActPivot?: boolean; plannedRuneword?: RuntimeRunewordDefinition | null } = {}
+    options: {
+      profile?: ProfileState | null;
+      lateActPivot?: boolean;
+      plannedRuneword?: RuntimeRunewordDefinition | null;
+      planningUnfulfilled?: boolean;
+    } = {}
   ) {
     const item = getItemDefinition(content, itemId);
     if (!item) {
@@ -192,6 +218,9 @@
     ];
     if (options.plannedRuneword && isRunewordCompatibleWithItem(item, options.plannedRuneword)) {
       previewLines.push(`Planning charter: ${options.plannedRuneword.name}.`);
+    }
+    if (options.planningUnfulfilled && options.plannedRuneword) {
+      previewLines.push("Archive charter still unfulfilled across the account.");
     }
 
     if (options.lateActPivot) {
@@ -317,6 +346,7 @@
     const equipment = loadout[slot];
     const upgradeItem = getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot);
 
     if (!equipment) {
       return upgradeItem
@@ -324,6 +354,7 @@
             lateActPivot: isLateActPivotZone(zone, actNumber),
             profile,
             plannedRuneword,
+            planningUnfulfilled: planningArchiveState.unfulfilled,
           })
         : null;
     }
@@ -333,8 +364,24 @@
       ? null
       : getPreferredRunewordForEquipment(equipment, run, content, getPlannedRunewordId(profile, slot));
 
-    if (upgradeItem && upgradeItem.id !== equipment.itemId && shouldPrioritizeLateActReplacement(equipment, upgradeItem, actNumber, zone, run, content, profile)) {
-      return buildItemChoice(upgradeItem.id, run, content, { lateActPivot: true, profile, plannedRuneword });
+    const planningPivot =
+      upgradeItem &&
+      plannedRuneword &&
+      planningArchiveState.unfulfilled &&
+      isLateActPivotZone(zone, actNumber) &&
+      isRunewordCompatibleWithItem(upgradeItem, plannedRuneword);
+
+    if (
+      upgradeItem &&
+      upgradeItem.id !== equipment.itemId &&
+      (shouldPrioritizeLateActReplacement(equipment, upgradeItem, actNumber, zone, run, content, profile) || planningPivot)
+    ) {
+      return buildItemChoice(upgradeItem.id, run, content, {
+        lateActPivot: true,
+        profile,
+        plannedRuneword,
+        planningUnfulfilled: planningArchiveState.unfulfilled,
+      });
     }
 
     if (targetRuneword) {
@@ -349,7 +396,11 @@
     }
 
     if (upgradeItem && upgradeItem.id !== equipment.itemId) {
-      return buildItemChoice(upgradeItem.id, run, content, { profile, plannedRuneword });
+      return buildItemChoice(upgradeItem.id, run, content, {
+        profile,
+        plannedRuneword,
+        planningUnfulfilled: planningArchiveState.unfulfilled,
+      });
     }
 
     if (equipment.socketsUnlocked < item.maxSockets) {

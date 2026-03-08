@@ -284,6 +284,148 @@ test("runtime content validation fails clearly when consequence encounter packag
   }, /consequenceEncounterPackages\.1\[\d+\] reuses requirement signature with package "rogue_recovery_counterline"\./);
 });
 
+test("runtime content validation fails clearly when an act lacks boss consequence reward coverage", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    consequenceRewardPackages: {
+      ...content.consequenceRewardPackages,
+      1: content.consequenceRewardPackages[1].filter((rewardPackage) => rewardPackage.zoneRole !== "boss"),
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /consequenceRewardPackages\.1 must include at least 1 package for zoneRole "boss"\./);
+});
+
+test("runtime content validation fails clearly when consequence reward packages reuse the same signature", () => {
+  const { browserWindow, content } = createHarness();
+  const duplicatePackage = content.consequenceRewardPackages[1][0];
+  const brokenContent = {
+    ...content,
+    consequenceRewardPackages: {
+      ...content.consequenceRewardPackages,
+      1: [
+        ...content.consequenceRewardPackages[1],
+        {
+          ...duplicatePackage,
+          id: "duplicate_lantern_dividend",
+        },
+      ],
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /consequenceRewardPackages\.1\[\d+\] reuses requirement signature with package "rogue_recovery_lantern_dividend"\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its legacy-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_legacy_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 legacy-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its reckoning-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_reckoning_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 reckoning-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its recovery-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_recovery_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 recovery-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its accord-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_accord_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 accord-linked route perk\./);
+});
+
+test("runtime content validation fails clearly when a mercenary loses its covenant-linked route perk", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    mercenaryCatalog: {
+      ...content.mercenaryCatalog,
+      rogue_scout: {
+        ...content.mercenaryCatalog.rogue_scout,
+        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+          ...routePerk,
+          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_covenant_")),
+        })),
+      },
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /mercenaryCatalog\.rogue_scout must define at least 1 covenant-linked route perk\./);
+});
+
 test("world-node validation fails clearly when opportunity variants reuse the same requirement signature", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));

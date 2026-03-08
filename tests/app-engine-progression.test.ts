@@ -490,6 +490,43 @@ test("app engine mutates profile-owned runeword planning targets through the acc
   assert.equal(storedProfile.meta.planning.armorRunewordId, "lionheart");
 });
 
+test("account planning summaries track archived charter fulfillment", () => {
+  const { content, combatEngine, appEngine, persistence, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  let result = appEngine.setPlannedRuneword(state, "weapon", "white");
+  assert.equal(result.ok, true);
+  result = appEngine.setPlannedRuneword(state, "armor", "lionheart");
+  assert.equal(result.ok, true);
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+
+  state.run.summary.actsCleared = 4;
+  state.run.summary.runewordsForged = 1;
+  state.run.progression.activatedRunewords = ["white"];
+
+  persistence.recordRunHistory(state.profile, state.run, "completed", content);
+
+  const accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.weaponArchivedRunCount, 1);
+  assert.equal(accountSummary.planning.weaponCompletedRunCount, 1);
+  assert.equal(accountSummary.planning.weaponBestActsCleared, 4);
+  assert.equal(accountSummary.planning.armorArchivedRunCount, 1);
+  assert.equal(accountSummary.planning.armorCompletedRunCount, 0);
+  assert.equal(accountSummary.planning.fulfilledPlanCount, 1);
+  assert.equal(accountSummary.planning.unfulfilledPlanCount, 1);
+  assert.equal(accountSummary.archive.planningCompletionCount, 1);
+  assert.equal(accountSummary.archive.planningMissCount, 1);
+  assert.ok(accountSummary.archive.recentPlannedRunewordIds.includes("white"));
+  assert.ok(accountSummary.archive.recentPlannedRunewordIds.includes("lionheart"));
+});
+
 test("boss rewards can grant progression points and saved summaries surface the new pools", () => {
   const { browserWindow, content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({

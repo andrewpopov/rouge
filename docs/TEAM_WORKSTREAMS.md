@@ -41,7 +41,7 @@ Already landed in the live runtime:
 - sockets, rune insertion, and expanded runeword activation
 - split run-domain helpers under `src/run/*` plus split item-domain helpers under `src/items/*`
 - seed, runtime, world-node, and elite-affix validation
-- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated opportunity variants, and consequence-conditioned branch and boss encounter packages
+- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
 - seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools, a fourteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and deeper boss escorts
 
 The active team split is now four larger workstreams:

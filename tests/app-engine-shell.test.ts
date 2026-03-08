@@ -70,6 +70,11 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     bootState: { status: "ready", error: "" },
   });
   assert.match(root.innerHTML, /Account Hall/);
+  assert.match(root.innerHTML, /Hall Navigator/);
+  assert.match(root.innerHTML, /Expedition Wing/);
+  assert.match(root.innerHTML, /Progression Gallery/);
+  assert.match(root.innerHTML, /Vault And Archive/);
+  assert.match(root.innerHTML, /Control Annex/);
   assert.match(root.innerHTML, /Account Tree Review/);
   assert.match(root.innerHTML, /Account Controls/);
   assert.match(root.innerHTML, /Unlock Archive/);
@@ -91,12 +96,15 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   });
   assert.match(root.innerHTML, /Town Districts/);
   assert.match(root.innerHTML, /Departure Board/);
+  assert.match(root.innerHTML, /Town Navigator/);
   assert.match(root.innerHTML, /Run State Vs Profile State/);
   assert.match(root.innerHTML, /Progression Board/);
   assert.match(root.innerHTML, /Account Signals/);
   assert.match(root.innerHTML, /Account Progression Focus/);
   assert.match(root.innerHTML, /World Ledger/);
   assert.match(root.innerHTML, /Loadout Bench/);
+  assert.match(root.innerHTML, /Service Drilldowns/);
+  assert.match(root.innerHTML, /Ready To Leave Town\?/);
   assert.match(root.innerHTML, /Mercenary Barracks/);
 
   appEngine.leaveSafeZone(state);
@@ -125,8 +133,12 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     bootState: { status: "ready", error: "" },
   });
   assert.match(root.innerHTML, /Act Pressure/);
+  assert.match(root.innerHTML, /Route Intel/);
+  assert.match(root.innerHTML, /Consequence Ledger/);
   assert.match(root.innerHTML, /Boss Pressure/);
   assert.match(root.innerHTML, /Node Legend/);
+  assert.match(root.innerHTML, /Convergence Lanes/);
+  assert.match(root.innerHTML, /Covenant Node/);
   assert.match(root.innerHTML, /Aftermath Nodes/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
@@ -149,6 +161,7 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Combat Reward/);
   assert.match(root.innerHTML, /Advance Guide/);
   assert.match(root.innerHTML, /Permanent Mutation/);
+  assert.match(root.innerHTML, /Before And After/);
 });
 
 test("world-map and reward shell render node-specific quest and aftermath guidance", () => {
@@ -526,6 +539,9 @@ test("front-door archive review controls navigate richer run-history entries thr
       stashEntryCount: 3,
       stashEquipmentCount: 2,
       stashRuneCount: 1,
+      plannedWeaponRunewordId: "white",
+      plannedArmorRunewordId: "lionheart",
+      completedPlannedRunewordIds: ["white"],
       activeRunewordIds: ["latest_stormbind"],
       newFeatureIds: ["economy_ledger"],
       completedAt: "2026-03-08T12:00:00.000Z",
@@ -554,6 +570,9 @@ test("front-door archive review controls navigate richer run-history entries thr
       stashEntryCount: 1,
       stashEquipmentCount: 1,
       stashRuneCount: 0,
+      plannedWeaponRunewordId: "steel",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
       activeRunewordIds: ["older_moonmark"],
       newFeatureIds: ["war_college"],
       completedAt: "2026-03-06T08:30:00.000Z",
@@ -566,6 +585,8 @@ test("front-door archive review controls navigate richer run-history entries thr
   assert.match(root.innerHTML, /Entry 1\/2/);
   assert.match(root.innerHTML, /Ash Ledger/);
   assert.match(root.innerHTML, /Economy Ledger/);
+  assert.match(root.innerHTML, /Planned charters: White, Lionheart\./);
+  assert.match(root.innerHTML, /Completed charter targets: White\./);
   assert.match(root.innerHTML, /Latest Stormbind/);
 
   let handled = actionDispatcher.handleClick({
@@ -581,6 +602,8 @@ test("front-door archive review controls navigate richer run-history entries thr
   assert.match(root.innerHTML, /Entry 2\/2/);
   assert.match(root.innerHTML, /Tempest Table/);
   assert.match(root.innerHTML, /War College/);
+  assert.match(root.innerHTML, /Planned charters: Steel\./);
+  assert.match(root.innerHTML, /Completed charter targets: none fulfilled\./);
   assert.match(root.innerHTML, /Older Moonmark/);
 
   handled = actionDispatcher.handleClick({
@@ -710,6 +733,8 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
     bootState: { status: "ready", error: "" },
   });
   assert.match(root.innerHTML, /Account Progress/);
+  assert.match(root.innerHTML, /Archive Delta/);
+  assert.match(root.innerHTML, /Hall Re-entry Guide/);
   assert.match(root.innerHTML, /Account Tree Carry-Through/);
   assert.match(root.innerHTML, /Unlock Carry-Through/);
   assert.match(root.innerHTML, /Tutorial Carry-Through/);

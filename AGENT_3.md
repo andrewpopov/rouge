@@ -49,7 +49,7 @@ Live now:
 
 - D2 seed bundles already drive classes, acts, zones, enemies, items, runes, bosses, and skills
 - acts already have act-specific encounter pools, a fourteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, archetype behavior, deeper boss escorts, and a seven-contract mercenary roster with multiple targeting behaviors plus twelve route perks per contract, including reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked compound scaling packages
-- world nodes already support quest, shrine, event, and multiple opportunity families with follow-up consequence tracking, broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch and boss encounter packages
+- world nodes already support quest, shrine, event, and multiple opportunity families with follow-up consequence tracking, broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and combat reward packages
 - content validation already covers core seed, generated content, world nodes, elite-affix references, and authored-path reachability for route-side content
 
 Still weak:
@@ -64,8 +64,8 @@ Still weak:
 
 Build the next route-depth and combat-depth pass beyond the current baseline:
 
-- deepen quest, shrine, aftermath-event, and opportunity chains so later nodes, encounters, and rewards pay off earlier consequences beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-and-boss encounter retunes
-- broaden route consequence payoff so the current covenant convergence changes more than reward text and the current branch-and-boss encounter retunes
+- deepen quest, shrine, aftermath-event, and opportunity chains so later nodes, encounters, and rewards pay off earlier consequences beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-or-miniboss-or-boss encounter and reward retunes
+- broaden route consequence payoff so the current covenant convergence changes more than reward text and the current branch-or-miniboss-or-boss encounter and reward retunes
 - broaden the live encounter-local modifier catalog, strengthen escort or boss scripting, or add equivalent combat-side authored depth beyond the current fourteen-modifier baseline where it improves act identity
 - only deepen mercenary route-perk breadth again when new route families or combat packages create a meaningful later payoff seam beyond the current covenant-linked perk pass
 - harden validation and normalization around every new authored content seam you add
@@ -81,7 +81,7 @@ Land this batch in this order unless the project manager explicitly reorders it:
 - prioritize new modifier families, escort or boss scripting, and act identity on top of the current branch-and-boss consequence package seam before extending mercenary perk breadth again
 
 2. consequence payoff extension only if it changes more than the current encounter retunes
-- make earlier quest, shrine, and opportunity outcomes influence later nodes, encounter packages, or reward consequences more deeply than the current branch-and-boss retune baseline
+- make earlier quest, shrine, and opportunity outcomes influence later nodes, encounter packages, or reward consequences more deeply than the current branch-or-miniboss-or-boss retune baseline
 - extend node and validation coverage in `tests/app-engine-world-nodes.test.ts` and `tests/app-engine-world-node-validation.test.ts`
 
 3. route-topology extension only if it creates a real new payoff seam
@@ -183,4 +183,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Agent 3's next world-content pass beyond the current seven-contract, twelve-route-perk-per-mercenary, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-conditioned branch-and-boss encounter, four-affix-per-act, and fourteen-modifier combat baseline. Prioritize broader encounter-local modifiers or escort or boss scripting where it improves act identity, then deepen downstream quest, shrine, event, and opportunity payoff beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-and-boss encounter retunes. Only extend mercenary route perks further if new consequence or combat packages create a real later-run payoff seam beyond the current covenant-linked perk pass. Keep node logic in content, quest, app, and run seams, keep combat deterministic, and make the larger authored surface fail clearly when content is incomplete.
+Build Agent 3's next world-content pass beyond the current seven-contract, twelve-route-perk-per-mercenary, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-conditioned branch-or-miniboss-or-boss encounter and reward packages, four-affix-per-act, and fourteen-modifier combat baseline. Prioritize broader encounter-local modifiers or escort or boss scripting where it improves act identity, then deepen downstream quest, shrine, event, and opportunity payoff beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-or-miniboss-or-boss encounter and reward retunes. Only extend mercenary route perks further if new consequence or combat packages create a real later-run payoff seam beyond the current covenant-linked perk pass. Keep node logic in content, quest, app, and run seams, keep combat deterministic, and make the larger authored surface fail clearly when content is incomplete.

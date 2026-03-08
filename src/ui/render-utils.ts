@@ -29,6 +29,16 @@
     return `<div class="badge-row">${list.map((label) => buildBadge(label, tone)).join("")}</div>`;
   }
 
+  function humanizeLabel(value) {
+    return String(value || "")
+      .replaceAll("_", " ")
+      .replaceAll("-", " ")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(" ");
+  }
+
   function getActionBadgeTone(action) {
     if (action.cost <= 0) {
       return "cleared";
@@ -150,7 +160,12 @@
     }
 
     const resolutionLabel = ["quest", "shrine", "event", "opportunity"].includes(zone.kind) ? "Reward Resolution" : "Combat Route";
-    const roleLabel = zone.zoneRole ? zone.zoneRole.replaceAll("_", " ") : "Route";
+    let roleLabel = "Route";
+    if (zone.nodeType) {
+      roleLabel = humanizeLabel(zone.nodeType);
+    } else if (zone.zoneRole) {
+      roleLabel = humanizeLabel(zone.zoneRole);
+    }
     let statusLabel = "Locked";
     if (zone.status === "available") {
       statusLabel = "Open";

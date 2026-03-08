@@ -622,6 +622,9 @@
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
     const latestEntry = history[0] || null;
     const favoredTreeCounts = new Map();
+    const getPlannedRunewordIds = (entry) =>
+      uniqueStrings([entry?.plannedWeaponRunewordId, entry?.plannedArmorRunewordId]);
+    const getCompletedPlannedRunewordIds = (entry) => uniqueStrings(entry?.completedPlannedRunewordIds);
     history.forEach((entry) => {
       if (!entry?.favoredTreeId) {
         return;
@@ -658,7 +661,17 @@
       planningArchiveCount: history.filter((entry) => {
         return toNumber(entry?.stashEntryCount, 0) > 0 || toNumber(entry?.carriedEquipmentCount, 0) > 0 || toNumber(entry?.carriedRuneCount, 0) > 0;
       }).length,
+      planningCompletionCount: history.filter((entry) => getCompletedPlannedRunewordIds(entry).length > 0).length,
+      planningMissCount: history.filter((entry) => {
+        const plannedRunewordIds = getPlannedRunewordIds(entry);
+        if (plannedRunewordIds.length === 0) {
+          return false;
+        }
+        const completedPlannedRunewordIds = getCompletedPlannedRunewordIds(entry);
+        return plannedRunewordIds.some((runewordId) => !completedPlannedRunewordIds.includes(runewordId));
+      }).length,
       recentFeatureIds: uniqueStrings(history.slice(0, 4).flatMap((entry) => entry?.newFeatureIds || [])).slice(0, 6),
+      recentPlannedRunewordIds: uniqueStrings(history.slice(0, 4).flatMap((entry) => getPlannedRunewordIds(entry))).slice(0, 6),
     };
   }
 
@@ -676,13 +689,43 @@
   }
 
   function buildPlanningSummary(profile) {
+    const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
+    const weaponRunewordId = typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "";
+    const armorRunewordId = typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "";
+    const summarizeRuneword = (runewordId, slotKey) => {
+      if (!runewordId) {
+        return {
+          archivedRunCount: 0,
+          completedRunCount: 0,
+          bestActsCleared: 0,
+        };
+      }
+
+      const archivedEntries = history.filter((entry) => entry?.[slotKey] === runewordId);
+      const completedEntries = archivedEntries.filter((entry) => {
+        return Array.isArray(entry?.completedPlannedRunewordIds) && entry.completedPlannedRunewordIds.includes(runewordId);
+      });
+      return {
+        archivedRunCount: archivedEntries.length,
+        completedRunCount: completedEntries.length,
+        bestActsCleared: completedEntries.reduce((highest, entry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
+      };
+    };
+
+    const weaponSummary = summarizeRuneword(weaponRunewordId, "plannedWeaponRunewordId");
+    const armorSummary = summarizeRuneword(armorRunewordId, "plannedArmorRunewordId");
     return {
-      weaponRunewordId: typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "",
-      armorRunewordId: typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "",
-      plannedRunewordCount: [
-        typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "",
-        typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "",
-      ].filter(Boolean).length,
+      weaponRunewordId,
+      armorRunewordId,
+      plannedRunewordCount: [weaponRunewordId, armorRunewordId].filter(Boolean).length,
+      fulfilledPlanCount: Number(Boolean(weaponRunewordId) && weaponSummary.completedRunCount > 0) + Number(Boolean(armorRunewordId) && armorSummary.completedRunCount > 0),
+      unfulfilledPlanCount: Number(Boolean(weaponRunewordId) && weaponSummary.completedRunCount === 0) + Number(Boolean(armorRunewordId) && armorSummary.completedRunCount === 0),
+      weaponArchivedRunCount: weaponSummary.archivedRunCount,
+      weaponCompletedRunCount: weaponSummary.completedRunCount,
+      weaponBestActsCleared: weaponSummary.bestActsCleared,
+      armorArchivedRunCount: armorSummary.archivedRunCount,
+      armorCompletedRunCount: armorSummary.completedRunCount,
+      armorBestActsCleared: armorSummary.bestActsCleared,
     };
   }
 
@@ -903,6 +946,10 @@
     const progressionSummary = content ? runtimeWindow.ROUGE_RUN_FACTORY?.getProgressionSummary?.(run, content) || null : null;
     const loadoutMetrics = getRunHistoryLoadoutMetrics(run, content);
     const stashCounts = getProfileStashCounts(profile);
+    const plannedWeaponRunewordId = typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "";
+    const plannedArmorRunewordId = typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "";
+    const activeRunewordIds = uniqueStrings(run?.progression?.activatedRunewords || []);
+    const completedPlannedRunewordIds = uniqueStrings([plannedWeaponRunewordId, plannedArmorRunewordId].filter((runewordId) => activeRunewordIds.includes(runewordId)));
     return {
       runId: run.id,
       classId: run.classId,
@@ -926,7 +973,10 @@
       stashEntryCount: stashCounts.stashEntryCount,
       stashEquipmentCount: stashCounts.stashEquipmentCount,
       stashRuneCount: stashCounts.stashRuneCount,
-      activeRunewordIds: uniqueStrings(run?.progression?.activatedRunewords || []),
+      plannedWeaponRunewordId,
+      plannedArmorRunewordId,
+      completedPlannedRunewordIds,
+      activeRunewordIds,
       newFeatureIds: uniqueStrings(newFeatureIds),
       completedAt: new Date().toISOString(),
       outcome,

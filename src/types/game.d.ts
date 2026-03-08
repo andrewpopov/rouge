@@ -115,6 +115,15 @@ interface ConsequenceEncounterPackageDefinition {
   encounterId: string;
 }
 
+interface ConsequenceRewardPackageDefinition {
+  id: string;
+  title: string;
+  zoneRole: ZoneRole;
+  requiredFlagIds: string[];
+  grants: RewardGrants;
+  bonusLines?: string[];
+}
+
 interface GeneratedActEncounterIds {
   opening: string[];
   branchBattle: string[];
@@ -189,6 +198,7 @@ interface GameContent {
   runeCatalog?: Record<string, RuntimeRuneDefinition>;
   runewordCatalog?: Record<string, RuntimeRunewordDefinition>;
   consequenceEncounterPackages?: Record<number, ConsequenceEncounterPackageDefinition[]>;
+  consequenceRewardPackages?: Record<number, ConsequenceRewardPackageDefinition[]>;
   enemyCatalog: Record<string, EnemyTemplate>;
   encounterCatalog: Record<string, EncounterDefinition>;
   generatedActEncounterIds?: Record<number, GeneratedActEncounterIds>;
@@ -886,6 +896,9 @@ interface RunHistoryEntry {
   stashEntryCount?: number;
   stashEquipmentCount?: number;
   stashRuneCount?: number;
+  plannedWeaponRunewordId: string;
+  plannedArmorRunewordId: string;
+  completedPlannedRunewordIds: string[];
   activeRunewordIds: string[];
   newFeatureIds: string[];
   completedAt: string;
@@ -1053,7 +1066,10 @@ interface ProfileArchiveSummary {
   favoredTreeId: string;
   favoredTreeName: string;
   planningArchiveCount: number;
+  planningCompletionCount: number;
+  planningMissCount: number;
   recentFeatureIds: string[];
+  recentPlannedRunewordIds: string[];
 }
 
 interface ProfileAccountReviewSummary {
@@ -1069,6 +1085,14 @@ interface ProfilePlanningSummary {
   weaponRunewordId: string;
   armorRunewordId: string;
   plannedRunewordCount: number;
+  fulfilledPlanCount: number;
+  unfulfilledPlanCount: number;
+  weaponArchivedRunCount: number;
+  weaponCompletedRunCount: number;
+  weaponBestActsCleared: number;
+  armorArchivedRunCount: number;
+  armorCompletedRunCount: number;
+  armorBestActsCleared: number;
 }
 
 interface ProfileAccountSummary {
@@ -1276,6 +1300,45 @@ interface ContentValidatorApi {
 
 interface ContentValidatorRuntimeContentApi {
   validateRuntimeContent(content: GameContent): ContentValidationReport;
+}
+
+interface ContentValidatorLateRouteOpportunityValidationArgs {
+  actKey: string;
+  errors: string[];
+  referenceState: ContentValidatorActReferenceState;
+  questDefinition: QuestNodeDefinition | null | undefined;
+  shrineDefinition: ShrineNodeDefinition | null | undefined;
+  opportunityDefinition: OpportunityNodeDefinition | null | undefined;
+  crossroadOpportunityDefinition: CrossroadOpportunityDefinition | null | undefined;
+  shrineOpportunityDefinition: ShrineOpportunityDefinition | null | undefined;
+  reserveOpportunityDefinition: ReserveOpportunityDefinition | null | undefined;
+  relayOpportunityDefinition: RelayOpportunityDefinition | null | undefined;
+  culminationOpportunityDefinition: CulminationOpportunityDefinition | null | undefined;
+  legacyOpportunityDefinition: LegacyOpportunityDefinition | null | undefined;
+  reckoningOpportunityDefinition: ReckoningOpportunityDefinition | null | undefined;
+  recoveryOpportunityDefinition: RecoveryOpportunityDefinition | null | undefined;
+  accordOpportunityDefinition: AccordOpportunityDefinition | null | undefined;
+  covenantOpportunityDefinition: CovenantOpportunityDefinition | null | undefined;
+}
+
+interface ContentValidatorWorldOpportunitiesApi {
+  validateGrants(grants: RewardGrants | null | undefined, label: string, errors: string[]): void;
+  validateKnownStringIds(
+    values: string[] | null | undefined,
+    knownValues: Set<string>,
+    label: string,
+    errors: string[],
+    referenceType: string
+  ): void;
+  validateLateRouteOpportunityFamilies(options: ContentValidatorLateRouteOpportunityValidationArgs): void;
+  validateRewardDefinition(
+    definition: WorldNodeRewardDefinition | null | undefined,
+    label: string,
+    expectedNodeType: "quest" | "shrine" | "event" | "opportunity",
+    errors: string[],
+    linkedQuestId?: string
+  ): void;
+  validateStringIdList(values: string[] | null | undefined, label: string, errors: string[]): void;
 }
 
 interface ContentValidatorActReferenceState {
@@ -1498,6 +1561,10 @@ interface AccountEconomyFeatures {
 interface ItemTownApi {
   getAccountEconomyFeatures(profile?: ProfileState | null): AccountEconomyFeatures;
   getPlannedRunewordId(profile: ProfileState | null | undefined, slot: "weapon" | "armor"): string;
+  getPlannedRunewordArchiveState(
+    profile: ProfileState | null | undefined,
+    slot: "weapon" | "armor"
+  ): { runewordId: string; archivedRunCount: number; completedRunCount: number; bestActsCleared: number; unfulfilled: boolean };
   getEntryBuyPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
   getEntrySellPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
   getVendorRefreshCost(run: RunState, profile?: ProfileState | null): number;
@@ -1901,6 +1968,7 @@ interface Window {
   ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
   ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;
   ROUGE_CONTENT_VALIDATOR_WORLD_PATHS: ContentValidatorWorldPathsApi;
+  ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES: ContentValidatorWorldOpportunitiesApi;
   ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
   ROUGE_CONTENT_VALIDATOR: ContentValidatorApi;
   ROUGE_ENCOUNTER_REGISTRY: EncounterRegistryApi;

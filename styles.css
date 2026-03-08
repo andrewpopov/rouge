@@ -90,6 +90,10 @@ body::after {
   backdrop-filter: blur(10px);
 }
 
+section[id] {
+  scroll-margin-top: 18px;
+}
+
 .hero-banner {
   position: relative;
   overflow: hidden;
@@ -476,6 +480,10 @@ button.entity-card,
 .primary-btn,
 .neutral-btn {
   padding: 13px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   cursor: pointer;
   transition:
     transform 140ms ease,
@@ -669,6 +677,18 @@ button.entity-card:disabled {
 .reward-state-grid,
 .reward-metadata-grid {
   margin-top: 18px;
+}
+
+.mutation-delta-grid,
+.hall-jump-row {
+  margin-top: 18px;
+}
+
+.hall-link-card,
+.service-focus-card,
+.mutation-delta-card,
+.archive-focus-card {
+  min-height: 100%;
 }
 
 .history-card-grid {

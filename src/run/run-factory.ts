@@ -32,8 +32,15 @@
     syncLevelProgression,
     syncUnlockedClassSkills,
   } = runtimeWindow.ROUGE_RUN_PROGRESSION;
-  const { actIsComplete, advanceToNextAct, applyReward, buildEncounterReward, runIsComplete } = runtimeWindow.ROUGE_RUN_REWARD_FLOW;
+  const {
+    actIsComplete,
+    advanceToNextAct,
+    applyReward,
+    buildEncounterReward: buildBaseEncounterReward,
+    runIsComplete,
+  } = runtimeWindow.ROUGE_RUN_REWARD_FLOW;
   const CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
+  const CONSEQUENCE_REWARD_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
   function getCombatBonuses(run, content): ItemBonusSet {
     const total: ItemBonusSet = {};
@@ -215,6 +222,93 @@
     }
 
     return mostSpecificMatches[0]?.encounterId || null;
+  }
+
+  function parseRewardGrantValue(value: unknown): number {
+    const parsed = Number.parseInt(String(value ?? 0), 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function resolveConsequenceRewardPackage(
+    run: RunState,
+    zone: ZoneState,
+    content: GameContent | null | undefined
+  ): ConsequenceRewardPackageDefinition | null {
+    if (!zone || zone.encountersCleared > 0 || !CONSEQUENCE_REWARD_ZONE_ROLES.has(String(zone.zoneRole || ""))) {
+      return null;
+    }
+
+    const actPackages = Array.isArray(content?.consequenceRewardPackages?.[zone.actNumber])
+      ? content.consequenceRewardPackages[zone.actNumber]
+      : [];
+    if (actPackages.length === 0) {
+      return null;
+    }
+
+    const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
+    const matchingPackages = actPackages.filter((rewardPackage) => {
+      return rewardPackage?.zoneRole === zone.zoneRole && includesRequiredValues(rewardPackage.requiredFlagIds, worldFlags);
+    });
+    if (matchingPackages.length === 0) {
+      return null;
+    }
+
+    const maxSpecificity = matchingPackages.reduce((maxValue, rewardPackage) => {
+      return Math.max(maxValue, Array.isArray(rewardPackage?.requiredFlagIds) ? rewardPackage.requiredFlagIds.length : 0);
+    }, 0);
+    const mostSpecificMatches = matchingPackages.filter((rewardPackage) => {
+      return (Array.isArray(rewardPackage?.requiredFlagIds) ? rewardPackage.requiredFlagIds.length : 0) === maxSpecificity;
+    });
+    if (mostSpecificMatches.length > 1) {
+      throw new Error(
+        `Zone "${zone.id}" has ambiguous consequence reward packages: ${mostSpecificMatches
+          .map((rewardPackage) => rewardPackage.id || rewardPackage.title || "unknown")
+          .join(", ")}.`
+      );
+    }
+
+    return mostSpecificMatches[0] || null;
+  }
+
+  function buildEncounterReward(config: {
+    run: RunState;
+    zone: ZoneState;
+    combatState: CombatState;
+    content: GameContent;
+    profile?: ProfileState | null;
+  }): RunReward {
+    const reward = buildBaseEncounterReward(config);
+    const rewardPackage = resolveConsequenceRewardPackage(config.run, config.zone, config.content);
+    if (!rewardPackage) {
+      return reward;
+    }
+
+    const bonusGold = Math.max(0, parseRewardGrantValue(rewardPackage.grants?.gold));
+    const bonusXp = Math.max(0, parseRewardGrantValue(rewardPackage.grants?.xp));
+    const bonusPotions = Math.max(0, parseRewardGrantValue(rewardPackage.grants?.potions));
+    reward.grants = {
+      gold: parseRewardGrantValue(reward.grants?.gold) + bonusGold,
+      xp: parseRewardGrantValue(reward.grants?.xp) + bonusXp,
+      potions: parseRewardGrantValue(reward.grants?.potions) + bonusPotions,
+    };
+
+    const packageLines = [`Late-route payoff: ${rewardPackage.title}.`];
+    if (bonusGold > 0) {
+      packageLines.push(`+${bonusGold} bonus gold.`);
+    }
+    if (bonusXp > 0) {
+      packageLines.push(`+${bonusXp} bonus experience.`);
+    }
+    if (bonusPotions > 0) {
+      packageLines.push(`+${bonusPotions} potion charge${bonusPotions === 1 ? "" : "s"}.`);
+    }
+    packageLines.push(...(Array.isArray(rewardPackage.bonusLines) ? rewardPackage.bonusLines : []));
+
+    const chooseLineIndex = reward.lines.findIndex((line) => line === "Choose one reward to shape the run.");
+    const insertIndex = chooseLineIndex >= 0 ? chooseLineIndex : reward.lines.length;
+    reward.lines = [...reward.lines];
+    reward.lines.splice(insertIndex, 0, ...packageLines);
+    return reward;
   }
 
   function beginZone(run, zoneId, content = null) {
