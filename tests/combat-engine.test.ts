@@ -255,7 +255,7 @@ test("generated encounters include broader elite and encounter-package breadth i
     );
 
     assert.ok(affixIds.size >= 4, `expected act ${actNumber} to have at least four elite affix families`);
-    assert.ok(modifierKinds.size >= 13, `expected act ${actNumber} to expose at least thirteen encounter modifier families`);
+    assert.ok(modifierKinds.size >= 14, `expected act ${actNumber} to expose at least fourteen encounter modifier families`);
     assert.ok(content.generatedActEncounterIds[actNumber].opening.length >= 6);
     assert.ok(content.generatedActEncounterIds[actNumber].branchBattle.length >= 5);
     assert.ok(content.generatedActEncounterIds[actNumber].branchMiniboss.length >= 4);
@@ -264,14 +264,11 @@ test("generated encounters include broader elite and encounter-package breadth i
 
 test("content validation fails clearly when an act exposes too few encounter modifier families", () => {
   const { content, validator } = createHarness();
-  const actOneEncounterIds = new Set(
-    Object.values(content.generatedActEncounterIds[1]).flatMap((encounterIds) => encounterIds)
-  );
   const brokenContent = {
     ...content,
     encounterCatalog: Object.fromEntries(
       Object.entries(content.encounterCatalog).map(([encounterId, encounter]) => {
-        if (!actOneEncounterIds.has(encounterId)) {
+        if (!encounterId.startsWith("act_1_")) {
           return [encounterId, encounter];
         }
         return [
@@ -287,7 +284,7 @@ test("content validation fails clearly when an act exposes too few encounter mod
 
   assert.throws(() => {
     validator.assertValidRuntimeContent(brokenContent);
-  }, /generatedActEncounterIds\.1 must expose at least 13 encounter modifier families\./);
+  }, /generatedActEncounterIds\.1 must expose at least 14 encounter modifier families\./);
 });
 
 test("scripted boss intents can shatter guard before dealing damage", () => {
@@ -576,6 +573,28 @@ test("sniper nest modifiers fortify ranged enemies while sharpening only their o
   assert.equal(ranged.currentIntent.value, rangedTemplate.intents[0].value + 2);
   assert.equal(raider.guard, 0);
   assert.equal(raider.currentIntent.value, raiderTemplate.intents[0].value);
+});
+
+test("boss screen modifiers fortify the boss court while intensifying the boss opener", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss_covenant",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const boss = state.enemies.find((enemy) => enemy.templateId.endsWith("_boss"));
+  const ranged = state.enemies.find((enemy) => enemy.role === "ranged");
+  const elite = state.enemies.find((enemy) => enemy.templateId.includes("_elite"));
+  assert.ok(boss);
+  assert.ok(ranged);
+  assert.ok(elite);
+
+  const bossTemplate = content.enemyCatalog[boss.templateId];
+  assert.equal(boss.guard, 2);
+  assert.equal(ranged.guard, 4);
+  assert.equal(elite.guard, 0);
+  assert.equal(boss.currentIntent.value, bossTemplate.intents[0].value + 2);
 });
 
 test("phalanx march modifiers advance elite and brute escorts without moving support scripts", () => {

@@ -57,8 +57,9 @@ When this slice lands, Rouge should have:
 The runtime is functionally strong, but the codebase has obvious pressure points:
 
 - `src/quests/world-node-engine.ts` is roughly `7.9k` lines
-- `src/content/content-validator.ts` is roughly `2.8k` lines after the first validator helper extraction
+- `src/content/content-validator.ts` is roughly `2.6k` lines after the second validator helper extraction
 - `src/content/content-validator-world-paths.ts` now owns authored-path state collectors, reference-state assembly, and opportunity-variant matching for validation-heavy world content
+- `src/content/content-validator-runtime-content.ts` now owns starter-deck, class-progression, mercenary route-perk, generated-encounter, and consequence-package validation for runtime content
 - `src/content/encounter-registry.ts` is down to roughly `0.05k` lines after the encounter-builder extraction
 - `src/content/encounter-registry-builders.ts` now owns act encounter-set assembly
 - `src/content/encounter-registry-enemy-builders.ts` now owns act enemy-pool normalization, elite-affix lookups, and generated enemy template or intent builders
@@ -67,7 +68,7 @@ The runtime is functionally strong, but the codebase has obvious pressure points
 - the app-engine test surface is now split, but `tests/app-engine.test.ts` is still roughly `1.8k` lines and `tests/app-engine-world-nodes.test.ts` is still roughly `1.6k` lines
 - `src/run/run-factory.ts` is roughly `0.3k` lines after the route-builder and reward-flow extractions
 - `tests/helpers/browser-harness.ts` is the shared compiled-browser seam that now needs to stay stable while the large suites shrink further
-- the validator helper chain now loads through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`, so those files must stay aligned whenever content-validator boot order changes
+- the validator helper chain now loads through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`, so those files must stay aligned whenever either private validator helper changes boot order
 - the encounter-registry helper chain now loads through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`, so those files must stay aligned whenever generated encounter boot order changes
 
 Current lint-debt signals:
@@ -122,7 +123,7 @@ This batch should make the codebase easier to work in immediately, not just add 
 Work this list from top to bottom unless the project manager explicitly reorders it:
 
 1. keep `tests/app-engine*.test.ts` aligned and finish the remaining suite cleanup around `tests/helpers/browser-harness.ts`
-2. keep shrinking `src/content/content-validator.ts` from the new `src/content/content-validator-world-paths.ts` seam when a follow-on pass is warranted
+2. keep shrinking `src/content/content-validator.ts` from the new `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` seams when a follow-on pass is warranted
 3. keep `src/content/encounter-registry.ts` thin by preventing logic drift back out of `src/content/encounter-registry-builders.ts` or `src/content/encounter-registry-enemy-builders.ts`
 4. keep `src/run/run-factory.ts` and `src/run/run-reward-flow.ts` thin by preventing logic drift back into them
 5. stage the first safe extractions out of `src/quests/world-node-engine.ts` only after coordinating with Agent 3
@@ -139,8 +140,9 @@ Land this batch in this order unless the project manager explicitly reorders it:
 - do not weaken compiled-browser coverage to get smaller files
 
 2. content-validator follow-on extraction pass
-- extract one more coherent validator family out of `src/content/content-validator.ts`
-- good targets are encounter-package validation helpers, minimum-threshold validation families, or other runtime content assertion clusters that still sit inline
+- extract one more coherent world-node validator family out of `src/content/content-validator.ts`
+- build from `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` instead of re-expanding runtime-content checks inline
+- good targets are node-family validators, shared variant-coverage assertions, or other world-node-heavy validation clusters that still sit inline
 - keep the public validation behavior identical except for intentional bug fixes or clearer validation errors
 
 3. suppression reduction pass
@@ -149,7 +151,7 @@ Land this batch in this order unless the project manager explicitly reorders it:
 
 4. follow-on seam prep
 - update `docs/CODEBASE_RULES.md`, `docs/APPLICATION_ARCHITECTURE.md`, `docs/TEAM_WORKSTREAMS.md`, and `PROJECT_MANAGER.md`
-- leave the next validator or `world-node-engine` follow-on with a clearer entry point once the validator pass lands cleanly
+- leave the remaining world-node validator or later `world-node-engine` follow-on with a clearer entry point once the validator pass lands cleanly
 
 ## Chunk 1: Oversized Runtime Extraction
 
@@ -244,7 +246,7 @@ The next completed Agent 4 batch should leave the repo in this shape:
 
 - add or update automated coverage for any extracted behavior or changed test harness seam
 - run `npm run check` before calling the batch complete
-- land the work as coherent commit(s) directly on `master`
+- do not stop at local edits or a green test run; finish by landing the work as coherent commit(s) directly on `master`
 - no PR is required for this project unless the project manager changes the delivery rule later
 
 ## Collaboration Notes

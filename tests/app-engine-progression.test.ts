@@ -449,6 +449,47 @@ test("app engine mutates settings and tutorial state through profile domain APIs
   assert.ok(!storedProfile.meta.tutorials.dismissedIds.includes("front_door_profile_hall"));
 });
 
+test("app engine mutates profile-owned runeword planning targets through the account seam", () => {
+  const { content, combatEngine, appEngine, persistence, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  let result = appEngine.setPlannedRuneword(state, "weapon", "white");
+  assert.equal(result.ok, true);
+
+  result = appEngine.setPlannedRuneword(state, "armor", "lionheart");
+  assert.equal(result.ok, true);
+
+  result = appEngine.setPlannedRuneword(state, "weapon", "lionheart");
+  assert.equal(result.ok, false);
+
+  let accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.weaponRunewordId, "white");
+  assert.equal(accountSummary.planning.armorRunewordId, "lionheart");
+  assert.equal(accountSummary.planning.plannedRunewordCount, 2);
+
+  let storedProfile = persistence.loadProfileFromStorage();
+  assert.ok(storedProfile);
+  assert.equal(storedProfile.meta.planning.weaponRunewordId, "white");
+  assert.equal(storedProfile.meta.planning.armorRunewordId, "lionheart");
+
+  result = appEngine.setPlannedRuneword(state, "weapon", "");
+  assert.equal(result.ok, true);
+
+  accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.weaponRunewordId, "");
+  assert.equal(accountSummary.planning.plannedRunewordCount, 1);
+
+  storedProfile = persistence.loadProfileFromStorage();
+  assert.ok(storedProfile);
+  assert.equal(storedProfile.meta.planning.weaponRunewordId, "");
+  assert.equal(storedProfile.meta.planning.armorRunewordId, "lionheart");
+});
+
 test("boss rewards can grant progression points and saved summaries surface the new pools", () => {
   const { browserWindow, content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({

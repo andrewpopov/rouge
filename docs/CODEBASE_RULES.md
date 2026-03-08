@@ -62,8 +62,11 @@ Rules:
 - `src/content/content-validator-world-paths.ts`
   - owns authored-path state collectors, reference-state assembly, and opportunity-variant matching helpers for content validation
 
+- `src/content/content-validator-runtime-content.ts`
+  - owns runtime-content validation for starter decks, class progression, mercenary route perks, generated encounters, and consequence encounter packages
+
 - `src/content/content-validator.ts`
-  - remains the public validator entry for seed, generated, world-node, and affix content
+  - remains the public validator entry and error-reporting surface for seed, runtime-content, and world-node validation
 
 - `src/content/encounter-registry-enemy-builders.ts`
   - owns act enemy-pool normalization, role grouping, elite-affix lookups, and enemy template or intent builders for generated encounter content
@@ -205,7 +208,7 @@ The tests intentionally exercise `generated/` output through a shared `vm` brows
 ### 10. Owner-Preserving Helper Extraction
 
 - A hotspot can split into helper files inside the same domain without changing who owns mutation.
-- `src/content/content-validator-world-paths.ts` is a private content-domain helper, but callers still enter validation through `window.ROUGE_CONTENT_VALIDATOR`.
+- `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` are private content-domain helpers, but callers still enter validation through `window.ROUGE_CONTENT_VALIDATOR`.
 - `src/content/encounter-registry-enemy-builders.ts` and `src/content/encounter-registry-builders.ts` are private content-domain helpers, but callers still enter generated encounter assembly through `window.ROUGE_ENCOUNTER_REGISTRY`.
 - `src/run/run-state.ts`, `src/run/run-route-builder.ts`, `src/run/run-progression.ts`, and `src/run/run-reward-flow.ts` are run-domain helpers, but `src/app/*`, `src/ui/*`, and `src/town/*` still enter the run domain through `window.ROUGE_RUN_FACTORY`.
 - `src/items/item-data.ts`, `src/items/item-catalog.ts`, `src/items/item-loadout.ts`, and `src/items/item-town.ts` are item-domain helpers, but cross-domain callers still enter itemization through `window.ROUGE_ITEM_SYSTEM`.

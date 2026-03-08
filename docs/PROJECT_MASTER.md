@@ -36,25 +36,25 @@ Implemented now:
 - seed-driven class selection and class-derived hero shells
 - seven mercenary contracts with distinct targeting or support behaviors plus route-linked combat perk packages, including crossroad-linked compound scaling hooks and reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late-route payoffs
 - generated act encounter catalogs and zone routes across Acts I-V with broader opening, branch-battle, and miniboss pools
-- act-specific boss scripting, deeper boss escorts, four elite-affix families per act, a thirteen-kind encounter-local modifier catalog, stronger escort, support-screen, sniper-nest, and phalanx-march scripting, and act-tuned archetype behavior
+- act-specific boss scripting, deeper boss escorts, four elite-affix families per act, a fourteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and act-tuned archetype behavior
 - potions as support actions and automatic mercenary turns
-- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch encounter packages
+- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch and boss encounter packages
 - quest outcome tracking plus shrine, event, and opportunity ledgers with explicit multi-step chain consequences on the run
 - reward choice screens with deck growth, card upgrades, party boons, item or rune progression, progression-point rewards, milestone-aware encounter payouts, profile-aware late-act equipment replacement pivots, and stronger account-gated boss pivots up through `apex_doctrine`
 - `skills.json`-backed class trees with capped tree investment, favored-tree summaries, level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
-- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, profile-aware reward-side replacement curation, and combat bonus handoff
+- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, profile-owned runeword planning charters that steer vendor and reward curation, profile-aware reward-side replacement curation, and combat bonus handoff
 - account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange economy pressure, and training-grounds or war-college or paragon-doctrine or apex-doctrine reward pivots
-- stronger shell UX with front-door profile surfaces, town or map or combat or reward guidance panels, run-end account review, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial controls, and interactive archived-run review from the account hall
+- stronger shell UX with front-door profile surfaces, town or map or combat or reward guidance panels, run-end account review, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial or runeword-planning controls, and interactive archived-run review from the account hall
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, and inventory or stash actions
 - return-to-town flow from the world map without losing route progress
 - schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates
 
 Not implemented now:
 
-- broader account-level unlock trees and broader account UX beyond the current archive or economy or mastery trees, capstone review, account hall, focused-tree controls, preferred-class or settings or tutorial controls, and interactive archive-review desk
+- broader account-level unlock trees and broader account UX beyond the current archive or economy or mastery trees, capstone review, account hall, focused-tree controls, preferred-class or settings or tutorial or runeword-planning controls, and interactive archive-review desk
 - broader mercenary route-perk breadth tied to future route families beyond the current twelve-per-contract route-perk baseline and reserve-or-relay-or-culmination-or-legacy-or-reckoning-or-recovery-or-accord-or-covenant-linked payoff pass
 - broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant per act
-- broader encounter-local modifier catalogs and escort or boss scripting beyond the current thirteen-modifier combat baseline
+- broader encounter-local modifier catalogs and escort or boss scripting beyond the current fourteen-modifier combat baseline
 - final late-run loot tuning and broader feature-gated reward variety beyond the current higher-tier item, rune, and runeword catalog
 
 ## Documentation Layers
@@ -68,6 +68,7 @@ When docs conflict, use this order.
 - [src/content/game-content.ts](/Users/andrew/proj/rouge/src/content/game-content.ts)
 - [src/content/seed-loader.ts](/Users/andrew/proj/rouge/src/content/seed-loader.ts)
 - [src/content/content-validator-world-paths.ts](/Users/andrew/proj/rouge/src/content/content-validator-world-paths.ts)
+- [src/content/content-validator-runtime-content.ts](/Users/andrew/proj/rouge/src/content/content-validator-runtime-content.ts)
 - [src/content/content-validator.ts](/Users/andrew/proj/rouge/src/content/content-validator.ts)
 - [src/content/encounter-registry-enemy-builders.ts](/Users/andrew/proj/rouge/src/content/encounter-registry-enemy-builders.ts)
 - [src/content/encounter-registry-builders.ts](/Users/andrew/proj/rouge/src/content/encounter-registry-builders.ts)

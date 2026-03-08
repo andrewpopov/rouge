@@ -59,6 +59,10 @@
           completedIds: [],
           dismissedIds: [],
         },
+        planning: {
+          weaponRunewordId: "",
+          armorRunewordId: "",
+        },
         accountProgression: {
           focusedTreeId: "archives",
         },
@@ -460,6 +464,11 @@
         unlockedFeatureIds: [],
         activeTutorialIds: [],
         dismissedTutorialCount: 0,
+        planning: {
+          weaponRunewordId: "",
+          armorRunewordId: "",
+          plannedRunewordCount: 0,
+        },
         stash: {
           entryCount: 0,
           equipmentCount: 0,
@@ -538,6 +547,27 @@
       state.ui.selectedClassId = getPreferredClassId(state.registries.classes, state.profile);
     }
     return result;
+  }
+
+  function setPlannedRuneword(state: AppState, slot: "weapon" | "armor", runewordId: string): ActionResult {
+    if (slot !== "weapon" && slot !== "armor") {
+      state.error = "Unknown planning slot.";
+      return { ok: false, message: state.error };
+    }
+    if (runewordId) {
+      const runeword = state.content?.runewordCatalog?.[runewordId] || null;
+      if (!runeword) {
+        state.error = "Unknown runeword planning target.";
+        return { ok: false, message: state.error };
+      }
+      if (runeword.slot !== slot) {
+        state.error = "That runeword does not match the selected planning slot.";
+        return { ok: false, message: state.error };
+      }
+    }
+    return mutateProfileMeta(state, (persistence, profile) => {
+      persistence.setPlannedRuneword(profile, slot, runewordId);
+    });
   }
 
   function setAccountProgressionFocus(state: AppState, treeId: string): ActionResult {
@@ -839,6 +869,7 @@
     getAccountProgressSummary,
     updateProfileSettings,
     setPreferredClass,
+    setPlannedRuneword,
     setRunHistoryReviewIndex,
     setAccountProgressionFocus,
     markTutorialSeen,

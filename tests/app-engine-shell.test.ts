@@ -320,6 +320,54 @@ test("action dispatcher drives the front-door continue and abandon shell flow", 
   assert.equal(archivedProfile.runHistory[0].outcome, "abandoned");
 });
 
+test("action dispatcher drives runeword planning controls through the front-door shell", () => {
+  const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, persistence, createActionTarget, seedBundle } =
+    createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+
+  render();
+  assert.match(root.innerHTML, /Runeword Planning Desk/);
+
+  let handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "set-planned-runeword", planningSlot: "weapon", runewordId: "white" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender: render,
+  });
+  assert.equal(handled, true);
+  assert.equal(appEngine.getAccountProgressSummary(state).planning.weaponRunewordId, "white");
+  assert.match(root.innerHTML, /White/);
+  assert.equal(persistence.loadProfileFromStorage()?.meta.planning.weaponRunewordId, "white");
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "set-planned-runeword", planningSlot: "armor", runewordId: "lionheart" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender: render,
+  });
+  assert.equal(handled, true);
+  assert.equal(appEngine.getAccountProgressSummary(state).planning.armorRunewordId, "lionheart");
+  assert.match(root.innerHTML, /Lionheart/);
+  assert.equal(persistence.loadProfileFromStorage()?.meta.planning.armorRunewordId, "lionheart");
+});
+
 test("front-door account controls mutate settings, tutorials, and preferred class through shell actions", () => {
   const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, persistence, createActionTarget, seedBundle } =
     createHarness();

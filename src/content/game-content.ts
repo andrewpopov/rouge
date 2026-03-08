@@ -1165,6 +1165,13 @@
         requiredFlagIds: ["rogue_accord_cloister_paths"],
         encounterId: "act_1_miniboss_accord",
       },
+      {
+        id: "rogue_covenant_catacomb_host",
+        title: "Catacomb Covenant Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["rogue_covenant_wayfinder_ledger"],
+        encounterId: "act_1_boss_covenant",
+      },
     ],
     2: [
       {
@@ -1180,6 +1187,13 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["sunwell_accord_spear_posts"],
         encounterId: "act_2_miniboss_accord",
+      },
+      {
+        id: "sunwell_covenant_chamber_host",
+        title: "Reliquary Covenant Chamber",
+        zoneRole: "boss",
+        requiredFlagIds: ["sunwell_covenant_final_lance_ledger"],
+        encounterId: "act_2_boss_covenant",
       },
     ],
     3: [
@@ -1197,6 +1211,13 @@
         requiredFlagIds: ["kurast_accord_channel_marks"],
         encounterId: "act_3_miniboss_accord",
       },
+      {
+        id: "kurast_covenant_durance_host",
+        title: "Harbor Covenant Court",
+        zoneRole: "boss",
+        requiredFlagIds: ["kurast_covenant_spellward_ledger"],
+        encounterId: "act_3_boss_covenant",
+      },
     ],
     4: [
       {
@@ -1213,6 +1234,13 @@
         requiredFlagIds: ["hellforge_accord_breach_rivets"],
         encounterId: "act_4_miniboss_accord",
       },
+      {
+        id: "hellforge_covenant_sanctuary_host",
+        title: "Sanctuary Covenant Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["hellforge_covenant_breachscreen_ledger"],
+        encounterId: "act_4_boss_covenant",
+      },
     ],
     5: [
       {
@@ -1228,6 +1256,13 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["harrogath_accord_ancients_posts"],
         encounterId: "act_5_miniboss_accord",
+      },
+      {
+        id: "harrogath_covenant_worldstone_host",
+        title: "Summit Covenant Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["harrogath_covenant_ancients_ledger"],
+        encounterId: "act_5_boss_covenant",
       },
     ],
   };

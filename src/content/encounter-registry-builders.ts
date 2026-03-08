@@ -101,6 +101,55 @@
     };
   }
 
+  function buildCovenantBossConfig(actNumber, templateIds) {
+    const bossScreenValue = Math.max(2, Math.min(4, actNumber));
+    if (actNumber === 2) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "phalanx_march", value: Math.max(3, actNumber) },
+        ],
+      };
+    }
+    if (actNumber === 3) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.eliteC, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+        ],
+      };
+    }
+    if (actNumber === 4) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "elite_onslaught", value: 1 },
+          { kind: "war_drums", value: 1 },
+        ],
+      };
+    }
+    if (actNumber >= 5) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "phalanx_march", value: Math.max(3, actNumber) },
+          { kind: "elite_onslaught", value: 1 },
+        ],
+      };
+    }
+    return {
+      enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteB, templateIds.ranged],
+      modifiers: [
+        { kind: "boss_screen", value: bossScreenValue },
+        { kind: "sniper_nest", value: Math.max(2, actNumber) },
+      ],
+    };
+  }
+
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }) {
     const actNumber = actSeed.act;
     const flavor = getFlavor(actNumber);
@@ -191,6 +240,7 @@
     ];
     const consequenceBranchBattleId = `act_${actNumber}_branch_recovery`;
     const consequenceBranchMinibossId = `act_${actNumber}_miniboss_accord`;
+    const consequenceBossId = `act_${actNumber}_boss_covenant`;
     const bossId = `act_${actNumber}_boss`;
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
@@ -198,6 +248,16 @@
       actNumber >= 4
         ? [bossA.templateId, eliteA.templateId, eliteC.templateId, eliteD.templateId]
         : [bossA.templateId, bossEscortOne, eliteB.templateId, eliteD.templateId];
+    const covenantBossConfig = buildCovenantBossConfig(actNumber, {
+      boss: bossA.templateId,
+      eliteA: eliteA.templateId,
+      eliteB: eliteB.templateId,
+      eliteC: eliteC.templateId,
+      eliteD: eliteD.templateId,
+      ranged: rangedA.templateId,
+      support: supportA.templateId,
+      brute: bruteA.templateId,
+    });
 
     const encounterCatalog = {
       [openingIds[0]]: makeEncounter(
@@ -352,6 +412,13 @@
           { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
           { kind: "escort_command", value: 1 },
         ]
+      ),
+      [consequenceBossId]: makeEncounter(
+        consequenceBossId,
+        `${flavor.bossLabel} Covenant`,
+        `${flavor.bossDescription} A resolved covenant route turns the act boss into a coordinated closing court instead of the default escort line.`,
+        covenantBossConfig.enemyTemplateIds,
+        covenantBossConfig.modifiers
       ),
     };
 

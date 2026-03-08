@@ -48,15 +48,15 @@ When this slice lands, Rouge should have a much stronger answer for:
 Live now:
 
 - D2 seed bundles already drive classes, acts, zones, enemies, items, runes, bosses, and skills
-- acts already have act-specific encounter pools, a thirteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, support-screen, sniper-nest, and phalanx-march scripting, archetype behavior, deeper boss escorts, and a seven-contract mercenary roster with multiple targeting behaviors plus twelve route perks per contract, including reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked compound scaling packages
-- world nodes already support quest, shrine, event, and multiple opportunity families with follow-up consequence tracking, broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch encounter packages
+- acts already have act-specific encounter pools, a fourteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, archetype behavior, deeper boss escorts, and a seven-contract mercenary roster with multiple targeting behaviors plus twelve route perks per contract, including reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked compound scaling packages
+- world nodes already support quest, shrine, event, and multiple opportunity families with follow-up consequence tracking, broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch and boss encounter packages
 - content validation already covers core seed, generated content, world nodes, elite-affix references, and authored-path reachability for route-side content
 
 Still weak:
 
 - route topology now reaches quest -> event -> opportunity plus shrine -> shrine-opportunity plus crossroad -> reserve -> relay -> culmination with parallel legacy, reckoning, recovery, and accord lanes that converge again in covenant, but it still needs broader alternate fabrics or deeper combat-linked payoff beyond the current late-route convergence per act
 - quest and event chains still need more downstream payoff beyond the current follow-up, shrine branch, crossroad, reserve, relay, culmination, legacy, reckoning, recovery, accord, and covenant handoffs
-- encounter packs still need broader modifier catalogs or stronger escort or boss scripting beyond the current thirteen-modifier, sniper-nest, and phalanx-march baseline
+- encounter packs still need broader modifier catalogs or stronger escort or boss scripting beyond the current fourteen-modifier, boss-screen, sniper-nest, and phalanx-march baseline
 - mercenary route-perk catalogs now have a twelve-per-contract baseline with reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked scaling, but later route families could still grow late-run contract payoff further beyond the current covenant-linked perk pass
 - validation and normalization still need to keep expanding as the authored surface grows
 
@@ -64,9 +64,9 @@ Still weak:
 
 Build the next route-depth and combat-depth pass beyond the current baseline:
 
-- deepen quest, shrine, aftermath-event, and opportunity chains so later nodes, encounters, and rewards pay off earlier consequences beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-encounter retunes
-- broaden route consequence payoff so the current covenant convergence changes more than reward text and one branch encounter retune
-- broaden the live encounter-local modifier catalog, strengthen escort or boss scripting, or add equivalent combat-side authored depth beyond the current thirteen-modifier baseline where it improves act identity
+- deepen quest, shrine, aftermath-event, and opportunity chains so later nodes, encounters, and rewards pay off earlier consequences beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-and-boss encounter retunes
+- broaden route consequence payoff so the current covenant convergence changes more than reward text and the current branch-and-boss encounter retunes
+- broaden the live encounter-local modifier catalog, strengthen escort or boss scripting, or add equivalent combat-side authored depth beyond the current fourteen-modifier baseline where it improves act identity
 - only deepen mercenary route-perk breadth again when new route families or combat packages create a meaningful later payoff seam beyond the current covenant-linked perk pass
 - harden validation and normalization around every new authored content seam you add
 
@@ -76,13 +76,13 @@ This batch should make Acts I-V feel materially broader, not just numerically la
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. consequence payoff pass
-- make earlier quest, shrine, and opportunity outcomes influence later nodes, encounter packages, or reward consequences more deeply than the current legacy or reckoning or recovery or accord or covenant handoff
-- extend node and validation coverage in `tests/app-engine-world-nodes.test.ts` and `tests/app-engine-world-node-validation.test.ts`
-
-2. combat-depth pass
+1. combat-depth pass
 - broaden encounter-local authored depth in `src/content/encounter-registry.ts` and `src/combat/combat-engine.ts`
-- prioritize new modifier families, escort or boss scripting, and act identity before extending mercenary perk breadth again
+- prioritize new modifier families, escort or boss scripting, and act identity on top of the current branch-and-boss consequence package seam before extending mercenary perk breadth again
+
+2. consequence payoff extension only if it changes more than the current encounter retunes
+- make earlier quest, shrine, and opportunity outcomes influence later nodes, encounter packages, or reward consequences more deeply than the current branch-and-boss retune baseline
+- extend node and validation coverage in `tests/app-engine-world-nodes.test.ts` and `tests/app-engine-world-node-validation.test.ts`
 
 3. route-topology extension only if it creates a real new payoff seam
 - only add more route families if they change consequence payoff materially beyond the current covenant convergence
@@ -162,7 +162,7 @@ Expectations:
 - add or update automated coverage for every new node, encounter, elite, boss, mercenary, or validation behavior you change
 - keep `tests/combat-engine.test.ts`, `tests/app-engine*.test.ts`, and any new content-validation coverage in sync with the authored surface
 - run `npm run check` before calling the batch complete
-- land the work as coherent commit(s) directly on `master`
+- do not stop at local edits or a green test run; finish by landing the work as coherent commit(s) directly on `master`
 - no PR is required for this project unless the project manager changes the delivery rule later
 
 ## Collaboration Notes
@@ -183,4 +183,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Agent 3's next world-content pass beyond the current seven-contract, twelve-route-perk-per-mercenary, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-conditioned branch-encounter, four-affix-per-act, and thirteen-modifier combat baseline. Deepen downstream quest, shrine, event, and opportunity payoff beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-encounter retunes, and broaden encounter-local modifiers or escort or boss scripting where it improves act identity. Only extend mercenary route perks further if new consequence or combat packages create a real later-run payoff seam beyond the current covenant-linked perk pass. Keep node logic in content, quest, app, and run seams, keep combat deterministic, and make the larger authored surface fail clearly when content is incomplete.
+Build Agent 3's next world-content pass beyond the current seven-contract, twelve-route-perk-per-mercenary, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-conditioned branch-and-boss encounter, four-affix-per-act, and fourteen-modifier combat baseline. Prioritize broader encounter-local modifiers or escort or boss scripting where it improves act identity, then deepen downstream quest, shrine, event, and opportunity payoff beyond the current legacy-and-reckoning-and-recovery-and-accord-into-covenant handoff plus branch-and-boss encounter retunes. Only extend mercenary route perks further if new consequence or combat packages create a real later-run payoff seam beyond the current covenant-linked perk pass. Keep node logic in content, quest, app, and run seams, keep combat deterministic, and make the larger authored surface fail clearly when content is incomplete.

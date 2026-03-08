@@ -197,7 +197,7 @@ Expectations:
 - add or update automated coverage for every shell behavior you change, starting with `tests/app-engine*.test.ts` and any affected domain tests
 - include action-dispatch coverage when you add interactive account-hall, settings, or tutorial controls
 - run `npm run check` before calling the batch complete
-- land the work as coherent commit(s) directly on `master`
+- do not stop at local edits or a green test run; finish by landing the work as coherent commit(s) directly on `master`
 - no PR is required for this project unless the project manager changes the delivery rule later
 
 ## Collaboration Notes

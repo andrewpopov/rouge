@@ -790,6 +790,26 @@
         return;
       }
 
+      if (modifier.kind === "boss_screen") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const bossTargets = state.enemies.filter((enemy) => enemy.templateId.endsWith("_boss"));
+        const backlineTargets = state.enemies.filter((enemy) => enemy.role === "ranged" || enemy.role === "support");
+        const bossIntentKinds = new Set([...attackIntentKinds, ...healingIntentKinds, "guard", "guard_allies"]);
+
+        bossTargets.forEach((enemy) => applyGuard(enemy, value));
+        backlineTargets.forEach((enemy) => applyGuard(enemy, value));
+        const boostedCount = bossTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, bossIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (bossTargets.length > 0 || backlineTargets.length > 0 || boostedCount > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} raises a boss screen. The boss gains ${value} Guard, escorts gain ${value} Guard, and the boss opener intensifies by ${value}.`
+          );
+        }
+        return;
+      }
+
       if (modifier.kind === "phalanx_march") {
         const guardValue = Math.max(0, parseInteger(modifier.value, 0));
         const marchTargets = state.enemies.filter((enemy) => {

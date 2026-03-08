@@ -150,6 +150,14 @@
         appEngine.setPreferredClass(appState, actionEl.dataset.classId || "");
         render();
         return true;
+      case "set-planned-runeword":
+        appEngine.setPlannedRuneword(
+          appState,
+          actionEl.dataset.planningSlot === "armor" ? "armor" : "weapon",
+          actionEl.dataset.runewordId || ""
+        );
+        render();
+        return true;
       case "set-run-history-review":
         appEngine.setRunHistoryReviewIndex(appState, Number.parseInt(actionEl.dataset.historyIndex || "0", 10) || 0);
         render();

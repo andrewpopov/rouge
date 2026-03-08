@@ -930,6 +930,11 @@ interface ProfileMetaTutorialState {
   dismissedIds: string[];
 }
 
+interface ProfileMetaPlanningState {
+  weaponRunewordId: string;
+  armorRunewordId: string;
+}
+
 interface ProfileMetaAccountProgressionState {
   focusedTreeId: string;
 }
@@ -939,6 +944,7 @@ interface ProfileMetaState {
   progression: ProfileMetaProgression;
   unlocks: ProfileMetaUnlockState;
   tutorials: ProfileMetaTutorialState;
+  planning: ProfileMetaPlanningState;
   accountProgression: ProfileMetaAccountProgressionState;
 }
 
@@ -1059,12 +1065,19 @@ interface ProfileAccountReviewSummary {
   nextCapstoneTitle: string;
 }
 
+interface ProfilePlanningSummary {
+  weaponRunewordId: string;
+  armorRunewordId: string;
+  plannedRunewordCount: number;
+}
+
 interface ProfileAccountSummary {
   profile: ProfileSummary;
   settings: ProfileMetaSettings;
   unlockedFeatureIds: string[];
   activeTutorialIds: string[];
   dismissedTutorialCount: number;
+  planning: ProfilePlanningSummary;
   stash: ProfileStashSummary;
   archive: ProfileArchiveSummary;
   review: ProfileAccountReviewSummary;
@@ -1261,6 +1274,10 @@ interface ContentValidatorApi {
   assertValidWorldNodeCatalog(worldNodeCatalog: WorldNodeCatalog): void;
 }
 
+interface ContentValidatorRuntimeContentApi {
+  validateRuntimeContent(content: GameContent): ContentValidationReport;
+}
+
 interface ContentValidatorActReferenceState {
   primaryOutcomeIds: Set<string>;
   followUpOutcomeIds: Set<string>;
@@ -1413,6 +1430,15 @@ interface ItemCatalogApi {
   getItemDefinition(content: GameContent, itemId: string): RuntimeItemDefinition | null;
   getRuneDefinition(content: GameContent, runeId: string): RuntimeRuneDefinition | null;
   getRunewordDefinition(content: GameContent, runewordId: string): RuntimeRunewordDefinition | null;
+  isRunewordCompatibleWithItem(
+    item: RuntimeItemDefinition | null | undefined,
+    runeword: RuntimeRunewordDefinition | null | undefined
+  ): boolean;
+  isRunewordCompatibleWithEquipment(
+    equipment: RunEquipmentState | null | undefined,
+    runeword: RuntimeRunewordDefinition | null | undefined,
+    content: GameContent
+  ): boolean;
   isRuneAllowedInSlot(rune: RuntimeRuneDefinition | null | undefined, slot: "weapon" | "armor"): boolean;
   resolveRunewordId(equipment: RunEquipmentState | null | undefined, content: GameContent): string;
   normalizeEquipmentState(
@@ -1425,7 +1451,8 @@ interface ItemCatalogApi {
   getPreferredRunewordForEquipment(
     equipment: RunEquipmentState | null | undefined,
     run: RunState,
-    content: GameContent
+    content: GameContent,
+    preferredRunewordId?: string
   ): RuntimeRunewordDefinition | null;
   getRuneRewardPool(slot: "weapon" | "armor"): string[];
 }
@@ -1470,6 +1497,7 @@ interface AccountEconomyFeatures {
 
 interface ItemTownApi {
   getAccountEconomyFeatures(profile?: ProfileState | null): AccountEconomyFeatures;
+  getPlannedRunewordId(profile: ProfileState | null | undefined, slot: "weapon" | "armor"): string;
   getEntryBuyPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
   getEntrySellPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
   getVendorRefreshCost(run: RunState, profile?: ProfileState | null): number;
@@ -1588,6 +1616,7 @@ interface PersistenceApi {
   unlockProfileEntries(profile: ProfileState, category: ProfileUnlockCategory, ids: string[]): void;
   updateProfileSettings(profile: ProfileState, patch: ProfileSettingsPatch): void;
   setPreferredClass(profile: ProfileState, classId: string): void;
+  setPlannedRuneword(profile: ProfileState, slot: "weapon" | "armor", runewordId: string): void;
   setAccountProgressionFocus(profile: ProfileState, treeId: string): void;
   markTutorialSeen(profile: ProfileState, tutorialId: string): void;
   markTutorialCompleted(profile: ProfileState, tutorialId: string): void;
@@ -1748,6 +1777,7 @@ interface AppEngineApi {
   getAccountProgressSummary(state?: AppState | null): ProfileAccountSummary;
   updateProfileSettings(state: AppState, patch: ProfileSettingsPatch): ActionResult;
   setPreferredClass(state: AppState, classId: string): ActionResult;
+  setPlannedRuneword(state: AppState, slot: "weapon" | "armor", runewordId: string): ActionResult;
   setRunHistoryReviewIndex(state: AppState, historyIndex: number): void;
   setAccountProgressionFocus(state: AppState, treeId: string): ActionResult;
   markTutorialSeen(state: AppState, tutorialId: string): ActionResult;
@@ -1871,6 +1901,7 @@ interface Window {
   ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
   ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;
   ROUGE_CONTENT_VALIDATOR_WORLD_PATHS: ContentValidatorWorldPathsApi;
+  ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
   ROUGE_CONTENT_VALIDATOR: ContentValidatorApi;
   ROUGE_ENCOUNTER_REGISTRY: EncounterRegistryApi;
   ROUGE_CLASS_REGISTRY: ClassRegistryApi;

@@ -19,10 +19,10 @@ Documentation note:
 - party combat between hero, mercenary, and encounter-sized enemy packs
 - explicit phases: `boot`, `front_door`, `character_select`, `safe_zone`, `world_map`, `encounter`, `reward`, `act_transition`, `run_complete`, `run_failed`
 - five-act route generation
-- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch encounter packages
+- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch and boss encounter packages
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
-- seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools, a thirteen-kind encounter-local modifier catalog, stronger escort, support-screen, sniper-nest, and phalanx-march scripting, and four elite-affix families per act
+- seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools, a fourteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and four elite-affix families per act
 
 ### Still target-state
 
@@ -226,5 +226,5 @@ These are the next approved directions for implementation:
 2. grow the account seam into broader capstone-style archive or economy or mastery systems plus richer archive or stash or economy read models
 3. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern
 4. deepen late-act item or rune breadth, reward variety, and account-gated economy pressure
-5. broaden modifier catalogs and escort scripting beyond the current thirteen-modifier baseline, and only extend mercenary payoff where new route families justify it
+5. broaden modifier catalogs and escort scripting beyond the current fourteen-modifier baseline, and only extend mercenary payoff where new route families justify it
 6. keep all new content behind strong validation and deterministic runtime contracts while continuing architecture extraction on the biggest hotspots

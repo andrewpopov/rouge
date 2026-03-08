@@ -316,6 +316,9 @@ test("profile migrations backfill unlock and tutorial ownership for older envelo
   assert.equal(restoredEnvelope.profile.meta.progression.highestActCleared, 2);
   assert.ok(restoredEnvelope.profile.meta.unlocks.classIds.includes("sorceress"));
   assert.ok(restoredEnvelope.profile.meta.unlocks.townFeatureIds.includes("front_door_profile_hall"));
+  assert.equal(restoredEnvelope.schemaVersion, 7);
+  assert.equal(restoredEnvelope.profile.meta.planning.weaponRunewordId, "");
+  assert.equal(restoredEnvelope.profile.meta.planning.armorRunewordId, "");
   assert.equal(restoredEnvelope.profile.meta.accountProgression.focusedTreeId, "archives");
 
   const profileSummary = persistence.getProfileSummary(restoredEnvelope.profile);
@@ -880,6 +883,81 @@ test("treasury exchange adds direct vendor-to-stash consignment and stash-aware 
   assert.ok(consignedEntry);
   const inventorySummary = itemSystem.getInventorySummary(treasuryState.run, treasuryState.profile, content);
   assert.match(inventorySummary.join(" "), /consign vendor offers directly into stash/i);
+});
+
+test("runeword planning charters steer vendor consignment previews and reward item pivots", () => {
+  const { content, combatEngine, appEngine, itemSystem, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  [
+    "advanced_vendor_stock",
+    "runeword_codex",
+    "economy_ledger",
+    "salvage_tithes",
+    "artisan_stock",
+    "brokerage_charter",
+    "treasury_exchange",
+  ].forEach((featureId) => {
+    if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+      state.profile.meta.unlocks.townFeatureIds.push(featureId);
+    }
+  });
+
+  let result = appEngine.setPlannedRuneword(state, "weapon", "white");
+  assert.equal(result.ok, true);
+  result = appEngine.setPlannedRuneword(state, "armor", "lionheart");
+  assert.equal(result.ok, true);
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+
+  state.run.gold = 1500;
+  state.run.currentActIndex = 4;
+  state.run.level = 11;
+  state.run.summary.zonesCleared = 8;
+  state.run.summary.encountersCleared = 12;
+  state.run.progression.bossTrophies = ["andariel", "duriel", "mephisto"];
+  state.run.town.vendor.refreshCount = 2;
+  state.run.town.vendor.stock = [];
+  state.run.loadout.weapon = null;
+  state.run.loadout.armor = {
+    entryId: "planning_armor_base",
+    itemId: "item_quilted_armor",
+    slot: "armor",
+    socketsUnlocked: 0,
+    insertedRunes: [],
+    runewordId: "",
+  };
+  runFactory.hydrateRun(state.run, content);
+  itemSystem.hydrateRunInventory(state.run, content, state.profile);
+
+  const accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.weaponRunewordId, "white");
+  assert.equal(accountSummary.planning.armorRunewordId, "lionheart");
+
+  const consignmentAction = itemSystem
+    .listTownActions(state.run, state.profile, content)
+    .find((action) => action.id.startsWith("vendor_consign_") && /Armor charter match: Lionheart/i.test(action.previewLines.join(" ")));
+  assert.ok(consignmentAction);
+
+  const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
+  assert.ok(bossZone);
+  const rewardChoice = itemSystem.buildEquipmentChoice({
+    content,
+    run: state.run,
+    zone: bossZone,
+    actNumber: state.run.actNumber,
+    encounterNumber: 1,
+    profile: state.profile,
+  });
+  assert.ok(rewardChoice);
+  assert.equal(rewardChoice.kind, "item");
+  assert.match(rewardChoice.previewLines.join(" "), /Planning charter: White/i);
 });
 
 test("archived run history captures progression, economy, and account feature carry-through", () => {

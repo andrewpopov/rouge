@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -271,6 +272,10 @@
         completedIds: [],
         dismissedIds: [],
       },
+      planning: {
+        weaponRunewordId: "",
+        armorRunewordId: "",
+      },
       accountProgression: {
         focusedTreeId: ACCOUNT_PROGRESSION_TREES[0].id,
       },
@@ -457,6 +462,12 @@
       seenIds: uniqueStrings([...(profile.meta.tutorials?.seenIds || []), ...completedTutorialIds, ...dismissedTutorialIds]),
       completedIds: completedTutorialIds,
       dismissedIds: dismissedTutorialIds,
+    };
+    profile.meta.planning = {
+      ...defaultMeta.planning,
+      ...(profile.meta.planning || {}),
+      weaponRunewordId: typeof profile.meta.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "",
+      armorRunewordId: typeof profile.meta.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "",
     };
     profile.meta.accountProgression = {
       ...defaultMeta.accountProgression,
@@ -664,6 +675,17 @@
     };
   }
 
+  function buildPlanningSummary(profile) {
+    return {
+      weaponRunewordId: typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "",
+      armorRunewordId: typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "",
+      plannedRunewordCount: [
+        typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "",
+        typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "",
+      ].filter(Boolean).length,
+    };
+  }
+
   function getAccountProgressSummary(profile) {
     const source = profile || createEmptyProfile();
     ensureMeta(source);
@@ -680,6 +702,7 @@
     const stashSummary = buildStashSummary(source);
     const archiveSummary = buildArchiveSummary(source);
     const reviewSummary = buildAccountReviewSummary(milestones);
+    const planningSummary = buildPlanningSummary(source);
 
     return {
       profile: profileSummary,
@@ -689,6 +712,7 @@
       unlockedFeatureIds: [...(source.meta.unlocks?.townFeatureIds || [])],
       activeTutorialIds,
       dismissedTutorialCount: profileSummary.dismissedTutorialCount,
+      planning: planningSummary,
       stash: stashSummary,
       archive: archiveSummary,
       review: reviewSummary,
@@ -728,6 +752,15 @@
       return;
     }
     profile.meta.progression.preferredClassId = classId;
+  }
+
+  function setPlannedRuneword(profile, slot, runewordId) {
+    ensureMeta(profile);
+    if (slot !== "weapon" && slot !== "armor") {
+      return;
+    }
+    const key = slot === "weapon" ? "weaponRunewordId" : "armorRunewordId";
+    profile.meta.planning[key] = typeof runewordId === "string" ? runewordId : "";
   }
 
   function setAccountProgressionFocus(profile, treeId) {
@@ -973,6 +1006,7 @@
     unlockProfileEntries,
     updateProfileSettings,
     setPreferredClass,
+    setPlannedRuneword,
     setAccountProgressionFocus,
     markTutorialSeen,
     markTutorialCompleted,

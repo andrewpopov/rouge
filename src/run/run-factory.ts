@@ -33,7 +33,7 @@
     syncUnlockedClassSkills,
   } = runtimeWindow.ROUGE_RUN_PROGRESSION;
   const { actIsComplete, advanceToNextAct, applyReward, buildEncounterReward, runIsComplete } = runtimeWindow.ROUGE_RUN_REWARD_FLOW;
-  const CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss"]);
+  const CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
   function getCombatBonuses(run, content): ItemBonusSet {
     const total: ItemBonusSet = {};

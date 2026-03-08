@@ -83,6 +83,8 @@ No workstream is considered ready to land on `master` until:
 - any shared-type changes are clearly called out
 - the final state is recorded in coherent commit(s) on `master`
 
+Agents are not done when code exists locally or when tests are green. They are done only when the assigned batch is actually landed on `master`.
+
 No agent doc is considered current if it mainly describes work already implemented in the repo.
 
 ## Landing Order Guidance
@@ -152,15 +154,15 @@ Current expectation:
 Current Agent 4 priority order:
 
 1. keep `tests/app-engine*.test.ts` aligned with `tests/helpers/browser-harness.ts` whenever browser script order or boot seams change
-2. keep shrinking `src/content/content-validator.ts` from the new `src/content/content-validator-world-paths.ts` seam when a follow-on pass is warranted
+2. keep shrinking `src/content/content-validator.ts` from the new `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` seams when a follow-on pass is warranted
 3. keep `src/content/encounter-registry.ts` thin by preventing logic drift back out of `src/content/encounter-registry-builders.ts` or `src/content/encounter-registry-enemy-builders.ts`
 4. keep the run helpers small by avoiding new logic drift back into `src/run/run-factory.ts` or `src/run/run-reward-flow.ts`
 5. only then coordinate the first safe extractions out of `src/quests/world-node-engine.ts` with Agent 3
 
 Current sequencing guidance:
 
-1. let Agent 4 keep the compiled-browser harness aligned and start the next hotspot pass in `src/content/content-validator.ts`
+1. let Agent 4 keep the compiled-browser harness aligned and start the remaining world-node follow-on pass in `src/content/content-validator.ts`
 2. let Agent 2 land the next shared progression, account, reward, and economy contracts, starting with account-tree capstones and richer archive or stash read models
 3. let Agent 3 land the next route and combat content expansion on those stable contracts, starting with the second late-route fabric per act
 4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with front-door structure and safe-zone preparation
-5. let Agent 4 only stage any coordinated `src/quests/world-node-engine.ts` work after the next `src/content/content-validator.ts` pass lands cleanly
+5. let Agent 4 only stage any coordinated `src/quests/world-node-engine.ts` work after the remaining `src/content/content-validator.ts` world-node pass lands cleanly

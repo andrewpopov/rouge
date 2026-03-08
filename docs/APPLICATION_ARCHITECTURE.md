@@ -37,7 +37,8 @@ The live workspace already has four active implementation layers.
 - `src/content/game-content.ts` owns authored cards, hero defaults, mercenaries, and fallback content
 - `src/content/seed-loader.ts` loads the live seed bundle
 - `src/content/content-validator-world-paths.ts` owns authored-path state collectors, reference-state assembly, and opportunity-variant matching helpers for validation-heavy world content
-- `src/content/content-validator.ts` remains the public validator entry for seed, generated, world-node, and affix content
+- `src/content/content-validator-runtime-content.ts` owns runtime-content validation for starter decks, class progression, mercenary route perks, generated encounter coverage, and consequence encounter packages
+- `src/content/content-validator.ts` remains the public validator entry and error-reporting surface for seed, runtime-content, and world-node validation
 - `src/content/encounter-registry-enemy-builders.ts` owns role grouping, elite-affix lookups, and generated enemy template or intent builders for encounter content
 - `src/content/encounter-registry-builders.ts` owns act encounter-set assembly on top of the private enemy-builder seam
 - `src/content/encounter-registry.ts` remains the public registry entry that derives act encounter, boss, elite-affix, and archetype-behavior catalogs from seed data
@@ -52,7 +53,7 @@ The live workspace already has four active implementation layers.
 - `src/items/item-data.ts` owns authored item, rune, runeword, and rune-reward templates
 - `src/items/item-catalog.ts` owns runtime item, rune, and runeword catalog helpers plus equipment normalization
 - `src/items/item-loadout.ts` owns loadout, inventory, stash, sockets, and derived-combat-bonus helpers
-- `src/items/item-town.ts` owns vendor stock, pricing, direct vendor-to-stash consignment, and town-facing item-economy helpers
+- `src/items/item-town.ts` owns vendor stock, pricing, direct vendor-to-stash consignment, planning-aware vendor routing, and town-facing item-economy helpers
 - `src/items/item-system.ts` owns reward-facing item curation and the public item-domain orchestration surface
 - `src/town/service-registry.ts` owns healer, belt, vendor, mercenary, and progression town actions
 - `src/state/*.ts` owns run or profile persistence and migrations
@@ -87,16 +88,16 @@ The live workspace already has four active implementation layers.
 - deterministic combat plus choice-based reward carry-through
 - milestone-aware reward payouts and boss progression pivots driven by account feature gates, training-grounds or war-college or paragon-doctrine or apex-doctrine unlocks, mastery focus, and profile-aware late-act equipment replacement curation
 - `skills.json`-backed class progression, favored-tree summaries, manual stat allocation, and derived combat-bonus handoff
-- expanded item, rune, runeword, and vendor-economy curation with a higher late-game loot band, stronger replacement pressure, milestone-aware vendor stock or rune routing or pricing rules across carried and stash-planned bases plus salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange and economy-focus pressure, direct vendor-to-stash consignment, and profile-aware reward-side replacement pivots
-- run snapshots, profile-backed stash persistence, richer archived run-history summaries, account unlock milestones, mutable preferred-class or tutorial or settings APIs, focused account-tree controls, prerequisite-aware account-tree capstones, and account-facing stash or archive or capstone-review summaries that now feed live archive retention, town economy, or reward gates, including heroic-annals or mythic-annals or eternal-annals retention
-- front-door, safe-zone, and run-end shell panels that surface the live account unlock, tutorial, and profile-summary seams plus focused-tree review or control surfaces, with direct front-door preferred-class or settings or tutorial controls and interactive archive review over richer archived runs
+- expanded item, rune, runeword, and vendor-economy curation with a higher late-game loot band, stronger replacement pressure, milestone-aware vendor stock or rune routing or pricing rules across carried and stash-planned bases plus salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange and economy-focus pressure, direct vendor-to-stash consignment, profile-owned runeword planning charters that steer vendor previews or rune routing or replacement pivots, and profile-aware reward-side replacement pivots
+- run snapshots, profile-backed stash persistence, richer archived run-history summaries, account unlock milestones, mutable preferred-class or tutorial or settings APIs, focused account-tree controls, prerequisite-aware account-tree capstones, profile-owned runeword planning targets, and account-facing stash or archive or capstone-review summaries that now feed live archive retention, town economy, or reward gates, including heroic-annals or mythic-annals or eternal-annals retention
+- front-door, safe-zone, and run-end shell panels that surface the live account unlock, tutorial, and profile-summary seams plus focused-tree review or control surfaces, with direct front-door preferred-class or settings or tutorial or planning controls and interactive archive review over richer archived runs
 
 ## What The Live Runtime Still Does Not Own
 
-- broader meta or profile UX beyond the current unlock buckets, archive or economy or mastery trees plus the present heroic-annals or mythic-annals or eternal-annals, artisan-stock or brokerage-charter or treasury-exchange, and war-college or paragon-doctrine or apex-doctrine pass, current account-hall controls, and the current archive-review surfaces
+- broader meta or profile UX beyond the current unlock buckets, archive or economy or mastery trees plus the present heroic-annals or mythic-annals or eternal-annals, artisan-stock or brokerage-charter or treasury-exchange, and war-college or paragon-doctrine or apex-doctrine pass, current account-hall controls including runeword planning, and the current archive-review surfaces
 - broader mercenary pool and richer mercenary scaling rules
 - broader authored node catalogs beyond the current quest, shrine, aftermath-event, and opportunity set
-- broader authored item breadth, feature-gated reward variety, and final late-run loot tuning beyond the current higher-tier catalog and current treasury-exchange consignment sink
+- broader authored item breadth, feature-gated reward variety, and final late-run loot tuning beyond the current higher-tier catalog, current treasury-exchange consignment sink, and current runeword-planning charters
 
 ## Product Loop
 
@@ -266,6 +267,7 @@ Current files:
 - `src/content/game-content.ts`
 - `src/content/seed-loader.ts`
 - `src/content/content-validator-world-paths.ts`
+- `src/content/content-validator-runtime-content.ts`
 - `src/content/encounter-registry-enemy-builders.ts`
 - `src/content/encounter-registry-builders.ts`
 - `src/content/encounter-registry.ts`
@@ -274,13 +276,14 @@ Current files:
 Live seams:
 
 - `src/content/content-validator-world-paths.ts` centralizes authored-path state collection, act reference-state assembly, and opportunity-variant matching helpers that used to live inline in `src/content/content-validator.ts`
+- `src/content/content-validator-runtime-content.ts` centralizes starter-deck, class-progression, mercenary route-perk, generated-encounter, and consequence-package validation that used to live inline in `src/content/content-validator.ts`
 - `src/content/encounter-registry-enemy-builders.ts` centralizes act enemy-pool normalization, role grouping, elite-affix lookups, and enemy template or intent builders that used to live inline in `src/content/encounter-registry.ts`
 - `src/content/encounter-registry-builders.ts` centralizes act encounter-set assembly while keeping `src/content/encounter-registry.ts` as the public browser entry
 - `src/content/content-validator.ts` remains the public validator entry and error-reporting surface for the content domain
 
 Next extraction targets:
 
-- follow-on validator passes should build from `src/content/content-validator-world-paths.ts` instead of re-expanding `src/content/content-validator.ts`
+- follow-on validator passes should build from `src/content/content-validator-world-paths.ts` and `src/content/content-validator-runtime-content.ts` instead of re-expanding `src/content/content-validator.ts`
 - any eventual `world-node-engine` extraction should build on the thinner content-domain seams now surrounding it
 
 Next expansion:

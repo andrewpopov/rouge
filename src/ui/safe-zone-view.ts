@@ -164,6 +164,14 @@
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const preferredClassName =
       appState.registries.classes.find((entry) => entry.id === appState.profile?.meta?.progression?.preferredClassId)?.name || "Unset";
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+    };
+    const planningLabels = [planning.weaponRunewordId, planning.armorRunewordId]
+      .filter(Boolean)
+      .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || runewordId);
     const seenTutorialIds = appState.profile?.meta?.tutorials?.seenIds || [];
     const completedTutorialIds = appState.profile?.meta?.tutorials?.completedIds || [];
     const pendingTutorialIds = seenTutorialIds.filter((tutorialId) => !completedTutorialIds.includes(tutorialId));
@@ -268,6 +276,7 @@
                     `Unlocked classes ${profileSummary.unlockedClassCount}, boss trophies ${profileSummary.unlockedBossCount}, runewords ${profileSummary.unlockedRunewordCount}.`,
                     `Tutorials completed ${profileSummary.completedTutorialCount} of ${profileSummary.seenTutorialCount}, with ${Math.max(0, profileSummary.seenTutorialCount - profileSummary.completedTutorialCount)} still pending.`,
                     `Focused tree ${accountSummary.focusedTreeTitle || "Unset"}, next milestone ${accountSummary.nextMilestoneTitle || "all cleared"}.`,
+                    `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
                     `Town features online: ${(appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId)).slice(0, 3).join(", ") || "none yet"}.`,
                   ],
                   "log-list reward-list ledger-list"

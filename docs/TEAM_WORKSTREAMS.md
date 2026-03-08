@@ -41,8 +41,8 @@ Already landed in the live runtime:
 - sockets, rune insertion, and expanded runeword activation
 - split run-domain helpers under `src/run/*` plus split item-domain helpers under `src/items/*`
 - seed, runtime, world-node, and elite-affix validation
-- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated opportunity variants, and consequence-conditioned branch encounter packages
-- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools, a thirteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, support-screen, sniper-nest, and phalanx-march scripting, and deeper boss escorts
+- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated opportunity variants, and consequence-conditioned branch and boss encounter packages
+- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools, a fourteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, and phalanx-march scripting, and deeper boss escorts
 
 The active team split is now four larger workstreams:
 
@@ -98,7 +98,7 @@ Parallel-work rules:
 - rewrite agent docs when a review shows that an assignment has already been completed in code
 - every workstream must add or update automated tests for the behavior it changes
 - every workstream must end with `npm run check`
-- every completed workstream must land as one or more coherent commits directly on `master`
+- every completed workstream must land as one or more coherent commits directly on `master`; do not stop at local edits or a green run
 - no PR is required unless a future project-manager update explicitly asks for one
 
 ## Active Assignment Shape
@@ -135,14 +135,14 @@ The current chunking is:
 3. Agent 3 owns world-content and combat depth:
    - second alternate route fabrics per act and route-side node catalogs
    - deeper quest and event consequence chains
-   - encounter-pack breadth on top of the live thirteen-modifier baseline
+   - encounter-pack breadth on top of the live fourteen-modifier baseline
    - elite or boss depth and mercenary payoff growth only where new route fabrics justify it
    - content validation and reachability hardening
 4. Agent 4 owns architecture and code quality:
    - compiled-browser test-surface cleanup
-   - maintain the new `content-validator-world-paths` seam
+   - maintain the new `content-validator-world-paths` and `content-validator-runtime-content` seams
    - maintain the new `encounter-registry` helper chain
-   - `content-validator` follow-on extraction next
+   - `content-validator` world-node follow-on extraction next
    - follow-on hotspot extraction
    - lint suppression and structural debt reduction
    - architecture rule maintenance
@@ -151,24 +151,24 @@ Current start order for this round:
 
 1. Agent 4
    - keep `tests/helpers/browser-harness.ts` and `tests/app-engine*.test.ts` aligned
-   - resume the next hotspot pass in `src/content/content-validator.ts`
+   - resume the remaining world-node hotspot pass in `src/content/content-validator.ts`
 2. Agent 2
    - land account-tree capstones plus richer archive or stash or economy read models
    - then deepen late-act replacement pressure and economy sinks
 3. Agent 3
-   - deepen consequence-linked encounter or reward payoff beyond the covenant convergence lane
-   - then broaden modifier or escort or boss scripting where it improves act identity
+   - broaden modifier or escort or boss scripting on top of the current branch-and-boss consequence package seam
+   - then deepen consequence-linked reward payoff beyond the covenant convergence lane
 4. Agent 1
    - land the next shell structure pass on top of the latest stable profile, route, reward, and archive surfaces
 
 Current landing guidance:
 
 1. land shared type, profile, and progression contract changes first
-2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and land the next `content-validator` follow-on extraction early, because the encounter-registry helper chain is now in place
+2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and land the next `content-validator` world-node follow-on extraction early, because the validator helper pair and encounter-registry helper chain are now in place
 3. let Agent 2 land shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
 4. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts
 5. let Agent 1 land the next shell pass on top of the latest profile, route, archive, reward, and node surfaces
-6. let Agent 4 only stage any coordinated `world-node-engine` work after the next `src/content/content-validator.ts` follow-on pass lands cleanly
+6. let Agent 4 only stage any coordinated `world-node-engine` work after the remaining `src/content/content-validator.ts` world-node pass lands cleanly
 
 ## Integration Checklist
 

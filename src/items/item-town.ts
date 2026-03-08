@@ -5,6 +5,8 @@
     getItemDefinition,
     getPreferredRunewordForEquipment,
     getRuneDefinition,
+    getRunewordDefinition,
+    isRunewordCompatibleWithItem,
     isRuneAllowedInSlot,
     toNumber,
     uniquePush,
@@ -72,6 +74,47 @@
       treasuryExchange: hasTownFeature(profile, "treasury_exchange"),
       economyFocus: focusedTreeId === "economy" && economyUnlocked,
     };
+  }
+
+  function getPlannedRunewordId(profile, slot) {
+    if (slot !== "weapon" && slot !== "armor") {
+      return "";
+    }
+    const planningKey = slot === "weapon" ? "weaponRunewordId" : "armorRunewordId";
+    return typeof profile?.meta?.planning?.[planningKey] === "string" ? profile.meta.planning[planningKey] : "";
+  }
+
+  function getPlannedRuneword(profile, slot, content) {
+    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot));
+    return runeword?.slot === slot ? runeword : null;
+  }
+
+  function getPlannedRunewordTargets(profile, content) {
+    return ["weapon", "armor"]
+      .map((slot) => getPlannedRuneword(profile, slot, content))
+      .filter(Boolean);
+  }
+
+  function getTargetRunewordForEquipment(equipment, run, content, profile = null) {
+    if (!equipment) {
+      return null;
+    }
+    const plannedRuneword = getPlannedRuneword(profile, equipment.slot, content);
+    return equipment.runewordId ? null : getPreferredRunewordForEquipment(equipment, run, content, plannedRuneword?.id || "");
+  }
+
+  function getEntryPlanningMatch(entry, content, profile = null) {
+    const plannedRunewords = getPlannedRunewordTargets(profile, content);
+    if (plannedRunewords.length === 0 || !entry) {
+      return null;
+    }
+    if (entry.kind === "rune") {
+      const matchedRuneword = plannedRunewords.find((runeword) => runeword.requiredRunes.includes(entry.runeId)) || null;
+      return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
+    }
+    const item = getItemDefinition(content, entry?.equipment?.itemId || "");
+    const matchedRuneword = plannedRunewords.find((runeword) => isRunewordCompatibleWithItem(item, runeword)) || null;
+    return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
   }
 
   function getStashPlanningPressure(profile) {
@@ -182,7 +225,9 @@
     const baseFee = entry.kind === "rune" ? 4 : 8;
     const stashLoadFee = Math.min(6, planningPressure.stashEntries);
     const planningFee = planningPressure.socketReadyEntries + planningPressure.runewordEntries;
-    const fee = baseFee + Math.floor(buyPrice * 0.12) + stashLoadFee + planningFee - Number(features.economyFocus);
+    const planningMatch = getEntryPlanningMatch(entry, content, profile);
+    const planningDiscount = planningMatch ? 3 + Number(features.economyFocus) : 0;
+    const fee = baseFee + Math.floor(buyPrice * 0.12) + stashLoadFee + planningFee - Number(features.economyFocus) - planningDiscount;
     return Math.max(entry.kind === "rune" ? 4 : 8, fee);
   }
 
@@ -284,6 +329,19 @@
               return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
+    const plannedRuneword = getPlannedRuneword(profile, slot, content);
+    const planningOffer =
+      plannedRuneword
+        ? [...upgradeOptions, ...options]
+            .filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword))
+            .sort((left, right) => {
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
     const primaryUpgrade =
       upgradeOptions[(lateBias ? upgradeOptions.length - 1 : 0)] ||
       options[Math.max(0, options.length - 1)] ||
@@ -294,7 +352,12 @@
       null;
     const sidegrade = options[(seed + (slot === "weapon" ? 0 : 1)) % options.length] || null;
 
-    return pickUniqueDefinitions([primaryUpgrade, secondaryUpgrade, socketReadyOffer, artisanOffer, treasuryOffer, sidegrade], options, desiredCount, seed);
+    return pickUniqueDefinitions(
+      [planningOffer, primaryUpgrade, secondaryUpgrade, socketReadyOffer, artisanOffer, treasuryOffer, sidegrade],
+      options,
+      desiredCount,
+      seed
+    );
   }
 
   function pickVendorRuneOffers(run, runeOptions, desiredCount, seed, content, profile = null) {
@@ -307,7 +370,7 @@
     const targetRuneIds = [];
     ["weapon", "armor"].forEach((slot) => {
       const equipment = loadout[slot];
-      const runeword = equipment?.runewordId ? null : getPreferredRunewordForEquipment(equipment, run, content);
+      const runeword = getTargetRunewordForEquipment(equipment, run, content, profile);
       if (!equipment || !runeword || equipment.insertedRunes.length >= runeword.requiredRunes.length) {
         return;
       }
@@ -322,13 +385,18 @@
         .map((entry) => entry.equipment)
         .filter(Boolean);
       stashEquipment.forEach((equipment) => {
-        const runeword = equipment?.runewordId ? null : getPreferredRunewordForEquipment(equipment, run, content);
+        const runeword = getTargetRunewordForEquipment(equipment, run, content, profile);
         if (!equipment || !runeword || equipment.insertedRunes.length >= runeword.requiredRunes.length) {
           return;
         }
         runeword.requiredRunes
           .slice(equipment.insertedRunes.length, equipment.insertedRunes.length + 2)
           .forEach((runeId) => uniquePush(targetRuneIds, runeId));
+      });
+    }
+    if (features.runewordCodex || features.treasuryExchange) {
+      getPlannedRunewordTargets(profile, content).forEach((runeword) => {
+        runeword.requiredRunes.slice(0, 2).forEach((runeId) => uniquePush(targetRuneIds, runeId));
       });
     }
 
@@ -536,7 +604,7 @@
     };
   }
 
-  function buildVendorRefreshAction(run, profile = null) {
+  function buildVendorRefreshAction(run, content, profile = null) {
     const features = getAccountEconomyFeatures(profile);
     const cost = getVendorRefreshCost(run, profile);
     const affordable = run.gold >= cost;
@@ -552,6 +620,12 @@
     }
     if (features.treasuryExchange) {
       previewLines.push("Treasury Exchange is opening premium late-act leverage around stash and vendor planning.");
+    }
+    const plannedRunewords = getPlannedRunewordTargets(profile, content)
+      .map((runeword) => runeword?.name)
+      .filter(Boolean);
+    if (plannedRunewords.length > 0) {
+      previewLines.push(`Planning charters active for ${plannedRunewords.join(" and ")}.`);
     }
     return {
       id: "vendor_refresh_stock",
@@ -572,7 +646,7 @@
     hydrateRunInventory(run, content, profile);
     const features = getAccountEconomyFeatures(profile);
 
-    const actions = [buildVendorRefreshAction(run, profile)];
+    const actions = [buildVendorRefreshAction(run, content, profile)];
 
     run.town.vendor.stock.forEach((entry) => {
       const buyPrice = getEntryBuyPrice(entry, content, profile);
@@ -593,6 +667,7 @@
         const consignmentFee = getVendorConsignmentFee(entry, content, profile);
         const consignPrice = buyPrice + consignmentFee;
         const planningPressure = getStashPlanningPressure(profile);
+        const planningMatch = getEntryPlanningMatch(entry, content, profile);
         actions.push(
           buildInventoryAction(
             entry,
@@ -603,6 +678,9 @@
             [
               `Buy ${buyPrice} gold + consignment fee ${consignmentFee} gold = ${consignPrice} total.`,
               `Stash planning load ${planningPressure.stashEntries} entries, ${planningPressure.socketReadyEntries} socket-ready bases.`,
+              planningMatch
+                ? `${planningMatch.slot === "weapon" ? "Weapon" : "Armor"} charter match: ${planningMatch.runeword.name}.`
+                : "No active runeword charter match on this offer.",
             ],
             "Consign",
             consignPrice,
@@ -828,11 +906,16 @@
         `Treasury Exchange can consign vendor offers directly into stash. Current planning load: ${planningPressure.stashEntries} stash entries, ${planningPressure.socketReadyEntries} socket-ready bases.`
       );
     }
+    const plannedRunewords = getPlannedRunewordTargets(profile, content);
+    if (plannedRunewords.length > 0) {
+      lines.push(`Planning charters: ${plannedRunewords.map((runeword) => runeword.name).join(" / ")}.`);
+    }
     return lines;
   }
 
   runtimeWindow.ROUGE_ITEM_TOWN = {
     getAccountEconomyFeatures,
+    getPlannedRunewordId,
     getEntryBuyPrice,
     getEntrySellPrice,
     getVendorRefreshCost,

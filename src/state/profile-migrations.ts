@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  const CURRENT_PROFILE_SCHEMA_VERSION = 6;
+  const CURRENT_PROFILE_SCHEMA_VERSION = 7;
   const CORE_TOWN_FEATURE_IDS = [
     "front_door_profile_hall",
     "safe_zone_services",
@@ -234,6 +234,10 @@
         completedIds: [],
         dismissedIds: [],
       },
+      planning: {
+        weaponRunewordId: "",
+        armorRunewordId: "",
+      },
       accountProgression: {
         focusedTreeId: ACCOUNT_PROGRESSION_TREES[0].id,
       },
@@ -349,6 +353,12 @@
         completedIds: completedTutorialIds,
         dismissedIds: dismissedTutorialIds,
       },
+      planning: {
+        ...defaultMeta.planning,
+        ...(isObject(source.planning) ? source.planning : {}),
+        weaponRunewordId: typeof source.planning?.weaponRunewordId === "string" ? source.planning.weaponRunewordId : "",
+        armorRunewordId: typeof source.planning?.armorRunewordId === "string" ? source.planning.armorRunewordId : "",
+      },
       accountProgression: {
         ...defaultMeta.accountProgression,
         ...(isObject(source.accountProgression) ? source.accountProgression : {}),
@@ -456,6 +466,14 @@
       if (envelope.schemaVersion === 5) {
         envelope = {
           schemaVersion: 6,
+          savedAt: envelope.savedAt,
+          profile: ensureProfileState(envelope.profile),
+        };
+        continue;
+      }
+      if (envelope.schemaVersion === 6) {
+        envelope = {
+          schemaVersion: 7,
           savedAt: envelope.savedAt,
           profile: ensureProfileState(envelope.profile),
         };

@@ -393,6 +393,16 @@
     const activePreviewLabels = activeTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
     const dismissedPreviewLabels = dismissedTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
     const completedPreviewLabels = completedTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+    };
+    const getRunewordLabel = (runewordId: string): string => {
+      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
+    };
+    const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(planning.weaponRunewordId) : "Unset";
+    const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(planning.armorRunewordId) : "Unset";
     const historyEntries = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory : [];
     const reviewedHistoryIndex = Math.min(
       Math.max(0, Number.parseInt(String(appState.ui.reviewedHistoryIndex || 0), 10) || 0),
@@ -449,6 +459,38 @@
           `;
         })
         .join("");
+    };
+
+    const buildPlanningButtons = (slot: "weapon" | "armor"): string => {
+      const selectedRunewordId = slot === "weapon" ? planning.weaponRunewordId : planning.armorRunewordId;
+      const slotRunewords = (Object.values(appState.content.runewordCatalog || {}) as RuntimeRunewordDefinition[]).filter((runeword) => runeword.slot === slot);
+      return `
+        <div class="cta-row">
+          <button
+            class="${selectedRunewordId ? "neutral-btn" : "primary-btn"}"
+            data-action="set-planned-runeword"
+            data-planning-slot="${slot}"
+            data-runeword-id=""
+          >
+            ${escapeHtml(`Clear ${slot === "weapon" ? "Weapon" : "Armor"} Charter`)}
+          </button>
+          ${slotRunewords
+            .map((runeword) => {
+              const selected = runeword.id === selectedRunewordId;
+              return `
+                <button
+                  class="${selected ? "primary-btn" : "neutral-btn"}"
+                  data-action="set-planned-runeword"
+                  data-planning-slot="${slot}"
+                  data-runeword-id="${escapeHtml(runeword.id)}"
+                >
+                  ${escapeHtml(selected ? `Chartered ${runeword.name}` : `Charter ${runeword.name}`)}
+                </button>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
     };
 
     return `
@@ -515,6 +557,27 @@
               [
                 `Played classes: ${getPreviewLabel(classPreviewLabels, "none archived yet")}.`,
                 `Recent signal: ${lastPlayedClassId ? `${lastPlayedClassLabel}. Use Follow Recent Signal to keep the default draft tracking your latest expedition.` : "Start one expedition to seed the recent-class signal."}`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Runeword Planning Desk</strong>
+              ${buildBadge(`${planning.plannedRunewordCount} chartered`, planning.plannedRunewordCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Weapon", plannedWeaponLabel)}
+              ${buildStat("Armor", plannedArmorLabel)}
+              ${buildStat("Targets", planning.plannedRunewordCount)}
+              ${buildStat("Scope", "Account")}
+            </div>
+            ${buildPlanningButtons("weapon")}
+            ${buildPlanningButtons("armor")}
+            ${buildStringList(
+              [
+                "Runeword charters now live in profile-owned planning state instead of a temporary town-only preference.",
+                "Late vendor bases, rune routing, and treasury-exchange consignment pressure now read these charters when steering stash planning.",
               ],
               "log-list reward-list ledger-list"
             )}

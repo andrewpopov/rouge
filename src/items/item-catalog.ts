@@ -106,6 +106,26 @@
     return content.runewordCatalog?.[runewordId] || null;
   }
 
+  function isRunewordCompatibleWithItem(item, runeword) {
+    if (!item || !runeword || item.slot !== runeword.slot) {
+      return false;
+    }
+    if (toNumber(runeword.socketCount, 0) > toNumber(item.maxSockets, 0)) {
+      return false;
+    }
+    if (Array.isArray(runeword.familyAllowList) && runeword.familyAllowList.length > 0) {
+      return runeword.familyAllowList.includes(item.family);
+    }
+    return true;
+  }
+
+  function isRunewordCompatibleWithEquipment(equipment, runeword, content) {
+    if (!equipment || !runeword) {
+      return false;
+    }
+    return isRunewordCompatibleWithItem(getItemDefinition(content, equipment.itemId), runeword);
+  }
+
   function isRuneAllowedInSlot(rune, slot) {
     return Array.isArray(rune?.allowedSlots) && rune.allowedSlots.includes(slot);
   }
@@ -194,7 +214,7 @@
     };
   }
 
-  function getPreferredRunewordForEquipment(equipment, run, content) {
+  function getPreferredRunewordForEquipment(equipment, run, content, preferredRunewordId = "") {
     if (!equipment) {
       return null;
     }
@@ -206,17 +226,13 @@
 
     const targetTier = Math.max(item.progressionTier, run?.actNumber || 1);
     const matchingRunewords = (Object.values(content.runewordCatalog || {}) as RuntimeRunewordDefinition[]).filter((runeword) => {
-        if (runeword.slot !== equipment.slot) {
-          return false;
-        }
-        if (toNumber(runeword.socketCount, 0) > toNumber(item.maxSockets, 0)) {
-          return false;
-        }
-        if (Array.isArray(runeword.familyAllowList) && runeword.familyAllowList.length > 0) {
-          return runeword.familyAllowList.includes(item.family);
-        }
-        return true;
+        return isRunewordCompatibleWithItem(item, runeword);
       });
+
+    const preferredRuneword = getRunewordDefinition(content, preferredRunewordId);
+    if (preferredRuneword && matchingRunewords.some((runeword) => runeword.id === preferredRuneword.id)) {
+      return preferredRuneword;
+    }
 
     return (
       matchingRunewords
@@ -255,6 +271,8 @@
     getItemDefinition,
     getRuneDefinition,
     getRunewordDefinition,
+    isRunewordCompatibleWithItem,
+    isRunewordCompatibleWithEquipment,
     isRuneAllowedInSlot,
     resolveRunewordId,
     normalizeEquipmentState,

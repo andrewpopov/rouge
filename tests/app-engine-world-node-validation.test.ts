@@ -247,6 +247,21 @@ test("runtime content validation fails clearly when an act lacks branch miniboss
   }, /consequenceEncounterPackages\.1 must include at least 1 package for zoneRole "branchMiniboss"\./);
 });
 
+test("runtime content validation fails clearly when an act lacks boss consequence encounter coverage", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    consequenceEncounterPackages: {
+      ...content.consequenceEncounterPackages,
+      1: content.consequenceEncounterPackages[1].filter((encounterPackage) => encounterPackage.zoneRole !== "boss"),
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /consequenceEncounterPackages\.1 must include at least 1 package for zoneRole "boss"\./);
+});
+
 test("runtime content validation fails clearly when consequence encounter packages reuse the same signature", () => {
   const { browserWindow, content } = createHarness();
   const duplicatePackage = content.consequenceEncounterPackages[1][0];
@@ -266,7 +281,7 @@ test("runtime content validation fails clearly when consequence encounter packag
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1\[2\] reuses requirement signature with package "rogue_recovery_counterline"\./);
+  }, /consequenceEncounterPackages\.1\[\d+\] reuses requirement signature with package "rogue_recovery_counterline"\./);
 });
 
 test("world-node validation fails clearly when opportunity variants reuse the same requirement signature", () => {
