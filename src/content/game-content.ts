@@ -1187,6 +1187,27 @@
         requiredFlagIds: ["rogue_covenant_wayfinder_ledger"],
         encounterId: "act_1_boss_covenant",
       },
+      {
+        id: "rogue_detour_convoy_line",
+        title: "Abbey Detour Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: ["rogue_recovery_chapel_lanterns", "rogue_detour_hidden_convoy"],
+        encounterId: "act_1_branch_detour",
+      },
+      {
+        id: "rogue_escalation_catacomb_host",
+        title: "Catacomb Escalation Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: ["rogue_reckoning_chapel_ledger", "rogue_escalation_catacomb_surge"],
+        encounterId: "act_1_miniboss_escalation",
+      },
+      {
+        id: "rogue_aftermath_catacomb_host",
+        title: "Catacomb Aftermath Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["rogue_detour_hidden_convoy", "rogue_escalation_catacomb_surge", "rogue_covenant_wayfinder_ledger"],
+        encounterId: "act_1_boss_aftermath",
+      },
     ],
     2: [
       {
@@ -1209,6 +1230,27 @@
         zoneRole: "boss",
         requiredFlagIds: ["sunwell_covenant_final_lance_ledger"],
         encounterId: "act_2_boss_covenant",
+      },
+      {
+        id: "sunwell_detour_caravan_line",
+        title: "Reliquary Detour Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: ["sunwell_recovery_spearline_wards", "sunwell_detour_hidden_caravan"],
+        encounterId: "act_2_branch_detour",
+      },
+      {
+        id: "sunwell_escalation_chamber_host",
+        title: "Chamber Escalation Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: ["sunwell_reckoning_lance_wards", "sunwell_escalation_chamber_surge"],
+        encounterId: "act_2_miniboss_escalation",
+      },
+      {
+        id: "sunwell_aftermath_chamber_host",
+        title: "Reliquary Aftermath Chamber",
+        zoneRole: "boss",
+        requiredFlagIds: ["sunwell_detour_hidden_caravan", "sunwell_escalation_chamber_surge", "sunwell_covenant_final_lance_ledger"],
+        encounterId: "act_2_boss_aftermath",
       },
     ],
     3: [
@@ -1233,6 +1275,27 @@
         requiredFlagIds: ["kurast_covenant_spellward_ledger"],
         encounterId: "act_3_boss_covenant",
       },
+      {
+        id: "kurast_detour_fleet_line",
+        title: "Harbor Detour Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: ["kurast_recovery_spellward_bins", "kurast_detour_hidden_fleet"],
+        encounterId: "act_3_branch_detour",
+      },
+      {
+        id: "kurast_escalation_durance_host",
+        title: "Durance Escalation Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: ["kurast_reckoning_harbor_seals", "kurast_escalation_durance_surge"],
+        encounterId: "act_3_miniboss_escalation",
+      },
+      {
+        id: "kurast_aftermath_durance_host",
+        title: "Harbor Aftermath Court",
+        zoneRole: "boss",
+        requiredFlagIds: ["kurast_detour_hidden_fleet", "kurast_escalation_durance_surge", "kurast_covenant_spellward_ledger"],
+        encounterId: "act_3_boss_aftermath",
+      },
     ],
     4: [
       {
@@ -1256,6 +1319,27 @@
         requiredFlagIds: ["hellforge_covenant_breachscreen_ledger"],
         encounterId: "act_4_boss_covenant",
       },
+      {
+        id: "hellforge_detour_relief_line",
+        title: "Sanctuary Detour Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: ["hellforge_recovery_hellward_screen", "hellforge_detour_hidden_relief"],
+        encounterId: "act_4_branch_detour",
+      },
+      {
+        id: "hellforge_escalation_sanctuary_host",
+        title: "Sanctuary Escalation Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: ["hellforge_reckoning_sanctuary_screens", "hellforge_escalation_sanctuary_surge"],
+        encounterId: "act_4_miniboss_escalation",
+      },
+      {
+        id: "hellforge_aftermath_sanctuary_host",
+        title: "Sanctuary Aftermath Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["hellforge_detour_hidden_relief", "hellforge_escalation_sanctuary_surge", "hellforge_covenant_breachscreen_ledger"],
+        encounterId: "act_4_boss_aftermath",
+      },
     ],
     5: [
       {
@@ -1278,6 +1362,27 @@
         zoneRole: "boss",
         requiredFlagIds: ["harrogath_covenant_ancients_ledger"],
         encounterId: "act_5_boss_covenant",
+      },
+      {
+        id: "harrogath_detour_sled_line",
+        title: "Summit Detour Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: ["harrogath_recovery_guard_banners", "harrogath_detour_hidden_sleds"],
+        encounterId: "act_5_branch_detour",
+      },
+      {
+        id: "harrogath_escalation_worldstone_host",
+        title: "Worldstone Escalation Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge"],
+        encounterId: "act_5_miniboss_escalation",
+      },
+      {
+        id: "harrogath_aftermath_worldstone_host",
+        title: "Worldstone Aftermath Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["harrogath_detour_hidden_sleds", "harrogath_escalation_worldstone_surge", "harrogath_covenant_ancients_ledger"],
+        encounterId: "act_5_boss_aftermath",
       },
     ],
   };
@@ -1308,6 +1413,30 @@
         { gold: 12, xp: 8, potions: 1 },
         ["The wayfinder covenant turns the act boss reward into a true late-route settlement."]
       ),
+      consequenceRewardPackage(
+        "rogue_detour_convoy_dividend",
+        "Abbey Convoy Dividend",
+        "branchBattle",
+        ["rogue_recovery_chapel_lanterns", "rogue_detour_hidden_convoy"],
+        { gold: 10, xp: 5, potions: 1 },
+        ["The hidden abbey convoy turns the next branch clear into a safer but richer monastery payout."]
+      ),
+      consequenceRewardPackage(
+        "rogue_escalation_catacomb_dividend",
+        "Catacomb Surge Dividend",
+        "branchMiniboss",
+        ["rogue_reckoning_chapel_ledger", "rogue_escalation_catacomb_surge"],
+        { gold: 10, xp: 6, potions: 1 },
+        ["The catacomb surge turns the next elite branch into a harsher contract payout instead of the steadier accord."]
+      ),
+      consequenceRewardPackage(
+        "rogue_aftermath_catacomb_dividend",
+        "Catacomb Aftermath Dividend",
+        "boss",
+        ["rogue_detour_hidden_convoy", "rogue_escalation_catacomb_surge", "rogue_covenant_wayfinder_ledger"],
+        { gold: 16, xp: 10, potions: 1 },
+        ["Detour, escalation, and covenant now settle together at the act boss instead of stopping at the first covenant close."]
+      ),
     ],
     2: [
       consequenceRewardPackage(
@@ -1333,6 +1462,30 @@
         ["sunwell_covenant_final_lance_ledger"],
         { gold: 14, xp: 8, potions: 1 },
         ["Your final lance covenant settles at the chamber doors with a stronger boss reward."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_detour_caravan_dividend",
+        "Hidden Caravan Dividend",
+        "branchBattle",
+        ["sunwell_recovery_spearline_wards", "sunwell_detour_hidden_caravan"],
+        { gold: 12, xp: 5, potions: 1 },
+        ["The hidden reliquary caravan widens the next desert branch payout instead of leaving the detour as route text only."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_escalation_chamber_dividend",
+        "Chamber Surge Dividend",
+        "branchMiniboss",
+        ["sunwell_reckoning_lance_wards", "sunwell_escalation_chamber_surge"],
+        { gold: 12, xp: 6, potions: 1 },
+        ["The chamber surge pays out directly when the next elite line is forced open."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_aftermath_chamber_dividend",
+        "Reliquary Aftermath Dividend",
+        "boss",
+        ["sunwell_detour_hidden_caravan", "sunwell_escalation_chamber_surge", "sunwell_covenant_final_lance_ledger"],
+        { gold: 18, xp: 10, potions: 1 },
+        ["Detour, escalation, and covenant now settle together at the chamber doors as a deeper late-route boss payoff."]
       ),
     ],
     3: [
@@ -1360,6 +1513,30 @@
         { gold: 16, xp: 9, potions: 1 },
         ["The harbor covenant settles in full when the durance boss court falls."]
       ),
+      consequenceRewardPackage(
+        "kurast_detour_fleet_dividend",
+        "Hidden Fleet Dividend",
+        "branchBattle",
+        ["kurast_recovery_spellward_bins", "kurast_detour_hidden_fleet"],
+        { gold: 12, xp: 6, potions: 1 },
+        ["The hidden river fleet turns the next harbor branch into a richer routed cache instead of a flatter recovery bonus."]
+      ),
+      consequenceRewardPackage(
+        "kurast_escalation_durance_dividend",
+        "Durance Surge Dividend",
+        "branchMiniboss",
+        ["kurast_reckoning_harbor_seals", "kurast_escalation_durance_surge"],
+        { gold: 14, xp: 7, potions: 1 },
+        ["The durance surge pays out when the next elite harbor host is broken by force."]
+      ),
+      consequenceRewardPackage(
+        "kurast_aftermath_durance_dividend",
+        "Harbor Aftermath Dividend",
+        "boss",
+        ["kurast_detour_hidden_fleet", "kurast_escalation_durance_surge", "kurast_covenant_spellward_ledger"],
+        { gold: 20, xp: 11, potions: 1 },
+        ["Detour, escalation, and covenant now settle together when the durance boss court falls."]
+      ),
     ],
     4: [
       consequenceRewardPackage(
@@ -1386,6 +1563,30 @@
         { gold: 18, xp: 10, potions: 1 },
         ["The sanctuary covenant settles with a harder boss reward once the forge front holds."]
       ),
+      consequenceRewardPackage(
+        "hellforge_detour_relief_dividend",
+        "Hidden Relief Dividend",
+        "branchBattle",
+        ["hellforge_recovery_hellward_screen", "hellforge_detour_hidden_relief"],
+        { gold: 14, xp: 6, potions: 1 },
+        ["The hidden relief line pushes a stronger sanctuary branch payout instead of stopping at the recovery screen."]
+      ),
+      consequenceRewardPackage(
+        "hellforge_escalation_sanctuary_dividend",
+        "Sanctuary Surge Dividend",
+        "branchMiniboss",
+        ["hellforge_reckoning_sanctuary_screens", "hellforge_escalation_sanctuary_surge"],
+        { gold: 14, xp: 7, potions: 1 },
+        ["The sanctuary surge pays out when the next elite infernal line is forced apart."]
+      ),
+      consequenceRewardPackage(
+        "hellforge_aftermath_sanctuary_dividend",
+        "Sanctuary Aftermath Dividend",
+        "boss",
+        ["hellforge_detour_hidden_relief", "hellforge_escalation_sanctuary_surge", "hellforge_covenant_breachscreen_ledger"],
+        { gold: 22, xp: 12, potions: 1 },
+        ["Detour, escalation, and covenant now settle together at Diablo instead of ending at the first covenant pass."]
+      ),
     ],
     5: [
       consequenceRewardPackage(
@@ -1411,6 +1612,30 @@
         ["harrogath_covenant_ancients_ledger"],
         { gold: 20, xp: 12, potions: 1 },
         ["The final summit covenant resolves into a richer boss settlement before Baal falls."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_detour_sled_dividend",
+        "Hidden Sled Dividend",
+        "branchBattle",
+        ["harrogath_recovery_guard_banners", "harrogath_detour_hidden_sleds"],
+        { gold: 14, xp: 7, potions: 1 },
+        ["The hidden Ancients sled chain turns the next summit branch into a richer supply clear instead of a flat banner bonus."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_escalation_worldstone_dividend",
+        "Worldstone Surge Dividend",
+        "branchMiniboss",
+        ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge"],
+        { gold: 16, xp: 8, potions: 1 },
+        ["The Worldstone surge pays out when the next elite summit line breaks under full pressure."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_aftermath_worldstone_dividend",
+        "Worldstone Aftermath Dividend",
+        "boss",
+        ["harrogath_detour_hidden_sleds", "harrogath_escalation_worldstone_surge", "harrogath_covenant_ancients_ledger"],
+        { gold: 24, xp: 12, potions: 1 },
+        ["Detour, escalation, and covenant now settle together when Baal's host falls instead of stopping at the summit covenant."]
       ),
     ],
   };

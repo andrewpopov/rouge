@@ -620,6 +620,26 @@ test("world-node validation fails clearly when a covenant opportunity requires t
   }, /worldNodes\.covenantOpportunities\.1 requires accord opportunity "missing_accord" but act accord opportunity is "rogue_accord_opportunity"\./);
 });
 
+test("world-node validation fails clearly when a detour opportunity requires the wrong covenant node", () => {
+  const { browserWindow } = createHarness();
+  const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
+  catalog.detourOpportunities[1].requiresCovenantOpportunityId = "missing_covenant";
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
+  }, /worldNodes\.detourOpportunities\.1 requires covenant opportunity "missing_covenant" but act covenant opportunity is "rogue_covenant_opportunity"\./);
+});
+
+test("world-node validation fails clearly when an escalation opportunity requires the wrong reckoning node", () => {
+  const { browserWindow } = createHarness();
+  const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
+  catalog.escalationOpportunities[1].requiresReckoningOpportunityId = "missing_reckoning";
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
+  }, /worldNodes\.escalationOpportunities\.1 requires reckoning opportunity "missing_reckoning" but act reckoning opportunity is "rogue_reckoning_opportunity"\./);
+});
+
 test("event nodes fail cleanly when the required quest state is missing", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
@@ -1231,6 +1251,152 @@ test("covenant opportunity nodes fail cleanly when the accord state is missing",
   assert.throws(() => {
     browserWindow.ROUGE_WORLD_NODES.buildZoneReward({ run: state.run, zone: covenantZone });
   }, /requires resolved accord opportunity/);
+  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+});
+
+test("detour opportunity nodes fail cleanly when the covenant state is missing", () => {
+  const { browserWindow, content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
+  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
+  const detourZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "detour_opportunity");
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(recoveryZone);
+  assert.ok(accordZone);
+  assert.ok(detourZone);
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  recoveryZone.encountersCleared = recoveryZone.encounterTotal;
+  recoveryZone.cleared = true;
+  accordZone.encountersCleared = accordZone.encounterTotal;
+  accordZone.cleared = true;
+  state.run.world.questOutcomes.tristram_relief = {
+    questId: "tristram_relief",
+    zoneId: questZone.id,
+    actNumber: 1,
+    title: "Tristram Relief",
+    outcomeId: "take_scout_report",
+    outcomeTitle: "Take Scout Report",
+    status: "follow_up_resolved",
+    followUpNodeId: eventZone.id,
+    followUpOutcomeId: "mark_the_paths",
+    followUpOutcomeTitle: "Mark the Paths",
+    consequenceIds: ["paths_marked"],
+    flags: ["tristram_paths_marked"],
+  };
+  state.run.world.opportunityOutcomes.rogue_recovery_opportunity = {
+    nodeId: "rogue_recovery_opportunity",
+    zoneId: recoveryZone.id,
+    actNumber: 1,
+    title: "Rogue Recovery",
+    outcomeId: "rehang_the_chapel_lanterns",
+    outcomeTitle: "Rehang the Chapel Lanterns",
+    linkedQuestId: "tristram_relief",
+    flagIds: ["rogue_recovery_chapel_lanterns"],
+  };
+  state.run.world.opportunityOutcomes.rogue_accord_opportunity = {
+    nodeId: "rogue_accord_opportunity",
+    zoneId: accordZone.id,
+    actNumber: 1,
+    title: "Rogue Accord",
+    outcomeId: "recount_the_cloister_paths",
+    outcomeTitle: "Recount the Cloister Paths",
+    linkedQuestId: "tristram_relief",
+    flagIds: ["rogue_accord_cloister_paths"],
+  };
+  runFactory.recomputeZoneStatuses(state.run);
+
+  assert.throws(() => {
+    browserWindow.ROUGE_WORLD_NODES.buildZoneReward({ run: state.run, zone: detourZone });
+  }, /requires resolved covenant opportunity/);
+  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+});
+
+test("escalation opportunity nodes fail cleanly when the legacy state is missing", () => {
+  const { browserWindow, content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
+  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
+  const covenantZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "covenant_opportunity");
+  const escalationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "escalation_opportunity");
+  assert.ok(questZone);
+  assert.ok(eventZone);
+  assert.ok(reckoningZone);
+  assert.ok(covenantZone);
+  assert.ok(escalationZone);
+
+  openingZone.encountersCleared = openingZone.encounterTotal;
+  openingZone.cleared = true;
+  reckoningZone.encountersCleared = reckoningZone.encounterTotal;
+  reckoningZone.cleared = true;
+  covenantZone.encountersCleared = covenantZone.encounterTotal;
+  covenantZone.cleared = true;
+  state.run.world.questOutcomes.tristram_relief = {
+    questId: "tristram_relief",
+    zoneId: questZone.id,
+    actNumber: 1,
+    title: "Tristram Relief",
+    outcomeId: "take_scout_report",
+    outcomeTitle: "Take Scout Report",
+    status: "follow_up_resolved",
+    followUpNodeId: eventZone.id,
+    followUpOutcomeId: "mark_the_paths",
+    followUpOutcomeTitle: "Mark the Paths",
+    consequenceIds: ["paths_marked"],
+    flags: ["tristram_paths_marked"],
+  };
+  state.run.world.opportunityOutcomes.rogue_reckoning_opportunity = {
+    nodeId: "rogue_reckoning_opportunity",
+    zoneId: reckoningZone.id,
+    actNumber: 1,
+    title: "Rogue Reckoning",
+    outcomeId: "break_the_last_chapel_ledger",
+    outcomeTitle: "Break the Last Chapel Ledger",
+    linkedQuestId: "tristram_relief",
+    flagIds: ["rogue_reckoning_chapel_ledger"],
+  };
+  state.run.world.opportunityOutcomes.rogue_covenant_opportunity = {
+    nodeId: "rogue_covenant_opportunity",
+    zoneId: covenantZone.id,
+    actNumber: 1,
+    title: "Rogue Covenant",
+    outcomeId: "seal_the_wayfinder_ledger",
+    outcomeTitle: "Seal the Wayfinder Ledger",
+    linkedQuestId: "tristram_relief",
+    flagIds: ["rogue_covenant_wayfinder_ledger"],
+  };
+  runFactory.recomputeZoneStatuses(state.run);
+
+  assert.throws(() => {
+    browserWindow.ROUGE_WORLD_NODES.buildZoneReward({ run: state.run, zone: escalationZone });
+  }, /requires resolved legacy opportunity/);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
 });
 

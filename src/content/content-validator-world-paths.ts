@@ -298,6 +298,42 @@
     }, []);
   }
 
+  function collectDetourPathStates(covenantOpportunityDefinition, recoveryOpportunityDefinition, accordOpportunityDefinition) {
+    const covenantStates = collectOpportunityChoiceStates(covenantOpportunityDefinition);
+    const recoveryStates = collectOpportunityChoiceStates(recoveryOpportunityDefinition);
+    const accordStates = collectOpportunityChoiceStates(accordOpportunityDefinition);
+
+    return covenantStates.reduce((states, covenantState) => {
+      recoveryStates.forEach((recoveryState) => {
+        accordStates.forEach((accordState) => {
+          states.push({
+            label: `${recoveryState.label} + ${accordState.label} + covenant:${covenantState.label}`,
+            flagIds: Array.from(new Set([...recoveryState.flagIds, ...accordState.flagIds, ...covenantState.flagIds])),
+          });
+        });
+      });
+      return states;
+    }, []);
+  }
+
+  function collectEscalationPathStates(covenantOpportunityDefinition, legacyOpportunityDefinition, reckoningOpportunityDefinition) {
+    const covenantStates = collectOpportunityChoiceStates(covenantOpportunityDefinition);
+    const legacyStates = collectOpportunityChoiceStates(legacyOpportunityDefinition);
+    const reckoningStates = collectOpportunityChoiceStates(reckoningOpportunityDefinition);
+
+    return covenantStates.reduce((states, covenantState) => {
+      legacyStates.forEach((legacyState) => {
+        reckoningStates.forEach((reckoningState) => {
+          states.push({
+            label: `${legacyState.label} + ${reckoningState.label} + covenant:${covenantState.label}`,
+            flagIds: Array.from(new Set([...legacyState.flagIds, ...reckoningState.flagIds, ...covenantState.flagIds])),
+          });
+        });
+      });
+      return states;
+    }, []);
+  }
+
   function normalizeRequirementIds(values) {
     if (!Array.isArray(values) || values.length === 0) {
       return "-";
@@ -402,6 +438,8 @@
     collectRecoveryPathStates,
     collectAccordPathStates,
     collectCovenantPathStates,
+    collectDetourPathStates,
+    collectEscalationPathStates,
     getOpportunityVariantRequirementSignature,
     getShrineOpportunityVariantRequirementSignature,
     getReserveOpportunityVariantRequirementSignature,

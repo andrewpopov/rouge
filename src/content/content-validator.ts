@@ -152,6 +152,8 @@
     const recoveryOpportunities = worldNodeCatalog?.recoveryOpportunities || {};
     const accordOpportunities = worldNodeCatalog?.accordOpportunities || {};
     const covenantOpportunities = worldNodeCatalog?.covenantOpportunities || {};
+    const detourOpportunities = worldNodeCatalog?.detourOpportunities || {};
+    const escalationOpportunities = worldNodeCatalog?.escalationOpportunities || {};
     const actNumbers = new Set([
       ...Object.keys(quests),
       ...Object.keys(shrines),
@@ -167,6 +169,8 @@
       ...Object.keys(recoveryOpportunities),
       ...Object.keys(accordOpportunities),
       ...Object.keys(covenantOpportunities),
+      ...Object.keys(detourOpportunities),
+      ...Object.keys(escalationOpportunities),
     ]);
     const seenNodeIds = new Map();
 
@@ -190,6 +194,8 @@
       const recoveryOpportunityDefinition = recoveryOpportunities[actNumber];
       const accordOpportunityDefinition = accordOpportunities[actNumber];
       const covenantOpportunityDefinition = covenantOpportunities[actNumber];
+      const detourOpportunityDefinition = detourOpportunities[actNumber];
+      const escalationOpportunityDefinition = escalationOpportunities[actNumber];
 
       [
         { definition: questDefinition, label: `worldNodes.quests.${actKey}` },
@@ -206,6 +212,8 @@
         { definition: recoveryOpportunityDefinition, label: `worldNodes.recoveryOpportunities.${actKey}` },
         { definition: accordOpportunityDefinition, label: `worldNodes.accordOpportunities.${actKey}` },
         { definition: covenantOpportunityDefinition, label: `worldNodes.covenantOpportunities.${actKey}` },
+        { definition: detourOpportunityDefinition, label: `worldNodes.detourOpportunities.${actKey}` },
+        { definition: escalationOpportunityDefinition, label: `worldNodes.escalationOpportunities.${actKey}` },
       ].forEach(({ definition, label }) => {
         if (!definition?.id) {
           return;
@@ -842,9 +850,11 @@
         accordOpportunityDefinition,
         actKey,
         covenantOpportunityDefinition,
+        detourOpportunityDefinition,
         crossroadOpportunityDefinition,
         culminationOpportunityDefinition,
         errors,
+        escalationOpportunityDefinition,
         legacyOpportunityDefinition,
         opportunityDefinition,
         questDefinition,

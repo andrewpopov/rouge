@@ -57,6 +57,10 @@
         return "Accord Opportunity";
       case "covenant_opportunity":
         return "Covenant Opportunity";
+      case "detour_opportunity":
+        return "Detour Opportunity";
+      case "escalation_opportunity":
+        return "Escalation Opportunity";
       default:
         return "Opportunity Chain";
     }
@@ -76,6 +80,7 @@
     requiresReckoningOpportunityId?: string;
     requiresRecoveryOpportunityId?: string;
     requiresAccordOpportunityId?: string;
+    requiresCovenantOpportunityId?: string;
   };
 
   function getOpportunityDefinition(catalog: WorldNodeCatalog | null, zone: ZoneState): OpportunityPresentationDefinition | null {
@@ -100,6 +105,10 @@
         return (catalog?.accordOpportunities?.[zone.actNumber] as OpportunityPresentationDefinition | undefined) || null;
       case "covenant_opportunity":
         return (catalog?.covenantOpportunities?.[zone.actNumber] as OpportunityPresentationDefinition | undefined) || null;
+      case "detour_opportunity":
+        return (catalog?.detourOpportunities?.[zone.actNumber] as OpportunityPresentationDefinition | undefined) || null;
+      case "escalation_opportunity":
+        return (catalog?.escalationOpportunities?.[zone.actNumber] as OpportunityPresentationDefinition | undefined) || null;
       default:
         return (catalog?.opportunities?.[zone.actNumber] as OpportunityPresentationDefinition | undefined) || null;
     }
@@ -209,6 +218,9 @@
       const linkedAccordRecord = opportunityDefinitionByType?.requiresAccordOpportunityId
         ? run.world?.opportunityOutcomes?.[opportunityDefinitionByType.requiresAccordOpportunityId] || null
         : null;
+      const linkedCovenantRecord = opportunityDefinitionByType?.requiresCovenantOpportunityId
+        ? run.world?.opportunityOutcomes?.[opportunityDefinitionByType.requiresCovenantOpportunityId] || null
+        : null;
       const familyLabel = getNodeFamilyLabel(zone);
       const dependencyLine =
         zone.nodeType === "shrine_opportunity"
@@ -251,6 +263,14 @@
                             ? linkedLegacyRecord?.outcomeTitle && linkedReckoningRecord?.outcomeTitle && linkedRecoveryRecord?.outcomeTitle && linkedAccordRecord?.outcomeTitle
                               ? `Triggered by legacy ${linkedLegacyRecord.outcomeTitle}, reckoning ${linkedReckoningRecord.outcomeTitle}, recovery ${linkedRecoveryRecord.outcomeTitle}, and accord ${linkedAccordRecord.outcomeTitle}.`
                               : "Unlocks after the four post-culmination lanes all resolve."
+                            : zone.nodeType === "detour_opportunity"
+                              ? linkedRecoveryRecord?.outcomeTitle && linkedAccordRecord?.outcomeTitle && linkedCovenantRecord?.outcomeTitle
+                                ? `Triggered by recovery ${linkedRecoveryRecord.outcomeTitle}, accord ${linkedAccordRecord.outcomeTitle}, and covenant ${linkedCovenantRecord.outcomeTitle}.`
+                                : "Unlocks after recovery, accord, and covenant align into a safer late-route detour."
+                              : zone.nodeType === "escalation_opportunity"
+                                ? linkedLegacyRecord?.outcomeTitle && linkedReckoningRecord?.outcomeTitle && linkedCovenantRecord?.outcomeTitle
+                                  ? `Triggered by legacy ${linkedLegacyRecord.outcomeTitle}, reckoning ${linkedReckoningRecord.outcomeTitle}, and covenant ${linkedCovenantRecord.outcomeTitle}.`
+                                  : "Unlocks after legacy, reckoning, and covenant align into a harsher late-route escalation."
                             : linkedQuestRecord?.followUpOutcomeTitle
                               ? `Triggered by ${linkedQuestRecord.outcomeTitle} -> ${linkedQuestRecord.followUpOutcomeTitle}.`
                               : "Unlocks after the full quest and aftermath chain resolves.";

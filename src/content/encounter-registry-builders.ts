@@ -153,6 +153,60 @@
     };
   }
 
+  function buildAftermathBossConfig(actNumber, templateIds) {
+    const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
+    if (actNumber === 2) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "linebreaker_charge", value: Math.max(2, Math.min(3, actNumber)) },
+          { kind: "phalanx_march", value: Math.max(3, actNumber + 1) },
+        ],
+      };
+    }
+    if (actNumber === 3) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.eliteD, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+        ],
+      };
+    }
+    if (actNumber === 4) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "elite_onslaught", value: 1 },
+          { kind: "linebreaker_charge", value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: "war_drums", value: 1 },
+        ],
+      };
+    }
+    if (actNumber >= 5) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "phalanx_march", value: Math.max(4, actNumber) },
+          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: "linebreaker_charge", value: Math.max(2, Math.min(3, actNumber - 1)) },
+        ],
+      };
+    }
+    return {
+      enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteB, templateIds.ranged],
+      modifiers: [
+        { kind: "boss_screen", value: bossScreenValue },
+        { kind: "sniper_nest", value: Math.max(3, actNumber + 1) },
+        { kind: "linebreaker_charge", value: 1 },
+      ],
+    };
+  }
+
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }) {
     const actNumber = actSeed.act;
     const flavor = getFlavor(actNumber);
@@ -246,6 +300,9 @@
     const consequenceBranchBattleId = `act_${actNumber}_branch_recovery`;
     const consequenceBranchMinibossId = `act_${actNumber}_miniboss_accord`;
     const consequenceBossId = `act_${actNumber}_boss_covenant`;
+    const consequenceDetourBranchBattleId = `act_${actNumber}_branch_detour`;
+    const consequenceEscalationMinibossId = `act_${actNumber}_miniboss_escalation`;
+    const consequenceAftermathBossId = `act_${actNumber}_boss_aftermath`;
     const bossId = `act_${actNumber}_boss`;
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
@@ -254,6 +311,16 @@
         ? [bossA.templateId, eliteA.templateId, eliteC.templateId, eliteD.templateId]
         : [bossA.templateId, bossEscortOne, eliteB.templateId, eliteD.templateId];
     const covenantBossConfig = buildCovenantBossConfig(actNumber, {
+      boss: bossA.templateId,
+      eliteA: eliteA.templateId,
+      eliteB: eliteB.templateId,
+      eliteC: eliteC.templateId,
+      eliteD: eliteD.templateId,
+      ranged: rangedA.templateId,
+      support: supportA.templateId,
+      brute: bruteA.templateId,
+    });
+    const aftermathBossConfig = buildAftermathBossConfig(actNumber, {
       boss: bossA.templateId,
       eliteA: eliteA.templateId,
       eliteB: eliteB.templateId,
@@ -412,6 +479,16 @@
           { kind: "triage_command", value: 1 },
         ]
       ),
+      [consequenceDetourBranchBattleId]: makeEncounter(
+        consequenceDetourBranchBattleId,
+        `${flavor.branchBattleLabel} Detour Line`,
+        `${flavor.branchBattleDescription} A hidden post-covenant detour turns the next branch into a screened supply run instead of a direct hold.`,
+        [supportA.templateId, bruteA.templateId, rangedA.templateId, bruteB.templateId],
+        [
+          { kind: "fortified_line", value: Math.max(3, actNumber + 1) },
+          { kind: "backline_screen", value: Math.max(2, actNumber) },
+        ]
+      ),
       [consequenceBranchMinibossId]: makeEncounter(
         consequenceBranchMinibossId,
         `${flavor.branchMinibossLabel} Accord Host`,
@@ -419,6 +496,16 @@
         [eliteA.templateId, eliteC.templateId, rangedA.templateId, supportA.templateId],
         [
           { kind: "escort_command", value: 1 },
+          { kind: "elite_onslaught", value: 1 },
+        ]
+      ),
+      [consequenceEscalationMinibossId]: makeEncounter(
+        consequenceEscalationMinibossId,
+        `${flavor.branchMinibossLabel} Escalation Host`,
+        `${flavor.branchMinibossDescription} A post-covenant escalation turns the next elite branch into a direct strike package instead of a steadier escort shell.`,
+        [eliteB.templateId, eliteD.templateId, bruteA.templateId, supportA.templateId],
+        [
+          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: "elite_onslaught", value: 1 },
         ]
       ),
@@ -438,6 +525,13 @@
         `${flavor.bossDescription} A resolved covenant route turns the act boss into a coordinated closing court instead of the default escort line.`,
         covenantBossConfig.enemyTemplateIds,
         covenantBossConfig.modifiers
+      ),
+      [consequenceAftermathBossId]: makeEncounter(
+        consequenceAftermathBossId,
+        `${flavor.bossLabel} Aftermath`,
+        `${flavor.bossDescription} A full post-covenant detour and escalation turns the boss into a harsher aftermath fight instead of the default closing court.`,
+        aftermathBossConfig.enemyTemplateIds,
+        aftermathBossConfig.modifiers
       ),
     };
 

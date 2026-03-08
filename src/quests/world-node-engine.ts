@@ -171,6 +171,57 @@
     };
   }
 
+  function buildDetourChoice(nodeId, questId, outcomeId, title, description, consequenceId, flagIds = [], extraEffects = []) {
+    return {
+      id: outcomeId,
+      title,
+      subtitle: "Detour Opportunity",
+      description,
+      effects: [
+        nodeOutcomeEffect("opportunity", nodeId, outcomeId, title, flagIds),
+        questConsequenceEffect(questId, outcomeId, title, consequenceId, flagIds),
+        ...(Array.isArray(extraEffects) ? extraEffects : []),
+      ],
+    };
+  }
+
+  function buildEscalationChoice(nodeId, questId, outcomeId, title, description, consequenceId, flagIds = [], extraEffects = []) {
+    return {
+      id: outcomeId,
+      title,
+      subtitle: "Escalation Opportunity",
+      description,
+      effects: [
+        nodeOutcomeEffect("opportunity", nodeId, outcomeId, title, flagIds),
+        questConsequenceEffect(questId, outcomeId, title, consequenceId, flagIds),
+        ...(Array.isArray(extraEffects) ? extraEffects : []),
+      ],
+    };
+  }
+
+  function buildLateRouteVariant(choiceBuilder, nodeId, questId, variantDefinition) {
+    return {
+      id: variantDefinition.id,
+      title: variantDefinition.title,
+      description: variantDefinition.description,
+      summary: variantDefinition.summary,
+      grants: { ...(variantDefinition.grants || { gold: 0, xp: 0, potions: 0 }) },
+      requiresFlagIds: [...(Array.isArray(variantDefinition.requiresFlagIds) ? variantDefinition.requiresFlagIds : [])],
+      choices: [
+        choiceBuilder(
+          nodeId,
+          questId,
+          variantDefinition.choice.outcomeId,
+          variantDefinition.choice.title,
+          variantDefinition.choice.description,
+          variantDefinition.choice.consequenceId,
+          variantDefinition.choice.flagIds,
+          variantDefinition.choice.extraEffects
+        ),
+      ],
+    };
+  }
+
   const QUEST_DEFINITIONS: Record<number, QuestNodeDefinition> = {
     1: {
       kind: "quest",
@@ -8847,6 +8898,632 @@
     },
   };
 
+  const DETOUR_OPPORTUNITY_DEFINITIONS: Record<number, DetourOpportunityDefinition> = {
+    1: {
+      kind: "opportunity",
+      id: "rogue_detour_opportunity",
+      title: "Monastery Detour",
+      zoneTitle: "Monastery Detour",
+      description: "After the monastery covenant closes, the rogue line can still peel into a quieter detour that banks recovery work instead of rushing the catacombs.",
+      summary: "The post-covenant route now fans back out into a safer rogue detour lane.",
+      grants: { gold: 10, xp: 12, potions: 0 },
+      requiresQuestId: "tristram_relief",
+      requiresRecoveryOpportunityId: "rogue_recovery_opportunity",
+      requiresAccordOpportunityId: "rogue_accord_opportunity",
+      requiresCovenantOpportunityId: "rogue_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildDetourChoice, "rogue_detour_opportunity", "tristram_relief", {
+          id: "supply_detour",
+          title: "Supply Detour",
+          description: "Even without a cleaner monastery line, the rogues can still cut one late supply detour before the catacombs open.",
+          summary: "A fallback detour opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "secure_the_abbey_sidepass",
+            title: "Secure the Abbey Sidepass",
+            description: "Cut a quiet line through the abbey stores and hold it ready for the next clash.",
+            consequenceId: "abbey_sidepass_secured",
+            flagIds: ["rogue_detour_abbey_sidepass"],
+            extraEffects: [{ kind: "refill_potions", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "rogue_detour_opportunity", "tristram_relief", {
+          id: "lantern_detour",
+          title: "Lantern Detour",
+          description: "Recovery lanterns and cloister path marks turn the detour lane into a true chapel sidepass instead of one more store check.",
+          summary: "The recovery and accord lanes now open a safer sidepass through the monastery.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["rogue_recovery_chapel_lanterns", "rogue_accord_cloister_paths"],
+          choice: {
+            outcomeId: "open_the_chapel_sidepass",
+            title: "Open the Chapel Sidepass",
+            description: "Turn the relit chapel lanterns and marked cloister paths into a guarded sidepass around the next push.",
+            consequenceId: "chapel_sidepass_opened",
+            flagIds: ["rogue_detour_chapel_sidepass"],
+            extraEffects: [{ kind: "hero_max_life", value: 2 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "rogue_detour_opportunity", "tristram_relief", {
+          id: "wayfinder_detour",
+          title: "Wayfinder Detour",
+          description: "The sealed wayfinder ledger turns the detour into a hidden convoy route that changes how the monastery handles the next fight.",
+          summary: "A full rogue late-route close can now turn into a protected convoy detour instead of one more straight assault lane.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["rogue_recovery_chapel_lanterns", "rogue_accord_cloister_paths", "rogue_covenant_wayfinder_ledger"],
+          choice: {
+            outcomeId: "stage_the_hidden_abbey_convoy",
+            title: "Stage the Hidden Abbey Convoy",
+            description: "Move the covenant ledger, lantern chain, and cloister marks into one hidden convoy around the monastery flank.",
+            consequenceId: "hidden_abbey_convoy_staged",
+            flagIds: ["rogue_detour_hidden_convoy"],
+            extraEffects: [{ kind: "hero_max_life", value: 2 }, { kind: "belt_capacity", value: 1 }],
+          },
+        }),
+      ],
+    },
+    2: {
+      kind: "opportunity",
+      id: "sunwell_detour_opportunity",
+      title: "Reliquary Detour",
+      zoneTitle: "Reliquary Detour",
+      description: "After the reliquary covenant closes, the desert line can still break into a supply detour that circles the tomb approach instead of driving straight inward.",
+      summary: "The post-covenant route now fans back out into a safer desert detour lane.",
+      grants: { gold: 10, xp: 12, potions: 0 },
+      requiresQuestId: "lost_reliquary",
+      requiresRecoveryOpportunityId: "sunwell_recovery_opportunity",
+      requiresAccordOpportunityId: "sunwell_accord_opportunity",
+      requiresCovenantOpportunityId: "sunwell_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildDetourChoice, "sunwell_detour_opportunity", "lost_reliquary", {
+          id: "caravan_detour",
+          title: "Caravan Detour",
+          description: "Even without a truer spearline route, the reliquary can still throw one late detour around the tomb mouth.",
+          summary: "A fallback detour opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "secure_the_tomb_sidepass",
+            title: "Secure the Tomb Sidepass",
+            description: "Cut a caravan sidepass through the outer tomb markers and bank it for the next clash.",
+            consequenceId: "tomb_sidepass_secured",
+            flagIds: ["sunwell_detour_tomb_sidepass"],
+            extraEffects: [{ kind: "refill_potions", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "sunwell_detour_opportunity", "lost_reliquary", {
+          id: "ward_detour",
+          title: "Ward Detour",
+          description: "Recovery wards and accorded spear posts turn the detour lane into a true guarded sidepass instead of another caravan count.",
+          summary: "The recovery and accord lanes now open a safer sidepass through the desert line.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["sunwell_recovery_spearline_wards", "sunwell_accord_spear_posts"],
+          choice: {
+            outcomeId: "open_the_warded_sidepass",
+            title: "Open the Warded Sidepass",
+            description: "Turn the spearline wards and accorded posts into a safer reliquary sidepass for the next advance.",
+            consequenceId: "warded_sidepass_opened",
+            flagIds: ["sunwell_detour_warded_sidepass"],
+            extraEffects: [{ kind: "hero_max_life", value: 3 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "sunwell_detour_opportunity", "lost_reliquary", {
+          id: "lance_detour",
+          title: "Lance Detour",
+          description: "The final lance ledger turns the detour into a hidden caravan line that changes how the next desert fight opens.",
+          summary: "A full desert late-route close can now turn into a protected hidden detour instead of another direct push.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["sunwell_recovery_spearline_wards", "sunwell_accord_spear_posts", "sunwell_covenant_final_lance_ledger"],
+          choice: {
+            outcomeId: "stage_the_hidden_reliquary_caravan",
+            title: "Stage the Hidden Reliquary Caravan",
+            description: "Move the final lance ledger, wards, and spear posts into one hidden caravan around the next tomb breach.",
+            consequenceId: "hidden_reliquary_caravan_staged",
+            flagIds: ["sunwell_detour_hidden_caravan"],
+            extraEffects: [{ kind: "hero_max_life", value: 3 }, { kind: "belt_capacity", value: 1 }],
+          },
+        }),
+      ],
+    },
+    3: {
+      kind: "opportunity",
+      id: "kurast_detour_opportunity",
+      title: "Harbor Detour",
+      zoneTitle: "Harbor Detour",
+      description: "After the harbor covenant closes, Kurast can still peel into a quieter river detour that banks recovery work instead of running straight at the Durance.",
+      summary: "The post-covenant route now fans back out into a safer harbor detour lane.",
+      grants: { gold: 10, xp: 12, potions: 0 },
+      requiresQuestId: "smugglers_wake",
+      requiresRecoveryOpportunityId: "kurast_recovery_opportunity",
+      requiresAccordOpportunityId: "kurast_accord_opportunity",
+      requiresCovenantOpportunityId: "kurast_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildDetourChoice, "kurast_detour_opportunity", "smugglers_wake", {
+          id: "dock_detour",
+          title: "Dock Detour",
+          description: "Even without a sharper channel line, the harbor can still open one last detour through the old docks.",
+          summary: "A fallback detour opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "secure_the_dock_sidepass",
+            title: "Secure the Dock Sidepass",
+            description: "Cut a quiet path through the dock stores and keep it ready for the next river fight.",
+            consequenceId: "dock_sidepass_secured",
+            flagIds: ["kurast_detour_dock_sidepass"],
+            extraEffects: [{ kind: "refill_potions", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "kurast_detour_opportunity", "smugglers_wake", {
+          id: "spellward_detour",
+          title: "Spellward Detour",
+          description: "Recovery spellward bins and accorded channel marks turn the detour lane into a true riverside sidepass instead of another dock tally.",
+          summary: "The recovery and accord lanes now open a safer sidepass through the harbor line.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["kurast_recovery_spellward_bins", "kurast_accord_channel_marks"],
+          choice: {
+            outcomeId: "open_the_spellward_sidepass",
+            title: "Open the Spellward Sidepass",
+            description: "Turn the spellward bins and channel marks into a guarded sidepass around the next Kurast clash.",
+            consequenceId: "spellward_sidepass_opened",
+            flagIds: ["kurast_detour_spellward_sidepass"],
+            extraEffects: [{ kind: "hero_max_energy", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "kurast_detour_opportunity", "smugglers_wake", {
+          id: "harbor_detour",
+          title: "Harbor Detour",
+          description: "The sealed spellward ledger turns the detour into a hidden fleet line that changes how the next harbor fight opens.",
+          summary: "A full harbor late-route close can now turn into a protected fleet detour instead of another straight dock surge.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["kurast_recovery_spellward_bins", "kurast_accord_channel_marks", "kurast_covenant_spellward_ledger"],
+          choice: {
+            outcomeId: "stage_the_hidden_river_fleet",
+            title: "Stage the Hidden River Fleet",
+            description: "Move the covenant ledger, spellward bins, and channel marks into one hidden fleet around the next Durance push.",
+            consequenceId: "hidden_river_fleet_staged",
+            flagIds: ["kurast_detour_hidden_fleet"],
+            extraEffects: [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }],
+          },
+        }),
+      ],
+    },
+    4: {
+      kind: "opportunity",
+      id: "hellforge_detour_opportunity",
+      title: "Sanctuary Detour",
+      zoneTitle: "Sanctuary Detour",
+      description: "After the sanctuary covenant closes, the forge line can still turn into a hard relief detour that circles the next breach instead of driving straight through it.",
+      summary: "The post-covenant route now fans back out into a safer sanctuary detour lane.",
+      grants: { gold: 12, xp: 12, potions: 0 },
+      requiresQuestId: "hellforge_claim",
+      requiresRecoveryOpportunityId: "hellforge_recovery_opportunity",
+      requiresAccordOpportunityId: "hellforge_accord_opportunity",
+      requiresCovenantOpportunityId: "hellforge_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildDetourChoice, "hellforge_detour_opportunity", "hellforge_claim", {
+          id: "ash_detour",
+          title: "Ash Detour",
+          description: "Even without a truer forge relief line, the sanctuary can still open one late detour through the ash belts.",
+          summary: "A fallback detour opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "secure_the_ash_sidepass",
+            title: "Secure the Ash Sidepass",
+            description: "Cut a relief line through the ash belts and hold it ready for the next sanctuary clash.",
+            consequenceId: "ash_sidepass_secured",
+            flagIds: ["hellforge_detour_ash_sidepass"],
+            extraEffects: [{ kind: "refill_potions", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "hellforge_detour_opportunity", "hellforge_claim", {
+          id: "hellward_detour",
+          title: "Hellward Detour",
+          description: "Recovery hellward screens and accord relief lines turn the detour lane into a true sidepass instead of another ash count.",
+          summary: "The recovery and accord lanes now open a safer sidepass through the infernal cut.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["hellforge_recovery_hellward_screen", "hellforge_accord_hellward_relief"],
+          choice: {
+            outcomeId: "open_the_hellward_sidepass",
+            title: "Open the Hellward Sidepass",
+            description: "Turn the screened hellward line and relief posts into a guarded sidepass around the next breach.",
+            consequenceId: "hellward_sidepass_opened",
+            flagIds: ["hellforge_detour_hellward_sidepass"],
+            extraEffects: [{ kind: "hero_max_life", value: 3 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "hellforge_detour_opportunity", "hellforge_claim", {
+          id: "breachscreen_detour",
+          title: "Breachscreen Detour",
+          description: "The breachscreen ledger turns the detour into a hidden relief line that changes how the next sanctuary fight breaks.",
+          summary: "A full sanctuary late-route close can now turn into a protected relief detour instead of another direct breach.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["hellforge_recovery_hellward_screen", "hellforge_accord_hellward_relief", "hellforge_covenant_breachscreen_ledger"],
+          choice: {
+            outcomeId: "stage_the_hidden_relief_line",
+            title: "Stage the Hidden Relief Line",
+            description: "Move the covenant ledger, relief posts, and hellward screens into one hidden line around the next sanctuary break.",
+            consequenceId: "hidden_relief_line_staged",
+            flagIds: ["hellforge_detour_hidden_relief"],
+            extraEffects: [{ kind: "hero_max_life", value: 3 }, { kind: "belt_capacity", value: 1 }],
+          },
+        }),
+      ],
+    },
+    5: {
+      kind: "opportunity",
+      id: "harrogath_detour_opportunity",
+      title: "Summit Detour",
+      zoneTitle: "Summit Detour",
+      description: "After the summit covenant closes, Harrogath can still break into a guarded sled detour that circles the last ascent instead of driving straight at the Worldstone.",
+      summary: "The post-covenant route now fans back out into a safer summit detour lane.",
+      grants: { gold: 12, xp: 14, potions: 0 },
+      requiresQuestId: "harrogath_rescue",
+      requiresRecoveryOpportunityId: "harrogath_recovery_opportunity",
+      requiresAccordOpportunityId: "harrogath_accord_opportunity",
+      requiresCovenantOpportunityId: "harrogath_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildDetourChoice, "harrogath_detour_opportunity", "harrogath_rescue", {
+          id: "summit_detour",
+          title: "Sled Detour",
+          description: "Even without a sharper summit line, Harrogath can still open one last sled detour around the frozen climb.",
+          summary: "A fallback detour opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "secure_the_sled_sidepass",
+            title: "Secure the Sled Sidepass",
+            description: "Cut a quiet sled path across the frozen switchbacks and bank it for the next clash.",
+            consequenceId: "sled_sidepass_secured",
+            flagIds: ["harrogath_detour_sled_sidepass"],
+            extraEffects: [{ kind: "refill_potions", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "harrogath_detour_opportunity", "harrogath_rescue", {
+          id: "banner_detour",
+          title: "Banner Detour",
+          description: "Recovery banners and accorded Ancients posts turn the detour lane into a true mountain sidepass instead of another ration count.",
+          summary: "The recovery and accord lanes now open a safer sidepass across the summit line.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["harrogath_recovery_guard_banners", "harrogath_accord_ancients_posts"],
+          choice: {
+            outcomeId: "open_the_banner_sidepass",
+            title: "Open the Banner Sidepass",
+            description: "Turn the recovered banners and accorded posts into a guarded sidepass around the next summit clash.",
+            consequenceId: "banner_sidepass_opened",
+            flagIds: ["harrogath_detour_banner_sidepass"],
+            extraEffects: [{ kind: "hero_max_life", value: 4 }],
+          },
+        }),
+        buildLateRouteVariant(buildDetourChoice, "harrogath_detour_opportunity", "harrogath_rescue", {
+          id: "ancients_detour",
+          title: "Ancients Detour",
+          description: "The Ancients ledger turns the detour into a hidden sled chain that changes how the next summit fight opens.",
+          summary: "A full summit late-route close can now turn into a protected sled detour instead of another straight Worldstone rush.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["harrogath_recovery_guard_banners", "harrogath_accord_ancients_posts", "harrogath_covenant_ancients_ledger"],
+          choice: {
+            outcomeId: "stage_the_hidden_ancients_sleds",
+            title: "Stage the Hidden Ancients Sleds",
+            description: "Move the covenant ledger, guard banners, and Ancients posts into one hidden sled chain before the next Worldstone push.",
+            consequenceId: "hidden_ancients_sleds_staged",
+            flagIds: ["harrogath_detour_hidden_sleds"],
+            extraEffects: [{ kind: "hero_max_life", value: 4 }, { kind: "belt_capacity", value: 1 }],
+          },
+        }),
+      ],
+    },
+  };
+
+  const ESCALATION_OPPORTUNITY_DEFINITIONS: Record<number, EscalationOpportunityDefinition> = {
+    1: {
+      kind: "opportunity",
+      id: "rogue_escalation_opportunity",
+      title: "Catacomb Escalation",
+      zoneTitle: "Catacomb Escalation",
+      description: "After the monastery covenant closes, the rogue line can also sharpen into a harsher escalation that spends the late gains on direct pressure.",
+      summary: "The post-covenant route now fans back out into a higher-risk rogue escalation lane.",
+      grants: { gold: 10, xp: 12, potions: 0 },
+      requiresQuestId: "tristram_relief",
+      requiresLegacyOpportunityId: "rogue_legacy_opportunity",
+      requiresReckoningOpportunityId: "rogue_reckoning_opportunity",
+      requiresCovenantOpportunityId: "rogue_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildEscalationChoice, "rogue_escalation_opportunity", "tristram_relief", {
+          id: "ridge_escalation",
+          title: "Ridge Escalation",
+          description: "Even without a cleaner line, the rogues can still turn the late route into one final ridge push.",
+          summary: "A fallback escalation opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "press_the_ridge_watch",
+            title: "Press the Ridge Watch",
+            description: "Spend the late route on a direct ridge surge instead of another slower sweep.",
+            consequenceId: "ridge_watch_pressed",
+            flagIds: ["rogue_escalation_ridge_watch"],
+            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "rogue_escalation_opportunity", "tristram_relief", {
+          id: "ledger_escalation",
+          title: "Ledger Escalation",
+          description: "Legacy wayfinders and the chapel ledger turn the escalation lane into a true pressure route instead of one more ridge check.",
+          summary: "The legacy and reckoning lanes now sharpen the monastery into a direct strike route.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["rogue_legacy_wayfinder_chain", "rogue_reckoning_chapel_ledger"],
+          choice: {
+            outcomeId: "crack_the_chapel_surge",
+            title: "Crack the Chapel Surge",
+            description: "Turn the wayfinder chain and chapel ledger into a harder pressure wave through the monastery.",
+            consequenceId: "chapel_surge_cracked",
+            flagIds: ["rogue_escalation_chapel_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "rogue_escalation_opportunity", "tristram_relief", {
+          id: "catacomb_escalation",
+          title: "Catacomb Escalation",
+          description: "The sealed wayfinder ledger turns the escalation into a full catacomb surge that changes how the next elite line behaves.",
+          summary: "A full rogue late-route close can now be spent on one sharper catacomb surge instead of another cautious setup.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["rogue_legacy_wayfinder_chain", "rogue_reckoning_chapel_ledger", "rogue_covenant_wayfinder_ledger"],
+          choice: {
+            outcomeId: "drive_the_catacomb_surge",
+            title: "Drive the Catacomb Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct catacomb surge before Andariel.",
+            consequenceId: "catacomb_surge_driven",
+            flagIds: ["rogue_escalation_catacomb_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_energy", value: 1 }],
+          },
+        }),
+      ],
+    },
+    2: {
+      kind: "opportunity",
+      id: "sunwell_escalation_opportunity",
+      title: "Chamber Escalation",
+      zoneTitle: "Chamber Escalation",
+      description: "After the reliquary covenant closes, the desert line can also sharpen into a harsher escalation that spends the late gains on a direct chamber breach.",
+      summary: "The post-covenant route now fans back out into a higher-risk desert escalation lane.",
+      grants: { gold: 10, xp: 12, potions: 0 },
+      requiresQuestId: "lost_reliquary",
+      requiresLegacyOpportunityId: "sunwell_legacy_opportunity",
+      requiresReckoningOpportunityId: "sunwell_reckoning_opportunity",
+      requiresCovenantOpportunityId: "sunwell_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildEscalationChoice, "sunwell_escalation_opportunity", "lost_reliquary", {
+          id: "dune_escalation",
+          title: "Dune Escalation",
+          description: "Even without a truer lance route, the desert can still spend the late path on one final dune push.",
+          summary: "A fallback escalation opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "press_the_dune_push",
+            title: "Press the Dune Push",
+            description: "Turn the late route into one harder dune push instead of another slower screen.",
+            consequenceId: "dune_push_pressed",
+            flagIds: ["sunwell_escalation_dune_push"],
+            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "sunwell_escalation_opportunity", "lost_reliquary", {
+          id: "lance_escalation",
+          title: "Lance Escalation",
+          description: "Legacy spear posts and lance wards turn the escalation lane into a true chamber breach instead of one more dune probe.",
+          summary: "The legacy and reckoning lanes now sharpen the desert into a direct strike route.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["sunwell_legacy_last_spear_posts", "sunwell_reckoning_lance_wards"],
+          choice: {
+            outcomeId: "crack_the_lance_breach",
+            title: "Crack the Lance Breach",
+            description: "Turn the spear posts and lance wards into a harder breach through the next reliquary line.",
+            consequenceId: "lance_breach_cracked",
+            flagIds: ["sunwell_escalation_lance_breach"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "sunwell_escalation_opportunity", "lost_reliquary", {
+          id: "chamber_escalation",
+          title: "Chamber Escalation",
+          description: "The final lance ledger turns the escalation into a full chamber surge that changes how the next elite line behaves.",
+          summary: "A full desert late-route close can now be spent on one sharper chamber surge instead of another cautious setup.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["sunwell_legacy_last_spear_posts", "sunwell_reckoning_lance_wards", "sunwell_covenant_final_lance_ledger"],
+          choice: {
+            outcomeId: "drive_the_chamber_surge",
+            title: "Drive the Chamber Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct chamber surge before Duriel.",
+            consequenceId: "chamber_surge_driven",
+            flagIds: ["sunwell_escalation_chamber_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_life", value: 3 }],
+          },
+        }),
+      ],
+    },
+    3: {
+      kind: "opportunity",
+      id: "kurast_escalation_opportunity",
+      title: "Durance Escalation",
+      zoneTitle: "Durance Escalation",
+      description: "After the harbor covenant closes, Kurast can also sharpen into a harsher escalation that spends the late gains on a direct durance push.",
+      summary: "The post-covenant route now fans back out into a higher-risk harbor escalation lane.",
+      grants: { gold: 10, xp: 12, potions: 0 },
+      requiresQuestId: "smugglers_wake",
+      requiresLegacyOpportunityId: "kurast_legacy_opportunity",
+      requiresReckoningOpportunityId: "kurast_reckoning_opportunity",
+      requiresCovenantOpportunityId: "kurast_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildEscalationChoice, "kurast_escalation_opportunity", "smugglers_wake", {
+          id: "dock_escalation",
+          title: "Dock Escalation",
+          description: "Even without a truer spellward line, Kurast can still spend the late route on one final dock push.",
+          summary: "A fallback escalation opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "press_the_dock_push",
+            title: "Press the Dock Push",
+            description: "Turn the late route into one harder dockside push instead of another slower river screen.",
+            consequenceId: "dock_push_pressed",
+            flagIds: ["kurast_escalation_dock_push"],
+            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "kurast_escalation_opportunity", "smugglers_wake", {
+          id: "seal_escalation",
+          title: "Seal Escalation",
+          description: "Legacy spellwards and harbor seals turn the escalation lane into a true durance breach instead of one more dock probe.",
+          summary: "The legacy and reckoning lanes now sharpen the harbor into a direct strike route.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["kurast_legacy_last_spellward", "kurast_reckoning_harbor_seals"],
+          choice: {
+            outcomeId: "crack_the_harbor_seal_push",
+            title: "Crack the Harbor Seal Push",
+            description: "Turn the spellward legacy and harbor seals into a harder surge through the next river line.",
+            consequenceId: "harbor_seal_push_cracked",
+            flagIds: ["kurast_escalation_harbor_push"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "kurast_escalation_opportunity", "smugglers_wake", {
+          id: "durance_escalation",
+          title: "Durance Escalation",
+          description: "The spellward ledger turns the escalation into a full durance surge that changes how the next elite line behaves.",
+          summary: "A full harbor late-route close can now be spent on one sharper durance surge instead of another cautious setup.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["kurast_legacy_last_spellward", "kurast_reckoning_harbor_seals", "kurast_covenant_spellward_ledger"],
+          choice: {
+            outcomeId: "drive_the_durance_surge",
+            title: "Drive the Durance Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct durance surge before Mephisto.",
+            consequenceId: "durance_surge_driven",
+            flagIds: ["kurast_escalation_durance_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_energy", value: 1 }],
+          },
+        }),
+      ],
+    },
+    4: {
+      kind: "opportunity",
+      id: "hellforge_escalation_opportunity",
+      title: "Sanctuary Escalation",
+      zoneTitle: "Sanctuary Escalation",
+      description: "After the sanctuary covenant closes, the forge line can also sharpen into a harsher escalation that spends the late gains on a direct sanctuary breach.",
+      summary: "The post-covenant route now fans back out into a higher-risk sanctuary escalation lane.",
+      grants: { gold: 12, xp: 12, potions: 0 },
+      requiresQuestId: "hellforge_claim",
+      requiresLegacyOpportunityId: "hellforge_legacy_opportunity",
+      requiresReckoningOpportunityId: "hellforge_reckoning_opportunity",
+      requiresCovenantOpportunityId: "hellforge_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildEscalationChoice, "hellforge_escalation_opportunity", "hellforge_claim", {
+          id: "ash_escalation",
+          title: "Ash Escalation",
+          description: "Even without a truer breachscreen line, the sanctuary can still spend the late route on one final ash push.",
+          summary: "A fallback escalation opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "press_the_ash_push",
+            title: "Press the Ash Push",
+            description: "Turn the late route into one harder ash-belt push instead of another slower relief line.",
+            consequenceId: "ash_push_pressed",
+            flagIds: ["hellforge_escalation_ash_push"],
+            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "hellforge_escalation_opportunity", "hellforge_claim", {
+          id: "screen_escalation",
+          title: "Screen Escalation",
+          description: "Legacy breachscreens and sanctuary screens turn the escalation lane into a true infernal break instead of one more ash probe.",
+          summary: "The legacy and reckoning lanes now sharpen the sanctuary into a direct strike route.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["hellforge_legacy_last_breachscreen", "hellforge_reckoning_sanctuary_screens"],
+          choice: {
+            outcomeId: "crack_the_sanctuary_screen",
+            title: "Crack the Sanctuary Screen",
+            description: "Turn the breachscreen legacy and sanctuary screens into a harder surge through the next infernal line.",
+            consequenceId: "sanctuary_screen_cracked",
+            flagIds: ["hellforge_escalation_sanctuary_screen"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "hellforge_escalation_opportunity", "hellforge_claim", {
+          id: "sanctuary_escalation",
+          title: "Sanctuary Escalation",
+          description: "The breachscreen ledger turns the escalation into a full sanctuary surge that changes how the next elite line behaves.",
+          summary: "A full sanctuary late-route close can now be spent on one sharper infernal surge instead of another cautious setup.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["hellforge_legacy_last_breachscreen", "hellforge_reckoning_sanctuary_screens", "hellforge_covenant_breachscreen_ledger"],
+          choice: {
+            outcomeId: "drive_the_sanctuary_surge",
+            title: "Drive the Sanctuary Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct sanctuary surge before Diablo.",
+            consequenceId: "sanctuary_surge_driven",
+            flagIds: ["hellforge_escalation_sanctuary_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_life", value: 3 }],
+          },
+        }),
+      ],
+    },
+    5: {
+      kind: "opportunity",
+      id: "harrogath_escalation_opportunity",
+      title: "Worldstone Escalation",
+      zoneTitle: "Worldstone Escalation",
+      description: "After the summit covenant closes, Harrogath can also sharpen into a harsher escalation that spends the late gains on a direct Worldstone surge.",
+      summary: "The post-covenant route now fans back out into a higher-risk summit escalation lane.",
+      grants: { gold: 12, xp: 14, potions: 0 },
+      requiresQuestId: "harrogath_rescue",
+      requiresLegacyOpportunityId: "harrogath_legacy_opportunity",
+      requiresReckoningOpportunityId: "harrogath_reckoning_opportunity",
+      requiresCovenantOpportunityId: "harrogath_covenant_opportunity",
+      variants: [
+        buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {
+          id: "watch_escalation",
+          title: "Watch Escalation",
+          description: "Even without a truer summit line, Harrogath can still spend the late route on one final watch push.",
+          summary: "A fallback escalation opens after the covenant resolves.",
+          grants: { gold: 6, xp: 8, potions: 0 },
+          choice: {
+            outcomeId: "press_the_watch_push",
+            title: "Press the Watch Push",
+            description: "Turn the late route into one harder summit watch push instead of another slower sled sweep.",
+            consequenceId: "watch_push_pressed",
+            flagIds: ["harrogath_escalation_watch_push"],
+            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {
+          id: "oath_escalation",
+          title: "Oath Escalation",
+          description: "Legacy guard ranks and oath rations turn the escalation lane into a true Worldstone breach instead of one more summit probe.",
+          summary: "The legacy and reckoning lanes now sharpen the summit into a direct strike route.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["harrogath_legacy_last_guard_ranks", "harrogath_reckoning_oath_rations"],
+          choice: {
+            outcomeId: "crack_the_oath_surge",
+            title: "Crack the Oath Surge",
+            description: "Turn the guard ranks and oath rations into a harder surge through the next summit line.",
+            consequenceId: "oath_surge_cracked",
+            flagIds: ["harrogath_escalation_oath_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }],
+          },
+        }),
+        buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {
+          id: "worldstone_escalation",
+          title: "Worldstone Escalation",
+          description: "The Ancients ledger turns the escalation into a full Worldstone surge that changes how the next elite line behaves.",
+          summary: "A full summit late-route close can now be spent on one sharper Worldstone surge instead of another cautious setup.",
+          grants: { gold: 8, xp: 8, potions: 0 },
+          requiresFlagIds: ["harrogath_legacy_last_guard_ranks", "harrogath_reckoning_oath_rations", "harrogath_covenant_ancients_ledger"],
+          choice: {
+            outcomeId: "drive_the_worldstone_surge",
+            title: "Drive the Worldstone Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct Worldstone surge before Baal.",
+            consequenceId: "worldstone_surge_driven",
+            flagIds: ["harrogath_escalation_worldstone_surge"],
+            extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_life", value: 4 }],
+          },
+        }),
+      ],
+    },
+  };
+
   function buildExpandedShrineDefinitions() {
     return Object.keys(SHRINE_DEFINITIONS).reduce((definitions, actKey) => {
       const actNumber = Number(actKey);
@@ -8895,6 +9572,8 @@
       recoveryOpportunities: RECOVERY_OPPORTUNITY_DEFINITIONS,
       accordOpportunities: ACCORD_OPPORTUNITY_DEFINITIONS,
       covenantOpportunities: COVENANT_OPPORTUNITY_DEFINITIONS,
+      detourOpportunities: DETOUR_OPPORTUNITY_DEFINITIONS,
+      escalationOpportunities: ESCALATION_OPPORTUNITY_DEFINITIONS,
     };
   }
 
@@ -9045,6 +9724,14 @@
 
   function getCovenantOpportunityDefinition(actNumber) {
     return COVENANT_OPPORTUNITY_DEFINITIONS[actNumber] || COVENANT_OPPORTUNITY_DEFINITIONS[1];
+  }
+
+  function getDetourOpportunityDefinition(actNumber) {
+    return DETOUR_OPPORTUNITY_DEFINITIONS[actNumber] || DETOUR_OPPORTUNITY_DEFINITIONS[1];
+  }
+
+  function getEscalationOpportunityDefinition(actNumber) {
+    return ESCALATION_OPPORTUNITY_DEFINITIONS[actNumber] || ESCALATION_OPPORTUNITY_DEFINITIONS[1];
   }
 
   function isShrineOpportunityNodeId(nodeId) {
@@ -9205,6 +9892,28 @@
     return buildNodeZone("opportunity", getCovenantOpportunityDefinition(actSeed.act), actSeed, prerequisites, "covenant_opportunity");
   }
 
+  function createDetourOpportunityZone({
+    actSeed,
+    prerequisites,
+  }: {
+    actSeed: ActSeed;
+    prerequisites: string[];
+  }): ZoneState {
+    ensureValidCatalog();
+    return buildNodeZone("opportunity", getDetourOpportunityDefinition(actSeed.act), actSeed, prerequisites, "detour_opportunity");
+  }
+
+  function createEscalationOpportunityZone({
+    actSeed,
+    prerequisites,
+  }: {
+    actSeed: ActSeed;
+    prerequisites: string[];
+  }): ZoneState {
+    ensureValidCatalog();
+    return buildNodeZone("opportunity", getEscalationOpportunityDefinition(actSeed.act), actSeed, prerequisites, "escalation_opportunity");
+  }
+
   function createActWorldNodes({
     actSeed,
     openingZoneId,
@@ -9269,6 +9978,14 @@
       actSeed,
       prerequisites: [legacyOpportunityZone.id, reckoningOpportunityZone.id, recoveryOpportunityZone.id, accordOpportunityZone.id],
     });
+    const detourOpportunityZone = createDetourOpportunityZone({
+      actSeed,
+      prerequisites: [covenantOpportunityZone.id],
+    });
+    const escalationOpportunityZone = createEscalationOpportunityZone({
+      actSeed,
+      prerequisites: [covenantOpportunityZone.id],
+    });
     return [
       questZone,
       shrineZone,
@@ -9284,6 +10001,8 @@
       recoveryOpportunityZone,
       accordOpportunityZone,
       covenantOpportunityZone,
+      detourOpportunityZone,
+      escalationOpportunityZone,
     ];
   }
 
@@ -9986,6 +10705,142 @@
     };
   }
 
+  function resolveDetourOpportunityVariant(run, actNumber) {
+    const detourOpportunityDefinition = getDetourOpportunityDefinition(actNumber);
+    const questRecord = run?.world?.questOutcomes?.[detourOpportunityDefinition.requiresQuestId] || null;
+    const recoveryOpportunityRecord = run?.world?.opportunityOutcomes?.[detourOpportunityDefinition.requiresRecoveryOpportunityId] || null;
+    const accordOpportunityRecord = run?.world?.opportunityOutcomes?.[detourOpportunityDefinition.requiresAccordOpportunityId] || null;
+    const covenantOpportunityRecord = run?.world?.opportunityOutcomes?.[detourOpportunityDefinition.requiresCovenantOpportunityId] || null;
+    const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
+
+    if (!questRecord?.outcomeId) {
+      throw new Error(`Detour opportunity node "${detourOpportunityDefinition.id}" requires resolved quest "${detourOpportunityDefinition.requiresQuestId}".`);
+    }
+
+    if (!questRecord.followUpOutcomeId) {
+      throw new Error(
+        `Detour opportunity node "${detourOpportunityDefinition.id}" requires a resolved follow-up outcome for "${detourOpportunityDefinition.requiresQuestId}".`
+      );
+    }
+
+    if (!recoveryOpportunityRecord?.outcomeId) {
+      throw new Error(
+        `Detour opportunity node "${detourOpportunityDefinition.id}" requires resolved recovery opportunity "${detourOpportunityDefinition.requiresRecoveryOpportunityId}".`
+      );
+    }
+
+    if (!accordOpportunityRecord?.outcomeId) {
+      throw new Error(
+        `Detour opportunity node "${detourOpportunityDefinition.id}" requires resolved accord opportunity "${detourOpportunityDefinition.requiresAccordOpportunityId}".`
+      );
+    }
+
+    if (!covenantOpportunityRecord?.outcomeId) {
+      throw new Error(
+        `Detour opportunity node "${detourOpportunityDefinition.id}" requires resolved covenant opportunity "${detourOpportunityDefinition.requiresCovenantOpportunityId}".`
+      );
+    }
+
+    const variant =
+      detourOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+        if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
+          return bestMatch;
+        }
+
+        if (!bestMatch) {
+          return variantDefinition;
+        }
+
+        return getReserveOpportunityVariantSpecificity(variantDefinition) > getReserveOpportunityVariantSpecificity(bestMatch)
+          ? variantDefinition
+          : bestMatch;
+      }, null) || null;
+
+    if (!variant) {
+      throw new Error(
+        `Detour opportunity node "${detourOpportunityDefinition.id}" has no authored variant for recovery lane "${recoveryOpportunityRecord.outcomeId}", accord lane "${accordOpportunityRecord.outcomeId}", and covenant lane "${covenantOpportunityRecord.outcomeId}".`
+      );
+    }
+
+    return {
+      accordOpportunityRecord,
+      covenantOpportunityRecord,
+      detourOpportunityDefinition,
+      questRecord,
+      recoveryOpportunityRecord,
+      variant,
+    };
+  }
+
+  function resolveEscalationOpportunityVariant(run, actNumber) {
+    const escalationOpportunityDefinition = getEscalationOpportunityDefinition(actNumber);
+    const questRecord = run?.world?.questOutcomes?.[escalationOpportunityDefinition.requiresQuestId] || null;
+    const legacyOpportunityRecord = run?.world?.opportunityOutcomes?.[escalationOpportunityDefinition.requiresLegacyOpportunityId] || null;
+    const reckoningOpportunityRecord = run?.world?.opportunityOutcomes?.[escalationOpportunityDefinition.requiresReckoningOpportunityId] || null;
+    const covenantOpportunityRecord = run?.world?.opportunityOutcomes?.[escalationOpportunityDefinition.requiresCovenantOpportunityId] || null;
+    const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
+
+    if (!questRecord?.outcomeId) {
+      throw new Error(
+        `Escalation opportunity node "${escalationOpportunityDefinition.id}" requires resolved quest "${escalationOpportunityDefinition.requiresQuestId}".`
+      );
+    }
+
+    if (!questRecord.followUpOutcomeId) {
+      throw new Error(
+        `Escalation opportunity node "${escalationOpportunityDefinition.id}" requires a resolved follow-up outcome for "${escalationOpportunityDefinition.requiresQuestId}".`
+      );
+    }
+
+    if (!legacyOpportunityRecord?.outcomeId) {
+      throw new Error(
+        `Escalation opportunity node "${escalationOpportunityDefinition.id}" requires resolved legacy opportunity "${escalationOpportunityDefinition.requiresLegacyOpportunityId}".`
+      );
+    }
+
+    if (!reckoningOpportunityRecord?.outcomeId) {
+      throw new Error(
+        `Escalation opportunity node "${escalationOpportunityDefinition.id}" requires resolved reckoning opportunity "${escalationOpportunityDefinition.requiresReckoningOpportunityId}".`
+      );
+    }
+
+    if (!covenantOpportunityRecord?.outcomeId) {
+      throw new Error(
+        `Escalation opportunity node "${escalationOpportunityDefinition.id}" requires resolved covenant opportunity "${escalationOpportunityDefinition.requiresCovenantOpportunityId}".`
+      );
+    }
+
+    const variant =
+      escalationOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+        if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
+          return bestMatch;
+        }
+
+        if (!bestMatch) {
+          return variantDefinition;
+        }
+
+        return getReserveOpportunityVariantSpecificity(variantDefinition) > getReserveOpportunityVariantSpecificity(bestMatch)
+          ? variantDefinition
+          : bestMatch;
+      }, null) || null;
+
+    if (!variant) {
+      throw new Error(
+        `Escalation opportunity node "${escalationOpportunityDefinition.id}" has no authored variant for legacy lane "${legacyOpportunityRecord.outcomeId}", reckoning lane "${reckoningOpportunityRecord.outcomeId}", and covenant lane "${covenantOpportunityRecord.outcomeId}".`
+      );
+    }
+
+    return {
+      covenantOpportunityRecord,
+      escalationOpportunityDefinition,
+      legacyOpportunityRecord,
+      questRecord,
+      reckoningOpportunityRecord,
+      variant,
+    };
+  }
+
   function buildZoneReward({ run, zone }) {
     const actNumber = zone?.actNumber || run?.actNumber || 1;
 
@@ -10336,6 +11191,74 @@
       };
     }
 
+    if (zone.kind === "opportunity" && zone.nodeType === "detour_opportunity") {
+      const {
+        accordOpportunityRecord,
+        covenantOpportunityRecord,
+        detourOpportunityDefinition,
+        questRecord,
+        recoveryOpportunityRecord,
+        variant,
+      } = resolveDetourOpportunityVariant(run, actNumber);
+      return {
+        zoneId: zone.id,
+        zoneTitle: zone.title,
+        kind: zone.kind,
+        title: variant.title || detourOpportunityDefinition.title,
+        lines: [
+          detourOpportunityDefinition.summary,
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier recovery lane: ${recoveryOpportunityRecord.outcomeTitle}.`,
+          `Earlier accord lane: ${accordOpportunityRecord.outcomeTitle}.`,
+          `Earlier covenant lane: ${covenantOpportunityRecord.outcomeTitle}.`,
+          variant.summary,
+          `${zone.title} is now clear.`,
+        ],
+        grants: { ...detourOpportunityDefinition.grants, ...(variant.grants || {}) },
+        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
+        encounterNumber: 1,
+        clearsZone: true,
+        endsAct: false,
+        endsRun: false,
+        heroLifeAfterFight: run.hero.currentLife,
+        mercenaryLifeAfterFight: run.mercenary.currentLife,
+      };
+    }
+
+    if (zone.kind === "opportunity" && zone.nodeType === "escalation_opportunity") {
+      const {
+        covenantOpportunityRecord,
+        escalationOpportunityDefinition,
+        legacyOpportunityRecord,
+        questRecord,
+        reckoningOpportunityRecord,
+        variant,
+      } = resolveEscalationOpportunityVariant(run, actNumber);
+      return {
+        zoneId: zone.id,
+        zoneTitle: zone.title,
+        kind: zone.kind,
+        title: variant.title || escalationOpportunityDefinition.title,
+        lines: [
+          escalationOpportunityDefinition.summary,
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier legacy lane: ${legacyOpportunityRecord.outcomeTitle}.`,
+          `Earlier reckoning lane: ${reckoningOpportunityRecord.outcomeTitle}.`,
+          `Earlier covenant lane: ${covenantOpportunityRecord.outcomeTitle}.`,
+          variant.summary,
+          `${zone.title} is now clear.`,
+        ],
+        grants: { ...escalationOpportunityDefinition.grants, ...(variant.grants || {}) },
+        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
+        encounterNumber: 1,
+        clearsZone: true,
+        endsAct: false,
+        endsRun: false,
+        heroLifeAfterFight: run.hero.currentLife,
+        mercenaryLifeAfterFight: run.mercenary.currentLife,
+      };
+    }
+
     const { opportunityDefinition, questRecord, variant } = resolveOpportunityVariant(run, actNumber);
     return {
       zoneId: zone.id,
@@ -10582,6 +11505,8 @@
     createRecoveryOpportunityZone,
     createAccordOpportunityZone,
     createCovenantOpportunityZone,
+    createDetourOpportunityZone,
+    createEscalationOpportunityZone,
     createActWorldNodes,
     isWorldNodeZone,
     buildZoneReward,

@@ -674,6 +674,36 @@ interface CovenantOpportunityDefinition {
   variants: ReserveOpportunityVariantDefinition[];
 }
 
+interface DetourOpportunityDefinition {
+  kind: "opportunity";
+  id: string;
+  title: string;
+  zoneTitle: string;
+  description: string;
+  summary: string;
+  grants: RewardGrants;
+  requiresQuestId: string;
+  requiresRecoveryOpportunityId: string;
+  requiresAccordOpportunityId: string;
+  requiresCovenantOpportunityId: string;
+  variants: ReserveOpportunityVariantDefinition[];
+}
+
+interface EscalationOpportunityDefinition {
+  kind: "opportunity";
+  id: string;
+  title: string;
+  zoneTitle: string;
+  description: string;
+  summary: string;
+  grants: RewardGrants;
+  requiresQuestId: string;
+  requiresLegacyOpportunityId: string;
+  requiresReckoningOpportunityId: string;
+  requiresCovenantOpportunityId: string;
+  variants: ReserveOpportunityVariantDefinition[];
+}
+
 interface WorldNodeCatalog {
   quests: Record<number, QuestNodeDefinition>;
   shrines: Record<number, ShrineNodeDefinition>;
@@ -689,6 +719,8 @@ interface WorldNodeCatalog {
   recoveryOpportunities: Record<number, RecoveryOpportunityDefinition>;
   accordOpportunities: Record<number, AccordOpportunityDefinition>;
   covenantOpportunities: Record<number, CovenantOpportunityDefinition>;
+  detourOpportunities: Record<number, DetourOpportunityDefinition>;
+  escalationOpportunities: Record<number, EscalationOpportunityDefinition>;
 }
 
 interface RunEquipmentState {
@@ -1079,6 +1111,28 @@ interface ProfileAccountReviewSummary {
   readyCapstoneCount: number;
   nextCapstoneId: string;
   nextCapstoneTitle: string;
+  convergenceCount: number;
+  unlockedConvergenceCount: number;
+  blockedConvergenceCount: number;
+  availableConvergenceCount: number;
+  nextConvergenceId: string;
+  nextConvergenceTitle: string;
+}
+
+interface ProfileAccountConvergenceSummary {
+  id: string;
+  title: string;
+  description: string;
+  rewardFeatureId: string;
+  effectSummary: string;
+  status: "locked" | "available" | "unlocked";
+  unlocked: boolean;
+  unlockedRequirementCount: number;
+  requiredFeatureCount: number;
+  requiredFeatureIds: string[];
+  requiredFeatureTitles: string[];
+  missingFeatureIds: string[];
+  missingFeatureTitles: string[];
 }
 
 interface ProfilePlanningSummary {
@@ -1105,6 +1159,7 @@ interface ProfileAccountSummary {
   stash: ProfileStashSummary;
   archive: ProfileArchiveSummary;
   review: ProfileAccountReviewSummary;
+  convergences: ProfileAccountConvergenceSummary[];
   focusedTreeId: string;
   focusedTreeTitle: string;
   treeCount: number;
@@ -1319,6 +1374,8 @@ interface ContentValidatorLateRouteOpportunityValidationArgs {
   recoveryOpportunityDefinition: RecoveryOpportunityDefinition | null | undefined;
   accordOpportunityDefinition: AccordOpportunityDefinition | null | undefined;
   covenantOpportunityDefinition: CovenantOpportunityDefinition | null | undefined;
+  detourOpportunityDefinition: DetourOpportunityDefinition | null | undefined;
+  escalationOpportunityDefinition: EscalationOpportunityDefinition | null | undefined;
 }
 
 interface ContentValidatorWorldOpportunitiesApi {
@@ -1419,6 +1476,16 @@ interface ContentValidatorWorldPathsApi {
     reckoningOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
     recoveryOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
     accordOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined
+  ): ContentValidatorFlagPathState[];
+  collectDetourPathStates(
+    covenantOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    recoveryOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    accordOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined
+  ): ContentValidatorFlagPathState[];
+  collectEscalationPathStates(
+    covenantOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    legacyOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    reckoningOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined
   ): ContentValidatorFlagPathState[];
   getOpportunityVariantRequirementSignature(variantDefinition: OpportunityNodeVariantDefinition | null | undefined): string;
   getShrineOpportunityVariantRequirementSignature(variantDefinition: ShrineOpportunityVariantDefinition | null | undefined): string;
@@ -1555,19 +1622,22 @@ interface AccountEconomyFeatures {
   artisanStock: boolean;
   brokerageCharter: boolean;
   treasuryExchange: boolean;
+  chronicleExchange: boolean;
+  paragonExchange: boolean;
   economyFocus: boolean;
 }
 
 interface ItemTownApi {
   getAccountEconomyFeatures(profile?: ProfileState | null): AccountEconomyFeatures;
-  getPlannedRunewordId(profile: ProfileState | null | undefined, slot: "weapon" | "armor"): string;
+  getPlannedRunewordId(profile: ProfileState | null | undefined, slot: "weapon" | "armor", content?: GameContent | null): string;
   getPlannedRunewordArchiveState(
     profile: ProfileState | null | undefined,
-    slot: "weapon" | "armor"
+    slot: "weapon" | "armor",
+    content?: GameContent | null
   ): { runewordId: string; archivedRunCount: number; completedRunCount: number; bestActsCleared: number; unfulfilled: boolean };
   getEntryBuyPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
   getEntrySellPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
-  getVendorRefreshCost(run: RunState, profile?: ProfileState | null): number;
+  getVendorRefreshCost(run: RunState, profile?: ProfileState | null, content?: GameContent | null): number;
   normalizeVendorStock(run: RunState, content: GameContent, profile?: ProfileState | null): void;
   hydrateRunInventory(run: RunState, content: GameContent, profile?: ProfileState | null): void;
   listTownActions(run: RunState, profile: ProfileState, content: GameContent): TownAction[];
@@ -1626,6 +1696,8 @@ interface WorldNodeEngineApi {
   createRecoveryOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
   createAccordOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
   createCovenantOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createDetourOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createEscalationOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
   createActWorldNodes(config: { actSeed: ActSeed; openingZoneId: string }): ZoneState[];
   isWorldNodeZone(zone: ZoneState): boolean;
   buildZoneReward(config: { run: RunState; zone: ZoneState }): RunReward;
@@ -1659,7 +1731,7 @@ interface SaveMigrationApi {
 
 interface ProfileMigrationApi {
   CURRENT_PROFILE_SCHEMA_VERSION: number;
-  migrateProfile(profile: unknown): ProfileEnvelope | null;
+  migrateProfile(profile: unknown, content?: GameContent | null): ProfileEnvelope | null;
 }
 
 interface PersistenceApi {
@@ -1675,23 +1747,27 @@ interface PersistenceApi {
   createEmptyProfile(): ProfileState;
   serializeSnapshot(snapshot: RunSnapshotEnvelope): string;
   restoreSnapshot(snapshotOrSerialized: unknown): RunSnapshotEnvelope | null;
-  serializeProfile(profile: ProfileEnvelope | ProfileState): string;
-  restoreProfile(profileOrSerialized: unknown): ProfileEnvelope | null;
-  saveProfileToStorage(profile: ProfileEnvelope | ProfileState | string, storage?: StorageLike | null): ActionResult;
-  loadProfileFromStorage(storage?: StorageLike | null): ProfileState | null;
-  ensureProfileMeta(profile: ProfileState): void;
+  serializeProfile(profile: ProfileEnvelope | ProfileState, content?: GameContent | null): string;
+  restoreProfile(profileOrSerialized: unknown, content?: GameContent | null): ProfileEnvelope | null;
+  saveProfileToStorage(
+    profile: ProfileEnvelope | ProfileState | string,
+    storage?: StorageLike | null,
+    content?: GameContent | null
+  ): ActionResult;
+  loadProfileFromStorage(storage?: StorageLike | null, content?: GameContent | null): ProfileState | null;
+  ensureProfileMeta(profile: ProfileState, content?: GameContent | null): void;
   unlockProfileEntries(profile: ProfileState, category: ProfileUnlockCategory, ids: string[]): void;
   updateProfileSettings(profile: ProfileState, patch: ProfileSettingsPatch): void;
   setPreferredClass(profile: ProfileState, classId: string): void;
-  setPlannedRuneword(profile: ProfileState, slot: "weapon" | "armor", runewordId: string): void;
+  setPlannedRuneword(profile: ProfileState, slot: "weapon" | "armor", runewordId: string, content?: GameContent | null): void;
   setAccountProgressionFocus(profile: ProfileState, treeId: string): void;
   markTutorialSeen(profile: ProfileState, tutorialId: string): void;
   markTutorialCompleted(profile: ProfileState, tutorialId: string): void;
   dismissTutorial(profile: ProfileState, tutorialId: string): void;
   restoreTutorial(profile: ProfileState, tutorialId: string): void;
   syncProfileMetaFromRun(profile: ProfileState, run: RunState): void;
-  getProfileSummary(profile: ProfileState | null): ProfileSummary;
-  getAccountProgressSummary(profile: ProfileState | null): ProfileAccountSummary;
+  getProfileSummary(profile: ProfileState | null, content?: GameContent | null): ProfileSummary;
+  getAccountProgressSummary(profile: ProfileState | null, content?: GameContent | null): ProfileAccountSummary;
   getRunHistoryCapacity(profile: ProfileState | null): number;
   recordRunHistory(profile: ProfileState, run: RunState, outcome: RunHistoryEntry["outcome"], content?: GameContent | null): void;
   saveToStorage(snapshot: RunSnapshotEnvelope | string, storage?: StorageLike | null): ActionResult;
