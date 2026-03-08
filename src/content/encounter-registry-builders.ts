@@ -109,6 +109,7 @@
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "phalanx_march", value: Math.max(3, actNumber) },
+          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -118,6 +119,7 @@
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: "ritual_cadence", value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -128,6 +130,7 @@
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "elite_onslaught", value: 1 },
           { kind: "war_drums", value: 1 },
+          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -137,7 +140,7 @@
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "phalanx_march", value: Math.max(3, actNumber) },
-          { kind: "elite_onslaught", value: 1 },
+          { kind: "ritual_cadence", value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -230,6 +233,7 @@
       `act_${actNumber}_branch_bulwark`,
       `act_${actNumber}_branch_counterpush`,
       `act_${actNumber}_branch_siege`,
+      `act_${actNumber}_branch_breach`,
     ];
     const branchMinibossIds = [
       `act_${actNumber}_branch_miniboss`,
@@ -237,6 +241,7 @@
       `act_${actNumber}_branch_sanctum`,
       `act_${actNumber}_branch_warhost`,
       `act_${actNumber}_branch_phalanx`,
+      `act_${actNumber}_branch_conclave`,
     ];
     const consequenceBranchBattleId = `act_${actNumber}_branch_recovery`;
     const consequenceBranchMinibossId = `act_${actNumber}_miniboss_accord`;
@@ -343,6 +348,13 @@
         [eliteD.templateId, bruteA.templateId, supportA.templateId],
         [{ kind: "fortified_line", value: Math.max(3, actNumber + 1) }]
       ),
+      [branchBattleIds[5]]: makeEncounter(
+        branchBattleIds[5],
+        `${flavor.branchBattleLabel} Breach`,
+        `${flavor.branchBattleDescription} A drilled breach team opens on line-breaking charges instead of another slower front-line trade.`,
+        [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
+        [{ kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
+      ),
       [branchMinibossIds[0]]: makeEncounter(
         branchMinibossIds[0],
         `${flavor.branchMinibossLabel} Champion`,
@@ -382,6 +394,13 @@
         `${flavor.branchMinibossDescription} A drilled elite front advances with brute escorts instead of leaning on another support pocket.`,
         [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
         [{ kind: "phalanx_march", value: Math.max(3, actNumber) }]
+      ),
+      [branchMinibossIds[5]]: makeEncounter(
+        branchMinibossIds[5],
+        `${flavor.branchMinibossLabel} Conclave`,
+        `${flavor.branchMinibossDescription} A warding conclave opens on recovery rites and shield calls instead of another straight escort rush.`,
+        [eliteA.templateId, supportA.templateId, supportB.templateId, rangedA.templateId],
+        [{ kind: "ritual_cadence", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
       ),
       [consequenceBranchBattleId]: makeEncounter(
         consequenceBranchBattleId,

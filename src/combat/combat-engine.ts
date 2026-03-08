@@ -617,6 +617,21 @@
     enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
   }
 
+  function setEnemyIntentToFirstMatchingKind(enemy, supportedKinds) {
+    if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
+      return false;
+    }
+
+    const matchingIndex = enemy.intents.findIndex((intent) => intent && supportedKinds.has(intent.kind));
+    if (matchingIndex < 0) {
+      return false;
+    }
+
+    enemy.intentIndex = matchingIndex;
+    enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
+    return true;
+  }
+
   function boostEnemyIntentValues(enemy, supportedKinds, amount) {
     if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
       return false;
@@ -651,6 +666,8 @@
     const modifiers = Array.isArray(state?.encounter?.modifiers) ? state.encounter.modifiers : [];
     const attackIntentKinds = new Set(["attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack"]);
     const healingIntentKinds = new Set(["heal_ally", "heal_allies", "heal_and_guard"]);
+    const linebreakerIntentKinds = new Set(["attack_and_guard", "sunder_attack"]);
+    const ritualIntentKinds = new Set(["guard", "guard_allies", "heal_ally", "heal_allies", "heal_and_guard"]);
 
     modifiers.forEach((modifier) => {
       if (modifier.kind === "fortified_line") {
@@ -760,6 +777,45 @@
         }, 0);
         if (guardTargets.length > 0 || boostedCount > 0) {
           appendLog(state, `${state.encounter.name} forms a triage screen. Support enemies gain ${value} Guard and restore ${value} more life.`);
+        }
+        return;
+      }
+
+      if (modifier.kind === "linebreaker_charge") {
+        const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
+        const linebreakerTargets = state.enemies.filter((enemy) => {
+          return enemy.role === "brute" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+        });
+        const retunedCount = linebreakerTargets.reduce((count, enemy) => {
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, linebreakerIntentKinds) ? 1 : 0);
+        }, 0);
+        const boostedCount = linebreakerTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, linebreakerIntentKinds, damageBonus) ? 1 : 0);
+        }, 0);
+        if (retunedCount > 0 || boostedCount > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} drills a linebreaker charge. Heavy enemies shift into breach scripts and their guard-breaking hits intensify by ${damageBonus}.`
+          );
+        }
+        return;
+      }
+
+      if (modifier.kind === "ritual_cadence") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const ritualTargets = state.enemies.filter((enemy) => enemy.role === "support" || enemy.templateId.endsWith("_boss"));
+        const retunedCount = ritualTargets.reduce((count, enemy) => {
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, ritualIntentKinds) ? 1 : 0);
+        }, 0);
+        ritualTargets.forEach((enemy) => applyGuard(enemy, value));
+        const boostedCount = ritualTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, ritualIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (ritualTargets.length > 0 || retunedCount > 0 || boostedCount > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} opens under ritual cadence. Support and boss enemies gain ${value} Guard and their warding rites intensify by ${value}.`
+          );
         }
         return;
       }

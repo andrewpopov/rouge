@@ -255,10 +255,10 @@ test("generated encounters include broader elite and encounter-package breadth i
     );
 
     assert.ok(affixIds.size >= 4, `expected act ${actNumber} to have at least four elite affix families`);
-    assert.ok(modifierKinds.size >= 14, `expected act ${actNumber} to expose at least fourteen encounter modifier families`);
+    assert.ok(modifierKinds.size >= 16, `expected act ${actNumber} to expose at least sixteen encounter modifier families`);
     assert.ok(content.generatedActEncounterIds[actNumber].opening.length >= 6);
-    assert.ok(content.generatedActEncounterIds[actNumber].branchBattle.length >= 5);
-    assert.ok(content.generatedActEncounterIds[actNumber].branchMiniboss.length >= 4);
+    assert.ok(content.generatedActEncounterIds[actNumber].branchBattle.length >= 6);
+    assert.ok(content.generatedActEncounterIds[actNumber].branchMiniboss.length >= 6);
   }
 });
 
@@ -284,7 +284,7 @@ test("content validation fails clearly when an act exposes too few encounter mod
 
   assert.throws(() => {
     validator.assertValidRuntimeContent(brokenContent);
-  }, /generatedActEncounterIds\.1 must expose at least 14 encounter modifier families\./);
+  }, /generatedActEncounterIds\.1 must expose at least 16 encounter modifier families\./);
 });
 
 test("scripted boss intents can shatter guard before dealing damage", () => {
@@ -531,6 +531,49 @@ test("triage screen modifiers fortify support units while deepening their openin
   assert.equal(support.guard, 4);
   assert.equal(support.currentIntent.value, supportTemplate.intents[0].value + 4);
   assert.equal(brute.guard, 0);
+});
+
+test("linebreaker charge modifiers pull heavy enemies into breach scripts without retuning support openers", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_4_branch_breach",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const brute = state.enemies.find((enemy) => enemy.role === "brute" && !enemy.templateId.includes("_elite"));
+  const support = state.enemies.find((enemy) => enemy.role === "support");
+  assert.ok(brute);
+  assert.ok(support);
+
+  const bruteTemplate = content.enemyCatalog[brute.templateId];
+  const supportTemplate = content.enemyCatalog[support.templateId];
+  assert.equal(brute.intentIndex, 1);
+  assert.equal(brute.currentIntent.kind, "sunder_attack");
+  assert.equal(brute.currentIntent.value, bruteTemplate.intents[1].value + 2);
+  assert.equal(support.intentIndex, 0);
+  assert.equal(support.currentIntent.label, supportTemplate.intents[0].label);
+});
+
+test("ritual cadence modifiers can retune covenant bosses into warding or recovery scripts", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_3_boss_covenant",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const boss = state.enemies.find((enemy) => enemy.templateId.endsWith("_boss"));
+  const support = state.enemies.find((enemy) => enemy.role === "support" && !enemy.templateId.includes("_elite"));
+  assert.ok(boss);
+  assert.ok(support);
+
+  const bossTemplate = content.enemyCatalog[boss.templateId];
+  assert.equal(boss.intentIndex, 2);
+  assert.equal(boss.currentIntent.kind, "heal_allies");
+  assert.equal(boss.currentIntent.value, bossTemplate.intents[2].value + 5);
+  assert.equal(boss.guard, 5);
+  assert.equal(support.guard, 9);
 });
 
 test("elite onslaught modifiers push elite packs into their harder follow-up without advancing non-elites", () => {

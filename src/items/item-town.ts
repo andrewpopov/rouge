@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const {

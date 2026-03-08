@@ -61,6 +61,8 @@
     "war_drums",
     "triage_command",
     "triage_screen",
+    "linebreaker_charge",
+    "ritual_cadence",
     "elite_onslaught",
     "sniper_nest",
     "boss_screen",
@@ -70,7 +72,7 @@
   const ALLOWED_CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
   const ALLOWED_CONSEQUENCE_REWARD_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
-  const MIN_GENERATED_GROUP_SIZES = { opening: 6, branchBattle: 5, branchMiniboss: 4, boss: 1 };
+  const MIN_GENERATED_GROUP_SIZES = { opening: 6, branchBattle: 6, branchMiniboss: 6, boss: 1 };
   const MIN_CONSEQUENCE_ENCOUNTER_PACKAGES_PER_ACT = 3;
   const MIN_CONSEQUENCE_REWARD_PACKAGES_PER_ACT = 3;
 
@@ -88,7 +90,7 @@
   const MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY = 1;
   const MIN_MERCENARY_ROUTE_PERK_BONUS_FAMILIES = 5;
   const MIN_ELITE_AFFIX_FAMILIES_PER_ACT = 4;
-  const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 14;
+  const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 16;
 
   function pushError(errors, message) { errors.push(message); }
 
