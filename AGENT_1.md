@@ -46,16 +46,16 @@ Live now:
 - phase-owned UI modules already exist under `src/ui/*`
 - `src/app/main.ts` is already a thin boot and dispatch bridge
 - the front door already supports saved-run review plus continue and abandon flow
-- the front door now reads as a navigable account hall with a hall navigator, primary expedition wing, vault or archive wing, focused account-tree review, and grouped settings or tutorial or preferred-class or planning controls
+- the front door now reads as a navigable account hall with a hall navigator, primary expedition wing, dedicated unlock galleries, dedicated vault logistics, a richer vault or archive wing with an archive signal board, focused account-tree review, capstone watch treatment, and grouped settings or tutorial or preferred-class or planning controls
 - the current shell already exposes stash, run history, progression summaries, onboarding guidance, town services, world-map flow, node views, combat, rewards, and run-end screens
 - front-door UI already reads profile settings, preferred class, and account-summary signals from the live profile meta seam
 - safe zone now reads as a prep hub with a town navigator, run-vs-profile framing, loadout review, service drilldowns, and departure-readiness treatment
 - world-map and node views now expose route-intel panels, a consequence ledger, stronger node-family labeling, and clearer late-opportunity-family treatment
-- reward and run-end screens now include explicit before-or-after mutation or archive-delta framing instead of relying only on generic reward copy
+- reward and run-end screens now include explicit before-or-after mutation or archive-delta framing instead of relying only on generic reward copy, with hall re-entry guidance that points back into the richer account hall
 
 Still weak:
 
-- the core shell structure pass is now live, but the account layer still needs broader unlock, stash, archive, and capstone review surfaces beyond the current summary seams
+- the broader account-surface pass is now live, but convergence and other cross-tree meta surfaces still need clearer front-door and run-end treatment on top of the new hall structure
 - onboarding continuity is much stronger now, but future account progression or unlock data still needs better insertion points once Agent 2 extends those read models
 - town, map, reward, and run-end readability are in better shape, but future shell work should extend the current navigable model instead of rebuilding the structure again
 
@@ -67,14 +67,14 @@ Important runtime note:
 
 ## Immediate Next Batch
 
-Agent 1's second shell-structure pass is now live. The next batch is a broader account-surface pass. Do not wait on new backend work unless the current runtime truly cannot support the view.
+Agent 1's broader account-surface pass is now live. The next batch is a convergence and continuity pass. Do not wait on new backend work unless the current runtime truly cannot support the view.
 
-Build the next product-shell layer on top of the navigable hall and prep hub that already exist:
+Build on the richer hall and prep hub that already exist:
 
-- grow the account hall beyond summary buckets into richer unlock, stash, archive, and capstone review surfaces using the existing profile and account-summary seams first
-- preserve and refine the current town, map, reward, and run-end continuity so new account data can land without another structural rewrite
+- extend the account hall and nearby shell surfaces with clearer convergence and cross-tree meta treatment using the existing account-summary seams first
+- preserve and refine the current town, map, reward, and run-end continuity so additional account data can land without another structural rewrite
 - keep insertion points clear for broader Agent 2 unlock or progression read models and future Agent 3 node or consequence metadata
-- only ask for new APIs when the current hall navigator, archive-review, focused-tree, tutorial, settings, or planning seams truly cannot support the shell need
+- only ask for new APIs when the current hall navigator, archive-review, focused-tree, convergence, tutorial, settings, or planning seams truly cannot support the shell need
 
 This batch should stay shell-heavy and API-light:
 
@@ -88,9 +88,9 @@ This batch should stay shell-heavy and API-light:
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. account-depth pass
-- extend `src/ui/front-door-view.ts` with richer unlock, stash, archive, and capstone review surfaces on top of the current navigator
-- use `src/ui/render-utils.ts`, `styles.css`, and existing profile or account summaries before asking for new state
+1. convergence visibility pass
+- extend `src/ui/front-door-view.ts`, `src/ui/run-summary-view.ts`, and any adjacent shell views with clearer convergence and cross-tree meta treatment on top of the current hall navigator and archive-delta flow
+- use the existing account summary, convergence summary, and review seams before asking for new state
 - add or update shell coverage in `tests/app-engine-shell.test.ts` and any related `tests/app-engine*.test.ts`
 
 2. meta continuity pass
@@ -181,6 +181,7 @@ Expectations:
 
 - a front door that reads like a real account hall with clearer subareas and drilldowns
 - a stronger archive desk, account-progression area, and active-expedition area inside that hall
+- dedicated unlock, vault-logistics, archive-signal, and capstone-watch surfaces inside the account hall
 - a stronger guided-play shell across all active phases
 - a town hub that is organized around real services, build state, departure readiness, and service drilldowns
 - clearer map, node, reward, and run-end presentation with explicit player guidance and change summaries
@@ -216,4 +217,4 @@ Expectations:
 
 ## Pickup Prompt
 
-Build Rouge's next shell batch now. Treat the navigable account hall, prep hub, route-intel map, and delta-heavy reward or run-end shell as the live baseline. Expand the front door into richer unlock, stash, archive, and capstone review surfaces without inventing shell-owned progression state, and keep town, map, reward, and run-end continuity coherent as broader account data arrives. Use the existing settings, tutorial, preferred-class, account-focus, archive-review, and planning actions before asking for new backend seams. Keep `src/app/main.ts` thin, coordinate with Agent 4 on shared shell test coverage, and keep gameplay mutation in domain modules.
+Build Rouge's next shell batch now. Treat the richer account hall, prep hub, route-intel map, and delta-heavy reward or run-end shell as the live baseline. Expand the hall and nearby shell surfaces into clearer convergence and cross-tree meta treatment without inventing shell-owned progression state, and keep town, map, reward, and run-end continuity coherent as broader account data arrives. Use the existing settings, tutorial, preferred-class, account-focus, convergence, archive-review, and planning actions before asking for new backend seams. Keep `src/app/main.ts` thin, coordinate with Agent 4 on shared shell test coverage, and keep gameplay mutation in domain modules.

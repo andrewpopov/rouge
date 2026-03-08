@@ -134,6 +134,83 @@
     return appState.registries.classes.find((entry) => entry.id === classId)?.name || classId;
   }
 
+  function getItemLabel(appState: AppState, itemId: string): string {
+    return appState.content.itemCatalog?.[itemId]?.name || getLabelFromId(itemId);
+  }
+
+  function getRuneLabel(appState: AppState, runeId: string): string {
+    return appState.content.runeCatalog?.[runeId]?.name || getLabelFromId(runeId);
+  }
+
+  function getRunewordLabel(appState: AppState, runewordId: string): string {
+    return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
+  }
+
+  function getCapstoneTone(status: ProfileAccountTreeSummary["capstoneStatus"] | ""): string {
+    if (status === "unlocked") {
+      return "cleared";
+    }
+    if (status === "available") {
+      return "available";
+    }
+    return "locked";
+  }
+
+  function getCapstoneReviewTone(review: {
+    readyCapstoneCount: number;
+    unlockedCapstoneCount: number;
+    capstoneCount: number;
+  }): string {
+    if (review.readyCapstoneCount > 0) {
+      return "available";
+    }
+    if (review.unlockedCapstoneCount >= review.capstoneCount && review.capstoneCount > 0) {
+      return "cleared";
+    }
+    return "locked";
+  }
+
+  function getVaultForecast(plannedRunewordCount: number, socketReadyEquipmentCount: number, runeCount: number): {
+    tone: string;
+    copy: string;
+  } {
+    if (plannedRunewordCount > 0 && socketReadyEquipmentCount > 0 && runeCount > 0) {
+      return {
+        tone: "available",
+        copy: "The next draft can start from a stocked vault with both a socket-ready base and a rune reserve.",
+      };
+    }
+    if (plannedRunewordCount > 0 && socketReadyEquipmentCount > 0) {
+      return {
+        tone: "locked",
+        copy: "A chartered base is parked, but rune depth still needs work before the next draft.",
+      };
+    }
+    if (plannedRunewordCount > 0) {
+      return {
+        tone: "locked",
+        copy: "Charters are pinned, but the vault is not yet stocked with a ready base.",
+      };
+    }
+    return {
+      tone: "cleared",
+      copy: "No charter pressure is pinned yet, so the vault is free to hold generic future upgrades.",
+    };
+  }
+
+  function getTreeCapstoneBadgeLabel(tree: ProfileAccountTreeSummary): string {
+    if (!tree.capstoneTitle) {
+      return "No Capstone";
+    }
+    if (tree.capstoneStatus === "unlocked") {
+      return `Unlocked: ${tree.capstoneTitle}`;
+    }
+    if (tree.capstoneStatus === "available") {
+      return `Ready: ${tree.capstoneTitle}`;
+    }
+    return `Locked: ${tree.capstoneTitle}`;
+  }
+
   function getLabelFromId(id: string): string {
     return String(id || "")
       .replace(/[_-]+/g, " ")
@@ -359,6 +436,36 @@
       reduceMotion: false,
       compactMode: false,
     };
+    const stashSummary = accountSummary.stash || {
+      entryCount: profileSummary.stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+    const review = accountSummary.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const unlocks = appState.profile?.meta?.unlocks || {
+      classIds: [],
+      bossIds: [],
+      runewordIds: [],
+      townFeatureIds: [],
+    };
     const activeTutorialIds = Array.isArray(accountSummary.activeTutorialIds) ? accountSummary.activeTutorialIds : [];
     const archiveState = getArchiveReviewState(appState, accountSummary);
 
@@ -384,6 +491,32 @@
           </article>
           <article class="feature-card hall-link-card">
             <div class="entity-name-row">
+              <strong>Unlock Galleries</strong>
+              ${buildBadge(`${unlocks.classIds.length + unlocks.bossIds.length + unlocks.runewordIds.length} tracked`, unlocks.classIds.length > 0 || unlocks.bossIds.length > 0 || unlocks.runewordIds.length > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Classes", unlocks.classIds.length)}
+              ${buildStat("Bosses", unlocks.bossIds.length)}
+              ${buildStat("Runewords", unlocks.runewordIds.length)}
+              ${buildStat("Recent", accountSummary.archive.recentFeatureIds.length)}
+            </div>
+            <p>${escapeHtml("Review the class roster, trophy gallery, runeword codex, and newest account-system bursts without digging through archive entries first.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Vault Logistics</strong>
+              ${buildBadge(`${stashSummary.entryCount} stored`, stashSummary.entryCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Entries", stashSummary.entryCount)}
+              ${buildStat("Gear", stashSummary.equipmentCount)}
+              ${buildStat("Runes", stashSummary.runeCount)}
+              ${buildStat("Socket Bases", stashSummary.socketReadyEquipmentCount)}
+            </div>
+            <p>${escapeHtml("The vault now has its own logistics pass so stash pressure, socket-ready gear, and charter preparation are readable before you draft another run.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
               <strong>Progression Gallery</strong>
               ${buildBadge(accountSummary.focusedTreeTitle || "Unset", accountSummary.focusedTreeId ? "available" : "locked")}
             </div>
@@ -406,7 +539,20 @@
               ${buildStat("Reviewed", archiveState.reviewedHistoryEntry ? archiveState.reviewedHistoryIndex + 1 : 0)}
               ${buildStat("Runewords", profileSummary.unlockedRunewordCount)}
             </div>
-            <p>${escapeHtml("The stash preview, recent expeditions, and focused archive desk now live together as one chronicle wing.")}</p>
+            <p>${escapeHtml("The stash preview, archive review desk, and new archive signal board now live together as one chronicle wing.")}</p>
+          </article>
+          <article class="feature-card hall-link-card">
+            <div class="entity-name-row">
+              <strong>Capstone Watch</strong>
+              ${buildBadge(review.nextCapstoneTitle || "No Capstone", getCapstoneReviewTone(review))}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Total", review.capstoneCount)}
+              ${buildStat("Ready", review.readyCapstoneCount)}
+              ${buildStat("Unlocked", review.unlockedCapstoneCount)}
+              ${buildStat("Blocked", review.blockedCapstoneCount)}
+            </div>
+            <p>${escapeHtml("Late account pressure now has dedicated hall space, so the next capstone is visible before you dive into the fuller tree review.")}</p>
           </article>
           <article class="feature-card hall-link-card">
             <div class="entity-name-row">
@@ -437,10 +583,323 @@
         </div>
         <div class="cta-row hall-jump-row">
           <a class="neutral-btn" href="#hall-expedition">Expedition Wing</a>
+          <a class="neutral-btn" href="#hall-unlocks">Unlock Galleries</a>
+          <a class="neutral-btn" href="#hall-vault">Vault Logistics</a>
           <a class="neutral-btn" href="#hall-progression">Progression Gallery</a>
+          <a class="neutral-btn" href="#hall-capstones">Capstone Watch</a>
           <a class="neutral-btn" href="#hall-archive">Vault And Archive</a>
           <a class="neutral-btn" href="#hall-controls">Control Annex</a>
           <a class="neutral-btn" href="#hall-guided">Guided Start</a>
+        </div>
+      </section>
+    `;
+  }
+
+  function buildUnlockGalleryMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const archiveSummary = accountSummary.archive || {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
+      latestClassId: "",
+      latestClassName: "",
+      latestOutcome: "",
+      latestCompletedAt: "",
+      highestLevel: profileSummary.highestLevel,
+      highestActsCleared: profileSummary.highestActCleared,
+      highestGoldGained: 0,
+      highestLoadoutTier: 0,
+      runewordArchiveCount: 0,
+      featureUnlockCount: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      planningArchiveCount: 0,
+      planningCompletionCount: 0,
+      planningMissCount: 0,
+      recentFeatureIds: [],
+      recentPlannedRunewordIds: [],
+    };
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+    };
+    const unlocks = appState.profile?.meta?.unlocks || {
+      classIds: [],
+      bossIds: [],
+      runewordIds: [],
+      townFeatureIds: [],
+    };
+    const unlockedClassLabels = (unlocks.classIds || []).map((classId) => getClassName(appState, classId));
+    const unlockedBossLabels = (unlocks.bossIds || []).map((bossId) => {
+      return getLabelFromId(appState.content.enemyCatalog?.[bossId]?.name || bossId);
+    });
+    const unlockedRunewordLabels = (unlocks.runewordIds || []).map((runewordId) => getRunewordLabel(appState, runewordId));
+    const unlockedTownFeatureLabels = (unlocks.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const unlockedFeatureLabels = (accountSummary.unlockedFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const recentFeatureLabels = (archiveSummary.recentFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const recentPlannedRunewordLabels = (archiveSummary.recentPlannedRunewordIds || []).map((runewordId) => getRunewordLabel(appState, runewordId));
+
+    return `
+      <section class="panel flow-panel" id="hall-unlocks">
+        <div class="panel-head">
+          <h2>Unlock Galleries</h2>
+          <p>The hall now breaks account unlocks out into dedicated gallery cards, so roster breadth, boss trophies, runeword growth, and newer account-system unlock bursts stay readable at a glance.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Class Roster Archive</strong>
+              ${buildBadge(`${profileSummary.unlockedClassCount} online`, profileSummary.unlockedClassCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Classes", profileSummary.unlockedClassCount)}
+              ${buildStat("Played", profileSummary.classesPlayedCount)}
+              ${buildStat("Preferred", profileSummary.preferredClassId ? getClassName(appState, profileSummary.preferredClassId) : "Unset")}
+              ${buildStat("Latest", archiveSummary.latestClassName || "Awaiting")}
+            </div>
+            ${buildStringList(
+              [
+                `Class roster: ${getPreviewLabel(unlockedClassLabels, "none yet")}.`,
+                `Focused draft signal: ${profileSummary.preferredClassId ? getClassName(appState, profileSummary.preferredClassId) : "no preferred class pinned yet"}.`,
+                `Recent class pressure: ${archiveSummary.latestClassName || "no archive yet"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Boss Trophy Gallery</strong>
+              ${buildBadge(`${profileSummary.unlockedBossCount} trophies`, profileSummary.unlockedBossCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Bosses", profileSummary.unlockedBossCount)}
+              ${buildStat("Highest Act", profileSummary.highestActCleared)}
+              ${buildStat("Lifetime Kills", profileSummary.totalBossesDefeated)}
+              ${buildStat("Favored", archiveSummary.favoredTreeName || "Unset")}
+            </div>
+            ${buildStringList(
+              [
+                `Boss gallery: ${getPreviewLabel(unlockedBossLabels, "none yet")}.`,
+                `Latest favored tree: ${archiveSummary.favoredTreeName || "no archived focus yet"}.`,
+                `The mastery lane now feeds these trophies without needing another hall rewrite.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Runeword Codex</strong>
+              ${buildBadge(`${profileSummary.unlockedRunewordCount} entries`, profileSummary.unlockedRunewordCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Runewords", profileSummary.unlockedRunewordCount)}
+              ${buildStat("Charters", planning.plannedRunewordCount)}
+              ${buildStat("Archived", archiveSummary.runewordArchiveCount)}
+              ${buildStat("Fulfilled", archiveSummary.planningCompletionCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Runeword codex: ${getPreviewLabel(unlockedRunewordLabels, "none yet")}.`,
+                `Recent charter pressure: ${getPreviewLabel(recentPlannedRunewordLabels, "no recent charter carry-through")}.`,
+                `Weapon ledger: ${planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "no weapon charter"}. Armor ledger: ${planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "no armor charter"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Recent Unlock Wave</strong>
+              ${buildBadge(`${archiveSummary.featureUnlockCount} bursts`, archiveSummary.featureUnlockCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Tree Rewards", unlockedFeatureLabels.length)}
+              ${buildStat("Town Hooks", profileSummary.townFeatureCount)}
+              ${buildStat("Recent", archiveSummary.recentFeatureIds.length)}
+              ${buildStat("Archives", archiveSummary.entryCount)}
+            </div>
+            <p>${escapeHtml("These are read-only hall summaries built on the current unlock and archive seams, leaving room for broader Agent 2 progression read models later.")}</p>
+            ${buildStringList(
+              [
+                `Focused tree rewards: ${getPreviewLabel(unlockedFeatureLabels, "none yet")}.`,
+                `Town systems online: ${getPreviewLabel(unlockedTownFeatureLabels, "none yet")}.`,
+                `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "no new feature burst")}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
+  function buildVaultLogisticsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const stashSummary = accountSummary.stash || {
+      entryCount: profileSummary.stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+    const archiveSummary = accountSummary.archive || {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
+      latestClassId: "",
+      latestClassName: "",
+      latestOutcome: "",
+      latestCompletedAt: "",
+      highestLevel: profileSummary.highestLevel,
+      highestActsCleared: profileSummary.highestActCleared,
+      highestGoldGained: 0,
+      highestLoadoutTier: 0,
+      runewordArchiveCount: 0,
+      featureUnlockCount: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      planningArchiveCount: 0,
+      planningCompletionCount: 0,
+      planningMissCount: 0,
+      recentFeatureIds: [],
+      recentPlannedRunewordIds: [],
+    };
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+    };
+    const stashEntries = Array.isArray(appState.profile?.stash?.entries) ? appState.profile.stash.entries : [];
+    const equipmentEntries = stashEntries.filter((entry): entry is InventoryEquipmentEntry => entry.kind === "equipment");
+    const runeEntries = stashEntries.filter((entry): entry is InventoryRuneEntry => entry.kind === "rune");
+    const stashEquipmentLabels = equipmentEntries.map((entry) => getItemLabel(appState, entry.equipment.itemId));
+    const stashRuneLabels = runeEntries.map((entry) => getRuneLabel(appState, entry.runeId));
+    const socketTrackedLabels = equipmentEntries
+      .filter((entry) => entry.equipment.socketsUnlocked > 0)
+      .map((entry) => getItemLabel(appState, entry.equipment.itemId));
+    const chargedBaseLabels = equipmentEntries
+      .filter((entry) => entry.equipment.insertedRunes.length > 0 || Boolean(entry.equipment.runewordId))
+      .map((entry) => getItemLabel(appState, entry.equipment.itemId));
+    const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
+    const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
+    const { tone: forecastTone, copy: forecastCopy } = getVaultForecast(
+      planning.plannedRunewordCount,
+      stashSummary.socketReadyEquipmentCount,
+      stashSummary.runeCount
+    );
+
+    return `
+      <section class="panel flow-panel" id="hall-vault">
+        <div class="panel-head">
+          <h2>Vault Logistics</h2>
+          <p>The hall now gives stash and planning state their own logistics pass, so carry-forward gear, rune reserve, and charter pressure are readable before you open another expedition.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Vault Logistics</strong>
+              ${buildBadge(`${stashSummary.entryCount} stored`, stashSummary.entryCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Entries", stashSummary.entryCount)}
+              ${buildStat("Gear", stashSummary.equipmentCount)}
+              ${buildStat("Runes", stashSummary.runeCount)}
+              ${buildStat("Archives", archiveSummary.entryCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Vault loadout watch: ${getPreviewLabel(stashEquipmentLabels, "no stored gear")}.`,
+                `Rune reserve: ${getPreviewLabel(stashRuneLabels, "no banked runes")}.`,
+                `Latest archive push: ${archiveSummary.latestClassName || "no archived class yet"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Socket And Base Watch</strong>
+              ${buildBadge(`${stashSummary.socketReadyEquipmentCount} tracked`, stashSummary.socketReadyEquipmentCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Socket Bases", stashSummary.socketReadyEquipmentCount)}
+              ${buildStat("Socketed Runes", stashSummary.socketedRuneCount)}
+              ${buildStat("Runeword Bases", stashSummary.runewordEquipmentCount)}
+              ${buildStat("Highest Tier", archiveSummary.highestLoadoutTier)}
+            </div>
+            ${buildStringList(
+              [
+                `Socket-tracked gear: ${getPreviewLabel(socketTrackedLabels, "none with sockets yet")}.`,
+                `Charged bases: ${getPreviewLabel(chargedBaseLabels, "no runed or runeword bases")}.`,
+                `Archived loadout tier pressure: ${archiveSummary.highestLoadoutTier || 0}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Runeword Charter Pressure</strong>
+              ${buildBadge(`${planning.plannedRunewordCount} live`, planning.plannedRunewordCount > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Weapon", plannedWeaponLabel)}
+              ${buildStat("Armor", plannedArmorLabel)}
+              ${buildStat("Fulfilled", planning.fulfilledPlanCount)}
+              ${buildStat("Missed", planning.unfulfilledPlanCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Weapon charter: ${plannedWeaponLabel}.`,
+                `Armor charter: ${plannedArmorLabel}.`,
+                `Archive fulfillment: ${planning.fulfilledPlanCount} cleared, ${planning.unfulfilledPlanCount} missed.`,
+                `Best charter pushes: weapon act ${planning.weaponBestActsCleared}, armor act ${planning.armorBestActsCleared}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Next Draft Forecast</strong>
+              ${buildBadge(forecastTone === "cleared" ? "Open Vault" : "Charter Pressure", forecastTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Planning Runs", archiveSummary.planningArchiveCount)}
+              ${buildStat("Complete", archiveSummary.planningCompletionCount)}
+              ${buildStat("Miss", archiveSummary.planningMissCount)}
+              ${buildStat("Gold Peak", archiveSummary.highestGoldGained)}
+            </div>
+            <p>${escapeHtml(forecastCopy)}</p>
+            ${buildStringList(
+              [
+                "Controls stay in the account annex, but the consequence of those controls now reads here as a logistics surface.",
+                "This panel is intentionally shell-owned and summary-heavy so Agent 2 can later widen stash or planning read models without another front-door rewrite.",
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
         </div>
       </section>
     `;
@@ -542,11 +1001,8 @@
       armorCompletedRunCount: 0,
       armorBestActsCleared: 0,
     };
-    const getRunewordLabel = (runewordId: string): string => {
-      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
-    };
-    const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(planning.weaponRunewordId) : "Unset";
-    const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(planning.armorRunewordId) : "Unset";
+    const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
+    const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
 
     const buildSettingButton = (settingKey: string, enabled: boolean, enabledLabel: string, disabledLabel: string): string => {
       return `
@@ -868,6 +1324,108 @@
     `;
   }
 
+  function buildArchiveSignalBoardMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const archiveSummary = accountSummary.archive || {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
+      latestClassId: "",
+      latestClassName: "",
+      latestOutcome: "",
+      latestCompletedAt: "",
+      highestLevel: profileSummary.highestLevel,
+      highestActsCleared: profileSummary.highestActCleared,
+      highestGoldGained: 0,
+      highestLoadoutTier: 0,
+      runewordArchiveCount: 0,
+      featureUnlockCount: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      planningArchiveCount: 0,
+      planningCompletionCount: 0,
+      planningMissCount: 0,
+      recentFeatureIds: [],
+      recentPlannedRunewordIds: [],
+    };
+    const latestOutcomeLabel = archiveSummary.latestOutcome ? getLabelFromId(archiveSummary.latestOutcome) : "Awaiting";
+    const recentFeatureLabels = (archiveSummary.recentFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+    const recentPlannedRunewordLabels = (archiveSummary.recentPlannedRunewordIds || []).map((runewordId) => getRunewordLabel(appState, runewordId));
+    const unlockedFeatureLabels = (accountSummary.unlockedFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+
+    return `
+      <div class="panel-head panel-head-compact">
+        <h3>Archive Signal Board</h3>
+        <p>The archive wing now separates single-entry review from whole-account signals, so the hall can show broader archive pressure without replacing the focused review desk.</p>
+      </div>
+      <div class="feature-grid feature-grid-wide">
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>Latest Expedition Pulse</strong>
+            ${buildBadge(archiveSummary.latestClassName || "No Archive", archiveSummary.entryCount > 0 ? getRunOutcomeTone(archiveSummary.latestOutcome || "abandoned") : "locked")}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Class", archiveSummary.latestClassName || "Awaiting")}
+            ${buildStat("Outcome", latestOutcomeLabel)}
+            ${buildStat("Highest Lv", archiveSummary.highestLevel)}
+            ${buildStat("Highest Act", archiveSummary.highestActsCleared)}
+          </div>
+          ${buildStringList(
+            [
+              `Latest favored tree: ${archiveSummary.favoredTreeName || "no archived focus yet"}.`,
+              `Archive spread: ${archiveSummary.completedCount} cleared, ${archiveSummary.failedCount} failed, ${archiveSummary.abandonedCount} abandoned.`,
+              `Recent archive pulse: ${archiveSummary.latestCompletedAt ? formatTimestamp(archiveSummary.latestCompletedAt, true) : "no archived timestamp yet"}.`,
+            ],
+            "log-list reward-list ledger-list"
+          )}
+        </article>
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>Planning Retrospective</strong>
+            ${buildBadge(`${archiveSummary.planningArchiveCount} tracked`, archiveSummary.planningArchiveCount > 0 ? "available" : "locked")}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Planning Runs", archiveSummary.planningArchiveCount)}
+            ${buildStat("Fulfilled", archiveSummary.planningCompletionCount)}
+            ${buildStat("Missed", archiveSummary.planningMissCount)}
+            ${buildStat("Runeword Runs", archiveSummary.runewordArchiveCount)}
+          </div>
+          ${buildStringList(
+            [
+              `Recent charter pressure: ${getPreviewLabel(recentPlannedRunewordLabels, "no recent charter carry-through")}.`,
+              `Planning completion rate: ${archiveSummary.planningCompletionCount}/${Math.max(archiveSummary.planningArchiveCount, 1)} tracked runs landed a charter target.`,
+              `Runeword-bearing archive runs: ${archiveSummary.runewordArchiveCount}.`,
+            ],
+            "log-list reward-list ledger-list"
+          )}
+        </article>
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>Unlock Burst Ledger</strong>
+            ${buildBadge(`${archiveSummary.featureUnlockCount} unlocks`, archiveSummary.featureUnlockCount > 0 ? "available" : "locked")}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Feature Bursts", archiveSummary.featureUnlockCount)}
+            ${buildStat("Recent", archiveSummary.recentFeatureIds.length)}
+            ${buildStat("Tree Rewards", unlockedFeatureLabels.length)}
+            ${buildStat("Gold Peak", archiveSummary.highestGoldGained)}
+          </div>
+          ${buildStringList(
+            [
+              `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "no new feature burst")}.`,
+              `Focused tree rewards now online: ${getPreviewLabel(unlockedFeatureLabels, "no milestone rewards online yet")}.`,
+              `Archive gold peak: ${archiveSummary.highestGoldGained}.`,
+            ],
+            "log-list reward-list ledger-list"
+          )}
+        </article>
+      </div>
+    `;
+  }
+
   function buildSavedRunMarkup(appState: AppState, services: UiRenderServices, savedRunSummary: SavedRunSummary): string {
     const { buildBadge, buildStat, escapeHtml, buildStringList } = services.renderUtils;
     // The front door reviews the saved route, but resume/abandon decisions still resolve through app-engine.
@@ -1014,6 +1572,91 @@
           </article>
           ${buildArchiveDeskMarkup(appState, services, accountSummary)}
         </div>
+        ${buildArchiveSignalBoardMarkup(appState, services, accountSummary)}
+      </section>
+    `;
+  }
+
+  function buildCapstoneWatchMarkup(services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const trees = Array.isArray(accountSummary.trees) ? accountSummary.trees : [];
+    const focusedTree = trees.find((tree) => tree.isFocused) || trees[0] || null;
+    const review = accountSummary.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+
+    return `
+      <section class="panel flow-panel" id="hall-capstones">
+        <div class="panel-head">
+          <h2>Capstone Watch</h2>
+          <p>Late account goals are now broken out from the wider tree review, so capstone pressure stays visible while the hall remains ready for deeper Agent 2 progression read models later.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Late Account Pressure</strong>
+              ${buildBadge(review.nextCapstoneTitle || "No Capstone", getCapstoneReviewTone(review))}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Total", review.capstoneCount)}
+              ${buildStat("Ready", review.readyCapstoneCount)}
+              ${buildStat("Unlocked", review.unlockedCapstoneCount)}
+              ${buildStat("Blocked", review.blockedCapstoneCount)}
+            </div>
+            <p>${escapeHtml("Capstones stay summary-first here. Retargeting focus still happens in the main account tree review so the shell does not duplicate control ownership.")}</p>
+            ${buildStringList(
+              [
+                `Focused tree pressure: ${focusedTree ? focusedTree.title : "no tree focus online"}.`,
+                `Next capstone: ${review.nextCapstoneTitle || "every current capstone is already online"}.`,
+                `Nearest milestone: ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          ${trees
+            .map((tree) => {
+              const capstoneMilestone = tree.milestones.find((milestone) => milestone.isCapstone) || null;
+              const unlockedFeatureLabels = (tree.unlockedFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
+              const treeBadgeLabel = getTreeCapstoneBadgeLabel(tree);
+
+              return `
+                <article class="feature-card">
+                  <div class="entity-name-row">
+                    <strong>${escapeHtml(tree.title)}</strong>
+                    ${buildBadge(treeBadgeLabel, getCapstoneTone(tree.capstoneStatus))}
+                  </div>
+                  <div class="entity-stat-grid">
+                    ${buildStat("Rank", `${tree.currentRank}/${tree.maxRank}`)}
+                    ${buildStat("Ready", tree.eligibleMilestoneCount)}
+                    ${buildStat("Blocked", tree.blockedMilestoneCount)}
+                    ${buildStat("Focus", tree.isFocused ? "Active" : "Standby")}
+                  </div>
+                  ${buildStringList(
+                    [
+                      `Capstone state: ${tree.capstoneTitle || "no capstone authored"}.`,
+                      `Capstone progress: ${capstoneMilestone ? `${capstoneMilestone.progress}/${capstoneMilestone.target}` : "n/a"}.`,
+                      `Tree rewards online: ${getPreviewLabel(unlockedFeatureLabels, "none yet")}.`,
+                      `Next step: ${tree.nextMilestoneTitle || "all milestones cleared"}.`,
+                    ],
+                    "log-list reward-list ledger-list"
+                  )}
+                </article>
+              `;
+            })
+            .join("")}
+        </div>
       </section>
     `;
   }
@@ -1039,6 +1682,8 @@
         ${buildAccountOverviewMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         ${buildHallNavigatorMarkup(appState, services, savedRunSummary, accountSummary)}
         ${expeditionSection}
+        ${buildUnlockGalleryMarkup(appState, services, accountSummary)}
+        ${buildVaultLogisticsMarkup(appState, services, accountSummary)}
         <section class="panel flow-panel" id="hall-progression">
           <div class="panel-head">
             <h2>Account Tree Review</h2>
@@ -1046,6 +1691,7 @@
           </div>
           ${common.buildAccountTreeReviewMarkup(accountSummary, services.renderUtils)}
         </section>
+        ${buildCapstoneWatchMarkup(services, accountSummary)}
         ${buildVaultChronicleMarkup(appState, services, accountSummary, stashPreviewLines, recentRunMarkup)}
         ${buildAccountControlsMarkup(appState, services, accountSummary)}
         ${buildGuidedStartMarkup(appState, services, savedRunSummary)}

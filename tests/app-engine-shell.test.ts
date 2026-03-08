@@ -72,10 +72,14 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Account Hall/);
   assert.match(root.innerHTML, /Hall Navigator/);
   assert.match(root.innerHTML, /Expedition Wing/);
+  assert.match(root.innerHTML, /Unlock Galleries/);
+  assert.match(root.innerHTML, /Vault Logistics/);
   assert.match(root.innerHTML, /Progression Gallery/);
+  assert.match(root.innerHTML, /Capstone Watch/);
   assert.match(root.innerHTML, /Vault And Archive/);
   assert.match(root.innerHTML, /Control Annex/);
   assert.match(root.innerHTML, /Account Tree Review/);
+  assert.match(root.innerHTML, /Archive Signal Board/);
   assert.match(root.innerHTML, /Account Controls/);
   assert.match(root.innerHTML, /Unlock Archive/);
   assert.match(root.innerHTML, /Tutorial Ledger/);
@@ -618,6 +622,127 @@ test("front-door archive review controls navigate richer run-history entries thr
   assert.equal(state.ui.reviewedHistoryIndex, 0);
   assert.match(root.innerHTML, /Entry 1\/2/);
   assert.match(root.innerHTML, /Ash Ledger/);
+});
+
+test("front-door account hall renders richer unlock, vault, archive-signal, and capstone drilldowns", () => {
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+
+  state.profile.meta.progression.preferredClassId = "sorceress";
+  state.profile.meta.progression.lastPlayedClassId = "amazon";
+  state.profile.meta.unlocks.classIds = ["amazon", "sorceress"];
+  state.profile.meta.unlocks.bossIds = ["andariel"];
+  state.profile.meta.unlocks.runewordIds = ["steel", "white"];
+  state.profile.meta.unlocks.townFeatureIds = ["front_door_profile_hall", "economy_ledger", "war_college"];
+  state.profile.meta.planning.weaponRunewordId = "white";
+  state.profile.meta.planning.armorRunewordId = "lionheart";
+  state.profile.stash.entries = [
+    {
+      entryId: "vault_blade",
+      kind: "equipment",
+      equipment: {
+        entryId: "vault_blade",
+        itemId: "item_short_sword",
+        slot: "weapon",
+        socketsUnlocked: 2,
+        insertedRunes: ["rune_tir"],
+        runewordId: "",
+      },
+    },
+    {
+      entryId: "vault_rune",
+      kind: "rune",
+      runeId: "rune_el",
+    },
+  ];
+  state.profile.runHistory = [
+    {
+      runId: "latest_archive",
+      classId: "sorceress",
+      className: "Sorceress",
+      level: 18,
+      actsCleared: 3,
+      bossesDefeated: 4,
+      goldGained: 912,
+      runewordsForged: 2,
+      skillPointsEarned: 3,
+      classPointsEarned: 2,
+      attributePointsEarned: 4,
+      trainingRanksGained: 2,
+      favoredTreeId: "economy",
+      favoredTreeName: "Trade Network",
+      unlockedClassSkills: 7,
+      loadoutTier: 10,
+      loadoutSockets: 4,
+      carriedEquipmentCount: 2,
+      carriedRuneCount: 1,
+      stashEntryCount: 3,
+      stashEquipmentCount: 2,
+      stashRuneCount: 1,
+      plannedWeaponRunewordId: "white",
+      plannedArmorRunewordId: "lionheart",
+      completedPlannedRunewordIds: ["white"],
+      activeRunewordIds: ["latest_stormbind"],
+      newFeatureIds: ["economy_ledger"],
+      completedAt: "2026-03-08T12:00:00.000Z",
+      outcome: "completed",
+    },
+    {
+      runId: "older_archive",
+      classId: "amazon",
+      className: "Amazon",
+      level: 14,
+      actsCleared: 2,
+      bossesDefeated: 2,
+      goldGained: 488,
+      runewordsForged: 1,
+      skillPointsEarned: 2,
+      classPointsEarned: 1,
+      attributePointsEarned: 2,
+      trainingRanksGained: 1,
+      favoredTreeId: "mastery",
+      favoredTreeName: "Mastery Hall",
+      unlockedClassSkills: 5,
+      loadoutTier: 6,
+      loadoutSockets: 2,
+      carriedEquipmentCount: 1,
+      carriedRuneCount: 1,
+      stashEntryCount: 1,
+      stashEquipmentCount: 1,
+      stashRuneCount: 0,
+      plannedWeaponRunewordId: "steel",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: ["older_moonmark"],
+      newFeatureIds: ["war_college"],
+      completedAt: "2026-03-06T08:30:00.000Z",
+      outcome: "failed",
+    },
+  ];
+
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /Unlock Galleries/);
+  assert.match(root.innerHTML, /Vault Logistics/);
+  assert.match(root.innerHTML, /Archive Signal Board/);
+  assert.match(root.innerHTML, /Capstone Watch/);
+  assert.match(root.innerHTML, /Boss gallery: Andariel\./);
+  assert.match(root.innerHTML, /Runeword codex: Steel, White\./);
+  assert.match(root.innerHTML, /Vault loadout watch: Short Sword\./);
+  assert.match(root.innerHTML, /Rune reserve: El\./);
+  assert.match(root.innerHTML, /Recent feature burst: Economy Ledger, War College\./);
+  assert.match(root.innerHTML, /Recent charter pressure: White, Lionheart(?:, Steel)?\./);
+  assert.match(root.innerHTML, /Next capstone:/);
 });
 
 test("account shell surfaces live unlock and tutorial summaries through town, run-end, and front door", () => {

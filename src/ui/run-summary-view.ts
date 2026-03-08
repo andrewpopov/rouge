@@ -69,7 +69,8 @@
           <p>${escapeHtml("The front door now receives this archive delta immediately. Use it to decide whether to review history, retarget account focus, or step straight into another draft.")}</p>
           ${buildStringList(
             [
-              "Return to the account hall and check the archive desk for the newly logged expedition.",
+              "Return to the account hall and check the archive desk plus archive signal board for the newly logged expedition.",
+              "Review unlock galleries, vault logistics, and capstone watch before you lock in the next class draft.",
               "Review account-tree focus if this run changed the archive, economy, or mastery pressure you want next.",
               "Draft a new class or resume a parked route only after you understand what this archive entry just changed.",
             ],
