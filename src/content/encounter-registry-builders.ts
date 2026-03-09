@@ -384,9 +384,11 @@
     const consequenceDetourBranchBattleId = `act_${actNumber}_branch_detour`;
     const consequenceGuidedDetourBranchBattleId = `act_${actNumber}_branch_detour_guided`;
     const consequenceSignalDetourBranchBattleId = `act_${actNumber}_branch_detour_signal`;
+    const consequenceMobilizedDetourBranchBattleId = `act_${actNumber}_branch_detour_mobilized`;
     const consequenceEscalationMinibossId = `act_${actNumber}_miniboss_escalation`;
     const consequenceBreachEscalationMinibossId = `act_${actNumber}_miniboss_escalation_breach`;
     const consequenceDirectedEscalationMinibossId = `act_${actNumber}_miniboss_escalation_directed`;
+    const consequenceMobilizedEscalationMinibossId = `act_${actNumber}_miniboss_escalation_mobilized`;
     const consequenceAftermathBossId = `act_${actNumber}_boss_aftermath`;
     const consequenceDirectedAftermathBossId = `act_${actNumber}_boss_aftermath_directed`;
     const consequenceSignaledAftermathBossId = `act_${actNumber}_boss_aftermath_signaled`;
@@ -616,6 +618,17 @@
           { kind: "sniper_nest", value: Math.max(2, actNumber) },
         ]
       ),
+      [consequenceMobilizedDetourBranchBattleId]: makeEncounter(
+        consequenceMobilizedDetourBranchBattleId,
+        `${flavor.branchBattleLabel} Mobilized Detour`,
+        `${flavor.branchBattleDescription} Earlier accord musters now carry through the full signaled detour and turn the next branch into a reserve-backed beacon line instead of a looser routed flank.`,
+        [eliteA.templateId, rangedA.templateId, rangedB.templateId, supportA.templateId],
+        [
+          { kind: "backline_screen", value: Math.max(2, actNumber) },
+          { kind: "sniper_nest", value: Math.max(2, actNumber) },
+          { kind: "court_reserves", value: 1 },
+        ]
+      ),
       [consequenceBranchMinibossId]: makeEncounter(
         consequenceBranchMinibossId,
         `${flavor.branchMinibossLabel} Accord Host`,
@@ -654,6 +667,17 @@
         [
           { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: "escort_command", value: 1 },
+        ]
+      ),
+      [consequenceMobilizedEscalationMinibossId]: makeEncounter(
+        consequenceMobilizedEscalationMinibossId,
+        `${flavor.branchMinibossLabel} Mobilized Surge`,
+        `${flavor.branchMinibossDescription} Earlier accord musters now carry through the full directed escalation and turn the next elite branch into a reserve-backed strike package instead of a looser late surge.`,
+        [eliteA.templateId, eliteD.templateId, supportA.templateId, supportB.templateId],
+        [
+          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: "escort_command", value: 1 },
+          { kind: "court_reserves", value: 1 },
         ]
       ),
       [bossId]: makeEncounter(

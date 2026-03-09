@@ -7,8 +7,32 @@ import { createAppHarness as createHarness } from "./helpers/browser-harness";
 type ResolveActOneToCovenantOptions = {
   routeChoiceTitle?: string;
   crossroadChoiceTitle?: string;
+  accordChoiceTitle?: string;
   covenantChoiceTitle?: string;
 };
+
+function getRequiredZone(state, runFactory, label, predicate) {
+  const zones = runFactory.getCurrentZones(state.run);
+  const zone = zones.find(predicate);
+  assert.ok(zone, `Missing ${label} zone. Current zones: ${zones.map((candidate) => candidate.id).join(", ")}`);
+  return zone;
+}
+
+function getRequiredChoice(state, title) {
+  const choices = Array.isArray(state.run?.pendingReward?.choices) ? state.run.pendingReward.choices : [];
+  const choice = choices.find((candidate) => candidate.title === title);
+  assert.ok(choice, `Missing reward choice "${title}". Available: ${choices.map((candidate) => candidate.title).join(", ")}`);
+  return choice;
+}
+
+function selectZoneAndClaimChoice(state, appEngine, runFactory, label, predicate, choiceTitle) {
+  const zone = getRequiredZone(state, runFactory, label, predicate);
+  const result = appEngine.selectZone(state, zone.id);
+  assert.equal(result.ok, true, `Expected ${label} zone ${zone.id} to be selectable.`);
+  const choice = getRequiredChoice(state, choiceTitle);
+  assert.equal(appEngine.claimRewardAndAdvance(state, choice.id).ok, true);
+  return { zone, choice };
+}
 
 function resolveActOneToCovenant(
   state,
@@ -20,134 +44,118 @@ function resolveActOneToCovenant(
     typeof options === "string" ? { covenantChoiceTitle: options } : options || {};
   const routeChoiceTitle = normalizedOptions.routeChoiceTitle || "Signal the Crossroads";
   const crossroadChoiceTitle = normalizedOptions.crossroadChoiceTitle || "Assign the Hidden Wayfinders";
+  const accordChoiceTitle = normalizedOptions.accordChoiceTitle || "Recount the Cloister Paths";
   const covenantChoiceTitle = normalizedOptions.covenantChoiceTitle || "Seal the Wayfinder Ledger";
   const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
-  const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
-  const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
-  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
-  const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
-  const shrineOpportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "shrine_opportunity");
-  const crossroadZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "crossroad_opportunity");
-  const reserveZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reserve_opportunity");
-  const relayZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "relay_opportunity");
-  const culminationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "culmination_opportunity");
-  const legacyZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "legacy_opportunity");
-  const reckoningZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "reckoning_opportunity");
-  const recoveryZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "recovery_opportunity");
-  const accordZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "accord_opportunity");
-  const covenantZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "covenant_opportunity");
-  const detourZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "detour_opportunity");
-  const escalationZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "escalation_opportunity");
+  const bossZone = getRequiredZone(state, runFactory, "boss", (zone) => zone.kind === "boss");
+  const legacyZone = getRequiredZone(state, runFactory, "legacy opportunity", (zone) => zone.nodeType === "legacy_opportunity");
+  const reckoningZone = getRequiredZone(
+    state,
+    runFactory,
+    "reckoning opportunity",
+    (zone) => zone.nodeType === "reckoning_opportunity"
+  );
+  const recoveryZone = getRequiredZone(state, runFactory, "recovery opportunity", (zone) => zone.nodeType === "recovery_opportunity");
+  const detourZone = getRequiredZone(state, runFactory, "detour opportunity", (zone) => zone.nodeType === "detour_opportunity");
+  const escalationZone = getRequiredZone(
+    state,
+    runFactory,
+    "escalation opportunity",
+    (zone) => zone.nodeType === "escalation_opportunity"
+  );
 
   assert.ok(openingZone);
   assert.ok(branchMinibossZone);
   assert.ok(branchBattleZone);
-  assert.ok(bossZone);
-  assert.ok(shrineZone);
-  assert.ok(questZone);
-  assert.ok(eventZone);
-  assert.ok(opportunityZone);
-  assert.ok(shrineOpportunityZone);
-  assert.ok(crossroadZone);
-  assert.ok(reserveZone);
-  assert.ok(relayZone);
-  assert.ok(culminationZone);
-  assert.ok(legacyZone);
-  assert.ok(reckoningZone);
-  assert.ok(recoveryZone);
-  assert.ok(accordZone);
-  assert.ok(covenantZone);
-  assert.ok(detourZone);
-  assert.ok(escalationZone);
 
   openingZone.encountersCleared = openingZone.encounterTotal;
   openingZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
-  let result = appEngine.selectZone(state, shrineZone.id);
-  assert.equal(result.ok, true);
-  const shrineChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Blessing of Beacons");
-  assert.ok(shrineChoice);
-  appEngine.claimRewardAndAdvance(state, shrineChoice.id);
-
-  result = appEngine.selectZone(state, questZone.id);
-  assert.equal(result.ok, true);
-  const questChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Take Scout Report");
-  assert.ok(questChoice);
-  appEngine.claimRewardAndAdvance(state, questChoice.id);
-
-  result = appEngine.selectZone(state, eventZone.id);
-  assert.equal(result.ok, true);
-  const eventChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Mark the Paths");
-  assert.ok(eventChoice);
-  appEngine.claimRewardAndAdvance(state, eventChoice.id);
-
-  result = appEngine.selectZone(state, opportunityZone.id);
-  assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === routeChoiceTitle);
-  assert.ok(routeChoice);
-  appEngine.claimRewardAndAdvance(state, routeChoice.id);
-
-  result = appEngine.selectZone(state, shrineOpportunityZone.id);
-  assert.equal(result.ok, true);
-  const shrineOpportunityChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Raise the Signal Lanterns");
-  assert.ok(shrineOpportunityChoice);
-  appEngine.claimRewardAndAdvance(state, shrineOpportunityChoice.id);
-
-  result = appEngine.selectZone(state, crossroadZone.id);
-  assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === crossroadChoiceTitle);
-  assert.ok(crossroadChoice);
-  appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
-
-  result = appEngine.selectZone(state, reserveZone.id);
-  assert.equal(result.ok, true);
-  const reserveChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Cache the Hidden Reserve");
-  assert.ok(reserveChoice);
-  appEngine.claimRewardAndAdvance(state, reserveChoice.id);
-
-  result = appEngine.selectZone(state, relayZone.id);
-  assert.equal(result.ok, true);
-  const relayChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Hidden Chain");
-  assert.ok(relayChoice);
-  appEngine.claimRewardAndAdvance(state, relayChoice.id);
-
-  result = appEngine.selectZone(state, culminationZone.id);
-  assert.equal(result.ok, true);
-  const culminationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Commission the Last Wayfinders");
-  assert.ok(culminationChoice);
-  appEngine.claimRewardAndAdvance(state, culminationChoice.id);
-
-  result = appEngine.selectZone(state, legacyZone.id);
-  assert.equal(result.ok, true);
-  const legacyChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Extend the Wayfinder Chain");
-  assert.ok(legacyChoice);
-  appEngine.claimRewardAndAdvance(state, legacyChoice.id);
-
-  result = appEngine.selectZone(state, reckoningZone.id);
-  assert.equal(result.ok, true);
-  const reckoningChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Break the Last Chapel Ledger");
-  assert.ok(reckoningChoice);
-  appEngine.claimRewardAndAdvance(state, reckoningChoice.id);
-
-  result = appEngine.selectZone(state, recoveryZone.id);
-  assert.equal(result.ok, true);
-  const recoveryChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Rehang the Chapel Lanterns");
-  assert.ok(recoveryChoice);
-  appEngine.claimRewardAndAdvance(state, recoveryChoice.id);
-
-  result = appEngine.selectZone(state, accordZone.id);
-  assert.equal(result.ok, true);
-  const accordChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Recount the Cloister Paths");
-  assert.ok(accordChoice);
-  appEngine.claimRewardAndAdvance(state, accordChoice.id);
-
-  result = appEngine.selectZone(state, covenantZone.id);
-  assert.equal(result.ok, true);
-  const covenantChoice = state.run.pendingReward.choices.find((choice) => choice.title === covenantChoiceTitle);
-  assert.ok(covenantChoice);
-  appEngine.claimRewardAndAdvance(state, covenantChoice.id);
+  selectZoneAndClaimChoice(state, appEngine, runFactory, "shrine", (zone) => zone.kind === "shrine", "Blessing of Beacons");
+  selectZoneAndClaimChoice(state, appEngine, runFactory, "quest", (zone) => zone.kind === "quest", "Take Scout Report");
+  selectZoneAndClaimChoice(state, appEngine, runFactory, "event", (zone) => zone.kind === "event", "Mark the Paths");
+  selectZoneAndClaimChoice(state, appEngine, runFactory, "opportunity", (zone) => zone.nodeType === "opportunity", routeChoiceTitle);
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "shrine opportunity",
+    (zone) => zone.nodeType === "shrine_opportunity",
+    "Raise the Signal Lanterns"
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "crossroad opportunity",
+    (zone) => zone.nodeType === "crossroad_opportunity",
+    crossroadChoiceTitle
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "reserve opportunity",
+    (zone) => zone.nodeType === "reserve_opportunity",
+    "Cache the Hidden Reserve"
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "relay opportunity",
+    (zone) => zone.nodeType === "relay_opportunity",
+    "Extend the Hidden Chain"
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "culmination opportunity",
+    (zone) => zone.nodeType === "culmination_opportunity",
+    "Commission the Last Wayfinders"
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "legacy opportunity",
+    (zone) => zone.nodeType === "legacy_opportunity",
+    "Extend the Wayfinder Chain"
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "reckoning opportunity",
+    (zone) => zone.nodeType === "reckoning_opportunity",
+    "Break the Last Chapel Ledger"
+  );
+  selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "recovery opportunity",
+    (zone) => zone.nodeType === "recovery_opportunity",
+    "Rehang the Chapel Lanterns"
+  );
+  const { zone: accordZone } = selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "accord opportunity",
+    (zone) => zone.nodeType === "accord_opportunity",
+    accordChoiceTitle
+  );
+  const { zone: covenantZone } = selectZoneAndClaimChoice(
+    state,
+    appEngine,
+    runFactory,
+    "covenant opportunity",
+    (zone) => zone.nodeType === "covenant_opportunity",
+    covenantChoiceTitle
+  );
 
   return {
     accordZone,
@@ -725,7 +733,41 @@ test("post-covenant detour and escalation lanes unlock together and pay off diff
   assert.ok(state.run.world.worldFlags.includes("rogue_escalation_catacomb_surge"));
 });
 
-test("detour lane outcomes can retune the next branch battle beyond the recovery baseline", () => {
+test("route payoff lanes stay stable across repeated covenant replays", () => {
+  for (let replay = 1; replay <= 4; replay += 1) {
+    const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.startRun(state);
+    appEngine.leaveSafeZone(state);
+
+    const { detourZone, escalationZone } = resolveActOneToCovenant(state, appEngine, runFactory);
+
+    let result = appEngine.selectZone(state, detourZone.id);
+    assert.equal(result.ok, true, `Detour payoff should open on replay ${replay}.`);
+    const detourChoice = getRequiredChoice(state, "Stage the Hidden Abbey Convoy");
+    assert.equal(appEngine.claimRewardAndAdvance(state, detourChoice.id).ok, true);
+
+    result = appEngine.selectZone(state, escalationZone.id);
+    assert.equal(result.ok, true, `Escalation payoff should open on replay ${replay}.`);
+    const escalationChoice = getRequiredChoice(state, "Drive the Catacomb Surge");
+    assert.equal(appEngine.claimRewardAndAdvance(state, escalationChoice.id).ok, true);
+
+    assert.ok(state.run.world.worldFlags.includes("rogue_detour_hidden_convoy"), `Detour flag missing on replay ${replay}.`);
+    assert.ok(
+      state.run.world.worldFlags.includes("rogue_escalation_catacomb_surge"),
+      `Escalation flag missing on replay ${replay}.`
+    );
+  }
+});
+
+test("non-wayfinder covenant detour outcomes stay on the supply detour path", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
@@ -738,7 +780,41 @@ test("detour lane outcomes can retune the next branch battle beyond the recovery
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const { branchBattleZone, detourZone } = resolveActOneToCovenant(state, appEngine, runFactory);
+  const { branchBattleZone, detourZone } = resolveActOneToCovenant(state, appEngine, runFactory, {
+    accordChoiceTitle: "Hang the Last Wayfinder Bells",
+    covenantChoiceTitle: "Tally the Last Monastery Ledger",
+  });
+
+  let result = appEngine.selectZone(state, detourZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.pendingReward.title, "Supply Detour");
+  const detourChoice = getRequiredChoice(state, "Secure the Abbey Sidepass");
+  assert.equal(appEngine.claimRewardAndAdvance(state, detourChoice.id).ok, true);
+  assert.ok(state.run.world.worldFlags.includes("rogue_detour_abbey_sidepass"));
+
+  result = appEngine.selectZone(state, branchBattleZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.run.activeEncounterId, "act_1_branch_recovery");
+  assert.equal(state.combat.encounter.name, "Monastery Recovery Line");
+});
+
+test("accord-backed detour outcomes can retune the next branch battle into the mobilized line", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const { branchBattleZone, detourZone } = resolveActOneToCovenant(state, appEngine, runFactory, {
+    routeChoiceTitle: "Equip the Vanguard",
+  });
 
   let result = appEngine.selectZone(state, detourZone.id);
   assert.equal(result.ok, true);
@@ -749,10 +825,11 @@ test("detour lane outcomes can retune the next branch battle beyond the recovery
   result = appEngine.selectZone(state, branchBattleZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_branch_detour_signal");
-  assert.equal(state.combat.encounter.name, "Monastery Signal Detour");
+  assert.equal(state.run.activeEncounterId, "act_1_branch_detour_mobilized");
+  assert.equal(state.combat.encounter.name, "Monastery Mobilized Detour");
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "backline_screen"));
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "sniper_nest"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "court_reserves"));
 
   const reward = runFactory.buildEncounterReward({
     run: state.run,
@@ -761,11 +838,13 @@ test("detour lane outcomes can retune the next branch battle beyond the recovery
     content,
     profile: state.profile,
   });
-  assert.equal(reward.grants.gold, 26);
-  assert.equal(reward.grants.xp, 15);
+  assert.equal(reward.grants.gold, 27);
+  assert.equal(reward.grants.xp, 16);
   assert.equal(reward.grants.potions, 1);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Signal Convoy Dividend.")));
-  assert.ok(reward.lines.some((line) => line.includes("signal lanterns now carry through the full abbey convoy")));
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Convoy Dividend.")));
+  assert.ok(
+    reward.lines.some((line) => line.includes("cloister accord, armed vanguard, and signal lanterns now carry through the full abbey convoy"))
+  );
 });
 
 test("mid-tier detour outcomes can retune the next branch battle without needing the full hidden convoy", () => {
@@ -816,7 +895,7 @@ test("mid-tier detour outcomes can retune the next branch battle without needing
   assert.ok(reward.lines.some((line) => line.includes("guided monastery payout")));
 });
 
-test("escalation lane outcomes can retune the next branch miniboss beyond the accord baseline", () => {
+test("non-wayfinder covenant escalation outcomes stay on the ledger escalation path", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
@@ -829,7 +908,41 @@ test("escalation lane outcomes can retune the next branch miniboss beyond the ac
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const { branchMinibossZone, escalationZone } = resolveActOneToCovenant(state, appEngine, runFactory);
+  const { branchMinibossZone, escalationZone } = resolveActOneToCovenant(state, appEngine, runFactory, {
+    accordChoiceTitle: "Hang the Last Wayfinder Bells",
+    covenantChoiceTitle: "Tally the Last Monastery Ledger",
+  });
+
+  let result = appEngine.selectZone(state, escalationZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.pendingReward.title, "Ledger Escalation");
+  const escalationChoice = getRequiredChoice(state, "Crack the Chapel Surge");
+  assert.equal(appEngine.claimRewardAndAdvance(state, escalationChoice.id).ok, true);
+  assert.ok(state.run.world.worldFlags.includes("rogue_escalation_chapel_surge"));
+
+  result = appEngine.selectZone(state, branchMinibossZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.run.activeEncounterId, "act_1_miniboss_escalation_breach");
+  assert.equal(state.combat.encounter.name, "Burial Grounds Breach Host");
+});
+
+test("accord-backed escalation outcomes can retune the next branch miniboss into the mobilized host", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const { branchMinibossZone, escalationZone } = resolveActOneToCovenant(state, appEngine, runFactory, {
+    routeChoiceTitle: "Equip the Vanguard",
+  });
 
   let result = appEngine.selectZone(state, escalationZone.id);
   assert.equal(result.ok, true);
@@ -840,10 +953,11 @@ test("escalation lane outcomes can retune the next branch miniboss beyond the ac
   result = appEngine.selectZone(state, branchMinibossZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_miniboss_escalation_directed");
-  assert.equal(state.combat.encounter.name, "Burial Grounds Directed Surge");
+  assert.equal(state.run.activeEncounterId, "act_1_miniboss_escalation_mobilized");
+  assert.equal(state.combat.encounter.name, "Burial Grounds Mobilized Surge");
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "linebreaker_charge"));
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_command"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "court_reserves"));
 
   const reward = runFactory.buildEncounterReward({
     run: state.run,
@@ -852,11 +966,13 @@ test("escalation lane outcomes can retune the next branch miniboss beyond the ac
     content,
     profile: state.profile,
   });
-  assert.equal(reward.grants.gold, 34);
-  assert.equal(reward.grants.xp, 21);
+  assert.equal(reward.grants.gold, 35);
+  assert.equal(reward.grants.xp, 22);
   assert.equal(reward.grants.potions, 2);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Wayfinder Surge Dividend.")));
-  assert.ok(reward.lines.some((line) => line.includes("hidden wayfinders now route the full catacomb surge")));
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Surge Dividend.")));
+  assert.ok(
+    reward.lines.some((line) => line.includes("cloister accord, armed vanguard, and hidden wayfinders now route the full catacomb surge"))
+  );
 });
 
 test("mid-tier escalation outcomes can retune the next branch miniboss without needing the full catacomb surge", () => {

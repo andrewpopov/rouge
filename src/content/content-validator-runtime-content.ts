@@ -80,8 +80,8 @@
   const MIN_CONSEQUENCE_ENCOUNTER_PACKAGES_PER_ACT = 3;
   const MIN_CONSEQUENCE_REWARD_PACKAGES_PER_ACT = 3;
   const MIN_CONSEQUENCE_PACKAGES_PER_ROLE = {
-    branchBattle: 4,
-    branchMiniboss: 4,
+    branchBattle: 5,
+    branchMiniboss: 5,
     boss: 6,
   };
 

@@ -232,6 +232,21 @@ test("runtime content validation fails clearly when mercenary route perks expose
   }, /mercenaryCatalog must expose at least 5 route perk bonus families\./);
 });
 
+test("runtime content validation fails clearly when an act lacks branch battle consequence encounter coverage", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    consequenceEncounterPackages: {
+      ...content.consequenceEncounterPackages,
+      1: content.consequenceEncounterPackages[1].filter((encounterPackage) => encounterPackage.zoneRole !== "branchBattle"),
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /consequenceEncounterPackages\.1 must include at least 5 packages for zoneRole "branchBattle"\./);
+});
+
 test("runtime content validation fails clearly when an act lacks branch miniboss consequence encounter coverage", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
@@ -244,7 +259,7 @@ test("runtime content validation fails clearly when an act lacks branch miniboss
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1 must include at least 4 packages for zoneRole "branchMiniboss"\./);
+  }, /consequenceEncounterPackages\.1 must include at least 5 packages for zoneRole "branchMiniboss"\./);
 });
 
 test("runtime content validation fails clearly when an act lacks boss consequence encounter coverage", () => {
@@ -297,6 +312,21 @@ test("runtime content validation fails clearly when an act lacks boss consequenc
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
   }, /consequenceRewardPackages\.1 must include at least 6 packages for zoneRole "boss"\./);
+});
+
+test("runtime content validation fails clearly when an act lacks branch miniboss consequence reward coverage", () => {
+  const { browserWindow, content } = createHarness();
+  const brokenContent = {
+    ...content,
+    consequenceRewardPackages: {
+      ...content.consequenceRewardPackages,
+      1: content.consequenceRewardPackages[1].filter((rewardPackage) => rewardPackage.zoneRole !== "branchMiniboss"),
+    },
+  };
+
+  assert.throws(() => {
+    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
+  }, /consequenceRewardPackages\.1 must include at least 5 packages for zoneRole "branchMiniboss"\./);
 });
 
 test("runtime content validation fails clearly when consequence reward packages reuse the same signature", () => {

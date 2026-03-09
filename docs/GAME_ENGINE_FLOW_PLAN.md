@@ -19,7 +19,7 @@ Documentation note:
 - party combat between hero, mercenary, and encounter-sized enemy packs
 - explicit phases: `boot`, `front_door`, `character_select`, `safe_zone`, `world_map`, `encounter`, `reward`, `act_transition`, `run_complete`, `run_failed`
 - five-act route generation
-- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated route payoffs, and four-package-per-role consequence-conditioned branch or miniboss or boss encounter and reward ladders
+- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated route payoffs, five-package consequence-conditioned branch-battle and branch-miniboss encounter and reward ladders, and a six-package boss ladder
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
 - a navigable account hall, a hall decision desk, a hall-to-character-select-to-safe-zone expedition launch flow, town prep drilldowns, a town prep comparison board, a safe-zone before-or-after desk for the highest-value prep actions, route-intel map panels, a world-map route decision desk, a reward continuity desk, an act-transition delta wrapper, explicit reward or archive delta surfaces plus a run-end hall handoff across the active shell, and a shared charter or convergence drilldown layer on top of the account-meta continuity board

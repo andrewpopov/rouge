@@ -1209,6 +1209,19 @@
         encounterId: "act_1_branch_detour_signal",
       },
       {
+        id: "rogue_detour_cloister_line",
+        title: "Cloister Mobilized Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: [
+          "rogue_recovery_chapel_lanterns",
+          "rogue_detour_hidden_convoy",
+          "rogue_vigil_signal_lanterns",
+          "rogue_accord_cloister_paths",
+          "rogue_route_vanguard",
+        ],
+        encounterId: "act_1_branch_detour_mobilized",
+      },
+      {
         id: "rogue_escalation_catacomb_host",
         title: "Catacomb Escalation Host",
         zoneRole: "branchMiniboss",
@@ -1228,6 +1241,19 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["rogue_reckoning_chapel_ledger", "rogue_escalation_catacomb_surge", "rogue_crossroads_hidden_wayfinders"],
         encounterId: "act_1_miniboss_escalation_directed",
+      },
+      {
+        id: "rogue_escalation_cloister_host",
+        title: "Cloister Mobilized Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: [
+          "rogue_reckoning_chapel_ledger",
+          "rogue_escalation_catacomb_surge",
+          "rogue_crossroads_hidden_wayfinders",
+          "rogue_accord_cloister_paths",
+          "rogue_route_vanguard",
+        ],
+        encounterId: "act_1_miniboss_escalation_mobilized",
       },
       {
         id: "rogue_aftermath_catacomb_host",
@@ -1330,6 +1356,19 @@
         encounterId: "act_2_branch_detour_signal",
       },
       {
+        id: "sunwell_detour_spear_post_line",
+        title: "Spear Post Mobilized Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: [
+          "sunwell_recovery_spearline_wards",
+          "sunwell_detour_hidden_caravan",
+          "sunwell_water_beacons_aligned",
+          "sunwell_accord_spear_posts",
+          "sunwell_crossroads_spearwall_pylons",
+        ],
+        encounterId: "act_2_branch_detour_mobilized",
+      },
+      {
         id: "sunwell_escalation_chamber_host",
         title: "Chamber Escalation Host",
         zoneRole: "branchMiniboss",
@@ -1349,6 +1388,19 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["sunwell_reckoning_lance_wards", "sunwell_escalation_chamber_surge", "sunwell_crossroads_contract_guard"],
         encounterId: "act_2_miniboss_escalation_directed",
+      },
+      {
+        id: "sunwell_escalation_spear_post_host",
+        title: "Spear Post Mobilized Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: [
+          "sunwell_reckoning_lance_wards",
+          "sunwell_escalation_chamber_surge",
+          "sunwell_crossroads_contract_guard",
+          "sunwell_accord_spear_posts",
+          "sunwell_shield_train",
+        ],
+        encounterId: "act_2_miniboss_escalation_mobilized",
       },
       {
         id: "sunwell_aftermath_chamber_host",
@@ -1449,6 +1501,19 @@
         encounterId: "act_3_branch_detour_signal",
       },
       {
+        id: "kurast_detour_channel_line",
+        title: "Channel Mobilized Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: [
+          "kurast_recovery_spellward_bins",
+          "kurast_detour_hidden_fleet",
+          "jade_supply_marks_floated",
+          "kurast_accord_channel_marks",
+          "kurast_crossroads_night_berths",
+        ],
+        encounterId: "act_3_branch_detour_mobilized",
+      },
+      {
         id: "kurast_escalation_durance_host",
         title: "Durance Escalation Host",
         zoneRole: "branchMiniboss",
@@ -1468,6 +1533,19 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["kurast_reckoning_harbor_seals", "kurast_escalation_durance_surge", "kurast_crossroads_shadow_pilots"],
         encounterId: "act_3_miniboss_escalation_directed",
+      },
+      {
+        id: "kurast_escalation_channel_host",
+        title: "Channel Mobilized Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: [
+          "kurast_reckoning_harbor_seals",
+          "kurast_escalation_durance_surge",
+          "kurast_crossroads_shadow_pilots",
+          "kurast_accord_channel_marks",
+          "kurast_shadow_barges",
+        ],
+        encounterId: "act_3_miniboss_escalation_mobilized",
       },
       {
         id: "kurast_aftermath_durance_host",
@@ -1568,6 +1646,19 @@
         encounterId: "act_4_branch_detour_signal",
       },
       {
+        id: "hellforge_detour_rivet_line",
+        title: "Rivet Mobilized Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: [
+          "hellforge_recovery_hellward_screen",
+          "hellforge_detour_hidden_relief",
+          "infernal_forge_gates_chained",
+          "hellforge_accord_breach_rivets",
+          "hellforge_crossroads_phalanx_reliefs",
+        ],
+        encounterId: "act_4_branch_detour_mobilized",
+      },
+      {
         id: "hellforge_escalation_sanctuary_host",
         title: "Sanctuary Escalation Host",
         zoneRole: "branchMiniboss",
@@ -1587,6 +1678,19 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["hellforge_reckoning_sanctuary_screens", "hellforge_escalation_sanctuary_surge", "hellforge_crossroads_hellward_turn"],
         encounterId: "act_4_miniboss_escalation_directed",
+      },
+      {
+        id: "hellforge_escalation_rivet_host",
+        title: "Rivet Mobilized Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: [
+          "hellforge_reckoning_sanctuary_screens",
+          "hellforge_escalation_sanctuary_surge",
+          "hellforge_crossroads_hellward_turn",
+          "hellforge_accord_breach_rivets",
+          "hellforge_phalanx_steps_locked",
+        ],
+        encounterId: "act_4_miniboss_escalation_mobilized",
       },
       {
         id: "hellforge_aftermath_sanctuary_host",
@@ -1687,6 +1791,19 @@
         encounterId: "act_5_branch_detour_signal",
       },
       {
+        id: "harrogath_detour_ancients_line",
+        title: "Ancients Mobilized Line",
+        zoneRole: "branchBattle",
+        requiredFlagIds: [
+          "harrogath_recovery_guard_banners",
+          "harrogath_detour_hidden_sleds",
+          "ancients_watchfires_ringed",
+          "harrogath_accord_ancients_posts",
+          "harrogath_crossroads_switchbacks",
+        ],
+        encounterId: "act_5_branch_detour_mobilized",
+      },
+      {
         id: "harrogath_escalation_worldstone_host",
         title: "Worldstone Escalation Host",
         zoneRole: "branchMiniboss",
@@ -1706,6 +1823,19 @@
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge", "harrogath_crossroads_summit_reserve"],
         encounterId: "act_5_miniboss_escalation_directed",
+      },
+      {
+        id: "harrogath_escalation_ancients_host",
+        title: "Ancients Mobilized Host",
+        zoneRole: "branchMiniboss",
+        requiredFlagIds: [
+          "harrogath_reckoning_oath_rations",
+          "harrogath_escalation_worldstone_surge",
+          "harrogath_crossroads_summit_reserve",
+          "harrogath_accord_ancients_posts",
+          "harrogath_peak_guard_drilled",
+        ],
+        encounterId: "act_5_miniboss_escalation_mobilized",
       },
       {
         id: "harrogath_aftermath_worldstone_host",
@@ -1815,6 +1945,20 @@
         ["The earlier signal lanterns now carry through the full abbey convoy and turn the next branch into a sharper monastery payout."]
       ),
       consequenceRewardPackage(
+        "rogue_detour_cloister_dividend",
+        "Cloister Convoy Dividend",
+        "branchBattle",
+        [
+          "rogue_recovery_chapel_lanterns",
+          "rogue_detour_hidden_convoy",
+          "rogue_vigil_signal_lanterns",
+          "rogue_accord_cloister_paths",
+          "rogue_route_vanguard",
+        ],
+        { gold: 13, xp: 7, potions: 1 },
+        ["The cloister accord, armed vanguard, and signal lanterns now carry through the full abbey convoy and turn the next branch into the most mobilized monastery payout."]
+      ),
+      consequenceRewardPackage(
         "rogue_escalation_catacomb_dividend",
         "Catacomb Surge Dividend",
         "branchMiniboss",
@@ -1837,6 +1981,20 @@
         ["rogue_reckoning_chapel_ledger", "rogue_escalation_catacomb_surge", "rogue_crossroads_hidden_wayfinders"],
         { gold: 12, xp: 7, potions: 1 },
         ["The earlier hidden wayfinders now route the full catacomb surge into a more directed elite payout."]
+      ),
+      consequenceRewardPackage(
+        "rogue_escalation_cloister_dividend",
+        "Cloister Surge Dividend",
+        "branchMiniboss",
+        [
+          "rogue_reckoning_chapel_ledger",
+          "rogue_escalation_catacomb_surge",
+          "rogue_crossroads_hidden_wayfinders",
+          "rogue_accord_cloister_paths",
+          "rogue_route_vanguard",
+        ],
+        { gold: 13, xp: 8, potions: 1 },
+        ["The cloister accord, armed vanguard, and hidden wayfinders now route the full catacomb surge into the most mobilized rogue elite payout."]
       ),
       consequenceRewardPackage(
         "rogue_aftermath_catacomb_dividend",
@@ -1950,6 +2108,20 @@
         ["Aligned water beacons now carry through the hidden caravan and turn the next desert branch into a sharper reliquary payout."]
       ),
       consequenceRewardPackage(
+        "sunwell_detour_spear_post_dividend",
+        "Spear Post Caravan Dividend",
+        "branchBattle",
+        [
+          "sunwell_recovery_spearline_wards",
+          "sunwell_detour_hidden_caravan",
+          "sunwell_water_beacons_aligned",
+          "sunwell_accord_spear_posts",
+          "sunwell_crossroads_spearwall_pylons",
+        ],
+        { gold: 15, xp: 7, potions: 1 },
+        ["The spear-post accord, spearwall pylons, and aligned beacons now carry through the full hidden caravan and turn the next desert branch into the most mobilized reliquary payout."]
+      ),
+      consequenceRewardPackage(
         "sunwell_escalation_chamber_dividend",
         "Chamber Surge Dividend",
         "branchMiniboss",
@@ -1972,6 +2144,20 @@
         ["sunwell_reckoning_lance_wards", "sunwell_escalation_chamber_surge", "sunwell_crossroads_contract_guard"],
         { gold: 14, xp: 7, potions: 1 },
         ["The earlier contract guard now routes the full chamber surge into a more disciplined elite payout."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_escalation_spear_post_dividend",
+        "Spear Post Surge Dividend",
+        "branchMiniboss",
+        [
+          "sunwell_reckoning_lance_wards",
+          "sunwell_escalation_chamber_surge",
+          "sunwell_crossroads_contract_guard",
+          "sunwell_accord_spear_posts",
+          "sunwell_shield_train",
+        ],
+        { gold: 15, xp: 8, potions: 1 },
+        ["The spear-post accord, shield train, and contract guard now route the full chamber surge into the most mobilized desert elite payout."]
       ),
       consequenceRewardPackage(
         "sunwell_aftermath_chamber_dividend",
@@ -2083,6 +2269,20 @@
         ["Floated supply marks now carry through the hidden fleet and turn the next harbor branch into a sharper dockside payout."]
       ),
       consequenceRewardPackage(
+        "kurast_detour_channel_dividend",
+        "Channel Fleet Dividend",
+        "branchBattle",
+        [
+          "kurast_recovery_spellward_bins",
+          "kurast_detour_hidden_fleet",
+          "jade_supply_marks_floated",
+          "kurast_accord_channel_marks",
+          "kurast_crossroads_night_berths",
+        ],
+        { gold: 15, xp: 8, potions: 1 },
+        ["The channel accord, night berths, and floated supply marks now carry through the full hidden fleet and turn the next harbor branch into the most mobilized dockside payout."]
+      ),
+      consequenceRewardPackage(
         "kurast_escalation_durance_dividend",
         "Durance Surge Dividend",
         "branchMiniboss",
@@ -2105,6 +2305,20 @@
         ["kurast_reckoning_harbor_seals", "kurast_escalation_durance_surge", "kurast_crossroads_shadow_pilots"],
         { gold: 16, xp: 8, potions: 1 },
         ["The earlier shadow pilots now route the full durance surge into a more directed elite payout."]
+      ),
+      consequenceRewardPackage(
+        "kurast_escalation_channel_dividend",
+        "Channel Surge Dividend",
+        "branchMiniboss",
+        [
+          "kurast_reckoning_harbor_seals",
+          "kurast_escalation_durance_surge",
+          "kurast_crossroads_shadow_pilots",
+          "kurast_accord_channel_marks",
+          "kurast_shadow_barges",
+        ],
+        { gold: 17, xp: 9, potions: 1 },
+        ["The channel accord, shadow barges, and shadow pilots now route the full durance surge into the most mobilized harbor elite payout."]
       ),
       consequenceRewardPackage(
         "kurast_aftermath_durance_dividend",
@@ -2216,6 +2430,20 @@
         ["Chained forge gates now carry through the hidden relief line and turn the next sanctuary branch into a sharper infernal payout."]
       ),
       consequenceRewardPackage(
+        "hellforge_detour_rivet_dividend",
+        "Rivet Relief Dividend",
+        "branchBattle",
+        [
+          "hellforge_recovery_hellward_screen",
+          "hellforge_detour_hidden_relief",
+          "infernal_forge_gates_chained",
+          "hellforge_accord_breach_rivets",
+          "hellforge_crossroads_phalanx_reliefs",
+        ],
+        { gold: 17, xp: 8, potions: 1 },
+        ["The breach-rivet accord, phalanx reliefs, and chained forge gates now carry through the full hidden relief line and turn the next sanctuary branch into the most mobilized infernal payout."]
+      ),
+      consequenceRewardPackage(
         "hellforge_escalation_sanctuary_dividend",
         "Sanctuary Surge Dividend",
         "branchMiniboss",
@@ -2238,6 +2466,20 @@
         ["hellforge_reckoning_sanctuary_screens", "hellforge_escalation_sanctuary_surge", "hellforge_crossroads_hellward_turn"],
         { gold: 16, xp: 8, potions: 1 },
         ["The earlier hellward turn now routes the full sanctuary surge into a more directed elite payout."]
+      ),
+      consequenceRewardPackage(
+        "hellforge_escalation_rivet_dividend",
+        "Rivet Surge Dividend",
+        "branchMiniboss",
+        [
+          "hellforge_reckoning_sanctuary_screens",
+          "hellforge_escalation_sanctuary_surge",
+          "hellforge_crossroads_hellward_turn",
+          "hellforge_accord_breach_rivets",
+          "hellforge_phalanx_steps_locked",
+        ],
+        { gold: 17, xp: 9, potions: 1 },
+        ["The breach-rivet accord, locked phalanx steps, and hellward turn now route the full sanctuary surge into the most mobilized infernal elite payout."]
       ),
       consequenceRewardPackage(
         "hellforge_aftermath_sanctuary_dividend",
@@ -2349,6 +2591,20 @@
         ["Ringed watchfires now carry through the hidden sled chain and turn the next summit branch into a sharper mountain payout."]
       ),
       consequenceRewardPackage(
+        "harrogath_detour_ancients_dividend",
+        "Ancients Watch Dividend",
+        "branchBattle",
+        [
+          "harrogath_recovery_guard_banners",
+          "harrogath_detour_hidden_sleds",
+          "ancients_watchfires_ringed",
+          "harrogath_accord_ancients_posts",
+          "harrogath_crossroads_switchbacks",
+        ],
+        { gold: 17, xp: 9, potions: 1 },
+        ["The ancients accord, switchback routes, and ringed watchfires now carry through the full hidden sled chain and turn the next summit branch into the most mobilized mountain payout."]
+      ),
+      consequenceRewardPackage(
         "harrogath_escalation_worldstone_dividend",
         "Worldstone Surge Dividend",
         "branchMiniboss",
@@ -2371,6 +2627,20 @@
         ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge", "harrogath_crossroads_summit_reserve"],
         { gold: 18, xp: 9, potions: 1 },
         ["The earlier summit reserve now routes the full Worldstone surge into a more directed elite payout."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_escalation_ancients_dividend",
+        "Ancients Surge Dividend",
+        "branchMiniboss",
+        [
+          "harrogath_reckoning_oath_rations",
+          "harrogath_escalation_worldstone_surge",
+          "harrogath_crossroads_summit_reserve",
+          "harrogath_accord_ancients_posts",
+          "harrogath_peak_guard_drilled",
+        ],
+        { gold: 19, xp: 10, potions: 1 },
+        ["The ancients accord, drilled peak guard, and summit reserve now route the full Worldstone surge into the most mobilized mountain elite payout."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_worldstone_dividend",
