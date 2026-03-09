@@ -142,8 +142,8 @@ The current chunking is:
    - route intel, reward, act-transition, and run-end change summaries on top of the now-live hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, and hall handoff
    - broader account controls on top of the now-live shared account-meta continuity board and the now-live charter or convergence drilldown layer
 2. Agent 2 owns the progression and account backbone:
-   - second-wave account growth beyond the current capstones, convergences, and live planning-charter layer
-   - late-act item or rune or runeword economy depth
+   - broader account growth beyond the current sovereign-annals or merchant-principate or legend-doctrine second wave, current convergences, and live planning-charter layer
+   - late-act item or rune or runeword economy depth beyond the current sovereign-market layer
    - archive, stash, and profile read-model depth
    - reward and town integration around one progression model
 3. Agent 3 owns world-content and combat depth:
@@ -180,8 +180,8 @@ Current start order for this round:
    - turn the console-only quality lane into persisted artifact history or trend reporting without forking the bootstrap
    - use fresh coverage output to drive the next high-value shell, account, route, and harness backfill, and only widen browser-only fault injection where the bundle still owns unique behavior
 3. Agent 2
-   - land second-wave account growth plus richer archive or stash or economy read models
-   - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter layer
+   - build on the live second-wave account growth with richer archive or stash or economy read models
+   - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter and sovereign-market layer
 4. Agent 3
    - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
    - then widen mercenary payoff only if that follow-through creates a real new combat seam
