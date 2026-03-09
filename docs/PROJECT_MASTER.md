@@ -38,7 +38,7 @@ Implemented now:
 - generated act encounter catalogs and zone routes across Acts I-V with broader opening, branch-battle, and miniboss pools
 - act-specific boss scripting, deeper boss escorts, four elite-affix families per act, a sixteen-kind encounter-local modifier catalog, six branch-battle and six branch-miniboss packages per act, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, and act-tuned archetype behavior
 - potions as support actions and automatic mercenary turns
-- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, detour-lane payoffs, escalation-lane payoffs, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
+- quest, shrine, aftermath-event, and multiple opportunity world nodes on the map, all routed through the existing reward flow with broader shrine blessings, shrine-specific branches, crossroad payoffs, reserve-lane payoffs, relay-lane payoffs, culmination-lane payoffs, legacy-lane payoffs, reckoning-lane payoffs, recovery-lane payoffs, accord-lane payoffs, covenant-lane payoffs, detour-lane payoffs, escalation-lane payoffs, consequence-gated opportunity variants, and four-package-per-role branch or miniboss or boss encounter and reward ladders that promote later-route variants through earlier shrine and crossroad flags
 - quest outcome tracking plus shrine, event, and opportunity ledgers with explicit multi-step chain consequences on the run
 - reward choice screens with deck growth, card upgrades, party boons, item or rune progression, progression-point rewards, milestone-aware encounter payouts, profile-aware late-act equipment replacement pivots, and stronger account-gated boss pivots up through `apex_doctrine`
 - `skills.json`-backed class trees with capped tree investment, favored-tree summaries, level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
@@ -48,7 +48,7 @@ Implemented now:
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, and departure-readiness framing
 - return-to-town flow from the world map without losing route progress
 - schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, stash-ready planning-charter staging summaries, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates plus content-aware planning-charter sanitization during hydrate and migration
-- strict lint, reproducible build packaging, and compiled-browser regression verification through `npm run check`
+- strict lint, reproducible build packaging, compiled-browser regression verification through `npm run check`, a built-bundle browser smoke path through `npm run test:e2e`, a full `npm run quality` gate, explicit coverage thresholds through `npm run test:coverage`, and a harness-to-bundle drift regression test
 
 Not implemented now:
 
@@ -57,7 +57,7 @@ Not implemented now:
 - broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant before opening detour and escalation per act
 - broader encounter-local modifier catalogs and escort or boss scripting beyond the current sixteen-modifier combat baseline
 - final late-run loot tuning and broader feature-gated reward variety beyond the current higher-tier item, rune, and runeword catalog
-- a dedicated browser e2e smoke path, explicit coverage reporting or thresholds, and a bot-owned missing-test backfill lane
+- broader browser smoke depth beyond the current outer-loop restore or return path and richer persisted quality-history reporting
 
 ## Documentation Layers
 
@@ -78,6 +78,7 @@ When docs conflict, use this order.
 - [src/content/encounter-registry.ts](/Users/andrew/proj/rouge/src/content/encounter-registry.ts)
 - [src/character/class-registry.ts](/Users/andrew/proj/rouge/src/character/class-registry.ts)
 - [src/quests/world-node-engine.ts](/Users/andrew/proj/rouge/src/quests/world-node-engine.ts)
+- [src/quests/world-node-outcomes.ts](/Users/andrew/proj/rouge/src/quests/world-node-outcomes.ts)
 - [src/run/run-state.ts](/Users/andrew/proj/rouge/src/run/run-state.ts)
 - [src/run/run-route-builder.ts](/Users/andrew/proj/rouge/src/run/run-route-builder.ts)
 - [src/run/run-progression.ts](/Users/andrew/proj/rouge/src/run/run-progression.ts)
@@ -134,6 +135,7 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 ### 2. Product-direction guidance
 
 - [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md)
+- [docs/ROADMAP_EPICS.md](/Users/andrew/proj/rouge/docs/ROADMAP_EPICS.md)
 - [docs/TEAM_WORKSTREAMS.md](/Users/andrew/proj/rouge/docs/TEAM_WORKSTREAMS.md)
 - [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
 - [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)

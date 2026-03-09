@@ -301,8 +301,14 @@
     const consequenceBranchMinibossId = `act_${actNumber}_miniboss_accord`;
     const consequenceBossId = `act_${actNumber}_boss_covenant`;
     const consequenceDetourBranchBattleId = `act_${actNumber}_branch_detour`;
+    const consequenceGuidedDetourBranchBattleId = `act_${actNumber}_branch_detour_guided`;
+    const consequenceSignalDetourBranchBattleId = `act_${actNumber}_branch_detour_signal`;
     const consequenceEscalationMinibossId = `act_${actNumber}_miniboss_escalation`;
+    const consequenceBreachEscalationMinibossId = `act_${actNumber}_miniboss_escalation_breach`;
+    const consequenceDirectedEscalationMinibossId = `act_${actNumber}_miniboss_escalation_directed`;
     const consequenceAftermathBossId = `act_${actNumber}_boss_aftermath`;
+    const consequenceDirectedAftermathBossId = `act_${actNumber}_boss_aftermath_directed`;
+    const consequenceSignaledAftermathBossId = `act_${actNumber}_boss_aftermath_signaled`;
     const bossId = `act_${actNumber}_boss`;
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
@@ -489,6 +495,26 @@
           { kind: "backline_screen", value: Math.max(2, actNumber) },
         ]
       ),
+      [consequenceGuidedDetourBranchBattleId]: makeEncounter(
+        consequenceGuidedDetourBranchBattleId,
+        `${flavor.branchBattleLabel} Guarded Detour`,
+        `${flavor.branchBattleDescription} A guided sidepass from the detour lane turns the next branch into a guarded flank instead of another default counterline.`,
+        [eliteA.templateId, supportA.templateId, rangedA.templateId, bruteA.templateId],
+        [
+          { kind: "fortified_line", value: Math.max(2, actNumber) },
+          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+        ]
+      ),
+      [consequenceSignalDetourBranchBattleId]: makeEncounter(
+        consequenceSignalDetourBranchBattleId,
+        `${flavor.branchBattleLabel} Signal Detour`,
+        `${flavor.branchBattleDescription} Earlier shrine signals carry through the full detour and turn the next branch into a screened beacon line instead of a plain convoy flank.`,
+        [rangedA.templateId, rangedB.templateId, supportA.templateId, bruteA.templateId],
+        [
+          { kind: "backline_screen", value: Math.max(2, actNumber) },
+          { kind: "sniper_nest", value: Math.max(2, actNumber) },
+        ]
+      ),
       [consequenceBranchMinibossId]: makeEncounter(
         consequenceBranchMinibossId,
         `${flavor.branchMinibossLabel} Accord Host`,
@@ -507,6 +533,26 @@
         [
           { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: "elite_onslaught", value: 1 },
+        ]
+      ),
+      [consequenceBreachEscalationMinibossId]: makeEncounter(
+        consequenceBreachEscalationMinibossId,
+        `${flavor.branchMinibossLabel} Breach Host`,
+        `${flavor.branchMinibossDescription} A guided escalation breach turns the next elite branch into a drilled pressure push instead of the default accord host.`,
+        [eliteA.templateId, eliteB.templateId, bruteA.templateId, rangedA.templateId],
+        [
+          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: "war_drums", value: 1 },
+        ]
+      ),
+      [consequenceDirectedEscalationMinibossId]: makeEncounter(
+        consequenceDirectedEscalationMinibossId,
+        `${flavor.branchMinibossLabel} Directed Surge`,
+        `${flavor.branchMinibossDescription} Earlier crossroads guidance carries through the full escalation and turns the next elite branch into a routed strike package instead of a generic late surge.`,
+        [eliteA.templateId, eliteD.templateId, rangedA.templateId, supportA.templateId],
+        [
+          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: "escort_command", value: 1 },
         ]
       ),
       [bossId]: makeEncounter(
@@ -532,6 +578,20 @@
         `${flavor.bossDescription} A full post-covenant detour and escalation turns the boss into a harsher aftermath fight instead of the default closing court.`,
         aftermathBossConfig.enemyTemplateIds,
         aftermathBossConfig.modifiers
+      ),
+      [consequenceDirectedAftermathBossId]: makeEncounter(
+        consequenceDirectedAftermathBossId,
+        `${flavor.bossLabel} Directed Aftermath`,
+        `${flavor.bossDescription} Earlier route guidance carries through the full aftermath and turns the boss into a directed closing court instead of a generic late-route collapse.`,
+        aftermathBossConfig.enemyTemplateIds,
+        [...aftermathBossConfig.modifiers, { kind: "escort_command", value: 1 }]
+      ),
+      [consequenceSignaledAftermathBossId]: makeEncounter(
+        consequenceSignaledAftermathBossId,
+        `${flavor.bossLabel} Signaled Aftermath`,
+        `${flavor.bossDescription} Earlier shrine signals and crossroads guidance both carry through the full aftermath and turn the boss into a fully signaled closing court instead of a looser routed collapse.`,
+        aftermathBossConfig.enemyTemplateIds,
+        [...aftermathBossConfig.modifiers, { kind: "escort_command", value: 1 }, { kind: "triage_command", value: 1 }]
       ),
     };
 

@@ -58,6 +58,11 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/action-dispatcher.js",
 ];
 
+const WORLD_NODE_RUNTIME_FILES = [
+  "src/quests/world-node-outcomes.js",
+  "src/quests/world-node-engine.js",
+];
+
 const CONTENT_HELPER_RUNTIME_FILES = [
   ...SHARED_RUNTIME_FILES,
   ...VALIDATOR_RUNTIME_FILES,
@@ -67,7 +72,7 @@ const CONTENT_HELPER_RUNTIME_FILES = [
 const COMBAT_RUNTIME_FILES = [
   ...CONTENT_HELPER_RUNTIME_FILES,
   "src/character/class-registry.js",
-  "src/quests/world-node-engine.js",
+  ...WORLD_NODE_RUNTIME_FILES,
   "src/content/encounter-registry.js",
 ];
 
@@ -78,13 +83,17 @@ const APP_RUNTIME_FILES = [
   "src/ui/render-utils.js",
   ...ITEM_RUNTIME_FILES,
   "src/rewards/reward-engine.js",
-  "src/quests/world-node-engine.js",
+  ...WORLD_NODE_RUNTIME_FILES,
   ...RUN_RUNTIME_FILES,
   "src/town/service-registry.js",
   ...PERSISTENCE_RUNTIME_FILES,
   "src/app/app-engine.js",
   ...APP_UI_RUNTIME_FILES,
 ];
+
+export function getAppRuntimeFiles(): string[] {
+  return [...APP_RUNTIME_FILES];
+}
 
 function loadBrowserScript(filename: string, sandbox: vm.Context): void {
   const fullPath = path.join(GENERATED_ROOT, filename);

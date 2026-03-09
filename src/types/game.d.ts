@@ -1723,6 +1723,14 @@ interface WorldNodeEngineApi {
   applyChoice(run: RunState, reward: RunReward, choice: RewardChoice): ActionResult;
 }
 
+interface WorldNodeOutcomeOptions {
+  isShrineOpportunityNodeId?: ((nodeId: string) => boolean) | null;
+}
+
+interface WorldNodeOutcomesApi {
+  applyChoice(run: RunState, reward: RunReward, choice: RewardChoice, options?: WorldNodeOutcomeOptions): ActionResult;
+}
+
 interface TownServiceApi {
   listActions(content: GameContent, run: RunState, profile: ProfileState): TownAction[];
   applyAction(run: RunState, profile: ProfileState, content: GameContent, actionId: string): ActionResult;
@@ -2075,6 +2083,7 @@ interface Window {
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
+  ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
   ROUGE_WORLD_NODES: WorldNodeEngineApi;
   ROUGE_TOWN_SERVICES: TownServiceApi;
   ROUGE_RENDER_UTILS: RenderUtilsApi;

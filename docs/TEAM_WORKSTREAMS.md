@@ -43,7 +43,7 @@ Already landed in the live runtime:
 - sockets, rune insertion, and expanded runeword activation
 - split run-domain helpers under `src/run/*` plus split item-domain helpers under `src/items/*`
 - seed, runtime, world-node, and elite-affix validation
-- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated opportunity variants, and consequence-conditioned branch or miniboss or boss encounter and reward packages
+- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated opportunity variants, and four-package-per-role branch or miniboss or boss encounter and reward ladders
 - seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools with six branch battles and six branch minibosses per act, a sixteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, and deeper boss escorts
 
 The active team split is now five larger workstreams:
@@ -147,8 +147,8 @@ The current chunking is:
    - archive, stash, and profile read-model depth
    - reward and town integration around one progression model
 3. Agent 3 owns world-content and combat depth:
-   - deeper detour or escalation follow-through and broader late-route node catalogs
-   - deeper quest and event consequence chains that feed later encounters and rewards across the live covenant-plus-detour-plus-escalation fabric
+   - boss or escort consequence expression and broader late-route node catalogs on top of the live detour or escalation follow-through
+   - deeper quest and event consequence chains that feed later encounters and rewards across the live covenant-plus-detour-plus-escalation fabric and the current four-package-per-role consequence ladder
    - encounter-pack breadth on top of the live sixteen-modifier baseline
    - elite or boss depth and mercenary payoff growth only where new route fabrics justify it
    - content validation and reachability hardening
@@ -180,8 +180,8 @@ Current start order for this round:
    - land second-wave account growth plus richer archive or stash or economy read models
    - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter layer
 4. Agent 3
-   - deepen the live detour and escalation lanes into broader act-facing payoff and encounter packages
-   - then push consequence-linked encounter, boss, and reward payoff deeper across the late-route fabric
+   - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
+   - then widen mercenary payoff only if that follow-through creates a real new combat seam
 5. Agent 1
    - land the next broader account-meta continuity pass on top of the now-live hall navigator, hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, convergence review, and delta-summary shell
 

@@ -19,7 +19,7 @@ Documentation note:
 - party combat between hero, mercenary, and encounter-sized enemy packs
 - explicit phases: `boot`, `front_door`, `character_select`, `safe_zone`, `world_map`, `encounter`, `reward`, `act_transition`, `run_complete`, `run_failed`
 - five-act route generation
-- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, consequence-gated route payoffs, and consequence-conditioned branch or miniboss or boss encounter and reward packages
+- quest, shrine, event, and multiple opportunity world nodes with shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated route payoffs, and four-package-per-role consequence-conditioned branch or miniboss or boss encounter and reward ladders
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
 - a navigable account hall, a hall decision desk, town prep drilldowns, a town prep comparison board, route-intel map panels, a world-map route decision desk, a reward continuity desk, an act-transition delta wrapper, and explicit reward or archive delta surfaces plus a run-end hall handoff across the active shell
@@ -224,7 +224,7 @@ Required clarity surfaces:
 These are the next approved directions for implementation:
 
 1. grow the account seam into broader capstone-style archive or economy or mastery systems plus richer archive or stash or economy read models on top of the current navigable hall
-2. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern
+2. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern plus detour-or-escalation follow-through
 3. deepen late-act item or rune breadth, reward variety, and account-gated economy pressure
 4. broaden modifier catalogs and escort scripting beyond the current sixteen-modifier baseline, and only extend mercenary payoff where new route families justify it
 5. continue shell expansion only where future account systems need dedicated unlock, stash, archive, or capstone review surfaces
