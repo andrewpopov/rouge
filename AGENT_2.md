@@ -83,6 +83,7 @@ Completed work:
 - vendor consignment previews, vendor equipment or rune routing, and reward-side equipment pivots now all read those planning charters so long-horizon runeword targets materially affect town and late-act reward behavior
 - archived run history now also records planned weapon or armor runewords plus which charter targets were actually fulfilled on that expedition, so planning is preserved as account history instead of a temporary current-profile toggle
 - account planning summaries now expose archive-backed charter ledgers, including archived or fulfilled counts and best-act records for the current weapon or armor targets, and town or reward behavior now reacts more strongly while a charter is still unfulfilled across the account
+- account planning summaries now also expose stash-ready charter staging for the live weapon or armor targets, including compatible or prepared or ready base counts plus best-base tier or socket or rune state, and both hall or town surfaces now read that summary instead of re-deriving stash pressure ad hoc
 - profile hydrate, migration, archive summaries, town previews, vendor routing, and reward pivots now sanitize planned runeword ids against the live runeword catalog, so stale or cross-slot ids cannot survive as phantom charter pressure
 - focused account trees now bias live runtime behavior, including archive retention, vendor pressure, and mastery-side boss rewards
 - cross-tree convergence bundles are now live above the current capstones, with `chronicle_exchange` deepening archive retention and trade leverage, `war_annals` feeding archive-backed mastery pivots into late-act rewards, and `paragon_exchange` pushing late-act vendors and equipment rewards toward premium replacement bases
@@ -93,8 +94,8 @@ Completed work:
 - front door now also exposes live profile-settings toggles plus tutorial complete or dismiss or restore controls through the existing account mutation path
 - front door now also exposes direct preferred-class controls, and character select now honors explicit preferred class over recent class while still following recent history when the account preference has not diverged
 - front door now also exposes an interactive archive-review desk over richer archived run summaries, with latest or older or newer navigation routed through app-engine instead of a shell-owned persistence layer
-- regression coverage exists for migration backfill, capped progression investment, archived profile meta, account-tree or settings or tutorial or preferred-class or archive-review mutation behavior, later-tier archive or economy or mastery gate behavior, capstone gating or read-model behavior, reward-side milestone behavior, late-act economy or replacement-pivot behavior, and account-surface rendering
-- `npm run check` currently passes against this slice, with compiled tests `169/169`
+- regression coverage exists for migration backfill, capped progression investment, archived profile meta, account-tree or settings or tutorial or preferred-class or archive-review mutation behavior, later-tier archive or economy or mastery gate behavior, capstone gating or read-model behavior, reward-side milestone behavior, stash-ready charter-summary rebuilds, late-act economy or replacement-pivot behavior, and account-surface rendering
+- `npm run check` currently passes against this slice, with compiled tests `176/176`
 
 Still open-ended:
 

@@ -139,6 +139,22 @@
     };
   }
 
+  function getPlanningStageLine(slot, planning, content) {
+    const charter = slot === "weapon" ? planning?.weaponCharter : planning?.armorCharter;
+    const runewordId = slot === "weapon" ? planning?.weaponRunewordId : planning?.armorRunewordId;
+    const slotLabel = slot === "weapon" ? "Weapon" : "Armor";
+    if (!runewordId) {
+      return `${slotLabel} charter staging: no ${slot} charter pinned.`;
+    }
+
+    const runeword = getRunewordDefinition(content, charter?.runewordId || runewordId);
+    const bestBase = charter?.bestBaseItemId ? getItemDefinition(content, charter.bestBaseItemId) : null;
+    return `${slotLabel} charter staging: ${runeword?.name || runewordId} -> ${toNumber(charter?.readyBaseCount, 0)} ready, ${toNumber(
+      charter?.preparedBaseCount,
+      0
+    )} prepared, ${bestBase?.name || "best base not parked yet"}.`;
+  }
+
   function getTargetRunewordForEquipment(equipment, run, content, profile = null) {
     if (!equipment) {
       return null;
@@ -1057,6 +1073,8 @@
           planning.plannedRunewordCount === 1 ? "" : "s"
         } already fulfilled in the archive.`
       );
+      lines.push(getPlanningStageLine("weapon", planning, content));
+      lines.push(getPlanningStageLine("armor", planning, content));
     }
     return lines;
   }

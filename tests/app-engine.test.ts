@@ -1726,6 +1726,64 @@ test("createAppState sanitizes persisted stash entries before town actions consu
   assert.equal(state.profile.stash.entries.length, 3);
 });
 
+test("createAppState rebuilds stash-ready charter summaries from persisted planning and stash state", () => {
+  const { content, combatEngine, appEngine, persistence, seedBundle, storage } = createHarness();
+  const seededProfile = persistence.createEmptyProfile();
+
+  seededProfile.meta.planning.weaponRunewordId = "honor";
+  seededProfile.meta.planning.armorRunewordId = "lionheart";
+  seededProfile.stash.entries = [
+    {
+      entryId: "stash_ready_honor",
+      kind: "equipment",
+      equipment: {
+        entryId: "stash_ready_honor",
+        itemId: "item_rune_sword",
+        slot: "weapon",
+        socketsUnlocked: 3,
+        insertedRunes: ["rune_amn"],
+        runewordId: "",
+      },
+    },
+    {
+      entryId: "stash_prepared_lionheart",
+      kind: "equipment",
+      equipment: {
+        entryId: "stash_prepared_lionheart",
+        itemId: "item_archon_plate",
+        slot: "armor",
+        socketsUnlocked: 2,
+        insertedRunes: ["rune_hel"],
+        runewordId: "",
+      },
+    },
+  ];
+
+  storage.setItem(persistence.PROFILE_STORAGE_KEY, persistence.serializeProfile(seededProfile));
+
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  const accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.weaponRunewordId, "honor");
+  assert.equal(accountSummary.planning.armorRunewordId, "lionheart");
+  assert.equal(accountSummary.planning.weaponCharter?.compatibleBaseCount, 1);
+  assert.equal(accountSummary.planning.weaponCharter?.readyBaseCount, 1);
+  assert.equal(accountSummary.planning.weaponCharter?.preparedBaseCount, 1);
+  assert.equal(accountSummary.planning.weaponCharter?.bestBaseItemId, "item_rune_sword");
+  assert.equal(accountSummary.planning.weaponCharter?.bestBaseInsertedRuneCount, 1);
+  assert.equal(accountSummary.planning.weaponCharter?.bestBaseMaxSockets, 3);
+  assert.equal(accountSummary.planning.armorCharter?.compatibleBaseCount, 1);
+  assert.equal(accountSummary.planning.armorCharter?.readyBaseCount || 0, 0);
+  assert.equal(accountSummary.planning.armorCharter?.preparedBaseCount, 1);
+  assert.equal(accountSummary.planning.armorCharter?.bestBaseItemId, "item_archon_plate");
+  assert.equal(accountSummary.planning.armorCharter?.bestBaseSocketsUnlocked, 2);
+});
+
 test("createAppState sanitizes stale planning charters before archive and town systems consume them", () => {
   const { content, combatEngine, appEngine, itemSystem, persistence, seedBundle, storage } = createHarness();
   const seededProfile = persistence.createEmptyProfile();

@@ -1135,6 +1135,23 @@ interface ProfileAccountConvergenceSummary {
   missingFeatureTitles: string[];
 }
 
+interface ProfilePlanningCharterSummary {
+  slot: "weapon" | "armor";
+  runewordId: string;
+  archivedRunCount: number;
+  completedRunCount: number;
+  bestActsCleared: number;
+  compatibleBaseCount: number;
+  preparedBaseCount: number;
+  readyBaseCount: number;
+  bestBaseItemId: string;
+  bestBaseTier: number;
+  bestBaseSocketsUnlocked: number;
+  bestBaseMaxSockets: number;
+  bestBaseInsertedRuneCount: number;
+  hasReadyBase: boolean;
+}
+
 interface ProfilePlanningSummary {
   weaponRunewordId: string;
   armorRunewordId: string;
@@ -1147,6 +1164,8 @@ interface ProfilePlanningSummary {
   armorArchivedRunCount: number;
   armorCompletedRunCount: number;
   armorBestActsCleared: number;
+  weaponCharter?: ProfilePlanningCharterSummary;
+  armorCharter?: ProfilePlanningCharterSummary;
 }
 
 interface ProfileAccountSummary {
@@ -2026,6 +2045,7 @@ interface UiCommonApi {
   getObjectiveSummary(routeSnapshot: SafeZoneSnapshot): ObjectiveSummary;
   getTownFeatureLabel(featureId: string): string;
   getTutorialLabel(tutorialId: string): string;
+  getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[];
   buildAccountTreeReviewMarkup(
     accountSummary: ProfileAccountSummary,
     renderUtils: RenderUtilsApi,

@@ -816,6 +816,88 @@
     };
   }
 
+  function buildPlanningCharterSummary(profile, runewordId, slot, historySummary, content = null) {
+    if (!runewordId) {
+      return null;
+    }
+
+    const itemCatalog = runtimeWindow.ROUGE_ITEM_CATALOG || null;
+    const runeword =
+      itemCatalog?.getRunewordDefinition?.(content, runewordId) ||
+      (content?.runewordCatalog ? content.runewordCatalog[runewordId] || null : null);
+    if (!runeword || runeword.slot !== slot) {
+      return null;
+    }
+
+    const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
+    const compatibleBases = entries
+      .filter((entry) => entry?.kind === "equipment" && entry?.equipment && !entry.equipment.runewordId)
+      .map((entry) => {
+        const equipment = entry.equipment;
+        const item =
+          itemCatalog?.getItemDefinition?.(content, equipment?.itemId || "") ||
+          (content?.itemCatalog ? content.itemCatalog[equipment?.itemId || ""] || null : null);
+        if (!item) {
+          return null;
+        }
+        const compatible =
+          itemCatalog?.isRunewordCompatibleWithEquipment?.(equipment, runeword, content) ||
+          itemCatalog?.isRunewordCompatibleWithItem?.(item, runeword) ||
+          false;
+        if (!compatible) {
+          return null;
+        }
+        return {
+          equipment,
+          item,
+          socketsUnlocked: toNumber(equipment?.socketsUnlocked, 0),
+          insertedRuneCount: Array.isArray(equipment?.insertedRunes) ? equipment.insertedRunes.length : 0,
+        };
+      })
+      .filter(Boolean);
+
+    const preparedBases = compatibleBases.filter((entry) => entry.socketsUnlocked > 0 || entry.insertedRuneCount > 0);
+    const readyBases = compatibleBases.filter((entry) => entry.socketsUnlocked >= toNumber(runeword.socketCount, 0));
+    const bestBase =
+      compatibleBases
+        .slice()
+        .sort((left, right) => {
+          const leftReady = Number(left.socketsUnlocked >= toNumber(runeword.socketCount, 0));
+          const rightReady = Number(right.socketsUnlocked >= toNumber(runeword.socketCount, 0));
+          if (leftReady !== rightReady) {
+            return rightReady - leftReady;
+          }
+          if (toNumber(left.item?.progressionTier, 0) !== toNumber(right.item?.progressionTier, 0)) {
+            return toNumber(right.item?.progressionTier, 0) - toNumber(left.item?.progressionTier, 0);
+          }
+          if (left.socketsUnlocked !== right.socketsUnlocked) {
+            return right.socketsUnlocked - left.socketsUnlocked;
+          }
+          if (left.insertedRuneCount !== right.insertedRuneCount) {
+            return right.insertedRuneCount - left.insertedRuneCount;
+          }
+          return String(left.item?.id || "").localeCompare(String(right.item?.id || ""));
+        })
+        .shift() || null;
+
+    return {
+      slot,
+      runewordId,
+      archivedRunCount: historySummary.archivedRunCount,
+      completedRunCount: historySummary.completedRunCount,
+      bestActsCleared: historySummary.bestActsCleared,
+      compatibleBaseCount: compatibleBases.length,
+      preparedBaseCount: preparedBases.length,
+      readyBaseCount: readyBases.length,
+      bestBaseItemId: bestBase?.item?.id || "",
+      bestBaseTier: toNumber(bestBase?.item?.progressionTier, 0),
+      bestBaseSocketsUnlocked: toNumber(bestBase?.socketsUnlocked, 0),
+      bestBaseMaxSockets: toNumber(bestBase?.item?.maxSockets, 0),
+      bestBaseInsertedRuneCount: toNumber(bestBase?.insertedRuneCount, 0),
+      hasReadyBase: readyBases.length > 0,
+    };
+  }
+
   function buildPlanningSummary(profile, content = null) {
     sanitizePlanningState(profile, content);
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
@@ -855,6 +937,8 @@
       armorArchivedRunCount: armorSummary.archivedRunCount,
       armorCompletedRunCount: armorSummary.completedRunCount,
       armorBestActsCleared: armorSummary.bestActsCleared,
+      weaponCharter: buildPlanningCharterSummary(profile, weaponRunewordId, "weapon", weaponSummary, content),
+      armorCharter: buildPlanningCharterSummary(profile, armorRunewordId, "armor", armorSummary, content),
     };
   }
 
