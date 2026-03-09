@@ -112,6 +112,7 @@ When docs conflict, use this order.
 - [src/types/game.d.ts](/Users/andrew/proj/rouge/src/types/game.d.ts)
 - [tests/helpers/browser-harness.ts](/Users/andrew/proj/rouge/tests/helpers/browser-harness.ts)
 - [tests/app-engine-shell.test.ts](/Users/andrew/proj/rouge/tests/app-engine-shell.test.ts)
+- [tests/app-engine-account-systems.test.ts](/Users/andrew/proj/rouge/tests/app-engine-account-systems.test.ts)
 - [tests/app-engine-world-nodes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes.test.ts)
 - [tests/app-engine-world-nodes-route-chain.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-route-chain.test.ts)
 - [tests/app-engine-world-nodes-route-payoffs.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-route-payoffs.test.ts)

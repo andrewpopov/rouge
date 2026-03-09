@@ -162,14 +162,14 @@ Current expectation:
 Current Agent 4 priority order:
 
 1. keep the centralized manifests in `tests/helpers/browser-harness.ts` as the single compiled-browser boot-order source of truth and keep `tests/app-engine*.test.ts` aligned whenever browser script order or boot seams change
-2. continue the remaining compiled-browser suite cleanup, starting with `tests/app-engine.test.ts` now that the world-node route-chain and payoff coverage live in dedicated suites
+2. continue the remaining compiled-browser suite cleanup, starting with `tests/app-engine-world-node-validation.test.ts` now that `tests/app-engine.test.ts` only holds the core run or town loop and `tests/app-engine-account-systems.test.ts` owns the account-heavy coverage
 3. keep late-route validation behind `src/content/content-validator-world-opportunities.ts` and only shrink the remaining early world-node checks out of `src/content/content-validator.ts` when a follow-on pass is warranted
 4. keep `src/content/encounter-registry.ts` thin by preventing logic drift back out of `src/content/encounter-registry-builders.ts` or `src/content/encounter-registry-enemy-builders.ts`
 5. keep the run helpers small by avoiding new logic drift back into `src/run/run-factory.ts` or `src/run/run-reward-flow.ts`, and only expand `src/quests/world-node-engine.ts` from the new `src/quests/world-node-outcomes.ts` seam after coordinating with Agent 3
 
 Current sequencing guidance:
 
-1. let Agent 4 keep the compiled-browser harness aligned, continue the remaining app-engine suite cleanup from `tests/app-engine.test.ts`, and only do validator or `world-node-engine` follow-on work from the existing helper chain and the new `src/quests/world-node-outcomes.ts` seam
+1. let Agent 4 keep the compiled-browser harness aligned, continue the remaining app-engine suite cleanup from `tests/app-engine-world-node-validation.test.ts`, and only do validator or `world-node-engine` follow-on work from the existing helper chain and the new `src/quests/world-node-outcomes.ts` seam
 2. let Agent 5 keep the landed quality gate green and broaden the built-bundle smoke or coverage-driven backfill on top of Agent 4's browser bootstrap instead of introducing a second test path
 3. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
 4. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
