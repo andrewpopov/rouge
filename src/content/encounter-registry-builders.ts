@@ -288,6 +288,69 @@
     };
   }
 
+  function buildPostedAftermathBossConfig(actNumber, templateIds) {
+    const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
+    const escortRotationValue = Math.max(2, Math.min(4, actNumber + 1));
+    const bossOnslaughtValue = Math.max(2, Math.min(4, actNumber + 1));
+    if (actNumber === 2) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
+          { kind: "phalanx_march", value: Math.max(3, actNumber) },
+        ],
+      };
+    }
+    if (actNumber === 3) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.ranged, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
+          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
+        ],
+      };
+    }
+    if (actNumber === 4) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
+          { kind: "war_drums", value: 1 },
+        ],
+      };
+    }
+    if (actNumber >= 5) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
+          { kind: "phalanx_march", value: Math.max(4, actNumber) },
+        ],
+      };
+    }
+    return {
+      enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
+      modifiers: [
+        { kind: "boss_screen", value: bossScreenValue },
+        { kind: "escort_rotation", value: escortRotationValue },
+        { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+        { kind: "boss_onslaught", value: bossOnslaughtValue },
+      ],
+    };
+  }
+
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }) {
     const actNumber = actSeed.act;
     const flavor = getFlavor(actNumber);
@@ -394,6 +457,7 @@
     const consequenceSignaledAftermathBossId = `act_${actNumber}_boss_aftermath_signaled`;
     const consequenceDrilledAftermathBossId = `act_${actNumber}_boss_aftermath_drilled`;
     const consequenceMobilizedAftermathBossId = `act_${actNumber}_boss_aftermath_mobilized`;
+    const consequencePostedAftermathBossId = `act_${actNumber}_boss_aftermath_posted`;
     const bossId = `act_${actNumber}_boss`;
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
@@ -431,6 +495,15 @@
       brute: bruteA.templateId,
     });
     const mobilizedAftermathBossConfig = buildMobilizedAftermathBossConfig(actNumber, {
+      boss: bossA.templateId,
+      eliteA: eliteA.templateId,
+      eliteB: eliteB.templateId,
+      eliteD: eliteD.templateId,
+      ranged: rangedA.templateId,
+      support: supportA.templateId,
+      brute: bruteA.templateId,
+    });
+    const postedAftermathBossConfig = buildPostedAftermathBossConfig(actNumber, {
       boss: bossA.templateId,
       eliteA: eliteA.templateId,
       eliteB: eliteB.templateId,
@@ -731,6 +804,13 @@
         `${flavor.bossDescription} Earlier accord musters, route drilling, and alternate crossroads pressure all carry through the full aftermath and mobilize the boss court into a reserve-backed closing assault.`,
         mobilizedAftermathBossConfig.enemyTemplateIds,
         mobilizedAftermathBossConfig.modifiers
+      ),
+      [consequencePostedAftermathBossId]: makeEncounter(
+        consequencePostedAftermathBossId,
+        `${flavor.bossLabel} Posted Aftermath`,
+        `${flavor.bossDescription} The alternate sidepass and breach route now settle behind bell or banner posts, turning the boss court into a steadier escort-led aftermath instead of the sharper convoy collapse.`,
+        postedAftermathBossConfig.enemyTemplateIds,
+        postedAftermathBossConfig.modifiers
       ),
     };
 

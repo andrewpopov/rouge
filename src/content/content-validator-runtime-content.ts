@@ -82,7 +82,7 @@
   const MIN_CONSEQUENCE_PACKAGES_PER_ROLE = {
     branchBattle: 5,
     branchMiniboss: 5,
-    boss: 6,
+    boss: 7,
   };
 
   const MIN_MERCENARY_CONTRACTS = 7;

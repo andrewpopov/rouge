@@ -274,7 +274,7 @@ test("runtime content validation fails clearly when an act lacks boss consequenc
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1 must include at least 6 packages for zoneRole "boss"\./);
+  }, /consequenceEncounterPackages\.1 must include at least 7 packages for zoneRole "boss"\./);
 });
 
 test("runtime content validation fails clearly when consequence encounter packages reuse the same signature", () => {
@@ -311,7 +311,7 @@ test("runtime content validation fails clearly when an act lacks boss consequenc
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceRewardPackages\.1 must include at least 6 packages for zoneRole "boss"\./);
+  }, /consequenceRewardPackages\.1 must include at least 7 packages for zoneRole "boss"\./);
 });
 
 test("runtime content validation fails clearly when an act lacks branch miniboss consequence reward coverage", () => {

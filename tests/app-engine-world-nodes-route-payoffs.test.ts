@@ -1085,6 +1085,70 @@ test("detour and escalation outcomes can retune the act boss beyond the covenant
   assert.ok(reward.lines.some((line) => line.includes("shrine signal line and hidden wayfinders now settle the full catacomb aftermath")));
 });
 
+test("alternate covenant bells plus sidepass and breach can retune the act boss into the posted aftermath court", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const { bossZone, branchBattleZone, branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
+    state,
+    appEngine,
+    runFactory,
+    {
+      covenantChoiceTitle: "Consecrate the Last Cloister Bell",
+    }
+  );
+
+  let result = appEngine.selectZone(state, detourZone.id);
+  assert.equal(result.ok, true);
+  const detourChoice = getRequiredChoice(state, "Open the Chapel Sidepass");
+  assert.equal(appEngine.claimRewardAndAdvance(state, detourChoice.id).ok, true);
+
+  result = appEngine.selectZone(state, escalationZone.id);
+  assert.equal(result.ok, true);
+  const escalationChoice = getRequiredChoice(state, "Crack the Chapel Surge");
+  assert.equal(appEngine.claimRewardAndAdvance(state, escalationChoice.id).ok, true);
+
+  branchMinibossZone.encountersCleared = branchMinibossZone.encounterTotal;
+  branchMinibossZone.cleared = true;
+  branchBattleZone.encountersCleared = branchBattleZone.encounterTotal;
+  branchBattleZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  result = appEngine.selectZone(state, bossZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.run.activeEncounterId, "act_1_boss_aftermath_posted");
+  assert.equal(state.combat.encounter.name, "Catacomb Posted Aftermath");
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "boss_screen"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_rotation"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "triage_screen"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "boss_onslaught"));
+  assert.ok(!state.combat.encounter.modifiers.some((modifier) => modifier.kind === "sniper_nest"));
+  assert.ok(!state.combat.encounter.modifiers.some((modifier) => modifier.kind === "court_reserves"));
+
+  const reward = runFactory.buildEncounterReward({
+    run: state.run,
+    zone: bossZone,
+    combatState: state.combat,
+    content,
+    profile: state.profile,
+  });
+  assert.equal(reward.grants.gold, 56);
+  assert.equal(reward.grants.xp, 35);
+  assert.equal(reward.grants.potions, 2);
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Bellwatch Aftermath Dividend.")));
+  assert.ok(reward.lines.some((line) => line.includes("cloister bell, chapel sidepass, and chapel surge now hold the full catacomb aftermath")));
+});
+
 test("alternate route arming can retune the act boss into the drilled aftermath court", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({

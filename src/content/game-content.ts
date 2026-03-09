@@ -1311,6 +1311,13 @@
         ],
         encounterId: "act_1_boss_aftermath_mobilized",
       },
+      {
+        id: "rogue_aftermath_bellwatch_host",
+        title: "Bellwatch Aftermath Host",
+        zoneRole: "boss",
+        requiredFlagIds: ["rogue_detour_chapel_sidepass", "rogue_escalation_chapel_surge", "rogue_covenant_cloister_bell"],
+        encounterId: "act_1_boss_aftermath_posted",
+      },
     ],
     2: [
       {
@@ -1455,6 +1462,13 @@
           "sunwell_accord_spear_posts",
         ],
         encounterId: "act_2_boss_aftermath_mobilized",
+      },
+      {
+        id: "sunwell_aftermath_banner_host",
+        title: "Bannered Aftermath Chamber",
+        zoneRole: "boss",
+        requiredFlagIds: ["sunwell_detour_warded_sidepass", "sunwell_escalation_lance_breach", "sunwell_covenant_reliquary_banners"],
+        encounterId: "act_2_boss_aftermath_posted",
       },
     ],
     3: [
@@ -1601,6 +1615,13 @@
         ],
         encounterId: "act_3_boss_aftermath_mobilized",
       },
+      {
+        id: "kurast_aftermath_bell_host",
+        title: "Harbor Bell Aftermath",
+        zoneRole: "boss",
+        requiredFlagIds: ["kurast_detour_spellward_sidepass", "kurast_escalation_harbor_push", "kurast_covenant_harbor_bells"],
+        encounterId: "act_3_boss_aftermath_posted",
+      },
     ],
     4: [
       {
@@ -1746,6 +1767,13 @@
         ],
         encounterId: "act_4_boss_aftermath_mobilized",
       },
+      {
+        id: "hellforge_aftermath_bell_host",
+        title: "Sanctuary Bell Aftermath",
+        zoneRole: "boss",
+        requiredFlagIds: ["hellforge_detour_hellward_sidepass", "hellforge_escalation_sanctuary_screen", "hellforge_covenant_sanctuary_bells"],
+        encounterId: "act_4_boss_aftermath_posted",
+      },
     ],
     5: [
       {
@@ -1890,6 +1918,13 @@
           "harrogath_accord_ancients_posts",
         ],
         encounterId: "act_5_boss_aftermath_mobilized",
+      },
+      {
+        id: "harrogath_aftermath_bell_host",
+        title: "Summit Bell Aftermath",
+        zoneRole: "boss",
+        requiredFlagIds: ["harrogath_detour_banner_sidepass", "harrogath_escalation_oath_surge", "harrogath_covenant_summit_bells"],
+        encounterId: "act_5_boss_aftermath_posted",
       },
     ],
   };
@@ -2057,6 +2092,14 @@
         { gold: 21, xp: 13, potions: 1 },
         ["The cloister accord, armed vanguard, and signal lanterns now settle the full catacomb aftermath into the most mobilized rogue boss payout."]
       ),
+      consequenceRewardPackage(
+        "rogue_aftermath_bellwatch_dividend",
+        "Bellwatch Aftermath Dividend",
+        "boss",
+        ["rogue_detour_chapel_sidepass", "rogue_escalation_chapel_surge", "rogue_covenant_cloister_bell"],
+        { gold: 18, xp: 11, potions: 1 },
+        ["The cloister bell, chapel sidepass, and chapel surge now hold the full catacomb aftermath behind a posted rogue court."]
+      ),
     ],
     2: [
       consequenceRewardPackage(
@@ -2217,6 +2260,14 @@
         ],
         { gold: 23, xp: 13, potions: 1 },
         ["The reliquary accord, shield train, and spearwall pylons now settle the full chamber aftermath into the most mobilized desert boss payout."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_aftermath_banner_dividend",
+        "Bannered Aftermath Dividend",
+        "boss",
+        ["sunwell_detour_warded_sidepass", "sunwell_escalation_lance_breach", "sunwell_covenant_reliquary_banners"],
+        { gold: 20, xp: 11, potions: 1 },
+        ["Reliquary banners, the warded sidepass, and the lance breach now hold the full chamber aftermath behind a posted desert court."]
       ),
     ],
     3: [
@@ -2379,6 +2430,14 @@
         { gold: 25, xp: 14, potions: 1 },
         ["Channel marks, shadow barges, and the night berths now settle the full harbor aftermath into the most mobilized durance payout."]
       ),
+      consequenceRewardPackage(
+        "kurast_aftermath_bell_dividend",
+        "Harbor Bell Aftermath Dividend",
+        "boss",
+        ["kurast_detour_spellward_sidepass", "kurast_escalation_harbor_push", "kurast_covenant_harbor_bells"],
+        { gold: 22, xp: 12, potions: 1 },
+        ["Harbor bells, the spellward sidepass, and the harbor push now hold the full durance aftermath behind a posted river court."]
+      ),
     ],
     4: [
       consequenceRewardPackage(
@@ -2540,6 +2599,14 @@
         { gold: 27, xp: 15, potions: 1 },
         ["Breach rivets, locked phalanx steps, and paced reliefs now settle the full sanctuary aftermath into the most mobilized Diablo payout."]
       ),
+      consequenceRewardPackage(
+        "hellforge_aftermath_bell_dividend",
+        "Sanctuary Bell Aftermath Dividend",
+        "boss",
+        ["hellforge_detour_hellward_sidepass", "hellforge_escalation_sanctuary_screen", "hellforge_covenant_sanctuary_bells"],
+        { gold: 24, xp: 13, potions: 1 },
+        ["Sanctuary bells, the hellward sidepass, and the sanctuary screen now hold the full Diablo aftermath behind a posted infernal court."]
+      ),
     ],
     5: [
       consequenceRewardPackage(
@@ -2700,6 +2767,14 @@
         ],
         { gold: 29, xp: 16, potions: 1 },
         ["Ancients accord posts, peak guard drills, and the captain's switchbacks now settle the full summit aftermath into the most mobilized Worldstone payout."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_aftermath_bell_dividend",
+        "Summit Bell Aftermath Dividend",
+        "boss",
+        ["harrogath_detour_banner_sidepass", "harrogath_escalation_oath_surge", "harrogath_covenant_summit_bells"],
+        { gold: 26, xp: 13, potions: 1 },
+        ["Summit bells, the banner sidepass, and the oath surge now hold the full Worldstone aftermath behind a posted mountain court."]
       ),
     ],
   };

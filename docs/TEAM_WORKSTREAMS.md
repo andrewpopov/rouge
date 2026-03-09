@@ -45,8 +45,8 @@ Already landed in the live runtime:
 - sockets, rune insertion, and expanded runeword activation
 - split run-domain helpers under `src/run/*` plus split item-domain helpers under `src/items/*`
 - seed, runtime, world-node, and elite-affix validation
-- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated opportunity variants, five-package branch-battle and branch-miniboss consequence encounter and reward ladders, and a six-package boss aftermath ladder
-- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools with six branch battles and six branch minibosses per act, a twenty-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, court-reserve, boss-salvo, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, mobilized aftermath boss courts, and deeper boss escorts
+- quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated opportunity variants, five-package branch-battle and branch-miniboss consequence encounter and reward ladders, and a seven-package boss aftermath ladder
+- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools with six branch battles and six branch minibosses per act, a twenty-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, court-reserve, boss-salvo, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, mobilized and posted aftermath boss courts, and deeper boss escorts
 
 The active team split is now five larger workstreams:
 
@@ -149,7 +149,7 @@ The current chunking is:
    - reward and town integration around one progression model
 3. Agent 3 owns world-content and combat depth:
    - boss or escort consequence expression and broader late-route node catalogs on top of the live detour or escalation follow-through
-   - deeper quest and event consequence chains that feed later encounters and rewards across the live covenant-plus-detour-plus-escalation fabric and the current five-package branch-battle or branch-miniboss ladder plus six-package boss aftermath ladder
+   - deeper quest and event consequence chains that feed later encounters and rewards across the live covenant-plus-detour-plus-escalation fabric and the current five-package branch-battle or branch-miniboss ladder plus seven-package boss aftermath ladder
    - encounter-pack breadth on top of the live sixteen-modifier baseline
    - elite or boss depth and mercenary payoff growth only where new route fabrics justify it
    - content validation and reachability hardening
@@ -175,8 +175,7 @@ Current start order for this round:
    - build on the live second-wave account growth with richer archive or stash or economy read models
    - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter and sovereign-market layer
 3. Agent 3
-   - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
-   - then widen mercenary payoff only if that follow-through creates a real new combat seam
+   - widen mercenary payoff only if the broader boss or escort consequence follow-through created a real new combat seam
 4. Agent 1
    - land the new resume and recovery shell pass on top of the now-live continueSavedRun baseline
 5. Agent 5
