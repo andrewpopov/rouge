@@ -29,6 +29,25 @@ test("startRun creates a class-derived run and enters the safe zone", () => {
   assert.equal(appEngine.hasSavedRun(), true);
 });
 
+test("createAppState falls back to a fresh profile when persisted storage is malformed", () => {
+  const { content, combatEngine, appEngine, persistence, seedBundle, storage } = createHarness();
+  storage.setItem(persistence.PROFILE_STORAGE_KEY, '{"broken":');
+  storage.setItem(persistence.STORAGE_KEY, '{"broken":');
+
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  assert.equal(state.phase, appEngine.PHASES.FRONT_DOOR);
+  assert.equal(state.profile.activeRunSnapshot, null);
+  assert.equal(state.profile.runHistory.length, 0);
+  assert.equal(appEngine.hasSavedRun(), false);
+  assert.equal(appEngine.getSavedRunSummary(), null);
+});
+
 test("world map zones loop encounter to reward and preserve multi-encounter progress", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({

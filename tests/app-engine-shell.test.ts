@@ -128,6 +128,68 @@ test("continueSavedRun restores a reward snapshot and advances back to the route
   assert.equal(resumedState.run.pendingReward, null);
 });
 
+test("front-door saved-run cards change guidance by saved phase", () => {
+  const { content, combatEngine, appEngine, appShell, runFactory, browserWindow, seedBundle } = createHarness();
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const renderFrontDoorForPhase = (phase: AppPhase): string => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    appEngine.startCharacterSelect(state);
+    assert.equal(appEngine.startRun(state).ok, true);
+
+    if (phase === appEngine.PHASES.WORLD_MAP || phase === appEngine.PHASES.REWARD || phase === appEngine.PHASES.ACT_TRANSITION) {
+      assert.equal(appEngine.leaveSafeZone(state).ok, true);
+    }
+
+    if (phase === appEngine.PHASES.REWARD || phase === appEngine.PHASES.ACT_TRANSITION) {
+      const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+      assert.equal(appEngine.selectZone(state, openingZoneId).ok, true);
+      state.combat.outcome = "victory";
+      assert.equal(appEngine.syncEncounterOutcome(state).ok, true);
+    }
+
+    if (phase === appEngine.PHASES.ACT_TRANSITION) {
+      assert.ok(state.run?.pendingReward);
+      state.run.pendingReward.endsAct = true;
+      assert.equal(appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id).ok, true);
+      assert.equal(state.phase, appEngine.PHASES.ACT_TRANSITION);
+    }
+
+    appEngine.returnToFrontDoor(state);
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+    return root.innerHTML;
+  };
+
+  const safeZoneHtml = renderFrontDoorForPhase(appEngine.PHASES.SAFE_ZONE);
+  assert.match(safeZoneHtml, /Resume Town Prep/);
+  assert.match(safeZoneHtml, /Town recovery, loadout review, stash pressure, and departure prep are the first read on return\./);
+  assert.match(safeZoneHtml, /Recovery, vendor, stash, and spend boards are live first\./);
+
+  const worldMapHtml = renderFrontDoorForPhase(appEngine.PHASES.WORLD_MAP);
+  assert.match(worldMapHtml, /Resume Route Board/);
+  assert.match(worldMapHtml, /Route intel, blocked nodes, and the next zone choice are the first read on return\./);
+  assert.match(worldMapHtml, /The next click is a zone pick or a return to Rogue Encampment\./);
+
+  const rewardHtml = renderFrontDoorForPhase(appEngine.PHASES.REWARD);
+  assert.match(rewardHtml, /Resolve Pending Reward/);
+  assert.match(rewardHtml, /A reward claim is parked, so one mutation must resolve before the route moves again\./);
+  assert.match(rewardHtml, /Claim one mutation before the expedition advances\./);
+
+  const actTransitionHtml = renderFrontDoorForPhase(appEngine.PHASES.ACT_TRANSITION);
+  assert.match(actTransitionHtml, /Review Act Handoff/);
+  assert.match(actTransitionHtml, /Act delta review is parked, then the next town opens with the same expedition state\./);
+  assert.match(actTransitionHtml, /The next click is Continue Act Transition, not a route pick\./);
+});
+
 test("app shell renders boot loading and error states", () => {
   const { appShell, browserWindow } = createHarness();
   const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];

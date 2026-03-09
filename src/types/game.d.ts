@@ -1157,7 +1157,10 @@ interface ProfilePlanningCharterSummary {
   bestBaseMaxSockets: number;
   bestBaseInsertedRuneCount: number;
   bestBaseMissingRuneCount: number;
+  bestBaseSocketGap: number;
+  commissionableBaseCount: number;
   hasReadyBase: boolean;
+  repeatForgeReady: boolean;
 }
 
 interface ProfilePlanningOverviewSummary {
@@ -1165,8 +1168,11 @@ interface ProfilePlanningOverviewSummary {
   preparedCharterCount: number;
   readyCharterCount: number;
   missingBaseCharterCount: number;
+  socketCommissionCharterCount: number;
+  repeatForgeReadyCharterCount: number;
   trackedBaseCount: number;
   highestTrackedBaseTier: number;
+  totalSocketStepsRemaining: number;
   compatibleRunewordIds: string[];
   preparedRunewordIds: string[];
   readyRunewordIds: string[];

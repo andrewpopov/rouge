@@ -115,9 +115,20 @@ function buildActTransitionFixture() {
   };
 }
 
+function buildCorruptedStorageFixture() {
+  const { persistence } = createAppHarness();
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: '{"broken":',
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue: '{"broken":',
+  };
+}
+
 const SAFE_ZONE_FIXTURE = buildSafeZoneFixture();
 const ACT_TRANSITION_FIXTURE = buildActTransitionFixture();
 const RUN_SUMMARY_FIXTURE = buildSavedRewardFixture({ endsRun: true });
+const CORRUPTED_STORAGE_FIXTURE = buildCorruptedStorageFixture();
 
 async function expectPhase(page, selector, phaseLabel) {
   const locator = page.locator(selector);
@@ -310,4 +321,28 @@ test("built app renders a boot error when seed loading fails", async (context) =
     failures.filter((failure) => !failure.includes("status of 500 (Internal Server Error)")),
     []
   );
+});
+
+test("built app falls back to a fresh front door when persisted storage is corrupted", async (context) => {
+  const browser = await chromium.launch({ headless: true });
+  context.after(async () => {
+    await browser.close();
+  });
+
+  const { context: browserContext, page, failures } = await createSmokePage(browser, CORRUPTED_STORAGE_FIXTURE);
+  context.after(async () => {
+    await browserContext.close();
+  });
+
+  await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
+
+  await expectText(page, "Account Hall", "front door after corrupted storage");
+  await expectPhase(page, '[data-action="start-character-select"]', "front door fallback controls");
+  assert.equal(await page.locator('[data-action="continue-saved-run"]').count(), 0);
+  assert.equal(await page.getByText("Boot Failure", { exact: false }).count(), 0);
+
+  await page.locator('[data-action="start-character-select"]').click();
+  await expectPhase(page, '[data-action="start-run"]', "character select after corrupted storage");
+
+  assert.deepEqual(failures, []);
 });

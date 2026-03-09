@@ -1911,6 +1911,195 @@ test("createAppState rebuilds stash-ready charter summaries from persisted plann
   assert.match(accountSummary.planning.overview.nextActionSummary, /Ready base parked for Honor/i);
 });
 
+test("planning summaries expose socket commission queue and repeat-forge readiness", () => {
+  const { content, combatEngine, appEngine, persistence, seedBundle, storage } = createHarness();
+  const seededProfile = persistence.createEmptyProfile();
+
+  seededProfile.meta.planning.weaponRunewordId = "white";
+  seededProfile.meta.planning.armorRunewordId = "lionheart";
+  seededProfile.stash.entries = [
+    {
+      entryId: "stash_ready_white",
+      kind: "equipment",
+      equipment: {
+        entryId: "stash_ready_white",
+        itemId: "item_bone_wand",
+        slot: "weapon",
+        socketsUnlocked: 2,
+        insertedRunes: ["rune_dol"],
+        runewordId: "",
+      },
+    },
+    {
+      entryId: "stash_prepared_lionheart",
+      kind: "equipment",
+      equipment: {
+        entryId: "stash_prepared_lionheart",
+        itemId: "item_archon_plate",
+        slot: "armor",
+        socketsUnlocked: 2,
+        insertedRunes: ["rune_hel"],
+        runewordId: "",
+      },
+    },
+  ];
+  seededProfile.runHistory = [
+    {
+      runId: "white_archive",
+      classId: "necromancer",
+      className: "Necromancer",
+      level: 11,
+      actsCleared: 4,
+      bossesDefeated: 2,
+      goldGained: 320,
+      runewordsForged: 1,
+      skillPointsEarned: 0,
+      classPointsEarned: 0,
+      attributePointsEarned: 0,
+      trainingRanksGained: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      unlockedClassSkills: 0,
+      loadoutTier: 6,
+      loadoutSockets: 3,
+      carriedEquipmentCount: 0,
+      carriedRuneCount: 0,
+      stashEntryCount: 0,
+      stashEquipmentCount: 0,
+      stashRuneCount: 0,
+      plannedWeaponRunewordId: "white",
+      plannedArmorRunewordId: "lionheart",
+      completedPlannedRunewordIds: ["white"],
+      activeRunewordIds: ["white"],
+      newFeatureIds: [],
+      completedAt: new Date("2026-03-09T00:00:00.000Z").toISOString(),
+      outcome: "completed",
+    },
+  ];
+
+  storage.setItem(persistence.PROFILE_STORAGE_KEY, persistence.serializeProfile(seededProfile));
+
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  const accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.weaponCharter?.repeatForgeReady, true);
+  assert.equal(accountSummary.planning.weaponCharter?.bestBaseSocketGap, 0);
+  assert.equal(accountSummary.planning.armorCharter?.bestBaseSocketGap, 1);
+  assert.equal(accountSummary.planning.armorCharter?.commissionableBaseCount, 1);
+  assert.equal(accountSummary.planning.overview.socketCommissionCharterCount, 1);
+  assert.equal(accountSummary.planning.overview.repeatForgeReadyCharterCount, 1);
+  assert.equal(accountSummary.planning.overview.totalSocketStepsRemaining, 1);
+  assert.equal(accountSummary.planning.overview.nextActionLabel, "Stock Runes");
+  assert.match(accountSummary.planning.overview.nextActionSummary, /repeat forge/i);
+});
+
+test("town socket commissions advance equipped, carried, and stashed bases", () => {
+  const { content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  ["economy_ledger", "salvage_tithes", "treasury_exchange", "merchant_principate"].forEach((featureId) => {
+    if (!state.profile.meta.unlocks.townFeatureIds.includes(featureId)) {
+      state.profile.meta.unlocks.townFeatureIds.push(featureId);
+    }
+  });
+
+  let result = appEngine.setPlannedRuneword(state, "weapon", "white");
+  assert.equal(result.ok, true);
+  result = appEngine.setPlannedRuneword(state, "armor", "lionheart");
+  assert.equal(result.ok, true);
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+
+  state.run.gold = 1200;
+  state.run.loadout.weapon = {
+    entryId: "equipped_blade",
+    itemId: "item_short_sword",
+    slot: "weapon",
+    socketsUnlocked: 0,
+    insertedRunes: [],
+    runewordId: "",
+  };
+  state.run.inventory.carried = [
+    {
+      entryId: "carry_white",
+      kind: "equipment",
+      equipment: {
+        entryId: "carry_white",
+        itemId: "item_bone_wand",
+        slot: "weapon",
+        socketsUnlocked: 0,
+        insertedRunes: [],
+        runewordId: "",
+      },
+    },
+  ];
+  state.profile.stash.entries = [
+    {
+      entryId: "stash_lionheart",
+      kind: "equipment",
+      equipment: {
+        entryId: "stash_lionheart",
+        itemId: "item_archon_plate",
+        slot: "armor",
+        socketsUnlocked: 2,
+        insertedRunes: ["rune_hel"],
+        runewordId: "",
+      },
+    },
+  ];
+
+  itemSystem.hydrateRunLoadout(state.run, content);
+  itemSystem.hydrateProfileStash(state.profile, content);
+  itemSystem.hydrateRunInventory(state.run, content, state.profile);
+
+  const actions = itemSystem.listTownActions(state.run, state.profile, content);
+  const loadoutCommission = actions.find((action) => action.id === "inventory_commission_loadout_weapon");
+  const carriedCommission = actions.find((action) => action.id === "inventory_commission_carry_white");
+  const stashCommission = actions.find((action) => action.id === "stash_commission_stash_lionheart");
+  assert.ok(loadoutCommission);
+  assert.ok(carriedCommission);
+  assert.ok(stashCommission);
+  assert.match(carriedCommission.previewLines.join(" "), /Weapon charter match: White/i);
+  assert.match(carriedCommission.previewLines.join(" "), /Archive charter is still open for White/i);
+  assert.match(stashCommission.previewLines.join(" "), /Treasury Exchange is routing this socket work directly onto stash stock/i);
+  assert.match(stashCommission.previewLines.join(" "), /Armor charter match: Lionheart/i);
+  assert.match(itemSystem.getInventorySummary(state.run, state.profile, content).join(" "), /commission stash sockets directly against stored gear/i);
+
+  const totalCost = loadoutCommission.cost + carriedCommission.cost + stashCommission.cost;
+  result = appEngine.useTownAction(state, "inventory_commission_loadout_weapon");
+  assert.equal(result.ok, true);
+  assert.equal(state.run.loadout.weapon?.socketsUnlocked, 1);
+
+  result = appEngine.useTownAction(state, "inventory_commission_carry_white");
+  assert.equal(result.ok, true);
+  const carriedCommissionedEntry = state.run.inventory.carried.find((entry) => entry.kind === "equipment");
+  assert.equal(carriedCommissionedEntry?.kind, "equipment");
+  assert.equal(carriedCommissionedEntry?.equipment?.socketsUnlocked, 1);
+
+  result = appEngine.useTownAction(state, "stash_commission_stash_lionheart");
+  assert.equal(result.ok, true);
+  const commissionedStashEntry = state.profile.stash.entries.find((entry) => entry.kind === "equipment");
+  assert.equal(commissionedStashEntry?.kind, "equipment");
+  assert.equal(commissionedStashEntry?.equipment?.socketsUnlocked, 3);
+  assert.equal(state.run.gold, 1200 - totalCost);
+
+  const accountSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(accountSummary.planning.armorCharter?.readyBaseCount, 1);
+  assert.equal(accountSummary.planning.overview.readyCharterCount, 1);
+  assert.equal(accountSummary.planning.overview.nextActionLabel, "Stock Runes");
+});
+
 test("createAppState sanitizes stale planning charters before archive and town systems consume them", () => {
   const { content, combatEngine, appEngine, itemSystem, persistence, seedBundle, storage } = createHarness();
   const seededProfile = persistence.createEmptyProfile();

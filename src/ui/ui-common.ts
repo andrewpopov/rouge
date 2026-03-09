@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -345,6 +346,27 @@
   }
 
   function createDefaultPlanningSummary(): ProfilePlanningSummary {
+    const overview: ProfilePlanningOverviewSummary = {
+      compatibleCharterCount: 0,
+      preparedCharterCount: 0,
+      readyCharterCount: 0,
+      missingBaseCharterCount: 0,
+      socketCommissionCharterCount: 0,
+      repeatForgeReadyCharterCount: 0,
+      trackedBaseCount: 0,
+      highestTrackedBaseTier: 0,
+      totalSocketStepsRemaining: 0,
+      compatibleRunewordIds: [],
+      preparedRunewordIds: [],
+      readyRunewordIds: [],
+      missingBaseRunewordIds: [],
+      fulfilledRunewordIds: [],
+      bestFulfilledActsCleared: 0,
+      bestFulfilledLoadoutTier: 0,
+      nextAction: "idle",
+      nextActionLabel: "No Live Charter",
+      nextActionSummary: "No runeword charter is pinned on the account yet.",
+    };
     return {
       weaponRunewordId: "",
       armorRunewordId: "",
@@ -357,24 +379,7 @@
       armorArchivedRunCount: 0,
       armorCompletedRunCount: 0,
       armorBestActsCleared: 0,
-      overview: {
-        compatibleCharterCount: 0,
-        preparedCharterCount: 0,
-        readyCharterCount: 0,
-        missingBaseCharterCount: 0,
-        trackedBaseCount: 0,
-        highestTrackedBaseTier: 0,
-        compatibleRunewordIds: [],
-        preparedRunewordIds: [],
-        readyRunewordIds: [],
-        missingBaseRunewordIds: [],
-        fulfilledRunewordIds: [],
-        bestFulfilledActsCleared: 0,
-        bestFulfilledLoadoutTier: 0,
-        nextAction: "idle",
-        nextActionLabel: "No Live Charter",
-        nextActionSummary: "No runeword charter is pinned on the account yet.",
-      },
+      overview,
       weaponCharter: undefined,
       armorCharter: undefined,
     };

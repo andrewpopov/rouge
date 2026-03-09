@@ -877,13 +877,16 @@
   }
 
   function createDefaultPlanningOverview(): ProfilePlanningOverviewSummary {
-    return {
+    const overview: ProfilePlanningOverviewSummary = {
       compatibleCharterCount: 0,
       preparedCharterCount: 0,
       readyCharterCount: 0,
       missingBaseCharterCount: 0,
+      socketCommissionCharterCount: 0,
+      repeatForgeReadyCharterCount: 0,
       trackedBaseCount: 0,
       highestTrackedBaseTier: 0,
+      totalSocketStepsRemaining: 0,
       compatibleRunewordIds: [],
       preparedRunewordIds: [],
       readyRunewordIds: [],
@@ -895,6 +898,7 @@
       nextActionLabel: "Quiet",
       nextActionSummary: "No active runeword charter is pinned across the account.",
     };
+    return overview;
   }
 
   function getPlanningRunewordLabel(runewordId, content = null) {
@@ -915,7 +919,13 @@
     return `${labels.slice(0, 2).join(", ")}, +${labels.length - 2} more`;
   }
 
-  function buildPlanningCharterSummary(profile, runewordId, slot, historySummary, content = null) {
+  function buildPlanningCharterSummary(
+    profile,
+    runewordId,
+    slot,
+    historySummary,
+    content = null
+  ): ProfilePlanningCharterSummary | null {
     if (!runewordId) {
       return null;
     }
@@ -1020,7 +1030,10 @@
       bestBaseMaxSockets: toNumber(bestBase?.item?.maxSockets, 0),
       bestBaseInsertedRuneCount: toNumber(bestBase?.insertedRuneCount, 0),
       bestBaseMissingRuneCount: Math.max(0, toNumber(runeword.socketCount, 0) - toNumber(bestBase?.insertedRuneCount, 0)),
+      bestBaseSocketGap: Math.max(0, toNumber(runeword.socketCount, 0) - toNumber(bestBase?.socketsUnlocked, 0)),
+      commissionableBaseCount: compatibleBases.filter((entry) => entry.socketsUnlocked < toNumber(runeword.socketCount, 0)).length,
       hasReadyBase: readyBases.length > 0,
+      repeatForgeReady: readyBases.length > 0 && historySummary.completedRunCount > 0,
     };
   }
 
@@ -1035,6 +1048,8 @@
     const readyCharters = activeCharters.filter((charter) => charter.hasReadyBase);
     const missingBaseCharters = activeCharters.filter((charter) => charter.compatibleBaseCount === 0);
     const fulfilledCharters = activeCharters.filter((charter) => toNumber(charter.completedRunCount, 0) > 0);
+    const socketCommissionCharters = activeCharters.filter((charter) => charter.compatibleBaseCount > 0 && toNumber(charter.bestBaseSocketGap, 0) > 0);
+    const repeatForgeReadyCharters = activeCharters.filter((charter) => charter.repeatForgeReady);
     const compatibleRunewordIds = compatibleCharters.map((charter) => charter.runewordId);
     const preparedRunewordIds = preparedCharters.map((charter) => charter.runewordId);
     const readyRunewordIds = readyCharters.map((charter) => charter.runewordId);
@@ -1047,8 +1062,11 @@
       preparedCharterCount: preparedCharters.length,
       readyCharterCount: readyCharters.length,
       missingBaseCharterCount: missingBaseCharters.length,
+      socketCommissionCharterCount: socketCommissionCharters.length,
+      repeatForgeReadyCharterCount: repeatForgeReadyCharters.length,
       trackedBaseCount: compatibleCharters.reduce((total, charter) => total + toNumber(charter.compatibleBaseCount, 0), 0),
       highestTrackedBaseTier: compatibleCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestBaseTier, 0)), 0),
+      totalSocketStepsRemaining: socketCommissionCharters.reduce((total, charter) => total + toNumber(charter.bestBaseSocketGap, 0), 0),
       compatibleRunewordIds,
       preparedRunewordIds,
       readyRunewordIds,
@@ -1076,22 +1094,28 @@
 
     if (preparedRunewordIds.length > 0) {
       overview.nextAction = "open_sockets";
-      overview.nextActionLabel = "Open Sockets";
-      overview.nextActionSummary = `Prepared base parked for ${getPlanningRunewordListLabel(preparedRunewordIds, content)}. Finish socket work before chasing more replacements.`;
+      overview.nextActionLabel = "Commission Sockets";
+      overview.nextActionSummary = `Prepared base parked for ${getPlanningRunewordListLabel(
+        preparedRunewordIds,
+        content
+      )}. Commission ${Math.max(1, overview.totalSocketStepsRemaining)} more socket${overview.totalSocketStepsRemaining === 1 ? "" : "s"} across the best parked bases before chasing more replacements.`;
       return overview;
     }
 
     if (compatibleRunewordIds.length > 0) {
       overview.nextAction = "prepare_bases";
-      overview.nextActionLabel = "Prepare Bases";
-      overview.nextActionSummary = `Compatible base parked for ${getPlanningRunewordListLabel(compatibleRunewordIds, content)}, but socket work has not started yet.`;
+      overview.nextActionLabel = "Commission Sockets";
+      overview.nextActionSummary = `Compatible base parked for ${getPlanningRunewordListLabel(
+        compatibleRunewordIds,
+        content
+      )}. Commission ${Math.max(1, overview.totalSocketStepsRemaining)} socket${overview.totalSocketStepsRemaining === 1 ? "" : "s"} to start live base prep instead of chasing more replacements.`;
       return overview;
     }
 
     return overview;
   }
 
-  function buildPlanningSummary(profile, content = null) {
+  function buildPlanningSummary(profile, content = null): ProfilePlanningSummary {
     sanitizePlanningState(profile, content);
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
     const weaponRunewordId = typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "";
@@ -1140,7 +1164,7 @@
     };
   }
 
-  function getAccountProgressSummary(profile, content = null) {
+  function getAccountProgressSummary(profile, content = null): ProfileAccountSummary {
     const source = profile || createEmptyProfile();
     ensureMeta(source, content);
     const profileSummary = getProfileSummary(source, content);

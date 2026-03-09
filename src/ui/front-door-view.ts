@@ -41,6 +41,102 @@
     return enabled ? positiveLabel : negativeLabel;
   }
 
+  function getSavedRunPhaseGuidance(savedRunSummary: SavedRunSummary, appEngine: AppEngineApi) {
+    switch (savedRunSummary.phase) {
+      case appEngine.PHASES.SAFE_ZONE:
+        return {
+          expeditionLabel: "Town Resume",
+          decisionLabel: "Resume Town Prep",
+          nextSurfaceLabel: "Safe Zone",
+          focusLabel: "Recovery And Departure",
+          summaryLine: "Town recovery, loadout review, stash pressure, and departure prep are the first read on return.",
+          checklistLines: [
+            "Next shell: Safe Zone. Recovery, vendor, stash, and spend boards are live first.",
+            `The next departure still points toward ${savedRunSummary.bossName}.`,
+            "Leave town only after the prep comparison and departure boards read clean.",
+          ],
+        };
+      case appEngine.PHASES.WORLD_MAP:
+        return {
+          expeditionLabel: "Route Resume",
+          decisionLabel: "Resume Route Board",
+          nextSurfaceLabel: "World Map",
+          focusLabel: "Route Decision",
+          summaryLine: "Route intel, blocked nodes, and the next zone choice are the first read on return.",
+          checklistLines: [
+            "Next shell: World Map. Route intel, consequence lanes, and boss pressure are live first.",
+            `The next click is a zone pick or a return to ${savedRunSummary.safeZoneName}.`,
+            `Resume only if you want to keep pushing toward ${savedRunSummary.bossName} right away.`,
+          ],
+        };
+      case appEngine.PHASES.REWARD:
+        return {
+          expeditionLabel: "Reward Pending",
+          decisionLabel: "Resolve Pending Reward",
+          nextSurfaceLabel: "Reward",
+          focusLabel: "Mutation Claim",
+          summaryLine: "A reward claim is parked, so one mutation must resolve before the route moves again.",
+          checklistLines: [
+            "Next shell: Reward. Claim one mutation before the expedition advances.",
+            "The next decision is a reward pick, not a zone pick or town service.",
+            "Deck, loadout, progression, and supply changes can land immediately from this claim.",
+          ],
+        };
+      case appEngine.PHASES.ACT_TRANSITION:
+        return {
+          expeditionLabel: "Act Handoff",
+          decisionLabel: "Review Act Handoff",
+          nextSurfaceLabel: "Act Transition",
+          focusLabel: "Carry-Forward Review",
+          summaryLine: "Act delta review is parked, then the next town opens with the same expedition state.",
+          checklistLines: [
+            "Next shell: Act Transition. Review carry-forward state before the next town opens.",
+            "The next click is Continue Act Transition, not a route pick.",
+            "Act pressure is already closed on this checkpoint; the shell is staging the town handoff.",
+          ],
+        };
+      case appEngine.PHASES.RUN_COMPLETE:
+        return {
+          expeditionLabel: "Victory Review",
+          decisionLabel: "Review Victory Summary",
+          nextSurfaceLabel: "Run Summary",
+          focusLabel: "Archive Delta",
+          summaryLine: "The victory handoff is parked, so review the archive delta before drafting again.",
+          checklistLines: [
+            "Next shell: Run Summary. The expedition is already over; only archive review remains.",
+            "Review the hall handoff before you start another draft.",
+            "This checkpoint exists to preserve the account-facing summary, not route momentum.",
+          ],
+        };
+      case appEngine.PHASES.RUN_FAILED:
+        return {
+          expeditionLabel: "Failure Review",
+          decisionLabel: "Review Fallen Summary",
+          nextSurfaceLabel: "Run Summary",
+          focusLabel: "Archive And Return",
+          summaryLine: "The fallen-run handoff is parked, so read the loss review before drafting again.",
+          checklistLines: [
+            "Next shell: Run Summary. The expedition is already logged as fallen; only archive review remains.",
+            "Read the hall handoff before you clear the save or start another draft.",
+            "This checkpoint exists to preserve the failure summary, not a live route.",
+          ],
+        };
+      default:
+        return {
+          expeditionLabel: "Saved Expedition",
+          decisionLabel: "Resume Expedition",
+          nextSurfaceLabel: savedRunSummary.phaseLabel,
+          focusLabel: "Expedition Review",
+          summaryLine: "The parked expedition restores directly into the saved shell state.",
+          checklistLines: [
+            `Next shell: ${savedRunSummary.phaseLabel}.`,
+            `The route is still pointed at ${savedRunSummary.bossName}.`,
+            "Archive only if you explicitly want to clear the autosave and start a new class draft.",
+          ],
+        };
+    }
+  }
+
   function getStashPreviewLines(profile: ProfileState, content: GameContent): string[] {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.slice(0, 4) : [];
     return entries.map((entry) => {
@@ -237,6 +333,7 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     // Keep account-facing concerns visible here, but read them through the live account summary seams.
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const resumeGuidance = savedRunSummary ? getSavedRunPhaseGuidance(savedRunSummary, services.appEngine) : null;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
     const stashSummary = accountSummary.stash || {
       entryCount: profileSummary.stashEntries,
@@ -334,7 +431,7 @@
                     ${buildStat("Zones", savedRunSummary.zonesCleared)}
                     ${buildStat("Saved", formatTimestamp(savedRunSummary.savedAt))}
                   </div>
-                  <p>${escapeHtml(`Resume in ${savedRunSummary.safeZoneName} and keep pushing toward ${savedRunSummary.bossName}.`)}</p>
+                  <p>${escapeHtml(`Resume into ${resumeGuidance?.nextSurfaceLabel || savedRunSummary.phaseLabel}. ${resumeGuidance?.summaryLine || `The route is still pointed at ${savedRunSummary.bossName}.`}`)}</p>
                 `
                 : "<p>No autosaved route is currently parked in the hall.</p>"
             }
@@ -437,6 +534,7 @@
     accountSummary: ProfileAccountSummary
   ): string {
     const { buildBadge, buildStat, escapeHtml } = services.renderUtils;
+    const resumeGuidance = savedRunSummary ? getSavedRunPhaseGuidance(savedRunSummary, services.appEngine) : null;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
     const settings = accountSummary.settings || {
       showHints: true,
@@ -486,15 +584,15 @@
           <article class="feature-card hall-link-card">
             <div class="entity-name-row">
               <strong>Expedition Wing</strong>
-              ${buildBadge(savedRunSummary ? "Live Route" : "Fresh Draft", savedRunSummary ? "available" : "cleared")}
+              ${buildBadge(savedRunSummary ? resumeGuidance?.expeditionLabel || "Saved Expedition" : "Fresh Draft", savedRunSummary ? getPhaseTone(savedRunSummary, services.appEngine) : "cleared")}
             </div>
             <div class="entity-stat-grid">
               ${buildStat("Snapshot", savedRunSummary ? savedRunSummary.phaseLabel : "No Save")}
               ${buildStat("Class", savedRunSummary ? savedRunSummary.className : "Open")}
               ${buildStat("Act", savedRunSummary ? savedRunSummary.actTitle : "Start")}
-              ${buildStat("Next", savedRunSummary ? "Resume" : "Draft")}
+              ${buildStat("Next", savedRunSummary ? resumeGuidance?.nextSurfaceLabel || "Resume" : "Draft")}
             </div>
-            <p>${escapeHtml(savedRunSummary ? `Resume the parked ${savedRunSummary.className} expedition without losing route momentum.` : "Open character draft and move directly into the town-prep shell.")}</p>
+            <p>${escapeHtml(savedRunSummary ? `${resumeGuidance?.summaryLine || `Resume the parked ${savedRunSummary.className} expedition without losing route momentum.`}` : "Open character draft and move directly into the town-prep shell.")}</p>
           </article>
           <article class="feature-card hall-link-card">
             <div class="entity-name-row">
@@ -610,6 +708,7 @@
   ): string {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const resumeGuidance = savedRunSummary ? getSavedRunPhaseGuidance(savedRunSummary, services.appEngine) : null;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
     const stashSummary = accountSummary.stash || {
       entryCount: profileSummary.stashEntries,
@@ -686,10 +785,11 @@
     ];
 
     if (savedRunSummary) {
-      nextMoveLabel = "Resume Parked Expedition";
+      nextMoveLabel = resumeGuidance?.decisionLabel || "Resume Parked Expedition";
       nextMoveTone = getPhaseTone(savedRunSummary, services.appEngine);
-      nextMoveCopy = `A ${savedRunSummary.className} route is parked at ${savedRunSummary.phaseLabel}. Resume it if route momentum matters more than retargeting the account.`;
+      nextMoveCopy = `A ${savedRunSummary.className} expedition is parked at ${savedRunSummary.phaseLabel}. ${resumeGuidance?.summaryLine || "Resume it if route momentum matters more than retargeting the account."}`;
       nextMoveLines = [
+        `Next shell: ${resumeGuidance?.nextSurfaceLabel || savedRunSummary.phaseLabel}. Resume focus: ${resumeGuidance?.focusLabel || "Expedition review"}.`,
         `Parked route: ${savedRunSummary.actTitle}, ${savedRunSummary.zonesCleared} zones cleared, next boss ${savedRunSummary.bossName}.`,
         review.availableConvergenceCount > 0
           ? `${review.availableConvergenceCount} convergence lane${review.availableConvergenceCount === 1 ? "" : "s"} are also ready in the hall.`
@@ -1121,6 +1221,7 @@
     savedRunSummary: SavedRunSummary | null
   ): string {
     const { escapeHtml } = services.renderUtils;
+    const resumeGuidance = savedRunSummary ? getSavedRunPhaseGuidance(savedRunSummary, services.appEngine) : null;
     const classCount = appState.registries.classes.length;
     const mercCount = appState.registries.mercenaries.length;
 
@@ -1153,7 +1254,7 @@
           </article>
           <article class="feature-card">
             <strong>Checkpoint Policy</strong>
-            <p>${savedRunSummary ? "One autosaved expedition is already waiting in the hall." : "Autosave snapshots are written outside combat, so you always re-enter from a readable run-state checkpoint."}</p>
+            <p>${savedRunSummary ? `One autosaved expedition is already waiting in the hall. Next shell: ${resumeGuidance?.nextSurfaceLabel || savedRunSummary.phaseLabel}.` : "Autosave snapshots are written outside combat, so you always re-enter from a readable run-state checkpoint."}</p>
           </article>
         </div>
       </section>
@@ -1633,6 +1734,7 @@
 
   function buildSavedRunMarkup(appState: AppState, services: UiRenderServices, savedRunSummary: SavedRunSummary): string {
     const { buildBadge, buildStat, escapeHtml, buildStringList } = services.renderUtils;
+    const resumeGuidance = getSavedRunPhaseGuidance(savedRunSummary, services.appEngine);
     // The front door reviews the saved route, but resume/abandon decisions still resolve through app-engine.
     const confirmSection = appState.ui.confirmAbandonSavedRun
       ? `
@@ -1668,7 +1770,7 @@
               ${buildStat("Deck", savedRunSummary.deckSize)}
               ${buildStat("Belt", savedRunSummary.beltState)}
             </div>
-            <p class="entity-passive">${escapeHtml(`Saved ${formatTimestamp(savedRunSummary.savedAt)}. The route is still pointed at ${savedRunSummary.bossName}.`)}</p>
+            <p class="entity-passive">${escapeHtml(`Saved ${formatTimestamp(savedRunSummary.savedAt)}. Next shell: ${resumeGuidance.nextSurfaceLabel}. ${resumeGuidance.summaryLine}`)}</p>
           </article>
           <article class="feature-card">
             <strong>Momentum Check</strong>
@@ -1684,18 +1786,11 @@
               ${buildStat("Skills", savedRunSummary.unlockedClassSkills)}
               ${buildStat("Runewords", savedRunSummary.activeRunewords)}
             </div>
-            <p>${escapeHtml(`Boss trophies ${savedRunSummary.bossTrophies}, resolved quests ${savedRunSummary.resolvedQuestOutcomes}, active runewords ${savedRunSummary.activeRunewords}.`)}</p>
+            <p>${escapeHtml(`Boss trophies ${savedRunSummary.bossTrophies}, resolved quests ${savedRunSummary.resolvedQuestOutcomes}, active runewords ${savedRunSummary.activeRunewords}. Resume focus: ${resumeGuidance.focusLabel}.`)}</p>
           </article>
           <article class="feature-card">
             <strong>Re-entry Checklist</strong>
-            ${buildStringList(
-              [
-                `Resume in ${savedRunSummary.phaseLabel.toLowerCase()} state without rebuilding the run shell.`,
-                `Town, map, reward, and run-end screens all keep the same account-facing vocabulary on return.`,
-                "Archive only if you explicitly want to clear the autosave and start a new class draft.",
-              ],
-              "log-list reward-list ledger-list"
-            )}
+            ${buildStringList(resumeGuidance.checklistLines, "log-list reward-list ledger-list")}
           </article>
         </div>
         ${confirmSection}

@@ -9,6 +9,7 @@
     getRunewordDefinition,
     isRunewordCompatibleWithItem,
     isRuneAllowedInSlot,
+    resolveRunewordId,
     toNumber,
     uniquePush,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
@@ -19,6 +20,7 @@
     createDefaultInventory,
     createDefaultTownState,
     equipInventoryEntry,
+    findCarriedEntry,
     getEntryLabel,
     hydrateProfileStash,
     hydrateRunLoadout,
@@ -26,6 +28,7 @@
     removeCarriedEntry,
     socketInventoryRune,
     stashCarriedEntry,
+    syncRunewordTracking,
     unequipSlot,
     withdrawStashEntry,
     ensureEquipmentEntryId,
@@ -111,39 +114,45 @@
       .filter(Boolean);
   }
 
-  function getPlanningSummary(profile, content = null) {
+  function getPlanningSummary(profile, content = null): ProfilePlanningSummary {
+    const fallbackPlanning: ProfilePlanningSummary = {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+      overview: {
+        compatibleCharterCount: 0,
+        preparedCharterCount: 0,
+        readyCharterCount: 0,
+        missingBaseCharterCount: 0,
+        socketCommissionCharterCount: 0,
+        repeatForgeReadyCharterCount: 0,
+        trackedBaseCount: 0,
+        highestTrackedBaseTier: 0,
+        totalSocketStepsRemaining: 0,
+        compatibleRunewordIds: [],
+        preparedRunewordIds: [],
+        readyRunewordIds: [],
+        missingBaseRunewordIds: [],
+        fulfilledRunewordIds: [],
+        bestFulfilledActsCleared: 0,
+        bestFulfilledLoadoutTier: 0,
+        nextAction: "idle",
+        nextActionLabel: "Quiet",
+        nextActionSummary: "No active runeword charter is pinned across the account.",
+      },
+      weaponCharter: undefined,
+      armorCharter: undefined,
+    };
     return (
-      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
-        weaponRunewordId: "",
-        armorRunewordId: "",
-        plannedRunewordCount: 0,
-        fulfilledPlanCount: 0,
-        unfulfilledPlanCount: 0,
-        weaponArchivedRunCount: 0,
-        weaponCompletedRunCount: 0,
-        weaponBestActsCleared: 0,
-        armorArchivedRunCount: 0,
-        armorCompletedRunCount: 0,
-        armorBestActsCleared: 0,
-        overview: {
-          compatibleCharterCount: 0,
-          preparedCharterCount: 0,
-          readyCharterCount: 0,
-          missingBaseCharterCount: 0,
-          trackedBaseCount: 0,
-          highestTrackedBaseTier: 0,
-          compatibleRunewordIds: [],
-          preparedRunewordIds: [],
-          readyRunewordIds: [],
-          missingBaseRunewordIds: [],
-          fulfilledRunewordIds: [],
-          bestFulfilledActsCleared: 0,
-          bestFulfilledLoadoutTier: 0,
-          nextAction: "idle",
-          nextActionLabel: "Quiet",
-          nextActionSummary: "No active runeword charter is pinned across the account.",
-        },
-      }
+      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || fallbackPlanning
     );
   }
 
@@ -222,6 +231,29 @@
     const item = getItemDefinition(content, entry?.equipment?.itemId || "");
     const matchedRuneword = plannedRunewords.find((runeword) => isRunewordCompatibleWithItem(item, runeword)) || null;
     return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
+  }
+
+  function getEquipmentPlanningMatch(equipment, content, profile = null) {
+    if (!equipment) {
+      return null;
+    }
+    return getEntryPlanningMatch(
+      {
+        entryId: equipment.entryId || "",
+        kind: "equipment",
+        equipment,
+      },
+      content,
+      profile
+    );
+  }
+
+  function canCommissionSocket(equipment, content) {
+    if (!equipment || equipment.runewordId) {
+      return false;
+    }
+    const item = getItemDefinition(content, equipment.itemId);
+    return Boolean(item) && toNumber(equipment.socketsUnlocked, 0) < toNumber(item?.maxSockets, 0);
   }
 
   function getStashPlanningPressure(profile) {
@@ -378,6 +410,113 @@
       sovereignDiscount -
       ascendantDiscount;
     return Math.max(entry.kind === "rune" ? 4 : 8, fee);
+  }
+
+  function getSocketCommissionCost(run, equipment, content, profile = null, location = "inventory") {
+    if (!canCommissionSocket(equipment, content)) {
+      return 0;
+    }
+    const item = getItemDefinition(content, equipment?.itemId || "");
+    const features = getAccountEconomyFeatures(profile);
+    const planningPressure = getStashPlanningPressure(profile);
+    const planningMatch = getEquipmentPlanningMatch(equipment, content, profile);
+    const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot, content) : null;
+    const nextSocketCount = toNumber(equipment?.socketsUnlocked, 0) + 1;
+    const baseCost = 16 + toNumber(item?.progressionTier, 1) * 10 + nextSocketCount * 7 + run.actNumber * 3;
+    let locationFee = 0;
+    if (location === "stash") {
+      locationFee = 7;
+    } else if (location === "loadout") {
+      locationFee = 3;
+    }
+    const planningLoadFee = Math.min(5, planningPressure.stashEntries) + Math.min(3, planningPressure.socketReadyEntries);
+    const planningDiscount =
+      planningMatch ? 3 + Number(Boolean(planningArchiveState?.unfulfilled)) + Number(features.economyFocus) : 0;
+    const repeatForgeDiscount =
+      planningMatch && toNumber(planningArchiveState?.completedRunCount, 0) > 0 ? 3 + Number(planningPressure.socketReadyEntries > 0) : 0;
+    const featureDiscount =
+      Number(features.economyLedger) +
+      Number(features.salvageTithes) +
+      Number(features.artisanStock) +
+      Number(features.brokerageCharter) +
+      Number(features.chronicleExchange) +
+      Number(features.sovereignExchange) +
+      Number(features.paragonExchange) +
+      Number(features.economyFocus) +
+      Number(features.treasuryExchange) * 2 +
+      Number(features.merchantPrincipate) * 2 +
+      Number(features.ascendantExchange) * 2;
+    return Math.max(location === "stash" ? 16 : 12, baseCost + locationFee + planningLoadFee - planningDiscount - repeatForgeDiscount - featureDiscount);
+  }
+
+  function buildSocketCommissionPreviewLines(run, equipment, content, profile = null, location = "inventory") {
+    const item = getItemDefinition(content, equipment?.itemId || "");
+    const features = getAccountEconomyFeatures(profile);
+    const planningMatch = getEquipmentPlanningMatch(equipment, content, profile);
+    const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot, content) : null;
+    const cost = getSocketCommissionCost(run, equipment, content, profile, location);
+    const lines = [
+      `${item?.name || equipment?.itemId} sockets ${toNumber(equipment?.insertedRunes?.length, 0)}/${toNumber(equipment?.socketsUnlocked, 0)}/${toNumber(
+        item?.maxSockets,
+        0
+      )} -> ${toNumber(equipment?.insertedRunes?.length, 0)}/${toNumber(equipment?.socketsUnlocked, 0) + 1}/${toNumber(item?.maxSockets, 0)}.`,
+      `Commission fee ${cost} gold.`,
+      "Inserted runes stay in place.",
+    ];
+    if (location === "stash" && features.treasuryExchange) {
+      lines.push("Treasury Exchange is routing this socket work directly onto stash stock.");
+    }
+    if (planningMatch) {
+      lines.push(`${planningMatch.slot === "weapon" ? "Weapon" : "Armor"} charter match: ${planningMatch.runeword.name}.`);
+      if (toNumber(planningArchiveState?.completedRunCount, 0) > 0) {
+        lines.push(
+          `Archive already completed ${planningMatch.runeword.name} through Act ${Math.max(
+            1,
+            toNumber(planningArchiveState?.bestActsCleared, 0)
+          )}; this commission is supporting a repeat forge lane.`
+        );
+      } else if (planningArchiveState?.unfulfilled) {
+        lines.push(`Archive charter is still open for ${planningMatch.runeword.name}; this commission advances the pinned base.`);
+      }
+    } else {
+      lines.push("No active runeword charter match on this base.");
+    }
+    return lines;
+  }
+
+  function buildSocketCommissionAction(run, equipment, content, profile, location, actionId, subtitle, description) {
+    if (!canCommissionSocket(equipment, content)) {
+      return null;
+    }
+    if (location === "stash" && !getAccountEconomyFeatures(profile).treasuryExchange) {
+      return null;
+    }
+    const entry = {
+      entryId: actionId.replace(/^.*?_commission_/, ""),
+      kind: "equipment",
+      equipment,
+    };
+    const cost = getSocketCommissionCost(run, equipment, content, profile, location);
+    return buildInventoryAction(
+      entry,
+      content,
+      location === "stash" ? "stash_commission" : "inventory_commission",
+      subtitle,
+      description,
+      buildSocketCommissionPreviewLines(run, equipment, content, profile, location),
+      "Commission",
+      cost,
+      run.gold < cost
+    );
+  }
+
+  function commissionEquipmentSocket(equipment, content) {
+    if (!canCommissionSocket(equipment, content)) {
+      return false;
+    }
+    equipment.socketsUnlocked += 1;
+    equipment.runewordId = resolveRunewordId(equipment, content);
+    return true;
   }
 
   function addVendorEntryToProfileStash(profile, entry, content) {
@@ -941,7 +1080,7 @@
       previewLines.push("Sovereign Exchange is binding deeper archive retention to premium late-market planning pressure.");
     }
     if (features.treasuryExchange) {
-      previewLines.push("Treasury Exchange is opening premium late-act leverage around stash and vendor planning.");
+      previewLines.push("Treasury Exchange is opening premium late-act leverage around stash consignment, socket work, and vendor planning.");
     }
     if (features.paragonExchange) {
       previewLines.push("Paragon Exchange is binding mastery doctrine to trade leverage for premium late-act replacements.");
@@ -957,6 +1096,15 @@
     }
     if (planning.plannedRunewordCount > 0) {
       previewLines.push(`Next charter push: ${planningOverview.nextActionLabel}. ${planningOverview.nextActionSummary}`);
+      if (toNumber(planningOverview.socketCommissionCharterCount, 0) > 0) {
+        previewLines.push(
+          `Commission queue: ${toNumber(planningOverview.totalSocketStepsRemaining, 0)} socket step${
+            toNumber(planningOverview.totalSocketStepsRemaining, 0) === 1 ? "" : "s"
+          } remain across ${toNumber(planningOverview.socketCommissionCharterCount, 0)} staged charter base${
+            toNumber(planningOverview.socketCommissionCharterCount, 0) === 1 ? "" : "s"
+          }.`
+        );
+      }
       if (planningOverview.fulfilledRunewordIds.length > 0) {
         previewLines.push(
           `Archive mastery: ${getPlanningRunewordListLabel(planningOverview.fulfilledRunewordIds, content)} already cleared up through Act ${Math.max(
@@ -1063,6 +1211,19 @@
           disabled: false,
         }
       );
+      const commissionAction = buildSocketCommissionAction(
+        run,
+        equipment,
+        content,
+        profile,
+        "loadout",
+        `inventory_commission_loadout_${slot}`,
+        `Commission ${slot === "weapon" ? "Weapon" : "Armor"} Socket`,
+        `Pay the town artisan to open the next socket on your equipped ${slot}.`
+      );
+      if (commissionAction) {
+        actions.push(commissionAction);
+      }
     });
 
     run.inventory.carried.forEach((entry) => {
@@ -1078,6 +1239,19 @@
             "Equip"
           )
         );
+        const commissionAction = buildSocketCommissionAction(
+          run,
+          entry.equipment,
+          content,
+          profile,
+          "inventory",
+          `inventory_commission_${entry.entryId}`,
+          "Commission Socket",
+          `Pay the town artisan to open the next socket on ${getEntryLabel(entry, content)} without equipping it first.`
+        );
+        if (commissionAction) {
+          actions.push(commissionAction);
+        }
       } else {
         (["weapon", "armor"] as const).forEach((slot) => {
           const equipment = run.loadout?.[slot];
@@ -1124,6 +1298,21 @@
     });
 
     profile.stash.entries.forEach((entry) => {
+      if (entry.kind === "equipment") {
+        const commissionAction = buildSocketCommissionAction(
+          run,
+          entry.equipment,
+          content,
+          profile,
+          "stash",
+          `stash_commission_${entry.entryId}`,
+          "Commission Stash Socket",
+          `Pay the town artisan to open the next socket on ${getEntryLabel(entry, content)} without withdrawing it from stash.`
+        );
+        if (commissionAction) {
+          actions.push(commissionAction);
+        }
+      }
       actions.push(
         buildInventoryAction(
           entry,
@@ -1214,6 +1403,41 @@
       return socketInventoryRune(run, entryId, slot, content);
     }
 
+    if (actionId.startsWith("inventory_commission_loadout_")) {
+      const slot = actionId.replace("inventory_commission_loadout_", "");
+      const equipment = run.loadout?.[slot] || null;
+      if (!equipment) {
+        return { ok: false, message: "No equipped item is available for commission." };
+      }
+      const cost = getSocketCommissionCost(run, equipment, content, profile, "loadout");
+      if (run.gold < cost) {
+        return { ok: false, message: "Not enough gold for that socket commission." };
+      }
+      if (!commissionEquipmentSocket(equipment, content)) {
+        return { ok: false, message: "That equipped item cannot take another commissioned socket." };
+      }
+      run.gold -= cost;
+      syncRunewordTracking(run, content);
+      return { ok: true, message: "Socket commissioned on equipped gear." };
+    }
+
+    if (actionId.startsWith("inventory_commission_")) {
+      const entryId = actionId.replace("inventory_commission_", "");
+      const entry = findCarriedEntry(run, entryId);
+      if (!entry || entry.kind !== "equipment") {
+        return { ok: false, message: "That carried item is no longer available for commission." };
+      }
+      const cost = getSocketCommissionCost(run, entry.equipment, content, profile, "inventory");
+      if (run.gold < cost) {
+        return { ok: false, message: "Not enough gold for that socket commission." };
+      }
+      if (!commissionEquipmentSocket(entry.equipment, content)) {
+        return { ok: false, message: "That carried item cannot take another commissioned socket." };
+      }
+      run.gold -= cost;
+      return { ok: true, message: "Socket commissioned on carried gear." };
+    }
+
     if (actionId.startsWith("inventory_sell_")) {
       return sellCarriedEntry(run, actionId.replace("inventory_sell_", ""), content, profile);
     }
@@ -1224,6 +1448,27 @@
 
     if (actionId.startsWith("stash_withdraw_")) {
       return withdrawStashEntry(run, profile, actionId.replace("stash_withdraw_", ""));
+    }
+
+    if (actionId.startsWith("stash_commission_")) {
+      const entryId = actionId.replace("stash_commission_", "");
+      const entry = profile?.stash?.entries?.find((candidate) => candidate.entryId === entryId) || null;
+      if (!entry || entry.kind !== "equipment") {
+        return { ok: false, message: "That stash item is no longer available for commission." };
+      }
+      if (!getAccountEconomyFeatures(profile).treasuryExchange) {
+        return { ok: false, message: "Treasury Exchange is not unlocked for stash socket work." };
+      }
+      const cost = getSocketCommissionCost(run, entry.equipment, content, profile, "stash");
+      if (run.gold < cost) {
+        return { ok: false, message: "Not enough gold for that socket commission." };
+      }
+      if (!commissionEquipmentSocket(entry.equipment, content)) {
+        return { ok: false, message: "That stash item cannot take another commissioned socket." };
+      }
+      hydrateProfileStash(profile, content);
+      run.gold -= cost;
+      return { ok: true, message: "Socket commissioned on stash gear." };
     }
 
     return { ok: false, message: "Unknown inventory action." };
@@ -1261,7 +1506,7 @@
     if (features.treasuryExchange) {
       const planningPressure = getStashPlanningPressure(profile);
       lines.push(
-        `Treasury Exchange can consign vendor offers directly into stash. Current planning load: ${planningPressure.stashEntries} stash entries, ${planningPressure.socketReadyEntries} socket-ready bases.`
+        `Treasury Exchange can consign vendor offers directly into stash and commission stash sockets directly against stored gear. Current planning load: ${planningPressure.stashEntries} stash entries, ${planningPressure.socketReadyEntries} socket-ready bases.`
       );
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content);
@@ -1276,6 +1521,15 @@
         } already fulfilled in the archive.`
       );
       lines.push(`Next charter push: ${planning.overview?.nextActionLabel || "Quiet"}. ${planning.overview?.nextActionSummary || "No active runeword charter is pinned across the account."}`);
+      if (toNumber(planning.overview?.socketCommissionCharterCount, 0) > 0) {
+        lines.push(
+          `Commission queue: ${toNumber(planning.overview?.totalSocketStepsRemaining, 0)} socket step${
+            toNumber(planning.overview?.totalSocketStepsRemaining, 0) === 1 ? "" : "s"
+          } remain across ${toNumber(planning.overview?.socketCommissionCharterCount, 0)} staged charter base${
+            toNumber(planning.overview?.socketCommissionCharterCount, 0) === 1 ? "" : "s"
+          }.`
+        );
+      }
       if ((planning.overview?.fulfilledRunewordIds || []).length > 0) {
         lines.push(
           `Archive mastery: ${getPlanningRunewordListLabel(planning.overview?.fulfilledRunewordIds || [], content)} already cleared up through Act ${Math.max(
