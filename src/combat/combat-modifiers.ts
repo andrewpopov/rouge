@@ -1,17 +1,17 @@
 (() => {
-  const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const runtimeWindow = (typeof window === "object" ? window : {}) as Window;
 
-  function parseInteger(value: unknown, fallback: number): number {
-    const parsed = Number.parseInt(String(value), 10);
+  function parseInteger(value, fallback) {
+    const parsed = Number.parseInt(value, 10);
     return Number.isInteger(parsed) ? parsed : fallback;
   }
 
-  function appendLog(state: CombatState, message: string): void {
+  function appendLog(state, message) {
     state.log.unshift(message);
     state.log = state.log.slice(0, 18);
   }
 
-  function applyGuard(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState | null | undefined, amount: number): number {
+  function applyGuard(entity, amount) {
     if (!entity || !entity.alive) {
       return 0;
     }
@@ -19,7 +19,7 @@
     return amount;
   }
 
-  function advanceEnemyIntent(enemy: CombatEnemyState | null | undefined, steps: number): void {
+  function advanceEnemyIntent(enemy, steps) {
     if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
       return;
     }
@@ -29,7 +29,7 @@
     enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
   }
 
-  function setEnemyIntentToFirstMatchingKind(enemy: CombatEnemyState | null | undefined, supportedKinds: Set<string>): boolean {
+  function setEnemyIntentToFirstMatchingKind(enemy, supportedKinds) {
     if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
       return false;
     }
@@ -44,7 +44,7 @@
     return true;
   }
 
-  function boostEnemyIntentValues(enemy: CombatEnemyState | null | undefined, supportedKinds: Set<string>, amount: number): boolean {
+  function boostEnemyIntentValues(enemy, supportedKinds, amount) {
     if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
       return false;
     }
@@ -74,7 +74,7 @@
     return changed;
   }
 
-  function applyEncounterModifiers(state: CombatState): void {
+  function applyEncounterModifiers(state) {
     const modifiers = Array.isArray(state?.encounter?.modifiers) ? state.encounter.modifiers : [];
     const attackIntentKinds = new Set(["attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack"]);
     const healingIntentKinds = new Set(["heal_ally", "heal_allies", "heal_and_guard"]);
@@ -146,7 +146,11 @@
       if (modifier.kind === "escort_rotation") {
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const escortTargets = state.enemies.filter((enemy) => {
-          return !enemy.templateId.endsWith("_boss") && (enemy.role === "support" || enemy.role === "brute" || enemy.templateId.includes("_elite"));
+          return !enemy.templateId.endsWith("_boss") && (
+            enemy.role === "support" ||
+            enemy.role === "brute" ||
+            enemy.templateId.includes("_elite")
+          );
         });
         escortTargets.forEach((enemy) => applyGuard(enemy, value));
         escortTargets.forEach((enemy) => advanceEnemyIntent(enemy, 1));

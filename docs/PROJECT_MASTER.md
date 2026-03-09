@@ -84,6 +84,7 @@ When docs conflict, use this order.
 - [src/run/run-progression.ts](/Users/andrew/proj/rouge/src/run/run-progression.ts)
 - [src/run/run-reward-flow.ts](/Users/andrew/proj/rouge/src/run/run-reward-flow.ts)
 - [src/run/run-factory.ts](/Users/andrew/proj/rouge/src/run/run-factory.ts)
+- [src/combat/combat-modifiers.ts](/Users/andrew/proj/rouge/src/combat/combat-modifiers.ts)
 - [src/combat/combat-engine.ts](/Users/andrew/proj/rouge/src/combat/combat-engine.ts)
 - [src/app/app-engine.ts](/Users/andrew/proj/rouge/src/app/app-engine.ts)
 - [src/app/main.ts](/Users/andrew/proj/rouge/src/app/main.ts)

@@ -1282,6 +1282,10 @@ interface CombatEngineApi {
   getFirstLivingEnemyId(state: CombatState): string;
 }
 
+interface CombatModifiersApi {
+  applyEncounterModifiers(state: CombatState): void;
+}
+
 interface CombatMercenaryRouteBonusState {
   contractAttackBonus?: number;
   contractBehaviorBonus?: number;
@@ -2106,10 +2110,6 @@ interface UiCommonApi {
     renderUtils: RenderUtilsApi,
     options?: AccountTreeReviewOptions
   ): string;
-}
-
-interface CombatModifiersApi {
-  applyEncounterModifiers(state: CombatState): void;
 }
 
 interface UiPhaseViewApi {

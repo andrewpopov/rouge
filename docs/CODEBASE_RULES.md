@@ -104,6 +104,9 @@ Rules:
 - `src/run/run-factory.ts`
   - owns `RunState` creation plus the public orchestration surface for the run domain
 
+- `src/combat/combat-modifiers.ts`
+  - owns encounter-modifier retuning, opening-script shifts, and modifier log messaging for the combat domain
+
 - `src/items/item-data.ts`
   - owns authored item, rune, runeword, and rune-reward template data for the item domain
 
@@ -120,7 +123,7 @@ Rules:
   - remains the public browser entry and reward-choice orchestrator for the item domain
 
 - `src/combat/combat-engine.ts`
-  - owns deterministic encounter resolution and encounter-local mutation
+  - remains the public combat entry and deterministic encounter-resolution surface on top of `src/combat/combat-modifiers.ts`
 
 - `src/app/app-engine.ts`
   - owns top-level app phases and the handoff between run and combat
@@ -153,7 +156,7 @@ The tests intentionally exercise `generated/` output through a shared `vm` brows
 4. `src/app/app-engine.ts` creates `AppState` and preloads selectable classes and mercenaries.
 5. `src/app/app-engine.ts` starts a run by asking `src/character/class-registry.ts` for the hero shell and starter deck, then asking `src/run/run-factory.ts` to create `RunState`.
 6. `src/app/app-engine.ts` enters an encounter by asking `src/run/run-factory.ts` for the next encounter and passing run-state overrides into `src/combat/combat-engine.ts`.
-7. `src/combat/combat-engine.ts` resolves the encounter without mutating broader run progression directly.
+7. `src/combat/combat-engine.ts` resolves the encounter without mutating broader run progression directly, while `src/combat/combat-modifiers.ts` owns the private encounter-modifier scripting seam.
 8. `src/app/app-engine.ts` snapshots encounter results back into `RunState`.
 9. `src/run/run-reward-flow.ts` and `src/run/run-progression.ts` apply reward and progression mutation through the public run-domain surface.
 
@@ -177,6 +180,7 @@ The tests intentionally exercise `generated/` output through a shared `vm` brows
 - Internal extraction is allowed, but the public browser contract should stay stable until the entry strategy changes everywhere together.
 - If a public browser entry depends on a private helper script, keep that load order aligned in both `index.html` and `tests/helpers/browser-harness.ts`.
 - Treat the manifest arrays in `tests/helpers/browser-harness.ts` as the compiled-browser source of truth for helper boot order; do not duplicate those lists into ad hoc suite-local loaders.
+- The combat helper chain currently loads as `combat-modifiers`, then `combat-engine`; keep that order aligned in both browser and compiled-browser test boot paths.
 - The validator helper chain currently loads as `content-validator-world-paths`, `content-validator-world-opportunities`, `content-validator-runtime-content`, then `content-validator`; keep that order aligned in both browser and compiled-browser test boot paths.
 - The quest helper chain currently loads as `world-node-outcomes`, then `world-node-engine`; keep that order aligned in both browser and compiled-browser test boot paths.
 - If a public runtime name changes, update `index.html`, tests, and docs in the same change.

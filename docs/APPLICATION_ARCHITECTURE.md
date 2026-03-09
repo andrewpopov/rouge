@@ -51,7 +51,8 @@ The live workspace already has four active implementation layers.
 - `src/run/run-progression.ts` owns level growth, class-tree progression, and derived run bonuses
 - `src/run/run-reward-flow.ts` owns encounter reward assembly, reward application, and act-completion transitions
 - `src/run/run-factory.ts` owns run creation plus the public orchestration surface for the run domain
-- `src/combat/combat-engine.ts` owns deterministic encounter resolution
+- `src/combat/combat-modifiers.ts` owns encounter-modifier retuning, opening-script shifts, and modifier-side log messaging for combat encounters
+- `src/combat/combat-engine.ts` owns deterministic encounter resolution and routes encounter-modifier application through `src/combat/combat-modifiers.ts`
 - `src/items/item-data.ts` owns authored item, rune, runeword, and rune-reward templates
 - `src/items/item-catalog.ts` owns runtime item, rune, and runeword catalog helpers plus equipment normalization
 - `src/items/item-loadout.ts` owns loadout, inventory, stash, sockets, and derived-combat-bonus helpers
@@ -74,6 +75,7 @@ The live workspace already has four active implementation layers.
 
 - `tests/*.test.ts` compile into `generated/tests/*.test.js` and load the browser runtime in a VM harness
 - `tests/helpers/browser-harness.ts` owns the shared compiled-browser harness used by the split app-engine and combat suites and centralizes the runtime manifest arrays for validator, encounter, item, run, persistence, and UI helper chains
+- `index.html` and `tests/helpers/browser-harness.ts` now load the combat helpers in the order `combat-modifiers` -> `combat-engine`
 - `index.html` and `tests/helpers/browser-harness.ts` now load the validator helpers in the order `content-validator-world-paths` -> `content-validator-world-opportunities` -> `content-validator-runtime-content` -> `content-validator`
 - `index.html` and `tests/helpers/browser-harness.ts` now load the quest helpers in the order `world-node-outcomes` -> `world-node-engine`
 - `scripts/build.js` copies `index.html`, emitted runtime files, assets, and seed data into `dist/`
