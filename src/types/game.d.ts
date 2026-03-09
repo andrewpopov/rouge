@@ -1932,6 +1932,15 @@ interface SavedRunSummary {
   zonesCleared: number;
 }
 
+interface SavedRunPhaseGuidance {
+  expeditionLabel: string;
+  decisionLabel: string;
+  nextSurfaceLabel: string;
+  focusLabel: string;
+  summaryLine: string;
+  checklistLines: string[];
+}
+
 interface RenderUtilsApi {
   escapeHtml(value: unknown): string;
   buildStat(label: string, value: unknown): string;
@@ -2211,6 +2220,24 @@ interface UiPhaseViewApi {
   render(root: HTMLElement, appState: AppState, services: UiRenderServices): void;
 }
 
+interface FrontDoorExpeditionViewApi {
+  getSavedRunPhaseGuidance(savedRunSummary: SavedRunSummary, appEngine: AppEngineApi): SavedRunPhaseGuidance;
+  buildHallNavigatorMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    accountSummary: ProfileAccountSummary
+  ): string;
+  buildHallDecisionSupportMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    accountSummary: ProfileAccountSummary
+  ): string;
+  buildGuidedStartMarkup(appState: AppState, services: UiRenderServices, savedRunSummary: SavedRunSummary | null): string;
+  buildExpeditionSectionMarkup(appState: AppState, services: UiRenderServices, savedRunSummary: SavedRunSummary | null): string;
+}
+
 interface Window {
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
@@ -2247,6 +2274,7 @@ interface Window {
   ROUGE_PERSISTENCE: PersistenceApi;
   ROUGE_APP_ENGINE: AppEngineApi;
   ROUGE_UI_COMMON: UiCommonApi;
+  ROUGE_FRONT_DOOR_EXPEDITION_VIEW: FrontDoorExpeditionViewApi;
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
