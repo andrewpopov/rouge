@@ -76,18 +76,27 @@ This batch should make Acts I-V feel materially broader, not just numerically la
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. boss-and-escort follow-through pass
-- deepen the live post-covenant late-route fabric so detour and escalation materially retune boss courts, escorts, or equivalent act-defining fights instead of only swapping branch or miniboss or boss packages and rewards
+Epic and tickets:
+
+- epic: `ROUGE-3` Late-Route Consequence Depth
+- `ROUGE-11` Differentiate detour and escalation by act
+- `ROUGE-12` Push route consequences deeper into encounters, bosses, and rewards
+- `ROUGE-13` Harden late-route validation and reachability coverage
+- `ROUGE-19` Add late-route determinism and validation coverage
+
+1. `ROUGE-11` boss-and-escort follow-through pass
+- the detour-and-escalation consequence ladders are now live on `master`
+- deepen the post-covenant late-route fabric so detour and escalation materially retune boss courts, escorts, or equivalent act-defining fights instead of only swapping branch or miniboss or boss packages and rewards
 - if you introduce a second late-route family beyond detour and escalation, keep it act-facing, materially different, and reachable through authored-path validation
 
-2. consequence-to-boss-and-escort pass
+2. `ROUGE-12` consequence-to-boss-and-escort pass
 - make earlier quest, shrine, and opportunity outcomes influence later nodes, detour or escalation packages, boss scripts, escort packages, or reward consequences more deeply than the current four-package branch-or-miniboss-or-boss ladder
-- extend node and validation coverage in `tests/app-engine-world-nodes.test.ts`, `tests/app-engine-world-nodes-late-routes.test.ts`, and `tests/app-engine-world-node-validation.test.ts`
+- build from the now-live `world-node-outcomes` seam and the dedicated late-route suites instead of putting more giant logic back into `tests/app-engine-world-nodes.test.ts`
 
-3. mercenary follow-through
+3. `ROUGE-13` and `ROUGE-19` validation and determinism pass
+- extend node and validation coverage in `tests/app-engine-world-nodes-route-chain.test.ts`, `tests/app-engine-world-nodes-route-payoffs.test.ts`, `tests/app-engine-world-nodes-late-routes.test.ts`, and `tests/app-engine-world-node-validation.test.ts`
 - only add more mercenary route-perk depth if the boss-or-escort follow-through or a new route family creates a real new payoff seam
 - if you do, keep the new perks validated and covered in both runtime validation and combat or node tests
-- broaden modifier, escort, or boss packages only where they materially express the new route consequences
 
 ## Chunk 1: Consequence Payoff And Late-Route Follow-Through
 

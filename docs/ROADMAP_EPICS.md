@@ -11,9 +11,10 @@ Use this file as the short epic-level status map. For live implementation truth,
 | `ROUGE-3` World Content And Combat Depth | `active` | Agent 3 | Deepen late-route consequence fabrics, encounter breadth, and validation where authored content can still drift silently. |
 | `ROUGE-21` Full Player-Facing Shell | `active` | Agent 1 | Extend the live hall, town, route, reward, and run-end continuity surfaces without redefining backend seams. |
 | `ROUGE-25` Release Confidence And Test Quality | `implemented` | Agent 5 | `npm run quality`, `npm run test:coverage`, built-bundle smoke coverage, and harness drift protection are now live on `master`. |
+| `ROUGE-29` Built-Bundle Smoke And Coverage Follow-Through | `implemented` | Agent 5 | Built-bundle smoke now reaches encounter, reward, act transition, run summary, and direct bad-seed boot failure, with coverage-driven shell and route backfill landed on `master`. |
 
 ## Near-Term Notes
 
-- Agent 5's original `ROUGE-25` batch is complete; the next quality follow-on should expand browser smoke deeper into encounter, reward, act transition, and run summary surfaces.
+- Agent 5's `ROUGE-25` and `ROUGE-29` batches are complete on `master`.
 - Browser-only boot scripts remain e2e-owned for now: `generated/src/content/seed-loader.js` and `generated/src/app/main.js`.
-- The next roadmap re-scope should add explicit tickets for the post-landing Agent 5 follow-on instead of keeping the completed `ROUGE-26` to `ROUGE-28` batch as the active brief.
+- The next Agent 5 follow-on should focus on persisted quality-artifact history and carefully chosen browser-only fault injection beyond the current stable progression and targeted boot-failure checks.

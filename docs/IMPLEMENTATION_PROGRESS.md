@@ -33,11 +33,11 @@ Verified against:
 
 Most recent verification:
 
-- latest commands run: `npm run check`
+- latest commands run: `npm run quality`, `npm run test:coverage`
 - compiled browser tests passing: `180`
 - compiled browser tests skipped: `0`
-- built-bundle smoke tests passing: `1`
-- coverage gates passing: `91.01` lines, `66.06` branches, `95.77` functions
+- built-bundle smoke tests passing: `3`
+- coverage gates passing: `91.10` lines, `66.22` branches, `95.89` functions
 
 ## System Tracker
 
@@ -54,7 +54,7 @@ Most recent verification:
 | Quests, shrines, and events | `implemented` | Quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, legacy-opportunity, reckoning-opportunity, recovery-opportunity, accord-opportunity, covenant-opportunity, detour-opportunity, escalation-opportunity, and main-opportunity node families, broader shrine blessings, quest outcome ledger, follow-up and chain consequence tracking, consequence-gated opportunity variants, and non-combat route rewards through app or run flow | Broader route topology and later-act node-family expansion beyond the current legacy-plus-reckoning-plus-recovery-plus-accord-into-covenant-plus-detour-plus-escalation pass |
 | UI extraction | `implemented` | `src/app/main.ts` is a thin boot or dispatch bridge, phase-owned UI modules live under `src/ui/*`, and split compiled-browser app-engine suites plus a shared browser harness cover shell, progression, node, and validation flows | Dedicated unlock or settings surfaces beyond the current shell |
 | Content validation | `implemented` | Seed or runtime reference validation, world-node catalog validation, authored-path reachability checks through the split `content-validator-world-paths`, `content-validator-world-opportunities`, and `content-validator-runtime-content` helper chain, elite-affix validation, and clearer boot-time failures | Broader normalization coverage for future encounter modifiers and route families |
-| Automated verification | `implemented` | Strict lint, reproducible build packaging, compiled-browser regression suites, a top-level `npm run check` gate, a built-bundle browser smoke path through `npm run test:e2e`, a full `npm run quality` gate, explicit coverage thresholds through `npm run test:coverage`, and a harness-to-bundle drift regression test | Broader browser smoke depth beyond the current outer-loop restore or return path and richer persisted reporting around quality history |
+| Automated verification | `implemented` | Strict lint, reproducible build packaging, compiled-browser regression suites, a top-level `npm run check` gate, a built-bundle browser smoke path through `npm run test:e2e` and `npm run test:e2e:built`, a full `npm run quality` gate, explicit coverage thresholds through `npm run test:coverage`, direct browser bad-seed boot-failure coverage, and a harness-to-bundle drift regression test | Richer persisted reporting around quality history and broader browser-only fault injection beyond the current stable progression and targeted boot-failure paths |
 
 ## Milestone Tracker
 
@@ -215,7 +215,7 @@ Remaining:
 These are the next high-value implementation gates from the current baseline:
 
 1. keep the centralized compiled-browser harness manifest authoritative, keep shrinking the remaining large suites starting with `tests/app-engine.test.ts`, build any follow-on `world-node-engine` extraction from `src/quests/world-node-outcomes.ts`, and reduce `max-lines` suppression debt without breaking the compiled-browser harness
-2. broaden the landed release-confidence lane from the current outer-loop smoke path into encounter, reward, act-transition, and run-summary browser coverage while keeping the gate reliable
+2. turn the live quality lane's console-only output into persisted artifact history or trend reporting, then widen browser-only fault injection only where the shipped bundle still owns unique behavior beyond the current stable progression and targeted boot-failure paths
 3. grow the live archive or economy or mastery trees into broader capstone-style account systems, stronger account review data, longer-horizon economy sinks, and a broader second wave beyond the current convergence layer
 4. turn the current shared account-meta continuity board and hall or town or map or reward or act-transition or run-end decision-support shell into richer charter or convergence drilldowns and broader account controls without re-expanding `src/app/main.ts`
 5. broaden authored route-side catalogs beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, legacy-opportunity, reckoning-opportunity, recovery-opportunity, accord-opportunity, covenant-opportunity, detour-opportunity, and escalation-opportunity fabric
