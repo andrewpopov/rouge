@@ -48,7 +48,7 @@ Implemented now:
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, and departure-readiness framing
 - return-to-town flow from the world map without losing route progress
 - schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, stash-ready planning-charter staging summaries, cross-charter planning-overview summaries with next-action pressure, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates plus content-aware planning-charter sanitization during hydrate and migration
-- strict lint, reproducible build packaging, compiled-browser regression verification through `npm run check`, a built-bundle browser smoke path through `npm run test:e2e`, a full `npm run quality` gate, explicit coverage thresholds through `npm run test:coverage`, and a harness-to-bundle drift regression test
+- strict lint, reproducible build packaging, compiled-browser regression verification through `npm run check`, a built-bundle browser smoke path through `npm run test:e2e`, a full `npm run quality` gate, explicit coverage thresholds through `npm run test:coverage`, a harness-to-bundle drift regression test, and local quality-artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots
 
 Not implemented now:
 
@@ -57,7 +57,7 @@ Not implemented now:
 - broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant before opening detour and escalation per act
 - broader encounter-local modifier catalogs and escort or boss scripting beyond the current sixteen-modifier combat baseline
 - final late-run loot tuning and broader feature-gated reward variety beyond the current higher-tier item, rune, and runeword catalog
-- broader browser smoke depth beyond the current outer-loop restore or return path and richer persisted quality-history reporting
+- broader browser smoke depth beyond the current outer-loop restore or return path and broader browser-only fault injection beyond the current stable progression and targeted boot-failure paths
 
 ## Documentation Layers
 

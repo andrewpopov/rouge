@@ -24,12 +24,9 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 
 ## Active Tickets
 
-- epic: `ROUGE-29` Built-Bundle Smoke And Coverage Follow-Through
-- `ROUGE-30`
-- `ROUGE-31`
-- `ROUGE-32`
-
-Work these in the order set in Tira and by the project manager.
+- Agent 5's `ROUGE-25` and `ROUGE-29` batches are already landed on `master`.
+- The live baseline now includes `npm run quality`, `npm run test:coverage`, built-bundle smoke through encounter or reward or act transition or run summary plus direct bad-seed boot failure, and local quality-artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots.
+- Next pickup stays Tira-owned. Until a new ticket is assigned, treat browser-only fault injection and the next coverage-driven regression backfill as the follow-on seam.
 
 ## Execution Rules
 

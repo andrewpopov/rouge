@@ -17,4 +17,5 @@ Use this file as the short epic-level status map. For live implementation truth,
 
 - Agent 5's `ROUGE-25` and `ROUGE-29` batches are complete on `master`.
 - Browser-only boot scripts remain e2e-owned for now: `generated/src/content/seed-loader.js` and `generated/src/app/main.js`.
-- The next Agent 5 follow-on should focus on persisted quality-artifact history and carefully chosen browser-only fault injection beyond the current stable progression and targeted boot-failure checks.
+- Local quality-artifact history is now live under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots.
+- The next Agent 5 follow-on should use that history to choose the next browser-only fault injection and coverage-driven regression backfill beyond the current stable progression and targeted boot-failure checks.

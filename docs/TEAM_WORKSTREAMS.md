@@ -166,7 +166,7 @@ The current chunking is:
    - missing-test backfill across shell, account, route, and harness seams
    - harness-to-bundle drift protection with Agent 4 coordination on shared browser bootstrap ownership
    - maintain the now-live deeper built-bundle smoke through encounter, reward, act transition, and run summary plus the direct browser boot-failure coverage
-   - push the next follow-on toward persisted quality-artifact history and carefully chosen browser-only fault injection
+   - maintain the now-live local artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots and use it to drive the next browser-only fault injection or regression backfill
 
 Current start order for this round:
 
@@ -177,8 +177,8 @@ Current start order for this round:
 2. Agent 5
    - keep the landed release-confidence lane green through `npm run quality` and `npm run test:coverage`
    - treat the shipped-bundle encounter, reward, act-transition, run-summary, and bad-seed boot-failure smoke checks as the new baseline instead of future work
-   - turn the console-only quality lane into persisted artifact history or trend reporting without forking the bootstrap
-   - use fresh coverage output to drive the next high-value shell, account, route, and harness backfill, and only widen browser-only fault injection where the bundle still owns unique behavior
+   - treat the local quality-artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots as the new baseline instead of future work
+   - use fresh coverage output and that local artifact history to drive the next high-value shell, account, route, and harness backfill, and only widen browser-only fault injection where the bundle still owns unique behavior
 3. Agent 2
    - build on the live second-wave account growth with richer archive or stash or economy read models
    - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter and sovereign-market layer
