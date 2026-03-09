@@ -982,6 +982,7 @@
   }
 
   function buildVaultLogisticsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
     const stashSummary = accountSummary.stash || {
@@ -1043,6 +1044,9 @@
       .map((entry) => getItemLabel(appState, entry.equipment.itemId));
     const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
+    const charterStageLines = common.getPlanningCharterStageLines(planning, appState.content);
+    const readyCharterCount = (planning.weaponCharter?.readyBaseCount || 0) + (planning.armorCharter?.readyBaseCount || 0);
+    const preparedCharterCount = (planning.weaponCharter?.preparedBaseCount || 0) + (planning.armorCharter?.preparedBaseCount || 0);
     const { tone: forecastTone, copy: forecastCopy } = getVaultForecast(
       planning.plannedRunewordCount,
       stashSummary.socketReadyEquipmentCount,
@@ -1104,13 +1108,13 @@
             <div class="entity-stat-grid">
               ${buildStat("Weapon", plannedWeaponLabel)}
               ${buildStat("Armor", plannedArmorLabel)}
-              ${buildStat("Fulfilled", planning.fulfilledPlanCount)}
-              ${buildStat("Missed", planning.unfulfilledPlanCount)}
+              ${buildStat("Ready", readyCharterCount)}
+              ${buildStat("Prepared", preparedCharterCount)}
             </div>
             ${buildStringList(
               [
-                `Weapon charter: ${plannedWeaponLabel}.`,
-                `Armor charter: ${plannedArmorLabel}.`,
+                charterStageLines[0],
+                charterStageLines[1],
                 `Archive fulfillment: ${planning.fulfilledPlanCount} cleared, ${planning.unfulfilledPlanCount} missed.`,
                 `Best charter pushes: weapon act ${planning.weaponBestActsCleared}, armor act ${planning.armorBestActsCleared}.`,
               ],
@@ -1240,6 +1244,9 @@
     };
     const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
+    const charterStageLines = common.getPlanningCharterStageLines(planning, appState.content);
+    const readyCharterCount = (planning.weaponCharter?.readyBaseCount || 0) + (planning.armorCharter?.readyBaseCount || 0);
+    const preparedCharterCount = (planning.weaponCharter?.preparedBaseCount || 0) + (planning.armorCharter?.preparedBaseCount || 0);
 
     const buildSettingButton = (settingKey: string, enabled: boolean, enabledLabel: string, disabledLabel: string): string => {
       return `
@@ -1393,8 +1400,8 @@
             <div class="entity-stat-grid">
               ${buildStat("Weapon", plannedWeaponLabel)}
               ${buildStat("Armor", plannedArmorLabel)}
-              ${buildStat("Targets", planning.plannedRunewordCount)}
-              ${buildStat("Scope", "Account")}
+              ${buildStat("Ready", readyCharterCount)}
+              ${buildStat("Prepared", preparedCharterCount)}
             </div>
             ${buildPlanningButtons("weapon")}
             ${buildPlanningButtons("armor")}
@@ -1402,6 +1409,8 @@
               [
                 "Runeword charters now live in profile-owned planning state instead of a temporary town-only preference.",
                 "Late vendor bases, rune routing, and treasury-exchange consignment pressure now read these charters when steering stash planning.",
+                charterStageLines[0],
+                charterStageLines[1],
                 planning.weaponRunewordId
                   ? `Weapon ledger: ${planning.weaponCompletedRunCount}/${planning.weaponArchivedRunCount} archived runs fulfilled ${plannedWeaponLabel}.`
                   : "Weapon ledger: no weapon charter archived yet.",

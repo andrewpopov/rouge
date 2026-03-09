@@ -195,6 +195,9 @@
     const plannedRunewordLabels = [planning.weaponRunewordId, planning.armorRunewordId]
       .filter(Boolean)
       .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || runewordId);
+    const charterStageLines = common.getPlanningCharterStageLines(planning, appState.content);
+    const readyCharterCount = (planning.weaponCharter?.readyBaseCount || 0) + (planning.armorCharter?.readyBaseCount || 0);
+    const preparedCharterCount = (planning.weaponCharter?.preparedBaseCount || 0) + (planning.armorCharter?.preparedBaseCount || 0);
     const townFeatureLabels = (appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
     const liveBonusBadgeLabel = review.availableConvergenceCount > 0 ? "Convergence Ready" : accountSummary.focusedTreeTitle || "Unset";
     let liveBonusTone = "locked";
@@ -288,13 +291,15 @@
             <div class="entity-stat-grid">
               ${buildStat("Weapon", plannedWeaponLabel)}
               ${buildStat("Armor", plannedArmorLabel)}
-              ${buildStat("Socket Bases", stashSummary.socketReadyEquipmentCount)}
-              ${buildStat("Missed", planning.unfulfilledPlanCount)}
+              ${buildStat("Ready", readyCharterCount)}
+              ${buildStat("Prepared", preparedCharterCount)}
             </div>
             ${buildStringList(
               [
                 `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`,
                 `Trade pressure: ${getPreviewLabel(tradeActionTitles, "no open trade or stash actions")}.`,
+                charterStageLines[0],
+                charterStageLines[1],
                 `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
               ],
               "log-list reward-list ledger-list"

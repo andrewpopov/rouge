@@ -141,6 +141,11 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
+  assert.match(root.innerHTML, /Route Decision Desk/);
+  assert.match(root.innerHTML, /What Changed/);
+  assert.match(root.innerHTML, /What Is Blocked/);
+  assert.match(root.innerHTML, /Account Pressure Carry-Through/);
+  assert.match(root.innerHTML, /Next Route Action/);
   assert.match(root.innerHTML, /Act Pressure/);
   assert.match(root.innerHTML, /Route Intel/);
   assert.match(root.innerHTML, /Consequence Ledger/);
@@ -166,11 +171,26 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
+  assert.match(root.innerHTML, /Continuity Delta Desk/);
+  assert.match(root.innerHTML, /Route Carry-Through/);
+  assert.match(root.innerHTML, /Next Shell Handoff/);
   assert.match(root.innerHTML, /Choose A Mutation/);
   assert.match(root.innerHTML, /Combat Reward/);
   assert.match(root.innerHTML, /Advance Guide/);
   assert.match(root.innerHTML, /Permanent Mutation/);
   assert.match(root.innerHTML, /Before And After/);
+
+  state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
+  state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
+  state.phase = appEngine.PHASES.ACT_TRANSITION;
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+  assert.match(root.innerHTML, /Act Delta Review/);
+  assert.match(root.innerHTML, /Carry Forward State/);
+  assert.match(root.innerHTML, /Next Town Orders/);
 });
 
 test("world-map and reward shell render node-specific quest and aftermath guidance", () => {
@@ -238,6 +258,46 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   render();
   assert.match(root.innerHTML, /Aftermath Follow-Up/);
   assert.match(root.innerHTML, /Triggered by/);
+});
+
+test("reward continuity desk tracks world-map, act-transition, and run-end handoffs", () => {
+  const { content, combatEngine, appEngine, appShell, runFactory, browserWindow, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  const encounterResult = appEngine.selectZone(state, openingZoneId);
+  assert.equal(encounterResult.ok, true);
+  state.combat.outcome = "victory";
+  appEngine.syncEncounterOutcome(state);
+  assert.equal(state.phase, appEngine.PHASES.REWARD);
+
+  render();
+  assert.match(root.innerHTML, /After this claim the shell moves to World Map\./);
+
+  state.run.pendingReward.endsAct = true;
+  render();
+  assert.match(root.innerHTML, /After this claim the shell moves to Act Transition\./);
+
+  state.run.pendingReward.endsAct = true;
+  state.run.pendingReward.endsRun = true;
+  render();
+  assert.match(root.innerHTML, /After this claim the shell moves to Run-End Review\./);
 });
 
 test("action dispatcher drives the front-door continue and abandon shell flow", () => {
@@ -347,6 +407,131 @@ test("action dispatcher drives the front-door continue and abandon shell flow", 
   assert.ok(archivedProfile);
   assert.equal(archivedProfile.runHistory.length, 1);
   assert.equal(archivedProfile.runHistory[0].outcome, "abandoned");
+});
+
+test("action dispatcher drives the outer loop from the hall through world map and back to town", () => {
+  const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, createActionTarget, runFactory, seedBundle } =
+    createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+  const syncCombatResultAndRender = () => {
+    appEngine.syncEncounterOutcome(state);
+    render();
+  };
+
+  render();
+  assert.match(root.innerHTML, /Open A New Expedition/);
+
+  let handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "start-character-select" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.CHARACTER_SELECT);
+  assert.match(root.innerHTML, /Recruit A Hero And Companion/);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "select-class", classId: "sorceress" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.ui.selectedClassId, "sorceress");
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "select-mercenary", mercenaryId: "iron_wolf" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.ui.selectedMercenaryId, "iron_wolf");
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "start-run" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.SAFE_ZONE);
+  assert.match(root.innerHTML, /Town Districts/);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "leave-safe-zone" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+  assert.match(root.innerHTML, /Route Atlas/);
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "select-zone", zoneId: openingZoneId }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.match(root.innerHTML, /Battle Orders/);
+
+  state.combat.outcome = "victory";
+  syncCombatResultAndRender();
+  assert.equal(state.phase, appEngine.PHASES.REWARD);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "claim-reward-choice", choiceId: state.run.pendingReward.choices[0].id }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "return-safe-zone" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.SAFE_ZONE);
+  assert.match(root.innerHTML, /Town Districts/);
+  assert.equal(runFactory.getZoneById(state.run, openingZoneId).encountersCleared, 1);
 });
 
 test("action dispatcher drives runeword planning controls through the front-door shell", () => {
@@ -758,6 +943,8 @@ test("front-door account hall renders richer unlock, vault, archive-signal, and 
   assert.match(root.innerHTML, /Rune reserve: El\./);
   assert.match(root.innerHTML, /Recent feature burst: Economy Ledger, War College\./);
   assert.match(root.innerHTML, /Recent charter pressure: White, Lionheart(?:, Steel)?\./);
+  assert.match(root.innerHTML, /Weapon charter staging: White -&gt; 0 ready, 0 prepared, best base not parked yet\./);
+  assert.match(root.innerHTML, /Armor charter staging: Lionheart -&gt; 0 ready, 0 prepared, best base not parked yet\./);
   assert.match(root.innerHTML, /Next capstone:/);
 });
 

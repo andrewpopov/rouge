@@ -123,6 +123,211 @@
     return lines.length > 0 ? lines.slice(-6).reverse() : ["No route consequences are logged yet. Resolve a quest, shrine, or aftermath lane to seed this ledger."];
   }
 
+  function buildRouteDecisionDeskMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    run: RunState,
+    currentZones: ZoneState[],
+    recommendedZone: ZoneState | null,
+    reachableZoneIds: Set<string>,
+    lockedByPrereqs: number,
+    unclearedBeforeBoss: number,
+    consequencePreviewLines: string[]
+  ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
+    const review = accountSummary.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const planning = accountSummary.planning || {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+    };
+    const totalWorldOutcomes =
+      Object.keys(run.world?.questOutcomes || {}).length +
+      Object.keys(run.world?.shrineOutcomes || {}).length +
+      Object.keys(run.world?.eventOutcomes || {}).length +
+      Object.keys(run.world?.opportunityOutcomes || {}).length;
+    const blockedRouteTitles = currentZones.filter((zone) => zone.status === "locked" && zone.prerequisites.length > 0).map((zone) => zone.title);
+    const availableCombatRoutes = currentZones.filter(
+      (zone) => reachableZoneIds.has(zone.id) && (zone.kind === "battle" || zone.kind === "miniboss")
+    ).length;
+    const availableDecisionRoutes = currentZones.filter(
+      (zone) => reachableZoneIds.has(zone.id) && ["quest", "shrine", "event", "opportunity"].includes(zone.kind)
+    ).length;
+    const recentShiftLines =
+      consequencePreviewLines.length > 0
+        ? consequencePreviewLines.slice(0, 3)
+        : ["No route-side outcome has changed yet. Clear pressure or resolve a side lane to start the ledger."];
+
+    let accountPressureLabel = "No Account Pressure";
+    let accountPressureTone = "locked";
+    let accountPressureLines = [
+      `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+      "The map stays run-owned, but it keeps the current account focus visible beside the next route call.",
+      "Archive deltas still wait for run-end, so only live account pressure shows here.",
+    ];
+
+    if (review.availableConvergenceCount > 0) {
+      accountPressureLabel = "Convergence Ready";
+      accountPressureTone = "available";
+      accountPressureLines = [
+        `Ready convergence lane${review.availableConvergenceCount === 1 ? "" : "s"}: ${review.availableConvergenceCount}.`,
+        `Next convergence: ${review.nextConvergenceTitle || "all current convergence lanes are online"}.`,
+        "The map does not resolve account progression, but it keeps the breakpoint visible before another route click.",
+      ];
+    } else if (planning.plannedRunewordCount > 0) {
+      accountPressureLabel = "Charters Live";
+      accountPressureTone = "available";
+      accountPressureLines = [
+        `Pinned charters: ${planning.plannedRunewordCount}.`,
+        `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+        "Town and reward still resolve the actual item pressure, but the map keeps the stakes visible before you enter more combat.",
+      ];
+    } else if (accountSummary.focusedTreeId) {
+      accountPressureLabel = accountSummary.focusedTreeTitle || "Focused Tree";
+      accountPressureTone = "cleared";
+    }
+
+    let nextRouteLabel = "Review Locks";
+    let nextRouteTone = "locked";
+    let nextRouteCopy = "No clean route entry is open right now. Read the visible locks and return after another route state changes.";
+    let nextRouteLines = [
+      `Blocked routes: ${getPreviewLabel(blockedRouteTitles, "none visible")}.`,
+      unclearedBeforeBoss === 0
+        ? `${run.bossName} is already the last unresolved stop on the act map.`
+        : `Boss gate pressure still requires ${unclearedBeforeBoss} more non-boss route${unclearedBeforeBoss === 1 ? "" : "s"}.`,
+      "The shell keeps the next action readable here without taking ownership of the route rules.",
+    ];
+
+    if (recommendedZone) {
+      const familyLabel = getNodeFamilyLabel(recommendedZone);
+      const nodePresentation = getNodePresentation(recommendedZone, run);
+      if (recommendedZone.kind === "boss") {
+        nextRouteLabel = "Enter Boss Gate";
+        nextRouteTone = unclearedBeforeBoss === 0 ? "cleared" : common.getBossStatusTone(recommendedZone.status);
+        nextRouteCopy = `${recommendedZone.title} is the final route call. A clear hands the shell into reward, then act transition, then the next town.`;
+        nextRouteLines = [
+          nodePresentation.detailLines[0],
+          "Clicking the boss keeps the normal combat to reward flow, then shifts into the transition wrapper instead of back to the map.",
+          `Most recent route change: ${recentShiftLines[0]}`,
+        ];
+      } else if (recommendedZone.kind === "battle" || recommendedZone.kind === "miniboss") {
+        nextRouteLabel = recommendedZone.kind === "miniboss" ? "Hit Pressure Route" : "Take Battle Path";
+        nextRouteTone = "available";
+        nextRouteCopy = `${recommendedZone.title} is the cleanest next push. This click re-enters combat, then returns through reward before the map updates again.`;
+        nextRouteLines = [
+          `${familyLabel} still resolves through combat instead of the ledger-only reward path.`,
+          `Open side lanes beside it: ${availableDecisionRoutes}.`,
+          `Most recent route change: ${recentShiftLines[0]}`,
+        ];
+      } else {
+        nextRouteLabel = "Resolve Route Ledger";
+        nextRouteTone = recommendedZone.status === "available" ? "available" : "locked";
+        nextRouteCopy = `${recommendedZone.title} is the cleanest next route-side decision. It pays off through reward without restarting combat, then returns to the map with new lane state.`;
+        nextRouteLines = [
+          nodePresentation.detailLines[0],
+          `${familyLabel} nodes keep the route readable by recording consequence state directly into the run ledger.`,
+          `Blocked routes behind it: ${getPreviewLabel(blockedRouteTitles, "no locked follow-up route is visible")}.`,
+        ];
+      }
+    }
+
+    return `
+      <section class="panel flow-panel">
+        <div class="panel-head">
+          <h2>Route Decision Desk</h2>
+          <p>The map now mirrors the hall and town boards: what changed, what is blocked, what account pressure is riding this expedition, and what the next click will hand back into.</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>What Changed</strong>
+              ${buildBadge(`${totalWorldOutcomes} logged`, totalWorldOutcomes > 0 ? "available" : "locked")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Ledger", totalWorldOutcomes)}
+              ${buildStat("Combat", availableCombatRoutes)}
+              ${buildStat("Decision", availableDecisionRoutes)}
+              ${buildStat("Reachable", currentZones.filter((zone) => reachableZoneIds.has(zone.id)).length)}
+            </div>
+            ${buildStringList(recentShiftLines, "log-list reward-list ledger-list")}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>What Is Blocked</strong>
+              ${buildBadge(lockedByPrereqs > 0 ? `${lockedByPrereqs} locked` : "Open", lockedByPrereqs > 0 ? "locked" : "cleared")}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Prereqs", lockedByPrereqs)}
+              ${buildStat("Boss Gate", unclearedBeforeBoss === 0 ? "Ready" : `${unclearedBeforeBoss} left`)}
+              ${buildStat("Side Lanes", availableDecisionRoutes)}
+              ${buildStat("Battles", availableCombatRoutes)}
+            </div>
+            ${buildStringList(
+              [
+                `Blocked route titles: ${getPreviewLabel(blockedRouteTitles, "none visible")}.`,
+                unclearedBeforeBoss === 0
+                  ? `${run.bossName} is ready if you want to cash out the act immediately.`
+                  : `${run.bossName} still waits behind remaining pressure routes.`,
+                "Prerequisite locks stay on-screen so later consequence branches remain readable instead of hidden.",
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Account Pressure Carry-Through</strong>
+              ${buildBadge(accountPressureLabel, accountPressureTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
+              ${buildStat("Next Milestone", accountSummary.nextMilestoneTitle || "Cleared")}
+              ${buildStat("Ready Conv.", review.availableConvergenceCount)}
+              ${buildStat("Charters", planning.plannedRunewordCount)}
+            </div>
+            ${buildStringList(accountPressureLines, "log-list reward-list ledger-list")}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Next Route Action</strong>
+              ${buildBadge(nextRouteLabel, nextRouteTone)}
+            </div>
+            <p>${escapeHtml(nextRouteCopy)}</p>
+            <div class="entity-stat-grid">
+              ${buildStat("Family", recommendedZone ? getNodeFamilyLabel(recommendedZone) : "None")}
+              ${buildStat("Zone", recommendedZone ? recommendedZone.title : "No open route")}
+              ${buildStat("Boss", common.getBossStatusLabel(currentZones.find((zone) => zone.kind === "boss")?.status))}
+              ${buildStat("Town", run.safeZoneName)}
+            </div>
+            ${buildStringList(nextRouteLines, "log-list reward-list ledger-list")}
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
   function getNodePresentation(zone: ZoneState, run: RunState) {
     // Map guidance is inferred from zone metadata and world-node records; resolution logic stays outside the shell.
     const catalog = runtimeWindow.ROUGE_WORLD_NODES?.getCatalog?.() || null;
@@ -340,6 +545,17 @@
       body: `
         ${common.renderRunStatus(run, "World Map", services.renderUtils)}
         ${common.renderNotice(appState, services.renderUtils)}
+        ${buildRouteDecisionDeskMarkup(
+          appState,
+          services,
+          run,
+          currentZones,
+          recommendedZone,
+          reachableZoneIds,
+          lockedByPrereqs,
+          unclearedBeforeBoss,
+          consequencePreviewLines
+        )}
         <section class="panel flow-panel">
           <div class="panel-head">
             <h2>Act Pressure</h2>

@@ -314,6 +314,14 @@
     }
   }
 
+  function humanizeId(id: string): string {
+    return id
+      .split("_")
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(" ");
+  }
+
   function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
     const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
     if (filtered.length === 0) {
@@ -322,6 +330,29 @@
 
     const visible = filtered.slice(0, maxItems);
     return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
+  }
+
+  function getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[] {
+    const normalizedPlanning = planning || null;
+    const buildStageLine = (slotLabel: string, runewordId: string, charter?: ProfilePlanningCharterSummary) => {
+      const activeRunewordId = charter?.runewordId || runewordId;
+      if (!activeRunewordId) {
+        return `${slotLabel} charter staging: no ${slotLabel.toLowerCase()} charter pinned.`;
+      }
+
+      const runewordLabel = content?.runewordCatalog?.[activeRunewordId]?.name || humanizeId(activeRunewordId);
+      const readyCount = getBonusValue(charter?.readyBaseCount);
+      const preparedCount = getBonusValue(charter?.preparedBaseCount);
+      const bestBaseLabel = charter?.bestBaseItemId
+        ? content?.itemCatalog?.[charter.bestBaseItemId]?.name || humanizeId(charter.bestBaseItemId)
+        : "best base not parked yet";
+      return `${slotLabel} charter staging: ${runewordLabel} -> ${readyCount} ready, ${preparedCount} prepared, ${bestBaseLabel}.`;
+    };
+
+    return [
+      buildStageLine("Weapon", normalizedPlanning?.weaponRunewordId || "", normalizedPlanning?.weaponCharter),
+      buildStageLine("Armor", normalizedPlanning?.armorRunewordId || "", normalizedPlanning?.armorCharter),
+    ];
   }
 
   function getAccountTreeTone(tree: ProfileAccountTreeSummary | null): string {
@@ -498,6 +529,7 @@
     getObjectiveSummary,
     getTownFeatureLabel,
     getTutorialLabel,
+    getPlanningCharterStageLines,
     buildAccountTreeReviewMarkup,
   };
 })();
