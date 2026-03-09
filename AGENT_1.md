@@ -27,19 +27,16 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 ## Active Tickets
 
 - previous completed epic: `ROUGE-21` Account Meta Continuity
-- active epic: `ROUGE-52` Expedition Launch And Town Prep Clarity
-- `ROUGE-53`
-- `ROUGE-54`
-- `ROUGE-55`
+- previous completed epic: `ROUGE-52` Expedition Launch And Town Prep Clarity
+- next Agent 1 Tira assignment: pending
 
 Work these in the order set in Tira and by the project manager.
 
 ## Current Focus
 
 - `ROUGE-21` is landed on `master`: the shared account-meta continuity board, charter or convergence drilldowns, and their compiled-browser coverage are now live.
-- Start with `ROUGE-53`: make the hall-to-character-select-to-safe-zone path read like one expedition launch flow.
-- Then land `ROUGE-54`: before-or-after comparison treatment for the most important town-prep actions.
-- Finish with `ROUGE-55`: compiled-browser regression coverage for launch and town-prep continuity.
+- `ROUGE-52` is landed on `master`: the hall-to-character-select-to-safe-zone expedition launch flow, the safe-zone before-or-after desk for the highest-value town-prep actions, and the compiled-browser shell coverage for both passes are now live.
+- Hold the shell line green and wait for the next Agent 1 ticket in Tira before opening another large UI pass.
 
 ## Execution Rules
 

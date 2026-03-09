@@ -204,6 +204,9 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Progression Board/);
   assert.match(root.innerHTML, /Account Signals/);
   assert.match(root.innerHTML, /Prep Comparison Board/);
+  assert.match(root.innerHTML, /Before Or After Desk/);
+  assert.match(root.innerHTML, /Recovery Reset/);
+  assert.match(root.innerHTML, /Market Reset/);
   assert.match(root.innerHTML, /Live Account Bonuses/);
   assert.match(root.innerHTML, /Account Progression Focus/);
   assert.match(root.innerHTML, /World Ledger/);
@@ -332,6 +335,65 @@ test("expedition launch flow persists from hall through character select into to
   assert.match(root.innerHTML, new RegExp(`Town arrival: ${state.run.safeZoneName}\\.`));
   assert.match(root.innerHTML, new RegExp(`Current launch carries Sorceress with ${selectedMercenaryName}\\.`));
   assert.match(root.innerHTML, /Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route\./);
+});
+
+test("safe-zone shell turns priority town prep actions into before-or-after reads", () => {
+  const { content, combatEngine, appEngine, appShell, browserWindow, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+
+  state.run.hero.currentLife = Math.max(1, state.run.hero.maxLife - 12);
+  state.run.mercenary.currentLife = Math.max(1, state.run.mercenary.maxLife - 9);
+  state.run.belt.current = 1;
+  state.run.progression.skillPointsAvailable = 1;
+  state.run.gold = 240;
+  state.run.town.vendor.refreshCount = 2;
+  state.run.town.vendor.stock = [];
+
+  const townActions = browserWindow.ROUGE_TOWN_SERVICES.listActions(content, state.run, state.profile);
+  const healerAction = townActions.find((action) => action.id === "healer_restore_party");
+  const quartermasterAction = townActions.find((action) => action.id === "quartermaster_refill_belt");
+  const progressionAction = townActions.find((action) => action.id === "progression_spend_vitality");
+  const marketAction = townActions.find((action) => action.id === "vendor_refresh_stock");
+  assert.ok(healerAction);
+  assert.ok(quartermasterAction);
+  assert.ok(progressionAction);
+  assert.ok(marketAction);
+
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /Before Or After Desk/);
+  assert.match(
+    root.innerHTML,
+    new RegExp(
+      `Projected recovery: hero ${state.run.hero.currentLife}\\/${state.run.hero.maxLife} -&gt; ${state.run.hero.maxLife}\\/${state.run.hero.maxLife}, mercenary ${state.run.mercenary.currentLife}\\/${state.run.mercenary.maxLife} -&gt; ${state.run.mercenary.maxLife}\\/${state.run.mercenary.maxLife}, gold ${state.run.gold} -&gt; ${state.run.gold - healerAction.cost}\\.`
+    )
+  );
+  assert.match(
+    root.innerHTML,
+    new RegExp(
+      `Projected refill: belt ${state.run.belt.current}\\/${state.run.belt.max} -&gt; ${state.run.belt.max}\\/${state.run.belt.max}, gold ${state.run.gold} -&gt; ${state.run.gold - quartermasterAction.cost}\\.`
+    )
+  );
+  assert.match(root.innerHTML, /Projected spend: skill points 1 -&gt; 0, vitality drill rank 0 -&gt; 1\./i);
+  assert.match(
+    root.innerHTML,
+    new RegExp(
+      `Projected market reset: gold ${state.run.gold} -&gt; ${state.run.gold - marketAction.cost}, refresh ${state.run.town.vendor.refreshCount} -&gt; ${state.run.town.vendor.refreshCount + 1}, stock rerolls after the fee\\.`
+    )
+  );
 });
 
 test("world-map and reward shell render node-specific quest and aftermath guidance", () => {

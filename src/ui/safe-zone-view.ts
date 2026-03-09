@@ -361,6 +361,19 @@
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
+    const commonWithPrep = common as UiCommonApi & {
+      buildTownPrepOutcomeMarkup?: (
+        run: RunState,
+        derivedParty: DerivedPartyState,
+        healerActions: TownAction[],
+        quartermasterActions: TownAction[],
+        progressionActions: TownAction[],
+        vendorActions: TownAction[],
+        mercenaryActions: TownAction[],
+        accountSummary: ProfileAccountSummary,
+        renderUtils: RenderUtilsApi
+      ) => string;
+    };
     const { escapeHtml, buildBadge, buildStat, buildStringList } = services.renderUtils;
     const run = appState.run;
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
@@ -435,6 +448,7 @@
       <div class="cta-row hall-jump-row">
         <a class="neutral-btn" href="#town-departure">Departure Board</a>
         <a class="neutral-btn" href="#town-loadout">Loadout Bench</a>
+        <a class="neutral-btn" href="#town-prep-outcomes">Before / After Desk</a>
         <a class="neutral-btn" href="#town-drilldowns">Service Drilldowns</a>
         <a class="neutral-btn" href="#town-districts">Town Districts</a>
       </div>
@@ -579,6 +593,20 @@
               missingMercenaryLife,
               missingBelt
             )}
+
+            ${
+              commonWithPrep.buildTownPrepOutcomeMarkup?.(
+                run,
+                derivedParty,
+                healerActions,
+                quartermasterActions,
+                progressionActions,
+                vendorActions,
+                mercenaryActions,
+                accountSummary,
+                services.renderUtils
+              ) || ""
+            }
 
             ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
               copy:
