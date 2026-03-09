@@ -213,7 +213,7 @@ Remaining:
 
 These are the next high-value implementation gates from the current baseline:
 
-1. keep the centralized compiled-browser harness manifest authoritative, extract the first safe `world-node-engine` helper seams, reduce `max-lines` suppression debt, and keep the remaining large suites shrinking without breaking the compiled-browser harness
+1. keep the centralized compiled-browser harness manifest authoritative, keep shrinking the remaining large suites starting with `tests/app-engine.test.ts`, build any follow-on `world-node-engine` extraction from `src/quests/world-node-outcomes.ts`, and reduce `max-lines` suppression debt without breaking the compiled-browser harness
 2. broaden the landed release-confidence lane from the current outer-loop smoke path into encounter, reward, act-transition, and run-summary browser coverage while keeping the gate reliable
 3. grow the live archive or economy or mastery trees into broader capstone-style account systems, stronger account review data, longer-horizon economy sinks, and a broader second wave beyond the current convergence layer
 4. extend the current hall or town or map or reward or act-transition or run-end decision-support shell into a stronger shared account-meta layer without re-expanding `src/app/main.ts`
@@ -227,7 +227,7 @@ Current Agent 4 focus order:
 2. keep late-route validation behind `src/content/content-validator-world-opportunities.ts` and only shrink the remaining early world-node checks out of `src/content/content-validator.ts` when a follow-on pass is warranted
 3. keep `src/content/encounter-registry.ts` thin by routing generated-encounter work through the new helper chain
 4. keep `src/run/run-factory.ts` and `src/run/run-reward-flow.ts` thin after the earlier run-domain and reward-flow extractions
-5. stage the first coordinated `src/quests/world-node-engine.ts` helper extraction before any broader pass on that file
+5. only expand `src/quests/world-node-engine.ts` from the new `src/quests/world-node-outcomes.ts` seam before any broader pass on that file
 
 ## Update Rule
 

@@ -64,13 +64,15 @@ The runtime is functionally strong, but the codebase has obvious pressure points
 - `src/content/encounter-registry.ts` is down to roughly `0.05k` lines after the encounter-builder extraction
 - `src/content/encounter-registry-builders.ts` now owns act encounter-set assembly
 - `src/content/encounter-registry-enemy-builders.ts` now owns act enemy-pool normalization, elite-affix lookups, and generated enemy template or intent builders
+- `src/quests/world-node-outcomes.ts` now owns quest, shrine, event, and opportunity outcome recording while `src/quests/world-node-engine.ts` remains the public reward-resolution surface for authored world nodes
 - the item runtime is now split across `src/items/item-data.ts`, `src/items/item-catalog.ts`, `src/items/item-loadout.ts`, `src/items/item-town.ts`, and `src/items/item-system.ts`
 - `src/items/item-system.ts` is down to roughly `0.5k` lines after the split and the browser seam now loads the helper chain through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`
-- the app-engine test surface is now split across `tests/app-engine.test.ts`, `tests/app-engine-world-nodes.test.ts`, `tests/app-engine-world-nodes-late-routes.test.ts`, and `tests/app-engine-world-node-validation.test.ts`; the remaining largest suites are still `tests/app-engine-world-nodes.test.ts` at roughly `2.3k` lines and `tests/app-engine.test.ts` at roughly `1.8k` lines
+- the app-engine test surface is now split across `tests/app-engine.test.ts`, `tests/app-engine-world-nodes.test.ts`, `tests/app-engine-world-nodes-route-chain.test.ts`, `tests/app-engine-world-nodes-route-payoffs.test.ts`, `tests/app-engine-world-nodes-late-routes.test.ts`, and `tests/app-engine-world-node-validation.test.ts`; the remaining largest suites are now `tests/app-engine.test.ts` at roughly `1.9k` lines, `tests/app-engine-world-node-validation.test.ts` at roughly `1.5k` lines, and `tests/app-engine-world-nodes-late-routes.test.ts` at roughly `1.2k` lines
 - `src/run/run-factory.ts` is roughly `0.3k` lines after the route-builder and reward-flow extractions
 - `tests/helpers/browser-harness.ts` is the shared compiled-browser seam and now centralizes the shared runtime manifests so validator and encounter helper boot order have one maintained source of truth per seam while the large suites shrink further
 - the validator helper chain now loads as `content-validator-world-paths` -> `content-validator-world-opportunities` -> `content-validator-runtime-content` -> `content-validator` through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`, so those files must stay aligned whenever any private validator helper changes boot order
 - the encounter-registry helper chain now loads through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`, so those files must stay aligned whenever generated encounter boot order changes
+- the quest helper chain now loads as `world-node-outcomes` -> `world-node-engine` through `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts`, so those files must stay aligned whenever the private quest helper boot order changes
 
 Current lint-debt signals:
 
@@ -127,7 +129,7 @@ Work this list from top to bottom unless the project manager explicitly reorders
 2. keep `src/content/content-validator.ts` thin and keep late-route validation behind `src/content/content-validator-world-opportunities.ts`; if a follow-on pass is warranted, target the remaining early world-node checks instead of re-expanding the public entry
 3. keep `src/content/encounter-registry.ts` thin by preventing logic drift back out of `src/content/encounter-registry-builders.ts` or `src/content/encounter-registry-enemy-builders.ts`
 4. keep `src/run/run-factory.ts` and `src/run/run-reward-flow.ts` thin by preventing logic drift back into them
-5. stage the first safe extractions out of `src/quests/world-node-engine.ts` only after coordinating with Agent 3
+5. only expand `src/quests/world-node-engine.ts` from the new `src/quests/world-node-outcomes.ts` seam and only after coordinating with Agent 3
 
 Do not start with `world-node-engine.ts` as a giant rewrite. Earn that extraction by shrinking the surrounding hotspots first and by proving the pattern in smaller modules.
 
@@ -136,13 +138,14 @@ Do not start with `world-node-engine.ts` as a giant rewrite. Earn that extractio
 Land this batch in this order unless the project manager explicitly reorders it:
 
 1. next suite split
-- reduce the next oversized compiled-browser suite, starting with `tests/app-engine-world-nodes.test.ts`
+- reduce the next oversized compiled-browser suite, starting with `tests/app-engine.test.ts`
 - keep `tests/app-engine*.test.ts` aligned with `tests/helpers/browser-harness.ts`
 - keep the new manifest arrays in `tests/helpers/browser-harness.ts` as the single maintained source of truth when browser seams change
-- keep the resulting split easier to scan than the current single large world-node suite
+- keep the resulting split easier to scan than the current large app-engine shell or account suite
 
-2. first `world-node-engine` helper extraction
-- coordinate with Agent 3 and extract one contained late-route or consequence-resolution helper out of `src/quests/world-node-engine.ts` without starting a giant rewrite
+2. follow-on `world-node-engine` helper extraction
+- coordinate with Agent 3 and extract one contained follow-on helper out of `src/quests/world-node-engine.ts` by building from `src/quests/world-node-outcomes.ts` instead of starting a giant rewrite
+- keep `index.html`, `tests/helpers/browser-harness.ts`, and `src/types/game.d.ts` aligned whenever the quest helper boot order changes
 - keep `src/content/encounter-registry.ts`, `src/run/run-factory.ts`, and `src/run/run-reward-flow.ts` thin by routing new logic back through their helper seams
 
 3. follow-on seam prep
@@ -227,7 +230,7 @@ The next completed Agent 4 batch should leave the repo in this shape:
 
 - the current worktree is green again
 - the compiled-browser app-engine test surface has a clear suite layout and shared harness ownership
-- at least one runtime hotspot under `src/content` is materially smaller
+- at least one runtime hotspot is materially smaller or easier to extend through a stable private helper seam
 - at least one touched `max-lines` suppression is removed or a cleaner follow-on removal path is documented
 - the team docs describe the new seam accurately
 - feature agents have a lower-conflict surface for their next work
@@ -267,4 +270,4 @@ The next completed Agent 4 batch should leave the repo in this shape:
 
 ## Pickup Prompt
 
-Build Rouge's next architecture batch as a repeating loop. Start from the now-centralized compiled-browser manifests in `tests/helpers/browser-harness.ts`, keep them as the only maintained boot-order source, and keep shrinking the largest remaining compiled-browser suites without weakening coverage. Treat `src/content/content-validator-world-paths.ts`, `src/content/content-validator-world-opportunities.ts`, and `src/content/content-validator-runtime-content.ts` as the stable private helper chain behind `src/content/content-validator.ts`, and do not let late-route validation or shared reward or grant helpers drift back into the public entry. Use the existing encounter-registry, run-domain, and item-domain helper chains as the owner-preserving extraction pattern, keep `window.ROUGE_*` and single-writer ownership intact, document helper boot order whenever it changes, and coordinate with Agent 3 on the first safe `world-node-engine.ts` helper extraction instead of attempting a giant rewrite. Keep `npm run check` green before landing coherent commits on `master`.
+Build Rouge's next architecture batch as a repeating loop. Start from the now-centralized compiled-browser manifests in `tests/helpers/browser-harness.ts`, keep them as the only maintained boot-order source, and keep shrinking the largest remaining compiled-browser suites without weakening coverage, starting with `tests/app-engine.test.ts`. Treat `src/content/content-validator-world-paths.ts`, `src/content/content-validator-world-opportunities.ts`, and `src/content/content-validator-runtime-content.ts` as the stable private helper chain behind `src/content/content-validator.ts`, and do not let late-route validation or shared reward or grant helpers drift back into the public entry. Build any further quest-domain extraction from `src/quests/world-node-outcomes.ts` before touching `src/quests/world-node-engine.ts` again, keep `window.ROUGE_*` and single-writer ownership intact, document helper boot order whenever it changes, and coordinate with Agent 3 before expanding the quest helper chain. Keep `npm run check` green before landing coherent commits on `master`.

@@ -113,6 +113,8 @@ When docs conflict, use this order.
 - [tests/helpers/browser-harness.ts](/Users/andrew/proj/rouge/tests/helpers/browser-harness.ts)
 - [tests/app-engine-shell.test.ts](/Users/andrew/proj/rouge/tests/app-engine-shell.test.ts)
 - [tests/app-engine-world-nodes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes.test.ts)
+- [tests/app-engine-world-nodes-route-chain.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-route-chain.test.ts)
+- [tests/app-engine-world-nodes-route-payoffs.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-route-payoffs.test.ts)
 - [tests/app-engine-world-nodes-late-routes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-late-routes.test.ts)
 - [tests/app-engine-world-node-validation.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-node-validation.test.ts)
 - [tests/app-engine-progression.test.ts](/Users/andrew/proj/rouge/tests/app-engine-progression.test.ts)

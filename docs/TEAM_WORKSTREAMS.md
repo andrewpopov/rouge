@@ -157,7 +157,7 @@ The current chunking is:
    - maintain the `content-validator-world-paths`, `content-validator-world-opportunities`, and `content-validator-runtime-content` seams
    - maintain the new `encounter-registry` helper chain
    - keep `content-validator.ts` thin and keep late-route validation out of the public entry
-   - first safe `world-node-engine` helper extraction
+   - maintain the `world-node-outcomes` -> `world-node-engine` quest helper seam and only expand that extraction incrementally
    - lint suppression and structural debt reduction
    - architecture rule maintenance
 5. Agent 5 owns release confidence and automated verification:
@@ -170,8 +170,8 @@ Current start order for this round:
 
 1. Agent 4
    - keep `tests/helpers/browser-harness.ts` as the single boot-order source of truth
-   - continue the remaining app-engine suite cleanup, starting with the biggest world-node-heavy suite
-   - stage the first safe `world-node-engine` helper extraction with Agent 3 after the harness pass is stable
+   - continue the remaining app-engine suite cleanup, starting with `tests/app-engine.test.ts`
+   - only expand the quest helper chain from `src/quests/world-node-outcomes.ts` with Agent 3 after the harness pass is stable
 2. Agent 5
    - keep the landed release-confidence lane green through `npm run quality` and `npm run test:coverage`
    - deepen browser smoke from the outer-loop restore or return path into encounter, reward, act-transition, and run-summary checkpoints without forking the bootstrap
@@ -188,12 +188,12 @@ Current start order for this round:
 Current landing guidance:
 
 1. land shared type, profile, and progression contract changes first
-2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and only do further validator or `world-node-engine` follow-on work from the new helper chain and coordinated extraction seam
+2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and only do further validator or `world-node-engine` follow-on work from the new helper chain and `src/quests/world-node-outcomes.ts`
 3. let Agent 5 broaden the landed quality gate on top of Agent 4's stable browser bootstrap instead of forking it
 4. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
 5. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts, building on the live detour or escalation fabric instead of re-establishing it
 6. let Agent 1 land the next shell pass on top of the latest profile, route, archive, reward, and node surfaces, using the new hall or town or map or reward or act-transition or run-end decision-support model as the baseline
-7. let Agent 4 only keep expanding `world-node-engine` extractions after the first coordinated helper pass lands cleanly
+7. let Agent 4 only keep expanding `world-node-engine` extractions after the `world-node-outcomes` helper pass and the next suite split settle cleanly
 
 ## Integration Checklist
 
