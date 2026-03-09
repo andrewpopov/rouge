@@ -214,7 +214,7 @@ Remaining:
 
 These are the next high-value implementation gates from the current baseline:
 
-1. keep the centralized compiled-browser harness manifest authoritative, keep shrinking the remaining large suites starting with `tests/app-engine.test.ts`, build any follow-on `world-node-engine` extraction from `src/quests/world-node-outcomes.ts`, and reduce `max-lines` suppression debt without breaking the compiled-browser harness
+1. keep the centralized compiled-browser harness manifest authoritative, keep shrinking the remaining large suites starting with `tests/app-engine-world-nodes-late-routes.test.ts`, build any follow-on `world-node-engine` extraction from `src/quests/world-node-outcomes.ts`, and reduce `max-lines` suppression debt without breaking the compiled-browser harness
 2. turn the live quality lane's console-only output into persisted artifact history or trend reporting, then widen browser-only fault injection only where the shipped bundle still owns unique behavior beyond the current stable progression and targeted boot-failure paths
 3. grow the live archive or economy or mastery trees into broader capstone-style account systems, stronger account review data, longer-horizon economy sinks, and a broader second wave beyond the current convergence layer
 4. turn the current shared account-meta continuity board and hall or town or map or reward or act-transition or run-end decision-support shell into richer charter or convergence drilldowns and broader account controls without re-expanding `src/app/main.ts`

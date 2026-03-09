@@ -57,6 +57,7 @@
     "backline_screen",
     "vanguard_rush",
     "escort_command",
+    "escort_rotation",
     "crossfire_lanes",
     "war_drums",
     "triage_command",
@@ -66,6 +67,7 @@
     "elite_onslaught",
     "sniper_nest",
     "boss_screen",
+    "boss_onslaught",
     "phalanx_march",
   ]);
 
@@ -95,7 +97,7 @@
   const MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY = 1;
   const MIN_MERCENARY_ROUTE_PERK_BONUS_FAMILIES = 5;
   const MIN_ELITE_AFFIX_FAMILIES_PER_ACT = 4;
-  const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 16;
+  const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 18;
 
   function pushError(errors, message) { errors.push(message); }
 

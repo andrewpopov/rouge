@@ -71,6 +71,17 @@
           target: 4,
           getProgress: (metrics) => metrics.completedRuns,
         },
+        {
+          id: "sovereign_annals",
+          title: "Sovereign Annals",
+          description: "Archive eight expeditions after Eternal Annals to turn the ledger into a sovereign long-horizon archive.",
+          rewardFeatureId: "sovereign_annals",
+          tier: 5,
+          isCapstone: true,
+          prerequisiteIds: ["eternal_annals"],
+          target: 8,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
       ],
     },
     {
@@ -149,6 +160,17 @@
           target: 4000,
           getProgress: (metrics) => metrics.totalGoldCollected,
         },
+        {
+          id: "merchant_principate",
+          title: "Merchant Principate",
+          description: "Collect 6500 total gold after Treasury Exchange to open a sovereign late-market lane across the account.",
+          rewardFeatureId: "merchant_principate",
+          tier: 5,
+          isCapstone: true,
+          prerequisiteIds: ["treasury_exchange"],
+          target: 6500,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
       ],
     },
     {
@@ -217,6 +239,17 @@
           target: 12,
           getProgress: (metrics) => metrics.totalBossesDefeated,
         },
+        {
+          id: "legend_doctrine",
+          title: "Legend Doctrine",
+          description: "Defeat sixteen bosses after Apex Doctrine to codify a second-wave mastery summit for late-act pivots.",
+          rewardFeatureId: "legend_doctrine",
+          tier: 5,
+          isCapstone: true,
+          prerequisiteIds: ["apex_doctrine"],
+          target: 16,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
       ],
     },
   ];
@@ -244,6 +277,30 @@
       rewardFeatureId: "paragon_exchange",
       effectSummary: "Pushes late-act vendors and equipment rewards toward premium socket-ready pivots.",
       requiredFeatureIds: ["treasury_exchange", "apex_doctrine"],
+    },
+    {
+      id: "sovereign_exchange",
+      title: "Sovereign Exchange",
+      description: "Bind Sovereign Annals to Merchant Principate so archived depth and sovereign trade both reinforce late-market planning.",
+      rewardFeatureId: "sovereign_exchange",
+      effectSummary: "Deepens archive retention and late-act vendor leverage around stash-planning pressure.",
+      requiredFeatureIds: ["sovereign_annals", "merchant_principate"],
+    },
+    {
+      id: "legendary_annals",
+      title: "Legendary Annals",
+      description: "Bind Sovereign Annals to Legend Doctrine so long-form archive memory reinforces the next mastery summit.",
+      rewardFeatureId: "legendary_annals",
+      effectSummary: "Adds another archive-backed layer to late-act mastery and boss progression pivots.",
+      requiredFeatureIds: ["sovereign_annals", "legend_doctrine"],
+    },
+    {
+      id: "ascendant_exchange",
+      title: "Ascendant Exchange",
+      description: "Bind Merchant Principate to Legend Doctrine so sovereign trade and late mastery demand premium Act V replacements.",
+      rewardFeatureId: "ascendant_exchange",
+      effectSummary: "Pushes premium Act V vendors and equipment rewards toward the strongest staged replacements.",
+      requiredFeatureIds: ["merchant_principate", "legend_doctrine"],
     },
   ];
 
@@ -535,7 +592,10 @@
       (hasAccountFeature(profile, "heroic_annals") ? 10 : 0) +
       (hasAccountFeature(profile, "mythic_annals") ? 10 : 0) +
       (hasAccountFeature(profile, "eternal_annals") ? 15 : 0) +
+      (hasAccountFeature(profile, "sovereign_annals") ? 15 : 0) +
       (hasAccountFeature(profile, "chronicle_exchange") ? 5 : 0) +
+      (hasAccountFeature(profile, "sovereign_exchange") ? 5 : 0) +
+      (hasAccountFeature(profile, "legendary_annals") ? 5 : 0) +
       (archiveFocusActive ? 5 : 0)
     );
   }

@@ -1662,6 +1662,9 @@ interface AccountEconomyFeatures {
   treasuryExchange: boolean;
   chronicleExchange: boolean;
   paragonExchange: boolean;
+  merchantPrincipate: boolean;
+  sovereignExchange: boolean;
+  ascendantExchange: boolean;
   economyFocus: boolean;
 }
 
@@ -2064,6 +2067,13 @@ interface AccountMetaContinuityOptions {
   copy?: string;
 }
 
+interface AccountMetaDrilldownOptions {
+  title?: string;
+  copy?: string;
+  charterFollowThrough?: string;
+  convergenceFollowThrough?: string;
+}
+
 interface UiCommonApi {
   getServices(): UiRenderServices;
   getBonusValue(value: unknown): number;
@@ -2085,11 +2095,21 @@ interface UiCommonApi {
     renderUtils: RenderUtilsApi,
     options?: AccountMetaContinuityOptions
   ): string;
+  buildAccountMetaDrilldownMarkup(
+    appState: AppState,
+    accountSummary: ProfileAccountSummary,
+    renderUtils: RenderUtilsApi,
+    options?: AccountMetaDrilldownOptions
+  ): string;
   buildAccountTreeReviewMarkup(
     accountSummary: ProfileAccountSummary,
     renderUtils: RenderUtilsApi,
     options?: AccountTreeReviewOptions
   ): string;
+}
+
+interface CombatModifiersApi {
+  applyEncounterModifiers(state: CombatState): void;
 }
 
 interface UiPhaseViewApi {
@@ -2099,6 +2119,7 @@ interface UiPhaseViewApi {
 interface Window {
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
+  ROUGE_COMBAT_MODIFIERS: CombatModifiersApi;
   ROUGE_SEED_LOADER: SeedLoaderApi;
   ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
   ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;

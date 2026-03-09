@@ -354,6 +354,14 @@
           copy:
             "Run-end review now hands the hall one stable account-meta board too, so archive pressure, charter staging, mastery focus, and convergence readiness stay visible after the expedition closes.",
         })}
+        ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "Run-end review now carries charter slots and the next convergence lane into archive handoff, so the hall inherits a concrete account-side follow-through instead of a generic summary.",
+          charterFollowThrough:
+            "If charter pressure survived the run, carry it straight into vault review before you start the next expedition.",
+          convergenceFollowThrough:
+            "If convergence pressure is ready after archive update, reopen the progression wing in the hall before you commit to the next draft.",
+        })}
 
         <section class="panel flow-panel">
           <div class="panel-head">

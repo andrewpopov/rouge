@@ -248,8 +248,12 @@
         return "Mythic Annals";
       case "eternal_annals":
         return "Eternal Annals";
+      case "sovereign_annals":
+        return "Sovereign Annals";
       case "chronicle_exchange":
         return "Chronicle Exchange";
+      case "sovereign_exchange":
+        return "Sovereign Exchange";
       case "boss_trophy_gallery":
         return "Boss Trophy Gallery";
       case "runeword_codex":
@@ -268,6 +272,8 @@
         return "Brokerage Charter";
       case "treasury_exchange":
         return "Treasury Exchange";
+      case "merchant_principate":
+        return "Merchant Principate";
       case "training_grounds":
         return "Training Grounds";
       case "war_college":
@@ -276,10 +282,16 @@
         return "Paragon Doctrine";
       case "apex_doctrine":
         return "Apex Doctrine";
+      case "legend_doctrine":
+        return "Legend Doctrine";
       case "war_annals":
         return "War Annals";
+      case "legendary_annals":
+        return "Legendary Annals";
       case "paragon_exchange":
         return "Paragon Exchange";
+      case "ascendant_exchange":
+        return "Ascendant Exchange";
       default:
         return featureId
           .split("_")
@@ -612,6 +624,190 @@
     `;
   }
 
+  function buildAccountMetaDrilldownMarkup(
+    appState: AppState,
+    accountSummary: ProfileAccountSummary,
+    renderUtils: RenderUtilsApi,
+    options: AccountMetaDrilldownOptions = {}
+  ): string {
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
+    const title = options.title || "Account Meta Drilldowns";
+    const copy =
+      options.copy ||
+      "The continuity board keeps account pressure visible; these drilldowns turn that pressure into slot-by-slot charter posture and the next convergence lane.";
+    const charterFollowThrough =
+      options.charterFollowThrough ||
+      "Review the vault and stash against the pinned charter before the next draft, town prep, or route pivot.";
+    const convergenceFollowThrough =
+      options.convergenceFollowThrough ||
+      "Review the progression wing before the next run-side decision if convergence pressure now outranks a fresh draft.";
+    const planning = accountSummary?.planning || createDefaultPlanningSummary();
+    const planningOverview = planning.overview || createDefaultPlanningSummary().overview;
+    const review = accountSummary?.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const convergences = Array.isArray(accountSummary?.convergences) ? accountSummary.convergences : [];
+    const nextConvergence =
+      convergences.find((convergence) => convergence.id === review.nextConvergenceId) ||
+      convergences.find((convergence) => convergence.status === "available") ||
+      convergences.find((convergence) => !convergence.unlocked) ||
+      null;
+    const planningStageLines = getPlanningCharterStageLines(planning, appState.content);
+
+    const buildCharterCard = (
+      slotLabel: "Weapon" | "Armor",
+      index: number,
+      charter: ProfilePlanningCharterSummary | undefined
+    ): string => {
+      const runewordId = charter?.runewordId || (slotLabel === "Weapon" ? planning.weaponRunewordId : planning.armorRunewordId);
+      const runewordLabel = runewordId ? appState.content.runewordCatalog?.[runewordId]?.name || humanizeId(runewordId) : "Unpinned";
+      const readyCount = getBonusValue(charter?.readyBaseCount);
+      const preparedCount = getBonusValue(charter?.preparedBaseCount);
+      const compatibleCount = getBonusValue(charter?.compatibleBaseCount);
+      const bestBaseLabel = charter?.bestBaseItemId
+        ? appState.content.itemCatalog?.[charter.bestBaseItemId]?.name || humanizeId(charter.bestBaseItemId)
+        : "no parked base yet";
+      let tone = "locked";
+      let badgeLabel = "Unpinned";
+
+      if (runewordId) {
+        badgeLabel = runewordLabel;
+        if (readyCount > 0) {
+          tone = "available";
+          badgeLabel = `${readyCount} ready`;
+        } else if (preparedCount > 0 || compatibleCount > 0) {
+          tone = "available";
+          badgeLabel = preparedCount > 0 ? `${preparedCount} prepared` : `${compatibleCount} tracked`;
+        }
+      }
+
+      return `
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>${escapeHtml(`${slotLabel} Charter`)}</strong>
+            ${buildBadge(badgeLabel, tone)}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Runeword", runewordLabel)}
+            ${buildStat("Ready", readyCount)}
+            ${buildStat("Prepared", preparedCount)}
+            ${buildStat("Compatible", compatibleCount)}
+          </div>
+          ${buildStringList(
+            [
+              planningStageLines[index],
+              `Best parked base: ${bestBaseLabel}.`,
+              charter
+                ? `Socket posture: ${getBonusValue(charter.bestBaseSocketsUnlocked)}/${getBonusValue(charter.bestBaseMaxSockets) || getBonusValue(charter.requiredSocketCount)} sockets, rune gap ${getBonusValue(charter.bestBaseMissingRuneCount)}.`
+                : `${slotLabel} charter socket posture: no compatible base is parked yet.`,
+              charter
+                ? `Archive record: ${getBonusValue(charter.completedRunCount)} completed archive${getBonusValue(charter.completedRunCount) === 1 ? "" : "s"}, best act ${getBonusValue(charter.bestActsCleared)}.`
+                : `${slotLabel} charter archive record: no archived base has fed this slot yet.`,
+              charterFollowThrough,
+            ],
+            "log-list reward-list ledger-list"
+          )}
+        </article>
+      `;
+    };
+
+    let charterTone = "locked";
+    let charterBadgeLabel = planningOverview.nextActionLabel || "No Live Charter";
+    if (planningOverview.readyCharterCount > 0) {
+      charterTone = "available";
+      charterBadgeLabel = `${planningOverview.readyCharterCount} ready`;
+    } else if (planning.plannedRunewordCount > 0) {
+      charterTone = "available";
+      charterBadgeLabel = planningOverview.nextActionLabel || `${planning.plannedRunewordCount} live`;
+    }
+
+    let convergenceTone = "locked";
+    let convergenceBadgeLabel = review.nextConvergenceTitle || "No Pending Lane";
+    if (nextConvergence) {
+      convergenceTone = getConvergenceTone(nextConvergence);
+      if (nextConvergence.unlocked) {
+        convergenceBadgeLabel = "Unlocked";
+      } else if (nextConvergence.status === "available") {
+        convergenceBadgeLabel = `${review.availableConvergenceCount} ready`;
+      } else {
+        convergenceBadgeLabel = nextConvergence.title;
+      }
+    } else if (review.convergenceCount > 0 && review.unlockedConvergenceCount >= review.convergenceCount) {
+      convergenceTone = "cleared";
+      convergenceBadgeLabel = "All Online";
+    }
+
+    return `
+      <section class="panel flow-panel">
+        <div class="panel-head">
+          <h2>${escapeHtml(title)}</h2>
+          <p>${escapeHtml(copy)}</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Charter Forecast</strong>
+              ${buildBadge(charterBadgeLabel, charterTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Live", planning.plannedRunewordCount)}
+              ${buildStat("Ready", planningOverview.readyCharterCount)}
+              ${buildStat("Prepared", planningOverview.preparedCharterCount)}
+              ${buildStat("Missing", planningOverview.missingBaseCharterCount)}
+            </div>
+            ${buildStringList(
+              [
+                `Next charter push: ${planningOverview.nextActionLabel || "Quiet"}.`,
+                planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
+                `Tracked bases: ${planningOverview.trackedBaseCount}, highest tracked tier ${planningOverview.highestTrackedBaseTier || "none"}.`,
+                `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
+                charterFollowThrough,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          ${buildCharterCard("Weapon", 0, planning.weaponCharter)}
+          ${buildCharterCard("Armor", 1, planning.armorCharter)}
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Convergence Drilldown</strong>
+              ${buildBadge(convergenceBadgeLabel, convergenceTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Ready", review.availableConvergenceCount)}
+              ${buildStat("Blocked", review.blockedConvergenceCount)}
+              ${buildStat("Missing", nextConvergence?.missingFeatureIds.length || 0)}
+              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
+            </div>
+            ${buildStringList(
+              [
+                `Focused tree momentum: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
+                nextConvergence ? `Next lane: ${nextConvergence.title}.` : "Next lane: every current cross-tree lane is already online.",
+                nextConvergence?.effectSummary ? `Effect waiting there: ${nextConvergence.effectSummary}` : "Effect waiting there: no further convergence effect is pending right now.",
+                nextConvergence
+                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; every required link is already in place")}.`
+                  : "Missing links: no blocked convergence requirements remain.",
+                convergenceFollowThrough,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
   function getAccountTreeTone(tree: ProfileAccountTreeSummary | null): string {
     if (!tree) {
       return "locked";
@@ -789,6 +985,7 @@
     createDefaultPlanningSummary,
     getPlanningCharterStageLines,
     buildAccountMetaContinuityMarkup,
+    buildAccountMetaDrilldownMarkup,
     buildAccountTreeReviewMarkup,
   };
 })();

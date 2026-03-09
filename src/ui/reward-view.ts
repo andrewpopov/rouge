@@ -459,6 +459,7 @@
     const run = appState.run;
     const reward = run.pendingReward;
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const trainingRanks = getTrainingRanks(run);
     const questOutcomeCount = Object.keys(run.world?.questOutcomes || {}).length;
     const rewardContext = getRewardContext(reward, run);
@@ -518,9 +519,17 @@
               </article>
             </div>
             ${buildRewardContinuityMarkup(appState, services, run, reward, derivedParty, trainingRanks)}
-            ${common.buildAccountMetaContinuityMarkup(appState, services.appEngine.getAccountProgressSummary(appState), services.renderUtils, {
+            ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
               copy:
                 "Reward claims mutate the run, but the same account-meta board stays visible here so archive pressure, charter staging, mastery focus, and convergence readiness never disappear behind the mutation choice.",
+            })}
+            ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+              copy:
+                "The reward surface now keeps pinned charter slots and the next convergence lane explicit before you commit to a mutation that hands the run back to map, transition, or archive review.",
+              charterFollowThrough:
+                "If the claim does not solve the pinned charter pressure, use the next shell handoff to route back toward town or the hall with that slot target still in mind.",
+              convergenceFollowThrough:
+                "If convergence pressure is waiting behind this claim, use the next shell handoff to decide whether the account-side lane matters more than another route push.",
             })}
             <div class="panel-head">
               <h2>Current Build</h2>

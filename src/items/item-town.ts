@@ -66,6 +66,9 @@
       hasTownFeature(profile, "treasury_exchange") ||
       hasTownFeature(profile, "chronicle_exchange") ||
       hasTownFeature(profile, "paragon_exchange") ||
+      hasTownFeature(profile, "merchant_principate") ||
+      hasTownFeature(profile, "sovereign_exchange") ||
+      hasTownFeature(profile, "ascendant_exchange") ||
       salvageTithes;
     return {
       advancedVendorStock: hasTownFeature(profile, "advanced_vendor_stock"),
@@ -77,6 +80,9 @@
       treasuryExchange: hasTownFeature(profile, "treasury_exchange"),
       chronicleExchange: hasTownFeature(profile, "chronicle_exchange"),
       paragonExchange: hasTownFeature(profile, "paragon_exchange"),
+      merchantPrincipate: hasTownFeature(profile, "merchant_principate"),
+      sovereignExchange: hasTownFeature(profile, "sovereign_exchange"),
+      ascendantExchange: hasTownFeature(profile, "ascendant_exchange"),
       economyFocus: focusedTreeId === "economy" && economyUnlocked,
     };
   }
@@ -215,6 +221,9 @@
             (features.artisanStock ? 0.96 : 1) *
             (features.brokerageCharter ? 0.95 : 1) *
             (features.treasuryExchange ? 0.93 : 1) *
+            (features.merchantPrincipate ? 0.94 : 1) *
+            (features.sovereignExchange ? 0.97 : 1) *
+            (features.ascendantExchange ? 0.95 : 1) *
             (features.economyFocus ? 0.97 : 1)
         )
       );
@@ -229,6 +238,9 @@
           (features.artisanStock ? 0.96 : 1) *
           (features.brokerageCharter ? 0.95 : 1) *
           (features.treasuryExchange ? 0.93 : 1) *
+          (features.merchantPrincipate ? 0.94 : 1) *
+          (features.sovereignExchange ? 0.97 : 1) *
+          (features.ascendantExchange ? 0.95 : 1) *
           (features.economyFocus ? 0.97 : 1)
       )
     );
@@ -247,6 +259,9 @@
             (features.artisanStock ? 1.04 : 1) *
             (features.brokerageCharter ? 1.06 : 1) *
             (features.treasuryExchange ? 1.08 : 1) *
+            (features.merchantPrincipate ? 1.08 : 1) *
+            (features.sovereignExchange ? 1.05 : 1) *
+            (features.ascendantExchange ? 1.06 : 1) *
             (features.economyFocus ? 1.05 : 1)
         )
       );
@@ -261,6 +276,9 @@
           (features.artisanStock ? 1.04 : 1) *
           (features.brokerageCharter ? 1.06 : 1) *
           (features.treasuryExchange ? 1.08 : 1) *
+          (features.merchantPrincipate ? 1.08 : 1) *
+          (features.sovereignExchange ? 1.05 : 1) *
+          (features.ascendantExchange ? 1.06 : 1) *
           (features.economyFocus ? 1.05 : 1)
       )
     );
@@ -289,6 +307,9 @@
       (features.artisanStock ? 2 : 0) +
       (features.brokerageCharter ? 2 : 0) +
       (features.treasuryExchange ? 3 : 0) +
+      (features.merchantPrincipate ? 2 : 0) +
+      (features.sovereignExchange ? 2 : 0) +
+      (features.ascendantExchange && run.actNumber >= 5 ? 1 : 0) +
       chronicleDiscount +
       (features.paragonExchange && run.actNumber >= 5 ? 1 : 0) +
       (features.economyFocus ? 1 : 0);
@@ -311,6 +332,10 @@
       planningMatch ? 3 + Number(features.economyFocus) + Number(planningArchiveState?.unfulfilled) * 2 : 0;
     const chronicleDiscount = features.chronicleExchange ? 2 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const paragonDiscount = features.paragonExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) : 0;
+    const merchantDiscount = features.merchantPrincipate ? 1 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
+    const sovereignDiscount = features.sovereignExchange ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
+    const ascendantDiscount =
+      features.ascendantExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const fee =
       baseFee +
       Math.floor(buyPrice * 0.12) +
@@ -319,7 +344,10 @@
       Number(features.economyFocus) -
       planningDiscount -
       chronicleDiscount -
-      paragonDiscount;
+      paragonDiscount -
+      merchantDiscount -
+      sovereignDiscount -
+      ascendantDiscount;
     return Math.max(entry.kind === "rune" ? 4 : 8, fee);
   }
 
@@ -348,8 +376,11 @@
       Number(features.advancedVendorStock) +
       Number(features.brokerageCharter && run.actNumber >= 4) +
       Number(features.artisanStock && run.actNumber >= 5) +
+      Number(features.merchantPrincipate && run.actNumber >= 5) +
       Number(chroniclePressure && run.actNumber >= 4) +
+      Number(features.sovereignExchange && run.actNumber >= 4) +
       Number(features.paragonExchange && run.actNumber >= 5) +
+      Number(features.ascendantExchange && run.actNumber >= 5) +
       Number(features.treasuryExchange && run.actNumber >= 5)
     );
   }
@@ -387,7 +418,13 @@
     const features = getAccountEconomyFeatures(profile);
     const currentTier = getCurrentEquipmentTier(currentEquipment, content);
     const upgradeOptions = options.filter((item) => item.progressionTier > currentTier);
-    const lateBias = features.advancedVendorStock || run.actNumber >= 4 || toNumber(run.town?.vendor?.refreshCount, 0) > 0;
+    const lateBias =
+      features.advancedVendorStock ||
+      features.merchantPrincipate ||
+      features.sovereignExchange ||
+      features.ascendantExchange ||
+      run.actNumber >= 4 ||
+      toNumber(run.town?.vendor?.refreshCount, 0) > 0;
     const socketReadyOffer =
       lateBias
         ? [...upgradeOptions]
@@ -424,6 +461,18 @@
               return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
+    const merchantOffer =
+      features.merchantPrincipate && run.actNumber >= 5
+        ? [...upgradeOptions, ...options]
+            .filter((item) => toNumber(item.maxSockets, 0) >= 4)
+            .sort((left, right) => {
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
     const plannedRuneword = getPlannedRuneword(profile, slot, content);
     const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
     const chronicleOffer =
@@ -442,6 +491,28 @@
                 return rightSocketDelta - leftSocketDelta;
               }
               return toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+            })[0] || null
+        : null;
+    const sovereignOffer =
+      features.sovereignExchange && (run.actNumber >= 4 || planningArchiveState.unfulfilled || hasOpenPlanningCharter(profile, content))
+        ? [...upgradeOptions, ...options]
+            .filter((item) => {
+              if (plannedRuneword) {
+                return isRunewordCompatibleWithItem(item, plannedRuneword);
+              }
+              return toNumber(item.maxSockets, 0) >= 4;
+            })
+            .sort((left, right) => {
+              const rightReadySockets = Number(toNumber(right.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword?.socketCount, 0)));
+              const leftReadySockets = Number(toNumber(left.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword?.socketCount, 0)));
+              if (rightReadySockets !== leftReadySockets) {
+                return rightReadySockets - leftReadySockets;
+              }
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
     const planningOffer =
@@ -479,6 +550,23 @@
               return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
+    const ascendantOffer =
+      features.ascendantExchange && run.actNumber >= 5
+        ? [...upgradeOptions, ...options]
+            .filter((item) => {
+              if (plannedRuneword) {
+                return isRunewordCompatibleWithItem(item, plannedRuneword) && toNumber(item.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword.socketCount, 0));
+              }
+              return toNumber(item.maxSockets, 0) >= 4;
+            })
+            .sort((left, right) => {
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
     const primaryUpgrade =
       upgradeOptions[(lateBias ? upgradeOptions.length - 1 : 0)] ||
       options[Math.max(0, options.length - 1)] ||
@@ -490,7 +578,20 @@
     const sidegrade = options[(seed + (slot === "weapon" ? 0 : 1)) % options.length] || null;
 
     return pickUniqueDefinitions(
-      [planningOffer, chronicleOffer, primaryUpgrade, paragonOffer, secondaryUpgrade, socketReadyOffer, artisanOffer, treasuryOffer, sidegrade],
+      [
+        planningOffer,
+        sovereignOffer,
+        chronicleOffer,
+        primaryUpgrade,
+        ascendantOffer,
+        paragonOffer,
+        merchantOffer,
+        secondaryUpgrade,
+        socketReadyOffer,
+        artisanOffer,
+        treasuryOffer,
+        sidegrade,
+      ],
       options,
       desiredCount,
       seed
@@ -538,7 +639,10 @@
           2 +
           Number(archiveState.unfulfilled && (features.treasuryExchange || features.economyFocus)) +
           Number(archiveState.unfulfilled && features.chronicleExchange) +
-          Number(run.actNumber >= 5 && features.paragonExchange);
+          Number(run.actNumber >= 5 && features.paragonExchange) +
+          Number(run.actNumber >= 5 && features.merchantPrincipate) +
+          Number(archiveState.unfulfilled && features.sovereignExchange) +
+          Number(run.actNumber >= 5 && features.ascendantExchange);
         runeword.requiredRunes.slice(0, planningTargetCount).forEach((runeId) => uniquePush(targetRuneIds, runeId));
       });
     }
@@ -551,9 +655,17 @@
     const codexRune = features.runewordCodex ? runeOptions[Math.max(0, runeOptions.length - 3)] || null : null;
     const artisanRune = features.artisanStock && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 4)] || null : null;
     const treasuryRune = features.treasuryExchange && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 5)] || null : null;
+    const merchantRune = features.merchantPrincipate && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 6)] || null : null;
+    const sovereignRune = features.sovereignExchange && run.actNumber >= 4 ? runeOptions[Math.max(0, runeOptions.length - 7)] || null : null;
+    const ascendantRune = features.ascendantExchange && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 8)] || null : null;
     const seededRune = runeOptions[seed % runeOptions.length] || null;
 
-    return pickUniqueDefinitions([...(targetRunes || []), premiumRune, supportRune, codexRune, artisanRune, treasuryRune, seededRune], runeOptions, desiredCount, seed);
+    return pickUniqueDefinitions(
+      [...(targetRunes || []), premiumRune, supportRune, codexRune, artisanRune, treasuryRune, merchantRune, sovereignRune, ascendantRune, seededRune],
+      runeOptions,
+      desiredCount,
+      seed
+    );
   }
 
   function fillDefinitionSelection(selection, options, desiredCount) {
@@ -596,10 +708,15 @@
     const focusOfferBonus = Number(features.economyFocus && (features.advancedVendorStock || features.salvageTithes));
     const artisanOfferBonus = Number(features.artisanStock && run.actNumber >= 5);
     const brokerageOfferBonus = Number(features.brokerageCharter && run.actNumber >= 4);
+    const merchantOfferBonus = Number(features.merchantPrincipate && run.actNumber >= 5);
     const chronicleOfferBonus =
       Number(features.chronicleExchange && run.actNumber >= 4) +
       Number(features.chronicleExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).stashEntries > 0));
+    const sovereignOfferBonus =
+      Number(features.sovereignExchange && run.actNumber >= 4) +
+      Number(features.sovereignExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).socketReadyEntries > 0));
     const paragonOfferBonus = Number(features.paragonExchange && run.actNumber >= 5);
+    const ascendantOfferBonus = Number(features.ascendantExchange && run.actNumber >= 5);
     const treasuryOfferBonus = Number(features.treasuryExchange && run.actNumber >= 5);
     const weaponOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 4)) +
@@ -607,8 +724,11 @@
       focusOfferBonus +
       artisanOfferBonus +
       brokerageOfferBonus +
+      merchantOfferBonus +
       chronicleOfferBonus +
+      sovereignOfferBonus +
       paragonOfferBonus +
+      ascendantOfferBonus +
       treasuryOfferBonus;
     const armorOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 3)) +
@@ -616,8 +736,11 @@
       focusOfferBonus +
       artisanOfferBonus +
       brokerageOfferBonus +
+      merchantOfferBonus +
       chronicleOfferBonus +
+      sovereignOfferBonus +
       paragonOfferBonus +
+      ascendantOfferBonus +
       treasuryOfferBonus;
     const runeOfferCount =
       (run.actNumber >= 5 ? 4 : 2 + Number(run.actNumber >= 3)) +
@@ -626,8 +749,11 @@
       focusOfferBonus +
       artisanOfferBonus +
       brokerageOfferBonus +
+      merchantOfferBonus +
       chronicleOfferBonus +
+      sovereignOfferBonus +
       paragonOfferBonus +
+      ascendantOfferBonus +
       treasuryOfferBonus;
     const selectedWeapons = fillDefinitionSelection(
       pickVendorEquipmentOffers(
@@ -776,11 +902,20 @@
     if (features.chronicleExchange) {
       previewLines.push("Chronicle Exchange is turning archive review into live trade leverage for planning and stash pressure.");
     }
+    if (features.merchantPrincipate) {
+      previewLines.push("Merchant Principate is widening the late market toward sovereign-tier stock and pricing leverage.");
+    }
+    if (features.sovereignExchange) {
+      previewLines.push("Sovereign Exchange is binding deeper archive retention to premium late-market planning pressure.");
+    }
     if (features.treasuryExchange) {
       previewLines.push("Treasury Exchange is opening premium late-act leverage around stash and vendor planning.");
     }
     if (features.paragonExchange) {
       previewLines.push("Paragon Exchange is binding mastery doctrine to trade leverage for premium late-act replacements.");
+    }
+    if (features.ascendantExchange) {
+      previewLines.push("Ascendant Exchange is steering the strongest Act V offers toward staged premium replacements.");
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content)
       .map((runeword) => runeword?.name)
@@ -1066,6 +1201,9 @@
       features.artisanStock ? "artisan stock" : "",
       features.brokerageCharter ? "brokerage charter" : "",
       features.treasuryExchange ? "treasury exchange" : "",
+      features.merchantPrincipate ? "merchant principate" : "",
+      features.sovereignExchange ? "sovereign exchange" : "",
+      features.ascendantExchange ? "ascendant exchange" : "",
     ].filter(Boolean);
 
     const lines = [

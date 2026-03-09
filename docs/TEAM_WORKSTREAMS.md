@@ -172,7 +172,7 @@ Current start order for this round:
 
 1. Agent 4
    - keep `tests/helpers/browser-harness.ts` as the single boot-order source of truth
-   - continue the remaining app-engine suite cleanup, starting with `tests/app-engine.test.ts`
+   - continue the remaining app-engine suite cleanup, starting with `tests/app-engine-world-nodes-late-routes.test.ts`
    - only expand the quest helper chain from `src/quests/world-node-outcomes.ts` with Agent 3 after the harness pass is stable
 2. Agent 5
    - keep the landed release-confidence lane green through `npm run quality` and `npm run test:coverage`

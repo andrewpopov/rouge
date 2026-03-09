@@ -379,6 +379,69 @@ test("shared account-meta continuity board persists across the full shell", () =
   assertMetaBoard();
 });
 
+test("account-meta drilldowns persist across the full shell", () => {
+  const { content, combatEngine, appEngine, appShell, runFactory, browserWindow, persistence, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+  const assertDrilldowns = () => {
+    assert.match(root.innerHTML, /Account Meta Drilldowns/);
+    assert.match(root.innerHTML, /Charter Forecast/);
+    assert.match(root.innerHTML, /Weapon Charter/);
+    assert.match(root.innerHTML, /Armor Charter/);
+    assert.match(root.innerHTML, /Convergence Drilldown/);
+    assert.match(root.innerHTML, /Weapon charter staging: White/);
+    assert.match(root.innerHTML, /Armor charter staging: Lionheart/);
+    assert.match(root.innerHTML, /Focused tree momentum:/);
+  };
+
+  state.profile.meta.planning.weaponRunewordId = "white";
+  state.profile.meta.planning.armorRunewordId = "lionheart";
+
+  render();
+  assertDrilldowns();
+
+  appEngine.startCharacterSelect(state);
+  appEngine.startRun(state);
+  render();
+  assertDrilldowns();
+
+  appEngine.leaveSafeZone(state);
+  render();
+  assertDrilldowns();
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  const encounterResult = appEngine.selectZone(state, openingZoneId);
+  assert.equal(encounterResult.ok, true);
+  state.combat.outcome = "victory";
+  appEngine.syncEncounterOutcome(state);
+  render();
+  assertDrilldowns();
+
+  state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
+  state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
+  state.phase = appEngine.PHASES.ACT_TRANSITION;
+  render();
+  assertDrilldowns();
+
+  persistence.recordRunHistory(state.profile, state.run, "completed");
+  state.profile.activeRunSnapshot = null;
+  state.phase = appEngine.PHASES.RUN_COMPLETE;
+  render();
+  assertDrilldowns();
+});
+
 test("action dispatcher drives the front-door continue and abandon shell flow", () => {
   const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, persistence, createActionTarget, seedBundle } =
     createHarness();

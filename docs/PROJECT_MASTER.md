@@ -118,6 +118,7 @@ When docs conflict, use this order.
 - [tests/app-engine-world-nodes-route-payoffs.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-route-payoffs.test.ts)
 - [tests/app-engine-world-nodes-late-routes.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-nodes-late-routes.test.ts)
 - [tests/app-engine-world-node-validation.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-node-validation.test.ts)
+- [tests/app-engine-world-node-gating-validation.test.ts](/Users/andrew/proj/rouge/tests/app-engine-world-node-gating-validation.test.ts)
 - [tests/app-engine-progression.test.ts](/Users/andrew/proj/rouge/tests/app-engine-progression.test.ts)
 - [tests/combat-engine.test.ts](/Users/andrew/proj/rouge/tests/combat-engine.test.ts)
 - [tests/app-engine.test.ts](/Users/andrew/proj/rouge/tests/app-engine.test.ts)

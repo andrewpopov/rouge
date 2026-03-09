@@ -1143,11 +1143,55 @@ test("account progression trees drive archive retention, economy focus, and mast
     ],
     "economy"
   );
+  const merchantEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "merchant_principate",
+    ],
+    "economy"
+  );
+  const sovereignEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "merchant_principate",
+      "sovereign_exchange",
+    ],
+    "economy"
+  );
+  const ascendantEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "merchant_principate",
+      "ascendant_exchange",
+    ],
+    "economy"
+  );
   prepareLateActState(lateEconomyBaselineState, true);
   prepareLateActState(lateEconomyArtisanState, true);
   prepareLateActState(lateEconomyBrokerageState, true);
   prepareLateActState(lateEconomyTreasuryState, true);
   prepareLateActState(chronicleEconomyState, true);
+  prepareLateActState(merchantEconomyState, true);
+  prepareLateActState(sovereignEconomyState, true);
+  prepareLateActState(ascendantEconomyState, true);
 
   const baselineLateSocketOffers = lateEconomyBaselineState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
@@ -1169,6 +1213,18 @@ test("account progression trees drive archive retention, economy focus, and mast
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
     .filter((item) => (item?.maxSockets || 0) >= 3);
+  const merchantLateSocketOffers = merchantEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 4);
+  const sovereignLateSocketOffers = sovereignEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 4);
+  const ascendantLateSocketOffers = ascendantEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 4);
   const baselineLateRefreshAction = itemSystem
     .listTownActions(lateEconomyBaselineState.run, lateEconomyBaselineState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
@@ -1184,26 +1240,50 @@ test("account progression trees drive archive retention, economy focus, and mast
   const chronicleLateRefreshAction = itemSystem
     .listTownActions(chronicleEconomyState.run, chronicleEconomyState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
+  const merchantLateRefreshAction = itemSystem
+    .listTownActions(merchantEconomyState.run, merchantEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const sovereignLateRefreshAction = itemSystem
+    .listTownActions(sovereignEconomyState.run, sovereignEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const ascendantLateRefreshAction = itemSystem
+    .listTownActions(ascendantEconomyState.run, ascendantEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
 
   assert.ok(baselineLateRefreshAction);
   assert.ok(artisanLateRefreshAction);
   assert.ok(brokerageLateRefreshAction);
   assert.ok(treasuryLateRefreshAction);
   assert.ok(chronicleLateRefreshAction);
+  assert.ok(merchantLateRefreshAction);
+  assert.ok(sovereignLateRefreshAction);
+  assert.ok(ascendantLateRefreshAction);
   assert.ok(artisanLateRefreshAction.cost < baselineLateRefreshAction.cost);
   assert.ok(brokerageLateRefreshAction.cost < artisanLateRefreshAction.cost);
   assert.ok(treasuryLateRefreshAction.cost < brokerageLateRefreshAction.cost);
   assert.ok(chronicleLateRefreshAction.cost <= treasuryLateRefreshAction.cost);
+  assert.ok(merchantLateRefreshAction.cost < treasuryLateRefreshAction.cost);
+  assert.ok(sovereignLateRefreshAction.cost <= merchantLateRefreshAction.cost);
+  assert.ok(ascendantLateRefreshAction.cost <= sovereignLateRefreshAction.cost);
   assert.ok(artisanLateSocketOffers.length >= baselineLateSocketOffers.length);
   assert.ok(brokerageLateSocketOffers.length >= artisanLateSocketOffers.length);
   assert.ok(treasuryLateSocketOffers.length >= brokerageLateSocketOffers.length);
   assert.ok(chronicleLateSocketOffers.length >= treasuryLateSocketOffers.length);
+  assert.ok(merchantLateSocketOffers.length >= treasuryLateSocketOffers.length);
+  assert.ok(sovereignLateSocketOffers.length >= merchantLateSocketOffers.length);
+  assert.ok(ascendantLateSocketOffers.length >= sovereignLateSocketOffers.length);
   assert.ok(artisanLateSocketOffers.length > 0);
   assert.ok(lateEconomyBrokerageState.run.town.vendor.stock.length >= lateEconomyArtisanState.run.town.vendor.stock.length);
   assert.ok(lateEconomyTreasuryState.run.town.vendor.stock.length >= lateEconomyBrokerageState.run.town.vendor.stock.length);
   assert.ok(chronicleEconomyState.run.town.vendor.stock.length >= lateEconomyTreasuryState.run.town.vendor.stock.length);
+  assert.ok(merchantEconomyState.run.town.vendor.stock.length >= lateEconomyTreasuryState.run.town.vendor.stock.length);
+  assert.ok(sovereignEconomyState.run.town.vendor.stock.length >= merchantEconomyState.run.town.vendor.stock.length);
+  assert.ok(ascendantEconomyState.run.town.vendor.stock.length >= sovereignEconomyState.run.town.vendor.stock.length);
   assert.match(treasuryLateRefreshAction.previewLines.join(" "), /Treasury Exchange/i);
   assert.match(chronicleLateRefreshAction.previewLines.join(" "), /Chronicle Exchange/i);
+  assert.match(merchantLateRefreshAction.previewLines.join(" "), /Merchant Principate/i);
+  assert.match(sovereignLateRefreshAction.previewLines.join(" "), /Sovereign Exchange/i);
+  assert.match(ascendantLateRefreshAction.previewLines.join(" "), /Ascendant Exchange/i);
 
   const baselineMasteryState = buildState(["boss_trophy_gallery", "training_grounds"], "mastery");
   const focusedMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college"], "mastery");

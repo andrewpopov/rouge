@@ -175,6 +175,7 @@
     const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
     const run = appState.run;
     const nextAct = run.acts[run.currentActIndex + 1];
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
 
     services.renderUtils.buildShell(root, {
       eyebrow: "Act Transition",
@@ -216,9 +217,17 @@
             </article>
           </div>
           ${buildActDeltaMarkup(appState, services, run, nextAct || null)}
-          ${common.buildAccountMetaContinuityMarkup(appState, services.appEngine.getAccountProgressSummary(appState), services.renderUtils, {
+          ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
             copy:
               "Act transition keeps the same account-meta board live while the run pivots into the next town, so archive pressure, charter staging, mastery focus, and convergence readiness survive the act wrapper too.",
+          })}
+          ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+            copy:
+              "The act wrapper now keeps charter slots and the next convergence lane readable while the party crosses into the next town, so the next service pass starts from explicit account pressure.",
+            charterFollowThrough:
+              "If charter pressure still matters after the boss, treat the next town stop as vault and vendor prep before you reopen the route board.",
+            convergenceFollowThrough:
+              "If convergence pressure is ready after the act clear, review the progression focus in the next town before you spend or depart again.",
           })}
           <div class="cta-row">
             <button class="primary-btn" data-action="continue-act-transition">Enter ${escapeHtml(nextAct?.town || "Final Screen")}</button>

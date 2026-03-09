@@ -574,6 +574,14 @@
               copy:
                 "Town keeps the same account-meta board live beside run-local prep, so archive pressure, charter staging, mastery focus, and convergence readiness stay readable before you leave again.",
             })}
+            ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+              copy:
+                "Town can now compare departure prep against account-side charter and convergence pressure without hiding the run-local service picture.",
+              charterFollowThrough:
+                "If charter pressure is louder than departure pressure, stay in town and use stash, vendor, or loadout actions before reopening the route.",
+              convergenceFollowThrough:
+                "If convergence pressure is ready, review the progression focus here before you spend gold or depart again.",
+            })}
 
             <div class="panel-head">
               <h2>Account Progression Focus</h2>

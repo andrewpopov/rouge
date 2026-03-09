@@ -1891,6 +1891,14 @@
           copy:
             "The hall now pins the same archive, charter, mastery, and convergence pressure that the rest of the shell carries forward, so your next draft starts from one stable account board.",
         })}
+        ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "The hall now turns shared account pressure into slot-by-slot charter calls and the next convergence lane, so you can choose between vault work, progression review, or a fresh draft with one account-side read.",
+          charterFollowThrough:
+            "If charter pressure wins the hall, review the vault wing and planning desk before you open another expedition.",
+          convergenceFollowThrough:
+            "If convergence pressure wins the hall, review the progression gallery before you lock in the next class or archived route.",
+        })}
         ${expeditionSection}
         ${buildUnlockGalleryMarkup(appState, services, accountSummary)}
         ${buildVaultLogisticsMarkup(appState, services, accountSummary)}

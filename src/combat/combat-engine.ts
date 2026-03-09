@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -731,6 +732,26 @@
         return;
       }
 
+      if (modifier.kind === "escort_rotation") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const escortTargets = state.enemies.filter((enemy) => {
+          return !enemy.templateId.endsWith("_boss") && (
+            enemy.role === "support" ||
+            enemy.role === "brute" ||
+            enemy.templateId.includes("_elite")
+          );
+        });
+        escortTargets.forEach((enemy) => applyGuard(enemy, value));
+        escortTargets.forEach((enemy) => advanceEnemyIntent(enemy, 1));
+        if (escortTargets.length > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} rotates its escorts. Non-boss escorts gain ${value} Guard and advance their opening script.`
+          );
+        }
+        return;
+      }
+
       if (modifier.kind === "crossfire_lanes") {
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
         const rangedTargets = state.enemies.filter((enemy) => enemy.role === "ranged");
@@ -861,6 +882,24 @@
           appendLog(
             state,
             `${state.encounter.name} raises a boss screen. The boss gains ${value} Guard, escorts gain ${value} Guard, and the boss opener intensifies by ${value}.`
+          );
+        }
+        return;
+      }
+
+      if (modifier.kind === "boss_onslaught") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const bossTargets = state.enemies.filter((enemy) => enemy.templateId.endsWith("_boss"));
+        const retunedCount = bossTargets.reduce((count, enemy) => {
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, attackIntentKinds) ? 1 : 0);
+        }, 0);
+        const boostedCount = bossTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (retunedCount > 0 || boostedCount > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} drives a boss onslaught. The boss shifts into its first attack script and hits ${value} harder.`
           );
         }
         return;

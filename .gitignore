@@ -16,6 +16,7 @@ yarn-error.log*
 # Local/generated test artifacts
 playwright-report/
 test-results/
+artifacts/quality/
 
 # Source asset dumps (keep curated runtime assets only)
 assets/raw/

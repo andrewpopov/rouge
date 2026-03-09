@@ -150,7 +150,15 @@
     );
     const preferredLateSockets =
       isLateActPivotZone(zone, actNumber) &&
-      (features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus) &&
+      (
+        features.artisanStock ||
+        features.brokerageCharter ||
+        features.treasuryExchange ||
+        features.merchantPrincipate ||
+        features.sovereignExchange ||
+        features.ascendantExchange ||
+        features.economyFocus
+      ) &&
       !planningCharter?.hasReadyBase
         ? 3
         : 0;
@@ -169,16 +177,16 @@
       }
 
       const rightParagonPremium = Number(
-        features.paragonExchange &&
+        (features.paragonExchange || features.ascendantExchange) &&
           isLateActPivotZone(zone, actNumber) &&
-          toNumber(right?.progressionTier, 0) >= Math.max(6, actNumber + 1) &&
-          toNumber(right?.maxSockets, 0) >= 3
+          toNumber(right?.progressionTier, 0) >= Math.max(features.ascendantExchange ? 7 : 6, actNumber + 1) &&
+          toNumber(right?.maxSockets, 0) >= (features.ascendantExchange ? 4 : 3)
       );
       const leftParagonPremium = Number(
-        features.paragonExchange &&
+        (features.paragonExchange || features.ascendantExchange) &&
           isLateActPivotZone(zone, actNumber) &&
-          toNumber(left?.progressionTier, 0) >= Math.max(6, actNumber + 1) &&
-          toNumber(left?.maxSockets, 0) >= 3
+          toNumber(left?.progressionTier, 0) >= Math.max(features.ascendantExchange ? 7 : 6, actNumber + 1) &&
+          toNumber(left?.maxSockets, 0) >= (features.ascendantExchange ? 4 : 3)
       );
       if (rightParagonPremium !== leftParagonPremium) {
         return rightParagonPremium - leftParagonPremium;
@@ -213,7 +221,11 @@
     const planningCharter = getPlanningCharterSummary(profile, slot, content);
     if (!equipment) {
       const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled, planningCharter);
-      if (plannedRuneword && !planningCharter?.compatibleBaseCount && (features.runewordCodex || features.treasuryExchange || features.economyFocus)) {
+      if (
+        plannedRuneword &&
+        !planningCharter?.compatibleBaseCount &&
+        (features.runewordCodex || features.treasuryExchange || features.merchantPrincipate || features.sovereignExchange || features.economyFocus)
+      ) {
         const plannedItems = sortedItems.filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword));
         return plannedItems[0] || sortedItems[0] || null;
       }
@@ -225,7 +237,7 @@
     const upgradeItems = availableItems.filter((item) => item.progressionTier > currentTier);
     const shouldForcePlanningReplacement =
       plannedRuneword &&
-      (features.runewordCodex || features.treasuryExchange || features.economyFocus) &&
+      (features.runewordCodex || features.treasuryExchange || features.merchantPrincipate || features.sovereignExchange || features.economyFocus) &&
       (!planningCharter?.compatibleBaseCount ||
         (isLateActPivotZone(zone, actNumber) && toNumber(planningCharter?.bestBaseTier, 0) < Math.max(actNumber, currentTier + 1)));
     const planningItems =
@@ -303,14 +315,34 @@
     if (options.lateActPivot) {
       previewLines.push("Late-act pivot: replace the old base before spending more sockets or runes on it.");
     }
-    if (options.lateActPivot && (features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus)) {
+    if (
+      options.lateActPivot &&
+      (
+        features.artisanStock ||
+        features.brokerageCharter ||
+        features.treasuryExchange ||
+        features.merchantPrincipate ||
+        features.sovereignExchange ||
+        features.ascendantExchange ||
+        features.economyFocus
+      )
+    ) {
       previewLines.push("Trade Network is steering this reward toward a socket-ready late-game replacement base.");
     }
     if (options.lateActPivot && features.treasuryExchange) {
       previewLines.push("Treasury Exchange is preserving this reward as a premium replacement instead of a short-term sidegrade.");
     }
+    if (options.lateActPivot && features.merchantPrincipate) {
+      previewLines.push("Merchant Principate is widening this into a sovereign-tier late-market replacement offer.");
+    }
+    if (options.lateActPivot && features.sovereignExchange) {
+      previewLines.push("Sovereign Exchange is binding archive pressure to this premium staged replacement pivot.");
+    }
     if (options.lateActPivot && features.paragonExchange) {
       previewLines.push("Paragon Exchange is escalating this into a premium replacement pivot instead of another incremental upgrade.");
+    }
+    if (options.lateActPivot && features.ascendantExchange) {
+      previewLines.push("Ascendant Exchange is escalating this into the strongest staged late-act replacement on offer.");
     }
 
     return {
@@ -411,8 +443,15 @@
     const socketDelta = Math.max(0, toNumber(upgradeItem?.maxSockets, 0) - toNumber(currentItem?.maxSockets, 0));
     const currentRunewordId = resolveRunewordId(equipment, content);
     const currentBaseIsStale = toNumber(currentItem?.progressionTier, 0) <= Math.max(1, actNumber - 2);
-    const economyPressure = features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus;
-    const paragonPressure = features.paragonExchange && actNumber >= 5;
+    const economyPressure =
+      features.artisanStock ||
+      features.brokerageCharter ||
+      features.treasuryExchange ||
+      features.merchantPrincipate ||
+      features.sovereignExchange ||
+      features.ascendantExchange ||
+      features.economyFocus;
+    const paragonPressure = (features.paragonExchange || features.ascendantExchange) && actNumber >= 5;
 
     return (
       tierDelta >= 2 ||

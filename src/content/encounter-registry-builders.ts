@@ -210,12 +210,16 @@
   function buildDrilledAftermathBossConfig(actNumber, templateIds) {
     const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
     const escortBulwarkValue = Math.max(4, actNumber + 1);
+    const escortRotationValue = Math.max(2, Math.min(4, actNumber + 1));
+    const bossOnslaughtValue = Math.max(2, Math.min(4, actNumber + 1));
     if (actNumber === 2) {
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.brute, templateIds.support],
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
           { kind: "phalanx_march", value: Math.max(3, actNumber) },
           { kind: "war_drums", value: 1 },
         ],
@@ -227,6 +231,8 @@
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
           { kind: "sniper_nest", value: Math.max(3, actNumber) },
           { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
         ],
@@ -238,6 +244,8 @@
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
           { kind: "phalanx_march", value: Math.max(4, actNumber) },
           { kind: "war_drums", value: 1 },
         ],
@@ -249,6 +257,8 @@
         modifiers: [
           { kind: "boss_screen", value: bossScreenValue },
           { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "escort_rotation", value: escortRotationValue },
+          { kind: "boss_onslaught", value: bossOnslaughtValue },
           { kind: "phalanx_march", value: Math.max(4, actNumber) },
           { kind: "war_drums", value: 1 },
         ],
@@ -259,6 +269,8 @@
       modifiers: [
         { kind: "boss_screen", value: bossScreenValue },
         { kind: "escort_bulwark", value: escortBulwarkValue },
+        { kind: "escort_rotation", value: escortRotationValue },
+        { kind: "boss_onslaught", value: bossOnslaughtValue },
         { kind: "phalanx_march", value: Math.max(3, actNumber) },
       ],
     };

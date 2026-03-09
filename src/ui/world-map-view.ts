@@ -526,6 +526,7 @@
     const recommendedZone = currentZones.find((zone) => reachableZoneIds.has(zone.id) && zone.kind !== "boss") || bossZone;
     const routeFamilyLabels = Array.from(new Set(currentZones.filter((zone) => zone.kind !== "battle").map((zone) => getNodeFamilyLabel(zone))));
     const consequencePreviewLines = buildConsequencePreviewLines(run);
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
 
     services.renderUtils.buildShell(root, {
       eyebrow: "World Map",
@@ -546,9 +547,17 @@
           unclearedBeforeBoss,
           consequencePreviewLines
         )}
-        ${common.buildAccountMetaContinuityMarkup(appState, services.appEngine.getAccountProgressSummary(appState), services.renderUtils, {
+        ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
           copy:
             "The map keeps the same account-meta board visible while you route through combat and ledger nodes, so archive pressure and charter or mastery or convergence pressure stay legible beside route pressure.",
+        })}
+        ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "The map now keeps the pinned charter slots and next convergence lane readable beside route pressure, so a route choice can still be weighed against account-side follow-through.",
+          charterFollowThrough:
+            "If charter pressure outranks the next node, retreat to town with this route state intact and use the pinned slot targets to decide what to fix first.",
+          convergenceFollowThrough:
+            "If convergence pressure is ready, treat the next route click as optional and reopen the account-side review before committing deeper into the act.",
         })}
         <section class="panel flow-panel">
           <div class="panel-head">
