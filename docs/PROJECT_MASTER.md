@@ -77,6 +77,7 @@ When docs conflict, use this order.
 - [src/content/encounter-registry-builders.ts](/Users/andrew/proj/rouge/src/content/encounter-registry-builders.ts)
 - [src/content/encounter-registry.ts](/Users/andrew/proj/rouge/src/content/encounter-registry.ts)
 - [src/character/class-registry.ts](/Users/andrew/proj/rouge/src/character/class-registry.ts)
+- [src/quests/world-node-catalog-opportunities.ts](/Users/andrew/proj/rouge/src/quests/world-node-catalog-opportunities.ts)
 - [src/quests/world-node-catalog.ts](/Users/andrew/proj/rouge/src/quests/world-node-catalog.ts)
 - [src/quests/world-node-engine.ts](/Users/andrew/proj/rouge/src/quests/world-node-engine.ts)
 - [src/quests/world-node-outcomes.ts](/Users/andrew/proj/rouge/src/quests/world-node-outcomes.ts)

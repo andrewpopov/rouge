@@ -35,7 +35,7 @@ Most recent verification:
 
 - latest shell gate run: `npm run check`
 - latest broader quality lanes still on file: `npm run quality`, `npm run test:coverage`
-- compiled browser tests passing: `202`
+- compiled browser tests passing: `206`
 - compiled browser tests skipped: `0`
 - built-bundle smoke tests passing: `4`
 - coverage gates passing: `90.93` lines, `66.50` branches, `95.38` functions
@@ -215,7 +215,7 @@ Remaining:
 
 These are the next high-value implementation gates from the current baseline:
 
-1. keep breaking up the largest runtime hotspots with Agent 4, continuing from `src/quests/world-node-catalog.ts` at roughly `9.6k` lines now that `src/quests/world-node-engine.ts` is thin, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`, while keeping the browser boundary and tests green
+1. keep breaking up the largest runtime hotspots with Agent 4, continuing from `src/quests/world-node-catalog-opportunities.ts` at roughly `6.6k` lines with `src/quests/world-node-catalog.ts` now reduced to roughly `3.0k` and `src/quests/world-node-engine.ts` still thin, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`, while keeping the browser boundary and tests green
 2. keep the now-live local quality-artifact deltas under `artifacts/quality/latest.md`, the current five-test built smoke lane, and the current restore-path plus malformed-profile backfill green so the next release-confidence gap is visible when new feature work expands the surface
 3. build on the live archive or economy or mastery trees, the current sovereign-annals or merchant-principate or legend-doctrine second wave, and the current convergence layer with broader capstone-style account systems, stronger account review data, and longer-horizon economy sinks
 4. break up the shell-owned hotspots with Agent 1, starting from `src/ui/front-door-view.ts` at roughly `1.4k` lines, `src/ui/ui-common.ts` at roughly `1.0k`, and `tests/app-engine-shell.test.ts` at roughly `1.6k`, then restart the parked resume-and-recovery shell feature pass on those smaller seams
@@ -225,7 +225,7 @@ These are the next high-value implementation gates from the current baseline:
 
 Current Agent 4 focus order:
 
-1. `ROUGE-51`: keep splitting the quest domain from `src/quests/world-node-catalog.ts` while preserving `src/quests/world-node-engine.ts` as the thin public surface
+1. `ROUGE-51`: keep splitting the quest domain from `src/quests/world-node-catalog-opportunities.ts` and the remaining catalog assembly helpers while preserving `src/quests/world-node-engine.ts` as the thin public surface
 2. `ROUGE-43`: extract authored-content and progression-definition seams out of `src/content/game-content.ts` and `src/state/persistence.ts`
 3. `ROUGE-42`: extract the next stable combat helper seams out of `src/combat/combat-engine.ts`
 4. `ROUGE-47`: centralize module-registration ownership after the large-file extractions settle

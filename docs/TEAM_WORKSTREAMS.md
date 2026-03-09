@@ -87,6 +87,7 @@ These files are conflict hotspots:
 - `src/app/main.ts`
 - `src/town/service-registry.ts`
 - `src/state/*.ts`
+- `src/quests/world-node-catalog-opportunities.ts`
 - `src/quests/world-node-catalog.ts`
 - `src/items/*.ts`
 - `src/content/content-validator.ts`
@@ -155,7 +156,7 @@ The current chunking is:
    - elite or boss depth and mercenary payoff growth only where new route fabrics justify it
    - content validation and reachability hardening
 4. Agent 4 owns architecture and code quality:
-   - break up the biggest runtime hotspots first, continuing from `src/quests/world-node-catalog.ts` while keeping `src/quests/world-node-engine.ts` thin
+   - break up the biggest runtime hotspots first, continuing from `src/quests/world-node-catalog-opportunities.ts` and the remaining quest catalog assembly helpers while keeping `src/quests/world-node-engine.ts` thin
    - extract authored-content seams out of `src/content/game-content.ts` and `src/state/persistence.ts`
    - keep `src/combat/combat-engine.ts` from becoming the next giant file
    - centralize module-registration ownership after the large-file passes settle
@@ -169,7 +170,7 @@ The current chunking is:
 Current start order for this round:
 
 1. Agent 4
-   - continue the large-file strike with `ROUGE-51` on `src/quests/world-node-catalog.ts` after thinning `src/quests/world-node-engine.ts`
+   - continue the large-file strike with `ROUGE-51` on `src/quests/world-node-catalog-opportunities.ts` and the remaining catalog assembly helpers after thinning `src/quests/world-node-engine.ts`
    - then land `ROUGE-43` on `src/content/game-content.ts` and `src/state/persistence.ts`
    - then land `ROUGE-42` on `src/combat/combat-engine.ts`
 2. Agent 1
@@ -190,7 +191,7 @@ Current start order for this round:
 Current landing guidance:
 
 1. land shared type, profile, and progression contract changes first
-2. let Agent 4 land the quest/content large-file breakup pass first, continuing from `src/quests/world-node-catalog.ts`, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`
+2. let Agent 4 land the quest/content large-file breakup pass first, continuing from `src/quests/world-node-catalog-opportunities.ts` and the remaining catalog assembly helpers, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`
 3. let Agent 1 land the shell-specific large-file breakup pass in parallel where it stays on `src/ui/*` and shell-owned suites instead of world/content hotspots
 4. let Agent 5 broaden the quality lane only after Agent 4's or Agent 1's large-file seams settle where shared harness or bootstrap ownership is involved and a new Tira-promoted release-confidence gap exists
 5. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams

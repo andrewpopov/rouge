@@ -1797,6 +1797,22 @@ interface RewardEngineApi {
   applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
 }
 
+interface WorldNodeCatalogOpportunitiesApi {
+  additionalOpportunityVariants: Record<number, OpportunityNodeVariantDefinition[]>;
+  shrineOpportunityDefinitions: Record<number, ShrineOpportunityDefinition>;
+  crossroadOpportunityDefinitions: Record<number, CrossroadOpportunityDefinition>;
+  reserveOpportunityDefinitions: Record<number, ReserveOpportunityDefinition>;
+  relayOpportunityDefinitions: Record<number, RelayOpportunityDefinition>;
+  culminationOpportunityDefinitions: Record<number, CulminationOpportunityDefinition>;
+  legacyOpportunityDefinitions: Record<number, LegacyOpportunityDefinition>;
+  reckoningOpportunityDefinitions: Record<number, ReckoningOpportunityDefinition>;
+  recoveryOpportunityDefinitions: Record<number, RecoveryOpportunityDefinition>;
+  accordOpportunityDefinitions: Record<number, AccordOpportunityDefinition>;
+  covenantOpportunityDefinitions: Record<number, CovenantOpportunityDefinition>;
+  detourOpportunityDefinitions: Record<number, DetourOpportunityDefinition>;
+  escalationOpportunityDefinitions: Record<number, EscalationOpportunityDefinition>;
+}
+
 interface WorldNodeCatalogApi {
   getCatalog(): WorldNodeCatalog;
   assertValidCatalog(): void;
@@ -2302,6 +2318,7 @@ interface Window {
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
+  ROUGE_WORLD_NODE_CATALOG_OPPORTUNITIES: WorldNodeCatalogOpportunitiesApi;
   ROUGE_WORLD_NODE_CATALOG: WorldNodeCatalogApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
   ROUGE_WORLD_NODE_ZONES: WorldNodeZonesApi;

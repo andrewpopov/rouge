@@ -39,9 +39,9 @@ Work these in the order set in Tira and by the project manager.
 
 ## Current Focus
 
-- `ROUGE-51` is still in progress on `master`: `src/quests/world-node-engine.ts` is now down to roughly `0.6k` lines behind the new `src/quests/world-node-catalog.ts`, but the quest-domain authored catalog is still the largest file in the repo at roughly `9.6k` lines and remains the highest-value tech-debt target.
+- `ROUGE-51` is still in progress on `master`: `src/quests/world-node-engine.ts` is now down to roughly `0.6k` lines, `src/quests/world-node-catalog.ts` is down to roughly `3.0k` lines, and the extracted `src/quests/world-node-catalog-opportunities.ts` is now the largest quest-domain hotspot at roughly `6.6k` lines.
 - Agent 1 now owns the shell-specific large-file strike. Do not take `src/ui/front-door-view.ts`, `src/ui/ui-common.ts`, or shell-suite breakup work unless the project manager explicitly reassigns it.
-- Continue `ROUGE-51` from `src/quests/world-node-catalog.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts` instead of re-expanding `src/quests/world-node-engine.ts`.
+- Continue `ROUGE-51` from `src/quests/world-node-catalog-opportunities.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts` instead of re-expanding `src/quests/world-node-catalog.ts` or `src/quests/world-node-engine.ts`.
 - Then land `ROUGE-43`: split authored content out of `src/content/game-content.ts` and progression-tree definitions out of `src/state/persistence.ts`.
 - Then land `ROUGE-42`: extract the next combat helper seams so `src/combat/combat-engine.ts` does not become the next monolith.
 - Only after those large-file passes settle should Agent 4 move to `ROUGE-47` module-registration centralization and `ROUGE-49` further oversized test splitting.

@@ -86,8 +86,11 @@ Rules:
 - `src/quests/world-node-outcomes.ts`
   - owns quest, shrine, event, and opportunity outcome recording for authored world-node rewards
 
+- `src/quests/world-node-catalog-opportunities.ts`
+  - owns the late-route opportunity-family catalog literals, shared opportunity-choice builders, and extra opportunity-variant payloads for the quest domain
+
 - `src/quests/world-node-catalog.ts`
-  - owns authored quest-domain catalog literals and world-node catalog validation for the quest domain
+  - owns the base quest-domain catalog literals, catalog assembly, and world-node catalog validation on top of `src/quests/world-node-catalog-opportunities.ts`
 
 - `src/quests/world-node-zones.ts`
   - owns world-node choice shaping, act-specific definition lookup, and zone-construction helpers for the quest domain
@@ -96,7 +99,7 @@ Rules:
   - owns authored follow-up and opportunity-variant resolution for the quest domain
 
 - `src/quests/world-node-engine.ts`
-  - remains the public world-node resolver and reward surface on top of `src/quests/world-node-catalog.ts`, `src/quests/world-node-outcomes.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts`
+  - remains the public world-node resolver and reward surface on top of `src/quests/world-node-catalog-opportunities.ts`, `src/quests/world-node-catalog.ts`, `src/quests/world-node-outcomes.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts`
 
 - `src/run/run-state.ts`
   - owns run-domain defaults and shared numeric or bonus helpers used by the run domain
@@ -191,7 +194,7 @@ The tests intentionally exercise `generated/` output through a shared `vm` brows
 - Treat the manifest arrays in `tests/helpers/browser-harness.ts` as the compiled-browser source of truth for helper boot order; do not duplicate those lists into ad hoc suite-local loaders.
 - The combat helper chain currently loads as `combat-modifiers`, then `combat-engine`; keep that order aligned in both browser and compiled-browser test boot paths.
 - The validator helper chain currently loads as `content-validator-world-paths`, `content-validator-world-opportunities`, `content-validator-runtime-content`, then `content-validator`; keep that order aligned in both browser and compiled-browser test boot paths.
-- The quest helper chain currently loads as `world-node-catalog`, then `world-node-outcomes`, then `world-node-zones`, then `world-node-variants`, then `world-node-engine`; keep that order aligned in both browser and compiled-browser test boot paths.
+- The quest helper chain currently loads as `world-node-catalog-opportunities`, then `world-node-catalog`, then `world-node-outcomes`, then `world-node-zones`, then `world-node-variants`, then `world-node-engine`; keep that order aligned in both browser and compiled-browser test boot paths.
 - If a public runtime name changes, update `index.html`, tests, and docs in the same change.
 
 ### 4. Single-Writer State Ownership
