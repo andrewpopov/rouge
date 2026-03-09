@@ -2238,6 +2238,51 @@ interface FrontDoorExpeditionViewApi {
   buildExpeditionSectionMarkup(appState: AppState, services: UiRenderServices, savedRunSummary: SavedRunSummary | null): string;
 }
 
+interface SafeZoneOperationsModel {
+  run: RunState;
+  derivedParty: DerivedPartyState;
+  routeSnapshot: SafeZoneSnapshot;
+  profileSummary: ProfileSummary;
+  accountSummary: ProfileAccountSummary;
+  townActions: TownAction[];
+  healerActions: TownAction[];
+  quartermasterActions: TownAction[];
+  progressionActions: TownAction[];
+  vendorActions: TownAction[];
+  inventoryActions: TownAction[];
+  stashActions: TownAction[];
+  mercenaryActions: TownAction[];
+  trainingRanks: number;
+  carriedEntries: number;
+  vendorStock: number;
+  vendorRefreshes: number;
+  stashEntries: number;
+  questOutcomeCount: number;
+  shrineOutcomeCount: number;
+  eventOutcomeCount: number;
+  opportunityOutcomeCount: number;
+  worldOutcomeCount: number;
+  preferredClassName: string;
+  planningLabels: string[];
+  nextTutorialLabel: string;
+  missingHeroLife: number;
+  missingMercenaryLife: number;
+  missingBelt: number;
+  spendablePointCount: number;
+  progressionActionTitles: string[];
+  recoveryActionTitles: string[];
+  tradeActionTitles: string[];
+  mercenaryActionTitles: string[];
+  readinessIssues: string[];
+  readinessTone: string;
+  readinessBadgeLabel: string;
+}
+
+interface SafeZoneOperationsViewApi {
+  createOperationsModel(appState: AppState, services: UiRenderServices): SafeZoneOperationsModel;
+  buildOperationsMarkup(appState: AppState, services: UiRenderServices, model?: SafeZoneOperationsModel): string;
+}
+
 interface Window {
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
@@ -2275,6 +2320,7 @@ interface Window {
   ROUGE_APP_ENGINE: AppEngineApi;
   ROUGE_UI_COMMON: UiCommonApi;
   ROUGE_FRONT_DOOR_EXPEDITION_VIEW: FrontDoorExpeditionViewApi;
+  ROUGE_SAFE_ZONE_OPERATIONS_VIEW: SafeZoneOperationsViewApi;
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;

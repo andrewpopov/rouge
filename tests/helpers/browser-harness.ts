@@ -51,6 +51,7 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/front-door-expedition-view.js",
   "src/ui/front-door-view.js",
   "src/ui/character-select-view.js",
+  "src/ui/safe-zone-operations-view.js",
   "src/ui/safe-zone-view.js",
   "src/ui/world-map-view.js",
   "src/ui/combat-view.js",
