@@ -172,5 +172,5 @@ Current sequencing guidance:
 1. let Agent 4 go first on the large-file tech-debt strike so the next feature work lands on smaller seams
 2. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
 3. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
-4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with expedition-launch continuity and town-prep comparisons
-5. let Agent 5 keep the quality gate green, then use the local artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots to land delta reporting, restore smoke, and the next artifact-driven regression backfill
+4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with saved-run resume guidance and recovery summaries
+5. let Agent 5 keep the quality gate green, stabilize the transient route-payoff flake, and then use the current artifact deltas and restore-smoke baseline to choose the next browser-only fault injection and the next artifact-driven regression backfill

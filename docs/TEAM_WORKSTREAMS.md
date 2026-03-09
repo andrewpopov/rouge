@@ -127,18 +127,18 @@ Use the standalone assignment sheets as the source of truth for the detailed tas
 
 Current Tira mapping:
 
-1. Agent 1: completed epics `ROUGE-21` and `ROUGE-52`; next shell ticket pending
+1. Agent 1: completed epics `ROUGE-21` and `ROUGE-52`; active epic `ROUGE-60`, tickets `ROUGE-61`, `ROUGE-62`, `ROUGE-63`
 2. Agent 2: epic `ROUGE-2`, tickets `ROUGE-9`, `ROUGE-10`, `ROUGE-18`
 3. Agent 3: epic `ROUGE-3`, tickets `ROUGE-11`, `ROUGE-12`, `ROUGE-13`, `ROUGE-19`
 4. Agent 4: epic `ROUGE-1` plus current large-file queue `ROUGE-51`, `ROUGE-43`, `ROUGE-42`, with `ROUGE-47` and `ROUGE-49` as follow-ons and `ROUGE-5`, `ROUGE-17`, `ROUGE-6`, `ROUGE-7` as secondary backlog
-5. Agent 5: completed epics `ROUGE-25` and `ROUGE-29`; active epic `ROUGE-56`, tickets `ROUGE-57`, `ROUGE-58`, `ROUGE-59`
+5. Agent 5: completed epics `ROUGE-25`, `ROUGE-29`, and `ROUGE-56`; active epic `ROUGE-64`, tickets `ROUGE-65`, `ROUGE-66`, `ROUGE-67`
 
 The current chunking is:
 
 1. Agent 1 owns the full player-facing shell:
-   - keep the landed expedition launch runway from hall through character select into the first safe zone green
-   - keep the landed safe-zone before-or-after desk for the highest-value town-prep actions green
-   - keep compiled-browser regression coverage aligned until the next shell brief lands
+   - phase-aware resume guidance on saved-run cards
+   - clearer recovery framing for resumed safe-zone and reward states
+   - compiled-browser regression coverage for the resume and recovery loop
 2. Agent 2 owns the progression and account backbone:
    - broader account growth beyond the current sovereign-annals or merchant-principate or legend-doctrine second wave, current convergences, and live planning-charter layer
    - late-act item or rune or runeword economy depth beyond the current sovereign-market layer
@@ -157,9 +157,9 @@ The current chunking is:
    - centralize module-registration ownership after the large-file passes settle
    - keep test-surface cleanup and architecture docs aligned with the new seams
 5. Agent 5 owns release confidence and automated verification:
-   - maintain the now-live quality-artifact delta reporting and coverage headroom summaries on top of the local artifact history
-   - maintain the four-test built-bundle smoke lane, including the safe-zone restore permutation
-   - choose the next regression backfill or browser-only fault injection from artifact and coverage deltas
+   - investigate and stabilize the transient route-payoff flake from the first full gate attempt
+   - add the next browser-only fault-injection smoke path
+   - choose one more regression backfill from artifact and coverage deltas
    - continued ownership of `npm run quality` and `npm run test:coverage`
 
 Current start order for this round:
@@ -175,11 +175,11 @@ Current start order for this round:
    - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
    - then widen mercenary payoff only if that follow-through creates a real new combat seam
 4. Agent 1
-   - hold the now-landed expedition-launch and town-prep shell pass green until the next shell ticket lands
+   - land the new resume and recovery shell pass on top of the now-live continueSavedRun baseline
 5. Agent 5
    - keep the landed release-confidence lane green
-   - treat the current artifact deltas, safe-zone restore smoke, and restore-path shell backfill as the new baseline instead of future work
-   - then use that baseline to choose the next browser-only fault injection and the next artifact-driven regression backfill
+   - stabilize the transient route-payoff flake
+   - then use the current artifact deltas and restore-smoke baseline to choose the next browser-only fault injection and the next artifact-driven regression backfill
 
 Current landing guidance:
 
@@ -188,7 +188,7 @@ Current landing guidance:
 3. let Agent 5 broaden the quality lane only after Agent 4's large-file seams settle where shared harness or bootstrap ownership is involved
 4. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
 5. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts, building on the live detour or escalation fabric instead of re-establishing it
-6. let Agent 1 keep the landed expedition-launch and town-prep shell pass aligned with the latest profile, route, archive, reward, and node surfaces while the next shell brief is defined
+6. let Agent 1 land the resume and recovery shell pass on top of the latest profile, route, archive, reward, and node surfaces
 7. let Agent 4 return to secondary architecture backlog like module registration and further test splits after the giant-file strike settles
 
 ## Integration Checklist

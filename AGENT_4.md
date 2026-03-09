@@ -35,7 +35,8 @@ Work these in the order set in Tira and by the project manager.
 
 ## Current Focus
 
-- Start with `ROUGE-51`: `src/quests/world-node-engine.ts` is the largest file in the repo at roughly `11.3k` lines and is now the highest-value tech-debt target.
+- `ROUGE-51` is in progress on `master`: `src/quests/world-node-engine.ts` is down to roughly `10.1k` lines after the new zone seam, but it is still the largest file in the repo and the highest-value tech-debt target.
+- Continue `ROUGE-51` from the new `src/quests/world-node-zones.ts` and `src/quests/world-node-variants.ts` seams instead of restarting the extraction.
 - Then land `ROUGE-43`: split authored content out of `src/content/game-content.ts` and progression-tree definitions out of `src/state/persistence.ts`.
 - Then land `ROUGE-42`: extract the next combat helper seams so `src/combat/combat-engine.ts` does not become the next monolith.
 - Only after those large-file passes settle should Agent 4 move to `ROUGE-47` module-registration centralization and `ROUGE-49` further oversized test splitting.

@@ -28,7 +28,10 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 
 - previous completed epic: `ROUGE-21` Account Meta Continuity
 - previous completed epic: `ROUGE-52` Expedition Launch And Town Prep Clarity
-- next Agent 1 Tira assignment: pending
+- active epic: `ROUGE-60` Run Resume And Recovery Clarity
+- `ROUGE-61`
+- `ROUGE-62`
+- `ROUGE-63`
 
 Work these in the order set in Tira and by the project manager.
 
@@ -36,7 +39,9 @@ Work these in the order set in Tira and by the project manager.
 
 - `ROUGE-21` is landed on `master`: the shared account-meta continuity board, charter or convergence drilldowns, and their compiled-browser coverage are now live.
 - `ROUGE-52` is landed on `master`: the hall-to-character-select-to-safe-zone expedition launch flow, the safe-zone before-or-after desk for the highest-value town-prep actions, and the compiled-browser shell coverage for both passes are now live.
-- Hold the shell line green and wait for the next Agent 1 ticket in Tira before opening another large UI pass.
+- Start with `ROUGE-61`: add phase-aware resume guidance to saved-run cards on the front door.
+- Then land `ROUGE-62`: add recovery summaries for resumed safe-zone and reward states.
+- Finish with `ROUGE-63`: compiled-browser regression coverage for resume and recovery shell flow.
 
 ## Execution Rules
 

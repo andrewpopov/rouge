@@ -24,20 +24,21 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 
 ## Active Tickets
 
-- completed epics: `ROUGE-25` and `ROUGE-29`
-- active epic: `ROUGE-56` Quality Artifact Trends And Restore Smoke
-- `ROUGE-57`
-- `ROUGE-58`
-- `ROUGE-59`
+- completed epics: `ROUGE-25`, `ROUGE-29`, and `ROUGE-56`
+- active epic: `ROUGE-64` Flake Stabilization And Browser Fault Injection
+- `ROUGE-65`
+- `ROUGE-66`
+- `ROUGE-67`
 
 Work these in the order set in Tira and by the project manager.
 
 ## Current Focus
 
-- `ROUGE-29` is landed on `master`: built-bundle smoke now covers encounter, reward, act transition, run summary, and bad-seed boot failure.
-- Start with `ROUGE-57`: make the persisted quality artifacts easier to compare by adding clear delta summaries.
-- Then land `ROUGE-58`: add the next highest-value built-bundle restore-path smoke permutation.
-- Finish with `ROUGE-59`: choose the next regression backfill from artifact and coverage deltas instead of generic QA churn.
+- `ROUGE-56` is now landed on `master`: `artifacts/quality/latest.md` surfaces clear quality or coverage deltas plus coverage headroom, built-bundle smoke adds a safe-zone restore permutation, and restore-path backfill now covers safe-zone and reward resume paths in the compiled-browser shell suite.
+- Treat the current four-test built smoke lane as the new baseline instead of future work.
+- Start with `ROUGE-65`: investigate and stabilize the transient route-payoff failure seen on the first full `npm run check` attempt in this review.
+- Then land `ROUGE-66`: add the next browser-only fault-injection smoke path beyond the current bad-seed coverage.
+- Finish with `ROUGE-67`: use the current artifact deltas to choose and land one more high-value regression backfill.
 
 ## Execution Rules
 
