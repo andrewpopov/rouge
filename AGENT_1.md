@@ -192,6 +192,7 @@ Expectations:
 
 ## Test And Landing Rule
 
+- before the first code edit, first new test file, or first tooling change for a ticket, move that ticket to `IN_PROGRESS` in Tira
 - add or update automated coverage for every shell behavior you change, starting with `tests/app-engine*.test.ts` and any affected domain tests
 - include action-dispatch coverage when you add interactive account-hall, settings, or tutorial controls
 - run `npm run check` before calling the batch complete
@@ -202,6 +203,7 @@ Expectations:
 
 - coordinate with Agent 2 on any new profile summary, unlock, tutorial, or progression summary data you need rendered
 - coordinate with Agent 3 when new node families or encounter metadata need shell treatment
+- coordinate with Agent 5 when new shell flows need e2e coverage or broader regression follow-through
 - do not redefine `app-engine` or run-state contracts casually; escalate shared shell-contract changes to the project manager first
 - call out any `src/types/game.d.ts`, `src/app/app-engine.ts`, or `src/app/main.ts` contract changes before landing on `master`
 

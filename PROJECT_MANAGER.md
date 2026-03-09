@@ -31,6 +31,7 @@ Keep these current:
 - `AGENT_2.md`
 - `AGENT_3.md`
 - `AGENT_4.md`
+- `AGENT_5.md`
 
 After every meaningful review:
 
@@ -48,6 +49,7 @@ Default parallel lanes:
 2. Agent 2: progression, economy, and account backbone
 3. Agent 3: world-content and combat-depth expansion
 4. Agent 4: architecture and code-quality hardening
+5. Agent 5: release confidence and automated verification
 
 ### 4. Manage Hotspots
 
@@ -63,6 +65,8 @@ Watch these files closely:
 - `src/content/content-validator.ts`
 - `src/content/encounter-registry.ts`
 - `src/quests/world-node-engine.ts`
+- `package.json`
+- `tests/e2e/*`
 - `index.html`
 - `tests/app-engine*.test.ts`
 
@@ -81,6 +85,7 @@ No workstream is considered ready to land on `master` until:
 - automated tests were added or updated for the behavior that changed
 - `npm run check` passes
 - any shared-type changes are clearly called out
+- the corresponding Tira ticket was moved to `IN_PROGRESS` before the first code edit, first new test file, or first tooling change for that ticket
 - the final state is recorded in coherent commit(s) on `master`
 
 Agents are not done when code exists locally or when tests are green. They are done only when the assigned batch is actually landed on `master`.
@@ -93,11 +98,13 @@ Default order when workstreams overlap:
 
 1. shared contracts and type changes
 2. Agent 4 behavior-preserving extraction or test-surface cleanup that reduces hotspot pressure without redefining product behavior
-3. Agent 2 backbone changes
-4. Agent 3 world-content and combat-depth changes
-5. Agent 1 shell-only changes that consume already-stable APIs
-6. Agent 4 follow-on hotspot extraction after the feature landings settle
-7. Agent 1 follow-on shell integration for any new APIs or content surfaces
+3. Agent 5 quality-gate, coverage, and e2e work that builds on Agent 4's stable browser seam
+4. Agent 2 backbone changes
+5. Agent 3 world-content and combat-depth changes
+6. Agent 1 shell-only changes that consume already-stable APIs
+7. Agent 4 follow-on hotspot extraction after the feature landings settle
+8. Agent 5 follow-on missing-test backfill after new feature landings expand the surface
+9. Agent 1 follow-on shell integration for any new APIs or content surfaces
 
 If a batch is mostly presentation-only, it can land earlier as long as it does not redefine contracts.
 
@@ -137,7 +144,7 @@ When tracking or making decisions:
 3. `docs/IMPLEMENTATION_PROGRESS.md`
 4. `docs/PROJECT_MASTER.md`
 5. `docs/TEAM_WORKSTREAMS.md`
-6. `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`, `AGENT_4.md`
+6. `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`, `AGENT_4.md`, `AGENT_5.md`
 7. product-direction planning docs
 
 ## Immediate Operating Rule
@@ -150,6 +157,7 @@ Current expectation:
 - Agent 2 should ship the progression and account systems that the rest of the game builds on
 - Agent 3 should ship the world-content and combat-depth that makes the acts feel materially different
 - Agent 4 should keep the codebase extensible by running a repeating loop: establish one stable seam, move code behind it, pay off the local lint or test debt, document the rule, then repeat without changing product direction
+- Agent 5 should keep release confidence real by owning lint or build or compiled-browser or e2e or coverage gates and by turning missing-test gaps into landed tests
 
 Current Agent 4 priority order:
 
@@ -162,7 +170,9 @@ Current Agent 4 priority order:
 Current sequencing guidance:
 
 1. let Agent 4 keep the compiled-browser harness aligned, continue the remaining app-engine suite cleanup, and only do validator or `world-node-engine` follow-on work from the existing helper chain and coordinated extraction seam
-2. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
-3. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
-4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with account-hall decision support and safe-zone comparison surfaces
-5. let Agent 4 only expand `src/quests/world-node-engine.ts` extraction further after the first helper pass and the next suite split settle cleanly
+2. let Agent 5 establish the quality gate and coverage seams on top of Agent 4's browser bootstrap instead of introducing a second test path
+3. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
+4. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
+5. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with account-hall decision support and safe-zone comparison surfaces
+6. let Agent 4 only expand `src/quests/world-node-engine.ts` extraction further after the first helper pass and the next suite split settle cleanly
+7. let Agent 5 only broaden missing-test backfill after the first quality-gate pass is stable on `master`

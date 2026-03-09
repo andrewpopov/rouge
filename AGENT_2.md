@@ -214,6 +214,7 @@ Expectations:
 
 ## Test And Landing Rule
 
+- before the first code edit, first new test file, or first tooling change for a ticket, move that ticket to `IN_PROGRESS` in Tira
 - add or update automated coverage for every progression, economy, persistence, or profile behavior you change
 - keep `tests/app-engine*.test.ts` and any affected domain coverage in sync with the new rules
 - run `npm run check` before calling the batch complete
@@ -224,6 +225,7 @@ Expectations:
 
 - coordinate with Agent 1 on the minimum summary APIs needed for front-door, town, and run-end surfaces
 - coordinate with Agent 3 when quest, shrine, event, opportunity, or encounter outcomes need new economy or progression effects
+- coordinate with Agent 5 when new account or economy seams need regression, restore, coverage, or e2e follow-through
 - call out any `src/types/game.d.ts` changes before landing and let the project manager sequence them if multiple agents are touching shared contracts
 
 ## Acceptance Criteria

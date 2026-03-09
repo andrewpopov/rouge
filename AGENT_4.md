@@ -242,6 +242,7 @@ The next completed Agent 4 batch should leave the repo in this shape:
 
 ## Test And Landing Rule
 
+- before the first code edit, first new test file, or first tooling change for a ticket, move that ticket to `IN_PROGRESS` in Tira
 - add or update automated coverage for any extracted behavior or changed test harness seam
 - run `npm run check` before calling the batch complete
 - do not stop at local edits or a green test run; finish by landing the work as coherent commit(s) directly on `master`
@@ -252,6 +253,7 @@ The next completed Agent 4 batch should leave the repo in this shape:
 - coordinate with Agent 1 before touching `src/ui/*` or shell-facing `src/app/*` files
 - coordinate with Agent 2 before extracting progression/account hotspots they are actively changing
 - coordinate with Agent 3 before extracting `src/quests/world-node-engine.ts` or other world-content files they are actively changing
+- coordinate with Agent 5 before changing shared test harness ownership, browser bootstrap assumptions, or quality-gate scripts
 - escalate hotspot sequencing to the project manager when an extraction touches a file already claimed by a feature batch
 - prefer landing small architecture passes between larger feature batches if that reduces rebase pain on `master`
 

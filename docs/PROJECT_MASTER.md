@@ -48,6 +48,7 @@ Implemented now:
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, and departure-readiness framing
 - return-to-town flow from the world map without losing route progress
 - schema-versioned run snapshots plus profile-backed active-run, stash, richer run-history summaries, stash or archive or capstone-review summary APIs, mutable settings, milestone-driven unlock, tutorial, and profile-meta persistence with live town-economy or reward feature gates plus content-aware planning-charter sanitization during hydrate and migration
+- strict lint, reproducible build packaging, and compiled-browser regression verification through `npm run check`
 
 Not implemented now:
 
@@ -56,6 +57,7 @@ Not implemented now:
 - broader route topology beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, and parallel legacy-opportunity or reckoning-opportunity or recovery-opportunity or accord-opportunity lanes that reconverge in covenant before opening detour and escalation per act
 - broader encounter-local modifier catalogs and escort or boss scripting beyond the current sixteen-modifier combat baseline
 - final late-run loot tuning and broader feature-gated reward variety beyond the current higher-tier item, rune, and runeword catalog
+- a dedicated browser e2e smoke path, explicit coverage reporting or thresholds, and a bot-owned missing-test backfill lane
 
 ## Documentation Layers
 
@@ -122,6 +124,7 @@ When docs conflict, use this order.
 - [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
 - [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
 - [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md)
+- [AGENT_5.md](/Users/andrew/proj/rouge/AGENT_5.md)
 - [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 
 These describe what is actually authored and playable now. `generated/` and `dist/` are runtime outputs, not editable source.
@@ -136,6 +139,7 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
 - [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
 - [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md)
+- [AGENT_5.md](/Users/andrew/proj/rouge/AGENT_5.md)
 - [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)

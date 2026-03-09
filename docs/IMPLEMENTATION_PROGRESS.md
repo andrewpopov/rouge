@@ -51,6 +51,7 @@ Most recent verification:
 | Quests, shrines, and events | `implemented` | Quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, legacy-opportunity, reckoning-opportunity, recovery-opportunity, accord-opportunity, covenant-opportunity, detour-opportunity, escalation-opportunity, and main-opportunity node families, broader shrine blessings, quest outcome ledger, follow-up and chain consequence tracking, consequence-gated opportunity variants, and non-combat route rewards through app or run flow | Broader route topology and later-act node-family expansion beyond the current legacy-plus-reckoning-plus-recovery-plus-accord-into-covenant-plus-detour-plus-escalation pass |
 | UI extraction | `implemented` | `src/app/main.ts` is a thin boot or dispatch bridge, phase-owned UI modules live under `src/ui/*`, and split compiled-browser app-engine suites plus a shared browser harness cover shell, progression, node, and validation flows | Dedicated unlock or settings surfaces beyond the current shell |
 | Content validation | `implemented` | Seed or runtime reference validation, world-node catalog validation, authored-path reachability checks through the split `content-validator-world-paths`, `content-validator-world-opportunities`, and `content-validator-runtime-content` helper chain, elite-affix validation, and clearer boot-time failures | Broader normalization coverage for future encounter modifiers and route families |
+| Automated verification | `partial` | Strict lint, reproducible build packaging, compiled-browser regression suites, and a top-level `npm run check` gate | Dedicated browser e2e smoke coverage, explicit coverage reporting or thresholds, and a bot-owned missing-test backfill lane |
 
 ## Milestone Tracker
 
@@ -210,12 +211,13 @@ Remaining:
 
 These are the next high-value implementation gates from the current baseline:
 
-1. grow the live archive or economy or mastery trees into broader capstone-style account systems, stronger account review data, longer-horizon economy sinks, and a broader second wave beyond the current convergence layer
-2. extend the decision-support shell from the current hall or town or run-end comparison surfaces into world-map, reward, and act-transition continuity without re-expanding `src/app/main.ts`
-3. broaden authored route-side catalogs beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, legacy-opportunity, reckoning-opportunity, recovery-opportunity, accord-opportunity, covenant-opportunity, detour-opportunity, and escalation-opportunity fabric
-4. deepen the live detour and escalation payoff into encounter packages, boss scripting, and reward consequences, and only add a further late-route family if it is materially different from the current covenant-plus-detour-plus-escalation fabric
-5. continue tuning late-run replacement pressure, account-gated reward variety, and long-horizon stash or vendor economy pressure beyond the current higher-tier item, rune, and runeword band plus the current treasury-exchange consignment sink, current runeword-planning charters, and current charter-ledger pressure
-6. keep the centralized compiled-browser harness manifest authoritative, extract the first safe `world-node-engine` helper seams, reduce `max-lines` suppression debt, and keep the remaining large suites shrinking without breaking the compiled-browser harness
+1. keep the centralized compiled-browser harness manifest authoritative, extract the first safe `world-node-engine` helper seams, reduce `max-lines` suppression debt, and keep the remaining large suites shrinking without breaking the compiled-browser harness
+2. establish a real release-confidence lane with browser e2e smoke coverage, explicit coverage reporting or thresholds, and a top-level quality gate beyond the current `npm run check` path
+3. grow the live archive or economy or mastery trees into broader capstone-style account systems, stronger account review data, longer-horizon economy sinks, and a broader second wave beyond the current convergence layer
+4. extend the decision-support shell from the current hall or town or run-end comparison surfaces into world-map, reward, and act-transition continuity without re-expanding `src/app/main.ts`
+5. broaden authored route-side catalogs beyond the current quest, shrine, aftermath-event, shrine-opportunity, crossroad-opportunity, reserve-opportunity, relay-opportunity, culmination-opportunity, legacy-opportunity, reckoning-opportunity, recovery-opportunity, accord-opportunity, covenant-opportunity, detour-opportunity, and escalation-opportunity fabric
+6. deepen the live detour and escalation payoff into encounter packages, boss scripting, and reward consequences, and only add a further late-route family if it is materially different from the current covenant-plus-detour-plus-escalation fabric
+7. continue tuning late-run replacement pressure, account-gated reward variety, and long-horizon stash or vendor economy pressure beyond the current higher-tier item, rune, and runeword band plus the current treasury-exchange consignment sink, current runeword-planning charters, and current charter-ledger pressure
 
 Current Agent 4 focus order:
 
@@ -233,4 +235,4 @@ When implementation changes:
 2. update `PROJECT_MASTER.md` if the top-level snapshot changed
 3. update `APPLICATION_ARCHITECTURE.md` if milestone status changed
 4. update `TEAM_WORKSTREAMS.md` if team pickup guidance changed
-5. update `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`, `AGENT_4.md`, or `PROJECT_MANAGER.md` if team execution rules changed
+5. update `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`, `AGENT_4.md`, `AGENT_5.md`, or `PROJECT_MANAGER.md` if team execution rules changed

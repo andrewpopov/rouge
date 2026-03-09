@@ -156,6 +156,7 @@ Expectations:
 
 ## Test And Landing Rule
 
+- before the first code edit, first new test file, or first tooling change for a ticket, move that ticket to `IN_PROGRESS` in Tira
 - add or update automated coverage for every new node, encounter, elite, boss, mercenary, or validation behavior you change
 - keep `tests/combat-engine.test.ts`, `tests/app-engine*.test.ts`, and any new content-validation coverage in sync with the authored surface
 - run `npm run check` before calling the batch complete
@@ -166,6 +167,7 @@ Expectations:
 
 - coordinate with Agent 2 when node or combat outcomes need new reward, progression, or economy effects
 - coordinate with Agent 1 when new node families, encounter metadata, or act signals need new shell treatment
+- coordinate with Agent 5 when new route or combat seams need explicit regression, validation, coverage, or e2e follow-through
 - if shared type or phase-contract changes are required, escalate to the project manager before landing them
 
 ## Acceptance Criteria
