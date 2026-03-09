@@ -64,7 +64,7 @@ Watch these files closely:
 - `src/items/*.ts`
 - `src/content/content-validator.ts`
 - `src/content/encounter-registry.ts`
-- `src/quests/world-node-engine.ts`
+- `src/quests/world-node-catalog.ts`
 - `package.json`
 - `tests/e2e/*`
 - `index.html`
@@ -161,7 +161,7 @@ Current expectation:
 
 Current Agent 4 priority order:
 
-1. `ROUGE-51`: break up `src/quests/world-node-engine.ts`, the current largest file in the repo at roughly `11.3k` lines
+1. `ROUGE-51`: continue the quest-domain large-file strike from `src/quests/world-node-catalog.ts`, now the current largest file in the repo at roughly `9.6k` lines, while keeping `src/quests/world-node-engine.ts` thin
 2. `ROUGE-43`: extract authored-content seams out of `src/content/game-content.ts` and progression-tree definitions out of `src/state/persistence.ts`
 3. `ROUGE-42`: extract the next combat helper seams out of `src/combat/combat-engine.ts`
 4. `ROUGE-47`: centralize module-registration ownership after the large-file passes settle

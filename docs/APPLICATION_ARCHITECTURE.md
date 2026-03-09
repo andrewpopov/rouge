@@ -45,9 +45,10 @@ The live workspace already has four active implementation layers.
 - `src/content/encounter-registry.ts` remains the public registry entry that derives act encounter, boss, elite-affix, and archetype-behavior catalogs from seed data
 - `src/character/class-registry.ts` adapts class seeds into hero shells and starter decks
 - `src/quests/world-node-outcomes.ts` owns quest, shrine, event, and opportunity outcome recording for authored world-node rewards
+- `src/quests/world-node-catalog.ts` owns authored quest-domain catalog literals and world-node catalog validation
 - `src/quests/world-node-zones.ts` owns world-node choice shaping, act-specific definition lookup, and zone-construction helpers for the quest domain
 - `src/quests/world-node-variants.ts` owns event follow-up and authored opportunity-variant resolution for the quest domain
-- `src/quests/world-node-engine.ts` owns quest, shrine, aftermath-event, and opportunity node families plus the public reward-flow resolution surface on top of `src/quests/world-node-outcomes.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts`
+- `src/quests/world-node-engine.ts` owns quest, shrine, aftermath-event, and opportunity node families plus the public reward-flow resolution surface on top of `src/quests/world-node-catalog.ts`, `src/quests/world-node-outcomes.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts`
 - `src/run/run-state.ts` owns run defaults plus shared value-normalization helpers for the run domain
 - `src/run/run-route-builder.ts` owns act-route generation, world-node normalization, and current-act zone lookup helpers for the run domain
 - `src/run/run-progression.ts` owns level growth, class-tree progression, and derived run bonuses
@@ -79,7 +80,7 @@ The live workspace already has four active implementation layers.
 - `tests/helpers/browser-harness.ts` owns the shared compiled-browser harness used by the split app-engine and combat suites and centralizes the runtime manifest arrays for validator, encounter, item, run, persistence, and UI helper chains
 - `index.html` and `tests/helpers/browser-harness.ts` now load the combat helpers in the order `combat-modifiers` -> `combat-engine`
 - `index.html` and `tests/helpers/browser-harness.ts` now load the validator helpers in the order `content-validator-world-paths` -> `content-validator-world-opportunities` -> `content-validator-runtime-content` -> `content-validator`
-- `index.html` and `tests/helpers/browser-harness.ts` now load the quest helpers in the order `world-node-outcomes` -> `world-node-zones` -> `world-node-variants` -> `world-node-engine`
+- `index.html` and `tests/helpers/browser-harness.ts` now load the quest helpers in the order `world-node-catalog` -> `world-node-outcomes` -> `world-node-zones` -> `world-node-variants` -> `world-node-engine`
 - `scripts/build.js` copies `index.html`, emitted runtime files, assets, and seed data into `dist/`
 
 ## What The Live Runtime Already Owns
@@ -295,7 +296,7 @@ Live seams:
 Next extraction targets:
 
 - follow-on validator passes should build from `src/content/content-validator-world-paths.ts`, `src/content/content-validator-world-opportunities.ts`, and `src/content/content-validator-runtime-content.ts` instead of re-expanding `src/content/content-validator.ts`
-- any eventual `world-node-engine` extraction should build on the thinner content-domain seams now surrounding it
+- any eventual quest-domain authored-content split should build from `src/quests/world-node-catalog.ts`, `src/quests/world-node-zones.ts`, and `src/quests/world-node-variants.ts` instead of re-expanding `src/quests/world-node-engine.ts`
 
 Next expansion:
 
@@ -465,11 +466,15 @@ Responsibility:
 
 Current file:
 
+- `src/quests/world-node-catalog.ts`
+- `src/quests/world-node-outcomes.ts`
+- `src/quests/world-node-zones.ts`
+- `src/quests/world-node-variants.ts`
 - `src/quests/world-node-engine.ts`
 
 Future extraction targets:
 
-- `src/quests/quest-system.ts`
+- further act- or opportunity-family catalog shards under `src/quests/*`
 - `src/events/event-system.ts`
 
 ### 10. Persistence Domain

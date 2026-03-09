@@ -1,15 +1,15 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getWorldNodesApi() {
-    if (!runtimeWindow.ROUGE_WORLD_NODES) {
-      throw new Error("World-node engine is unavailable.");
+  function getWorldNodeCatalogApi() {
+    if (!runtimeWindow.ROUGE_WORLD_NODE_CATALOG) {
+      throw new Error("World-node catalog helper is unavailable.");
     }
-    return runtimeWindow.ROUGE_WORLD_NODES;
+    return runtimeWindow.ROUGE_WORLD_NODE_CATALOG;
   }
 
   function getCatalog() {
-    return getWorldNodesApi().getCatalog();
+    return getWorldNodeCatalogApi().getCatalog();
   }
 
   function getQuestDefinition(actNumber) {

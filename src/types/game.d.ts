@@ -1791,6 +1791,11 @@ interface RewardEngineApi {
   applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
 }
 
+interface WorldNodeCatalogApi {
+  getCatalog(): WorldNodeCatalog;
+  assertValidCatalog(): void;
+}
+
 interface WorldNodeEngineApi {
   getCatalog(): WorldNodeCatalog;
   assertValidCatalog(): void;
@@ -2219,6 +2224,7 @@ interface Window {
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
+  ROUGE_WORLD_NODE_CATALOG: WorldNodeCatalogApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
   ROUGE_WORLD_NODE_ZONES: WorldNodeZonesApi;
   ROUGE_WORLD_NODE_VARIANTS: WorldNodeVariantsApi;

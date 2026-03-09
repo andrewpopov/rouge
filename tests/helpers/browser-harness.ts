@@ -61,6 +61,7 @@ const APP_UI_RUNTIME_FILES = [
 ];
 
 const WORLD_NODE_RUNTIME_FILES = [
+  "src/quests/world-node-catalog.js",
   "src/quests/world-node-outcomes.js",
   "src/quests/world-node-zones.js",
   "src/quests/world-node-variants.js",

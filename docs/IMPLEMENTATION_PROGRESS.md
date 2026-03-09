@@ -215,7 +215,7 @@ Remaining:
 
 These are the next high-value implementation gates from the current baseline:
 
-1. break up the largest runtime hotspots with Agent 4 starting from `src/quests/world-node-engine.ts` at roughly `11.3k` lines, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`, while keeping the browser boundary and tests green
+1. keep breaking up the largest runtime hotspots with Agent 4, continuing from `src/quests/world-node-catalog.ts` at roughly `9.6k` lines now that `src/quests/world-node-engine.ts` is thin, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`, while keeping the browser boundary and tests green
 2. use the now-live local quality-artifact deltas under `artifacts/quality/latest.md`, the current four-test built smoke lane, and the current restore-path shell backfill to stabilize the transient route-payoff flake, choose the next browser-only fault injection, and land the next artifact-driven regression backfill
 3. build on the live archive or economy or mastery trees, the current sovereign-annals or merchant-principate or legend-doctrine second wave, and the current convergence layer with broader capstone-style account systems, stronger account review data, and longer-horizon economy sinks
 4. add clearer saved-run resume guidance and resumed safe-zone or reward recovery summaries without re-expanding `src/app/main.ts`
@@ -225,7 +225,7 @@ These are the next high-value implementation gates from the current baseline:
 
 Current Agent 4 focus order:
 
-1. `ROUGE-51`: split `src/quests/world-node-engine.ts` into domain-aligned helper seams while keeping one thin public surface
+1. `ROUGE-51`: keep splitting the quest domain from `src/quests/world-node-catalog.ts` while preserving `src/quests/world-node-engine.ts` as the thin public surface
 2. `ROUGE-43`: extract authored-content and progression-definition seams out of `src/content/game-content.ts` and `src/state/persistence.ts`
 3. `ROUGE-42`: extract the next stable combat helper seams out of `src/combat/combat-engine.ts`
 4. `ROUGE-47`: centralize module-registration ownership after the large-file extractions settle
