@@ -7,7 +7,7 @@ usage() {
 Usage: ./scripts/create-agent-worktree.sh <agent-number|agent-name> <ROUGE-ticket>
 
 Examples:
-  ./scripts/create-agent-worktree.sh 1 ROUGE-61
+  ./scripts/create-agent-worktree.sh 1 ROUGE-69
   ./scripts/create-agent-worktree.sh agent-4 ROUGE-51
 EOF
 }
@@ -18,7 +18,7 @@ if [[ $# -ne 2 ]]; then
 fi
 
 agent_input="$1"
-ticket_input="${2^^}"
+ticket_input="$(printf '%s' "$2" | tr '[:lower:]' '[:upper:]')"
 
 case "$agent_input" in
   1|agent-1|agent1|Agent1|Agent-1) agent_number="1" ;;
@@ -43,7 +43,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 repo_name="$(basename "$repo_root")"
 repo_parent="$(dirname "$repo_root")"
 worktrees_root="$repo_parent/${repo_name}-worktrees"
-ticket_slug="${ticket_input,,}"
+ticket_slug="$(printf '%s' "$ticket_input" | tr '[:upper:]' '[:lower:]')"
 branch_name="codex/agent${agent_number}-${ticket_slug}"
 worktree_path="$worktrees_root/agent${agent_number}-${ticket_slug}"
 

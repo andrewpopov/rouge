@@ -28,21 +28,16 @@ Worktree rule:
 
 ## Active Tickets
 
-- completed epics: `ROUGE-25`, `ROUGE-29`, and `ROUGE-56`
-- active epic: `ROUGE-64` Flake Stabilization And Browser Fault Injection
-- `ROUGE-65`
-- `ROUGE-66`
-- `ROUGE-67`
+- completed epics: `ROUGE-25`, `ROUGE-29`, `ROUGE-56`, and `ROUGE-64`
+- next pickup: wait for the next Tira-promoted release-confidence slice
 
 Work these in the order set in Tira and by the project manager.
 
 ## Current Focus
 
-- `ROUGE-56` is now landed on `master`: `artifacts/quality/latest.md` surfaces clear quality or coverage deltas plus coverage headroom, built-bundle smoke adds a safe-zone restore permutation, and restore-path backfill now covers safe-zone and reward resume paths in the compiled-browser shell suite.
-- Treat the current four-test built smoke lane as the new baseline instead of future work.
-- Start with `ROUGE-65`: investigate and stabilize the transient route-payoff failure seen on the first full `npm run check` attempt in this review.
-- Then land `ROUGE-66`: add the next browser-only fault-injection smoke path beyond the current bad-seed coverage.
-- Finish with `ROUGE-67`: use the current artifact deltas to choose and land one more high-value regression backfill.
+- `ROUGE-64` is landed on `master`: the route-payoff replay seam now has direct regression guards, built smoke covers the saved-run return path, safe-zone restore, act-transition and run-summary checkpoints, bad-seed boot failure, and corrupted persisted-storage fallback, and `artifacts/quality/latest.md` now tracks delta summaries plus coverage headroom.
+- Treat the current five-test built smoke lane and the current compiled-browser restore or malformed-profile backfill as the maintained baseline.
+- Until Tira promotes the next batch, keep `npm run quality` and `npm run test:coverage` green and use new artifact deltas or browser failures to scope the next Agent 5 assignment.
 
 ## Execution Rules
 

@@ -130,18 +130,19 @@ Use the standalone assignment sheets as the source of truth for the detailed tas
 
 Current Tira mapping:
 
-1. Agent 1: completed epics `ROUGE-21` and `ROUGE-52`; active epic `ROUGE-60`, tickets `ROUGE-61`, `ROUGE-62`, `ROUGE-63`
+1. Agent 1: completed epics `ROUGE-21` and `ROUGE-52`; parked epic `ROUGE-60`; active epic `ROUGE-68`, tickets `ROUGE-69`, `ROUGE-70`, `ROUGE-71`
 2. Agent 2: epic `ROUGE-2`, tickets `ROUGE-9`, `ROUGE-10`, `ROUGE-18`
 3. Agent 3: epic `ROUGE-3`, tickets `ROUGE-11`, `ROUGE-12`, `ROUGE-13`, `ROUGE-19`
 4. Agent 4: epic `ROUGE-1` plus current large-file queue `ROUGE-51`, `ROUGE-43`, `ROUGE-42`, with `ROUGE-47` and `ROUGE-49` as follow-ons and `ROUGE-5`, `ROUGE-17`, `ROUGE-6`, `ROUGE-7` as secondary backlog
-5. Agent 5: completed epics `ROUGE-25`, `ROUGE-29`, and `ROUGE-56`; active epic `ROUGE-64`, tickets `ROUGE-65`, `ROUGE-66`, `ROUGE-67`
+5. Agent 5: completed epics `ROUGE-25`, `ROUGE-29`, `ROUGE-56`, and `ROUGE-64`; next quality pickup pending promotion in Tira
 
 The current chunking is:
 
-1. Agent 1 owns the full player-facing shell:
-   - phase-aware resume guidance on saved-run cards
-   - clearer recovery framing for resumed safe-zone and reward states
-   - compiled-browser regression coverage for the resume and recovery loop
+1. Agent 1 owns the shell-specific large-file strike:
+   - split `src/ui/front-door-view.ts`, now roughly `1.4k` lines
+   - split `src/ui/ui-common.ts`, now roughly `1.0k` lines
+   - split shell-heavy compiled-browser suites, starting with `tests/app-engine-shell.test.ts`, now roughly `1.6k` lines
+   - keep shell coverage green so the parked `ROUGE-60` resume-and-recovery follow-on can restart on smaller seams
 2. Agent 2 owns the progression and account backbone:
    - broader account growth beyond the current sovereign-annals or merchant-principate or legend-doctrine second wave, current convergences, and live planning-charter layer
    - late-act item or rune or runeword economy depth beyond the current sovereign-market layer
@@ -160,9 +161,9 @@ The current chunking is:
    - centralize module-registration ownership after the large-file passes settle
    - keep test-surface cleanup and architecture docs aligned with the new seams
 5. Agent 5 owns release confidence and automated verification:
-   - investigate and stabilize the transient route-payoff flake from the first full gate attempt
-   - add the next browser-only fault-injection smoke path
-   - choose one more regression backfill from artifact and coverage deltas
+   - keep `npm run quality` and `npm run test:coverage` green
+   - maintain the local quality-artifact history and current five-test built smoke lane
+   - land new browser-only fault injection or regression backfill only when new feature work exposes a concrete gap
    - continued ownership of `npm run quality` and `npm run test:coverage`
 
 Current start order for this round:
@@ -171,27 +172,31 @@ Current start order for this round:
    - continue the large-file strike with `ROUGE-51` on `src/quests/world-node-catalog.ts` after thinning `src/quests/world-node-engine.ts`
    - then land `ROUGE-43` on `src/content/game-content.ts` and `src/state/persistence.ts`
    - then land `ROUGE-42` on `src/combat/combat-engine.ts`
-2. Agent 2
+2. Agent 1
+   - start the shell-specific large-file strike with `ROUGE-69` on `src/ui/front-door-view.ts` and `src/ui/ui-common.ts`
+   - then land `ROUGE-70` on `tests/app-engine-shell.test.ts` and any clearly shell-owned follow-on suite splits
+   - then land `ROUGE-71` so shell coverage stays strong after the decomposition
+3. Agent 2
    - build on the live second-wave account growth with richer archive or stash or economy read models
    - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter and sovereign-market layer
-3. Agent 3
-   - widen mercenary payoff only if the broader boss or escort consequence follow-through created a real new combat seam
-4. Agent 1
-   - land the new resume and recovery shell pass on top of the now-live continueSavedRun baseline
+4. Agent 3
+   - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
+   - then widen mercenary payoff only if that follow-through creates a real new combat seam
 5. Agent 5
-   - keep the landed release-confidence lane green
-   - stabilize the transient route-payoff flake
-   - then use the current artifact deltas and restore-smoke baseline to choose the next browser-only fault injection and the next artifact-driven regression backfill
+   - keep the landed release-confidence lane green while the other batches move
+   - use the current artifact deltas and five-test built smoke baseline to spot the next real gap
+   - pull the next quality batch only after Tira promotes it
 
 Current landing guidance:
 
 1. land shared type, profile, and progression contract changes first
-2. let Agent 4 land the large-file breakup pass first, continuing from `src/quests/world-node-catalog.ts`, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`
-3. let Agent 5 broaden the quality lane only after Agent 4's large-file seams settle where shared harness or bootstrap ownership is involved
-4. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
-5. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts, building on the live detour or escalation fabric instead of re-establishing it
-6. let Agent 1 land the resume and recovery shell pass on top of the latest profile, route, archive, reward, and node surfaces
-7. let Agent 4 return to secondary architecture backlog like module registration and further test splits after the giant-file strike settles
+2. let Agent 4 land the quest/content large-file breakup pass first, continuing from `src/quests/world-node-catalog.ts`, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`
+3. let Agent 1 land the shell-specific large-file breakup pass in parallel where it stays on `src/ui/*` and shell-owned suites instead of world/content hotspots
+4. let Agent 5 broaden the quality lane only after Agent 4's or Agent 1's large-file seams settle where shared harness or bootstrap ownership is involved and a new Tira-promoted release-confidence gap exists
+5. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
+6. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts, building on the live detour or escalation fabric instead of re-establishing it
+7. let Agent 1 return to the parked `ROUGE-60` resume and recovery shell feature pass only after the shell hotspots are smaller
+8. let Agent 4 return to secondary architecture backlog like module registration and further test splits after the giant-file strike settles
 
 ## Integration Checklist
 

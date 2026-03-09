@@ -163,11 +163,18 @@ The project manager should keep agent tasks meaty, stable, and vertically cohere
 
 Current expectation:
 
-- Agent 1 should ship a shell layer that can carry the whole product
+- Agent 1 should own the shell layer and keep its biggest shell-owned files small enough that product work does not keep colliding in the same checkout
 - Agent 2 should ship the progression and account systems that the rest of the game builds on
 - Agent 3 should ship the world-content and combat-depth that makes the acts feel materially different
 - Agent 4 should keep the codebase extensible by running a repeating loop: establish one stable seam, move code behind it, pay off the local lint or test debt, document the rule, then repeat without changing product direction
 - Agent 5 should keep release confidence real by owning lint or build or compiled-browser or e2e or coverage gates and by turning missing-test gaps into landed tests
+
+Current Agent 1 priority order:
+
+1. `ROUGE-69`: split `src/ui/front-door-view.ts` and `src/ui/ui-common.ts`, now the biggest shell-owned runtime hotspots at roughly `1.4k` and `1.0k` lines
+2. `ROUGE-70`: split `tests/app-engine-shell.test.ts`, now the biggest shell-owned suite at roughly `1.6k` lines
+3. `ROUGE-71`: keep shell regression coverage whole after the shell decomposition
+4. return to the parked `ROUGE-60` resume-and-recovery feature pass only after the shell surfaces are smaller
 
 Current Agent 4 priority order:
 
@@ -180,7 +187,8 @@ Current Agent 4 priority order:
 Current sequencing guidance:
 
 1. let Agent 4 go first on the large-file tech-debt strike so the next feature work lands on smaller seams
-2. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
-3. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
-4. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with saved-run resume guidance and recovery summaries
-5. let Agent 5 keep the quality gate green, stabilize the transient route-payoff flake, and then use the current artifact deltas and restore-smoke baseline to choose the next browser-only fault injection and the next artifact-driven regression backfill
+2. let Agent 1 run the shell-specific large-file strike in parallel with Agent 4 where the files do not overlap
+3. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
+4. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
+5. let Agent 5 keep the quality gate green and use the live artifact history plus the five-test built smoke baseline to identify the next release-confidence gap only after new feature landings expand the surface
+6. let Agent 1 return to the parked resume-and-recovery feature pass only after the shell decomposition settles

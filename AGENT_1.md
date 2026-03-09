@@ -32,10 +32,11 @@ Worktree rule:
 
 - previous completed epic: `ROUGE-21` Account Meta Continuity
 - previous completed epic: `ROUGE-52` Expedition Launch And Town Prep Clarity
-- active epic: `ROUGE-60` Run Resume And Recovery Clarity
-- `ROUGE-61`
-- `ROUGE-62`
-- `ROUGE-63`
+- parked feature epic: `ROUGE-60` Run Resume And Recovery Clarity
+- active epic: `ROUGE-68` Shell Surface Decomposition
+- `ROUGE-69`
+- `ROUGE-70`
+- `ROUGE-71`
 
 Work these in the order set in Tira and by the project manager.
 
@@ -43,9 +44,11 @@ Work these in the order set in Tira and by the project manager.
 
 - `ROUGE-21` is landed on `master`: the shared account-meta continuity board, charter or convergence drilldowns, and their compiled-browser coverage are now live.
 - `ROUGE-52` is landed on `master`: the hall-to-character-select-to-safe-zone expedition launch flow, the safe-zone before-or-after desk for the highest-value town-prep actions, and the compiled-browser shell coverage for both passes are now live.
-- Start with `ROUGE-61`: add phase-aware resume guidance to saved-run cards on the front door.
-- Then land `ROUGE-62`: add recovery summaries for resumed safe-zone and reward states.
-- Finish with `ROUGE-63`: compiled-browser regression coverage for resume and recovery shell flow.
+- Recent landed commits moved the architecture pressure: `src/ui/front-door-view.ts` is now roughly `1.4k` lines, `src/ui/ui-common.ts` is roughly `1.0k`, and `tests/app-engine-shell.test.ts` is roughly `1.6k`.
+- `ROUGE-60` is parked until the shell lives on smaller seams. Do not keep growing the shell feature lane on top of the current file sizes.
+- Start with `ROUGE-69`: split `src/ui/front-door-view.ts` and `src/ui/ui-common.ts` into smaller shell-owned helpers.
+- Then land `ROUGE-70`: split the oversized shell-heavy compiled-browser suites, starting with `tests/app-engine-shell.test.ts`.
+- Finish with `ROUGE-71`: keep shell regression coverage green after the decomposition and leave the smaller seams ready for the later `ROUGE-60` follow-on.
 
 ## Execution Rules
 
