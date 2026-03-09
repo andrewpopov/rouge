@@ -10,6 +10,7 @@ Documentation note:
 - Use `PROJECT_MANAGER.md` for orchestration rules.
 - Use `CODEBASE_RULES.md` for ownership rules and `APPLICATION_ARCHITECTURE.md` for the longer target-state plan.
 - Treat tickets referenced in this document and the agent sheets as the active plan. Unreferenced `ROUGE-*` tickets in Tira are backlog parking-lot items until they are promoted here.
+- The repo root checkout is the integration worktree only. Agents must start ticket work from dedicated helper-created worktrees under `./scripts/create-agent-worktree.sh`.
 
 ## Purpose
 
@@ -102,8 +103,9 @@ Parallel-work rules:
 - rewrite agent docs when a review shows that an assignment has already been completed in code
 - every workstream must add or update automated tests for the behavior it changes
 - every workstream must end with `npm run check`
+- every workstream must happen in its own isolated worktree, not in the shared root checkout
 - every workstream must move its active Tira ticket(s) to `IN_PROGRESS` before the first code edit, first new test file, or first tooling change for that ticket
-- every completed workstream must land as one or more coherent commits directly on `master`; do not stop at local edits or a green run
+- every completed workstream must land from the isolated worktree onto `master`; do not stop at local edits or a green run
 - no PR is required unless a future project-manager update explicitly asks for one
 
 ## Active Assignment Shape

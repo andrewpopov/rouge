@@ -6,6 +6,15 @@ This file defines the project-manager role for Rouge.
 
 The project manager owns orchestration, prioritization, landing sequencing, progress tracking, blocker resolution, and documentation freshness across the agent workstreams.
 
+## Shared Worktree Rule
+
+The repo root checkout is the integration worktree only.
+
+- Agents must not do feature work in the shared root checkout.
+- Every ticket starts from a dedicated worktree created with `./scripts/create-agent-worktree.sh <agent> <ROUGE-ticket>`.
+- Every landing is prepared from that isolated worktree with `./scripts/land-agent-worktree.sh <worktree-path>`.
+- Agents still land onto `master`, but they do the work from isolated `codex/*` branches so they stop stepping on each other.
+
 ## Core Responsibilities
 
 ### 1. Own Shared Contracts
@@ -74,7 +83,7 @@ If two agents need the same hotspot:
 
 1. approve the contract change explicitly
 2. define which workstream lands on `master` first
-3. require the second workstream to rebase or replay on top of the latest `master` before landing
+3. require the second workstream to rebase or replay its isolated worktree branch on top of the latest `origin/master` before landing
 
 ### 5. Gate Landings
 
@@ -84,9 +93,10 @@ No workstream is considered ready to land on `master` until:
 - docs are updated if the live runtime changed
 - automated tests were added or updated for the behavior that changed
 - `npm run check` passes
+- the work happened in an isolated agent worktree instead of the shared root checkout
 - any shared-type changes are clearly called out
 - the corresponding Tira ticket was moved to `IN_PROGRESS` before the first code edit, first new test file, or first tooling change for that ticket
-- the final state is recorded in coherent commit(s) on `master`
+- the final state is recorded in coherent commit(s) and pushed onto `master`
 
 Agents are not done when code exists locally or when tests are green. They are done only when the assigned batch is actually landed on `master`.
 
