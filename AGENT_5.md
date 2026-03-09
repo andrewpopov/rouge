@@ -4,15 +4,7 @@
 
 Own Rouge's release-confidence and automated-verification lane.
 
-Your job is not to run tests after the fact and report green or red. Your job is to make the repo prove that landed work is safe: linted, built, browser-tested, smoke-tested end to end, coverage-checked, and backfilled with missing tests when gaps show up.
-
-This is a large vertical slice:
-
-- lint and build verification
-- compiled-browser regression coverage
-- browser end-to-end smoke coverage
-- coverage reporting and thresholds
-- missing-test backfill across feature lanes
+Your job is to keep the landed gate real: `npm run quality`, `npm run test:coverage`, the built-bundle smoke path, and the compiled-browser harness drift checks all need to stay trustworthy while feature work keeps landing.
 
 ## Own These Areas
 
@@ -35,14 +27,13 @@ This is a large vertical slice:
 
 Ship a repo that can justify landing work on `master`.
 
-When this slice lands, Rouge should have a real quality gate:
+The quality lane is live only if Rouge keeps all of these healthy at the same time:
 
-- lint stays strict
-- build stays reproducible
-- compiled-browser tests stay authoritative
-- end-to-end smoke coverage proves the main loop still boots and flows
-- coverage reporting makes missing-test gaps visible
-- missing-test follow-through gets owned instead of deferred
+- `npm run quality`
+- `npm run test:coverage`
+- the built-bundle browser smoke path
+- the compiled-browser harness-to-bundle drift guard
+- targeted backfill whenever coverage or smoke expose a new risk
 
 ## Current Baseline
 
@@ -52,136 +43,83 @@ Live now:
 - `npm run build`
 - `npm run test:compiled`
 - `npm run check`
-- Playwright is already installed in `package.json`
-- the compiled-browser suite is the main regression surface
+- `npm run test:e2e`
+- `npm run quality`
+- `npm run test:coverage`
+- a Playwright smoke pass against the shipped `dist/` bundle covering boot, front door, character select, safe zone, world map, saved-run restore, and the stable return-to-town path
+- explicit coverage thresholds on the compiled-browser suite, with `generated/src/app/main.js` and `generated/src/content/seed-loader.js` deliberately owned by the e2e lane instead of the Node coverage lane
+- a regression test that keeps `tests/helpers/browser-harness.ts` aligned with `index.html` so Agent 4's compiled-browser seam does not drift from the shipped bundle
 
 Still weak:
 
-- there is no dedicated `test:e2e` browser smoke path yet
-- there is no explicit coverage report or threshold gate yet
-- there is no dedicated owner for turning new coverage gaps into missing tests
-- the repo can pass `npm run check` without proving the shipped browser bundle still works through a real top-level flow
+- the smoke path stops at the outer-loop restore or return seam; encounter, reward, act-transition, and run-summary browser checks still lean mostly on compiled-browser tests
+- browser-only boot failure states are covered indirectly; there is still room for a direct bad-seed or boot-error browser smoke assertion
+- coverage output is console-first; there is not yet a persisted artifact history or trend report
 
 ## Immediate Next Batch
 
-Build the first dedicated release-confidence pass for Rouge:
+Build the next release-confidence pass on top of the landed gate:
 
-- establish a real quality-gate command that covers lint, build, compiled-browser tests, and browser end-to-end smoke
-- add coverage reporting and thresholds that make missing-test gaps visible instead of anecdotal
-- use those results to backfill missing regression and smoke coverage across the newest shell, account, route, and harness seams
-- coordinate with Agent 4 on browser-harness ownership instead of forking a second browser bootstrap path
-
-This batch should make future landings safer immediately, not just add QA language to the docs.
+- deepen the built-bundle smoke path into encounter, reward, act-transition, and run-summary checkpoints without making it flaky
+- add direct browser checks for seed-loading and boot-error failure surfaces that are intentionally excluded from the Node coverage lane
+- use coverage deltas to backfill the next high-risk shell, account, route, and harness seams instead of adding low-value assertion churn
 
 ## Current Assigned Batch
 
-Land this batch in this order unless the project manager explicitly reorders it:
-
-Epic and tickets:
+The original Agent 5 batch is landed:
 
 - epic: `ROUGE-25` Release Confidence And Test Quality
 - `ROUGE-26` Establish the full quality gate
 - `ROUGE-27` Add coverage reporting and thresholds
 - `ROUGE-28` Backfill missing regression and end-to-end coverage
 
-1. `ROUGE-26` quality-gate pass
-- add a real browser end-to-end smoke path on top of the shipped build instead of relying only on compiled-browser unit coverage
-- wire a single top-level quality command that runs lint, build, compiled-browser tests, and end-to-end smoke coverage
-- keep the smoke path focused on the real product loop: boot, front door, character select, safe zone, world map, and one stable return path
+Until the project manager assigns the next Tira ticket set, work this follow-on queue in order:
 
-2. `ROUGE-27` coverage pass
-- add explicit coverage reporting for the active runtime and test surface
-- set thresholds or equivalent gating rules that are strict enough to catch drift but realistic enough to stay green while the repo is still growing
-- document any justified temporary exclusions instead of hiding them in the tooling
+1. built-bundle smoke expansion
+- keep using the shipped browser bundle instead of a Node-only shortcut
+- add stable encounter, reward, act-transition, and run-summary checkpoints on top of the existing outer-loop smoke
+- keep failure messages phase-specific
 
-3. `ROUGE-28` missing-test backfill pass
-- use the new coverage output plus the latest agent batches to find real gaps
-- add cross-cutting regression tests where the current feature lanes left important behavior implied instead of protected
-- prioritize shell continuity, account-read-model drift, route consequence drift, and browser-harness drift before lower-value test churn
+2. browser-only boot coverage
+- keep `generated/src/app/main.js` and `generated/src/content/seed-loader.js` documented as e2e-owned
+- add direct browser smoke for bad-seed or boot-error states before tightening that exclusion any further
 
-## Chunk 1: End-To-End Smoke Coverage
-
-Turn the browser build into something we can smoke test like a product.
-
-This includes:
-
-- a Playwright-backed or equivalent browser e2e path
-- a stable way to boot the built app for e2e runs
-- smoke coverage for the main outer loop surfaces
-- failure messages that point to the broken phase instead of generic browser errors
-
-Expectations:
-
-- keep the e2e layer small and reliable
-- prove the shipped browser bundle works; do not replace it with a Node-only shortcut
-- coordinate with Agent 4 before changing shared browser bootstrap ownership
-
-## Chunk 2: Coverage Reporting And Thresholds
-
-Make test depth measurable.
-
-This includes:
-
-- a repeatable coverage command
-- thresholds or explicit fail conditions
-- documented exclusions when a seam is intentionally not covered yet
-- a clear signal for uncovered new work
-
-Expectations:
-
-- do not chase vanity numbers
-- use coverage to direct missing tests, not to justify shallow assertions
-- keep the reporting workflow simple enough that agents will actually run it
-
-## Chunk 3: Missing-Test Backfill
-
-Use the new quality tools to harden real behavior.
-
-This includes:
-
-- adding regression tests for recently expanded shell seams
-- adding progression or economy coverage where read-model drift is still likely
-- adding route or validation coverage where authored content can silently regress
-- adding e2e smoke assertions when compiled-browser tests are not enough
-
-Expectations:
-
-- add tests with clear product or contract value
-- do not rewrite feature code just to make testing easier unless the refactor is clearly behavior-preserving and coordinated
+3. coverage-driven backfill
+- review the latest `npm run test:coverage` output after each meaningful landing
+- prioritize shell continuity, account-read-model drift, route consequence drift, and harness drift before lower-value gaps
+- add regression tests when the coverage output exposes new unprotected branches in recently touched seams
 
 ## Deliverables
 
-- a dedicated Agent 5 quality lane
-- a real `test:e2e` or equivalent browser smoke path
-- a top-level quality command that includes lint, build, compiled-browser tests, and e2e
-- explicit coverage reporting with thresholds or documented temporary exclusions
-- a first wave of missing-test backfill driven by real gaps
-- doc sync for the new quality gate and testing ownership
+- a stable `npm run quality` gate
+- a stable `npm run test:coverage` gate
+- a small, reliable built-bundle smoke path
+- a maintained harness-to-bundle drift guard
+- a running backlog of coverage-driven regression additions instead of deferred "test later" gaps
 
 ## Test And Landing Rule
 
-- before the first code edit, first new test file, or first tooling change for a ticket, move that ticket to `IN_PROGRESS` in Tira
+- before the first code edit, first new test file, or first tooling change for a new ticket, move that ticket to `IN_PROGRESS` in Tira
 - add or update automated coverage for every quality seam you change
-- run the current full quality gate before calling the batch complete
-- do not mark `ROUGE-26`, `ROUGE-27`, or `ROUGE-28` `DONE` until the work is landed as coherent commit(s) on `master`, the gate is green, and docs are synced
+- run `npm run quality` and `npm run test:coverage` before calling a quality batch complete
+- do not mark a quality ticket `DONE` until the work is landed as coherent commit(s) on `master`, the gates are green, and docs are synced
 - if only part of a ticket lands, leave it open and add a Tira comment describing what shipped and what remains
-- do not stop at a local script or a one-off green run; finish by landing the quality work on `master`
 
 ## Collaboration Notes
 
 - coordinate with Agent 4 before touching `tests/helpers/browser-harness.ts`, shared manifest ownership, or browser bootstrap order
-- coordinate with Agent 1 when e2e assertions depend on shell wording or navigation
+- coordinate with Agent 1 when smoke assertions depend on shell wording or navigation changes
 - coordinate with Agent 2 when coverage gaps point at progression, economy, restore, or migration behavior
 - coordinate with Agent 3 when coverage gaps point at route consequences, validation, or combat-content drift
 
 ## Acceptance Criteria
 
-- Rouge has a dedicated bot lane for release confidence
-- the repo can run lint, build, compiled-browser tests, and end-to-end smoke through one repeatable workflow
-- coverage reports exist and meaningfully direct missing-test work
-- recent major seams have clearer regression protection than they do now
-- `npm run check` still passes, and the new quality gate also passes once introduced
+- Rouge keeps a dedicated release-confidence lane instead of a one-off quality batch
+- `npm run quality` proves lint, build, compiled-browser tests, and built-bundle smoke together
+- `npm run test:coverage` enforces explicit thresholds and documented exclusions
+- the harness drift guard keeps the compiled-browser path aligned with the shipped bundle
+- Agent 5 follow-on work is driven by real coverage or smoke gaps rather than generic QA language
 
 ## Pickup Prompt
 
-Build Rouge's release-confidence lane now. Start by turning the current `lint -> build -> test:compiled` baseline into a real quality gate with browser end-to-end smoke coverage on the built app, then add coverage reporting that makes missing-test gaps explicit. Use that output to backfill high-value tests across the newest shell, account, route, and harness seams. Coordinate with Agent 4 on shared browser bootstrap ownership, keep the smoke suite small and reliable, and do not call the batch done until the new gate is landed on `master`.
+Keep Rouge's release-confidence lane honest. Start from the live `npm run quality` and `npm run test:coverage` gates, then expand the built-bundle smoke suite deeper into the outer loop without forking the browser bootstrap path away from Agent 4's harness ownership. Use fresh coverage output to choose the next shell, account, route, or harness regression tests, and keep browser-only boot seams documented as e2e-owned until direct browser checks cover them cleanly.

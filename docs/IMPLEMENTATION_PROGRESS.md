@@ -34,9 +34,9 @@ Verified against:
 Most recent verification:
 
 - latest commands run: `npm run quality`, `npm run test:coverage`
-- compiled browser tests passing: `176`
-- built-bundle smoke tests passing: `1`
-- coverage gate passing: `91.01` lines / `65.87` branches / `95.77` functions
+- compiled browser tests passing: `yes`
+- built-bundle smoke tests passing: `yes`
+- coverage gate passing: `yes`
 
 ## System Tracker
 

@@ -170,9 +170,9 @@ Current Agent 4 priority order:
 Current sequencing guidance:
 
 1. let Agent 4 keep the compiled-browser harness aligned, continue the remaining app-engine suite cleanup, and only do validator or `world-node-engine` follow-on work from the existing helper chain and coordinated extraction seam
-2. let Agent 5 establish the quality gate and coverage seams on top of Agent 4's browser bootstrap instead of introducing a second test path
+2. let Agent 5 keep the landed quality gate green and broaden the built-bundle smoke or coverage-driven backfill on top of Agent 4's browser bootstrap instead of introducing a second test path
 3. let Agent 2 land the next shared progression, account, reward, and economy contracts on top of the live planning-charter and convergence layer
 4. let Agent 3 land the next route and combat content expansion on those stable contracts, building on the live covenant-plus-detour-plus-escalation fabric instead of re-establishing it
 5. let Agent 1 land the next shell pass on top of the latest profile, archive, route, reward, and node surfaces, starting with account-hall decision support and safe-zone comparison surfaces
 6. let Agent 4 only expand `src/quests/world-node-engine.ts` extraction further after the first helper pass and the next suite split settle cleanly
-7. let Agent 5 only broaden missing-test backfill after the first quality-gate pass is stable on `master`
+7. let Agent 5 use the now-stable quality gate to choose the next missing-test backfill and browser-only boot checks after new feature landings expand the surface

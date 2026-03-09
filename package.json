@@ -17,8 +17,12 @@
     "build:static": "node ./scripts/build.js",
     "build": "npm run compile && npm run build:static",
     "check": "npm run lint && npm run build && npm run test:compiled",
+    "quality": "npm run lint && npm run build && npm run test:compiled && npm run test:e2e:built",
     "start": "npm run build && python3 -m http.server 4173",
     "test:compiled": "node --test generated/tests/*.test.js",
+    "test:coverage": "npm run compile && node --experimental-test-coverage --test-coverage-lines=90 --test-coverage-branches=65 --test-coverage-functions=95 --test-coverage-include=\"generated/src/**/*.js\" --test-coverage-include=\"generated/tests/helpers/**/*.js\" --test-coverage-exclude=\"generated/src/app/main.js\" --test-coverage-exclude=\"generated/src/content/seed-loader.js\" --test generated/tests/*.test.js",
+    "test:e2e:built": "node ./scripts/run-e2e.js",
+    "test:e2e": "npm run build && npm run test:e2e:built",
     "test": "npm run compile && npm run test:compiled"
   },
   "keywords": [],
