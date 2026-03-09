@@ -24,9 +24,20 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 
 ## Active Tickets
 
-- Agent 5's `ROUGE-25` and `ROUGE-29` batches are already landed on `master`.
-- The live baseline now includes `npm run quality`, `npm run test:coverage`, built-bundle smoke through encounter or reward or act transition or run summary plus direct bad-seed boot failure, and local quality-artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots.
-- Next pickup stays Tira-owned. Until a new ticket is assigned, treat browser-only fault injection and the next coverage-driven regression backfill as the follow-on seam.
+- completed epics: `ROUGE-25` and `ROUGE-29`
+- active epic: `ROUGE-56` Quality Artifact Trends And Restore Smoke
+- `ROUGE-57`
+- `ROUGE-58`
+- `ROUGE-59`
+
+Work these in the order set in Tira and by the project manager.
+
+## Current Focus
+
+- `ROUGE-29` is landed on `master`: built-bundle smoke now covers encounter, reward, act transition, run summary, and bad-seed boot failure.
+- Start with `ROUGE-57`: make the persisted quality artifacts easier to compare by adding clear delta summaries.
+- Then land `ROUGE-58`: add the next highest-value built-bundle restore-path smoke permutation.
+- Finish with `ROUGE-59`: choose the next regression backfill from artifact and coverage deltas instead of generic QA churn.
 
 ## Execution Rules
 
@@ -36,9 +47,10 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 4. Run `npm run quality` and `npm run test:coverage` before you consider the ticket ready.
 5. Sync docs if quality gates, coverage expectations, or release-confidence ownership changed materially.
 6. Commit coherent changes directly onto `master`. Do not stop at a local green run.
-7. Before finishing, update the ticket in Tira with a comment describing what landed.
-8. Move the ticket to `DONE` only after the relevant commit is on `master`.
-9. If only part of the scope landed, leave the ticket open and say what remains.
+7. Before any push, verify the active GitHub account and only push while authenticated as `andrewpopov`.
+8. Before finishing, update the ticket in Tira with a comment describing what landed.
+9. Move the ticket to `DONE` only after the relevant commit is on `master`.
+10. If only part of the scope landed, leave the ticket open and say what remains.
 
 ## Stop Condition
 

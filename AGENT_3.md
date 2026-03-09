@@ -41,9 +41,10 @@ Work these in the order set in Tira and by the project manager.
 4. Run `npm run check` before you consider the ticket ready.
 5. Sync docs if route taxonomy, content seams, or combat-content ownership changed materially.
 6. Commit coherent changes directly onto `master`. Do not stop at a local green run.
-7. Before finishing, update the ticket in Tira with a comment describing what landed.
-8. Move the ticket to `DONE` only after the relevant commit is on `master`.
-9. If only part of the scope landed, leave the ticket open and say what remains.
+7. Before any push, verify the active GitHub account and only push while authenticated as `andrewpopov`.
+8. Before finishing, update the ticket in Tira with a comment describing what landed.
+9. Move the ticket to `DONE` only after the relevant commit is on `master`.
+10. If only part of the scope landed, leave the ticket open and say what remains.
 
 ## Stop Condition
 

@@ -853,6 +853,25 @@ test("runeword planning charters steer vendor consignment previews and reward it
   assert.match(refreshAction.previewLines.join(" "), /Next charter push: Hunt Bases\./i);
   assert.match(refreshAction.previewLines.join(" "), /Archive charter still open for White and Lionheart/i);
 
+  state.run.town.vendor.stock = [
+    {
+      entryId: "repeat_white_offer",
+      kind: "equipment",
+      equipment: {
+        entryId: "repeat_white_offer",
+        itemId: "item_bone_wand",
+        slot: "weapon",
+        socketsUnlocked: 2,
+        insertedRunes: [],
+        runewordId: "",
+      },
+    },
+  ];
+  const preArchiveRepeatConsignAction = itemSystem
+    .listTownActions(state.run, state.profile, content)
+    .find((action) => action.id === "vendor_consign_repeat_white_offer");
+  assert.ok(preArchiveRepeatConsignAction);
+
   const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
   assert.ok(bossZone);
   const rewardChoice = itemSystem.buildEquipmentChoice({
@@ -876,6 +895,32 @@ test("runeword planning charters steer vendor consignment previews and reward it
   const archivedSummary = appEngine.getAccountProgressSummary(state);
   assert.equal(archivedSummary.planning.weaponCompletedRunCount, 1);
   assert.equal(archivedSummary.planning.unfulfilledPlanCount, 1);
+  assert.equal(archivedSummary.planning.weaponCharter?.bestCompletedClassName, state.run.className);
+  assert.equal(archivedSummary.planning.weaponCharter?.bestActsCleared, 4);
+  assert.ok((archivedSummary.planning.overview.fulfilledRunewordIds || []).includes("white"));
+  assert.equal(archivedSummary.planning.overview.bestFulfilledActsCleared, 4);
+
+  state.run.town.vendor.stock = [
+    {
+      entryId: "repeat_white_offer",
+      kind: "equipment",
+      equipment: {
+        entryId: "repeat_white_offer",
+        itemId: "item_bone_wand",
+        slot: "weapon",
+        socketsUnlocked: 2,
+        insertedRunes: [],
+        runewordId: "",
+      },
+    },
+  ];
+  const archivedRepeatConsignAction = itemSystem
+    .listTownActions(state.run, state.profile, content)
+    .find((action) => action.id === "vendor_consign_repeat_white_offer");
+  assert.ok(archivedRepeatConsignAction);
+  assert.notEqual(archivedRepeatConsignAction.cost, preArchiveRepeatConsignAction.cost);
+  assert.match(archivedRepeatConsignAction.previewLines.join(" "), /Archive already completed White through Act 4/i);
+  assert.match(archivedRepeatConsignAction.previewLines.join(" "), /repeat forge lane/i);
 
   state.profile.stash.entries.push({
     entryId: "stash_ready_white",
@@ -894,6 +939,7 @@ test("runeword planning charters steer vendor consignment previews and reward it
   const stagedSummary = appEngine.getAccountProgressSummary(state);
   assert.equal(stagedSummary.planning.overview.nextActionLabel, "Stock Runes");
   assert.equal(stagedSummary.planning.overview.readyCharterCount, 1);
+  assert.match(stagedSummary.planning.overview.nextActionSummary, /repeat forge/i);
 
   state.run.town.vendor.stock = [];
   itemSystem.hydrateRunInventory(state.run, content, state.profile);
@@ -902,6 +948,7 @@ test("runeword planning charters steer vendor consignment previews and reward it
     .find((action) => action.id === "vendor_refresh_stock");
   assert.ok(settledRefreshAction);
   assert.match(settledRefreshAction.previewLines.join(" "), /Next charter push: Stock Runes\./i);
+  assert.match(settledRefreshAction.previewLines.join(" "), /Archive mastery: White already cleared up through Act 4/i);
   assert.match(settledRefreshAction.previewLines.join(" "), /Archive charter still open for Lionheart/i);
   assert.doesNotMatch(settledRefreshAction.previewLines.join(" "), /Archive charter still open for White and Lionheart/i);
 
@@ -915,6 +962,7 @@ test("runeword planning charters steer vendor consignment previews and reward it
   });
   assert.ok(archivedRewardChoice);
   assert.doesNotMatch(archivedRewardChoice.previewLines.join(" "), /Archive charter still unfulfilled across the account/i);
+  assert.match(archivedRewardChoice.previewLines.join(" "), /repeat forge/i);
 });
 
 test("archived run history captures progression, economy, and account feature carry-through", () => {

@@ -368,10 +368,15 @@
         preparedRunewordIds: [],
         readyRunewordIds: [],
         missingBaseRunewordIds: [],
+        fulfilledRunewordIds: [],
+        bestFulfilledActsCleared: 0,
+        bestFulfilledLoadoutTier: 0,
         nextAction: "idle",
         nextActionLabel: "No Live Charter",
         nextActionSummary: "No runeword charter is pinned on the account yet.",
       },
+      weaponCharter: undefined,
+      armorCharter: undefined,
     };
   }
 
@@ -986,6 +991,7 @@
     getPlanningCharterStageLines,
     buildAccountMetaContinuityMarkup,
     buildAccountMetaDrilldownMarkup,
+    buildExpeditionLaunchFlowMarkup: () => "",
     buildAccountTreeReviewMarkup,
   };
 })();

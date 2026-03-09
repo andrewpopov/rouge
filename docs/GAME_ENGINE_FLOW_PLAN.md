@@ -23,7 +23,7 @@ Documentation note:
 - `skills.json`-backed class trees plus manual class-point and attribute-point spending
 - vendor, inventory, stash, unlock, tutorial, and run-history persistence hooks
 - a navigable account hall, a hall decision desk, town prep drilldowns, a town prep comparison board, route-intel map panels, a world-map route decision desk, a reward continuity desk, an act-transition delta wrapper, explicit reward or archive delta surfaces plus a run-end hall handoff across the active shell, and a shared charter or convergence drilldown layer on top of the account-meta continuity board
-- seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools with six branch battles and six branch minibosses per act, a sixteen-kind encounter-local modifier catalog, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, act-specific covenant boss retunes, and four elite-affix families per act
+- seven mercenary contracts plus twelve-per-contract route-linked combat perks with crossroad-linked compound scaling plus reserve-linked, relay-linked, culmination-linked, legacy-linked, reckoning-linked, recovery-linked, accord-linked, and covenant-linked late payoffs, broader act encounter pools with six branch battles and six branch minibosses per act, a twenty-kind encounter-local modifier catalog, stronger escort, court-reserve, boss-salvo, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, act-specific covenant boss retunes plus mobilized aftermath boss courts, and four elite-affix families per act
 
 ### Still target-state
 
@@ -226,6 +226,6 @@ These are the next approved directions for implementation:
 1. grow the account seam into broader capstone-style archive or economy or mastery systems plus richer archive or stash or economy read models on top of the current navigable hall
 2. broaden route topology and non-combat node families beyond the current shrine-opportunity or crossroad or reserve or relay or culmination or legacy-or-reckoning-or-recovery-or-accord-into-covenant pattern plus detour-or-escalation follow-through
 3. deepen late-act item or rune breadth, reward variety, and account-gated economy pressure
-4. broaden modifier catalogs and escort scripting beyond the current sixteen-modifier baseline, and only extend mercenary payoff where new route families justify it
+4. broaden modifier catalogs and escort scripting beyond the current twenty-modifier baseline, and only extend mercenary payoff where new route families justify it
 5. continue shell expansion only where future account systems need dedicated unlock, stash, archive, or capstone review surfaces
 6. keep all new content behind strong validation and deterministic runtime contracts while continuing architecture extraction on the biggest hotspots

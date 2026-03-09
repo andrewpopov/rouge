@@ -255,7 +255,7 @@ test("generated encounters include broader elite and encounter-package breadth i
     );
 
     assert.ok(affixIds.size >= 4, `expected act ${actNumber} to have at least four elite affix families`);
-    assert.ok(modifierKinds.size >= 18, `expected act ${actNumber} to expose at least eighteen encounter modifier families`);
+    assert.ok(modifierKinds.size >= 20, `expected act ${actNumber} to expose at least twenty encounter modifier families`);
     assert.ok(content.generatedActEncounterIds[actNumber].opening.length >= 6);
     assert.ok(content.generatedActEncounterIds[actNumber].branchBattle.length >= 6);
     assert.ok(content.generatedActEncounterIds[actNumber].branchMiniboss.length >= 6);
@@ -284,7 +284,7 @@ test("content validation fails clearly when an act exposes too few encounter mod
 
   assert.throws(() => {
     validator.assertValidRuntimeContent(brokenContent);
-  }, /generatedActEncounterIds\.1 must expose at least 18 encounter modifier families\./);
+  }, /generatedActEncounterIds\.1 must expose at least 20 encounter modifier families\./);
 });
 
 test("scripted boss intents can shatter guard before dealing damage", () => {
@@ -425,6 +425,49 @@ test("escort rotation modifiers fortify and advance non-boss escorts without mov
   escorts.forEach((escort) => {
     assert.equal(escort.guard, 2);
     assert.equal(escort.intentIndex, 1);
+  });
+});
+
+test("court reserve modifiers harden elite and backline escorts without fortifying the boss", () => {
+  const { content, engine } = createHarness();
+  const customContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      court_reserves_probe: {
+        ...content.encounterCatalog.act_1_boss_aftermath,
+        id: "court_reserves_probe",
+        modifiers: [{ kind: "court_reserves", value: 2 }],
+      },
+    },
+  };
+  const state = engine.createCombatState({
+    content: customContent,
+    encounterId: "court_reserves_probe",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const boss = state.enemies.find((enemy) => enemy.templateId.endsWith("_boss"));
+  const reserveTargets = state.enemies.filter((enemy) => {
+    return !enemy.templateId.endsWith("_boss") && (
+      enemy.templateId.includes("_elite") ||
+      enemy.role === "ranged" ||
+      enemy.role === "support"
+    );
+  });
+  const reserveIntentKinds = new Set(["attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack", "heal_ally", "heal_allies", "heal_and_guard"]);
+  assert.ok(boss);
+  assert.ok(reserveTargets.length > 0);
+
+  assert.equal(boss.guard, 0);
+  reserveTargets.forEach((target) => {
+    const template = content.enemyCatalog[target.templateId];
+    assert.equal(target.guard, 2);
+    target.intents.forEach((intent, index) => {
+      const baseIntent = template.intents[index];
+      const expectedValue = reserveIntentKinds.has(baseIntent.kind) ? baseIntent.value + 2 : baseIntent.value;
+      assert.equal(intent.value, expectedValue);
+    });
   });
 });
 
@@ -702,6 +745,42 @@ test("boss onslaught modifiers retune the boss opener without advancing the esco
   assert.equal(boss.currentIntent.value, bossTemplate.intents[1].value + 3);
   assert.equal(escort.intentIndex, 0);
   assert.equal(escort.guard, 0);
+});
+
+test("boss salvo modifiers retune the boss and ranged escorts into a sharper opening volley", () => {
+  const { content, engine } = createHarness();
+  const customContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      boss_salvo_probe: {
+        ...content.encounterCatalog.act_1_boss_aftermath,
+        id: "boss_salvo_probe",
+        modifiers: [{ kind: "boss_salvo", value: 2 }],
+      },
+    },
+  };
+  const state = engine.createCombatState({
+    content: customContent,
+    encounterId: "boss_salvo_probe",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const boss = state.enemies.find((enemy) => enemy.templateId.endsWith("_boss"));
+  const ranged = state.enemies.find((enemy) => enemy.role === "ranged");
+  const untargetedEscort = state.enemies.find((enemy) => !enemy.templateId.endsWith("_boss") && enemy.role !== "ranged");
+  assert.ok(boss);
+  assert.ok(ranged);
+  assert.ok(untargetedEscort);
+
+  const bossTemplate = content.enemyCatalog[boss.templateId];
+  const rangedTemplate = content.enemyCatalog[ranged.templateId];
+  assert.equal(boss.intentIndex, 1);
+  assert.equal(boss.currentIntent.kind, "attack_all");
+  assert.equal(boss.currentIntent.value, bossTemplate.intents[1].value + 2);
+  assert.equal(ranged.currentIntent.kind, "attack");
+  assert.equal(ranged.currentIntent.value, rangedTemplate.intents[ranged.intentIndex].value + 2);
+  assert.equal(untargetedEscort.guard, 0);
 });
 
 test("phalanx march modifiers advance elite and brute escorts without moving support scripts", () => {

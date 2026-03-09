@@ -135,6 +135,16 @@ function formatCoverageValue(value) {
   return Number.isFinite(value) ? value.toFixed(2) : "-";
 }
 
+function formatIntegerDelta(currentValue, previousValue) {
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) {
+    return "n/a";
+  }
+
+  const delta = currentValue - previousValue;
+  const sign = delta >= 0 ? "+" : "";
+  return `${sign}${Math.round(delta)}`;
+}
+
 function formatDelta(currentValue, previousValue) {
   if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) {
     return "n/a";
@@ -143,6 +153,19 @@ function formatDelta(currentValue, previousValue) {
   const delta = currentValue - previousValue;
   const sign = delta >= 0 ? "+" : "";
   return `${sign}${delta.toFixed(2)}`;
+}
+
+function formatDurationDelta(currentValue, previousValue) {
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) {
+    return "n/a";
+  }
+
+  const delta = currentValue - previousValue;
+  const sign = delta >= 0 ? "+" : "";
+  if (Math.abs(delta) < 1000) {
+    return `${sign}${Math.round(delta)} ms`;
+  }
+  return `${sign}${(delta / 1000).toFixed(2)} s`;
 }
 
 function summarizeQualityStatus(entry) {
@@ -173,9 +196,93 @@ function findPreviousSuccessfulCoverage(history, latestEntry) {
   return null;
 }
 
+function findPreviousSuccessfulQuality(history, latestEntry) {
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const entry = history[index];
+    if (entry === latestEntry) {
+      continue;
+    }
+    if (entry.success) {
+      return entry;
+    }
+  }
+
+  return null;
+}
+
+function findStageResult(entry, name) {
+  if (!entry || !Array.isArray(entry.stages)) {
+    return null;
+  }
+  return entry.stages.find((stage) => stage.name === name) || null;
+}
+
+function summarizeTestDelta(currentSummary, previousSummary, label) {
+  if (!currentSummary || !previousSummary) {
+    return `${label} n/a`;
+  }
+
+  return `${label} pass ${formatIntegerDelta(currentSummary.pass, previousSummary.pass)}, fail ${formatIntegerDelta(currentSummary.fail, previousSummary.fail)}`;
+}
+
+function summarizeQualityDelta(latestQuality, previousQuality) {
+  if (!latestQuality || !previousQuality) {
+    return "n/a";
+  }
+
+  return [
+    summarizeTestDelta(latestQuality.compiledTests, previousQuality.compiledTests, "compiled"),
+    summarizeTestDelta(latestQuality.builtBundleSmoke, previousQuality.builtBundleSmoke, "built smoke"),
+    `total duration ${formatDurationDelta(latestQuality.durationMs, previousQuality.durationMs)}`,
+  ].join("; ");
+}
+
+function summarizeQualityStageDeltas(latestQuality, previousQuality) {
+  if (!latestQuality || !previousQuality) {
+    return "n/a";
+  }
+
+  const stageNames = ["lint", "build", "test:compiled", "test:e2e:built"];
+  const deltas = [];
+  for (const stageName of stageNames) {
+    const latestStage = findStageResult(latestQuality, stageName);
+    const previousStage = findStageResult(previousQuality, stageName);
+    if (!latestStage || !previousStage) {
+      continue;
+    }
+    deltas.push(`${stageName} ${formatDurationDelta(latestStage.durationMs, previousStage.durationMs)}`);
+  }
+
+  return deltas.length > 0 ? deltas.join(", ") : "n/a";
+}
+
+function summarizeCoverageDelta(latestCoverage, previousCoverage) {
+  if (!latestCoverage || !previousCoverage) {
+    return "n/a";
+  }
+
+  return [
+    summarizeTestDelta(latestCoverage.testSummary, previousCoverage.testSummary, "tests"),
+    `total duration ${formatDurationDelta(latestCoverage.durationMs, previousCoverage.durationMs)}`,
+  ].join("; ");
+}
+
+function summarizeCoverageHeadroom(latestCoverage) {
+  if (!latestCoverage?.coverage || !latestCoverage?.thresholds) {
+    return "n/a";
+  }
+
+  return [
+    `lines ${formatDelta(latestCoverage.coverage.linePct, latestCoverage.thresholds.lines)}`,
+    `branches ${formatDelta(latestCoverage.coverage.branchPct, latestCoverage.thresholds.branches)}`,
+    `functions ${formatDelta(latestCoverage.coverage.functionsPct, latestCoverage.thresholds.functions)}`,
+  ].join(", ");
+}
+
 function renderLatestReport(qualityHistory, coverageHistory) {
   const latestQuality = qualityHistory[qualityHistory.length - 1] || null;
   const latestCoverage = coverageHistory[coverageHistory.length - 1] || null;
+  const previousQuality = latestQuality ? findPreviousSuccessfulQuality(qualityHistory, latestQuality) : null;
   const previousCoverage = latestCoverage ? findPreviousSuccessfulCoverage(coverageHistory, latestCoverage) : null;
   const lines = [
     "# Quality Artifacts",
@@ -193,6 +300,8 @@ function renderLatestReport(qualityHistory, coverageHistory) {
     lines.push(`- Duration: ${formatDurationMs(latestQuality.durationMs)}`);
     lines.push(`- Compiled tests (pass/fail): ${summarizeTestCounts(latestQuality.compiledTests)}`);
     lines.push(`- Built smoke (pass/fail): ${summarizeTestCounts(latestQuality.builtBundleSmoke)}`);
+    lines.push(`- Delta vs previous success: ${summarizeQualityDelta(latestQuality, previousQuality)}`);
+    lines.push(`- Stage deltas: ${summarizeQualityStageDeltas(latestQuality, previousQuality)}`);
     lines.push("");
   } else {
     lines.push("## Latest quality run");
@@ -216,6 +325,8 @@ function renderLatestReport(qualityHistory, coverageHistory) {
       lines.push("- Coverage: unavailable");
     }
     lines.push(`- Tests (pass/fail): ${summarizeTestCounts(latestCoverage.testSummary)}`);
+    lines.push(`- Delta vs previous success: ${summarizeCoverageDelta(latestCoverage, previousCoverage)}`);
+    lines.push(`- Threshold headroom: ${summarizeCoverageHeadroom(latestCoverage)}`);
     lines.push("");
   } else {
     lines.push("## Latest coverage run");

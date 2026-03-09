@@ -120,10 +120,15 @@
           preparedRunewordIds: [],
           readyRunewordIds: [],
           missingBaseRunewordIds: [],
+          fulfilledRunewordIds: [],
+          bestFulfilledActsCleared: 0,
+          bestFulfilledLoadoutTier: 0,
           nextAction: "idle",
           nextActionLabel: "Quiet",
           nextActionSummary: "No active runeword charter is pinned across the account.",
         },
+        weaponCharter: undefined,
+        armorCharter: undefined,
       }
     );
   }
@@ -307,6 +312,15 @@
       previewLines.push(`Vault already has a ready ${options.plannedRuneword.name} base parked.`);
     } else if (toNumber(options.planningCharter?.preparedBaseCount, 0) > 0 && options.plannedRuneword) {
       previewLines.push(`Vault already has a prepared ${options.plannedRuneword.name} base parked.`);
+    }
+    if (toNumber(options.planningCharter?.completedRunCount, 0) > 0 && options.plannedRuneword) {
+      previewLines.push(
+        `Archive already proved ${options.plannedRuneword.name} through Act ${Math.max(1, toNumber(options.planningCharter?.bestActsCleared, 0))}${
+          toNumber(options.planningCharter?.bestCompletedLoadoutTier, 0) > 0
+            ? ` at loadout tier ${toNumber(options.planningCharter?.bestCompletedLoadoutTier, 0)}`
+            : ""
+        }. This reward is supporting a repeat forge.`
+      );
     }
     if (options.planningUnfulfilled && options.plannedRuneword) {
       previewLines.push("Archive charter still unfulfilled across the account.");

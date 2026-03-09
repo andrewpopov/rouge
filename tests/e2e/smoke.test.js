@@ -47,6 +47,32 @@ function buildSavedRewardFixture({ endsAct = false, endsRun = false } = {}) {
   };
 }
 
+function buildSafeZoneFixture() {
+  const { appEngine, combatEngine, content, persistence, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.setSelectedMercenary(state, "iron_wolf");
+  assert.equal(appEngine.startRun(state).ok, true);
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  assert.ok(snapshotValue);
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
 function buildActTransitionFixture() {
   const { appEngine, combatEngine, content, persistence, runFactory, seedBundle } = createAppHarness();
   const state = appEngine.createAppState({
@@ -89,6 +115,7 @@ function buildActTransitionFixture() {
   };
 }
 
+const SAFE_ZONE_FIXTURE = buildSafeZoneFixture();
 const ACT_TRANSITION_FIXTURE = buildActTransitionFixture();
 const RUN_SUMMARY_FIXTURE = buildSavedRewardFixture({ endsRun: true });
 
@@ -178,6 +205,27 @@ test("built app boots through the outer loop and restores the saved run path", a
   await (await expectPhase(page, '[data-action="continue-saved-run"]', "front door saved-run restore")).click();
   await (await expectPhase(page, '[data-action="return-safe-zone"]', "world map after continue")).click();
   await expectPhase(page, '[data-action="leave-safe-zone"]', "safe zone return path");
+
+  assert.deepEqual(failures, []);
+});
+
+test("built app restores a saved safe-zone expedition and resumes route prep", async (context) => {
+  const browser = await chromium.launch({ headless: true });
+  context.after(async () => {
+    await browser.close();
+  });
+
+  const { context: browserContext, page, failures } = await createSmokePage(browser, SAFE_ZONE_FIXTURE);
+  context.after(async () => {
+    await browserContext.close();
+  });
+
+  await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
+
+  await (await expectPhase(page, '[data-action="continue-saved-run"]', "front door safe-zone restore")).click();
+  await expectText(page, "Town Districts", "safe zone shell");
+  await (await expectPhase(page, '[data-action="leave-safe-zone"]', "safe zone restore controls")).click();
+  await expectText(page, "Route Decision Desk", "world map after safe-zone restore");
 
   assert.deepEqual(failures, []);
 });

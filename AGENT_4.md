@@ -27,12 +27,18 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 ## Active Tickets
 
 - epic: `ROUGE-1` Architecture Stabilization
-- `ROUGE-5`
-- `ROUGE-17`
-- `ROUGE-6`
-- `ROUGE-7`
+- current large-file strike: `ROUGE-51`, `ROUGE-43`, `ROUGE-42`
+- follow-on architecture cleanup: `ROUGE-47`, `ROUGE-49`
+- older architecture backlog still open: `ROUGE-5`, `ROUGE-17`, `ROUGE-6`, `ROUGE-7`
 
 Work these in the order set in Tira and by the project manager.
+
+## Current Focus
+
+- Start with `ROUGE-51`: `src/quests/world-node-engine.ts` is the largest file in the repo at roughly `11.3k` lines and is now the highest-value tech-debt target.
+- Then land `ROUGE-43`: split authored content out of `src/content/game-content.ts` and progression-tree definitions out of `src/state/persistence.ts`.
+- Then land `ROUGE-42`: extract the next combat helper seams so `src/combat/combat-engine.ts` does not become the next monolith.
+- Only after those large-file passes settle should Agent 4 move to `ROUGE-47` module-registration centralization and `ROUGE-49` further oversized test splitting.
 
 ## Execution Rules
 
@@ -42,9 +48,10 @@ Work these in the order set in Tira and by the project manager.
 4. Run `npm run check` before you consider the ticket ready.
 5. Sync architecture docs whenever module ownership, boot order, or extraction seams changed materially.
 6. Commit coherent changes directly onto `master`. Do not stop at a local green run.
-7. Before finishing, update the ticket in Tira with a comment describing what landed.
-8. Move the ticket to `DONE` only after the relevant commit is on `master`.
-9. If only part of the scope landed, leave the ticket open and say what remains.
+7. Before any push, verify the active GitHub account and only push while authenticated as `andrewpopov`.
+8. Before finishing, update the ticket in Tira with a comment describing what landed.
+9. Move the ticket to `DONE` only after the relevant commit is on `master`.
+10. If only part of the scope landed, leave the ticket open and say what remains.
 
 ## Stop Condition
 

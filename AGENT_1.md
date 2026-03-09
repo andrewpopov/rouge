@@ -26,17 +26,20 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 
 ## Active Tickets
 
-- epic: `ROUGE-21` Account Meta Continuity
-- `ROUGE-22`
-- `ROUGE-23`
-- `ROUGE-24`
+- previous completed epic: `ROUGE-21` Account Meta Continuity
+- active epic: `ROUGE-52` Expedition Launch And Town Prep Clarity
+- `ROUGE-53`
+- `ROUGE-54`
+- `ROUGE-55`
 
 Work these in the order set in Tira and by the project manager.
 
 ## Current Focus
 
-- `ROUGE-23` is live on `master`: charter and convergence drilldowns now persist through hall, town, map, reward, act transition, and run-end on top of the shared account-meta continuity board.
-- The next Agent 1 pickup is `ROUGE-24`: broader account controls on top of the now-live hall decision support, prep comparison, route or reward or transition continuity, and account-meta drilldown shell.
+- `ROUGE-21` is landed on `master`: the shared account-meta continuity board, charter or convergence drilldowns, and their compiled-browser coverage are now live.
+- Start with `ROUGE-53`: make the hall-to-character-select-to-safe-zone path read like one expedition launch flow.
+- Then land `ROUGE-54`: before-or-after comparison treatment for the most important town-prep actions.
+- Finish with `ROUGE-55`: compiled-browser regression coverage for launch and town-prep continuity.
 
 ## Execution Rules
 
@@ -46,9 +49,10 @@ Work these in the order set in Tira and by the project manager.
 4. Run `npm run check` before you consider the ticket ready.
 5. Sync docs if shell contracts, ownership, or user-facing flow changed materially.
 6. Commit coherent changes directly onto `master`. Do not stop at a local green run.
-7. Before finishing, update the ticket in Tira with a comment describing what landed.
-8. Move the ticket to `DONE` only after the relevant commit is on `master`.
-9. If only part of the scope landed, leave the ticket open and say what remains.
+7. Before any push, verify the active GitHub account and only push while authenticated as `andrewpopov`.
+8. Before finishing, update the ticket in Tira with a comment describing what landed.
+9. Move the ticket to `DONE` only after the relevant commit is on `master`.
+10. If only part of the scope landed, leave the ticket open and say what remains.
 
 ## Stop Condition
 

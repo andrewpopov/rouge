@@ -54,6 +54,7 @@
     "fortified_line",
     "ambush_opening",
     "escort_bulwark",
+    "court_reserves",
     "backline_screen",
     "vanguard_rush",
     "escort_command",
@@ -67,6 +68,7 @@
     "elite_onslaught",
     "sniper_nest",
     "boss_screen",
+    "boss_salvo",
     "boss_onslaught",
     "phalanx_march",
   ]);
@@ -80,7 +82,7 @@
   const MIN_CONSEQUENCE_PACKAGES_PER_ROLE = {
     branchBattle: 4,
     branchMiniboss: 4,
-    boss: 5,
+    boss: 6,
   };
 
   const MIN_MERCENARY_CONTRACTS = 7;
@@ -97,7 +99,7 @@
   const MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY = 1;
   const MIN_MERCENARY_ROUTE_PERK_BONUS_FAMILIES = 5;
   const MIN_ELITE_AFFIX_FAMILIES_PER_ACT = 4;
-  const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 18;
+  const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 20;
 
   function pushError(errors, message) { errors.push(message); }
 

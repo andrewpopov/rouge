@@ -54,6 +54,80 @@ test("front door can review, continue, and abandon an active saved run", () => {
   assert.equal(archivedProfile.runHistory[0].outcome, "abandoned");
 });
 
+test("continueSavedRun restores a safe-zone snapshot and can re-enter the route", () => {
+  const { content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  assert.equal(appEngine.startRun(state).ok, true);
+  appEngine.returnToFrontDoor(state);
+
+  const resumedState = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const resumeResult = appEngine.continueSavedRun(resumedState);
+  assert.equal(resumeResult.ok, true);
+  assert.equal(resumedState.phase, appEngine.PHASES.SAFE_ZONE);
+
+  const savedSummary = appEngine.getSavedRunSummary();
+  assert.ok(savedSummary);
+  assert.equal(savedSummary.phase, appEngine.PHASES.SAFE_ZONE);
+
+  assert.equal(appEngine.leaveSafeZone(resumedState).ok, true);
+  assert.equal(resumedState.phase, appEngine.PHASES.WORLD_MAP);
+
+  const worldMapSummary = appEngine.getSavedRunSummary();
+  assert.ok(worldMapSummary);
+  assert.equal(worldMapSummary.phase, appEngine.PHASES.WORLD_MAP);
+});
+
+test("continueSavedRun restores a reward snapshot and advances back to the route", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  assert.equal(appEngine.startRun(state).ok, true);
+  assert.equal(appEngine.leaveSafeZone(state).ok, true);
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  assert.equal(appEngine.selectZone(state, openingZoneId).ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+
+  state.combat.outcome = "victory";
+  assert.equal(appEngine.syncEncounterOutcome(state).ok, true);
+  assert.equal(state.phase, appEngine.PHASES.REWARD);
+  appEngine.returnToFrontDoor(state);
+
+  const resumedState = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const resumeResult = appEngine.continueSavedRun(resumedState);
+  assert.equal(resumeResult.ok, true);
+  assert.equal(resumedState.phase, appEngine.PHASES.REWARD);
+  assert.ok(resumedState.run?.pendingReward);
+
+  const rewardChoiceId = resumedState.run.pendingReward.choices[0].id;
+  assert.equal(appEngine.claimRewardAndAdvance(resumedState, rewardChoiceId).ok, true);
+  assert.equal(resumedState.phase, appEngine.PHASES.WORLD_MAP);
+  assert.equal(resumedState.run.pendingReward, null);
+});
+
 test("app shell renders boot loading and error states", () => {
   const { appShell, browserWindow } = createHarness();
   const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
@@ -213,6 +287,51 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Act Delta Review/);
   assert.match(root.innerHTML, /Carry Forward State/);
   assert.match(root.innerHTML, /Next Town Orders/);
+});
+
+test("expedition launch flow persists from hall through character select into town", () => {
+  const { content, combatEngine, appEngine, appShell, browserWindow, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+
+  state.profile.meta.progression.preferredClassId = "sorceress";
+
+  render();
+  assert.match(root.innerHTML, /Expedition Launch Flow/);
+  assert.match(root.innerHTML, /Hall Signal/);
+  assert.match(root.innerHTML, /Draft Commit/);
+  assert.match(root.innerHTML, /Town Arrival/);
+  assert.match(root.innerHTML, /Preferred draft signal: Sorceress\./);
+  assert.match(root.innerHTML, /Open character draft once the hall signal is settled\./);
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.setSelectedMercenary(state, "iron_wolf");
+  render();
+  const selectedMercenaryName = state.registries.mercenaries.find((mercenary) => mercenary.id === "iron_wolf")?.name || "Choose a companion";
+  assert.match(root.innerHTML, /Expedition Launch Flow/);
+  assert.match(root.innerHTML, /Selected class: Sorceress\./);
+  assert.match(root.innerHTML, new RegExp(`Selected contract: ${selectedMercenaryName}\\.`));
+  assert.match(root.innerHTML, /enter Rogue Encampment with that exact launch pairing still visible\./i);
+
+  appEngine.startRun(state);
+  render();
+  assert.match(root.innerHTML, /Expedition Launch Flow/);
+  assert.match(root.innerHTML, new RegExp(`Town arrival: ${state.run.safeZoneName}\\.`));
+  assert.match(root.innerHTML, new RegExp(`Current launch carries Sorceress with ${selectedMercenaryName}\\.`));
+  assert.match(root.innerHTML, /Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route\./);
 });
 
 test("world-map and reward shell render node-specific quest and aftermath guidance", () => {

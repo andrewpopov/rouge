@@ -163,6 +163,29 @@
         return;
       }
 
+      if (modifier.kind === "court_reserves") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const reserveTargets = state.enemies.filter((enemy) => {
+          return !enemy.templateId.endsWith("_boss") && (
+            enemy.templateId.includes("_elite") ||
+            enemy.role === "ranged" ||
+            enemy.role === "support"
+          );
+        });
+        reserveTargets.forEach((enemy) => applyGuard(enemy, value));
+        const reserveIntentKinds = new Set([...attackIntentKinds, ...healingIntentKinds]);
+        const boostedCount = reserveTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, reserveIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (reserveTargets.length > 0 || boostedCount > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} calls up court reserves. Elite and backline escorts gain ${value} Guard and their opening pressure intensifies by ${value}.`
+          );
+        }
+        return;
+      }
+
       if (modifier.kind === "crossfire_lanes") {
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
         const rangedTargets = state.enemies.filter((enemy) => enemy.role === "ranged");
@@ -311,6 +334,24 @@
           appendLog(
             state,
             `${state.encounter.name} drives a boss onslaught. The boss shifts into its first attack script and hits ${value} harder.`
+          );
+        }
+        return;
+      }
+
+      if (modifier.kind === "boss_salvo") {
+        const value = Math.max(0, parseInteger(modifier.value, 0));
+        const salvoTargets = state.enemies.filter((enemy) => enemy.templateId.endsWith("_boss") || enemy.role === "ranged");
+        const retunedCount = salvoTargets.reduce((count, enemy) => {
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, attackIntentKinds) ? 1 : 0);
+        }, 0);
+        const boostedCount = salvoTargets.reduce((count, enemy) => {
+          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, value) ? 1 : 0);
+        }, 0);
+        if (retunedCount > 0 || boostedCount > 0) {
+          appendLog(
+            state,
+            `${state.encounter.name} opens in a boss salvo. The boss and ranged escorts shift into attack scripts and hit ${value} harder.`
           );
         }
         return;

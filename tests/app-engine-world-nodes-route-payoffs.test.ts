@@ -1013,11 +1013,13 @@ test("alternate route arming can retune the act boss into the drilled aftermath 
   result = appEngine.selectZone(state, bossZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_boss_aftermath_drilled");
-  assert.equal(state.combat.encounter.name, "Catacomb Drilled Aftermath");
+  assert.equal(state.run.activeEncounterId, "act_1_boss_aftermath_mobilized");
+  assert.equal(state.combat.encounter.name, "Catacomb Mobilized Aftermath");
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "boss_screen"));
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_bulwark"));
   assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "phalanx_march"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "court_reserves"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "boss_salvo"));
   assert.ok(!state.combat.encounter.modifiers.some((modifier) => modifier.kind === "sniper_nest"));
 
   const reward = runFactory.buildEncounterReward({
@@ -1027,8 +1029,9 @@ test("alternate route arming can retune the act boss into the drilled aftermath 
     content,
     profile: state.profile,
   });
-  assert.equal(reward.grants.gold, 57);
-  assert.equal(reward.grants.xp, 36);
+  assert.equal(reward.grants.gold, 59);
+  assert.equal(reward.grants.xp, 37);
   assert.equal(reward.grants.potions, 2);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Vanguard Aftermath Dividend.")));
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Mobilized Dividend.")));
+  assert.ok(reward.lines.some((line) => line.includes("cloister accord, armed vanguard, and signal lanterns now settle the full catacomb aftermath")));
 });

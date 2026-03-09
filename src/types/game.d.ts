@@ -1141,6 +1141,12 @@ interface ProfilePlanningCharterSummary {
   archivedRunCount: number;
   completedRunCount: number;
   bestActsCleared: number;
+  bestCompletedRunId: string;
+  bestCompletedClassId: string;
+  bestCompletedClassName: string;
+  bestCompletedAt: string;
+  bestCompletedLoadoutTier: number;
+  bestCompletedLoadoutSockets: number;
   requiredSocketCount: number;
   compatibleBaseCount: number;
   preparedBaseCount: number;
@@ -1165,6 +1171,9 @@ interface ProfilePlanningOverviewSummary {
   preparedRunewordIds: string[];
   readyRunewordIds: string[];
   missingBaseRunewordIds: string[];
+  fulfilledRunewordIds: string[];
+  bestFulfilledActsCleared: number;
+  bestFulfilledLoadoutTier: number;
   nextAction: "idle" | "stock_runes" | "open_sockets" | "prepare_bases" | "hunt_bases";
   nextActionLabel: string;
   nextActionSummary: string;
@@ -1285,6 +1294,25 @@ interface CombatEngineApi {
 interface CombatModifiersApi {
   applyEncounterModifiers(state: CombatState): void;
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+interface WorldNodeVariantsApi {
+  resolveEventFollowUp(run: RunState, actNumber: number): any;
+  resolveOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveCrossroadOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveShrineOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveReserveOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveRelayOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveCulminationOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveLegacyOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveReckoningOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveRecoveryOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveAccordOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveCovenantOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveDetourOpportunityVariant(run: RunState, actNumber: number): any;
+  resolveEscalationOpportunityVariant(run: RunState, actNumber: number): any;
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface CombatMercenaryRouteBonusState {
   contractAttackBonus?: number;
@@ -1964,6 +1992,8 @@ interface AppEngineApi {
     combatEngine: CombatEngineApi;
     randomFn?: RandomFn;
   }): AppState;
+  selectClass(state: AppState, classId: string): void;
+  selectMercenary(state: AppState, mercenaryId: string): void;
   setSelectedClass(state: AppState, classId: string): void;
   setSelectedMercenary(state: AppState, mercenaryId: string): void;
   startCharacterSelect(state: AppState): void;
@@ -2078,6 +2108,15 @@ interface AccountMetaDrilldownOptions {
   convergenceFollowThrough?: string;
 }
 
+interface ExpeditionLaunchFlowOptions {
+  title?: string;
+  copy?: string;
+  currentStep?: "hall" | "draft" | "town";
+  hallFollowThrough?: string;
+  draftFollowThrough?: string;
+  townFollowThrough?: string;
+}
+
 interface UiCommonApi {
   getServices(): UiRenderServices;
   getBonusValue(value: unknown): number;
@@ -2104,6 +2143,12 @@ interface UiCommonApi {
     accountSummary: ProfileAccountSummary,
     renderUtils: RenderUtilsApi,
     options?: AccountMetaDrilldownOptions
+  ): string;
+  buildExpeditionLaunchFlowMarkup(
+    appState: AppState,
+    accountSummary: ProfileAccountSummary,
+    renderUtils: RenderUtilsApi,
+    options?: ExpeditionLaunchFlowOptions
   ): string;
   buildAccountTreeReviewMarkup(
     accountSummary: ProfileAccountSummary,
@@ -2136,6 +2181,7 @@ interface Window {
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
+  ROUGE_WORLD_NODE_VARIANTS: WorldNodeVariantsApi;
   ROUGE_WORLD_NODES: WorldNodeEngineApi;
   ROUGE_TOWN_SERVICES: TownServiceApi;
   ROUGE_RENDER_UTILS: RenderUtilsApi;

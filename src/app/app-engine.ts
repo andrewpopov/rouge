@@ -296,6 +296,14 @@
     }
   }
 
+  function selectClass(state: AppState, classId: string): void {
+    setSelectedClass(state, classId);
+  }
+
+  function selectMercenary(state: AppState, mercenaryId: string): void {
+    setSelectedMercenary(state, mercenaryId);
+  }
+
   function setRunHistoryReviewIndex(state: AppState, historyIndex: number): void {
     state.ui.reviewedHistoryIndex = clampRunHistoryReviewIndex(state, historyIndex);
   }
@@ -487,10 +495,15 @@
             preparedRunewordIds: [],
             readyRunewordIds: [],
             missingBaseRunewordIds: [],
+            fulfilledRunewordIds: [],
+            bestFulfilledActsCleared: 0,
+            bestFulfilledLoadoutTier: 0,
             nextAction: "idle",
             nextActionLabel: "No Live Charter",
             nextActionSummary: "No runeword charter is pinned on the account yet.",
           },
+          weaponCharter: undefined,
+          armorCharter: undefined,
         },
         stash: {
           entryCount: 0,
@@ -893,6 +906,8 @@
   runtimeWindow.ROUGE_APP_ENGINE = {
     PHASES,
     createAppState,
+    selectClass,
+    selectMercenary,
     setSelectedClass,
     setSelectedMercenary,
     startCharacterSelect,

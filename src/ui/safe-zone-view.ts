@@ -449,6 +449,16 @@
       body: `
         ${common.renderRunStatus(run, "Safe Zone", services.renderUtils)}
         ${common.renderNotice(appState, services.renderUtils)}
+        ${common.buildExpeditionLaunchFlowMarkup(appState, accountSummary, services.renderUtils, {
+          currentStep: "town",
+          copy:
+            "Town now keeps the hall signal, draft commit, and first-service pass in one launch flow, so the player can still read how the expedition started while preparing to leave safety.",
+          hallFollowThrough: "The hall already set the preferred class, archive signal, and launch context that fed this run.",
+          draftFollowThrough:
+            "The drafted class shell and mercenary contract are now live on the expedition; this town pass confirms the opening build and supply state.",
+          townFollowThrough:
+            "Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route.",
+        })}
         <section class="safe-zone-grid">
           <article class="panel battle-panel" id="town-departure">
             <div class="panel-head">

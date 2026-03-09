@@ -136,6 +136,9 @@
           preparedRunewordIds: [],
           readyRunewordIds: [],
           missingBaseRunewordIds: [],
+          fulfilledRunewordIds: [],
+          bestFulfilledActsCleared: 0,
+          bestFulfilledLoadoutTier: 0,
           nextAction: "idle",
           nextActionLabel: "Quiet",
           nextActionSummary: "No active runeword charter is pinned across the account.",
@@ -170,10 +173,33 @@
 
     const runeword = getRunewordDefinition(content, charter?.runewordId || runewordId);
     const bestBase = charter?.bestBaseItemId ? getItemDefinition(content, charter.bestBaseItemId) : null;
-    return `${slotLabel} charter staging: ${runeword?.name || runewordId} -> ${toNumber(charter?.readyBaseCount, 0)} ready, ${toNumber(
+    let stageLine = `${slotLabel} charter staging: ${runeword?.name || runewordId} -> ${toNumber(charter?.readyBaseCount, 0)} ready, ${toNumber(
       charter?.preparedBaseCount,
       0
     )} prepared, ${bestBase?.name || "best base not parked yet"}.`;
+    if (toNumber(charter?.completedRunCount, 0) > 0) {
+      const classLabel = charter?.bestCompletedClassName || charter?.bestCompletedClassId || "unknown class";
+      stageLine += ` Best archive clear: Act ${Math.max(1, toNumber(charter?.bestActsCleared, 0))} with ${classLabel}`;
+      if (toNumber(charter?.bestCompletedLoadoutTier, 0) > 0) {
+        stageLine += ` at loadout tier ${toNumber(charter?.bestCompletedLoadoutTier, 0)}`;
+      }
+      stageLine += ".";
+    }
+    return stageLine;
+  }
+
+  function getPlanningRunewordListLabel(runewordIds, content) {
+    const labels = [...new Set((Array.isArray(runewordIds) ? runewordIds : []).map((runewordId) => getRunewordDefinition(content, runewordId)?.name || runewordId).filter(Boolean))];
+    if (labels.length === 0) {
+      return "no charter targets";
+    }
+    if (labels.length === 1) {
+      return labels[0];
+    }
+    if (labels.length === 2) {
+      return `${labels[0]} and ${labels[1]}`;
+    }
+    return `${labels.slice(0, 2).join(", ")}, +${labels.length - 2} more`;
   }
 
   function getTargetRunewordForEquipment(equipment, run, content, profile = null) {
@@ -330,6 +356,8 @@
     const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot, content) : null;
     const planningDiscount =
       planningMatch ? 3 + Number(features.economyFocus) + Number(planningArchiveState?.unfulfilled) * 2 : 0;
+    const repeatableDiscount =
+      planningMatch && toNumber(planningArchiveState?.completedRunCount, 0) > 0 ? 3 + Number(planningPressure.socketReadyEntries > 0) : 0;
     const chronicleDiscount = features.chronicleExchange ? 2 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const paragonDiscount = features.paragonExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) : 0;
     const merchantDiscount = features.merchantPrincipate ? 1 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
@@ -343,6 +371,7 @@
       planningFee -
       Number(features.economyFocus) -
       planningDiscount -
+      repeatableDiscount -
       chronicleDiscount -
       paragonDiscount -
       merchantDiscount -
@@ -633,12 +662,15 @@
       });
     }
     if (features.runewordCodex || features.treasuryExchange) {
+      const planning = getPlanningSummary(profile, content);
       getPlannedRunewordTargets(profile, content).forEach((runeword) => {
         const archiveState = getPlannedRunewordArchiveState(profile, runeword.slot, content);
+        const planningCharter = runeword.slot === "weapon" ? planning.weaponCharter : planning.armorCharter;
         const planningTargetCount =
           2 +
           Number(archiveState.unfulfilled && (features.treasuryExchange || features.economyFocus)) +
           Number(archiveState.unfulfilled && features.chronicleExchange) +
+          Number(toNumber(archiveState.completedRunCount, 0) > 0 && planningCharter?.hasReadyBase) +
           Number(run.actNumber >= 5 && features.paragonExchange) +
           Number(run.actNumber >= 5 && features.merchantPrincipate) +
           Number(archiveState.unfulfilled && features.sovereignExchange) +
@@ -925,6 +957,14 @@
     }
     if (planning.plannedRunewordCount > 0) {
       previewLines.push(`Next charter push: ${planningOverview.nextActionLabel}. ${planningOverview.nextActionSummary}`);
+      if (planningOverview.fulfilledRunewordIds.length > 0) {
+        previewLines.push(
+          `Archive mastery: ${getPlanningRunewordListLabel(planningOverview.fulfilledRunewordIds, content)} already cleared up through Act ${Math.max(
+            1,
+            toNumber(planningOverview.bestFulfilledActsCleared, 0)
+          )}${toNumber(planningOverview.bestFulfilledLoadoutTier, 0) > 0 ? ` at loadout tier ${toNumber(planningOverview.bestFulfilledLoadoutTier, 0)}` : ""}.`
+        );
+      }
     }
     const unfulfilledPlannedRunewords = (["weapon", "armor"] as const)
       .map((slot) => {
@@ -979,6 +1019,7 @@
         const consignPrice = buyPrice + consignmentFee;
         const planningPressure = getStashPlanningPressure(profile);
         const planningMatch = getEntryPlanningMatch(entry, content, profile);
+        const planningArchiveState = planningMatch ? getPlannedRunewordArchiveState(profile, planningMatch.slot, content) : null;
         actions.push(
           buildInventoryAction(
             entry,
@@ -992,7 +1033,10 @@
               planningMatch
                 ? `${planningMatch.slot === "weapon" ? "Weapon" : "Armor"} charter match: ${planningMatch.runeword.name}.`
                 : "No active runeword charter match on this offer.",
-            ],
+              planningMatch && toNumber(planningArchiveState?.completedRunCount, 0) > 0
+                ? `Archive already completed ${planningMatch.runeword.name} through Act ${Math.max(1, toNumber(planningArchiveState?.bestActsCleared, 0))}; this consignment is priced for a repeat forge lane.`
+                : "",
+            ].filter(Boolean),
             "Consign",
             consignPrice,
             run.gold < consignPrice
@@ -1232,6 +1276,14 @@
         } already fulfilled in the archive.`
       );
       lines.push(`Next charter push: ${planning.overview?.nextActionLabel || "Quiet"}. ${planning.overview?.nextActionSummary || "No active runeword charter is pinned across the account."}`);
+      if ((planning.overview?.fulfilledRunewordIds || []).length > 0) {
+        lines.push(
+          `Archive mastery: ${getPlanningRunewordListLabel(planning.overview?.fulfilledRunewordIds || [], content)} already cleared up through Act ${Math.max(
+            1,
+            toNumber(planning.overview?.bestFulfilledActsCleared, 0)
+          )}${toNumber(planning.overview?.bestFulfilledLoadoutTier, 0) > 0 ? ` at loadout tier ${toNumber(planning.overview?.bestFulfilledLoadoutTier, 0)}` : ""}.`
+        );
+      }
       lines.push(getPlanningStageLine("weapon", planning, content));
       lines.push(getPlanningStageLine("armor", planning, content));
     }

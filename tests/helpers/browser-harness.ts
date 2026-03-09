@@ -47,6 +47,7 @@ const PERSISTENCE_RUNTIME_FILES = [
 
 const APP_UI_RUNTIME_FILES = [
   "src/ui/ui-common.js",
+  "src/ui/launch-flow-view.js",
   "src/ui/front-door-view.js",
   "src/ui/character-select-view.js",
   "src/ui/safe-zone-view.js",
@@ -61,6 +62,7 @@ const APP_UI_RUNTIME_FILES = [
 
 const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/world-node-outcomes.js",
+  "src/quests/world-node-variants.js",
   "src/quests/world-node-engine.js",
 ];
 

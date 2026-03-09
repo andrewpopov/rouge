@@ -10,6 +10,7 @@
     const preferredClassId = appState.profile?.meta?.progression?.preferredClassId || "";
     const returningPlayer = (appState.profile?.runHistory?.length || 0) > 0;
     const deckProfileId = services.classRegistry.getDeckProfileId(appState.content, appState.ui.selectedClassId);
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
 
     services.renderUtils.buildShell(root, {
       eyebrow: "Character Select",
@@ -42,6 +43,16 @@
             </article>
           </div>
         </section>
+        ${common.buildExpeditionLaunchFlowMarkup(appState, accountSummary, services.renderUtils, {
+          currentStep: "draft",
+          copy:
+            "Character draft now keeps the hall signal and first-town arrival in one place, so choosing a hero and contract feels like committing an expedition instead of switching screens.",
+          hallFollowThrough: "The hall already set the launch context; use that account signal to decide whether this is the right class and contract.",
+          draftFollowThrough:
+            "Choose the class shell and mercenary contract, then enter Rogue Encampment with that exact launch pairing still visible.",
+          townFollowThrough:
+            "The first town pass should validate recovery, loadout, stash pressure, and the departure board before you leave safety.",
+        })}
         <section class="panel flow-panel">
           <div class="panel-head">
             <h2>Class Dossiers</h2>

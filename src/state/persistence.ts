@@ -888,6 +888,9 @@
       preparedRunewordIds: [],
       readyRunewordIds: [],
       missingBaseRunewordIds: [],
+      fulfilledRunewordIds: [],
+      bestFulfilledActsCleared: 0,
+      bestFulfilledLoadoutTier: 0,
       nextAction: "idle",
       nextActionLabel: "Quiet",
       nextActionSummary: "No active runeword charter is pinned across the account.",
@@ -954,6 +957,25 @@
 
     const preparedBases = compatibleBases.filter((entry) => entry.socketsUnlocked > 0 || entry.insertedRuneCount > 0);
     const readyBases = compatibleBases.filter((entry) => entry.socketsUnlocked >= toNumber(runeword.socketCount, 0));
+    const bestCompletedEntry =
+      historySummary.completedEntries
+        .slice()
+        .sort((left, right) => {
+          if (toNumber(left?.actsCleared, 0) !== toNumber(right?.actsCleared, 0)) {
+            return toNumber(right?.actsCleared, 0) - toNumber(left?.actsCleared, 0);
+          }
+          if (toNumber(left?.loadoutTier, 0) !== toNumber(right?.loadoutTier, 0)) {
+            return toNumber(right?.loadoutTier, 0) - toNumber(left?.loadoutTier, 0);
+          }
+          if (toNumber(left?.loadoutSockets, 0) !== toNumber(right?.loadoutSockets, 0)) {
+            return toNumber(right?.loadoutSockets, 0) - toNumber(left?.loadoutSockets, 0);
+          }
+          if (toNumber(left?.level, 0) !== toNumber(right?.level, 0)) {
+            return toNumber(right?.level, 0) - toNumber(left?.level, 0);
+          }
+          return String(right?.completedAt || "").localeCompare(String(left?.completedAt || ""));
+        })
+        .shift() || null;
     const bestBase =
       compatibleBases
         .slice()
@@ -982,6 +1004,12 @@
       archivedRunCount: historySummary.archivedRunCount,
       completedRunCount: historySummary.completedRunCount,
       bestActsCleared: historySummary.bestActsCleared,
+      bestCompletedRunId: bestCompletedEntry?.runId || "",
+      bestCompletedClassId: bestCompletedEntry?.classId || "",
+      bestCompletedClassName: bestCompletedEntry?.className || "",
+      bestCompletedAt: bestCompletedEntry?.completedAt || "",
+      bestCompletedLoadoutTier: toNumber(bestCompletedEntry?.loadoutTier, 0),
+      bestCompletedLoadoutSockets: toNumber(bestCompletedEntry?.loadoutSockets, 0),
       requiredSocketCount: toNumber(runeword.socketCount, 0),
       compatibleBaseCount: compatibleBases.length,
       preparedBaseCount: preparedBases.length,
@@ -1006,10 +1034,13 @@
     const preparedCharters = activeCharters.filter((charter) => charter.preparedBaseCount > 0 && !charter.hasReadyBase);
     const readyCharters = activeCharters.filter((charter) => charter.hasReadyBase);
     const missingBaseCharters = activeCharters.filter((charter) => charter.compatibleBaseCount === 0);
+    const fulfilledCharters = activeCharters.filter((charter) => toNumber(charter.completedRunCount, 0) > 0);
     const compatibleRunewordIds = compatibleCharters.map((charter) => charter.runewordId);
     const preparedRunewordIds = preparedCharters.map((charter) => charter.runewordId);
     const readyRunewordIds = readyCharters.map((charter) => charter.runewordId);
     const missingBaseRunewordIds = missingBaseCharters.map((charter) => charter.runewordId);
+    const fulfilledRunewordIds = fulfilledCharters.map((charter) => charter.runewordId);
+    const readyFulfilledRunewordIds = readyCharters.filter((charter) => toNumber(charter.completedRunCount, 0) > 0).map((charter) => charter.runewordId);
 
     const overview: ProfilePlanningOverviewSummary = {
       compatibleCharterCount: compatibleCharters.length,
@@ -1022,6 +1053,9 @@
       preparedRunewordIds,
       readyRunewordIds,
       missingBaseRunewordIds,
+      fulfilledRunewordIds,
+      bestFulfilledActsCleared: fulfilledCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestActsCleared, 0)), 0),
+      bestFulfilledLoadoutTier: fulfilledCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestCompletedLoadoutTier, 0)), 0),
       nextAction: "hunt_bases",
       nextActionLabel: "Hunt Bases",
       nextActionSummary: `Pinned charters still lack a compatible parked base: ${getPlanningRunewordListLabel(missingBaseRunewordIds, content)}.`,
@@ -1031,6 +1065,12 @@
       overview.nextAction = "stock_runes";
       overview.nextActionLabel = "Stock Runes";
       overview.nextActionSummary = `Ready base parked for ${getPlanningRunewordListLabel(readyRunewordIds, content)}. Prioritize rune depth before another replacement base.`;
+      if (readyFulfilledRunewordIds.length > 0) {
+        overview.nextActionSummary = `Ready base parked for ${getPlanningRunewordListLabel(readyRunewordIds, content)}. Archive already proved ${getPlanningRunewordListLabel(
+          readyFulfilledRunewordIds,
+          content
+        )} up through Act ${Math.max(1, overview.bestFulfilledActsCleared)}. Prioritize rune depth for a repeat forge.`;
+      }
       return overview;
     }
 
@@ -1062,6 +1102,7 @@
           archivedRunCount: 0,
           completedRunCount: 0,
           bestActsCleared: 0,
+          completedEntries: [],
         };
       }
 
@@ -1073,6 +1114,7 @@
         archivedRunCount: archivedEntries.length,
         completedRunCount: completedEntries.length,
         bestActsCleared: completedEntries.reduce((highest, entry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
+        completedEntries,
       };
     };
 

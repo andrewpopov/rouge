@@ -78,13 +78,39 @@ test("quality artifact recording trims history and writes a latest trend report"
         success: true,
         failedStage: "",
         durationMs: 1000 + index,
-        stages: [],
+        stages: [
+          { name: "lint", durationMs: 100, success: true, exitCode: 0 },
+          { name: "build", durationMs: 200, success: true, exitCode: 0 },
+          { name: "test:compiled", durationMs: 300, success: true, exitCode: 0 },
+          { name: "test:e2e:built", durationMs: 400, success: true, exitCode: 0 },
+        ],
         compiledTests: { pass: 180, fail: 0 },
         builtBundleSmoke: { pass: 3, fail: 0 },
       },
       { rootDir: tempRoot }
     );
   }
+
+  artifactHelpers.recordRunArtifact(
+    "quality",
+    {
+      recordedAt: new Date(Date.UTC(2026, 2, 9, 10, 59, 0)).toISOString(),
+      gitBranch: "master",
+      gitCommit: "q-final",
+      success: true,
+      failedStage: "",
+      durationMs: 2100,
+      stages: [
+        { name: "lint", durationMs: 140, success: true, exitCode: 0 },
+        { name: "build", durationMs: 260, success: true, exitCode: 0 },
+        { name: "test:compiled", durationMs: 360, success: true, exitCode: 0 },
+        { name: "test:e2e:built", durationMs: 520, success: true, exitCode: 0 },
+      ],
+      compiledTests: { pass: 182, fail: 0 },
+      builtBundleSmoke: { pass: 4, fail: 0 },
+    },
+    { rootDir: tempRoot }
+  );
 
   artifactHelpers.recordRunArtifact(
     "coverage",
@@ -127,9 +153,19 @@ test("quality artifact recording trims history and writes a latest trend report"
   const latestReport = fs.readFileSync(path.join(artifactDir, "latest.md"), "utf8");
 
   assert.equal(qualityHistory.length, artifactHelpers.ARTIFACT_HISTORY_LIMIT);
-  assert.equal(qualityHistory[0].gitCommit, "q2");
+  assert.equal(qualityHistory[0].gitCommit, "q3");
   assert.match(latestReport, /Latest quality run/);
   assert.match(latestReport, /Latest coverage run/);
   assert.match(latestReport, /master@c1/);
+  assert.match(
+    latestReport,
+    /Delta vs previous success: compiled pass \+2, fail \+0; built smoke pass \+1, fail \+0; total duration \+1\.07 s/
+  );
+  assert.match(
+    latestReport,
+    /Stage deltas: lint \+40 ms, build \+60 ms, test:compiled \+60 ms, test:e2e:built \+120 ms/
+  );
   assert.match(latestReport, /91\.20 \(\+0\.10\)/);
+  assert.match(latestReport, /Delta vs previous success: tests pass \+0, fail \+0; total duration \+100 ms/);
+  assert.match(latestReport, /Threshold headroom: lines \+1\.20, branches \+1\.30, functions \+0\.95/);
 });

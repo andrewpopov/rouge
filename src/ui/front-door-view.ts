@@ -1887,6 +1887,18 @@
         ${buildAccountOverviewMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         ${buildHallNavigatorMarkup(appState, services, savedRunSummary, accountSummary)}
         ${buildHallDecisionSupportMarkup(appState, services, savedRunSummary, accountSummary)}
+        ${common.buildExpeditionLaunchFlowMarkup(appState, accountSummary, services.renderUtils, {
+          currentStep: "hall",
+          copy:
+            "The hall now treats recruit, draft, and first-town prep as one expedition launch runway, so the account signal you read here carries cleanly into the opening town.",
+          hallFollowThrough: savedRunSummary
+            ? "Resolve the parked expedition first, then reopen character draft once the hall is clear."
+            : "Open character draft once the hall signal is settled.",
+          draftFollowThrough:
+            "Pin the class shell and mercenary contract here, then carry that exact launch plan into Rogue Encampment.",
+          townFollowThrough:
+            "The first town pass should confirm recovery, supply, stash pressure, and departure before the map opens.",
+        })}
         ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
           copy:
             "The hall now pins the same archive, charter, mastery, and convergence pressure that the rest of the shell carries forward, so your next draft starts from one stable account board.",

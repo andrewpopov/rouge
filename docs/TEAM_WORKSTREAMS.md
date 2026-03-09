@@ -44,7 +44,7 @@ Already landed in the live runtime:
 - split run-domain helpers under `src/run/*` plus split item-domain helpers under `src/items/*`
 - seed, runtime, world-node, and elite-affix validation
 - quest, shrine, event, and multiple opportunity nodes routed through the reward flow, including shrine-specific, crossroad, reserve-lane, relay-lane, culmination-lane, legacy-lane, reckoning-lane, recovery-lane, accord-lane, covenant-lane, detour-lane, escalation-lane, consequence-gated opportunity variants, and four-package-per-role branch or miniboss or boss encounter and reward ladders
-- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools with six branch battles and six branch minibosses per act, a sixteen-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, and deeper boss escorts
+- seven mercenary contracts plus twelve-per-contract compound route-linked combat perks, larger act encounter pools with six branch battles and six branch minibosses per act, a twenty-kind encounter-local modifier catalog, four elite-affix families per act, stronger escort, court-reserve, boss-salvo, backline-screen, boss-screen, sniper-nest, phalanx-march, linebreaker-charge, and ritual-cadence scripting, mobilized aftermath boss courts, and deeper boss escorts
 
 The active team split is now five larger workstreams:
 
@@ -127,20 +127,18 @@ Use the standalone assignment sheets as the source of truth for the detailed tas
 
 Current Tira mapping:
 
-1. Agent 1: epic `ROUGE-21`, tickets `ROUGE-22`, `ROUGE-23`, `ROUGE-24`
-2. Agent 2: epic `ROUGE-2`, tickets `ROUGE-8`, `ROUGE-9`, `ROUGE-10`, `ROUGE-18`
+1. Agent 1: completed epic `ROUGE-21`; active epic `ROUGE-52`, tickets `ROUGE-53`, `ROUGE-54`, `ROUGE-55`
+2. Agent 2: epic `ROUGE-2`, tickets `ROUGE-9`, `ROUGE-10`, `ROUGE-18`
 3. Agent 3: epic `ROUGE-3`, tickets `ROUGE-11`, `ROUGE-12`, `ROUGE-13`, `ROUGE-19`
-4. Agent 4: epic `ROUGE-1`, tickets `ROUGE-5`, `ROUGE-6`, `ROUGE-7`, `ROUGE-17`
-5. Agent 5: epic `ROUGE-29`, tickets `ROUGE-30`, `ROUGE-31`, `ROUGE-32` landed on `master`; next batch pending project-manager assignment
+4. Agent 4: epic `ROUGE-1` plus current large-file queue `ROUGE-51`, `ROUGE-43`, `ROUGE-42`, with `ROUGE-47` and `ROUGE-49` as follow-ons and `ROUGE-5`, `ROUGE-17`, `ROUGE-6`, `ROUGE-7` as secondary backlog
+5. Agent 5: completed epics `ROUGE-25` and `ROUGE-29`; active epic `ROUGE-56`, tickets `ROUGE-57`, `ROUGE-58`, `ROUGE-59`
 
 The current chunking is:
 
 1. Agent 1 owns the full player-facing shell:
-   - account-hall decision support and convergence visibility
-   - onboarding and tutorial continuity
-   - town-prep comparison and run-management UX
-   - route intel, reward, act-transition, and run-end change summaries on top of the now-live hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, and hall handoff
-   - broader account controls on top of the now-live shared account-meta continuity board and the now-live charter or convergence drilldown layer
+   - expedition launch continuity from hall through character select into the first safe zone
+   - before-or-after comparison treatment for the most important town-prep actions
+   - compiled-browser regression coverage for the launch and prep loop
 2. Agent 2 owns the progression and account backbone:
    - broader account growth beyond the current sovereign-annals or merchant-principate or legend-doctrine second wave, current convergences, and live planning-charter layer
    - late-act item or rune or runeword economy depth beyond the current sovereign-market layer
@@ -153,50 +151,44 @@ The current chunking is:
    - elite or boss depth and mercenary payoff growth only where new route fabrics justify it
    - content validation and reachability hardening
 4. Agent 4 owns architecture and code quality:
-   - compiled-browser harness and test-surface cleanup on top of the now-centralized browser manifest seams
-   - maintain the `content-validator-world-paths`, `content-validator-world-opportunities`, and `content-validator-runtime-content` seams
-   - maintain the new `encounter-registry` helper chain
-   - keep `content-validator.ts` thin and keep late-route validation out of the public entry
-   - maintain the `world-node-outcomes` -> `world-node-engine` quest helper seam and only expand that extraction incrementally
-   - lint suppression and structural debt reduction
-   - architecture rule maintenance
+   - break up the biggest runtime hotspots first, starting with `src/quests/world-node-engine.ts`
+   - extract authored-content seams out of `src/content/game-content.ts` and `src/state/persistence.ts`
+   - keep `src/combat/combat-engine.ts` from becoming the next giant file
+   - centralize module-registration ownership after the large-file passes settle
+   - keep test-surface cleanup and architecture docs aligned with the new seams
 5. Agent 5 owns release confidence and automated verification:
-   - `npm run quality` ownership across lint, build, compiled-browser tests, and built-bundle smoke
-   - `npm run test:coverage` ownership across thresholds, exclusions, and follow-through
-   - missing-test backfill across shell, account, route, and harness seams
-   - harness-to-bundle drift protection with Agent 4 coordination on shared browser bootstrap ownership
-   - maintain the now-live deeper built-bundle smoke through encounter, reward, act transition, and run summary plus the direct browser boot-failure coverage
-   - maintain the now-live local artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots and use it to drive the next browser-only fault injection or regression backfill
+   - quality-artifact delta reporting on top of the now-live artifact history
+   - the next built-bundle restore-path smoke permutation
+   - regression backfill chosen from artifact and coverage deltas
+   - continued ownership of `npm run quality` and `npm run test:coverage`
 
 Current start order for this round:
 
 1. Agent 4
-   - keep `tests/helpers/browser-harness.ts` as the single boot-order source of truth
-   - continue the remaining app-engine suite cleanup, starting with `tests/app-engine-world-nodes-late-routes.test.ts`
-   - only expand the quest helper chain from `src/quests/world-node-outcomes.ts` with Agent 3 after the harness pass is stable
-2. Agent 5
-   - keep the landed release-confidence lane green through `npm run quality` and `npm run test:coverage`
-   - treat the shipped-bundle encounter, reward, act-transition, run-summary, and bad-seed boot-failure smoke checks as the new baseline instead of future work
-   - treat the local quality-artifact history under `artifacts/quality/latest.md` plus rolling `artifacts/quality/*.json` snapshots as the new baseline instead of future work
-   - use fresh coverage output and that local artifact history to drive the next high-value shell, account, route, and harness backfill, and only widen browser-only fault injection where the bundle still owns unique behavior
-3. Agent 2
+   - start the large-file strike with `ROUGE-51` on `src/quests/world-node-engine.ts`
+   - then land `ROUGE-43` on `src/content/game-content.ts` and `src/state/persistence.ts`
+   - then land `ROUGE-42` on `src/combat/combat-engine.ts`
+2. Agent 2
    - build on the live second-wave account growth with richer archive or stash or economy read models
    - then deepen late-act replacement pressure and economy sinks on top of the live planning-charter and sovereign-market layer
-4. Agent 3
+3. Agent 3
    - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
    - then widen mercenary payoff only if that follow-through creates a real new combat seam
-5. Agent 1
-   - land the next broader account-control pass on top of the now-live hall navigator, hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, convergence review, shared account-meta continuity board, shared charter or convergence drilldown layer, and delta-summary shell
+4. Agent 1
+   - land the new expedition-launch flow and town-prep comparison pass on top of the now-live shell continuity baseline
+5. Agent 5
+   - keep the landed release-confidence lane green
+   - then use the current artifact history to land delta reporting, restore-path smoke, and the next artifact-driven regression backfill
 
 Current landing guidance:
 
 1. land shared type, profile, and progression contract changes first
-2. let Agent 4 keep the compiled-browser harness aligned, finish the remaining app-engine test-surface cleanup, and only do further validator or `world-node-engine` follow-on work from the new helper chain and `src/quests/world-node-outcomes.ts`
-3. let Agent 5 broaden the landed quality gate on top of Agent 4's stable browser bootstrap instead of forking it
+2. let Agent 4 land the large-file breakup pass first, starting with `src/quests/world-node-engine.ts`, then `src/content/game-content.ts` plus `src/state/persistence.ts`, then `src/combat/combat-engine.ts`
+3. let Agent 5 broaden the quality lane only after Agent 4's large-file seams settle where shared harness or bootstrap ownership is involved
 4. let Agent 2 land the next shared type, profile, progression, reward, and economy contract changes before downstream consumers depend on new backend seams
 5. let Agent 3 land wider route and combat content on the stable progression, reward, and mercenary contracts, building on the live detour or escalation fabric instead of re-establishing it
-6. let Agent 1 land the next shell pass on top of the latest profile, route, archive, reward, and node surfaces, using the new hall or town or map or reward or act-transition or run-end decision-support model as the baseline
-7. let Agent 4 only keep expanding `world-node-engine` extractions after the `world-node-outcomes` helper pass and the next suite split settle cleanly
+6. let Agent 1 land the expedition-launch and town-prep shell pass on top of the latest profile, route, archive, reward, and node surfaces
+7. let Agent 4 return to secondary architecture backlog like module registration and further test splits after the giant-file strike settles
 
 ## Integration Checklist
 

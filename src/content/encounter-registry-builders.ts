@@ -276,6 +276,18 @@
     };
   }
 
+  function buildMobilizedAftermathBossConfig(actNumber, templateIds) {
+    const drilledConfig = buildDrilledAftermathBossConfig(actNumber, templateIds);
+    return {
+      enemyTemplateIds: [...drilledConfig.enemyTemplateIds],
+      modifiers: [
+        ...drilledConfig.modifiers,
+        { kind: "court_reserves", value: Math.max(2, Math.min(4, actNumber + 1)) },
+        { kind: "boss_salvo", value: Math.max(2, Math.min(4, actNumber + 1)) },
+      ],
+    };
+  }
+
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }) {
     const actNumber = actSeed.act;
     const flavor = getFlavor(actNumber);
@@ -379,6 +391,7 @@
     const consequenceDirectedAftermathBossId = `act_${actNumber}_boss_aftermath_directed`;
     const consequenceSignaledAftermathBossId = `act_${actNumber}_boss_aftermath_signaled`;
     const consequenceDrilledAftermathBossId = `act_${actNumber}_boss_aftermath_drilled`;
+    const consequenceMobilizedAftermathBossId = `act_${actNumber}_boss_aftermath_mobilized`;
     const bossId = `act_${actNumber}_boss`;
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
@@ -407,6 +420,15 @@
       brute: bruteA.templateId,
     });
     const drilledAftermathBossConfig = buildDrilledAftermathBossConfig(actNumber, {
+      boss: bossA.templateId,
+      eliteA: eliteA.templateId,
+      eliteB: eliteB.templateId,
+      eliteD: eliteD.templateId,
+      ranged: rangedA.templateId,
+      support: supportA.templateId,
+      brute: bruteA.templateId,
+    });
+    const mobilizedAftermathBossConfig = buildMobilizedAftermathBossConfig(actNumber, {
       boss: bossA.templateId,
       eliteA: eliteA.templateId,
       eliteB: eliteB.templateId,
@@ -678,6 +700,13 @@
         `${flavor.bossDescription} Earlier route drilling and an alternate crossroads court both carry through the full aftermath and harden the escort screen into a more martial closing court.`,
         drilledAftermathBossConfig.enemyTemplateIds,
         drilledAftermathBossConfig.modifiers
+      ),
+      [consequenceMobilizedAftermathBossId]: makeEncounter(
+        consequenceMobilizedAftermathBossId,
+        `${flavor.bossLabel} Mobilized Aftermath`,
+        `${flavor.bossDescription} Earlier accord musters, route drilling, and alternate crossroads pressure all carry through the full aftermath and mobilize the boss court into a reserve-backed closing assault.`,
+        mobilizedAftermathBossConfig.enemyTemplateIds,
+        mobilizedAftermathBossConfig.modifiers
       ),
     };
 
