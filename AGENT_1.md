@@ -33,6 +33,11 @@ Tira is the source of truth for scope, acceptance criteria, and required tests. 
 
 Work these in the order set in Tira and by the project manager.
 
+## Current Focus
+
+- `ROUGE-23` is live on `master`: charter and convergence drilldowns now persist through hall, town, map, reward, act transition, and run-end on top of the shared account-meta continuity board.
+- The next Agent 1 pickup is `ROUGE-24`: broader account controls on top of the now-live hall decision support, prep comparison, route or reward or transition continuity, and account-meta drilldown shell.
+
 ## Execution Rules
 
 1. Before your first code edit, first new test, or first tooling change for a ticket, move that ticket to `IN_PROGRESS` in Tira.

@@ -140,7 +140,7 @@ The current chunking is:
    - onboarding and tutorial continuity
    - town-prep comparison and run-management UX
    - route intel, reward, act-transition, and run-end change summaries on top of the now-live hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, and hall handoff
-   - charter and convergence drilldowns on top of the now-live shared account-meta continuity board
+   - broader account controls on top of the now-live shared account-meta continuity board and the now-live charter or convergence drilldown layer
 2. Agent 2 owns the progression and account backbone:
    - second-wave account growth beyond the current capstones, convergences, and live planning-charter layer
    - late-act item or rune or runeword economy depth
@@ -186,7 +186,7 @@ Current start order for this round:
    - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
    - then widen mercenary payoff only if that follow-through creates a real new combat seam
 5. Agent 1
-   - land the next charter and convergence drilldown pass on top of the now-live hall navigator, hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, convergence review, shared account-meta continuity board, and delta-summary shell
+   - land the next broader account-control pass on top of the now-live hall navigator, hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, convergence review, shared account-meta continuity board, shared charter or convergence drilldown layer, and delta-summary shell
 
 Current landing guidance:
 

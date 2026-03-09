@@ -359,10 +359,10 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.ok(unlockedFeatureIds.has("war_annals"));
   assert.ok(unlockedFeatureIds.has("paragon_exchange"));
   assert.equal(accountSummary.unlockedMilestoneCount, 18);
-  assert.equal(accountSummary.milestoneCount, 18);
+  assert.equal(accountSummary.milestoneCount, 21);
   assert.equal(accountSummary.focusedTreeId, "archives");
-  assert.equal(accountSummary.nextMilestoneId, "");
-  assert.equal(accountSummary.nextMilestoneTitle, "");
+  assert.equal(accountSummary.nextMilestoneId, "sovereign_annals");
+  assert.equal(accountSummary.nextMilestoneTitle, "Sovereign Annals");
   assert.ok(accountSummary.unlockedFeatureIds.includes("economy_ledger"));
   assert.ok(accountSummary.unlockedFeatureIds.includes("brokerage_charter"));
   assert.equal(accountSummary.treeCount, 3);
@@ -372,12 +372,81 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 6);
   assert.equal(accountSummary.review.unlockedCapstoneCount, 3);
   assert.equal(accountSummary.review.unlockedConvergenceCount, 3);
-  assert.equal(accountSummary.review.nextConvergenceTitle, "");
-  assert.equal(accountSummary.convergences.length, 3);
+  assert.equal(accountSummary.review.nextConvergenceTitle, "Sovereign Exchange");
+  assert.equal(accountSummary.convergences.length, 6);
   assert.equal(accountSummary.convergences.find((entry) => entry.id === "chronicle_exchange")?.status, "unlocked");
+  assert.equal(accountSummary.convergences.find((entry) => entry.id === "sovereign_exchange")?.status, "locked");
   assert.equal(accountSummary.archive.highestLoadoutTier, 7);
   assert.equal(accountSummary.archive.planningArchiveCount, 6);
   assert.equal(accountSummary.profile.dismissedTutorialCount, 0);
+});
+
+test("account progress summary unlocks second-wave milestones and convergences from persisted profile progress", () => {
+  const { persistence } = createHarness();
+  const profile = persistence.createEmptyProfile();
+
+  profile.runHistory = Array.from({ length: 8 }, (_, index) => ({
+    runId: `second_wave_${index}`,
+    classId: "amazon",
+    className: "Amazon",
+    level: 12,
+    actsCleared: 5,
+    bossesDefeated: 2,
+    goldGained: 820,
+    runewordsForged: 1,
+    skillPointsEarned: 3,
+    classPointsEarned: 2,
+    attributePointsEarned: 3,
+    trainingRanksGained: 2,
+    favoredTreeId: "amazon_bow",
+    favoredTreeName: "Bow",
+    unlockedClassSkills: 3,
+    loadoutTier: 8,
+    loadoutSockets: 4,
+    carriedEquipmentCount: 2,
+    carriedRuneCount: 1,
+    stashEntryCount: 3,
+    stashEquipmentCount: 2,
+    stashRuneCount: 1,
+    plannedWeaponRunewordId: "",
+    plannedArmorRunewordId: "",
+    completedPlannedRunewordIds: [],
+    activeRunewordIds: ["steel"],
+    newFeatureIds: [],
+    completedAt: new Date(`2026-03-0${(index % 8) + 1}T00:00:00.000Z`).toISOString(),
+    outcome: "completed",
+  }));
+  profile.meta.progression.highestLevel = 12;
+  profile.meta.progression.highestActCleared = 5;
+  profile.meta.progression.totalBossesDefeated = 16;
+  profile.meta.progression.totalGoldCollected = 6600;
+  profile.meta.progression.totalRunewordsForged = 8;
+  profile.meta.progression.classesPlayed = ["amazon", "sorceress", "necromancer", "barbarian"];
+  profile.meta.unlocks.bossIds = ["andariel"];
+  profile.meta.unlocks.runewordIds = ["steel"];
+
+  persistence.ensureProfileMeta(profile);
+
+  const accountSummary = persistence.getAccountProgressSummary(profile);
+  const unlockedFeatureIds = new Set(profile.meta.unlocks.townFeatureIds);
+
+  assert.ok(unlockedFeatureIds.has("sovereign_annals"));
+  assert.ok(unlockedFeatureIds.has("merchant_principate"));
+  assert.ok(unlockedFeatureIds.has("legend_doctrine"));
+  assert.ok(unlockedFeatureIds.has("sovereign_exchange"));
+  assert.ok(unlockedFeatureIds.has("legendary_annals"));
+  assert.ok(unlockedFeatureIds.has("ascendant_exchange"));
+  assert.equal(accountSummary.unlockedMilestoneCount, 21);
+  assert.equal(accountSummary.milestoneCount, 21);
+  assert.equal(accountSummary.review.unlockedCapstoneCount, 6);
+  assert.equal(accountSummary.review.unlockedConvergenceCount, 6);
+  assert.equal(accountSummary.nextMilestoneId, "");
+  assert.equal(accountSummary.review.nextConvergenceTitle, "");
+  assert.equal(accountSummary.runHistoryCapacity, 100);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 6);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 8);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 7);
+  assert.equal(accountSummary.convergences.find((entry) => entry.id === "ascendant_exchange")?.status, "unlocked");
 });
 
 test("profile migrations backfill richer archived run-history fields for older entries", () => {
@@ -1216,15 +1285,15 @@ test("account progression trees drive archive retention, economy focus, and mast
   const merchantLateSocketOffers = merchantEconomyState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
-    .filter((item) => (item?.maxSockets || 0) >= 4);
+    .filter((item) => (item?.maxSockets || 0) >= 3);
   const sovereignLateSocketOffers = sovereignEconomyState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
-    .filter((item) => (item?.maxSockets || 0) >= 4);
+    .filter((item) => (item?.maxSockets || 0) >= 3);
   const ascendantLateSocketOffers = ascendantEconomyState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
-    .filter((item) => (item?.maxSockets || 0) >= 4);
+    .filter((item) => (item?.maxSockets || 0) >= 3);
   const baselineLateRefreshAction = itemSystem
     .listTownActions(lateEconomyBaselineState.run, lateEconomyBaselineState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
@@ -1293,22 +1362,36 @@ test("account progression trees drive archive retention, economy focus, and mast
     ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "war_annals"],
     "mastery"
   );
+  const legendMasteryState = buildState(
+    ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "legend_doctrine"],
+    "mastery"
+  );
+  const legendaryAnnalsState = buildState(
+    ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "legend_doctrine", "legendary_annals"],
+    "mastery"
+  );
   prepareLateActState(baselineMasteryState);
   prepareLateActState(focusedMasteryState);
   prepareLateActState(paragonMasteryState);
   prepareLateActState(apexMasteryState);
   prepareLateActState(warAnnalsState);
+  prepareLateActState(legendMasteryState);
+  prepareLateActState(legendaryAnnalsState);
   const baselineBossZone = runFactory.getCurrentZones(baselineMasteryState.run).find((zone) => zone.kind === "boss");
   const focusedBossZone = runFactory.getCurrentZones(focusedMasteryState.run).find((zone) => zone.kind === "boss");
   const paragonBossZone = runFactory.getCurrentZones(paragonMasteryState.run).find((zone) => zone.kind === "boss");
   const apexBossZone = runFactory.getCurrentZones(apexMasteryState.run).find((zone) => zone.kind === "boss");
   const warAnnalsBossZone = runFactory.getCurrentZones(warAnnalsState.run).find((zone) => zone.kind === "boss");
+  const legendBossZone = runFactory.getCurrentZones(legendMasteryState.run).find((zone) => zone.kind === "boss");
+  const legendaryAnnalsBossZone = runFactory.getCurrentZones(legendaryAnnalsState.run).find((zone) => zone.kind === "boss");
 
   assert.ok(baselineBossZone);
   assert.ok(focusedBossZone);
   assert.ok(paragonBossZone);
   assert.ok(apexBossZone);
   assert.ok(warAnnalsBossZone);
+  assert.ok(legendBossZone);
+  assert.ok(legendaryAnnalsBossZone);
 
   const baselineBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
@@ -1350,18 +1433,40 @@ test("account progression trees drive archive retention, economy focus, and mast
     encounterNumber: 1,
     profile: warAnnalsState.profile,
   });
+  const legendBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: legendMasteryState.run,
+    zone: legendBossZone,
+    actNumber: legendBossZone.actNumber,
+    encounterNumber: 1,
+    profile: legendMasteryState.profile,
+  });
+  const legendaryAnnalsBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: legendaryAnnalsState.run,
+    zone: legendaryAnnalsBossZone,
+    actNumber: legendaryAnnalsBossZone.actNumber,
+    encounterNumber: 1,
+    profile: legendaryAnnalsState.profile,
+  });
 
   const baselineBossProgression = baselineBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const focusedBossProgression = focusedBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const paragonBossProgression = paragonBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const apexBossProgression = apexBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const warAnnalsBossProgression = warAnnalsBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const legendBossProgression = legendBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const legendaryAnnalsBossProgression = legendaryAnnalsBossChoices.find((choice) =>
+    choice.effects.some((effect) => effect.kind === "class_point")
+  );
 
   assert.ok(baselineBossProgression);
   assert.ok(focusedBossProgression);
   assert.ok(paragonBossProgression);
   assert.ok(apexBossProgression);
   assert.ok(warAnnalsBossProgression);
+  assert.ok(legendBossProgression);
+  assert.ok(legendaryAnnalsBossProgression);
 
   const baselineBossProgressionPoints = baselineBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
@@ -1378,15 +1483,25 @@ test("account progression trees drive archive retention, economy focus, and mast
   const warAnnalsBossProgressionPoints = warAnnalsBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
   }, 0);
+  const legendBossProgressionPoints = legendBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
+  const legendaryAnnalsBossProgressionPoints = legendaryAnnalsBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
 
   assert.ok(focusedBossProgressionPoints > baselineBossProgressionPoints);
   assert.ok(paragonBossProgressionPoints > focusedBossProgressionPoints);
   assert.ok(apexBossProgressionPoints > paragonBossProgressionPoints);
   assert.ok(warAnnalsBossProgressionPoints > apexBossProgressionPoints);
+  assert.ok(legendBossProgressionPoints > warAnnalsBossProgressionPoints);
+  assert.ok(legendaryAnnalsBossProgressionPoints > legendBossProgressionPoints);
   assert.match(focusedBossProgression.previewLines.join(" "), /Training Grounds|Mastery Hall focus|War College/i);
   assert.match(paragonBossProgression.previewLines.join(" "), /Paragon Doctrine/i);
   assert.match(apexBossProgression.previewLines.join(" "), /Apex Doctrine/i);
   assert.match(warAnnalsBossProgression.previewLines.join(" "), /War Annals/i);
+  assert.match(legendBossProgression.previewLines.join(" "), /Legend Doctrine/i);
+  assert.match(legendaryAnnalsBossProgression.previewLines.join(" "), /Legendary Annals/i);
 
   const archiveProfile = persistence.createEmptyProfile();
   archiveProfile.meta.unlocks.townFeatureIds.push("archive_ledger", "chronicle_vault", "heroic_annals", "mythic_annals", "eternal_annals");
@@ -1403,13 +1518,20 @@ test("account progression trees drive archive retention, economy focus, and mast
   persistence.setAccountProgressionFocus(archiveProfile, "archives");
   assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 75);
 
-  for (let index = 0; index < 75; index += 1) {
+  archiveProfile.meta.unlocks.townFeatureIds.push("sovereign_annals", "sovereign_exchange", "legendary_annals");
+  persistence.ensureProfileMeta(archiveProfile);
+  persistence.setAccountProgressionFocus(archiveProfile, "economy");
+  assert.ok(persistence.getRunHistoryCapacity(archiveProfile) >= 95);
+  persistence.setAccountProgressionFocus(archiveProfile, "archives");
+  assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 100);
+
+  for (let index = 0; index < 100; index += 1) {
     const archivedRun = JSON.parse(JSON.stringify(focusedEconomyState.run)) as RunState;
     archivedRun.id = `archive_focus_${index}`;
     persistence.recordRunHistory(archiveProfile, archivedRun, "abandoned", content);
   }
 
-  assert.equal(archiveProfile.runHistory.length, 75);
+  assert.equal(archiveProfile.runHistory.length, 100);
 });
 
 test("late-act reward equipment choices prioritize replacement pivots and honor economy-gated curation", () => {
@@ -1509,7 +1631,12 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
 
   const featured = buildLateActState(["artisan_stock", "brokerage_charter"], "economy");
   const treasuryFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange"], "economy");
+  const merchantFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate"], "economy");
   const paragonFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange", "paragon_exchange"], "economy");
+  const ascendantFeatured = buildLateActState(
+    ["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate", "ascendant_exchange"],
+    "economy"
+  );
   const featuredChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
     run: featured.state.run,
@@ -1555,17 +1682,55 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
     encounterNumber: 1,
     profile: paragonFeatured.state.profile,
   });
+  const merchantChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: merchantFeatured.state.run,
+    zone: merchantFeatured.bossZone,
+    actNumber: merchantFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: merchantFeatured.state.profile,
+  });
+  const ascendantChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: ascendantFeatured.state.run,
+    zone: ascendantFeatured.bossZone,
+    actNumber: ascendantFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: ascendantFeatured.state.profile,
+  });
   const paragonEquipmentChoice = paragonChoices.find((choice) => {
     return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
   });
+  const merchantEquipmentChoice = merchantChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  const ascendantEquipmentChoice = ascendantChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
   assert.ok(paragonEquipmentChoice);
+  assert.ok(merchantEquipmentChoice);
+  assert.ok(ascendantEquipmentChoice);
   assert.equal(paragonEquipmentChoice.kind, "item");
+  assert.equal(merchantEquipmentChoice.kind, "item");
+  assert.equal(ascendantEquipmentChoice.kind, "item");
+  const merchantRewardItemId = merchantEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
   const paragonRewardItemId = paragonEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const ascendantRewardItemId = ascendantEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const merchantRewardItem = content.itemCatalog[merchantRewardItemId];
   const paragonRewardItem = content.itemCatalog[paragonRewardItemId];
+  const ascendantRewardItem = content.itemCatalog[ascendantRewardItemId];
+  assert.ok(merchantRewardItem);
   assert.ok(paragonRewardItem);
+  assert.ok(ascendantRewardItem);
+  assert.ok((merchantRewardItem.maxSockets || 0) >= (treasuryRewardItem.maxSockets || 0));
+  assert.ok(merchantRewardItem.progressionTier >= treasuryRewardItem.progressionTier);
   assert.ok((paragonRewardItem.maxSockets || 0) >= (treasuryRewardItem.maxSockets || 0));
   assert.ok(paragonRewardItem.progressionTier >= treasuryRewardItem.progressionTier);
+  assert.ok((ascendantRewardItem.maxSockets || 0) >= (paragonRewardItem.maxSockets || 0));
+  assert.ok(ascendantRewardItem.progressionTier >= paragonRewardItem.progressionTier);
+  assert.match(merchantEquipmentChoice.previewLines.join(" "), /Merchant Principate/i);
   assert.match(paragonEquipmentChoice.previewLines.join(" "), /Paragon Exchange/i);
+  assert.match(ascendantEquipmentChoice.previewLines.join(" "), /Ascendant Exchange/i);
 });
 
 test("createAppState sanitizes persisted stash entries before town actions consume them", () => {
