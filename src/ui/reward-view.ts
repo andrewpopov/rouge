@@ -128,19 +128,7 @@
       availableConvergenceCount: 0,
       nextConvergenceTitle: "",
     };
-    const planning = accountSummary.planning || {
-      plannedRunewordCount: 0,
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const ledgerLines = buildRewardLedgerLines(run);
     const totalLedgerEntries =
       Object.keys(run.world?.questOutcomes || {}).length +
@@ -150,6 +138,7 @@
     const planningStageLines = common.getPlanningCharterStageLines
       ? common.getPlanningCharterStageLines(planning, appState.content)
       : [];
+    const planningOverview = planning.overview;
     const activeRunewordNames = derivedParty.activeRunewords;
     const isRouteReward = ["quest", "shrine", "event", "opportunity"].includes(reward.kind);
 
@@ -208,7 +197,8 @@
       accountPressureLabel = "Charters Live";
       accountPressureTone = "available";
       accountPressureLines = [
-        `Pinned charters: ${planning.plannedRunewordCount}.`,
+        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
+        planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
         ...planningStageLines.slice(0, 2),
       ].filter(Boolean);
     }
@@ -528,6 +518,10 @@
               </article>
             </div>
             ${buildRewardContinuityMarkup(appState, services, run, reward, derivedParty, trainingRanks)}
+            ${common.buildAccountMetaContinuityMarkup(appState, services.appEngine.getAccountProgressSummary(appState), services.renderUtils, {
+              copy:
+                "Reward claims mutate the run, but the same account-meta board stays visible here so archive pressure, charter staging, mastery focus, and convergence readiness never disappear behind the mutation choice.",
+            })}
             <div class="panel-head">
               <h2>Current Build</h2>
               <p>The loadout and active runewords shown here are already feeding the next combat override if the route continues.</p>

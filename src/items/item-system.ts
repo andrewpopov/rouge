@@ -95,6 +95,44 @@
     return runeword?.slot === slot ? runeword : null;
   }
 
+  function getPlanningSummary(profile, content = null) {
+    return (
+      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
+        weaponRunewordId: "",
+        armorRunewordId: "",
+        plannedRunewordCount: 0,
+        fulfilledPlanCount: 0,
+        unfulfilledPlanCount: 0,
+        weaponArchivedRunCount: 0,
+        weaponCompletedRunCount: 0,
+        weaponBestActsCleared: 0,
+        armorArchivedRunCount: 0,
+        armorCompletedRunCount: 0,
+        armorBestActsCleared: 0,
+        overview: {
+          compatibleCharterCount: 0,
+          preparedCharterCount: 0,
+          readyCharterCount: 0,
+          missingBaseCharterCount: 0,
+          trackedBaseCount: 0,
+          highestTrackedBaseTier: 0,
+          compatibleRunewordIds: [],
+          preparedRunewordIds: [],
+          readyRunewordIds: [],
+          missingBaseRunewordIds: [],
+          nextAction: "idle",
+          nextActionLabel: "Quiet",
+          nextActionSummary: "No active runeword charter is pinned across the account.",
+        },
+      }
+    );
+  }
+
+  function getPlanningCharterSummary(profile, slot, content = null) {
+    const planning = getPlanningSummary(profile, content);
+    return slot === "weapon" ? planning.weaponCharter || null : planning.armorCharter || null;
+  }
+
   function sortRewardUpgradeItems(
     upgradeItems,
     currentEquipment,
@@ -102,7 +140,8 @@
     zone,
     profile = null,
     plannedRuneword = null,
-    planningUnfulfilled = false
+    planningUnfulfilled = false,
+    planningCharter = null
   ) {
     const features = getAccountEconomyFeatures(profile);
     const preservedSockets = Math.max(
@@ -110,16 +149,25 @@
       Array.isArray(currentEquipment?.insertedRunes) ? currentEquipment.insertedRunes.length : 0
     );
     const preferredLateSockets =
-      isLateActPivotZone(zone, actNumber) && (features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus)
+      isLateActPivotZone(zone, actNumber) &&
+      (features.artisanStock || features.brokerageCharter || features.treasuryExchange || features.economyFocus) &&
+      !planningCharter?.hasReadyBase
         ? 3
         : 0;
     const preferredSockets = Math.max(
       preservedSockets,
       preferredLateSockets,
-      planningUnfulfilled ? toNumber(plannedRuneword?.socketCount, 0) : 0
+      planningUnfulfilled && !planningCharter?.hasReadyBase ? toNumber(plannedRuneword?.socketCount, 0) : 0
     );
+    const charterBaseTier = toNumber(planningCharter?.bestBaseTier, 0);
 
     return [...upgradeItems].sort((left, right) => {
+      const rightBeatsParkedBase = Number(toNumber(right?.progressionTier, 0) > charterBaseTier);
+      const leftBeatsParkedBase = Number(toNumber(left?.progressionTier, 0) > charterBaseTier);
+      if (rightBeatsParkedBase !== leftBeatsParkedBase) {
+        return rightBeatsParkedBase - leftBeatsParkedBase;
+      }
+
       const rightParagonPremium = Number(
         features.paragonExchange &&
           isLateActPivotZone(zone, actNumber) &&
@@ -162,9 +210,10 @@
     const features = getAccountEconomyFeatures(profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
     const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
+    const planningCharter = getPlanningCharterSummary(profile, slot, content);
     if (!equipment) {
-      const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled);
-      if (plannedRuneword && (features.runewordCodex || features.treasuryExchange || features.economyFocus)) {
+      const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled, planningCharter);
+      if (plannedRuneword && !planningCharter?.compatibleBaseCount && (features.runewordCodex || features.treasuryExchange || features.economyFocus)) {
         const plannedItems = sortedItems.filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword));
         return plannedItems[0] || sortedItems[0] || null;
       }
@@ -174,8 +223,13 @@
     const currentItem = getItemDefinition(content, equipment.itemId);
     const currentTier = currentItem?.progressionTier || 0;
     const upgradeItems = availableItems.filter((item) => item.progressionTier > currentTier);
+    const shouldForcePlanningReplacement =
+      plannedRuneword &&
+      (features.runewordCodex || features.treasuryExchange || features.economyFocus) &&
+      (!planningCharter?.compatibleBaseCount ||
+        (isLateActPivotZone(zone, actNumber) && toNumber(planningCharter?.bestBaseTier, 0) < Math.max(actNumber, currentTier + 1)));
     const planningItems =
-      plannedRuneword && (features.runewordCodex || features.treasuryExchange || features.economyFocus)
+      shouldForcePlanningReplacement
         ? availableItems.filter((item) => item.id !== currentItem?.id && item.progressionTier >= currentTier && isRunewordCompatibleWithItem(item, plannedRuneword))
         : [];
     const candidateItems = planningItems.length > 0 ? planningItems : upgradeItems;
@@ -189,7 +243,8 @@
       zone,
       profile,
       plannedRuneword,
-      planningArchiveState.unfulfilled
+      planningArchiveState.unfulfilled,
+      planningCharter
     );
     if (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchBattle") {
       return sortedUpgradeItems[0] || null;
@@ -217,6 +272,7 @@
       lateActPivot?: boolean;
       plannedRuneword?: RuntimeRunewordDefinition | null;
       planningUnfulfilled?: boolean;
+      planningCharter?: ProfilePlanningCharterSummary | null;
     } = {}
   ) {
     const item = getItemDefinition(content, itemId);
@@ -234,6 +290,11 @@
     ];
     if (options.plannedRuneword && isRunewordCompatibleWithItem(item, options.plannedRuneword)) {
       previewLines.push(`Planning charter: ${options.plannedRuneword.name}.`);
+    }
+    if (options.planningCharter?.hasReadyBase && options.plannedRuneword) {
+      previewLines.push(`Vault already has a ready ${options.plannedRuneword.name} base parked.`);
+    } else if (toNumber(options.planningCharter?.preparedBaseCount, 0) > 0 && options.plannedRuneword) {
+      previewLines.push(`Vault already has a prepared ${options.plannedRuneword.name} base parked.`);
     }
     if (options.planningUnfulfilled && options.plannedRuneword) {
       previewLines.push("Archive charter still unfulfilled across the account.");
@@ -368,6 +429,7 @@
     const upgradeItem = getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
     const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
+    const planningCharter = getPlanningCharterSummary(profile, slot, content);
 
     if (!equipment) {
       return upgradeItem
@@ -376,6 +438,7 @@
             profile,
             plannedRuneword,
             planningUnfulfilled: planningArchiveState.unfulfilled,
+            planningCharter,
           })
         : null;
     }
@@ -402,6 +465,7 @@
         profile,
         plannedRuneword,
         planningUnfulfilled: planningArchiveState.unfulfilled,
+        planningCharter,
       });
     }
 
@@ -421,6 +485,7 @@
         profile,
         plannedRuneword,
         planningUnfulfilled: planningArchiveState.unfulfilled,
+        planningCharter,
       });
     }
 

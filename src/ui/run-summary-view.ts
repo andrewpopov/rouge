@@ -90,29 +90,7 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
-    const stashSummary = accountSummary.stash || {
-      entryCount: profileSummary.stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const review = accountSummary.review || {
       capstoneCount: 0,
       unlockedCapstoneCount: 0,
@@ -145,6 +123,7 @@
     const plannedRunewordLabels = [planning.weaponRunewordId, planning.armorRunewordId]
       .filter(Boolean)
       .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId));
+    const planningOverview = planning.overview;
     let convergenceTone = "locked";
     if (review.availableConvergenceCount > 0) {
       convergenceTone = "available";
@@ -182,12 +161,12 @@
       ];
     } else if (planning.plannedRunewordCount > 0) {
       nextHallLabel = "Check Vault Logistics";
-      nextHallTone = stashSummary.socketReadyEquipmentCount > 0 || stashSummary.runeCount > 0 ? "available" : "locked";
-      nextHallCopy = "The run is archived, but charter pressure is still live. Compare the vault against your pinned runeword targets before you draft again.";
+      nextHallTone = planningOverview.readyCharterCount > 0 || planningOverview.preparedCharterCount > 0 ? "available" : "locked";
+      nextHallCopy = planningOverview.nextActionSummary || "The run is archived, but charter pressure is still live. Compare the vault against your pinned runeword targets before you draft again.";
       nextHallLines = [
         `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`,
+        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
         `This run completed: ${getPreviewLabel(completedPlannedRunewordLabels, "no planned target completed this run")}.`,
-        `Vault support: ${stashSummary.socketReadyEquipmentCount} socket-ready bases, ${stashSummary.runeCount} runes, ${stashSummary.runewordEquipmentCount} stored runeword base${stashSummary.runewordEquipmentCount === 1 ? "" : "s"}.`,
       ];
     }
 
@@ -235,7 +214,7 @@
               [
                 `Pinned targets: ${getPreviewLabel(plannedRunewordLabels, "no active charter")}.`,
                 `This archive entry completed: ${getPreviewLabel(completedPlannedRunewordLabels, "no planned target completed this run")}.`,
-                `Vault support now reads ${stashSummary.socketReadyEquipmentCount} socket-ready bases and ${stashSummary.runeCount} stored runes.`,
+                `Next charter push: ${planningOverview.nextActionLabel || "Quiet"}. ${planningOverview.nextActionSummary || "No active runeword charter is pinned across the account."}`,
               ],
               "log-list reward-list ledger-list"
             )}
@@ -371,6 +350,10 @@
         </section>
 
         ${buildHallHandoffMarkup(appState, services, accountSummary, latestHistoryEntry)}
+        ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "Run-end review now hands the hall one stable account-meta board too, so archive pressure, charter staging, mastery focus, and convergence readiness stay visible after the expedition closes.",
+        })}
 
         <section class="panel flow-panel">
           <div class="panel-head">

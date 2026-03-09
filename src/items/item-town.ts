@@ -119,6 +119,21 @@
         armorArchivedRunCount: 0,
         armorCompletedRunCount: 0,
         armorBestActsCleared: 0,
+        overview: {
+          compatibleCharterCount: 0,
+          preparedCharterCount: 0,
+          readyCharterCount: 0,
+          missingBaseCharterCount: 0,
+          trackedBaseCount: 0,
+          highestTrackedBaseTier: 0,
+          compatibleRunewordIds: [],
+          preparedRunewordIds: [],
+          readyRunewordIds: [],
+          missingBaseRunewordIds: [],
+          nextAction: "idle",
+          nextActionLabel: "Quiet",
+          nextActionSummary: "No active runeword charter is pinned across the account.",
+        },
       }
     );
   }
@@ -744,6 +759,8 @@
 
   function buildVendorRefreshAction(run, content, profile = null) {
     const features = getAccountEconomyFeatures(profile);
+    const planning = getPlanningSummary(profile, content);
+    const planningOverview = planning.overview || getPlanningSummary(null, null).overview;
     const cost = getVendorRefreshCost(run, profile, content);
     const affordable = run.gold >= cost;
     const previewLines = [`Refresh fee ${cost} gold.`, `Current refresh count ${run.town.vendor.refreshCount}.`];
@@ -770,6 +787,9 @@
       .filter(Boolean);
     if (plannedRunewords.length > 0) {
       previewLines.push(`Planning charters active for ${plannedRunewords.join(" and ")}.`);
+    }
+    if (planning.plannedRunewordCount > 0) {
+      previewLines.push(`Next charter push: ${planningOverview.nextActionLabel}. ${planningOverview.nextActionSummary}`);
     }
     const unfulfilledPlannedRunewords = (["weapon", "armor"] as const)
       .map((slot) => {
@@ -1073,6 +1093,7 @@
           planning.plannedRunewordCount === 1 ? "" : "s"
         } already fulfilled in the archive.`
       );
+      lines.push(`Next charter push: ${planning.overview?.nextActionLabel || "Quiet"}. ${planning.overview?.nextActionSummary || "No active runeword charter is pinned across the account."}`);
       lines.push(getPlanningStageLine("weapon", planning, content));
       lines.push(getPlanningStageLine("armor", planning, content));
     }

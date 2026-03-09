@@ -170,31 +170,38 @@
     return "locked";
   }
 
-  function getVaultForecast(plannedRunewordCount: number, socketReadyEquipmentCount: number, runeCount: number): {
+  function getVaultForecast(planning: ProfilePlanningSummary): {
     tone: string;
     copy: string;
   } {
-    if (plannedRunewordCount > 0 && socketReadyEquipmentCount > 0 && runeCount > 0) {
+    const overview = planning?.overview;
+    if ((planning?.plannedRunewordCount || 0) === 0) {
+      return {
+        tone: "cleared",
+        copy: "No charter pressure is pinned yet, so the vault is free to hold generic future upgrades.",
+      };
+    }
+    if ((overview?.readyCharterCount || 0) > 0) {
       return {
         tone: "available",
-        copy: "The next draft can start from a stocked vault with both a socket-ready base and a rune reserve.",
+        copy: overview?.nextActionSummary || "A ready charter base is parked in stash, so rune depth is the next leverage point.",
       };
     }
-    if (plannedRunewordCount > 0 && socketReadyEquipmentCount > 0) {
+    if ((overview?.preparedCharterCount || 0) > 0) {
       return {
         tone: "locked",
-        copy: "A chartered base is parked, but rune depth still needs work before the next draft.",
+        copy: overview?.nextActionSummary || "A prepared charter base is parked, but socket work is still incomplete.",
       };
     }
-    if (plannedRunewordCount > 0) {
+    if ((overview?.compatibleCharterCount || 0) > 0) {
       return {
         tone: "locked",
-        copy: "Charters are pinned, but the vault is not yet stocked with a ready base.",
+        copy: overview?.nextActionSummary || "A compatible charter base is parked, but socket work has not started yet.",
       };
     }
     return {
-      tone: "cleared",
-      copy: "No charter pressure is pinned yet, so the vault is free to hold generic future upgrades.",
+      tone: "locked",
+      copy: overview?.nextActionSummary || "Charters are pinned, but the vault is not yet stocked with a compatible base.",
     };
   }
 
@@ -637,19 +644,8 @@
       recentFeatureIds: [],
       recentPlannedRunewordIds: [],
     };
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
+    const planningOverview = planning.overview;
     const review = accountSummary.review || {
       capstoneCount: 0,
       unlockedCapstoneCount: 0,
@@ -715,14 +711,12 @@
       ];
     } else if (planning.plannedRunewordCount > 0) {
       nextMoveLabel = "Audit Charter Pressure";
-      nextMoveTone = stashSummary.socketReadyEquipmentCount > 0 && stashSummary.runeCount > 0 ? "available" : "locked";
-      nextMoveCopy =
-        stashSummary.socketReadyEquipmentCount > 0 && stashSummary.runeCount > 0
-          ? "The hall already has vault material for the live charters. Review the vault before you commit to the next class."
-          : "Charters are pinned, but the vault is still short on base or rune depth. Review logistics before you draft.";
+      nextMoveTone = planningOverview.readyCharterCount > 0 || planningOverview.preparedCharterCount > 0 ? "available" : "locked";
+      nextMoveCopy = planningOverview.nextActionSummary || "Charters are pinned, but the vault is still short on base or rune depth. Review logistics before you draft.";
       nextMoveLines = [
         `Pinned targets: ${getPreviewLabel(plannedRunewordLabels, "no current charter labels")}.`,
-        `Vault supply: ${stashSummary.socketReadyEquipmentCount} socket-ready bases and ${stashSummary.runeCount} stored runes.`,
+        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
+        `Vault readiness: ${planningOverview.readyCharterCount} ready, ${planningOverview.preparedCharterCount} prepared, ${planningOverview.missingBaseCharterCount} missing base.`,
         `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
       ];
     } else if (archiveSummary.entryCount > 0) {
@@ -859,19 +853,7 @@
       recentFeatureIds: [],
       recentPlannedRunewordIds: [],
     };
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const unlocks = appState.profile?.meta?.unlocks || {
       classIds: [],
       bossIds: [],
@@ -1018,19 +1000,7 @@
       recentFeatureIds: [],
       recentPlannedRunewordIds: [],
     };
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const stashEntries = Array.isArray(appState.profile?.stash?.entries) ? appState.profile.stash.entries : [];
     const equipmentEntries = stashEntries.filter((entry): entry is InventoryEquipmentEntry => entry.kind === "equipment");
     const runeEntries = stashEntries.filter((entry): entry is InventoryRuneEntry => entry.kind === "rune");
@@ -1045,13 +1015,10 @@
     const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
     const charterStageLines = common.getPlanningCharterStageLines(planning, appState.content);
-    const readyCharterCount = (planning.weaponCharter?.readyBaseCount || 0) + (planning.armorCharter?.readyBaseCount || 0);
-    const preparedCharterCount = (planning.weaponCharter?.preparedBaseCount || 0) + (planning.armorCharter?.preparedBaseCount || 0);
-    const { tone: forecastTone, copy: forecastCopy } = getVaultForecast(
-      planning.plannedRunewordCount,
-      stashSummary.socketReadyEquipmentCount,
-      stashSummary.runeCount
-    );
+    const planningOverview = planning.overview;
+    const readyCharterCount = planningOverview.readyCharterCount;
+    const preparedCharterCount = planningOverview.preparedCharterCount;
+    const { tone: forecastTone, copy: forecastCopy } = getVaultForecast(planning);
 
     return `
       <section class="panel flow-panel" id="hall-vault">
@@ -1115,6 +1082,7 @@
               [
                 charterStageLines[0],
                 charterStageLines[1],
+                `Next vault push: ${planningOverview.nextActionLabel || "Quiet"}. ${planningOverview.nextActionSummary || "No active runeword charter is pinned across the account."}`,
                 `Archive fulfillment: ${planning.fulfilledPlanCount} cleared, ${planning.unfulfilledPlanCount} missed.`,
                 `Best charter pushes: weapon act ${planning.weaponBestActsCleared}, armor act ${planning.armorBestActsCleared}.`,
               ],
@@ -1135,7 +1103,8 @@
             <p>${escapeHtml(forecastCopy)}</p>
             ${buildStringList(
               [
-                "Controls stay in the account annex, but the consequence of those controls now reads here as a logistics surface.",
+                `Current planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
+                planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
                 "This panel is intentionally shell-owned and summary-heavy so Agent 2 can later widen stash or planning read models without another front-door rewrite.",
               ],
               "log-list reward-list ledger-list"
@@ -1229,24 +1198,13 @@
     const activePreviewLabels = activeTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
     const dismissedPreviewLabels = dismissedTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
     const completedPreviewLabels = completedTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
     const charterStageLines = common.getPlanningCharterStageLines(planning, appState.content);
-    const readyCharterCount = (planning.weaponCharter?.readyBaseCount || 0) + (planning.armorCharter?.readyBaseCount || 0);
-    const preparedCharterCount = (planning.weaponCharter?.preparedBaseCount || 0) + (planning.armorCharter?.preparedBaseCount || 0);
+    const planningOverview = planning.overview;
+    const readyCharterCount = planningOverview.readyCharterCount;
+    const preparedCharterCount = planningOverview.preparedCharterCount;
 
     const buildSettingButton = (settingKey: string, enabled: boolean, enabledLabel: string, disabledLabel: string): string => {
       return `
@@ -1409,6 +1367,7 @@
               [
                 "Runeword charters now live in profile-owned planning state instead of a temporary town-only preference.",
                 "Late vendor bases, rune routing, and treasury-exchange consignment pressure now read these charters when steering stash planning.",
+                `Next charter push: ${planningOverview.nextActionLabel || "Quiet"}. ${planningOverview.nextActionSummary || "No active runeword charter is pinned across the account."}`,
                 charterStageLines[0],
                 charterStageLines[1],
                 planning.weaponRunewordId
@@ -1928,6 +1887,10 @@
         ${buildAccountOverviewMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         ${buildHallNavigatorMarkup(appState, services, savedRunSummary, accountSummary)}
         ${buildHallDecisionSupportMarkup(appState, services, savedRunSummary, accountSummary)}
+        ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "The hall now pins the same archive, charter, mastery, and convergence pressure that the rest of the shell carries forward, so your next draft starts from one stable account board.",
+        })}
         ${expeditionSection}
         ${buildUnlockGalleryMarkup(appState, services, accountSummary)}
         ${buildVaultLogisticsMarkup(appState, services, accountSummary)}

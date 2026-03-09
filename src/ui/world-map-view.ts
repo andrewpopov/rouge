@@ -151,19 +151,7 @@
       nextConvergenceId: "",
       nextConvergenceTitle: "",
     };
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const totalWorldOutcomes =
       Object.keys(run.world?.questOutcomes || {}).length +
       Object.keys(run.world?.shrineOutcomes || {}).length +
@@ -183,6 +171,7 @@
 
     let accountPressureLabel = "No Account Pressure";
     let accountPressureTone = "locked";
+    const planningOverview = planning.overview;
     let accountPressureLines = [
       `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
       "The map stays run-owned, but it keeps the current account focus visible beside the next route call.",
@@ -201,7 +190,8 @@
       accountPressureLabel = "Charters Live";
       accountPressureTone = "available";
       accountPressureLines = [
-        `Pinned charters: ${planning.plannedRunewordCount}.`,
+        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
+        planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
         `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
         "Town and reward still resolve the actual item pressure, but the map keeps the stakes visible before you enter more combat.",
       ];
@@ -556,6 +546,10 @@
           unclearedBeforeBoss,
           consequencePreviewLines
         )}
+        ${common.buildAccountMetaContinuityMarkup(appState, services.appEngine.getAccountProgressSummary(appState), services.renderUtils, {
+          copy:
+            "The map keeps the same account-meta board visible while you route through combat and ledger nodes, so archive pressure and charter or mastery or convergence pressure stay legible beside route pressure.",
+        })}
         <section class="panel flow-panel">
           <div class="panel-head">
             <h2>Act Pressure</h2>

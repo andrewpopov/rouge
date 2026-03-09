@@ -162,19 +162,7 @@
       itemIds: [],
       runeIds: [],
     };
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const review = accountSummary.review || {
       capstoneCount: 0,
       unlockedCapstoneCount: 0,
@@ -196,8 +184,9 @@
       .filter(Boolean)
       .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || runewordId);
     const charterStageLines = common.getPlanningCharterStageLines(planning, appState.content);
-    const readyCharterCount = (planning.weaponCharter?.readyBaseCount || 0) + (planning.armorCharter?.readyBaseCount || 0);
-    const preparedCharterCount = (planning.weaponCharter?.preparedBaseCount || 0) + (planning.armorCharter?.preparedBaseCount || 0);
+    const planningOverview = planning.overview;
+    const readyCharterCount = planningOverview.readyCharterCount;
+    const preparedCharterCount = planningOverview.preparedCharterCount;
     const townFeatureLabels = (appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
     const liveBonusBadgeLabel = review.availableConvergenceCount > 0 ? "Convergence Ready" : accountSummary.focusedTreeTitle || "Unset";
     let liveBonusTone = "locked";
@@ -238,12 +227,12 @@
       ];
     } else if (tradeActionTitles.length > 0 || planning.plannedRunewordCount > 0) {
       nextPrepLabel = "Resolve Charter Pressure";
-      nextPrepTone = tradeActionTitles.length > 0 ? "available" : "locked";
-      nextPrepCopy = "Carry, stash, and vendor pressure still matter for the next departure, especially if you are steering around a pinned runeword target.";
+      nextPrepTone = tradeActionTitles.length > 0 || planningOverview.readyCharterCount > 0 || planningOverview.preparedCharterCount > 0 ? "available" : "locked";
+      nextPrepCopy = planningOverview.nextActionSummary || "Carry, stash, and vendor pressure still matter for the next departure, especially if you are steering around a pinned runeword target.";
       nextPrepLines = [
         `Trade lane: ${getPreviewLabel(tradeActionTitles, "no open trade actions")}.`,
-        `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "no active charter")}.`,
-        `Vault support: ${stashSummary.socketReadyEquipmentCount} socket-ready bases, ${stashSummary.runeCount} runes.`,
+        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
+        `Vault readiness: ${planningOverview.readyCharterCount} ready, ${planningOverview.preparedCharterCount} prepared, ${planningOverview.missingBaseCharterCount} missing base.`,
       ];
     } else if (review.availableConvergenceCount > 0) {
       nextPrepLabel = "Leave With Bonus";
@@ -298,6 +287,7 @@
               [
                 `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`,
                 `Trade pressure: ${getPreviewLabel(tradeActionTitles, "no open trade or stash actions")}.`,
+                `Next charter push: ${planningOverview.nextActionLabel || "Quiet"}. ${planningOverview.nextActionSummary || "No active runeword charter is pinned across the account."}`,
                 charterStageLines[0],
                 charterStageLines[1],
                 `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
@@ -409,11 +399,7 @@
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const preferredClassName =
       appState.registries.classes.find((entry) => entry.id === appState.profile?.meta?.progression?.preferredClassId)?.name || "Unset";
-    const planning = accountSummary.planning || {
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      plannedRunewordCount: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const planningLabels = [planning.weaponRunewordId, planning.armorRunewordId]
       .filter(Boolean)
       .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || runewordId);
@@ -583,6 +569,11 @@
               missingMercenaryLife,
               missingBelt
             )}
+
+            ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+              copy:
+                "Town keeps the same account-meta board live beside run-local prep, so archive pressure, charter staging, mastery focus, and convergence readiness stay readable before you leave again.",
+            })}
 
             <div class="panel-head">
               <h2>Account Progression Focus</h2>

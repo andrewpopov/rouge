@@ -770,6 +770,8 @@ test("runeword planning charters steer vendor consignment previews and reward it
   assert.equal(accountSummary.planning.weaponRunewordId, "white");
   assert.equal(accountSummary.planning.armorRunewordId, "lionheart");
   assert.equal(accountSummary.planning.unfulfilledPlanCount, 2);
+  assert.equal(accountSummary.planning.overview.nextActionLabel, "Hunt Bases");
+  assert.equal(accountSummary.planning.overview.missingBaseCharterCount, 2);
 
   const consignmentAction = itemSystem
     .listTownActions(state.run, state.profile, content)
@@ -779,6 +781,7 @@ test("runeword planning charters steer vendor consignment previews and reward it
     .listTownActions(state.run, state.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
   assert.ok(refreshAction);
+  assert.match(refreshAction.previewLines.join(" "), /Next charter push: Hunt Bases\./i);
   assert.match(refreshAction.previewLines.join(" "), /Archive charter still open for White and Lionheart/i);
 
   const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
@@ -805,12 +808,31 @@ test("runeword planning charters steer vendor consignment previews and reward it
   assert.equal(archivedSummary.planning.weaponCompletedRunCount, 1);
   assert.equal(archivedSummary.planning.unfulfilledPlanCount, 1);
 
+  state.profile.stash.entries.push({
+    entryId: "stash_ready_white",
+    kind: "equipment",
+    equipment: {
+      entryId: "stash_ready_white",
+      itemId: "item_bone_wand",
+      slot: "weapon",
+      socketsUnlocked: 2,
+      insertedRunes: ["rune_dol"],
+      runewordId: "",
+    },
+  });
+  itemSystem.hydrateProfileStash(state.profile, content);
+
+  const stagedSummary = appEngine.getAccountProgressSummary(state);
+  assert.equal(stagedSummary.planning.overview.nextActionLabel, "Stock Runes");
+  assert.equal(stagedSummary.planning.overview.readyCharterCount, 1);
+
   state.run.town.vendor.stock = [];
   itemSystem.hydrateRunInventory(state.run, content, state.profile);
   const settledRefreshAction = itemSystem
     .listTownActions(state.run, state.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
   assert.ok(settledRefreshAction);
+  assert.match(settledRefreshAction.previewLines.join(" "), /Next charter push: Stock Runes\./i);
   assert.match(settledRefreshAction.previewLines.join(" "), /Archive charter still open for Lionheart/i);
   assert.doesNotMatch(settledRefreshAction.previewLines.join(" "), /Archive charter still open for White and Lionheart/i);
 
@@ -1587,6 +1609,13 @@ test("createAppState rebuilds stash-ready charter summaries from persisted plann
   assert.equal(accountSummary.planning.armorCharter?.preparedBaseCount, 1);
   assert.equal(accountSummary.planning.armorCharter?.bestBaseItemId, "item_archon_plate");
   assert.equal(accountSummary.planning.armorCharter?.bestBaseSocketsUnlocked, 2);
+  assert.equal(accountSummary.planning.weaponCharter?.requiredSocketCount, 3);
+  assert.equal(accountSummary.planning.weaponCharter?.bestBaseMissingRuneCount, 2);
+  assert.equal(accountSummary.planning.overview.compatibleCharterCount, 2);
+  assert.equal(accountSummary.planning.overview.preparedCharterCount, 1);
+  assert.equal(accountSummary.planning.overview.readyCharterCount, 1);
+  assert.equal(accountSummary.planning.overview.nextActionLabel, "Stock Runes");
+  assert.match(accountSummary.planning.overview.nextActionSummary, /Ready base parked for Honor/i);
 });
 
 test("createAppState sanitizes stale planning charters before archive and town systems consume them", () => {

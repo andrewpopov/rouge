@@ -332,6 +332,37 @@
     return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
   }
 
+  function createDefaultPlanningSummary(): ProfilePlanningSummary {
+    return {
+      weaponRunewordId: "",
+      armorRunewordId: "",
+      plannedRunewordCount: 0,
+      fulfilledPlanCount: 0,
+      unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0,
+      weaponCompletedRunCount: 0,
+      weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0,
+      armorCompletedRunCount: 0,
+      armorBestActsCleared: 0,
+      overview: {
+        compatibleCharterCount: 0,
+        preparedCharterCount: 0,
+        readyCharterCount: 0,
+        missingBaseCharterCount: 0,
+        trackedBaseCount: 0,
+        highestTrackedBaseTier: 0,
+        compatibleRunewordIds: [],
+        preparedRunewordIds: [],
+        readyRunewordIds: [],
+        missingBaseRunewordIds: [],
+        nextAction: "idle",
+        nextActionLabel: "No Live Charter",
+        nextActionSummary: "No runeword charter is pinned on the account yet.",
+      },
+    };
+  }
+
   function getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[] {
     const normalizedPlanning = planning || null;
     const buildStageLine = (slotLabel: string, runewordId: string, charter?: ProfilePlanningCharterSummary) => {
@@ -353,6 +384,232 @@
       buildStageLine("Weapon", normalizedPlanning?.weaponRunewordId || "", normalizedPlanning?.weaponCharter),
       buildStageLine("Armor", normalizedPlanning?.armorRunewordId || "", normalizedPlanning?.armorCharter),
     ];
+  }
+
+  function buildAccountMetaContinuityMarkup(
+    appState: AppState,
+    accountSummary: ProfileAccountSummary,
+    renderUtils: RenderUtilsApi,
+    options: AccountMetaContinuityOptions = {}
+  ): string {
+    const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
+    const title = options.title || "Account Meta Continuity";
+    const copy =
+      options.copy ||
+      "Archive pressure, charter staging, mastery pressure, and convergence pressure now stay visible through the same board instead of resetting at each shell phase.";
+    const profileSummary = accountSummary?.profile || {
+      hasActiveRun: false,
+      stashEntries: 0,
+      runHistoryCount: 0,
+      completedRuns: 0,
+      failedRuns: 0,
+      highestLevel: 1,
+      highestActCleared: 0,
+      totalBossesDefeated: 0,
+      totalGoldCollected: 0,
+      totalRunewordsForged: 0,
+      classesPlayedCount: 0,
+      preferredClassId: "",
+      lastPlayedClassId: "",
+      unlockedClassCount: 0,
+      unlockedBossCount: 0,
+      unlockedRunewordCount: 0,
+      townFeatureCount: 0,
+      seenTutorialCount: 0,
+      completedTutorialCount: 0,
+      dismissedTutorialCount: 0,
+    };
+    const archive = accountSummary?.archive || {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: 0,
+      latestClassId: "",
+      latestClassName: "",
+      latestOutcome: "",
+      latestCompletedAt: "",
+      highestLevel: profileSummary.highestLevel,
+      highestActsCleared: profileSummary.highestActCleared,
+      highestGoldGained: 0,
+      highestLoadoutTier: 0,
+      runewordArchiveCount: 0,
+      featureUnlockCount: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      planningArchiveCount: 0,
+      planningCompletionCount: 0,
+      planningMissCount: 0,
+      recentFeatureIds: [],
+      recentPlannedRunewordIds: [],
+    };
+    const planning = accountSummary?.planning || createDefaultPlanningSummary();
+    const stash = accountSummary?.stash || {
+      entryCount: profileSummary.stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+    const review = accountSummary?.review || {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+    const focusedTree = (Array.isArray(accountSummary?.trees) ? accountSummary.trees : []).find((tree) => tree.isFocused) || accountSummary?.trees?.[0] || null;
+    const nextMilestone = getNextAccountTreeMilestone(focusedTree);
+    const convergences = Array.isArray(accountSummary?.convergences) ? accountSummary.convergences : [];
+    const nextConvergence =
+      convergences.find((convergence) => convergence.id === review.nextConvergenceId) ||
+      convergences.find((convergence) => convergence.status === "available") ||
+      convergences.find((convergence) => !convergence.unlocked) ||
+      null;
+    const recentFeatureLabels = (archive.recentFeatureIds || []).map((featureId) => getTownFeatureLabel(featureId));
+    const recentPlannedRunewordLabels = (archive.recentPlannedRunewordIds || []).map((runewordId) => {
+      return appState.content.runewordCatalog?.[runewordId]?.name || humanizeId(runewordId);
+    });
+    const planningStageLines = getPlanningCharterStageLines(planning, appState.content);
+    const readyCharterCount = getBonusValue(planning.weaponCharter?.readyBaseCount) + getBonusValue(planning.armorCharter?.readyBaseCount);
+    const preparedCharterCount = getBonusValue(planning.weaponCharter?.preparedBaseCount) + getBonusValue(planning.armorCharter?.preparedBaseCount);
+
+    let archiveTone = "locked";
+    let archiveBadgeLabel = "Quiet";
+    if (recentFeatureLabels.length > 0 || archive.planningCompletionCount > 0 || archive.planningMissCount > 0) {
+      archiveTone = "available";
+      archiveBadgeLabel = "Recent Delta";
+    } else if (archive.entryCount > 0) {
+      archiveTone = "cleared";
+      archiveBadgeLabel = `${archive.entryCount} logged`;
+    }
+
+    let charterTone = "cleared";
+    let charterBadgeLabel = "No Live Charter";
+    if (readyCharterCount > 0) {
+      charterTone = "available";
+      charterBadgeLabel = `${readyCharterCount} ready`;
+    } else if (planning.plannedRunewordCount > 0) {
+      charterTone = preparedCharterCount > 0 ? "available" : "locked";
+      charterBadgeLabel = `${planning.plannedRunewordCount} live`;
+    }
+
+    let convergenceTone = "locked";
+    let convergenceBadgeLabel = "No Pending Lane";
+    if (review.availableConvergenceCount > 0) {
+      convergenceTone = "available";
+      convergenceBadgeLabel = `${review.availableConvergenceCount} ready`;
+    } else if (review.convergenceCount > 0 && review.unlockedConvergenceCount >= review.convergenceCount) {
+      convergenceTone = "cleared";
+      convergenceBadgeLabel = "All Online";
+    } else if (nextConvergence?.title) {
+      convergenceBadgeLabel = nextConvergence.title;
+    }
+
+    return `
+      <section class="panel flow-panel">
+        <div class="panel-head">
+          <h2>${escapeHtml(title)}</h2>
+          <p>${escapeHtml(copy)}</p>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Archive Pressure</strong>
+              ${buildBadge(archiveBadgeLabel, archiveTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Archives", archive.entryCount)}
+              ${buildStat("Completed", archive.completedCount)}
+              ${buildStat("Feature Bursts", archive.featureUnlockCount)}
+              ${buildStat("Archive Cap", accountSummary.runHistoryCapacity)}
+            </div>
+            ${buildStringList(
+              [
+                archive.latestClassName
+                  ? `Latest archive: ${archive.latestClassName} · ${humanizeId(archive.latestOutcome || "completed")}.`
+                  : "Latest archive: no run has been logged yet.",
+                `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "none in recent archives")}.`,
+                `Recent charter pressure: ${getPreviewLabel(recentPlannedRunewordLabels, "no charter carry-through yet")}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Charter Staging</strong>
+              ${buildBadge(charterBadgeLabel, charterTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Live", planning.plannedRunewordCount)}
+              ${buildStat("Ready", readyCharterCount)}
+              ${buildStat("Prepared", preparedCharterCount)}
+              ${buildStat("Vault", stash.socketReadyEquipmentCount)}
+            </div>
+            ${buildStringList(
+              [
+                planningStageLines[0],
+                planningStageLines[1],
+                `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
+                `Vault support: ${stash.socketReadyEquipmentCount} socket-ready bases, ${stash.runeCount} runes, ${stash.runewordEquipmentCount} runeword base${stash.runewordEquipmentCount === 1 ? "" : "s"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Mastery Pressure</strong>
+              ${buildBadge(accountSummary.focusedTreeTitle || "Unset", getAccountTreeTone(focusedTree))}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Trees", accountSummary.treeCount)}
+              ${buildStat("Milestones", `${accountSummary.unlockedMilestoneCount}/${accountSummary.milestoneCount}`)}
+              ${buildStat("Capstones", `${review.unlockedCapstoneCount}/${review.capstoneCount}`)}
+              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
+            </div>
+            ${buildStringList(
+              [
+                focusedTree?.description || "Archive, trade, and mastery pressure stay account-owned even while the current phase changes.",
+                `Next milestone: ${nextMilestone ? `${nextMilestone.title} (${nextMilestone.progress}/${nextMilestone.target})` : "all milestones cleared"}.`,
+                `Next capstone: ${review.nextCapstoneTitle || "every current capstone is already online"}.`,
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+          <article class="feature-card">
+            <div class="entity-name-row">
+              <strong>Convergence Watch</strong>
+              ${buildBadge(convergenceBadgeLabel, convergenceTone)}
+            </div>
+            <div class="entity-stat-grid">
+              ${buildStat("Ready", review.availableConvergenceCount)}
+              ${buildStat("Blocked", review.blockedConvergenceCount)}
+              ${buildStat("Unlocked", review.unlockedConvergenceCount)}
+              ${buildStat("Total", review.convergenceCount)}
+            </div>
+            ${buildStringList(
+              [
+                nextConvergence ? `Next convergence: ${nextConvergence.title}.` : "Next convergence: every current cross-tree lane is already online.",
+                nextConvergence?.effectSummary ? `Effect: ${nextConvergence.effectSummary}` : "Effect: no further convergence effect is pending right now.",
+                nextConvergence
+                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; every required link is already in place")}.`
+                  : "Missing links: no blocked convergence requirements remain.",
+              ],
+              "log-list reward-list ledger-list"
+            )}
+          </article>
+        </div>
+      </section>
+    `;
   }
 
   function getAccountTreeTone(tree: ProfileAccountTreeSummary | null): string {
@@ -529,7 +786,9 @@
     getObjectiveSummary,
     getTownFeatureLabel,
     getTutorialLabel,
+    createDefaultPlanningSummary,
     getPlanningCharterStageLines,
+    buildAccountMetaContinuityMarkup,
     buildAccountTreeReviewMarkup,
   };
 })();

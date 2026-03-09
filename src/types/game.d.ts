@@ -1141,6 +1141,7 @@ interface ProfilePlanningCharterSummary {
   archivedRunCount: number;
   completedRunCount: number;
   bestActsCleared: number;
+  requiredSocketCount: number;
   compatibleBaseCount: number;
   preparedBaseCount: number;
   readyBaseCount: number;
@@ -1149,7 +1150,24 @@ interface ProfilePlanningCharterSummary {
   bestBaseSocketsUnlocked: number;
   bestBaseMaxSockets: number;
   bestBaseInsertedRuneCount: number;
+  bestBaseMissingRuneCount: number;
   hasReadyBase: boolean;
+}
+
+interface ProfilePlanningOverviewSummary {
+  compatibleCharterCount: number;
+  preparedCharterCount: number;
+  readyCharterCount: number;
+  missingBaseCharterCount: number;
+  trackedBaseCount: number;
+  highestTrackedBaseTier: number;
+  compatibleRunewordIds: string[];
+  preparedRunewordIds: string[];
+  readyRunewordIds: string[];
+  missingBaseRunewordIds: string[];
+  nextAction: "idle" | "stock_runes" | "open_sockets" | "prepare_bases" | "hunt_bases";
+  nextActionLabel: string;
+  nextActionSummary: string;
 }
 
 interface ProfilePlanningSummary {
@@ -1164,6 +1182,7 @@ interface ProfilePlanningSummary {
   armorArchivedRunCount: number;
   armorCompletedRunCount: number;
   armorBestActsCleared: number;
+  overview: ProfilePlanningOverviewSummary;
   weaponCharter?: ProfilePlanningCharterSummary;
   armorCharter?: ProfilePlanningCharterSummary;
 }
@@ -2040,6 +2059,11 @@ interface AccountTreeReviewOptions {
   showControls?: boolean;
 }
 
+interface AccountMetaContinuityOptions {
+  title?: string;
+  copy?: string;
+}
+
 interface UiCommonApi {
   getServices(): UiRenderServices;
   getBonusValue(value: unknown): number;
@@ -2053,7 +2077,14 @@ interface UiCommonApi {
   getObjectiveSummary(routeSnapshot: SafeZoneSnapshot): ObjectiveSummary;
   getTownFeatureLabel(featureId: string): string;
   getTutorialLabel(tutorialId: string): string;
+  createDefaultPlanningSummary(): ProfilePlanningSummary;
   getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[];
+  buildAccountMetaContinuityMarkup(
+    appState: AppState,
+    accountSummary: ProfileAccountSummary,
+    renderUtils: RenderUtilsApi,
+    options?: AccountMetaContinuityOptions
+  ): string;
   buildAccountTreeReviewMarkup(
     accountSummary: ProfileAccountSummary,
     renderUtils: RenderUtilsApi,

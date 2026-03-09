@@ -816,6 +816,42 @@
     };
   }
 
+  function createDefaultPlanningOverview(): ProfilePlanningOverviewSummary {
+    return {
+      compatibleCharterCount: 0,
+      preparedCharterCount: 0,
+      readyCharterCount: 0,
+      missingBaseCharterCount: 0,
+      trackedBaseCount: 0,
+      highestTrackedBaseTier: 0,
+      compatibleRunewordIds: [],
+      preparedRunewordIds: [],
+      readyRunewordIds: [],
+      missingBaseRunewordIds: [],
+      nextAction: "idle",
+      nextActionLabel: "Quiet",
+      nextActionSummary: "No active runeword charter is pinned across the account.",
+    };
+  }
+
+  function getPlanningRunewordLabel(runewordId, content = null) {
+    return (content?.runewordCatalog?.[runewordId]?.name || runewordId || "").trim();
+  }
+
+  function getPlanningRunewordListLabel(runewordIds, content = null) {
+    const labels = uniqueStrings((Array.isArray(runewordIds) ? runewordIds : []).map((runewordId) => getPlanningRunewordLabel(runewordId, content)));
+    if (labels.length === 0) {
+      return "no charter targets";
+    }
+    if (labels.length === 1) {
+      return labels[0];
+    }
+    if (labels.length === 2) {
+      return `${labels[0]} and ${labels[1]}`;
+    }
+    return `${labels.slice(0, 2).join(", ")}, +${labels.length - 2} more`;
+  }
+
   function buildPlanningCharterSummary(profile, runewordId, slot, historySummary, content = null) {
     if (!runewordId) {
       return null;
@@ -886,6 +922,7 @@
       archivedRunCount: historySummary.archivedRunCount,
       completedRunCount: historySummary.completedRunCount,
       bestActsCleared: historySummary.bestActsCleared,
+      requiredSocketCount: toNumber(runeword.socketCount, 0),
       compatibleBaseCount: compatibleBases.length,
       preparedBaseCount: preparedBases.length,
       readyBaseCount: readyBases.length,
@@ -894,8 +931,64 @@
       bestBaseSocketsUnlocked: toNumber(bestBase?.socketsUnlocked, 0),
       bestBaseMaxSockets: toNumber(bestBase?.item?.maxSockets, 0),
       bestBaseInsertedRuneCount: toNumber(bestBase?.insertedRuneCount, 0),
+      bestBaseMissingRuneCount: Math.max(0, toNumber(runeword.socketCount, 0) - toNumber(bestBase?.insertedRuneCount, 0)),
       hasReadyBase: readyBases.length > 0,
     };
+  }
+
+  function buildPlanningOverviewSummary(charters, content = null): ProfilePlanningOverviewSummary {
+    const activeCharters = (Array.isArray(charters) ? charters : []).filter(Boolean);
+    if (activeCharters.length === 0) {
+      return createDefaultPlanningOverview();
+    }
+
+    const compatibleCharters = activeCharters.filter((charter) => charter.compatibleBaseCount > 0);
+    const preparedCharters = activeCharters.filter((charter) => charter.preparedBaseCount > 0 && !charter.hasReadyBase);
+    const readyCharters = activeCharters.filter((charter) => charter.hasReadyBase);
+    const missingBaseCharters = activeCharters.filter((charter) => charter.compatibleBaseCount === 0);
+    const compatibleRunewordIds = compatibleCharters.map((charter) => charter.runewordId);
+    const preparedRunewordIds = preparedCharters.map((charter) => charter.runewordId);
+    const readyRunewordIds = readyCharters.map((charter) => charter.runewordId);
+    const missingBaseRunewordIds = missingBaseCharters.map((charter) => charter.runewordId);
+
+    const overview: ProfilePlanningOverviewSummary = {
+      compatibleCharterCount: compatibleCharters.length,
+      preparedCharterCount: preparedCharters.length,
+      readyCharterCount: readyCharters.length,
+      missingBaseCharterCount: missingBaseCharters.length,
+      trackedBaseCount: compatibleCharters.reduce((total, charter) => total + toNumber(charter.compatibleBaseCount, 0), 0),
+      highestTrackedBaseTier: compatibleCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestBaseTier, 0)), 0),
+      compatibleRunewordIds,
+      preparedRunewordIds,
+      readyRunewordIds,
+      missingBaseRunewordIds,
+      nextAction: "hunt_bases",
+      nextActionLabel: "Hunt Bases",
+      nextActionSummary: `Pinned charters still lack a compatible parked base: ${getPlanningRunewordListLabel(missingBaseRunewordIds, content)}.`,
+    };
+
+    if (readyRunewordIds.length > 0) {
+      overview.nextAction = "stock_runes";
+      overview.nextActionLabel = "Stock Runes";
+      overview.nextActionSummary = `Ready base parked for ${getPlanningRunewordListLabel(readyRunewordIds, content)}. Prioritize rune depth before another replacement base.`;
+      return overview;
+    }
+
+    if (preparedRunewordIds.length > 0) {
+      overview.nextAction = "open_sockets";
+      overview.nextActionLabel = "Open Sockets";
+      overview.nextActionSummary = `Prepared base parked for ${getPlanningRunewordListLabel(preparedRunewordIds, content)}. Finish socket work before chasing more replacements.`;
+      return overview;
+    }
+
+    if (compatibleRunewordIds.length > 0) {
+      overview.nextAction = "prepare_bases";
+      overview.nextActionLabel = "Prepare Bases";
+      overview.nextActionSummary = `Compatible base parked for ${getPlanningRunewordListLabel(compatibleRunewordIds, content)}, but socket work has not started yet.`;
+      return overview;
+    }
+
+    return overview;
   }
 
   function buildPlanningSummary(profile, content = null) {
@@ -925,6 +1018,8 @@
 
     const weaponSummary = summarizeRuneword(weaponRunewordId, "plannedWeaponRunewordId");
     const armorSummary = summarizeRuneword(armorRunewordId, "plannedArmorRunewordId");
+    const weaponCharter = buildPlanningCharterSummary(profile, weaponRunewordId, "weapon", weaponSummary, content);
+    const armorCharter = buildPlanningCharterSummary(profile, armorRunewordId, "armor", armorSummary, content);
     return {
       weaponRunewordId,
       armorRunewordId,
@@ -937,8 +1032,9 @@
       armorArchivedRunCount: armorSummary.archivedRunCount,
       armorCompletedRunCount: armorSummary.completedRunCount,
       armorBestActsCleared: armorSummary.bestActsCleared,
-      weaponCharter: buildPlanningCharterSummary(profile, weaponRunewordId, "weapon", weaponSummary, content),
-      armorCharter: buildPlanningCharterSummary(profile, armorRunewordId, "armor", armorSummary, content),
+      overview: buildPlanningOverviewSummary([weaponCharter, armorCharter], content),
+      weaponCharter,
+      armorCharter,
     };
   }
 

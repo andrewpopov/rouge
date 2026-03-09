@@ -84,18 +84,20 @@ Completed work:
 - archived run history now also records planned weapon or armor runewords plus which charter targets were actually fulfilled on that expedition, so planning is preserved as account history instead of a temporary current-profile toggle
 - account planning summaries now expose archive-backed charter ledgers, including archived or fulfilled counts and best-act records for the current weapon or armor targets, and town or reward behavior now reacts more strongly while a charter is still unfulfilled across the account
 - account planning summaries now also expose stash-ready charter staging for the live weapon or armor targets, including compatible or prepared or ready base counts plus best-base tier or socket or rune state, and both hall or town surfaces now read that summary instead of re-deriving stash pressure ad hoc
+- account planning summaries now also expose a cross-charter overview layer with tracked base depth, missing-base pressure, and next-action guidance like hunt-bases or prepare-bases or open-sockets or stock-runes, and town refresh previews plus reward previews plus account-review surfaces now consume that shared summary instead of rolling their own charter-pressure logic
 - profile hydrate, migration, archive summaries, town previews, vendor routing, and reward pivots now sanitize planned runeword ids against the live runeword catalog, so stale or cross-slot ids cannot survive as phantom charter pressure
 - focused account trees now bias live runtime behavior, including archive retention, vendor pressure, and mastery-side boss rewards
 - cross-tree convergence bundles are now live above the current capstones, with `chronicle_exchange` deepening archive retention and trade leverage, `war_annals` feeding archive-backed mastery pivots into late-act rewards, and `paragon_exchange` pushing late-act vendors and equipment rewards toward premium replacement bases
 - archived run history now stores richer progression or economy snapshots, favored-tree carry-through, active runewords, loadout-tier or socket state, stash-planning state, and newly unlocked account-feature deltas
 - account-facing read models now include richer stash, archive, capstone-review, and cross-tree convergence summaries so shell consumers can stay off raw profile internals
+- hall, town, map, reward, act-transition, and run-end now all share one account-meta continuity board built from those read models, so archive pressure or charter staging or mastery pressure or convergence watch stay visible without phase-local profile plumbing
 - front door, safe zone, and run-end shell surfaces now read the live unlock, tutorial, and account-summary seams instead of reserving that space as a future placeholder
 - front door, safe zone, and run-end shell surfaces now also expose focused-tree review and live account-focus controls through the existing shell action path
 - front door now also exposes live profile-settings toggles plus tutorial complete or dismiss or restore controls through the existing account mutation path
 - front door now also exposes direct preferred-class controls, and character select now honors explicit preferred class over recent class while still following recent history when the account preference has not diverged
 - front door now also exposes an interactive archive-review desk over richer archived run summaries, with latest or older or newer navigation routed through app-engine instead of a shell-owned persistence layer
 - regression coverage exists for migration backfill, capped progression investment, archived profile meta, account-tree or settings or tutorial or preferred-class or archive-review mutation behavior, later-tier archive or economy or mastery gate behavior, capstone gating or read-model behavior, reward-side milestone behavior, stash-ready charter-summary rebuilds, late-act economy or replacement-pivot behavior, and account-surface rendering
-- `npm run check` currently passes against this slice, with compiled tests `176/176`
+- `npm run check` currently passes against this slice, with compiled tests `179` passing and `1` skipped
 
 Still open-ended:
 
@@ -118,17 +120,27 @@ This batch should materially improve the durability of the whole game spine, not
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. second-wave account-growth pass
-- broaden the archive, economy, mastery, and convergence graph beyond the current capstones without fragmenting the profile seam
-- expose stable summary APIs so Agent 1 can consume the new read models without raw profile access
+Epic and tickets:
 
-2. late-act economy and replacement-pressure pass
+- epic: `ROUGE-2` Account And Economy Depth
+- `ROUGE-9` Deepen Act IV-V replacement pressure and economy sinks
+- `ROUGE-10` Strengthen archive, stash, and planning read models
+- `ROUGE-18` Add progression and economy regression matrix
+
+1. `ROUGE-10` read-model pass
+- the stash-ready charter planning summary plus the new cross-charter planning overview are now live on `master`
+- town preview, reward preview, and account-review surfaces now read one shared planning summary model instead of re-deriving charter pressure per phase
+- keep pushing archive, stash, and account-review summaries deeper without falling back to raw profile access in shell consumers
+
+2. `ROUGE-9` second-wave account-growth and economy-sink pass
+- broaden the archive, economy, mastery, and convergence graph beyond the current capstones without fragmenting the profile seam
 - deepen Acts IV-V item, rune, runeword, reward, and vendor pressure through `src/items/*`, `src/rewards/*`, and `src/run/*`
 - make the player choose between replacement, stash planning, and economy sinks instead of only taking obvious upgrades
 
-3. integration and regression pass
+3. `ROUGE-18` integration and regression pass
 - ensure reward, town, stash, restore, and archive flows all agree on the same progression model
 - extend `tests/app-engine-progression.test.ts`, `tests/app-engine.test.ts`, and any affected domain tests to cover the new account-growth and economy behavior
+- keep the regression matrix explicit instead of burying it inside feature tickets
 
 ## Chunk 1: Account Tree Capstones And Feature Gates
 

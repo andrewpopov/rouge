@@ -30,25 +30,14 @@
       availableConvergenceCount: 0,
       nextConvergenceTitle: "",
     };
-    const planning = accountSummary.planning || {
-      plannedRunewordCount: 0,
-      weaponRunewordId: "",
-      armorRunewordId: "",
-      fulfilledPlanCount: 0,
-      unfulfilledPlanCount: 0,
-      weaponArchivedRunCount: 0,
-      weaponCompletedRunCount: 0,
-      weaponBestActsCleared: 0,
-      armorArchivedRunCount: 0,
-      armorCompletedRunCount: 0,
-      armorBestActsCleared: 0,
-    };
+    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const trainingRanks = getTrainingRanks(run);
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
     const loadoutLines = derivedParty.loadoutLines.length > 0 ? derivedParty.loadoutLines : ["Current weapon, armor, and runewords carry intact into the next town."];
     const planningStageLines = common.getPlanningCharterStageLines
       ? common.getPlanningCharterStageLines(planning, appState.content)
       : [];
+    const planningOverview = planning.overview;
     const ledgerTitles = [
       ...Object.values(run.world?.questOutcomes || {}).map((entry) => entry.outcomeTitle),
       ...Object.values(run.world?.shrineOutcomes || {}).map((entry) => entry.outcomeTitle),
@@ -70,7 +59,7 @@
       nextTownOrders.push(`Spend ${spendablePoints} pending progression point${spendablePoints === 1 ? "" : "s"} before departing again.`);
     }
     if (planning.plannedRunewordCount > 0) {
-      nextTownOrders.push("Review charter targets against vendor stock, stash, and replacement pressure in town.");
+      nextTownOrders.push(planningOverview.nextActionSummary || "Review charter targets against vendor stock, stash, and replacement pressure in town.");
     }
     if (nextTownOrders.length === 0) {
       nextTownOrders.push("Check services once, then reopen the route board with the carried build intact.");
@@ -95,7 +84,11 @@
     } else if (planning.plannedRunewordCount > 0) {
       accountPressureLabel = "Charters Live";
       accountPressureTone = "available";
-      accountPressureLines = [`Pinned charters: ${planning.plannedRunewordCount}.`, ...planningStageLines.slice(0, 2)].filter(Boolean);
+      accountPressureLines = [
+        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
+        planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
+        ...planningStageLines.slice(0, 1),
+      ].filter(Boolean);
     }
 
     return `
@@ -223,6 +216,10 @@
             </article>
           </div>
           ${buildActDeltaMarkup(appState, services, run, nextAct || null)}
+          ${common.buildAccountMetaContinuityMarkup(appState, services.appEngine.getAccountProgressSummary(appState), services.renderUtils, {
+            copy:
+              "Act transition keeps the same account-meta board live while the run pivots into the next town, so archive pressure, charter staging, mastery focus, and convergence readiness survive the act wrapper too.",
+          })}
           <div class="cta-row">
             <button class="primary-btn" data-action="continue-act-transition">Enter ${escapeHtml(nextAct?.town || "Final Screen")}</button>
           </div>
