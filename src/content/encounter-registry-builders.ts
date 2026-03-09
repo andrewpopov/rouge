@@ -207,6 +207,63 @@
     };
   }
 
+  function buildDrilledAftermathBossConfig(actNumber, templateIds) {
+    const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
+    const escortBulwarkValue = Math.max(4, actNumber + 1);
+    if (actNumber === 2) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.brute, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "phalanx_march", value: Math.max(3, actNumber) },
+          { kind: "war_drums", value: 1 },
+        ],
+      };
+    }
+    if (actNumber === 3) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.ranged, templateIds.support],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "sniper_nest", value: Math.max(3, actNumber) },
+          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
+        ],
+      };
+    }
+    if (actNumber === 4) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "phalanx_march", value: Math.max(4, actNumber) },
+          { kind: "war_drums", value: 1 },
+        ],
+      };
+    }
+    if (actNumber >= 5) {
+      return {
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
+        modifiers: [
+          { kind: "boss_screen", value: bossScreenValue },
+          { kind: "escort_bulwark", value: escortBulwarkValue },
+          { kind: "phalanx_march", value: Math.max(4, actNumber) },
+          { kind: "war_drums", value: 1 },
+        ],
+      };
+    }
+    return {
+      enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
+      modifiers: [
+        { kind: "boss_screen", value: bossScreenValue },
+        { kind: "escort_bulwark", value: escortBulwarkValue },
+        { kind: "phalanx_march", value: Math.max(3, actNumber) },
+      ],
+    };
+  }
+
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }) {
     const actNumber = actSeed.act;
     const flavor = getFlavor(actNumber);
@@ -309,6 +366,7 @@
     const consequenceAftermathBossId = `act_${actNumber}_boss_aftermath`;
     const consequenceDirectedAftermathBossId = `act_${actNumber}_boss_aftermath_directed`;
     const consequenceSignaledAftermathBossId = `act_${actNumber}_boss_aftermath_signaled`;
+    const consequenceDrilledAftermathBossId = `act_${actNumber}_boss_aftermath_drilled`;
     const bossId = `act_${actNumber}_boss`;
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
@@ -331,6 +389,15 @@
       eliteA: eliteA.templateId,
       eliteB: eliteB.templateId,
       eliteC: eliteC.templateId,
+      eliteD: eliteD.templateId,
+      ranged: rangedA.templateId,
+      support: supportA.templateId,
+      brute: bruteA.templateId,
+    });
+    const drilledAftermathBossConfig = buildDrilledAftermathBossConfig(actNumber, {
+      boss: bossA.templateId,
+      eliteA: eliteA.templateId,
+      eliteB: eliteB.templateId,
       eliteD: eliteD.templateId,
       ranged: rangedA.templateId,
       support: supportA.templateId,
@@ -592,6 +659,13 @@
         `${flavor.bossDescription} Earlier shrine signals and crossroads guidance both carry through the full aftermath and turn the boss into a fully signaled closing court instead of a looser routed collapse.`,
         aftermathBossConfig.enemyTemplateIds,
         [...aftermathBossConfig.modifiers, { kind: "escort_command", value: 1 }, { kind: "triage_command", value: 1 }]
+      ),
+      [consequenceDrilledAftermathBossId]: makeEncounter(
+        consequenceDrilledAftermathBossId,
+        `${flavor.bossLabel} Drilled Aftermath`,
+        `${flavor.bossDescription} Earlier route drilling and an alternate crossroads court both carry through the full aftermath and harden the escort screen into a more martial closing court.`,
+        drilledAftermathBossConfig.enemyTemplateIds,
+        drilledAftermathBossConfig.modifiers
       ),
     };
 

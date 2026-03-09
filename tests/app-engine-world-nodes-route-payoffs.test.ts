@@ -4,7 +4,23 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
-function resolveActOneToCovenant(state, appEngine, runFactory, covenantChoiceTitle = "Seal the Wayfinder Ledger") {
+type ResolveActOneToCovenantOptions = {
+  routeChoiceTitle?: string;
+  crossroadChoiceTitle?: string;
+  covenantChoiceTitle?: string;
+};
+
+function resolveActOneToCovenant(
+  state,
+  appEngine,
+  runFactory,
+  options: ResolveActOneToCovenantOptions | string = "Seal the Wayfinder Ledger"
+) {
+  const normalizedOptions: ResolveActOneToCovenantOptions =
+    typeof options === "string" ? { covenantChoiceTitle: options } : options || {};
+  const routeChoiceTitle = normalizedOptions.routeChoiceTitle || "Signal the Crossroads";
+  const crossroadChoiceTitle = normalizedOptions.crossroadChoiceTitle || "Assign the Hidden Wayfinders";
+  const covenantChoiceTitle = normalizedOptions.covenantChoiceTitle || "Seal the Wayfinder Ledger";
   const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
   const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
@@ -69,7 +85,7 @@ function resolveActOneToCovenant(state, appEngine, runFactory, covenantChoiceTit
 
   result = appEngine.selectZone(state, opportunityZone.id);
   assert.equal(result.ok, true);
-  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Signal the Crossroads");
+  const routeChoice = state.run.pendingReward.choices.find((choice) => choice.title === routeChoiceTitle);
   assert.ok(routeChoice);
   appEngine.claimRewardAndAdvance(state, routeChoice.id);
 
@@ -81,7 +97,7 @@ function resolveActOneToCovenant(state, appEngine, runFactory, covenantChoiceTit
 
   result = appEngine.selectZone(state, crossroadZone.id);
   assert.equal(result.ok, true);
-  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Assign the Hidden Wayfinders");
+  const crossroadChoice = state.run.pendingReward.choices.find((choice) => choice.title === crossroadChoiceTitle);
   assert.ok(crossroadChoice);
   appEngine.claimRewardAndAdvance(state, crossroadChoice.id);
 
@@ -951,4 +967,68 @@ test("detour and escalation outcomes can retune the act boss beyond the covenant
   assert.equal(reward.grants.potions, 2);
   assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Signal Aftermath Dividend.")));
   assert.ok(reward.lines.some((line) => line.includes("shrine signal line and hidden wayfinders now settle the full catacomb aftermath")));
+});
+
+test("alternate route arming can retune the act boss into the drilled aftermath court", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const { bossZone, branchBattleZone, branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
+    state,
+    appEngine,
+    runFactory,
+    {
+      routeChoiceTitle: "Equip the Vanguard",
+    }
+  );
+
+  let result = appEngine.selectZone(state, detourZone.id);
+  assert.equal(result.ok, true);
+  const detourChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Stage the Hidden Abbey Convoy");
+  assert.ok(detourChoice);
+  appEngine.claimRewardAndAdvance(state, detourChoice.id);
+
+  result = appEngine.selectZone(state, escalationZone.id);
+  assert.equal(result.ok, true);
+  const escalationChoice = state.run.pendingReward.choices.find((choice) => choice.title === "Drive the Catacomb Surge");
+  assert.ok(escalationChoice);
+  appEngine.claimRewardAndAdvance(state, escalationChoice.id);
+
+  branchMinibossZone.encountersCleared = branchMinibossZone.encounterTotal;
+  branchMinibossZone.cleared = true;
+  branchBattleZone.encountersCleared = branchBattleZone.encounterTotal;
+  branchBattleZone.cleared = true;
+  runFactory.recomputeZoneStatuses(state.run);
+
+  result = appEngine.selectZone(state, bossZone.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+  assert.equal(state.run.activeEncounterId, "act_1_boss_aftermath_drilled");
+  assert.equal(state.combat.encounter.name, "Catacomb Drilled Aftermath");
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "boss_screen"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_bulwark"));
+  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "phalanx_march"));
+  assert.ok(!state.combat.encounter.modifiers.some((modifier) => modifier.kind === "sniper_nest"));
+
+  const reward = runFactory.buildEncounterReward({
+    run: state.run,
+    zone: bossZone,
+    combatState: state.combat,
+    content,
+    profile: state.profile,
+  });
+  assert.equal(reward.grants.gold, 57);
+  assert.equal(reward.grants.xp, 36);
+  assert.equal(reward.grants.potions, 2);
+  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Vanguard Aftermath Dividend.")));
 });

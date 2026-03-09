@@ -75,7 +75,11 @@
   const MIN_GENERATED_GROUP_SIZES = { opening: 6, branchBattle: 6, branchMiniboss: 6, boss: 1 };
   const MIN_CONSEQUENCE_ENCOUNTER_PACKAGES_PER_ACT = 3;
   const MIN_CONSEQUENCE_REWARD_PACKAGES_PER_ACT = 3;
-  const MIN_CONSEQUENCE_PACKAGES_PER_ROLE = 4;
+  const MIN_CONSEQUENCE_PACKAGES_PER_ROLE = {
+    branchBattle: 4,
+    branchMiniboss: 4,
+    boss: 5,
+  };
 
   const MIN_MERCENARY_CONTRACTS = 7;
   const MIN_ROUTE_PERKS_PER_MERCENARY = 12;
@@ -666,22 +670,22 @@
         }
       });
 
-      if (roleCounts.branchBattle < MIN_CONSEQUENCE_PACKAGES_PER_ROLE) {
+      if (roleCounts.branchBattle < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle) {
         pushError(
           errors,
-          `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE} packages for zoneRole "branchBattle".`
+          `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle} packages for zoneRole "branchBattle".`
         );
       }
-      if (roleCounts.branchMiniboss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE) {
+      if (roleCounts.branchMiniboss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss) {
         pushError(
           errors,
-          `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE} packages for zoneRole "branchMiniboss".`
+          `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss} packages for zoneRole "branchMiniboss".`
         );
       }
-      if (roleCounts.boss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE) {
+      if (roleCounts.boss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss) {
         pushError(
           errors,
-          `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE} packages for zoneRole "boss".`
+          `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss} packages for zoneRole "boss".`
         );
       }
 
@@ -767,22 +771,22 @@
         validateStringIdList(rewardPackage?.bonusLines, `${packageLabel}.bonusLines`, errors);
       });
 
-      if (rewardRoleCounts.branchBattle < MIN_CONSEQUENCE_PACKAGES_PER_ROLE) {
+      if (rewardRoleCounts.branchBattle < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle) {
         pushError(
           errors,
-          `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE} packages for zoneRole "branchBattle".`
+          `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle} packages for zoneRole "branchBattle".`
         );
       }
-      if (rewardRoleCounts.branchMiniboss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE) {
+      if (rewardRoleCounts.branchMiniboss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss) {
         pushError(
           errors,
-          `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE} packages for zoneRole "branchMiniboss".`
+          `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss} packages for zoneRole "branchMiniboss".`
         );
       }
-      if (rewardRoleCounts.boss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE) {
+      if (rewardRoleCounts.boss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss) {
         pushError(
           errors,
-          `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE} packages for zoneRole "boss".`
+          `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss} packages for zoneRole "boss".`
         );
       }
     });

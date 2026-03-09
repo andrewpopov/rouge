@@ -1256,6 +1256,20 @@
         ],
         encounterId: "act_1_boss_aftermath_signaled",
       },
+      {
+        id: "rogue_aftermath_vanguard_host",
+        title: "Vanguard Aftermath Host",
+        zoneRole: "boss",
+        requiredFlagIds: [
+          "rogue_detour_hidden_convoy",
+          "rogue_escalation_catacomb_surge",
+          "rogue_covenant_wayfinder_ledger",
+          "rogue_crossroads_hidden_wayfinders",
+          "rogue_route_vanguard",
+          "rogue_vigil_signal_lanterns",
+        ],
+        encounterId: "act_1_boss_aftermath_drilled",
+      },
     ],
     2: [
       {
@@ -1347,6 +1361,19 @@
           "sunwell_water_beacons_aligned",
         ],
         encounterId: "act_2_boss_aftermath_signaled",
+      },
+      {
+        id: "sunwell_aftermath_pylon_host",
+        title: "Pylon Aftermath Chamber",
+        zoneRole: "boss",
+        requiredFlagIds: [
+          "sunwell_detour_hidden_caravan",
+          "sunwell_escalation_chamber_surge",
+          "sunwell_covenant_final_lance_ledger",
+          "sunwell_crossroads_spearwall_pylons",
+          "sunwell_shield_train",
+        ],
+        encounterId: "act_2_boss_aftermath_drilled",
       },
     ],
     3: [
@@ -1440,6 +1467,19 @@
         ],
         encounterId: "act_3_boss_aftermath_signaled",
       },
+      {
+        id: "kurast_aftermath_berth_host",
+        title: "Night Berth Aftermath",
+        zoneRole: "boss",
+        requiredFlagIds: [
+          "kurast_detour_hidden_fleet",
+          "kurast_escalation_durance_surge",
+          "kurast_covenant_spellward_ledger",
+          "kurast_crossroads_night_berths",
+          "kurast_shadow_barges",
+        ],
+        encounterId: "act_3_boss_aftermath_drilled",
+      },
     ],
     4: [
       {
@@ -1532,6 +1572,19 @@
         ],
         encounterId: "act_4_boss_aftermath_signaled",
       },
+      {
+        id: "hellforge_aftermath_relief_host",
+        title: "Phalanx Relief Aftermath",
+        zoneRole: "boss",
+        requiredFlagIds: [
+          "hellforge_detour_hidden_relief",
+          "hellforge_escalation_sanctuary_surge",
+          "hellforge_covenant_breachscreen_ledger",
+          "hellforge_crossroads_phalanx_reliefs",
+          "hellforge_phalanx_steps_locked",
+        ],
+        encounterId: "act_4_boss_aftermath_drilled",
+      },
     ],
     5: [
       {
@@ -1623,6 +1676,19 @@
           "ancients_watchfires_ringed",
         ],
         encounterId: "act_5_boss_aftermath_signaled",
+      },
+      {
+        id: "harrogath_aftermath_switchback_host",
+        title: "Switchback Aftermath",
+        zoneRole: "boss",
+        requiredFlagIds: [
+          "harrogath_detour_hidden_sleds",
+          "harrogath_escalation_worldstone_surge",
+          "harrogath_covenant_ancients_ledger",
+          "harrogath_crossroads_switchbacks",
+          "harrogath_peak_guard_drilled",
+        ],
+        encounterId: "act_5_boss_aftermath_drilled",
       },
     ],
   };
@@ -1731,6 +1797,21 @@
         { gold: 20, xp: 12, potions: 1 },
         ["The shrine signal line and hidden wayfinders now settle the full catacomb aftermath into the sharpest rogue boss payout."]
       ),
+      consequenceRewardPackage(
+        "rogue_aftermath_vanguard_dividend",
+        "Vanguard Aftermath Dividend",
+        "boss",
+        [
+          "rogue_detour_hidden_convoy",
+          "rogue_escalation_catacomb_surge",
+          "rogue_covenant_wayfinder_ledger",
+          "rogue_crossroads_hidden_wayfinders",
+          "rogue_route_vanguard",
+          "rogue_vigil_signal_lanterns",
+        ],
+        { gold: 19, xp: 12, potions: 1 },
+        ["The armed vanguard, hidden wayfinders, and signal lanterns now settle the full catacomb aftermath into a drilled rogue boss payout."]
+      ),
     ],
     2: [
       consequenceRewardPackage(
@@ -1834,6 +1915,20 @@
         ],
         { gold: 22, xp: 12, potions: 1 },
         ["Aligned water beacons and the contract guard now settle the full chamber aftermath into the sharpest desert boss payout."]
+      ),
+      consequenceRewardPackage(
+        "sunwell_aftermath_pylon_dividend",
+        "Pylon Aftermath Dividend",
+        "boss",
+        [
+          "sunwell_detour_hidden_caravan",
+          "sunwell_escalation_chamber_surge",
+          "sunwell_covenant_final_lance_ledger",
+          "sunwell_crossroads_spearwall_pylons",
+          "sunwell_shield_train",
+        ],
+        { gold: 21, xp: 12, potions: 1 },
+        ["The shield train and spearwall pylons now settle the full chamber aftermath into a drilled desert boss payout."]
       ),
     ],
     3: [
@@ -1939,6 +2034,20 @@
         { gold: 24, xp: 13, potions: 1 },
         ["Floated supply marks and shadow pilots now settle the full harbor aftermath into the sharpest durance payout."]
       ),
+      consequenceRewardPackage(
+        "kurast_aftermath_berth_dividend",
+        "Night Berth Dividend",
+        "boss",
+        [
+          "kurast_detour_hidden_fleet",
+          "kurast_escalation_durance_surge",
+          "kurast_covenant_spellward_ledger",
+          "kurast_crossroads_night_berths",
+          "kurast_shadow_barges",
+        ],
+        { gold: 23, xp: 13, potions: 1 },
+        ["Shadow barges and the night berths now settle the full harbor aftermath into a drilled durance payout."]
+      ),
     ],
     4: [
       consequenceRewardPackage(
@@ -2043,6 +2152,20 @@
         { gold: 26, xp: 14, potions: 1 },
         ["Chained forge gates and the hellward turn now settle the full sanctuary aftermath into the sharpest infernal boss payout."]
       ),
+      consequenceRewardPackage(
+        "hellforge_aftermath_relief_dividend",
+        "Phalanx Relief Dividend",
+        "boss",
+        [
+          "hellforge_detour_hidden_relief",
+          "hellforge_escalation_sanctuary_surge",
+          "hellforge_covenant_breachscreen_ledger",
+          "hellforge_crossroads_phalanx_reliefs",
+          "hellforge_phalanx_steps_locked",
+        ],
+        { gold: 25, xp: 14, potions: 1 },
+        ["Locked phalanx steps and paced reliefs now settle the full sanctuary aftermath into a drilled Diablo payout."]
+      ),
     ],
     5: [
       consequenceRewardPackage(
@@ -2146,6 +2269,20 @@
         ],
         { gold: 28, xp: 14, potions: 1 },
         ["Ringed watchfires and the summit reserve now settle the full Worldstone aftermath into the sharpest mountain boss payout."]
+      ),
+      consequenceRewardPackage(
+        "harrogath_aftermath_switchback_dividend",
+        "Switchback Aftermath Dividend",
+        "boss",
+        [
+          "harrogath_detour_hidden_sleds",
+          "harrogath_escalation_worldstone_surge",
+          "harrogath_covenant_ancients_ledger",
+          "harrogath_crossroads_switchbacks",
+          "harrogath_peak_guard_drilled",
+        ],
+        { gold: 27, xp: 15, potions: 1 },
+        ["Peak guard drills and the captain's switchbacks now settle the full summit aftermath into a drilled Worldstone payout."]
       ),
     ],
   };
