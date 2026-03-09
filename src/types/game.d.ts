@@ -1314,6 +1314,45 @@ interface WorldNodeVariantsApi {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+interface WorldNodeZonesApi {
+  buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition): RewardChoice;
+  getQuestDefinition(actNumber: number): QuestNodeDefinition;
+  getShrineDefinition(actNumber: number): ShrineNodeDefinition;
+  getEventDefinition(actNumber: number): EventNodeDefinition;
+  getOpportunityDefinition(actNumber: number): OpportunityNodeDefinition;
+  getCrossroadOpportunityDefinition(actNumber: number): CrossroadOpportunityDefinition;
+  getShrineOpportunityDefinition(actNumber: number): ShrineOpportunityDefinition;
+  getReserveOpportunityDefinition(actNumber: number): ReserveOpportunityDefinition;
+  getRelayOpportunityDefinition(actNumber: number): RelayOpportunityDefinition;
+  getCulminationOpportunityDefinition(actNumber: number): CulminationOpportunityDefinition;
+  getLegacyOpportunityDefinition(actNumber: number): LegacyOpportunityDefinition;
+  getReckoningOpportunityDefinition(actNumber: number): ReckoningOpportunityDefinition;
+  getRecoveryOpportunityDefinition(actNumber: number): RecoveryOpportunityDefinition;
+  getAccordOpportunityDefinition(actNumber: number): AccordOpportunityDefinition;
+  getCovenantOpportunityDefinition(actNumber: number): CovenantOpportunityDefinition;
+  getDetourOpportunityDefinition(actNumber: number): DetourOpportunityDefinition;
+  getEscalationOpportunityDefinition(actNumber: number): EscalationOpportunityDefinition;
+  isShrineOpportunityNodeId(nodeId: string): boolean;
+  createQuestZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createShrineZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createEventZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createCrossroadOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createShrineOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createReserveOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createRelayOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createCulminationOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createLegacyOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createReckoningOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createRecoveryOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createAccordOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createCovenantOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createDetourOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createEscalationOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
+  createActWorldNodes(config: { actSeed: ActSeed; openingZoneId: string }): ZoneState[];
+  isWorldNodeZone(zone: ZoneState): boolean;
+}
+
 interface CombatMercenaryRouteBonusState {
   contractAttackBonus?: number;
   contractBehaviorBonus?: number;
@@ -2181,6 +2220,7 @@ interface Window {
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
+  ROUGE_WORLD_NODE_ZONES: WorldNodeZonesApi;
   ROUGE_WORLD_NODE_VARIANTS: WorldNodeVariantsApi;
   ROUGE_WORLD_NODES: WorldNodeEngineApi;
   ROUGE_TOWN_SERVICES: TownServiceApi;
