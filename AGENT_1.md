@@ -54,10 +54,11 @@ Live now:
 - world-map now matches that decision-support shell with a route decision desk that answers what changed, what is blocked, what account pressure is riding the run, and what the next route-side click hands back into
 - world-map and node views now expose route-intel panels, a consequence ledger, stronger node-family labeling, and clearer late-opportunity-family treatment
 - reward, act-transition, and run-end now include explicit continuity or delta surfaces instead of relying only on generic copy, with reward handoff guidance into map or act transition or run-end review and hall re-entry guidance that points back into the richer account hall
+- front door, safe zone, world map, reward, act-transition, and run-end now share one account-meta continuity board that keeps archive pressure, charter staging, mastery pressure, and convergence watch visible through the full shell without inventing view-owned summary state
 
 Still weak:
 
-- the decision-support and continuity shell is now live across hall, town, map, reward, act-transition, and run-end, but the next shell pass still needs a stronger shared account-meta layer across those surfaces
+- the shared account-meta layer is now live across hall, town, map, reward, act-transition, and run-end, but the next shell pass still needs stronger charter and convergence drilldowns on top of that board
 - onboarding continuity is much stronger now, but future account progression or unlock data still needs better insertion points once Agent 2 extends those read models
 - town, map, reward, and run-end readability are in better shape, but future shell work should extend the current navigable model instead of rebuilding the structure again
 
@@ -69,11 +70,11 @@ Important runtime note:
 
 ## Immediate Next Batch
 
-Agent 1's decision-support and continuity pass is now live across hall, town, map, reward, act-transition, and run-end. The next batch is a broader account-meta continuity pass on top of those existing desks. Do not wait on new backend work unless the runtime truly cannot support the view.
+Agent 1's shared account-meta continuity pass and its compiled-browser regression coverage are now live across hall, town, map, reward, act-transition, and run-end. The next batch is charter and convergence drilldowns on top of that existing board. Do not wait on new backend work unless the runtime truly cannot support the view.
 
-Build on the richer hall, prep hub, route desk, reward desk, transition wrapper, and hall handoff that already exist:
+Build on the richer hall, prep hub, route desk, reward desk, transition wrapper, hall handoff, and shared account-meta board that already exist:
 
-- extend a shared account-meta layer across hall, town, map, reward, act-transition, and run-end so archive pressure, charter staging, mastery pressure, and convergence pressure stay legible without each view inventing its own one-off summary
+- turn the live charter staging, archive pulse, mastery pressure, and convergence watch summaries into clearer drilldowns across hall, town, map, reward, and run-end
 - preserve the current route, reward, and transition continuity so broader Agent 2 and Agent 3 data can land without another structural rewrite
 - make the shell better at comparing run-local state, account-level pressure, and the next meaningful decision without becoming the owner of gameplay logic
 - only ask for new APIs when the current hall navigator, archive-review, focused-tree, convergence, tutorial, settings, planning, or delta seams truly cannot support the shell need
@@ -90,19 +91,18 @@ This batch should stay shell-heavy and API-light:
 
 Land this batch in this order unless the project manager explicitly reorders it:
 
-1. account-hall decision-support pass
-- the hall decision desk, prep comparison board, and run-end hall handoff are now live in `src/ui/front-door-view.ts`, `src/ui/safe-zone-view.ts`, and `src/ui/run-summary-view.ts`
-- they use the existing account summary, convergence summary, planning summary, and archive-review seams without adding new runtime contracts
-- shell coverage for those surfaces now lives in `tests/app-engine-shell.test.ts`
+Epic and tickets:
 
-2. route-intel continuity pass
-- the route decision desk is now live in `src/ui/world-map-view.ts`
-- the map now answers what changed, what is blocked, what account pressure is riding the run, and what the next route-side action hands back into
-- keep node-family explanation, consequence ledger treatment, and act-pressure readability aligned with the now-live hall or town or reward or act-transition or run-end comparison surfaces
+- epic: `ROUGE-21` Account Meta Continuity
+- `ROUGE-22` Surface shared account-meta continuity across the shell
+- `ROUGE-23` Add charter and convergence drilldowns to the shell
+- `ROUGE-24` Add regression coverage for account-meta shell surfaces
 
-3. reward and transition delta pass
-- reward continuity and act-transition delta desks are now live in `src/ui/reward-view.ts` and `src/ui/act-transition-view.ts`
-- reward and transition screens now show account-impact carry-through and next-action guidance without inventing shell-owned progression logic
+`ROUGE-22` and `ROUGE-24` are now live on `master`.
+
+1. `ROUGE-23` charter and convergence drilldown pass
+- once the shared account-meta layer is stable, turn the live planning, stash-ready charter, archive-ledger, and convergence summaries into actionable drilldowns
+- prioritize hall, town, map, reward, and run-end "what should I do next" decision support instead of generic status copy
 - keep `src/app/main.ts` thin, only touch `src/app/app-engine.ts` for shell-facing wiring that cannot stay in views or the dispatcher, and sync docs if the visible shell model changes materially
 
 ## Chunk 1: Account Hall Navigation And Drilldowns

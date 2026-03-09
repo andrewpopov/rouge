@@ -173,7 +173,6 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   });
 
   appEngine.startCharacterSelect(state);
-  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
@@ -288,6 +287,7 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   });
 
   appEngine.startCharacterSelect(state);
+  appEngine.setSelectedMercenary(state, "rogue_scout");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 

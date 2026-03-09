@@ -131,7 +131,7 @@ Current Tira mapping:
 2. Agent 2: epic `ROUGE-2`, tickets `ROUGE-8`, `ROUGE-9`, `ROUGE-10`, `ROUGE-18`
 3. Agent 3: epic `ROUGE-3`, tickets `ROUGE-11`, `ROUGE-12`, `ROUGE-13`, `ROUGE-19`
 4. Agent 4: epic `ROUGE-1`, tickets `ROUGE-5`, `ROUGE-6`, `ROUGE-7`, `ROUGE-17`
-5. Agent 5: epic `ROUGE-25`, tickets `ROUGE-26`, `ROUGE-27`, `ROUGE-28`
+5. Agent 5: epic `ROUGE-29`, tickets `ROUGE-30`, `ROUGE-31`, `ROUGE-32`
 
 The current chunking is:
 
@@ -140,7 +140,7 @@ The current chunking is:
    - onboarding and tutorial continuity
    - town-prep comparison and run-management UX
    - route intel, reward, act-transition, and run-end change summaries on top of the now-live hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, and hall handoff
-   - the next broader account-meta continuity pass on top of those now-live shell seams
+   - charter and convergence drilldowns on top of the now-live shared account-meta continuity board
 2. Agent 2 owns the progression and account backbone:
    - second-wave account growth beyond the current capstones, convergences, and live planning-charter layer
    - late-act item or rune or runeword economy depth
@@ -165,6 +165,7 @@ The current chunking is:
    - `npm run test:coverage` ownership across thresholds, exclusions, and follow-through
    - missing-test backfill across shell, account, route, and harness seams
    - harness-to-bundle drift protection with Agent 4 coordination on shared browser bootstrap ownership
+   - deeper built-bundle smoke through encounter, reward, act transition, and run summary plus direct browser boot-failure coverage
 
 Current start order for this round:
 
@@ -175,6 +176,7 @@ Current start order for this round:
 2. Agent 5
    - keep the landed release-confidence lane green through `npm run quality` and `npm run test:coverage`
    - deepen browser smoke from the outer-loop restore or return path into encounter, reward, act-transition, and run-summary checkpoints without forking the bootstrap
+   - add direct browser-only boot or bad-seed checks for the seams still excluded from the Node coverage lane
    - use fresh coverage output to drive the next high-value shell, account, route, and harness backfill
 3. Agent 2
    - land second-wave account growth plus richer archive or stash or economy read models
@@ -183,7 +185,7 @@ Current start order for this round:
    - deepen boss or escort consequence expression on top of the live detour and escalation payoff packages
    - then widen mercenary payoff only if that follow-through creates a real new combat seam
 5. Agent 1
-   - land the next broader account-meta continuity pass on top of the now-live hall navigator, hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, convergence review, and delta-summary shell
+   - land the next charter and convergence drilldown pass on top of the now-live hall navigator, hall decision desk, prep comparison board, route decision desk, reward continuity desk, act delta review, convergence review, shared account-meta continuity board, and delta-summary shell
 
 Current landing guidance:
 
