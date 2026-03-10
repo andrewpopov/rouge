@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const buildEscalationChoice = (...args) => helpers.buildOpportunityChoice("Escalation Opportunity", ...args);
+  const buildEscalationChoice = (nodeId, questId, outcomeId, title, description, consequenceId, flagIds?, extraEffects?) => helpers.buildOpportunityChoice("Escalation Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
   const { buildLateRouteVariant } = helpers;
 
   const ESCALATION_OPPORTUNITY_DEFINITIONS: Record<number, EscalationOpportunityDefinition> = {

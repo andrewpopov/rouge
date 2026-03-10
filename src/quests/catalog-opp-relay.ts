@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const relayChoice = (...args) => helpers.buildOpportunityChoice("Relay Opportunity", ...args);
+  const relayChoice = (nodeId: string, questId: string, outcomeId: string, title: string, description: string, consequenceId: string, flagIds?: string[], extraEffects?: RewardChoiceEffect[]) => helpers.buildOpportunityChoice("Relay Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
 
   const RELAY_OPPORTUNITY_DEFINITIONS: Record<number, RelayOpportunityDefinition> = {
     1: {

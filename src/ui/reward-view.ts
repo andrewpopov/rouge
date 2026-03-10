@@ -506,7 +506,13 @@
       buttonLabel = "Travel To Next Act";
     }
 
-    const kindIcon = reward.kind === "quest" ? "\u{1F4DC}" : reward.kind === "shrine" ? "\u2728" : reward.kind === "event" ? "\u26A0" : reward.kind === "opportunity" ? "\u2726" : "\u2694";
+    const REWARD_KIND_ICONS: Record<string, string> = {
+      quest: "\u{1F4DC}",
+      shrine: "\u2728",
+      event: "\u26A0",
+      opportunity: "\u2726",
+    };
+    const kindIcon = REWARD_KIND_ICONS[reward.kind] || "\u2694";
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}

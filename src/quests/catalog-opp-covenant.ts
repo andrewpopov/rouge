@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const buildCovenantChoice = (...args) => helpers.buildOpportunityChoice("Covenant Opportunity", ...args);
+  const buildCovenantChoice = (nodeId: string, questId: string, outcomeId: string, title: string, description: string, consequenceId: string, flagIds?: string[], extraEffects?: RewardChoiceEffect[]) => helpers.buildOpportunityChoice("Covenant Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
 
   const COVENANT_OPPORTUNITY_DEFINITIONS: Record<number, CovenantOpportunityDefinition> = {
     1: {

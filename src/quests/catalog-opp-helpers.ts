@@ -1,7 +1,26 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function nodeOutcomeEffect(nodeType, nodeId, outcomeId, outcomeTitle, flagIds = []) {
+  interface LateRouteVariantInput {
+    id: string;
+    title: string;
+    description: string;
+    summary: string;
+    grants?: RewardGrants;
+    requiresFlagIds?: string[];
+    choice: {
+      outcomeId: string;
+      title: string;
+      description: string;
+      consequenceId: string;
+      flagIds?: string[];
+      extraEffects?: RewardChoiceEffect[];
+    };
+  }
+
+  function nodeOutcomeEffect(
+    nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds: string[] = []
+  ): RewardChoiceEffect {
     return {
       kind: "record_node_outcome",
       nodeType,
@@ -12,7 +31,9 @@
     };
   }
 
-  function questConsequenceEffect(questId, outcomeId, outcomeTitle, consequenceId, flagIds = []) {
+  function questConsequenceEffect(
+    questId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds: string[] = []
+  ): RewardChoiceEffect {
     return {
       kind: "record_quest_consequence",
       questId,
@@ -23,7 +44,11 @@
     };
   }
 
-  function buildOpportunityChoice(subtitle, nodeId, questId, outcomeId, title, description, consequenceId, flagIds = [], extraEffects = []) {
+  function buildOpportunityChoice(
+    subtitle: string, nodeId: string, questId: string, outcomeId: string,
+    title: string, description: string, consequenceId: string,
+    flagIds: string[] = [], extraEffects: RewardChoiceEffect[] = []
+  ): WorldNodeChoiceDefinition {
     return {
       id: outcomeId,
       title,
@@ -37,7 +62,10 @@
     };
   }
 
-  function buildLateRouteVariant(choiceBuilder, nodeId, questId, variantDefinition) {
+  function buildLateRouteVariant(
+    choiceBuilder: (...args: unknown[]) => WorldNodeChoiceDefinition,
+    nodeId: string, questId: string, variantDefinition: LateRouteVariantInput
+  ): ReserveOpportunityVariantDefinition {
     return {
       id: variantDefinition.id,
       title: variantDefinition.title,

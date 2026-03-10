@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const buildRecoveryChoice = (...args) => helpers.buildOpportunityChoice("Recovery Opportunity", ...args);
+  const buildRecoveryChoice = (nodeId: string, questId: string, outcomeId: string, title: string, description: string, consequenceId: string, flagIds?: string[], extraEffects?: RewardChoiceEffect[]) => helpers.buildOpportunityChoice("Recovery Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
 
   const RECOVERY_OPPORTUNITY_DEFINITIONS: Record<number, RecoveryOpportunityDefinition> = {
     1: {

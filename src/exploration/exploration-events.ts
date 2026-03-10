@@ -44,7 +44,7 @@
       minEncountersCleared: 1,
       buildChoices(run, content) {
         const upgradable = getUpgradableCardIds(run, content);
-        if (upgradable.length === 0) return [];
+        if (upgradable.length === 0) {return [];}
         return [
           {
             id: "forge_attack",
@@ -79,7 +79,7 @@
       minEncountersCleared: 2,
       buildChoices(run, content) {
         const upgradable = getUpgradableCardIds(run, content);
-        if (upgradable.length === 0) return [];
+        if (upgradable.length === 0) {return [];}
         return [
           {
             id: "study_offense",
@@ -114,7 +114,7 @@
       minEncountersCleared: 0,
       buildChoices(run, content) {
         const upgradable = getUpgradableCardIds(run, content);
-        if (upgradable.length === 0) return [];
+        if (upgradable.length === 0) {return [];}
         return [
           {
             id: "smith_upgrade",
@@ -149,7 +149,7 @@
       minEncountersCleared: 3,
       buildChoices(run, content) {
         const upgradable = getUpgradableCardIds(run, content);
-        if (upgradable.length === 0) return [];
+        if (upgradable.length === 0) {return [];}
         return [
           {
             id: "altar_blood",
@@ -189,7 +189,7 @@
       flavor: "A cracked obelisk radiates a deep crimson glow. Weapons lie scattered at its base\u2014offerings from warriors who sought its blessing. The stone hums with barely contained violence.",
       icon: "\u{2694}",
       minEncountersCleared: 1,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "war_embrace",
@@ -219,7 +219,7 @@
       flavor: "Golden coins spill from a crack in the earth around a moss-covered altar. A warm breeze carries the scent of honeyed wine. The shrine promises abundance to those who kneel.",
       icon: "\u{1F4B0}",
       minEncountersCleared: 0,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "plenty_tithe",
@@ -253,7 +253,7 @@
       flavor: "Vines thick with luminous blossoms coil around an ancient stone. Each bloom pulses with a heartbeat rhythm. The air itself feels nourishing\u2014wounds close, pain fades, weariness lifts.",
       icon: "\u{1F33F}",
       minEncountersCleared: 0,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "vitality_bloom",
@@ -283,7 +283,7 @@
       flavor: "No light touches this altar. It drinks in the torchlight, leaving only a void that whispers promises of power. Dark gifts always come with dark costs.",
       icon: "\u{1F311}",
       minEncountersCleared: 2,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "shadow_bargain",
@@ -321,7 +321,7 @@
       flavor: "Names are carved into every surface of this monument\u2014hundreds of them, in scripts both familiar and alien. A spectral flame burns at its peak, refusing to die. It honors those who came before.",
       icon: "\u{1F56F}",
       minEncountersCleared: 3,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "fallen_honor",
@@ -362,7 +362,7 @@
       flavor: "A small stone shrine stands at a crossroads, garlands of dried flowers draped across its face. Travelers have left offerings here for generations. The air around it feels still and warm.",
       icon: "\u{2728}",
       minEncountersCleared: 0,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "shrine_vitality",
@@ -392,7 +392,7 @@
       flavor: "A dying knight leans against a shattered pillar, blood pooling beneath rusted plate. With a trembling hand he holds out a vial of golden light. \"Take it. My fight is over. Yours is not.\"",
       icon: "\u{1F6E1}",
       minEncountersCleared: 2,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "paladin_vial",
@@ -422,7 +422,7 @@
       flavor: "Crystal-clear water bubbles up from between mossy stones. The pool glows faintly beneath the surface. Something about the light makes old wounds feel distant.",
       icon: "\u{1F4A7}",
       minEncountersCleared: 1,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "spring_drink",
@@ -461,7 +461,7 @@
       minGold: 15,
       minEncountersCleared: 1,
       buildChoices(run) {
-        if (run.gold < 15) return [];
+        if (run.gold < 15) {return [];}
         return [
           {
             id: "goblin_big_bet",
@@ -500,7 +500,7 @@
       flavor: "A heavy iron chest sits in the center of the room, chains wrapped tight around its frame. Scratches in the stone floor suggest it has been dragged here from somewhere deep below. It vibrates faintly.",
       icon: "\u{1F5DD}",
       minEncountersCleared: 2,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "chest_open",
@@ -536,7 +536,7 @@
       minEncountersCleared: 3,
       minGold: 10,
       buildChoices(run) {
-        if (run.gold < 10) return [];
+        if (run.gold < 10) {return [];}
         return [
           {
             id: "dice_high",
@@ -583,7 +583,7 @@
       icon: "\u{1F9EA}",
       minGold: 10,
       buildChoices(run) {
-        if (run.gold < 10) return [];
+        if (run.gold < 10) {return [];}
         return [
           {
             id: "peddler_bulk",
@@ -622,7 +622,7 @@
       minGold: 15,
       minEncountersCleared: 2,
       buildChoices(run) {
-        if (run.gold < 15) return [];
+        if (run.gold < 15) {return [];}
         return [
           {
             id: "arms_merc_weapon",
@@ -665,7 +665,7 @@
       flavor: "A full-length mirror stands upright in the middle of the corridor, impossibly clean amid the filth. Your reflection stares back, but its expression doesn't match yours. It mouths a single word: \"Choose.\"",
       icon: "\u{1FA9E}",
       minEncountersCleared: 2,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "mirror_touch",
@@ -699,7 +699,7 @@
       flavor: "A deep stone well stands in a clearing, its rim worn smooth by countless hands. Whispers drift up from the darkness below, too faint to make out. A frayed rope dangles into the void.",
       icon: "\u{1F573}",
       minEncountersCleared: 1,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "well_coin",
@@ -737,7 +737,7 @@
       flavor: "Tents sag on broken poles, supplies scattered across the mud. Whatever drove these travelers away left in a hurry. A cooking fire still smolders. The stew smells edible.",
       icon: "\u{26FA}",
       minEncountersCleared: 0,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "camp_eat",
@@ -774,7 +774,7 @@
       flavor: "Smoke curls from a chimney hidden among the rocks. Inside, an old woman tends a bubbling cauldron. She neither smiles nor frowns. \"Sit. Heal. Then leave.\"",
       icon: "\u{1F33F}",
       minEncountersCleared: 1,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "healer_full",
@@ -815,7 +815,7 @@
       flavor: "A towering stone guardian blocks the passage, eyes glowing faintly red. A plaque at its feet reads: \"Prove your worth or pay the toll. None pass freely.\"",
       icon: "\u{1F5FF}",
       minEncountersCleared: 2,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "statue_fight",
@@ -852,7 +852,7 @@
       flavor: "Crimson water flows upward from a cracked basin, defying gravity. The fountain's edge is lined with handprints\u2014some old, some disturbingly fresh. Power radiates from its depths.",
       icon: "\u{1FA78}",
       minEncountersCleared: 3,
-      buildChoices(run) {
+      buildChoices(_run) {
         return [
           {
             id: "fountain_drink",
@@ -913,21 +913,21 @@
     const totalCleared = getTotalEncountersCleared(run);
 
     // Events only appear in battle/miniboss zones (not boss zones)
-    if (zone.kind === "boss") return null;
+    if (zone.kind === "boss") {return null;}
 
     // Flat 20% chance per encounter
     const roll = ((seed * 7919 + 1301) % 1000) / 1000;
-    if (roll > 0.20) return null;
+    if (roll > 0.20) {return null;}
 
     // Filter to eligible templates
     const eligible = EVENT_TEMPLATES.filter((template) => {
-      if (template.minEncountersCleared && totalCleared < template.minEncountersCleared) return false;
-      if (template.minGold && run.gold < template.minGold) return false;
+      if (template.minEncountersCleared && totalCleared < template.minEncountersCleared) {return false;}
+      if (template.minGold && run.gold < template.minGold) {return false;}
       const choices = template.buildChoices(run, content);
       return choices.length > 0;
     });
 
-    if (eligible.length === 0) return null;
+    if (eligible.length === 0) {return null;}
 
     const template = eligible[seed % eligible.length];
     const choices = template.buildChoices(run, content);
@@ -953,7 +953,7 @@
     cardId?: string
   ): ActionResult {
     const choice = event.choices.find((c) => c.id === choiceId);
-    if (!choice) return { ok: false, message: "Invalid event choice." };
+    if (!choice) {return { ok: false, message: "Invalid event choice." };}
 
     // Handle card upgrade pick
     if (choice.requiresCardPick && cardId) {

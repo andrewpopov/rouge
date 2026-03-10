@@ -330,10 +330,21 @@ interface Window {
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
   __ROUGE_OPP_HELPERS: {
-    nodeOutcomeEffect(...args: any[]): any;
-    questConsequenceEffect(...args: any[]): any;
-    buildOpportunityChoice(...args: any[]): any;
-    buildLateRouteVariant(...args: any[]): any;
+    nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds?: string[]): RewardChoiceEffect;
+    questConsequenceEffect(questId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds?: string[]): RewardChoiceEffect;
+    buildOpportunityChoice(
+      subtitle: string, nodeId: string, questId: string, outcomeId: string,
+      title: string, description: string, consequenceId: string,
+      flagIds?: string[], extraEffects?: RewardChoiceEffect[]
+    ): WorldNodeChoiceDefinition;
+    buildLateRouteVariant(
+      choiceBuilder: (...args: unknown[]) => WorldNodeChoiceDefinition,
+      nodeId: string, questId: string, variantDefinition: {
+        id: string; title: string; description: string; summary: string;
+        grants?: RewardGrants; requiresFlagIds?: string[];
+        choice: { outcomeId: string; title: string; description: string; consequenceId: string; flagIds?: string[]; extraEffects?: RewardChoiceEffect[] };
+      }
+    ): ReserveOpportunityVariantDefinition;
   };
   __ROUGE_OPP_STAGING: Partial<WorldNodeCatalogOpportunitiesApi>;
   ROUGE_WORLD_NODE_CATALOG_OPPORTUNITIES: WorldNodeCatalogOpportunitiesApi;

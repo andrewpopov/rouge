@@ -50,20 +50,20 @@
   ];
 
   function getZonePosition(zone: ZoneState): [number, number] | null {
-    if (zone.kind === "boss") return ZONE_POSITIONS.boss;
-    if (zone.zoneRole && ZONE_POSITIONS[zone.zoneRole]) return ZONE_POSITIONS[zone.zoneRole];
-    if (zone.kind === "quest") return ZONE_POSITIONS.quest;
-    if (zone.kind === "event") return ZONE_POSITIONS.event;
+    if (zone.kind === "boss") {return ZONE_POSITIONS.boss;}
+    if (zone.zoneRole && ZONE_POSITIONS[zone.zoneRole]) {return ZONE_POSITIONS[zone.zoneRole];}
+    if (zone.kind === "quest") {return ZONE_POSITIONS.quest;}
+    if (zone.kind === "event") {return ZONE_POSITIONS.event;}
     return null;
   }
 
   function buildSvgEdges(zones: ZoneState[]): string {
     const roleMap = new Map<string, ZoneState>();
     for (const z of zones) {
-      if (z.kind === "boss") roleMap.set("boss", z);
-      else if (z.kind === "quest") roleMap.set("quest", z);
-      else if (z.kind === "event") roleMap.set("event", z);
-      else if (z.zoneRole) roleMap.set(z.zoneRole, z);
+      if (z.kind === "boss") {roleMap.set("boss", z);}
+      else if (z.kind === "quest") {roleMap.set("quest", z);}
+      else if (z.kind === "event") {roleMap.set("event", z);}
+      else if (z.zoneRole) {roleMap.set(z.zoneRole, z);}
     }
     // Always add a virtual town node
     roleMap.set("town", { status: "cleared" } as ZoneState);
@@ -72,10 +72,10 @@
     for (const [fromRole, toRole] of ZONE_EDGES) {
       const from = roleMap.get(fromRole);
       const to = roleMap.get(toRole);
-      if (!from || !to) continue;
+      if (!from || !to) {continue;}
       const fp = ZONE_POSITIONS[fromRole];
       const tp = ZONE_POSITIONS[toRole];
-      if (!fp || !tp) continue;
+      if (!fp || !tp) {continue;}
 
       const bothCleared = from.status === "cleared" && to.status === "cleared";
       const active = from.status === "cleared" && to.status === "available";
@@ -94,7 +94,7 @@
     escapeHtml: (s: string) => string
   ): string {
     const pos = getZonePosition(zone);
-    if (!pos) return "";
+    if (!pos) {return "";}
 
     const icon = ZONE_KIND_ICONS[zone.kind] || "\u2694";
     const statusClass =
@@ -120,13 +120,13 @@
   }
 
   function getNodeFamilyLabel(zone: ZoneState | null): string {
-    if (!zone) return "Route";
-    if (zone.kind === "quest") return "Quest Fork";
-    if (zone.kind === "shrine") return "Shrine Blessing";
-    if (zone.kind === "event") return "Aftermath Node";
-    if (zone.kind === "boss") return "Boss Gate";
-    if (zone.kind === "miniboss") return "Pressure Route";
-    if (zone.kind === "opportunity") return "Opportunity";
+    if (!zone) {return "Route";}
+    if (zone.kind === "quest") {return "Quest Fork";}
+    if (zone.kind === "shrine") {return "Shrine Blessing";}
+    if (zone.kind === "event") {return "Aftermath Node";}
+    if (zone.kind === "boss") {return "Boss Gate";}
+    if (zone.kind === "miniboss") {return "Pressure Route";}
+    if (zone.kind === "opportunity") {return "Opportunity";}
     return "Battle Path";
   }
 

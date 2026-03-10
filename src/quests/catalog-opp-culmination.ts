@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const culminationChoice = (...args) => helpers.buildOpportunityChoice("Culmination Opportunity", ...args);
+  const culminationChoice = (nodeId: string, questId: string, outcomeId: string, title: string, description: string, consequenceId: string, flagIds?: string[], extraEffects?: RewardChoiceEffect[]) => helpers.buildOpportunityChoice("Culmination Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
 
   const CULMINATION_OPPORTUNITY_DEFINITIONS: Record<number, CulminationOpportunityDefinition> = {
     1: {

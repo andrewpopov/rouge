@@ -7,6 +7,13 @@
     icon: string;
   }
 
+  function getExploreSceneText(zoneKind: string): string {
+    if (zoneKind === "miniboss") {
+      return "The air thickens with dread. Something powerful lurks nearby.";
+    }
+    return "Your party enters the area. The sounds of civilization fade behind you.";
+  }
+
   const ZONE_EXPLORE_OPTIONS: Record<string, ExploreOption[]> = {
     battle: [
       { title: "Scout Ahead", flavor: "Move carefully through the underbrush. Something stirs in the shadows ahead.", icon: "\u{1F441}" },
@@ -62,7 +69,7 @@
           ${upgradableIds.map((cardId) => {
             const card = appState.content.cardCatalog[cardId];
             const upgradedCard = appState.content.cardCatalog[`${cardId}_plus`];
-            if (!card || !upgradedCard) return "";
+            if (!card || !upgradedCard) {return "";}
             return `
               <button class="event-card-pick__card" data-action="pick-event-card" data-card-id="${escapeHtml(cardId)}">
                 <div class="event-card-pick__current">
@@ -162,9 +169,9 @@
         <div class="explore-scene">
           <div class="explore-scene__ambience"></div>
           <p class="explore-scene__text">${escapeHtml(
-            zoneKind === "boss" ? "An oppressive darkness settles over the land. The final challenge awaits."
-              : zoneKind === "miniboss" ? "The air thickens with dread. Something powerful lurks nearby."
-              : "Your party enters the area. The sounds of civilization fade behind you."
+            zoneKind === "boss"
+              ? "An oppressive darkness settles over the land. The final challenge awaits."
+              : getExploreSceneText(zoneKind)
           )}</p>
         </div>
 
@@ -330,7 +337,7 @@
                         data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
                         style="--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${i}">
                   <div class="fan-card__cost">${card.cost}</div>
-                  <div class="fan-card__art">${assets ? svgIcon(assets.getCardIcon(instance.cardId, card.effects), "fan-card__icon" + (card.target === "enemy" ? " fan-card__icon--attack" : " fan-card__icon--skill"), card.title) : (card.target === "enemy" ? "\u2694" : "\u{1F6E1}")}</div>
+                  <div class="fan-card__art">${(() => { const iconClass = card.target === "enemy" ? " fan-card__icon--attack" : " fan-card__icon--skill"; if (assets) { return svgIcon(assets.getCardIcon(instance.cardId, card.effects), `fan-card__icon${iconClass}`, card.title); } return card.target === "enemy" ? "\u2694" : "\u{1F6E1}"; })()}</div>
                   <div class="fan-card__name">${escapeHtml(card.title)}</div>
                   <div class="fan-card__desc">${escapeHtml(card.text)}</div>
                   <div class="fan-card__type">${card.target === "enemy" ? "Attack" : "Skill"}</div>

@@ -106,10 +106,10 @@
   }
 
   function getCardIcon(cardId: string, effects?: CardEffect[]): string {
-    if (CARD_ICONS[cardId]) return CARD_ICONS[cardId];
+    if (CARD_ICONS[cardId]) {return CARD_ICONS[cardId];}
     // Plus variants: strip _plus suffix
     const baseId = cardId.replace(/_plus$/, "");
-    if (CARD_ICONS[baseId]) return CARD_ICONS[baseId];
+    if (CARD_ICONS[baseId]) {return CARD_ICONS[baseId];}
     // Fallback: pick based on whether card has damage effects
     const hasDamage = effects?.some((e) => e.kind === "damage") ?? false;
     const pool = hasDamage ? ATTACK_ICONS : SKILL_ICONS;
@@ -129,7 +129,7 @@
   function getEnemyIcon(templateId: string): string {
     // Try sprite first
     const sprite = getEnemySprite(templateId);
-    if (sprite) return sprite;
+    if (sprite) {return sprite;}
     // Fallback to SVG icons
     return ENEMY_SVGS[simpleHash(templateId) % ENEMY_SVGS.length];
   }
@@ -154,11 +154,11 @@
 
   function getIntentIcon(intentDescription: string): string {
     const desc = intentDescription.toLowerCase();
-    if (desc.includes("attack") || desc.includes("deal") || desc.includes("damage")) return INTENT_ICONS.attack;
-    if (desc.includes("guard") || desc.includes("block") || desc.includes("defend")) return INTENT_ICONS.guard;
-    if (desc.includes("buff") || desc.includes("strength")) return INTENT_ICONS.buff;
-    if (desc.includes("debuff") || desc.includes("weaken")) return INTENT_ICONS.debuff;
-    if (desc.includes("heal")) return INTENT_ICONS.heal;
+    if (desc.includes("attack") || desc.includes("deal") || desc.includes("damage")) {return INTENT_ICONS.attack;}
+    if (desc.includes("guard") || desc.includes("block") || desc.includes("defend")) {return INTENT_ICONS.guard;}
+    if (desc.includes("buff") || desc.includes("strength")) {return INTENT_ICONS.buff;}
+    if (desc.includes("debuff") || desc.includes("weaken")) {return INTENT_ICONS.debuff;}
+    if (desc.includes("heal")) {return INTENT_ICONS.heal;}
     return INTENT_ICONS.unknown;
   }
 
