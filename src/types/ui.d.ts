@@ -192,6 +192,28 @@ interface UiPhaseViewApi {
   render(root: HTMLElement, appState: AppState, services: UiRenderServices): void;
 }
 
+interface FrontDoorHallViewApi {
+  buildHallTabNav(activeSection: string): string;
+  buildAccountOverviewMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    phaseTone: string,
+    accountSummary: ProfileAccountSummary
+  ): string;
+  buildUnlockGalleryMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string;
+  buildVaultLogisticsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string;
+  buildAccountControlsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string;
+  buildVaultChronicleMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    accountSummary: ProfileAccountSummary,
+    stashPreviewLines: string[],
+    recentRunMarkup: string
+  ): string;
+  buildCapstoneWatchMarkup(services: UiRenderServices, accountSummary: ProfileAccountSummary): string;
+}
+
 interface FrontDoorExpeditionViewApi {
   getSavedRunPhaseGuidance(savedRunSummary: SavedRunSummary, appEngine: AppEngineApi): SavedRunPhaseGuidance;
   buildHallNavigatorMarkup(
@@ -274,6 +296,15 @@ interface ActionDispatcherConfig {
   syncCombatResultAndRender: () => void;
 }
 
+interface ActionHandlerContext {
+  actionEl: HTMLElement;
+  appState: AppState;
+  appEngine: AppEngineApi;
+  combatEngine: CombatEngineApi;
+  render: () => void;
+  syncCombatResultAndRender: () => void;
+}
+
 interface ActionDispatcherApi {
   handleClick(config: ActionDispatcherConfig): boolean;
 }
@@ -318,6 +349,7 @@ interface Window {
   ROUGE_UI_ACCOUNT_META: UiAccountMetaApi;
   ROUGE_UI_COMMON: UiCommonApi;
   ROUGE_FRONT_DOOR_EXPEDITION_VIEW: FrontDoorExpeditionViewApi;
+  ROUGE_FRONT_DOOR_HALL_VIEW: FrontDoorHallViewApi;
   ROUGE_SAFE_ZONE_OPERATIONS_VIEW: SafeZoneOperationsViewApi;
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
