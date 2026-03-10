@@ -32,44 +32,42 @@
       return;
     }
 
-    const debug = appState.profile?.meta?.settings?.debugMode;
-    const debugBar = debug?.enabled ? buildDebugBar(debug) : "";
-
-    // Render into a wrapper so the debug bar persists above
     const stateWithContent = { ...appState, content };
-    const phaseRoot = document.createElement("div");
 
     switch (appState.phase) {
       case services.appEngine.PHASES.FRONT_DOOR:
-        runtimeWindow.ROUGE_FRONT_DOOR_VIEW.render(phaseRoot, appState, services);
+        runtimeWindow.ROUGE_FRONT_DOOR_VIEW.render(root, appState, services);
         break;
       case services.appEngine.PHASES.CHARACTER_SELECT:
-        runtimeWindow.ROUGE_CHARACTER_SELECT_VIEW.render(phaseRoot, appState, services);
+        runtimeWindow.ROUGE_CHARACTER_SELECT_VIEW.render(root, appState, services);
         break;
       case services.appEngine.PHASES.SAFE_ZONE:
-        runtimeWindow.ROUGE_SAFE_ZONE_VIEW.render(phaseRoot, stateWithContent, services);
+        runtimeWindow.ROUGE_SAFE_ZONE_VIEW.render(root, stateWithContent, services);
         break;
       case services.appEngine.PHASES.WORLD_MAP:
-        runtimeWindow.ROUGE_WORLD_MAP_VIEW.render(phaseRoot, appState, services);
+        runtimeWindow.ROUGE_WORLD_MAP_VIEW.render(root, appState, services);
         break;
       case services.appEngine.PHASES.ENCOUNTER:
-        runtimeWindow.ROUGE_COMBAT_VIEW.render(phaseRoot, appState, services);
+        runtimeWindow.ROUGE_COMBAT_VIEW.render(root, appState, services);
         break;
       case services.appEngine.PHASES.REWARD:
-        runtimeWindow.ROUGE_REWARD_VIEW.render(phaseRoot, stateWithContent, services);
+        runtimeWindow.ROUGE_REWARD_VIEW.render(root, stateWithContent, services);
         break;
       case services.appEngine.PHASES.ACT_TRANSITION:
-        runtimeWindow.ROUGE_ACT_TRANSITION_VIEW.render(phaseRoot, appState, services);
+        runtimeWindow.ROUGE_ACT_TRANSITION_VIEW.render(root, appState, services);
         break;
       case services.appEngine.PHASES.RUN_COMPLETE:
       case services.appEngine.PHASES.RUN_FAILED:
-        runtimeWindow.ROUGE_RUN_SUMMARY_VIEW.render(phaseRoot, appState, services);
+        runtimeWindow.ROUGE_RUN_SUMMARY_VIEW.render(root, appState, services);
         break;
       default:
-        common.renderBootState(phaseRoot, bootState, services.renderUtils);
+        common.renderBootState(root, bootState, services.renderUtils);
     }
 
-    root.innerHTML = debugBar + phaseRoot.innerHTML;
+    const debug = appState.profile?.meta?.settings?.debugMode;
+    if (debug?.enabled) {
+      root.innerHTML = buildDebugBar(debug) + root.innerHTML;
+    }
   }
 
   runtimeWindow.ROUGE_APP_SHELL = {
