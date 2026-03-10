@@ -30,6 +30,8 @@ const ITEM_RUNTIME_FILES = [
   "src/items/item-data.js",
   "src/items/item-catalog.js",
   "src/items/item-loadout.js",
+  "src/items/item-town-pricing.js",
+  "src/items/item-town-vendor.js",
   "src/items/item-town.js",
   "src/items/item-system.js",
 ];

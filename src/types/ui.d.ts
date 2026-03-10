@@ -351,6 +351,10 @@ interface Window {
   ROUGE_ITEM_DATA: ItemDataApi;
   ROUGE_ITEM_CATALOG: ItemCatalogApi;
   ROUGE_ITEM_LOADOUT: ItemLoadoutApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_TOWN_PRICING: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_TOWN_VENDOR: Record<string, any>;
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
