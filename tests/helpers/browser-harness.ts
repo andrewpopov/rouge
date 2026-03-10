@@ -47,6 +47,7 @@ const RUN_RUNTIME_FILES = [
 const PERSISTENCE_RUNTIME_FILES = [
   "src/state/save-migrations.js",
   "src/state/profile-migrations.js",
+  "src/state/persistence-core.js",
   "src/state/persistence.js",
 ];
 
