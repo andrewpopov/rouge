@@ -46,61 +46,206 @@
     return runtimeWindow.ROUGE_WORLD_NODE_VARIANTS;
   }
 
-  function resolveEventFollowUp(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveEventFollowUp(run, actNumber);
+  function buildNodeReward(run, zone, definition, variant, choiceKind, contextLines) {
+    return {
+      zoneId: zone.id,
+      zoneTitle: zone.title,
+      kind: zone.kind,
+      title: variant.title || definition.title,
+      lines: [
+        definition.summary,
+        ...contextLines,
+        variant.summary,
+        `${zone.title} is now clear.`,
+      ],
+      grants: { ...definition.grants, ...(variant.grants || {}) },
+      choices: variant.choices.map((choiceDefinition) => buildChoice(choiceKind, choiceDefinition)),
+      encounterNumber: 1,
+      clearsZone: true,
+      endsAct: false,
+      endsRun: false,
+      heroLifeAfterFight: run.hero.currentLife,
+      mercenaryLifeAfterFight: run.mercenary.currentLife,
+    };
   }
 
-  function resolveOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveOpportunityVariant(run, actNumber);
-  }
-
-  function resolveCrossroadOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveCrossroadOpportunityVariant(run, actNumber);
-  }
-
-  function resolveShrineOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveShrineOpportunityVariant(run, actNumber);
-  }
-
-  function resolveReserveOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveReserveOpportunityVariant(run, actNumber);
-  }
-
-  function resolveRelayOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveRelayOpportunityVariant(run, actNumber);
-  }
-
-  function resolveCulminationOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveCulminationOpportunityVariant(run, actNumber);
-  }
-
-  function resolveLegacyOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveLegacyOpportunityVariant(run, actNumber);
-  }
-
-  function resolveReckoningOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveReckoningOpportunityVariant(run, actNumber);
-  }
-
-  function resolveRecoveryOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveRecoveryOpportunityVariant(run, actNumber);
-  }
-
-  function resolveAccordOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveAccordOpportunityVariant(run, actNumber);
-  }
-
-  function resolveCovenantOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveCovenantOpportunityVariant(run, actNumber);
-  }
-
-  function resolveDetourOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveDetourOpportunityVariant(run, actNumber);
-  }
-
-  function resolveEscalationOpportunityVariant(run, actNumber) {
-    return getWorldNodeVariantsApi().resolveEscalationOpportunityVariant(run, actNumber);
-  }
+  const opportunityResolvers = {
+    shrine_opportunity(run, actNumber) {
+      const { shrineOpportunityDefinition, shrineRecord, variant } =
+        getWorldNodeVariantsApi().resolveShrineOpportunityVariant(run, actNumber);
+      return {
+        definition: shrineOpportunityDefinition,
+        variant,
+        contextLines: [`Earlier shrine result: ${shrineRecord.outcomeTitle}.`],
+      };
+    },
+    crossroad_opportunity(run, actNumber) {
+      const { crossroadOpportunityDefinition, questRecord, shrineRecord, variant } =
+        getWorldNodeVariantsApi().resolveCrossroadOpportunityVariant(run, actNumber);
+      return {
+        definition: crossroadOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier shrine result: ${shrineRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    reserve_opportunity(run, actNumber) {
+      const { reserveOpportunityDefinition, opportunityRecord, shrineOpportunityRecord, crossroadOpportunityRecord, variant } =
+        getWorldNodeVariantsApi().resolveReserveOpportunityVariant(run, actNumber);
+      return {
+        definition: reserveOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier route lane: ${opportunityRecord.outcomeTitle}.`,
+          `Earlier shrine lane: ${shrineOpportunityRecord.outcomeTitle}.`,
+          `Earlier crossroad: ${crossroadOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    relay_opportunity(run, actNumber) {
+      const { relayOpportunityDefinition, reserveOpportunityRecord, variant } =
+        getWorldNodeVariantsApi().resolveRelayOpportunityVariant(run, actNumber);
+      return {
+        definition: relayOpportunityDefinition,
+        variant,
+        contextLines: [`Earlier reserve lane: ${reserveOpportunityRecord.outcomeTitle}.`],
+      };
+    },
+    culmination_opportunity(run, actNumber) {
+      const { culminationOpportunityDefinition, questRecord, relayOpportunityRecord, variant } =
+        getWorldNodeVariantsApi().resolveCulminationOpportunityVariant(run, actNumber);
+      return {
+        definition: culminationOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier relay lane: ${relayOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    legacy_opportunity(run, actNumber) {
+      const { legacyOpportunityDefinition, questRecord, culminationOpportunityRecord, variant } =
+        getWorldNodeVariantsApi().resolveLegacyOpportunityVariant(run, actNumber);
+      return {
+        definition: legacyOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    reckoning_opportunity(run, actNumber) {
+      const { reckoningOpportunityDefinition, questRecord, reserveOpportunityRecord, culminationOpportunityRecord, variant } =
+        getWorldNodeVariantsApi().resolveReckoningOpportunityVariant(run, actNumber);
+      return {
+        definition: reckoningOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier reserve lane: ${reserveOpportunityRecord.outcomeTitle}.`,
+          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    recovery_opportunity(run, actNumber) {
+      const { recoveryOpportunityDefinition, questRecord, shrineOpportunityRecord, culminationOpportunityRecord, variant } =
+        getWorldNodeVariantsApi().resolveRecoveryOpportunityVariant(run, actNumber);
+      return {
+        definition: recoveryOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier shrine lane: ${shrineOpportunityRecord.outcomeTitle}.`,
+          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    accord_opportunity(run, actNumber) {
+      const {
+        accordOpportunityDefinition,
+        questRecord,
+        shrineOpportunityRecord,
+        crossroadOpportunityRecord,
+        culminationOpportunityRecord,
+        variant,
+      } = getWorldNodeVariantsApi().resolveAccordOpportunityVariant(run, actNumber);
+      return {
+        definition: accordOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier shrine lane: ${shrineOpportunityRecord.outcomeTitle}.`,
+          `Earlier crossroad: ${crossroadOpportunityRecord.outcomeTitle}.`,
+          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    covenant_opportunity(run, actNumber) {
+      const {
+        covenantOpportunityDefinition,
+        questRecord,
+        legacyOpportunityRecord,
+        reckoningOpportunityRecord,
+        recoveryOpportunityRecord,
+        accordOpportunityRecord,
+        variant,
+      } = getWorldNodeVariantsApi().resolveCovenantOpportunityVariant(run, actNumber);
+      return {
+        definition: covenantOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier legacy lane: ${legacyOpportunityRecord.outcomeTitle}.`,
+          `Earlier reckoning lane: ${reckoningOpportunityRecord.outcomeTitle}.`,
+          `Earlier recovery lane: ${recoveryOpportunityRecord.outcomeTitle}.`,
+          `Earlier accord lane: ${accordOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    detour_opportunity(run, actNumber) {
+      const {
+        accordOpportunityRecord,
+        covenantOpportunityRecord,
+        detourOpportunityDefinition,
+        questRecord,
+        recoveryOpportunityRecord,
+        variant,
+      } = getWorldNodeVariantsApi().resolveDetourOpportunityVariant(run, actNumber);
+      return {
+        definition: detourOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier recovery lane: ${recoveryOpportunityRecord.outcomeTitle}.`,
+          `Earlier accord lane: ${accordOpportunityRecord.outcomeTitle}.`,
+          `Earlier covenant lane: ${covenantOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+    escalation_opportunity(run, actNumber) {
+      const {
+        covenantOpportunityRecord,
+        escalationOpportunityDefinition,
+        legacyOpportunityRecord,
+        questRecord,
+        reckoningOpportunityRecord,
+        variant,
+      } = getWorldNodeVariantsApi().resolveEscalationOpportunityVariant(run, actNumber);
+      return {
+        definition: escalationOpportunityDefinition,
+        variant,
+        contextLines: [
+          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+          `Earlier legacy lane: ${legacyOpportunityRecord.outcomeTitle}.`,
+          `Earlier reckoning lane: ${reckoningOpportunityRecord.outcomeTitle}.`,
+          `Earlier covenant lane: ${covenantOpportunityRecord.outcomeTitle}.`,
+        ],
+      };
+    },
+  };
 
   function buildZoneReward({ run, zone }) {
     const actNumber = zone?.actNumber || run?.actNumber || 1;
@@ -152,395 +297,25 @@
     }
 
     if (zone.kind === "event") {
-      const { eventDefinition, questRecord, followUp } = resolveEventFollowUp(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: followUp.title || eventDefinition.title,
-        lines: [
-          eventDefinition.summary,
-          `Earlier quest result: ${questRecord.outcomeTitle}.`,
-          followUp.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...eventDefinition.grants, ...(followUp.grants || {}) },
-        choices: followUp.choices.map((choiceDefinition) => buildChoice("event", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
+      const { eventDefinition, questRecord, followUp } = getWorldNodeVariantsApi().resolveEventFollowUp(run, actNumber);
+      return buildNodeReward(run, zone, eventDefinition, followUp, "event", [
+        `Earlier quest result: ${questRecord.outcomeTitle}.`,
+      ]);
     }
 
-    if (zone.kind === "opportunity" && zone.nodeType === "shrine_opportunity") {
-      const { shrineOpportunityDefinition, shrineRecord, variant } = resolveShrineOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || shrineOpportunityDefinition.title,
-        lines: [
-          shrineOpportunityDefinition.summary,
-          `Earlier shrine result: ${shrineRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...shrineOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
+    if (zone.kind === "opportunity") {
+      const resolver = opportunityResolvers[zone.nodeType];
+      if (resolver) {
+        const { definition, variant, contextLines } = resolver(run, actNumber);
+        return buildNodeReward(run, zone, definition, variant, "opportunity", contextLines);
+      }
     }
 
-    if (zone.kind === "opportunity" && zone.nodeType === "crossroad_opportunity") {
-      const { crossroadOpportunityDefinition, questRecord, shrineRecord, variant } = resolveCrossroadOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || crossroadOpportunityDefinition.title,
-        lines: [
-          crossroadOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier shrine result: ${shrineRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...crossroadOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "reserve_opportunity") {
-      const { reserveOpportunityDefinition, opportunityRecord, shrineOpportunityRecord, crossroadOpportunityRecord, variant } =
-        resolveReserveOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || reserveOpportunityDefinition.title,
-        lines: [
-          reserveOpportunityDefinition.summary,
-          `Earlier route lane: ${opportunityRecord.outcomeTitle}.`,
-          `Earlier shrine lane: ${shrineOpportunityRecord.outcomeTitle}.`,
-          `Earlier crossroad: ${crossroadOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...reserveOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "relay_opportunity") {
-      const { relayOpportunityDefinition, reserveOpportunityRecord, variant } = resolveRelayOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || relayOpportunityDefinition.title,
-        lines: [
-          relayOpportunityDefinition.summary,
-          `Earlier reserve lane: ${reserveOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...relayOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "culmination_opportunity") {
-      const { culminationOpportunityDefinition, questRecord, relayOpportunityRecord, variant } = resolveCulminationOpportunityVariant(
-        run,
-        actNumber
-      );
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || culminationOpportunityDefinition.title,
-        lines: [
-          culminationOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier relay lane: ${relayOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...culminationOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "legacy_opportunity") {
-      const { legacyOpportunityDefinition, questRecord, culminationOpportunityRecord, variant } = resolveLegacyOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || legacyOpportunityDefinition.title,
-        lines: [
-          legacyOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...legacyOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "reckoning_opportunity") {
-      const { reckoningOpportunityDefinition, questRecord, reserveOpportunityRecord, culminationOpportunityRecord, variant } =
-        resolveReckoningOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || reckoningOpportunityDefinition.title,
-        lines: [
-          reckoningOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier reserve lane: ${reserveOpportunityRecord.outcomeTitle}.`,
-          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...reckoningOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "recovery_opportunity") {
-      const { recoveryOpportunityDefinition, questRecord, shrineOpportunityRecord, culminationOpportunityRecord, variant } =
-        resolveRecoveryOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || recoveryOpportunityDefinition.title,
-        lines: [
-          recoveryOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier shrine lane: ${shrineOpportunityRecord.outcomeTitle}.`,
-          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...recoveryOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "accord_opportunity") {
-      const {
-        accordOpportunityDefinition,
-        questRecord,
-        shrineOpportunityRecord,
-        crossroadOpportunityRecord,
-        culminationOpportunityRecord,
-        variant,
-      } = resolveAccordOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || accordOpportunityDefinition.title,
-        lines: [
-          accordOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier shrine lane: ${shrineOpportunityRecord.outcomeTitle}.`,
-          `Earlier crossroad: ${crossroadOpportunityRecord.outcomeTitle}.`,
-          `Earlier culmination lane: ${culminationOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...accordOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "covenant_opportunity") {
-      const {
-        covenantOpportunityDefinition,
-        questRecord,
-        legacyOpportunityRecord,
-        reckoningOpportunityRecord,
-        recoveryOpportunityRecord,
-        accordOpportunityRecord,
-        variant,
-      } = resolveCovenantOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || covenantOpportunityDefinition.title,
-        lines: [
-          covenantOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier legacy lane: ${legacyOpportunityRecord.outcomeTitle}.`,
-          `Earlier reckoning lane: ${reckoningOpportunityRecord.outcomeTitle}.`,
-          `Earlier recovery lane: ${recoveryOpportunityRecord.outcomeTitle}.`,
-          `Earlier accord lane: ${accordOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...covenantOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "detour_opportunity") {
-      const {
-        accordOpportunityRecord,
-        covenantOpportunityRecord,
-        detourOpportunityDefinition,
-        questRecord,
-        recoveryOpportunityRecord,
-        variant,
-      } = resolveDetourOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || detourOpportunityDefinition.title,
-        lines: [
-          detourOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier recovery lane: ${recoveryOpportunityRecord.outcomeTitle}.`,
-          `Earlier accord lane: ${accordOpportunityRecord.outcomeTitle}.`,
-          `Earlier covenant lane: ${covenantOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...detourOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    if (zone.kind === "opportunity" && zone.nodeType === "escalation_opportunity") {
-      const {
-        covenantOpportunityRecord,
-        escalationOpportunityDefinition,
-        legacyOpportunityRecord,
-        questRecord,
-        reckoningOpportunityRecord,
-        variant,
-      } = resolveEscalationOpportunityVariant(run, actNumber);
-      return {
-        zoneId: zone.id,
-        zoneTitle: zone.title,
-        kind: zone.kind,
-        title: variant.title || escalationOpportunityDefinition.title,
-        lines: [
-          escalationOpportunityDefinition.summary,
-          `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-          `Earlier legacy lane: ${legacyOpportunityRecord.outcomeTitle}.`,
-          `Earlier reckoning lane: ${reckoningOpportunityRecord.outcomeTitle}.`,
-          `Earlier covenant lane: ${covenantOpportunityRecord.outcomeTitle}.`,
-          variant.summary,
-          `${zone.title} is now clear.`,
-        ],
-        grants: { ...escalationOpportunityDefinition.grants, ...(variant.grants || {}) },
-        choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-        encounterNumber: 1,
-        clearsZone: true,
-        endsAct: false,
-        endsRun: false,
-        heroLifeAfterFight: run.hero.currentLife,
-        mercenaryLifeAfterFight: run.mercenary.currentLife,
-      };
-    }
-
-    const { opportunityDefinition, questRecord, variant } = resolveOpportunityVariant(run, actNumber);
-    return {
-      zoneId: zone.id,
-      zoneTitle: zone.title,
-      kind: zone.kind,
-      title: variant.title || opportunityDefinition.title,
-      lines: [
-        opportunityDefinition.summary,
-        `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-        variant.summary,
-        `${zone.title} is now clear.`,
-      ],
-      grants: { ...opportunityDefinition.grants, ...(variant.grants || {}) },
-      choices: variant.choices.map((choiceDefinition) => buildChoice("opportunity", choiceDefinition)),
-      encounterNumber: 1,
-      clearsZone: true,
-      endsAct: false,
-      endsRun: false,
-      heroLifeAfterFight: run.hero.currentLife,
-      mercenaryLifeAfterFight: run.mercenary.currentLife,
-    };
+    const { opportunityDefinition, questRecord, variant } =
+      getWorldNodeVariantsApi().resolveOpportunityVariant(run, actNumber);
+    return buildNodeReward(run, zone, opportunityDefinition, variant, "opportunity", [
+      `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
+    ]);
   }
 
   function applyChoice(run, reward, choice) {

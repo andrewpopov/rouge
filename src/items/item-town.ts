@@ -57,43 +57,37 @@
     return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
   }
 
-  function getAccountEconomyFeatures(profile) {
+  const ECONOMY_FEATURE_MAP: [string, string][] = [
+    ["advancedVendorStock", "advanced_vendor_stock"],
+    ["runewordCodex", "runeword_codex"],
+    ["economyLedger", "economy_ledger"],
+    ["salvageTithes", "salvage_tithes"],
+    ["artisanStock", "artisan_stock"],
+    ["brokerageCharter", "brokerage_charter"],
+    ["treasuryExchange", "treasury_exchange"],
+    ["chronicleExchange", "chronicle_exchange"],
+    ["paragonExchange", "paragon_exchange"],
+    ["merchantPrincipate", "merchant_principate"],
+    ["sovereignExchange", "sovereign_exchange"],
+    ["ascendantExchange", "ascendant_exchange"],
+    ["tradeHegemony", "trade_hegemony"],
+    ["imperialExchange", "imperial_exchange"],
+    ["mythicExchange", "mythic_exchange"],
+  ];
+
+  function getAccountEconomyFeatures(profile): AccountEconomyFeatures {
     const focusedTreeId = getFocusedAccountTreeId(profile);
-    const salvageTithes = hasTownFeature(profile, "salvage_tithes");
-    const economyUnlocked =
-      hasTownFeature(profile, "advanced_vendor_stock") ||
-      hasTownFeature(profile, "runeword_codex") ||
-      hasTownFeature(profile, "economy_ledger") ||
-      hasTownFeature(profile, "brokerage_charter") ||
-      hasTownFeature(profile, "artisan_stock") ||
-      hasTownFeature(profile, "treasury_exchange") ||
-      hasTownFeature(profile, "chronicle_exchange") ||
-      hasTownFeature(profile, "paragon_exchange") ||
-      hasTownFeature(profile, "merchant_principate") ||
-      hasTownFeature(profile, "sovereign_exchange") ||
-      hasTownFeature(profile, "ascendant_exchange") ||
-      hasTownFeature(profile, "trade_hegemony") ||
-      hasTownFeature(profile, "imperial_exchange") ||
-      hasTownFeature(profile, "mythic_exchange") ||
-      salvageTithes;
-    return {
-      advancedVendorStock: hasTownFeature(profile, "advanced_vendor_stock"),
-      runewordCodex: hasTownFeature(profile, "runeword_codex"),
-      economyLedger: hasTownFeature(profile, "economy_ledger"),
-      salvageTithes,
-      artisanStock: hasTownFeature(profile, "artisan_stock"),
-      brokerageCharter: hasTownFeature(profile, "brokerage_charter"),
-      treasuryExchange: hasTownFeature(profile, "treasury_exchange"),
-      chronicleExchange: hasTownFeature(profile, "chronicle_exchange"),
-      paragonExchange: hasTownFeature(profile, "paragon_exchange"),
-      merchantPrincipate: hasTownFeature(profile, "merchant_principate"),
-      sovereignExchange: hasTownFeature(profile, "sovereign_exchange"),
-      ascendantExchange: hasTownFeature(profile, "ascendant_exchange"),
-      tradeHegemony: hasTownFeature(profile, "trade_hegemony"),
-      imperialExchange: hasTownFeature(profile, "imperial_exchange"),
-      mythicExchange: hasTownFeature(profile, "mythic_exchange"),
-      economyFocus: focusedTreeId === "economy" && economyUnlocked,
-    };
+    const features = {} as AccountEconomyFeatures;
+    let economyUnlocked = false;
+    for (const [key, featureId] of ECONOMY_FEATURE_MAP) {
+      const unlocked = hasTownFeature(profile, featureId);
+      features[key] = unlocked;
+      if (unlocked) {
+        economyUnlocked = true;
+      }
+    }
+    features.economyFocus = focusedTreeId === "economy" && economyUnlocked;
+    return features;
   }
 
   function getPlannedRunewordId(profile, slot, content = null) {
@@ -272,92 +266,60 @@
     };
   }
 
+  const BUY_DISCOUNT_RATES: [string, number][] = [
+    ["economyLedger", 0.9],
+    ["salvageTithes", 0.92],
+    ["artisanStock", 0.96],
+    ["brokerageCharter", 0.95],
+    ["treasuryExchange", 0.93],
+    ["merchantPrincipate", 0.94],
+    ["sovereignExchange", 0.97],
+    ["ascendantExchange", 0.95],
+    ["tradeHegemony", 0.92],
+    ["imperialExchange", 0.96],
+    ["mythicExchange", 0.94],
+    ["economyFocus", 0.97],
+  ];
+
+  const SELL_BONUS_RATES: [string, number][] = [
+    ["economyLedger", 1.15],
+    ["salvageTithes", 1.12],
+    ["artisanStock", 1.04],
+    ["brokerageCharter", 1.06],
+    ["treasuryExchange", 1.08],
+    ["merchantPrincipate", 1.08],
+    ["sovereignExchange", 1.05],
+    ["ascendantExchange", 1.06],
+    ["tradeHegemony", 1.08],
+    ["imperialExchange", 1.05],
+    ["mythicExchange", 1.06],
+    ["economyFocus", 1.05],
+  ];
+
+  function applyFeatureRates(baseValue: number, features: AccountEconomyFeatures, rates: [string, number][]): number {
+    let result = baseValue;
+    for (const [key, rate] of rates) {
+      if (features[key]) {
+        result *= rate;
+      }
+    }
+    return result;
+  }
+
   function getEntryBuyPrice(entry, content, profile = null) {
     const features = getAccountEconomyFeatures(profile);
     if (entry.kind === "rune") {
-      return Math.max(
-        10,
-        Math.floor(
-          getRuneValue(entry.runeId, content) *
-            1.75 *
-            (features.economyLedger ? 0.9 : 1) *
-            (features.salvageTithes ? 0.92 : 1) *
-            (features.artisanStock ? 0.96 : 1) *
-            (features.brokerageCharter ? 0.95 : 1) *
-            (features.treasuryExchange ? 0.93 : 1) *
-            (features.merchantPrincipate ? 0.94 : 1) *
-            (features.sovereignExchange ? 0.97 : 1) *
-            (features.ascendantExchange ? 0.95 : 1) *
-            (features.tradeHegemony ? 0.92 : 1) *
-            (features.imperialExchange ? 0.96 : 1) *
-            (features.mythicExchange ? 0.94 : 1) *
-            (features.economyFocus ? 0.97 : 1)
-        )
-      );
+      return Math.max(10, Math.floor(applyFeatureRates(getRuneValue(entry.runeId, content) * 1.75, features, BUY_DISCOUNT_RATES)));
     }
-    return Math.max(
-      14,
-      Math.floor(
-        getEquipmentValue(entry.equipment, content) *
-          1.6 *
-          (features.economyLedger ? 0.9 : 1) *
-          (features.salvageTithes ? 0.92 : 1) *
-          (features.artisanStock ? 0.96 : 1) *
-          (features.brokerageCharter ? 0.95 : 1) *
-          (features.treasuryExchange ? 0.93 : 1) *
-          (features.merchantPrincipate ? 0.94 : 1) *
-          (features.sovereignExchange ? 0.97 : 1) *
-          (features.ascendantExchange ? 0.95 : 1) *
-          (features.tradeHegemony ? 0.92 : 1) *
-          (features.imperialExchange ? 0.96 : 1) *
-          (features.mythicExchange ? 0.94 : 1) *
-          (features.economyFocus ? 0.97 : 1)
-      )
-    );
+    return Math.max(14, Math.floor(applyFeatureRates(getEquipmentValue(entry.equipment, content) * 1.6, features, BUY_DISCOUNT_RATES)));
   }
 
   function getEntrySellPrice(entry, content, profile = null) {
     const features = getAccountEconomyFeatures(profile);
     if (entry.kind === "rune") {
-      return Math.max(
-        4,
-        Math.floor(
-          getRuneValue(entry.runeId, content) *
-            0.75 *
-            (features.economyLedger ? 1.15 : 1) *
-            (features.salvageTithes ? 1.12 : 1) *
-            (features.artisanStock ? 1.04 : 1) *
-            (features.brokerageCharter ? 1.06 : 1) *
-            (features.treasuryExchange ? 1.08 : 1) *
-            (features.merchantPrincipate ? 1.08 : 1) *
-            (features.sovereignExchange ? 1.05 : 1) *
-            (features.ascendantExchange ? 1.06 : 1) *
-            (features.tradeHegemony ? 1.08 : 1) *
-            (features.imperialExchange ? 1.05 : 1) *
-            (features.mythicExchange ? 1.06 : 1) *
-            (features.economyFocus ? 1.05 : 1)
-        )
-      );
+      return Math.max(4, Math.floor(applyFeatureRates(getRuneValue(entry.runeId, content) * 0.75, features, SELL_BONUS_RATES)));
     }
-    return Math.max(
-      6,
-      Math.floor(
-        getEquipmentValue(entry.equipment, content) *
-          0.65 *
-          (features.economyLedger ? 1.15 : 1) *
-          (features.salvageTithes ? 1.12 : 1) *
-          (features.artisanStock ? 1.04 : 1) *
-          (features.brokerageCharter ? 1.06 : 1) *
-          (features.treasuryExchange ? 1.08 : 1) *
-          (features.merchantPrincipate ? 1.08 : 1) *
-          (features.sovereignExchange ? 1.05 : 1) *
-          (features.ascendantExchange ? 1.06 : 1) *
-          (features.tradeHegemony ? 1.08 : 1) *
-          (features.imperialExchange ? 1.05 : 1) *
-          (features.mythicExchange ? 1.06 : 1) *
-          (features.economyFocus ? 1.05 : 1)
-      )
-    );
+    return Math.max(6, Math.floor(applyFeatureRates(getEquipmentValue(entry.equipment, content) * 0.65, features, SELL_BONUS_RATES)));
   }
 
   function sellCarriedEntry(run, entryId, content, profile = null) {
@@ -1174,41 +1136,24 @@
     const cost = getVendorRefreshCost(run, profile, content);
     const affordable = run.gold >= cost;
     const previewLines = [`Refresh fee ${cost} gold.`, `Current refresh count ${run.town.vendor.refreshCount}.`];
-    if (features.advancedVendorStock) {
-      previewLines.push("Advanced vendor stock is widening equipment offers.");
-    }
-    if (features.runewordCodex) {
-      previewLines.push("Runeword Codex is biasing rune stock toward unfinished recipes.");
-    }
-    if (features.economyLedger) {
-      previewLines.push("Economy Ledger discount is active on town trading.");
-    }
-    if (features.chronicleExchange) {
-      previewLines.push("Chronicle Exchange is turning archive review into live trade leverage for planning and stash pressure.");
-    }
-    if (features.merchantPrincipate) {
-      previewLines.push("Merchant Principate is widening the late market toward sovereign-tier stock and pricing leverage.");
-    }
-    if (features.sovereignExchange) {
-      previewLines.push("Sovereign Exchange is binding deeper archive retention to premium late-market planning pressure.");
-    }
-    if (features.treasuryExchange) {
-      previewLines.push("Treasury Exchange is opening premium late-act leverage around stash consignment, socket work, and vendor planning.");
-    }
-    if (features.paragonExchange) {
-      previewLines.push("Paragon Exchange is binding mastery doctrine to trade leverage for premium late-act replacements.");
-    }
-    if (features.ascendantExchange) {
-      previewLines.push("Ascendant Exchange is steering the strongest Act V offers toward staged premium replacements.");
-    }
-    if (features.tradeHegemony) {
-      previewLines.push("Trade Hegemony is opening a third-wave late-market lane around premium pricing, rune routing, and stash planning.");
-    }
-    if (features.imperialExchange) {
-      previewLines.push("Imperial Exchange is binding imperial archive depth to the strongest staged market pressure.");
-    }
-    if (features.mythicExchange) {
-      previewLines.push("Mythic Exchange is steering the strongest Act V offers toward mythic staged replacements.");
+    const VENDOR_FEATURE_DESCRIPTIONS: [string, string][] = [
+      ["advancedVendorStock", "Advanced vendor stock is widening equipment offers."],
+      ["runewordCodex", "Runeword Codex is biasing rune stock toward unfinished recipes."],
+      ["economyLedger", "Economy Ledger discount is active on town trading."],
+      ["chronicleExchange", "Chronicle Exchange is turning archive review into live trade leverage for planning and stash pressure."],
+      ["merchantPrincipate", "Merchant Principate is widening the late market toward sovereign-tier stock and pricing leverage."],
+      ["sovereignExchange", "Sovereign Exchange is binding deeper archive retention to premium late-market planning pressure."],
+      ["treasuryExchange", "Treasury Exchange is opening premium late-act leverage around stash consignment, socket work, and vendor planning."],
+      ["paragonExchange", "Paragon Exchange is binding mastery doctrine to trade leverage for premium late-act replacements."],
+      ["ascendantExchange", "Ascendant Exchange is steering the strongest Act V offers toward staged premium replacements."],
+      ["tradeHegemony", "Trade Hegemony is opening a third-wave late-market lane around premium pricing, rune routing, and stash planning."],
+      ["imperialExchange", "Imperial Exchange is binding imperial archive depth to the strongest staged market pressure."],
+      ["mythicExchange", "Mythic Exchange is steering the strongest Act V offers toward mythic staged replacements."],
+    ];
+    for (const [key, description] of VENDOR_FEATURE_DESCRIPTIONS) {
+      if (features[key]) {
+        previewLines.push(description);
+      }
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content)
       .map((runeword) => runeword?.name)
@@ -1604,21 +1549,9 @@
     const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.length : 0;
     const vendorEntries = Array.isArray(run.town?.vendor?.stock) ? run.town.vendor.stock.length : 0;
     const features = getAccountEconomyFeatures(profile);
-    const activeEconomyFeatures = [
-      features.advancedVendorStock ? "advanced vendor stock" : "",
-      features.runewordCodex ? "runeword codex" : "",
-      features.economyLedger ? "economy ledger" : "",
-      features.salvageTithes ? "salvage tithes" : "",
-      features.artisanStock ? "artisan stock" : "",
-      features.brokerageCharter ? "brokerage charter" : "",
-      features.treasuryExchange ? "treasury exchange" : "",
-      features.merchantPrincipate ? "merchant principate" : "",
-      features.sovereignExchange ? "sovereign exchange" : "",
-      features.ascendantExchange ? "ascendant exchange" : "",
-      features.tradeHegemony ? "trade hegemony" : "",
-      features.imperialExchange ? "imperial exchange" : "",
-      features.mythicExchange ? "mythic exchange" : "",
-    ].filter(Boolean);
+    const activeEconomyFeatures = ECONOMY_FEATURE_MAP
+      .filter(([key]) => features[key])
+      .map(([, featureId]) => featureId.replace(/_/g, " "));
 
     const lines = [
       `Carried inventory: ${carriedEquipment} gear, ${carriedRunes} runes.`,
