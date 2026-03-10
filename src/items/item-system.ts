@@ -156,20 +156,22 @@
       toNumber(currentEquipment?.socketsUnlocked, 0),
       Array.isArray(currentEquipment?.insertedRunes) ? currentEquipment.insertedRunes.length : 0
     );
-    const preferredLateSockets =
-      isLateActPivotZone(zone, actNumber) &&
-      (
-        features.artisanStock ||
-        features.brokerageCharter ||
-        features.treasuryExchange ||
-        features.merchantPrincipate ||
-        features.sovereignExchange ||
-        features.ascendantExchange ||
-        features.economyFocus
-      ) &&
-      !planningCharter?.hasReadyBase
-        ? 3
-        : 0;
+    const premiumLateSockets = features.tradeHegemony || features.imperialExchange || features.mythicExchange;
+    const hasLateEconomyPressure =
+      features.artisanStock ||
+      features.brokerageCharter ||
+      features.treasuryExchange ||
+      features.merchantPrincipate ||
+      features.tradeHegemony ||
+      features.sovereignExchange ||
+      features.ascendantExchange ||
+      features.imperialExchange ||
+      features.mythicExchange ||
+      features.economyFocus;
+    let preferredLateSockets = 0;
+    if (isLateActPivotZone(zone, actNumber) && hasLateEconomyPressure && !planningCharter?.hasReadyBase) {
+      preferredLateSockets = premiumLateSockets ? 4 : 3;
+    }
     const preferredSockets = Math.max(
       preservedSockets,
       preferredLateSockets,
@@ -185,16 +187,16 @@
       }
 
       const rightParagonPremium = Number(
-        (features.paragonExchange || features.ascendantExchange) &&
+        (features.paragonExchange || features.ascendantExchange || features.mythicExchange) &&
           isLateActPivotZone(zone, actNumber) &&
-          toNumber(right?.progressionTier, 0) >= Math.max(features.ascendantExchange ? 7 : 6, actNumber + 1) &&
-          toNumber(right?.maxSockets, 0) >= (features.ascendantExchange ? 4 : 3)
+          toNumber(right?.progressionTier, 0) >= Math.max(features.ascendantExchange || features.mythicExchange ? 7 : 6, actNumber + 1) &&
+          toNumber(right?.maxSockets, 0) >= (features.ascendantExchange || features.mythicExchange ? 4 : 3)
       );
       const leftParagonPremium = Number(
-        (features.paragonExchange || features.ascendantExchange) &&
+        (features.paragonExchange || features.ascendantExchange || features.mythicExchange) &&
           isLateActPivotZone(zone, actNumber) &&
-          toNumber(left?.progressionTier, 0) >= Math.max(features.ascendantExchange ? 7 : 6, actNumber + 1) &&
-          toNumber(left?.maxSockets, 0) >= (features.ascendantExchange ? 4 : 3)
+          toNumber(left?.progressionTier, 0) >= Math.max(features.ascendantExchange || features.mythicExchange ? 7 : 6, actNumber + 1) &&
+          toNumber(left?.maxSockets, 0) >= (features.ascendantExchange || features.mythicExchange ? 4 : 3)
       );
       if (rightParagonPremium !== leftParagonPremium) {
         return rightParagonPremium - leftParagonPremium;
@@ -232,7 +234,16 @@
       if (
         plannedRuneword &&
         !planningCharter?.compatibleBaseCount &&
-        (features.runewordCodex || features.treasuryExchange || features.merchantPrincipate || features.sovereignExchange || features.economyFocus)
+        (
+          features.runewordCodex ||
+          features.treasuryExchange ||
+          features.merchantPrincipate ||
+          features.tradeHegemony ||
+          features.sovereignExchange ||
+          features.imperialExchange ||
+          features.mythicExchange ||
+          features.economyFocus
+        )
       ) {
         const plannedItems = sortedItems.filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword));
         return plannedItems[0] || sortedItems[0] || null;
@@ -245,7 +256,16 @@
     const upgradeItems = availableItems.filter((item) => item.progressionTier > currentTier);
     const shouldForcePlanningReplacement =
       plannedRuneword &&
-      (features.runewordCodex || features.treasuryExchange || features.merchantPrincipate || features.sovereignExchange || features.economyFocus) &&
+      (
+        features.runewordCodex ||
+        features.treasuryExchange ||
+        features.merchantPrincipate ||
+        features.tradeHegemony ||
+        features.sovereignExchange ||
+        features.imperialExchange ||
+        features.mythicExchange ||
+        features.economyFocus
+      ) &&
       (!planningCharter?.compatibleBaseCount ||
         (isLateActPivotZone(zone, actNumber) && toNumber(planningCharter?.bestBaseTier, 0) < Math.max(actNumber, currentTier + 1)));
     const planningItems =
@@ -339,8 +359,11 @@
         features.brokerageCharter ||
         features.treasuryExchange ||
         features.merchantPrincipate ||
+        features.tradeHegemony ||
         features.sovereignExchange ||
         features.ascendantExchange ||
+        features.imperialExchange ||
+        features.mythicExchange ||
         features.economyFocus
       )
     ) {
@@ -360,6 +383,15 @@
     }
     if (options.lateActPivot && features.ascendantExchange) {
       previewLines.push("Ascendant Exchange is escalating this into the strongest staged late-act replacement on offer.");
+    }
+    if (options.lateActPivot && features.tradeHegemony) {
+      previewLines.push("Trade Hegemony is widening this into a third-wave market replacement instead of a late sidegrade.");
+    }
+    if (options.lateActPivot && features.imperialExchange) {
+      previewLines.push("Imperial Exchange is binding imperial archive pressure to this premium replacement pivot.");
+    }
+    if (options.lateActPivot && features.mythicExchange) {
+      previewLines.push("Mythic Exchange is escalating this into a mythic four-socket replacement pivot.");
     }
 
     return {

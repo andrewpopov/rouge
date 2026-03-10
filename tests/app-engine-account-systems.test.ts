@@ -359,7 +359,7 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.ok(unlockedFeatureIds.has("war_annals"));
   assert.ok(unlockedFeatureIds.has("paragon_exchange"));
   assert.equal(accountSummary.unlockedMilestoneCount, 18);
-  assert.equal(accountSummary.milestoneCount, 21);
+  assert.equal(accountSummary.milestoneCount, 24);
   assert.equal(accountSummary.focusedTreeId, "archives");
   assert.equal(accountSummary.nextMilestoneId, "sovereign_annals");
   assert.equal(accountSummary.nextMilestoneTitle, "Sovereign Annals");
@@ -373,7 +373,7 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.equal(accountSummary.review.unlockedCapstoneCount, 3);
   assert.equal(accountSummary.review.unlockedConvergenceCount, 3);
   assert.equal(accountSummary.review.nextConvergenceTitle, "Sovereign Exchange");
-  assert.equal(accountSummary.convergences.length, 6);
+  assert.equal(accountSummary.convergences.length, 9);
   assert.equal(accountSummary.convergences.find((entry) => entry.id === "chronicle_exchange")?.status, "unlocked");
   assert.equal(accountSummary.convergences.find((entry) => entry.id === "sovereign_exchange")?.status, "locked");
   assert.equal(accountSummary.archive.highestLoadoutTier, 7);
@@ -437,16 +437,85 @@ test("account progress summary unlocks second-wave milestones and convergences f
   assert.ok(unlockedFeatureIds.has("legendary_annals"));
   assert.ok(unlockedFeatureIds.has("ascendant_exchange"));
   assert.equal(accountSummary.unlockedMilestoneCount, 21);
-  assert.equal(accountSummary.milestoneCount, 21);
+  assert.equal(accountSummary.milestoneCount, 24);
   assert.equal(accountSummary.review.unlockedCapstoneCount, 6);
   assert.equal(accountSummary.review.unlockedConvergenceCount, 6);
-  assert.equal(accountSummary.nextMilestoneId, "");
-  assert.equal(accountSummary.review.nextConvergenceTitle, "");
+  assert.equal(accountSummary.nextMilestoneId, "imperial_annals");
+  assert.equal(accountSummary.nextMilestoneTitle, "Imperial Annals");
+  assert.equal(accountSummary.review.nextConvergenceTitle, "Imperial Exchange");
   assert.equal(accountSummary.runHistoryCapacity, 100);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 6);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 8);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 7);
   assert.equal(accountSummary.convergences.find((entry) => entry.id === "ascendant_exchange")?.status, "unlocked");
+});
+
+test("account progress summary unlocks third-wave milestones and convergences from persisted profile progress", () => {
+  const { persistence } = createHarness();
+  const profile = persistence.createEmptyProfile();
+
+  profile.runHistory = Array.from({ length: 10 }, (_, index) => ({
+    runId: `third_wave_${index}`,
+    classId: "amazon",
+    className: "Amazon",
+    level: 13,
+    actsCleared: 5,
+    bossesDefeated: 2,
+    goldGained: 920,
+    runewordsForged: 1,
+    skillPointsEarned: 3,
+    classPointsEarned: 2,
+    attributePointsEarned: 4,
+    trainingRanksGained: 2,
+    favoredTreeId: "amazon_bow",
+    favoredTreeName: "Bow",
+    unlockedClassSkills: 3,
+    loadoutTier: 8,
+    loadoutSockets: 4,
+    carriedEquipmentCount: 2,
+    carriedRuneCount: 1,
+    stashEntryCount: 3,
+    stashEquipmentCount: 2,
+    stashRuneCount: 1,
+    plannedWeaponRunewordId: "",
+    plannedArmorRunewordId: "",
+    completedPlannedRunewordIds: [],
+    activeRunewordIds: ["steel"],
+    newFeatureIds: [],
+    completedAt: new Date(`2026-03-${String((index % 9) + 1).padStart(2, "0")}T00:00:00.000Z`).toISOString(),
+    outcome: "completed",
+  }));
+  profile.meta.progression.highestLevel = 13;
+  profile.meta.progression.highestActCleared = 5;
+  profile.meta.progression.totalBossesDefeated = 20;
+  profile.meta.progression.totalGoldCollected = 9200;
+  profile.meta.progression.totalRunewordsForged = 10;
+  profile.meta.progression.classesPlayed = ["amazon", "sorceress", "necromancer", "barbarian"];
+  profile.meta.unlocks.bossIds = ["andariel"];
+  profile.meta.unlocks.runewordIds = ["steel"];
+
+  persistence.ensureProfileMeta(profile);
+
+  const accountSummary = persistence.getAccountProgressSummary(profile);
+  const unlockedFeatureIds = new Set(profile.meta.unlocks.townFeatureIds);
+
+  assert.ok(unlockedFeatureIds.has("imperial_annals"));
+  assert.ok(unlockedFeatureIds.has("trade_hegemony"));
+  assert.ok(unlockedFeatureIds.has("mythic_doctrine"));
+  assert.ok(unlockedFeatureIds.has("imperial_exchange"));
+  assert.ok(unlockedFeatureIds.has("immortal_annals"));
+  assert.ok(unlockedFeatureIds.has("mythic_exchange"));
+  assert.equal(accountSummary.unlockedMilestoneCount, 24);
+  assert.equal(accountSummary.milestoneCount, 24);
+  assert.equal(accountSummary.review.unlockedCapstoneCount, 9);
+  assert.equal(accountSummary.review.unlockedConvergenceCount, 9);
+  assert.equal(accountSummary.nextMilestoneId, "");
+  assert.equal(accountSummary.review.nextConvergenceTitle, "");
+  assert.equal(accountSummary.runHistoryCapacity, 125);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 7);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 9);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 8);
+  assert.equal(accountSummary.convergences.find((entry) => entry.id === "mythic_exchange")?.status, "unlocked");
 });
 
 test("profile migrations backfill richer archived run-history fields for older entries", () => {
@@ -1273,6 +1342,20 @@ test("account progression trees drive archive retention, economy focus, and mast
     ],
     "economy"
   );
+  const hegemonyEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "merchant_principate",
+      "trade_hegemony",
+    ],
+    "economy"
+  );
   const sovereignEconomyState = buildState(
     [
       "advanced_vendor_stock",
@@ -1284,6 +1367,21 @@ test("account progression trees drive archive retention, economy focus, and mast
       "treasury_exchange",
       "merchant_principate",
       "sovereign_exchange",
+    ],
+    "economy"
+  );
+  const imperialEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "merchant_principate",
+      "trade_hegemony",
+      "imperial_exchange",
     ],
     "economy"
   );
@@ -1301,14 +1399,32 @@ test("account progression trees drive archive retention, economy focus, and mast
     ],
     "economy"
   );
+  const mythicEconomyState = buildState(
+    [
+      "advanced_vendor_stock",
+      "runeword_codex",
+      "economy_ledger",
+      "salvage_tithes",
+      "artisan_stock",
+      "brokerage_charter",
+      "treasury_exchange",
+      "merchant_principate",
+      "trade_hegemony",
+      "mythic_exchange",
+    ],
+    "economy"
+  );
   prepareLateActState(lateEconomyBaselineState, true);
   prepareLateActState(lateEconomyArtisanState, true);
   prepareLateActState(lateEconomyBrokerageState, true);
   prepareLateActState(lateEconomyTreasuryState, true);
   prepareLateActState(chronicleEconomyState, true);
   prepareLateActState(merchantEconomyState, true);
+  prepareLateActState(hegemonyEconomyState, true);
   prepareLateActState(sovereignEconomyState, true);
+  prepareLateActState(imperialEconomyState, true);
   prepareLateActState(ascendantEconomyState, true);
+  prepareLateActState(mythicEconomyState, true);
 
   const baselineLateSocketOffers = lateEconomyBaselineState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
@@ -1334,14 +1450,26 @@ test("account progression trees drive archive retention, economy focus, and mast
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
     .filter((item) => (item?.maxSockets || 0) >= 3);
+  const hegemonyLateSocketOffers = hegemonyEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 4);
   const sovereignLateSocketOffers = sovereignEconomyState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
     .filter((item) => (item?.maxSockets || 0) >= 3);
+  const imperialLateSocketOffers = imperialEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 4);
   const ascendantLateSocketOffers = ascendantEconomyState.run.town.vendor.stock
     .filter((entry) => entry.kind === "equipment")
     .map((entry) => content.itemCatalog[entry.equipment.itemId])
     .filter((item) => (item?.maxSockets || 0) >= 3);
+  const mythicLateSocketOffers = mythicEconomyState.run.town.vendor.stock
+    .filter((entry) => entry.kind === "equipment")
+    .map((entry) => content.itemCatalog[entry.equipment.itemId])
+    .filter((item) => (item?.maxSockets || 0) >= 4);
   const baselineLateRefreshAction = itemSystem
     .listTownActions(lateEconomyBaselineState.run, lateEconomyBaselineState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
@@ -1360,11 +1488,20 @@ test("account progression trees drive archive retention, economy focus, and mast
   const merchantLateRefreshAction = itemSystem
     .listTownActions(merchantEconomyState.run, merchantEconomyState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
+  const hegemonyLateRefreshAction = itemSystem
+    .listTownActions(hegemonyEconomyState.run, hegemonyEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
   const sovereignLateRefreshAction = itemSystem
     .listTownActions(sovereignEconomyState.run, sovereignEconomyState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
+  const imperialLateRefreshAction = itemSystem
+    .listTownActions(imperialEconomyState.run, imperialEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
   const ascendantLateRefreshAction = itemSystem
     .listTownActions(ascendantEconomyState.run, ascendantEconomyState.profile, content)
+    .find((action) => action.id === "vendor_refresh_stock");
+  const mythicLateRefreshAction = itemSystem
+    .listTownActions(mythicEconomyState.run, mythicEconomyState.profile, content)
     .find((action) => action.id === "vendor_refresh_stock");
 
   assert.ok(baselineLateRefreshAction);
@@ -1373,34 +1510,49 @@ test("account progression trees drive archive retention, economy focus, and mast
   assert.ok(treasuryLateRefreshAction);
   assert.ok(chronicleLateRefreshAction);
   assert.ok(merchantLateRefreshAction);
+  assert.ok(hegemonyLateRefreshAction);
   assert.ok(sovereignLateRefreshAction);
+  assert.ok(imperialLateRefreshAction);
   assert.ok(ascendantLateRefreshAction);
+  assert.ok(mythicLateRefreshAction);
   assert.ok(artisanLateRefreshAction.cost < baselineLateRefreshAction.cost);
   assert.ok(brokerageLateRefreshAction.cost < artisanLateRefreshAction.cost);
   assert.ok(treasuryLateRefreshAction.cost < brokerageLateRefreshAction.cost);
   assert.ok(chronicleLateRefreshAction.cost <= treasuryLateRefreshAction.cost);
   assert.ok(merchantLateRefreshAction.cost < treasuryLateRefreshAction.cost);
+  assert.ok(hegemonyLateRefreshAction.cost <= merchantLateRefreshAction.cost);
   assert.ok(sovereignLateRefreshAction.cost <= merchantLateRefreshAction.cost);
+  assert.ok(imperialLateRefreshAction.cost <= sovereignLateRefreshAction.cost);
   assert.ok(ascendantLateRefreshAction.cost <= sovereignLateRefreshAction.cost);
+  assert.ok(mythicLateRefreshAction.cost <= ascendantLateRefreshAction.cost);
   assert.ok(artisanLateSocketOffers.length >= baselineLateSocketOffers.length);
   assert.ok(brokerageLateSocketOffers.length >= artisanLateSocketOffers.length);
   assert.ok(treasuryLateSocketOffers.length >= brokerageLateSocketOffers.length);
   assert.ok(chronicleLateSocketOffers.length >= treasuryLateSocketOffers.length);
   assert.ok(merchantLateSocketOffers.length >= treasuryLateSocketOffers.length);
+  assert.ok(hegemonyLateSocketOffers.length >= merchantLateSocketOffers.filter((item) => (item?.maxSockets || 0) >= 4).length);
   assert.ok(sovereignLateSocketOffers.length >= merchantLateSocketOffers.length);
+  assert.ok(imperialLateSocketOffers.length >= hegemonyLateSocketOffers.length);
   assert.ok(ascendantLateSocketOffers.length >= sovereignLateSocketOffers.length);
+  assert.ok(mythicLateSocketOffers.length >= imperialLateSocketOffers.length);
   assert.ok(artisanLateSocketOffers.length > 0);
   assert.ok(lateEconomyBrokerageState.run.town.vendor.stock.length >= lateEconomyArtisanState.run.town.vendor.stock.length);
   assert.ok(lateEconomyTreasuryState.run.town.vendor.stock.length >= lateEconomyBrokerageState.run.town.vendor.stock.length);
   assert.ok(chronicleEconomyState.run.town.vendor.stock.length >= lateEconomyTreasuryState.run.town.vendor.stock.length);
   assert.ok(merchantEconomyState.run.town.vendor.stock.length >= lateEconomyTreasuryState.run.town.vendor.stock.length);
+  assert.ok(hegemonyEconomyState.run.town.vendor.stock.length >= merchantEconomyState.run.town.vendor.stock.length);
   assert.ok(sovereignEconomyState.run.town.vendor.stock.length >= merchantEconomyState.run.town.vendor.stock.length);
+  assert.ok(imperialEconomyState.run.town.vendor.stock.length >= sovereignEconomyState.run.town.vendor.stock.length);
   assert.ok(ascendantEconomyState.run.town.vendor.stock.length >= sovereignEconomyState.run.town.vendor.stock.length);
+  assert.ok(mythicEconomyState.run.town.vendor.stock.length >= ascendantEconomyState.run.town.vendor.stock.length);
   assert.match(treasuryLateRefreshAction.previewLines.join(" "), /Treasury Exchange/i);
   assert.match(chronicleLateRefreshAction.previewLines.join(" "), /Chronicle Exchange/i);
   assert.match(merchantLateRefreshAction.previewLines.join(" "), /Merchant Principate/i);
+  assert.match(hegemonyLateRefreshAction.previewLines.join(" "), /Trade Hegemony/i);
   assert.match(sovereignLateRefreshAction.previewLines.join(" "), /Sovereign Exchange/i);
+  assert.match(imperialLateRefreshAction.previewLines.join(" "), /Imperial Exchange/i);
   assert.match(ascendantLateRefreshAction.previewLines.join(" "), /Ascendant Exchange/i);
+  assert.match(mythicLateRefreshAction.previewLines.join(" "), /Mythic Exchange/i);
 
   const baselineMasteryState = buildState(["boss_trophy_gallery", "training_grounds"], "mastery");
   const focusedMasteryState = buildState(["boss_trophy_gallery", "training_grounds", "war_college"], "mastery");
@@ -1414,8 +1566,25 @@ test("account progression trees drive archive retention, economy focus, and mast
     ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "legend_doctrine"],
     "mastery"
   );
+  const mythicMasteryState = buildState(
+    ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "legend_doctrine", "mythic_doctrine"],
+    "mastery"
+  );
   const legendaryAnnalsState = buildState(
     ["boss_trophy_gallery", "training_grounds", "war_college", "paragon_doctrine", "apex_doctrine", "legend_doctrine", "legendary_annals"],
+    "mastery"
+  );
+  const immortalAnnalsState = buildState(
+    [
+      "boss_trophy_gallery",
+      "training_grounds",
+      "war_college",
+      "paragon_doctrine",
+      "apex_doctrine",
+      "legend_doctrine",
+      "mythic_doctrine",
+      "immortal_annals",
+    ],
     "mastery"
   );
   prepareLateActState(baselineMasteryState);
@@ -1424,14 +1593,18 @@ test("account progression trees drive archive retention, economy focus, and mast
   prepareLateActState(apexMasteryState);
   prepareLateActState(warAnnalsState);
   prepareLateActState(legendMasteryState);
+  prepareLateActState(mythicMasteryState);
   prepareLateActState(legendaryAnnalsState);
+  prepareLateActState(immortalAnnalsState);
   const baselineBossZone = runFactory.getCurrentZones(baselineMasteryState.run).find((zone) => zone.kind === "boss");
   const focusedBossZone = runFactory.getCurrentZones(focusedMasteryState.run).find((zone) => zone.kind === "boss");
   const paragonBossZone = runFactory.getCurrentZones(paragonMasteryState.run).find((zone) => zone.kind === "boss");
   const apexBossZone = runFactory.getCurrentZones(apexMasteryState.run).find((zone) => zone.kind === "boss");
   const warAnnalsBossZone = runFactory.getCurrentZones(warAnnalsState.run).find((zone) => zone.kind === "boss");
   const legendBossZone = runFactory.getCurrentZones(legendMasteryState.run).find((zone) => zone.kind === "boss");
+  const mythicBossZone = runFactory.getCurrentZones(mythicMasteryState.run).find((zone) => zone.kind === "boss");
   const legendaryAnnalsBossZone = runFactory.getCurrentZones(legendaryAnnalsState.run).find((zone) => zone.kind === "boss");
+  const immortalAnnalsBossZone = runFactory.getCurrentZones(immortalAnnalsState.run).find((zone) => zone.kind === "boss");
 
   assert.ok(baselineBossZone);
   assert.ok(focusedBossZone);
@@ -1439,7 +1612,9 @@ test("account progression trees drive archive retention, economy focus, and mast
   assert.ok(apexBossZone);
   assert.ok(warAnnalsBossZone);
   assert.ok(legendBossZone);
+  assert.ok(mythicBossZone);
   assert.ok(legendaryAnnalsBossZone);
+  assert.ok(immortalAnnalsBossZone);
 
   const baselineBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
@@ -1489,6 +1664,14 @@ test("account progression trees drive archive retention, economy focus, and mast
     encounterNumber: 1,
     profile: legendMasteryState.profile,
   });
+  const mythicBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: mythicMasteryState.run,
+    zone: mythicBossZone,
+    actNumber: mythicBossZone.actNumber,
+    encounterNumber: 1,
+    profile: mythicMasteryState.profile,
+  });
   const legendaryAnnalsBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
     run: legendaryAnnalsState.run,
@@ -1497,6 +1680,14 @@ test("account progression trees drive archive retention, economy focus, and mast
     encounterNumber: 1,
     profile: legendaryAnnalsState.profile,
   });
+  const immortalAnnalsBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: immortalAnnalsState.run,
+    zone: immortalAnnalsBossZone,
+    actNumber: immortalAnnalsBossZone.actNumber,
+    encounterNumber: 1,
+    profile: immortalAnnalsState.profile,
+  });
 
   const baselineBossProgression = baselineBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const focusedBossProgression = focusedBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
@@ -1504,7 +1695,11 @@ test("account progression trees drive archive retention, economy focus, and mast
   const apexBossProgression = apexBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const warAnnalsBossProgression = warAnnalsBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const legendBossProgression = legendBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
+  const mythicBossProgression = mythicBossChoices.find((choice) => choice.effects.some((effect) => effect.kind === "class_point"));
   const legendaryAnnalsBossProgression = legendaryAnnalsBossChoices.find((choice) =>
+    choice.effects.some((effect) => effect.kind === "class_point")
+  );
+  const immortalAnnalsBossProgression = immortalAnnalsBossChoices.find((choice) =>
     choice.effects.some((effect) => effect.kind === "class_point")
   );
 
@@ -1514,7 +1709,9 @@ test("account progression trees drive archive retention, economy focus, and mast
   assert.ok(apexBossProgression);
   assert.ok(warAnnalsBossProgression);
   assert.ok(legendBossProgression);
+  assert.ok(mythicBossProgression);
   assert.ok(legendaryAnnalsBossProgression);
+  assert.ok(immortalAnnalsBossProgression);
 
   const baselineBossProgressionPoints = baselineBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
@@ -1534,7 +1731,13 @@ test("account progression trees drive archive retention, economy focus, and mast
   const legendBossProgressionPoints = legendBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
   }, 0);
+  const mythicBossProgressionPoints = mythicBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
   const legendaryAnnalsBossProgressionPoints = legendaryAnnalsBossProgression.effects.reduce((total, effect) => {
+    return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
+  }, 0);
+  const immortalAnnalsBossProgressionPoints = immortalAnnalsBossProgression.effects.reduce((total, effect) => {
     return total + (effect.kind === "class_point" || effect.kind === "attribute_point" ? effect.value : 0);
   }, 0);
 
@@ -1543,13 +1746,17 @@ test("account progression trees drive archive retention, economy focus, and mast
   assert.ok(apexBossProgressionPoints > paragonBossProgressionPoints);
   assert.ok(warAnnalsBossProgressionPoints > apexBossProgressionPoints);
   assert.ok(legendBossProgressionPoints > warAnnalsBossProgressionPoints);
+  assert.ok(mythicBossProgressionPoints > legendBossProgressionPoints);
   assert.ok(legendaryAnnalsBossProgressionPoints > legendBossProgressionPoints);
+  assert.ok(immortalAnnalsBossProgressionPoints > mythicBossProgressionPoints);
   assert.match(focusedBossProgression.previewLines.join(" "), /Training Grounds|Mastery Hall focus|War College/i);
   assert.match(paragonBossProgression.previewLines.join(" "), /Paragon Doctrine/i);
   assert.match(apexBossProgression.previewLines.join(" "), /Apex Doctrine/i);
   assert.match(warAnnalsBossProgression.previewLines.join(" "), /War Annals/i);
   assert.match(legendBossProgression.previewLines.join(" "), /Legend Doctrine/i);
+  assert.match(mythicBossProgression.previewLines.join(" "), /Mythic Doctrine/i);
   assert.match(legendaryAnnalsBossProgression.previewLines.join(" "), /Legendary Annals/i);
+  assert.match(immortalAnnalsBossProgression.previewLines.join(" "), /Immortal Annals/i);
 
   const archiveProfile = persistence.createEmptyProfile();
   archiveProfile.meta.unlocks.townFeatureIds.push("archive_ledger", "chronicle_vault", "heroic_annals", "mythic_annals", "eternal_annals");
@@ -1572,6 +1779,13 @@ test("account progression trees drive archive retention, economy focus, and mast
   assert.ok(persistence.getRunHistoryCapacity(archiveProfile) >= 95);
   persistence.setAccountProgressionFocus(archiveProfile, "archives");
   assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 100);
+
+  archiveProfile.meta.unlocks.townFeatureIds.push("imperial_annals", "imperial_exchange", "immortal_annals");
+  persistence.ensureProfileMeta(archiveProfile);
+  persistence.setAccountProgressionFocus(archiveProfile, "economy");
+  assert.ok(persistence.getRunHistoryCapacity(archiveProfile) >= 120);
+  persistence.setAccountProgressionFocus(archiveProfile, "archives");
+  assert.equal(persistence.getRunHistoryCapacity(archiveProfile), 125);
 
   for (let index = 0; index < 100; index += 1) {
     const archivedRun = JSON.parse(JSON.stringify(focusedEconomyState.run)) as RunState;
@@ -1680,9 +1894,21 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
   const featured = buildLateActState(["artisan_stock", "brokerage_charter"], "economy");
   const treasuryFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange"], "economy");
   const merchantFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate"], "economy");
+  const hegemonyFeatured = buildLateActState(
+    ["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate", "trade_hegemony"],
+    "economy"
+  );
   const paragonFeatured = buildLateActState(["artisan_stock", "brokerage_charter", "treasury_exchange", "paragon_exchange"], "economy");
   const ascendantFeatured = buildLateActState(
     ["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate", "ascendant_exchange"],
+    "economy"
+  );
+  const imperialFeatured = buildLateActState(
+    ["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate", "trade_hegemony", "imperial_exchange"],
+    "economy"
+  );
+  const mythicFeatured = buildLateActState(
+    ["artisan_stock", "brokerage_charter", "treasury_exchange", "merchant_principate", "trade_hegemony", "mythic_exchange"],
     "economy"
   );
   const featuredChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
@@ -1738,6 +1964,14 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
     encounterNumber: 1,
     profile: merchantFeatured.state.profile,
   });
+  const hegemonyChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: hegemonyFeatured.state.run,
+    zone: hegemonyFeatured.bossZone,
+    actNumber: hegemonyFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: hegemonyFeatured.state.profile,
+  });
   const ascendantChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
     run: ascendantFeatured.state.run,
@@ -1746,39 +1980,88 @@ test("late-act reward equipment choices prioritize replacement pivots and honor 
     encounterNumber: 1,
     profile: ascendantFeatured.state.profile,
   });
+  const imperialChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: imperialFeatured.state.run,
+    zone: imperialFeatured.bossZone,
+    actNumber: imperialFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: imperialFeatured.state.profile,
+  });
+  const mythicChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: mythicFeatured.state.run,
+    zone: mythicFeatured.bossZone,
+    actNumber: mythicFeatured.bossZone.actNumber,
+    encounterNumber: 1,
+    profile: mythicFeatured.state.profile,
+  });
   const paragonEquipmentChoice = paragonChoices.find((choice) => {
     return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
   });
   const merchantEquipmentChoice = merchantChoices.find((choice) => {
     return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
   });
+  const hegemonyEquipmentChoice = hegemonyChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
   const ascendantEquipmentChoice = ascendantChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  const imperialEquipmentChoice = imperialChoices.find((choice) => {
+    return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
+  });
+  const mythicEquipmentChoice = mythicChoices.find((choice) => {
     return choice.effects.some((effect) => effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket");
   });
   assert.ok(paragonEquipmentChoice);
   assert.ok(merchantEquipmentChoice);
+  assert.ok(hegemonyEquipmentChoice);
   assert.ok(ascendantEquipmentChoice);
+  assert.ok(imperialEquipmentChoice);
+  assert.ok(mythicEquipmentChoice);
   assert.equal(paragonEquipmentChoice.kind, "item");
   assert.equal(merchantEquipmentChoice.kind, "item");
+  assert.equal(hegemonyEquipmentChoice.kind, "item");
   assert.equal(ascendantEquipmentChoice.kind, "item");
+  assert.equal(imperialEquipmentChoice.kind, "item");
+  assert.equal(mythicEquipmentChoice.kind, "item");
   const merchantRewardItemId = merchantEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const hegemonyRewardItemId = hegemonyEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
   const paragonRewardItemId = paragonEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
   const ascendantRewardItemId = ascendantEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const imperialRewardItemId = imperialEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
+  const mythicRewardItemId = mythicEquipmentChoice.effects.find((effect) => effect.kind === "equip_item")?.itemId || "";
   const merchantRewardItem = content.itemCatalog[merchantRewardItemId];
+  const hegemonyRewardItem = content.itemCatalog[hegemonyRewardItemId];
   const paragonRewardItem = content.itemCatalog[paragonRewardItemId];
   const ascendantRewardItem = content.itemCatalog[ascendantRewardItemId];
+  const imperialRewardItem = content.itemCatalog[imperialRewardItemId];
+  const mythicRewardItem = content.itemCatalog[mythicRewardItemId];
   assert.ok(merchantRewardItem);
+  assert.ok(hegemonyRewardItem);
   assert.ok(paragonRewardItem);
   assert.ok(ascendantRewardItem);
+  assert.ok(imperialRewardItem);
+  assert.ok(mythicRewardItem);
   assert.ok((merchantRewardItem.maxSockets || 0) >= (treasuryRewardItem.maxSockets || 0));
   assert.ok(merchantRewardItem.progressionTier >= treasuryRewardItem.progressionTier);
+  assert.ok((hegemonyRewardItem.maxSockets || 0) >= (merchantRewardItem.maxSockets || 0));
+  assert.ok(hegemonyRewardItem.progressionTier >= merchantRewardItem.progressionTier);
   assert.ok((paragonRewardItem.maxSockets || 0) >= (treasuryRewardItem.maxSockets || 0));
   assert.ok(paragonRewardItem.progressionTier >= treasuryRewardItem.progressionTier);
   assert.ok((ascendantRewardItem.maxSockets || 0) >= (paragonRewardItem.maxSockets || 0));
   assert.ok(ascendantRewardItem.progressionTier >= paragonRewardItem.progressionTier);
+  assert.ok((imperialRewardItem.maxSockets || 0) >= (ascendantRewardItem.maxSockets || 0));
+  assert.ok(imperialRewardItem.progressionTier >= ascendantRewardItem.progressionTier);
+  assert.ok((mythicRewardItem.maxSockets || 0) >= (imperialRewardItem.maxSockets || 0));
+  assert.ok(mythicRewardItem.progressionTier >= imperialRewardItem.progressionTier);
   assert.match(merchantEquipmentChoice.previewLines.join(" "), /Merchant Principate/i);
+  assert.match(hegemonyEquipmentChoice.previewLines.join(" "), /Trade Hegemony/i);
   assert.match(paragonEquipmentChoice.previewLines.join(" "), /Paragon Exchange/i);
   assert.match(ascendantEquipmentChoice.previewLines.join(" "), /Ascendant Exchange/i);
+  assert.match(imperialEquipmentChoice.previewLines.join(" "), /Imperial Exchange/i);
+  assert.match(mythicEquipmentChoice.previewLines.join(" "), /Mythic Exchange/i);
 });
 
 test("createAppState sanitizes persisted stash entries before town actions consume them", () => {

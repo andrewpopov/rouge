@@ -1742,6 +1742,9 @@ interface AccountEconomyFeatures {
   merchantPrincipate: boolean;
   sovereignExchange: boolean;
   ascendantExchange: boolean;
+  tradeHegemony: boolean;
+  imperialExchange: boolean;
+  mythicExchange: boolean;
   economyFocus: boolean;
 }
 

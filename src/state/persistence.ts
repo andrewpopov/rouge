@@ -82,6 +82,17 @@
           target: 8,
           getProgress: (metrics) => metrics.runHistoryCount,
         },
+        {
+          id: "imperial_annals",
+          title: "Imperial Annals",
+          description: "Archive ten expeditions after Sovereign Annals to preserve an imperial-scale long-horizon ledger.",
+          rewardFeatureId: "imperial_annals",
+          tier: 6,
+          isCapstone: true,
+          prerequisiteIds: ["sovereign_annals"],
+          target: 10,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
       ],
     },
     {
@@ -171,6 +182,17 @@
           target: 6500,
           getProgress: (metrics) => metrics.totalGoldCollected,
         },
+        {
+          id: "trade_hegemony",
+          title: "Trade Hegemony",
+          description: "Collect 9000 total gold after Merchant Principate to turn late-account trade into a hegemonic market lane.",
+          rewardFeatureId: "trade_hegemony",
+          tier: 6,
+          isCapstone: true,
+          prerequisiteIds: ["merchant_principate"],
+          target: 9000,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
       ],
     },
     {
@@ -250,6 +272,17 @@
           target: 16,
           getProgress: (metrics) => metrics.totalBossesDefeated,
         },
+        {
+          id: "mythic_doctrine",
+          title: "Mythic Doctrine",
+          description: "Defeat twenty bosses after Legend Doctrine to codify a mythic mastery summit for the strongest late-act pivots.",
+          rewardFeatureId: "mythic_doctrine",
+          tier: 6,
+          isCapstone: true,
+          prerequisiteIds: ["legend_doctrine"],
+          target: 20,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
       ],
     },
   ];
@@ -301,6 +334,30 @@
       rewardFeatureId: "ascendant_exchange",
       effectSummary: "Pushes premium Act V vendors and equipment rewards toward the strongest staged replacements.",
       requiredFeatureIds: ["merchant_principate", "legend_doctrine"],
+    },
+    {
+      id: "imperial_exchange",
+      title: "Imperial Exchange",
+      description: "Bind Imperial Annals to Trade Hegemony so imperial archive depth and hegemonic trade reinforce long-horizon stash planning.",
+      rewardFeatureId: "imperial_exchange",
+      effectSummary: "Deepens archive retention, late-market leverage, and rune-routing pressure around staged charter bases.",
+      requiredFeatureIds: ["imperial_annals", "trade_hegemony"],
+    },
+    {
+      id: "immortal_annals",
+      title: "Immortal Annals",
+      description: "Bind Imperial Annals to Mythic Doctrine so the deepest archive memory reinforces the mythic mastery summit.",
+      rewardFeatureId: "immortal_annals",
+      effectSummary: "Adds another archive-backed layer to late-act mastery and boss progression pivots.",
+      requiredFeatureIds: ["imperial_annals", "mythic_doctrine"],
+    },
+    {
+      id: "mythic_exchange",
+      title: "Mythic Exchange",
+      description: "Bind Trade Hegemony to Mythic Doctrine so hegemonic trade and mythic mastery demand the strongest staged replacements.",
+      rewardFeatureId: "mythic_exchange",
+      effectSummary: "Pushes late-act vendors and equipment rewards toward mythic four-socket replacement pivots.",
+      requiredFeatureIds: ["trade_hegemony", "mythic_doctrine"],
     },
   ];
 
@@ -593,9 +650,12 @@
       (hasAccountFeature(profile, "mythic_annals") ? 10 : 0) +
       (hasAccountFeature(profile, "eternal_annals") ? 15 : 0) +
       (hasAccountFeature(profile, "sovereign_annals") ? 15 : 0) +
+      (hasAccountFeature(profile, "imperial_annals") ? 15 : 0) +
       (hasAccountFeature(profile, "chronicle_exchange") ? 5 : 0) +
       (hasAccountFeature(profile, "sovereign_exchange") ? 5 : 0) +
       (hasAccountFeature(profile, "legendary_annals") ? 5 : 0) +
+      (hasAccountFeature(profile, "imperial_exchange") ? 5 : 0) +
+      (hasAccountFeature(profile, "immortal_annals") ? 5 : 0) +
       (archiveFocusActive ? 5 : 0)
     );
   }

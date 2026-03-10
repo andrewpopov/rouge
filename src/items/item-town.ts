@@ -72,6 +72,9 @@
       hasTownFeature(profile, "merchant_principate") ||
       hasTownFeature(profile, "sovereign_exchange") ||
       hasTownFeature(profile, "ascendant_exchange") ||
+      hasTownFeature(profile, "trade_hegemony") ||
+      hasTownFeature(profile, "imperial_exchange") ||
+      hasTownFeature(profile, "mythic_exchange") ||
       salvageTithes;
     return {
       advancedVendorStock: hasTownFeature(profile, "advanced_vendor_stock"),
@@ -86,6 +89,9 @@
       merchantPrincipate: hasTownFeature(profile, "merchant_principate"),
       sovereignExchange: hasTownFeature(profile, "sovereign_exchange"),
       ascendantExchange: hasTownFeature(profile, "ascendant_exchange"),
+      tradeHegemony: hasTownFeature(profile, "trade_hegemony"),
+      imperialExchange: hasTownFeature(profile, "imperial_exchange"),
+      mythicExchange: hasTownFeature(profile, "mythic_exchange"),
       economyFocus: focusedTreeId === "economy" && economyUnlocked,
     };
   }
@@ -282,6 +288,9 @@
             (features.merchantPrincipate ? 0.94 : 1) *
             (features.sovereignExchange ? 0.97 : 1) *
             (features.ascendantExchange ? 0.95 : 1) *
+            (features.tradeHegemony ? 0.92 : 1) *
+            (features.imperialExchange ? 0.96 : 1) *
+            (features.mythicExchange ? 0.94 : 1) *
             (features.economyFocus ? 0.97 : 1)
         )
       );
@@ -299,6 +308,9 @@
           (features.merchantPrincipate ? 0.94 : 1) *
           (features.sovereignExchange ? 0.97 : 1) *
           (features.ascendantExchange ? 0.95 : 1) *
+          (features.tradeHegemony ? 0.92 : 1) *
+          (features.imperialExchange ? 0.96 : 1) *
+          (features.mythicExchange ? 0.94 : 1) *
           (features.economyFocus ? 0.97 : 1)
       )
     );
@@ -320,6 +332,9 @@
             (features.merchantPrincipate ? 1.08 : 1) *
             (features.sovereignExchange ? 1.05 : 1) *
             (features.ascendantExchange ? 1.06 : 1) *
+            (features.tradeHegemony ? 1.08 : 1) *
+            (features.imperialExchange ? 1.05 : 1) *
+            (features.mythicExchange ? 1.06 : 1) *
             (features.economyFocus ? 1.05 : 1)
         )
       );
@@ -337,6 +352,9 @@
           (features.merchantPrincipate ? 1.08 : 1) *
           (features.sovereignExchange ? 1.05 : 1) *
           (features.ascendantExchange ? 1.06 : 1) *
+          (features.tradeHegemony ? 1.08 : 1) *
+          (features.imperialExchange ? 1.05 : 1) *
+          (features.mythicExchange ? 1.06 : 1) *
           (features.economyFocus ? 1.05 : 1)
       )
     );
@@ -368,6 +386,9 @@
       (features.merchantPrincipate ? 2 : 0) +
       (features.sovereignExchange ? 2 : 0) +
       (features.ascendantExchange && run.actNumber >= 5 ? 1 : 0) +
+      (features.tradeHegemony && run.actNumber >= 5 ? 2 : 0) +
+      (features.imperialExchange && run.actNumber >= 5 ? 2 : 0) +
+      (features.mythicExchange && run.actNumber >= 5 ? 2 : 0) +
       chronicleDiscount +
       (features.paragonExchange && run.actNumber >= 5 ? 1 : 0) +
       (features.economyFocus ? 1 : 0);
@@ -396,6 +417,12 @@
     const sovereignDiscount = features.sovereignExchange ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const ascendantDiscount =
       features.ascendantExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
+    const hegemonyDiscount =
+      features.tradeHegemony ? 2 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
+    const imperialDiscount =
+      features.imperialExchange ? 2 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
+    const mythicDiscount =
+      features.mythicExchange && entry.kind === "equipment" ? 2 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
     const fee =
       baseFee +
       Math.floor(buyPrice * 0.12) +
@@ -408,7 +435,10 @@
       paragonDiscount -
       merchantDiscount -
       sovereignDiscount -
-      ascendantDiscount;
+      ascendantDiscount -
+      hegemonyDiscount -
+      imperialDiscount -
+      mythicDiscount;
     return Math.max(entry.kind === "rune" ? 4 : 8, fee);
   }
 
@@ -445,7 +475,10 @@
       Number(features.economyFocus) +
       Number(features.treasuryExchange) * 2 +
       Number(features.merchantPrincipate) * 2 +
-      Number(features.ascendantExchange) * 2;
+      Number(features.ascendantExchange) * 2 +
+      Number(features.tradeHegemony) * 2 +
+      Number(features.imperialExchange) * 2 +
+      Number(features.mythicExchange) * 2;
     return Math.max(location === "stash" ? 16 : 12, baseCost + locationFee + planningLoadFee - planningDiscount - repeatForgeDiscount - featureDiscount);
   }
 
@@ -545,10 +578,13 @@
       Number(features.brokerageCharter && run.actNumber >= 4) +
       Number(features.artisanStock && run.actNumber >= 5) +
       Number(features.merchantPrincipate && run.actNumber >= 5) +
+      Number(features.tradeHegemony && run.actNumber >= 5) +
       Number(chroniclePressure && run.actNumber >= 4) +
       Number(features.sovereignExchange && run.actNumber >= 4) +
       Number(features.paragonExchange && run.actNumber >= 5) +
       Number(features.ascendantExchange && run.actNumber >= 5) +
+      Number(features.imperialExchange && run.actNumber >= 5) +
+      Number(features.mythicExchange && run.actNumber >= 5) +
       Number(features.treasuryExchange && run.actNumber >= 5)
     );
   }
@@ -589,8 +625,11 @@
     const lateBias =
       features.advancedVendorStock ||
       features.merchantPrincipate ||
+      features.tradeHegemony ||
       features.sovereignExchange ||
       features.ascendantExchange ||
+      features.imperialExchange ||
+      features.mythicExchange ||
       run.actNumber >= 4 ||
       toNumber(run.town?.vendor?.refreshCount, 0) > 0;
     const socketReadyOffer =
@@ -631,6 +670,18 @@
         : null;
     const merchantOffer =
       features.merchantPrincipate && run.actNumber >= 5
+        ? [...upgradeOptions, ...options]
+            .filter((item) => toNumber(item.maxSockets, 0) >= 4)
+            .sort((left, right) => {
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
+    const hegemonyOffer =
+      features.tradeHegemony && run.actNumber >= 5
         ? [...upgradeOptions, ...options]
             .filter((item) => toNumber(item.maxSockets, 0) >= 4)
             .sort((left, right) => {
@@ -735,6 +786,45 @@
               return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
+    const imperialOffer =
+      features.imperialExchange && run.actNumber >= 5
+        ? [...upgradeOptions, ...options]
+            .filter((item) => {
+              if (plannedRuneword) {
+                return isRunewordCompatibleWithItem(item, plannedRuneword);
+              }
+              return toNumber(item.maxSockets, 0) >= 4;
+            })
+            .sort((left, right) => {
+              const rightReadySockets = Number(toNumber(right.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword?.socketCount, 0)));
+              const leftReadySockets = Number(toNumber(left.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword?.socketCount, 0)));
+              if (rightReadySockets !== leftReadySockets) {
+                return rightReadySockets - leftReadySockets;
+              }
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
+    const mythicOffer =
+      features.mythicExchange && run.actNumber >= 5
+        ? [...upgradeOptions, ...options]
+            .filter((item) => {
+              if (plannedRuneword) {
+                return isRunewordCompatibleWithItem(item, plannedRuneword) && toNumber(item.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword.socketCount, 0));
+              }
+              return toNumber(item.maxSockets, 0) >= 4;
+            })
+            .sort((left, right) => {
+              const progressionDelta = toNumber(right.progressionTier, 0) - toNumber(left.progressionTier, 0);
+              if (progressionDelta !== 0) {
+                return progressionDelta;
+              }
+              return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
+            })[0] || null
+        : null;
     const primaryUpgrade =
       upgradeOptions[(lateBias ? upgradeOptions.length - 1 : 0)] ||
       options[Math.max(0, options.length - 1)] ||
@@ -749,10 +839,13 @@
       [
         planningOffer,
         sovereignOffer,
+        imperialOffer,
         chronicleOffer,
         primaryUpgrade,
+        mythicOffer,
         ascendantOffer,
         paragonOffer,
+        hegemonyOffer,
         merchantOffer,
         secondaryUpgrade,
         socketReadyOffer,
@@ -812,8 +905,11 @@
           Number(toNumber(archiveState.completedRunCount, 0) > 0 && planningCharter?.hasReadyBase) +
           Number(run.actNumber >= 5 && features.paragonExchange) +
           Number(run.actNumber >= 5 && features.merchantPrincipate) +
+          Number(run.actNumber >= 5 && features.tradeHegemony) +
           Number(archiveState.unfulfilled && features.sovereignExchange) +
-          Number(run.actNumber >= 5 && features.ascendantExchange);
+          Number(run.actNumber >= 5 && features.ascendantExchange) +
+          Number(archiveState.unfulfilled && features.imperialExchange) +
+          Number(run.actNumber >= 5 && features.mythicExchange);
         runeword.requiredRunes.slice(0, planningTargetCount).forEach((runeId) => uniquePush(targetRuneIds, runeId));
       });
     }
@@ -829,10 +925,13 @@
     const merchantRune = features.merchantPrincipate && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 6)] || null : null;
     const sovereignRune = features.sovereignExchange && run.actNumber >= 4 ? runeOptions[Math.max(0, runeOptions.length - 7)] || null : null;
     const ascendantRune = features.ascendantExchange && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 8)] || null : null;
+    const hegemonyRune = features.tradeHegemony && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 9)] || null : null;
+    const imperialRune = features.imperialExchange && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 10)] || null : null;
+    const mythicRune = features.mythicExchange && run.actNumber >= 5 ? runeOptions[Math.max(0, runeOptions.length - 11)] || null : null;
     const seededRune = runeOptions[seed % runeOptions.length] || null;
 
     return pickUniqueDefinitions(
-      [...(targetRunes || []), premiumRune, supportRune, codexRune, artisanRune, treasuryRune, merchantRune, sovereignRune, ascendantRune, seededRune],
+      [...(targetRunes || []), premiumRune, supportRune, codexRune, artisanRune, treasuryRune, merchantRune, sovereignRune, ascendantRune, hegemonyRune, imperialRune, mythicRune, seededRune],
       runeOptions,
       desiredCount,
       seed
@@ -880,6 +979,7 @@
     const artisanOfferBonus = Number(features.artisanStock && run.actNumber >= 5);
     const brokerageOfferBonus = Number(features.brokerageCharter && run.actNumber >= 4);
     const merchantOfferBonus = Number(features.merchantPrincipate && run.actNumber >= 5);
+    const hegemonyOfferBonus = Number(features.tradeHegemony && run.actNumber >= 5);
     const chronicleOfferBonus =
       Number(features.chronicleExchange && run.actNumber >= 4) +
       Number(features.chronicleExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).stashEntries > 0));
@@ -888,6 +988,10 @@
       Number(features.sovereignExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).socketReadyEntries > 0));
     const paragonOfferBonus = Number(features.paragonExchange && run.actNumber >= 5);
     const ascendantOfferBonus = Number(features.ascendantExchange && run.actNumber >= 5);
+    const imperialOfferBonus =
+      Number(features.imperialExchange && run.actNumber >= 5) +
+      Number(features.imperialExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).socketReadyEntries > 0));
+    const mythicOfferBonus = Number(features.mythicExchange && run.actNumber >= 5);
     const treasuryOfferBonus = Number(features.treasuryExchange && run.actNumber >= 5);
     const weaponOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 4)) +
@@ -896,10 +1000,13 @@
       artisanOfferBonus +
       brokerageOfferBonus +
       merchantOfferBonus +
+      hegemonyOfferBonus +
       chronicleOfferBonus +
       sovereignOfferBonus +
       paragonOfferBonus +
       ascendantOfferBonus +
+      imperialOfferBonus +
+      mythicOfferBonus +
       treasuryOfferBonus;
     const armorOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 3)) +
@@ -908,10 +1015,13 @@
       artisanOfferBonus +
       brokerageOfferBonus +
       merchantOfferBonus +
+      hegemonyOfferBonus +
       chronicleOfferBonus +
       sovereignOfferBonus +
       paragonOfferBonus +
       ascendantOfferBonus +
+      imperialOfferBonus +
+      mythicOfferBonus +
       treasuryOfferBonus;
     const runeOfferCount =
       (run.actNumber >= 5 ? 4 : 2 + Number(run.actNumber >= 3)) +
@@ -921,10 +1031,13 @@
       artisanOfferBonus +
       brokerageOfferBonus +
       merchantOfferBonus +
+      hegemonyOfferBonus +
       chronicleOfferBonus +
       sovereignOfferBonus +
       paragonOfferBonus +
       ascendantOfferBonus +
+      imperialOfferBonus +
+      mythicOfferBonus +
       treasuryOfferBonus;
     const selectedWeapons = fillDefinitionSelection(
       pickVendorEquipmentOffers(
@@ -1087,6 +1200,15 @@
     }
     if (features.ascendantExchange) {
       previewLines.push("Ascendant Exchange is steering the strongest Act V offers toward staged premium replacements.");
+    }
+    if (features.tradeHegemony) {
+      previewLines.push("Trade Hegemony is opening a third-wave late-market lane around premium pricing, rune routing, and stash planning.");
+    }
+    if (features.imperialExchange) {
+      previewLines.push("Imperial Exchange is binding imperial archive depth to the strongest staged market pressure.");
+    }
+    if (features.mythicExchange) {
+      previewLines.push("Mythic Exchange is steering the strongest Act V offers toward mythic staged replacements.");
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content)
       .map((runeword) => runeword?.name)
@@ -1493,6 +1615,9 @@
       features.merchantPrincipate ? "merchant principate" : "",
       features.sovereignExchange ? "sovereign exchange" : "",
       features.ascendantExchange ? "ascendant exchange" : "",
+      features.tradeHegemony ? "trade hegemony" : "",
+      features.imperialExchange ? "imperial exchange" : "",
+      features.mythicExchange ? "mythic exchange" : "",
     ].filter(Boolean);
 
     const lines = [

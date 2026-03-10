@@ -36,6 +36,12 @@ Worktree rule:
 
 Work these in the order set in Tira and by the project manager.
 
+## Current Baseline
+
+- the account backbone now includes archive, economy, and mastery trees through the live third wave: `imperial_annals`, `trade_hegemony`, and `mythic_doctrine`
+- the live convergence layer now extends through `imperial_exchange`, `immortal_annals`, and `mythic_exchange`
+- the next Agent 2 implementation lane is no longer "add another tree layer"; it is stronger account review data and longer-horizon economy pressure beyond the current third-wave market and mastery pass
+
 ## Execution Rules
 
 1. Before your first code edit, first new test, or first tooling change for a ticket, create a dedicated worktree with `./scripts/create-agent-worktree.sh 2 <ROUGE-ticket>`.
