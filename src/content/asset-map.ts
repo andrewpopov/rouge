@@ -116,14 +116,19 @@
     return pool[simpleHash(cardId) % pool.length];
   }
 
+  const TEMPLATE_ID_RE = /^act_\d+_(.+)_(raider|ranged|support|brute|base|boss|elite(?:_.*)?)$/;
+
   function getEnemySprite(templateId: string): string | null {
-    const slug = templateId.replace(/^elite_|_act\d+$/g, "").replace(/[^a-z0-9_]/gi, "_").toLowerCase();
-    // Check enemies then bosses
-    for (const sub of ["enemies", "bosses"]) {
-      const path = `${SPRITE_BASE}/${sub}/${slug}.png`;
-      return path; // We'll let the browser handle 404s; CSS fallback covers it
+    // Template IDs: act_{N}_{entryId}_{suffix}
+    const m = TEMPLATE_ID_RE.exec(templateId);
+    if (m) {
+      const slug = m[1].toLowerCase();
+      const sub = m[2] === "boss" ? "bosses" : "enemies";
+      return `${SPRITE_BASE}/${sub}/${slug}.png`;
     }
-    return null;
+    // Fallback for non-standard IDs
+    const slug = templateId.replace(/[^a-z0-9_]/gi, "_").toLowerCase();
+    return `${SPRITE_BASE}/enemies/${slug}.png`;
   }
 
   function getEnemyIcon(templateId: string): string {
