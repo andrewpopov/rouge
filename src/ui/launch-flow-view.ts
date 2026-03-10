@@ -427,19 +427,21 @@
   function buildTownPrepOutcomeMarkup(
     run: RunState,
     derivedParty: DerivedPartyState,
-    healerActions: TownAction[],
-    quartermasterActions: TownAction[],
-    progressionActions: TownAction[],
-    vendorActions: TownAction[],
-    mercenaryActions: TownAction[],
+    townActions: {
+      healer: TownAction[];
+      quartermaster: TownAction[];
+      progression: TownAction[];
+      vendor: TownAction[];
+      mercenary: TownAction[];
+    },
     accountSummary: ProfileAccountSummary,
     renderUtils: RenderUtilsApi
   ): string {
-    const healerAction = healerActions[0] || null;
-    const quartermasterAction = quartermasterActions[0] || null;
-    const selectedProgressionAction = progressionActions.find((action) => !action.disabled) || progressionActions[0] || null;
-    const marketAction = vendorActions.find((action) => action.id === "vendor_refresh_stock") || vendorActions[0] || null;
-    const currentContractAction = mercenaryActions.find((action) => action.id === `mercenary_contract_${run.mercenary.id}`) || null;
+    const healerAction = townActions.healer[0] || null;
+    const quartermasterAction = townActions.quartermaster[0] || null;
+    const selectedProgressionAction = townActions.progression.find((action) => !action.disabled) || townActions.progression[0] || null;
+    const marketAction = townActions.vendor.find((action) => action.id === "vendor_refresh_stock") || townActions.vendor[0] || null;
+    const currentContractAction = townActions.mercenary.find((action) => action.id === `mercenary_contract_${run.mercenary.id}`) || null;
 
     return `
       <section class="panel flow-panel" id="town-prep-outcomes">

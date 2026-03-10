@@ -332,11 +332,11 @@ interface Window {
   __ROUGE_OPP_HELPERS: {
     nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds?: string[]): RewardChoiceEffect;
     questConsequenceEffect(questId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds?: string[]): RewardChoiceEffect;
-    buildOpportunityChoice(
-      subtitle: string, nodeId: string, questId: string, outcomeId: string,
+    buildOpportunityChoiceFactory(subtitle: string): (
+      nodeId: string, questId: string, outcomeId: string,
       title: string, description: string, consequenceId: string,
       flagIds?: string[], extraEffects?: RewardChoiceEffect[]
-    ): WorldNodeChoiceDefinition;
+    ) => WorldNodeChoiceDefinition;
     buildLateRouteVariant(
       choiceBuilder: (...args: unknown[]) => WorldNodeChoiceDefinition,
       nodeId: string, questId: string, variantDefinition: {

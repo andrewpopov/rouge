@@ -1,8 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const opportunityChoice = (nodeId, questId, outcomeId, title, description, consequenceId, flagIds?, extraEffects?) =>
-    helpers.buildOpportunityChoice("Route Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
+  const opportunityChoice = helpers.buildOpportunityChoiceFactory("Route Opportunity");
 
   const CROSSROAD_OPPORTUNITY_DEFINITIONS: Record<number, CrossroadOpportunityDefinition> = {
     1: {

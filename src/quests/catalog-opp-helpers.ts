@@ -44,12 +44,12 @@
     };
   }
 
-  function buildOpportunityChoice(
-    subtitle: string, nodeId: string, questId: string, outcomeId: string,
-    title: string, description: string, consequenceId: string,
-    flagIds: string[] = [], extraEffects: RewardChoiceEffect[] = []
-  ): WorldNodeChoiceDefinition {
-    return {
+  function buildOpportunityChoiceFactory(subtitle: string) {
+    return (
+      nodeId: string, questId: string, outcomeId: string,
+      title: string, description: string, consequenceId: string,
+      flagIds: string[] = [], extraEffects: RewardChoiceEffect[] = []
+    ): WorldNodeChoiceDefinition => ({
       id: outcomeId,
       title,
       subtitle,
@@ -59,7 +59,7 @@
         questConsequenceEffect(questId, outcomeId, title, consequenceId, flagIds),
         ...(Array.isArray(extraEffects) ? extraEffects : []),
       ],
-    };
+    });
   }
 
   function buildLateRouteVariant(
@@ -91,7 +91,7 @@
   runtimeWindow.__ROUGE_OPP_HELPERS = {
     nodeOutcomeEffect,
     questConsequenceEffect,
-    buildOpportunityChoice,
+    buildOpportunityChoiceFactory,
     buildLateRouteVariant,
   };
 })();

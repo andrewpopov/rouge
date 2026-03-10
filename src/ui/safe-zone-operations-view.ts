@@ -491,11 +491,13 @@ interface Window {
       buildTownPrepOutcomeMarkup?: (
         run: RunState,
         derivedParty: DerivedPartyState,
-        healerActions: TownAction[],
-        quartermasterActions: TownAction[],
-        progressionActions: TownAction[],
-        vendorActions: TownAction[],
-        mercenaryActions: TownAction[],
+        townActions: {
+          healer: TownAction[];
+          quartermaster: TownAction[];
+          progression: TownAction[];
+          vendor: TownAction[];
+          mercenary: TownAction[];
+        },
         accountSummary: ProfileAccountSummary,
         renderUtils: RenderUtilsApi
       ) => string;
@@ -670,11 +672,13 @@ interface Window {
           commonWithPrep.buildTownPrepOutcomeMarkup?.(
             run,
             derivedParty,
-            healerActions,
-            quartermasterActions,
-            progressionActions,
-            vendorActions,
-            mercenaryActions,
+            {
+              healer: healerActions,
+              quartermaster: quartermasterActions,
+              progression: progressionActions,
+              vendor: vendorActions,
+              mercenary: mercenaryActions,
+            },
             accountSummary,
             services.renderUtils
           ) || ""

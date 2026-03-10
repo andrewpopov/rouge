@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const buildDetourChoice = (nodeId, questId, outcomeId, title, description, consequenceId, flagIds?, extraEffects?) => helpers.buildOpportunityChoice("Detour Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
+  const buildDetourChoice = helpers.buildOpportunityChoiceFactory("Detour Opportunity");
   const { buildLateRouteVariant } = helpers;
 
   const DETOUR_OPPORTUNITY_DEFINITIONS: Record<number, DetourOpportunityDefinition> = {

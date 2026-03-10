@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const legacyChoice = (nodeId: string, questId: string, outcomeId: string, title: string, description: string, consequenceId: string, flagIds?: string[], extraEffects?: RewardChoiceEffect[]) => helpers.buildOpportunityChoice("Legacy Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
+  const legacyChoice = helpers.buildOpportunityChoiceFactory("Legacy Opportunity");
 
   const LEGACY_OPPORTUNITY_DEFINITIONS: Record<number, LegacyOpportunityDefinition> = {
     1: {

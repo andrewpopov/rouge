@@ -499,9 +499,7 @@
       subtitle,
       description,
       buildSocketCommissionPreviewLines(run, equipment, content, profile, location),
-      "Commission",
-      cost,
-      run.gold < cost
+      { label: "Commission", cost, disabled: run.gold < cost }
     );
   }
 
@@ -1108,7 +1106,7 @@
     normalizeVendorStock(run, content, profile);
   }
 
-  function buildInventoryAction(entry, content, kind, subtitle, description, previewLines, actionLabel, cost = 0, disabled = false) {
+  function buildInventoryAction(entry, content, kind, subtitle, description, previewLines, action: { label: string; cost?: number; disabled?: boolean }) {
     let category = "inventory";
     if (kind.startsWith("stash_")) {
       category = "stash";
@@ -1123,9 +1121,9 @@
       subtitle,
       description,
       previewLines,
-      cost,
-      actionLabel,
-      disabled,
+      cost: action.cost || 0,
+      actionLabel: action.label,
+      disabled: action.disabled || false,
     };
   }
 
@@ -1224,9 +1222,7 @@
           "Buy From Vendor",
           `Purchase ${getEntryLabel(entry, content)} and move it into run inventory.`,
           [entry.kind === "rune" ? `Rune stock for ${buyPrice} gold.` : `Equipment stock for ${buyPrice} gold.`],
-          "Buy",
-          buyPrice,
-          run.gold < buyPrice
+          { label: "Buy", cost: buyPrice, disabled: run.gold < buyPrice }
         )
       );
       if (features.treasuryExchange) {
@@ -1252,9 +1248,7 @@
                 ? `Archive already completed ${planningMatch.runeword.name} through Act ${Math.max(1, toNumber(planningArchiveState?.bestActsCleared, 0))}; this consignment is priced for a repeat forge lane.`
                 : "",
             ].filter(Boolean),
-            "Consign",
-            consignPrice,
-            run.gold < consignPrice
+            { label: "Consign", cost: consignPrice, disabled: run.gold < consignPrice }
           )
         );
       }
@@ -1303,7 +1297,7 @@
             "Equip From Inventory",
             `Equip ${getEntryLabel(entry, content)} into the active loadout and keep slot progression on upgrade.`,
             [`Sell value ${getEntrySellPrice(entry, content, profile)} gold.`],
-            "Equip"
+            { label: "Equip" }
           )
         );
         const commissionAction = buildSocketCommissionAction(
@@ -1348,7 +1342,7 @@
           "Sell To Vendor",
           `Convert ${getEntryLabel(entry, content)} into gold immediately.`,
           [`Sale value ${getEntrySellPrice(entry, content, profile)} gold.`],
-          "Sell"
+          { label: "Sell" }
         )
       );
       actions.push(
@@ -1359,7 +1353,7 @@
           "Move To Stash",
           `Move ${getEntryLabel(entry, content)} out of the active run inventory and into the profile stash.`,
           ["Withdraw later from any safe zone."],
-          "Stash"
+          { label: "Stash" }
         )
       );
     });
@@ -1388,7 +1382,7 @@
           "Withdraw From Stash",
           `Move ${getEntryLabel(entry, content)} from the profile stash into the active run inventory.`,
           [entry.kind === "rune" ? "Rune stash entry." : "Equipment stash entry."],
-          "Withdraw"
+          { label: "Withdraw" }
         )
       );
     });

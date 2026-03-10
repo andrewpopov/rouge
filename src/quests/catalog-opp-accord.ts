@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const helpers = runtimeWindow.__ROUGE_OPP_HELPERS;
-  const buildAccordChoice = (nodeId: string, questId: string, outcomeId: string, title: string, description: string, consequenceId: string, flagIds?: string[], extraEffects?: RewardChoiceEffect[]) => helpers.buildOpportunityChoice("Accord Opportunity", nodeId, questId, outcomeId, title, description, consequenceId, flagIds, extraEffects);
+  const buildAccordChoice = helpers.buildOpportunityChoiceFactory("Accord Opportunity");
 
   const ACCORD_OPPORTUNITY_DEFINITIONS: Record<number, AccordOpportunityDefinition> = {
     1: {
