@@ -174,6 +174,19 @@
     if (!entity || !entity.alive) {
       return 0;
     }
+    const debug = runtimeWindow.ROUGE_DEBUG;
+    // Invulnerable: hero and mercenary take no damage
+    const isAlly = entity === state.hero || entity === state.mercenary;
+    if (debug?.invulnerable && isAlly) {
+      return 0;
+    }
+    // One-hit kill: enemies die instantly
+    if (debug?.oneHitKill && !isAlly) {
+      entity.guard = 0;
+      entity.life = 0;
+      handleDefeat(state, entity);
+      return entity.maxLife;
+    }
     const damage = Math.max(0, Math.floor(amount));
     const blocked = Math.min(entity.guard, damage);
     entity.guard -= blocked;

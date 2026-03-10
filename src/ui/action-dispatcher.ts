@@ -85,6 +85,10 @@
         appState.ui.exploring = false;
         render();
         return true;
+      case "debug-skip-encounter":
+        appEngine.debugSkipEncounter(appState);
+        render();
+        return true;
       case "select-enemy":
         if (appState.combat) {
           appState.combat.selectedEnemyId = actionEl.dataset.enemyId || "";
@@ -169,6 +173,15 @@
         if (actionEl.dataset.settingKey === "compactMode") {
           appEngine.updateProfileSettings(appState, {
             compactMode: actionEl.dataset.settingValue === "true",
+          });
+          render();
+          return true;
+        }
+        if ((actionEl.dataset.settingKey || "").startsWith("debugMode.")) {
+          const debugKey = actionEl.dataset.settingKey.split(".")[1];
+          const current = appState.profile?.meta?.settings?.debugMode || {};
+          appEngine.updateProfileSettings(appState, {
+            debugMode: { ...current, [debugKey]: actionEl.dataset.settingValue === "true" },
           });
           render();
           return true;

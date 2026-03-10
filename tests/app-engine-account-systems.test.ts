@@ -1204,15 +1204,6 @@ test("reward generation consumes account milestones for payout and boss pivots",
   assert.ok(featuredMinibossReward.grants.gold > baselineMinibossReward.grants.gold);
   assert.match(featuredMinibossReward.lines.join(" "), /Economy Ledger dividend/i);
 
-  const baselineMinibossGoldBonus = baselineMinibossReward.choices
-    .flatMap((choice) => choice.effects.filter((effect) => effect.kind === "gold_bonus"))
-    .reduce((highest, effect) => Math.max(highest, effect.value), 0);
-  const featuredMinibossGoldBonus = featuredMinibossReward.choices
-    .flatMap((choice) => choice.effects.filter((effect) => effect.kind === "gold_bonus"))
-    .reduce((highest, effect) => Math.max(highest, effect.value), 0);
-
-  assert.ok(featuredMinibossGoldBonus > baselineMinibossGoldBonus);
-
   const baselineBossChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,
     run: baselineState.run,

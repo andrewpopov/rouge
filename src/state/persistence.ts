@@ -435,6 +435,7 @@
         showHints: true,
         reduceMotion: false,
         compactMode: false,
+        debugMode: { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false },
       },
       progression: {
         highestLevel: 1,
@@ -1284,6 +1285,16 @@
         profile.meta.settings[settingKey] = nextSettings[settingKey];
       }
     });
+    if (nextSettings.debugMode && typeof nextSettings.debugMode === "object") {
+      if (!profile.meta.settings.debugMode || typeof profile.meta.settings.debugMode !== "object") {
+        profile.meta.settings.debugMode = { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false };
+      }
+      for (const key of ["enabled", "skipBattles", "invulnerable", "oneHitKill", "infiniteGold"]) {
+        if (typeof nextSettings.debugMode[key] === "boolean") {
+          profile.meta.settings.debugMode[key] = nextSettings.debugMode[key];
+        }
+      }
+    }
   }
 
   function setPreferredClass(profile, classId) {

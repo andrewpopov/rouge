@@ -30,6 +30,7 @@
           showHints: true,
           reduceMotion: false,
           compactMode: false,
+          debugMode: { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false },
         },
         progression: {
           highestLevel: 1,
@@ -506,6 +507,7 @@
         showHints: true,
         reduceMotion: false,
         compactMode: false,
+        debugMode: { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false },
       },
       unlockedFeatureIds: [],
       activeTutorialIds: [],
@@ -828,6 +830,30 @@
     });
     state.phase = PHASES.ENCOUNTER;
     state.ui.exploring = true;
+    runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
+    return { ok: true };
+  }
+
+  function debugSkipEncounter(state: AppState): ActionResult {
+    if (state.phase !== PHASES.ENCOUNTER || !state.run) {
+      return { ok: false, message: "No encounter to skip." };
+    }
+    if (!state.profile?.meta?.settings?.debugMode?.skipBattles) {
+      return { ok: false, message: "Skip battles is not enabled." };
+    }
+
+    const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
+    const zone = runFactory.getZoneById(state.run, state.run.activeZoneId);
+    state.run.pendingReward = runFactory.buildEncounterReward({
+      content: state.content,
+      run: state.run,
+      zone,
+      combatState: state.combat,
+      profile: state.profile,
+    });
+    state.combat = null;
+    state.phase = PHASES.REWARD;
+    persistRunIfPossible(state);
     return { ok: true };
   }
 
@@ -866,6 +892,9 @@
 
     const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
     const reward = state.run.pendingReward;
+    if (state.profile?.meta?.settings?.debugMode?.infiniteGold && reward.grants) {
+      reward.grants.gold = 9999;
+    }
     const applyResult = runFactory.applyReward(state.run, reward, choiceId, state.content);
     if (!applyResult.ok) {
       state.error = applyResult.message || "Reward application failed.";
@@ -945,6 +974,7 @@
     returnToSafeZone,
     useTownAction,
     selectZone,
+    debugSkipEncounter,
     syncEncounterOutcome,
     claimRewardAndAdvance,
     continueActTransition,

@@ -302,6 +302,7 @@
       showHints: true,
       reduceMotion: false,
       compactMode: false,
+      debugMode: { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false },
     };
     const preferredClassName =
       appState.registries.classes.find((entry) => entry.id === profileMeta.preferredClassId)?.name || profileMeta.preferredClassId || "Unset";
@@ -756,6 +757,7 @@
       showHints: true,
       reduceMotion: false,
       compactMode: false,
+      debugMode: { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false },
     };
     const preferredClassId = profileSummary.preferredClassId || "";
     const lastPlayedClassId = profileSummary.lastPlayedClassId || "";
@@ -892,6 +894,17 @@
               ${buildSettingButton("showHints", settings.showHints, "Show Hints", "Hide Hints")}
               ${buildSettingButton("reduceMotion", settings.reduceMotion, "Enable Reduced Motion", "Disable Reduced Motion")}
               ${buildSettingButton("compactMode", settings.compactMode, "Enable Compact Layout", "Disable Compact Layout")}
+              ${buildSettingButton("debugMode.enabled", settings.debugMode?.enabled, "Enable Debug Mode", "Disable Debug Mode")}
+            </div>
+            ${settings.debugMode?.enabled ? `
+            <div class="cta-row" style="border-top:1px solid rgba(255,200,100,0.15);padding-top:8px;margin-top:4px">
+              <strong style="width:100%;color:#d4a050;font-size:0.85em">\u{1F41E} Debug Options</strong>
+              ${buildSettingButton("debugMode.skipBattles", settings.debugMode?.skipBattles, "Skip Battles", "Fight Battles")}
+              ${buildSettingButton("debugMode.invulnerable", settings.debugMode?.invulnerable, "Invulnerable", "Normal HP")}
+              ${buildSettingButton("debugMode.oneHitKill", settings.debugMode?.oneHitKill, "One-Hit Kill", "Normal Damage")}
+              ${buildSettingButton("debugMode.infiniteGold", settings.debugMode?.infiniteGold, "Infinite Gold", "Normal Gold")}
+            </div>
+            ` : ""}
             </div>
             <p>${escapeHtml("These toggles update the persisted profile immediately, so the next hall render reads the same account state without another settings layer.")}</p>
           </article>

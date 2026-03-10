@@ -688,6 +688,7 @@ interface AppEngineApi {
   returnToSafeZone(state: AppState): ActionResult;
   useTownAction(state: AppState, actionId: string): ActionResult;
   selectZone(state: AppState, zoneId: string): ActionResult;
+  debugSkipEncounter(state: AppState): ActionResult;
   syncEncounterOutcome(state: AppState): ActionResult;
   claimRewardAndAdvance(state: AppState, choiceId?: string): ActionResult;
   continueActTransition(state: AppState): ActionResult;

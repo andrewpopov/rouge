@@ -280,6 +280,7 @@ interface ActionDispatcherApi {
 
 interface Window {
   ROUGE_GAME_CONTENT: GameContent;
+  ROUGE_DEBUG: DebugModeConfig | null;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
   ROUGE_COMBAT_MODIFIERS: CombatModifiersApi;
   ROUGE_SEED_LOADER: SeedLoaderApi;

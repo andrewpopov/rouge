@@ -484,20 +484,17 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   assert.match(root.innerHTML, /Quest Fork/);
   assert.match(root.innerHTML, /Aftermath Node/);
 
-  let questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
-  let questUnlockAttempts = 0;
-  while (questZone?.status !== "available" && questUnlockAttempts < 5) {
-    questUnlockAttempts += 1;
-    const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
-    const openingResult = appEngine.selectZone(state, openingZoneId);
-    assert.equal(openingResult.ok, true);
-    state.combat.outcome = "victory";
-    appEngine.syncEncounterOutcome(state);
-    appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
-    assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-    questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  // Clear all mainline zones to unlock world nodes (quest, shrine, event, opportunity)
+  const mainlineZones = runFactory.getCurrentZones(state.run).filter(
+    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+  );
+  for (const z of mainlineZones) {
+    z.encountersCleared = z.encounterTotal;
+    z.cleared = true;
   }
+  runFactory.recomputeZoneStatuses(state.run);
 
+  let questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   assert.ok(questZone);
   assert.equal(questZone.status, "available");
   const questResult = appEngine.selectZone(state, questZone.id);

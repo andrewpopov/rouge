@@ -66,57 +66,83 @@
     };
   }
 
+  /**
+   * Build the full mainline + side-branch zone chain for an act.
+   *
+   * Act 1 example:
+   *   Blood Moor → Cold Plains → Stony Field → Underground Passage →
+   *   Dark Wood → Black Marsh → Tamoe Highland → Outer Cloister →
+   *   Barracks → Jail → Inner Cloister → Cathedral → Catacombs (boss)
+   *
+   * Side branches (from zones.json sideBranches):
+   *   Den of Evil (off Blood Moor), Burial Grounds (off Cold Plains),
+   *   Tristram (off Stony Field, locked until Dark Wood entered),
+   *   Tower (off Black Marsh)
+   */
   function createActState(actSeed: ActSeed, bossEntry: BossEntry | null | undefined, content: GameContent): ActState {
     const campaignZones = (actSeed.mainlineZones || []).filter((zone) => zone !== actSeed.town);
     const bossZoneName = actSeed.boss.zone;
-    const branchZoneCandidates = [];
-    uniquePush(branchZoneCandidates, actSeed.sideZones?.[0] || "");
-    uniquePush(branchZoneCandidates, campaignZones[Math.max(1, Math.floor(campaignZones.length * 0.35))] || "");
-    uniquePush(branchZoneCandidates, campaignZones[Math.max(1, campaignZones.length - 3)] || "");
 
-    const routeZoneNames = [];
-    uniquePush(routeZoneNames, campaignZones[0] || `${actSeed.town} Outskirts`);
-    uniquePush(routeZoneNames, branchZoneCandidates[0] || campaignZones[1] || `${actSeed.town} Wilds`);
-    uniquePush(routeZoneNames, branchZoneCandidates[1] || campaignZones[Math.max(2, campaignZones.length - 2)] || `${actSeed.town} Approach`);
+    // Remove the boss zone name from the mainline if it appears there
+    const mainlineNames = campaignZones.filter((z) => z !== bossZoneName);
 
-    const openingZone = createZoneState({
-      actNumber: actSeed.act,
-      title: routeZoneNames[0],
-      kind: "battle",
-      zoneRole: "opening",
-      description: "Opening pressure zone. It establishes the act route and usually contains multiple repeated encounters.",
-      encounterCount: clamp(actSeed.act + 1, 2, 5),
-      prerequisites: [],
-      content,
-    });
+    // Build the linear mainline chain: each zone requires the previous one
+    const mainlineZones: ZoneState[] = [];
+    for (let i = 0; i < mainlineNames.length; i++) {
+      const isFirst = i === 0;
+      const zone = createZoneState({
+        actNumber: actSeed.act,
+        title: mainlineNames[i],
+        kind: "battle",
+        zoneRole: isFirst ? "opening" : `mainline_${i}`,
+        description: isFirst
+          ? "Opening pressure zone. The first area outside the safety of town."
+          : `Mainline zone ${i + 1}. Push deeper into the act.`,
+        encounterCount: clamp(Math.max(1, actSeed.act + 1 - Math.floor(i / 3)), 1, 3),
+        prerequisites: isFirst ? [] : [mainlineZones[i - 1].id],
+        content,
+      });
+      mainlineZones.push(zone);
+    }
 
-    const branchZoneOne = createZoneState({
-      actNumber: actSeed.act,
-      title: routeZoneNames[1],
-      kind: "miniboss",
-      zoneRole: "branchMiniboss",
-      description: "Branch combat zone with stronger resistance and a higher reward floor.",
-      encounterCount: clamp(Math.floor((actSeed.act + 1) / 2) + 1, 1, 3),
-      prerequisites: [openingZone.id],
-      content,
-    });
+    // Build side branches from seed data
+    const sideBranches = actSeed.sideBranches || [];
+    const sideZones: ZoneState[] = [];
+    const mainlineByName = new Map(mainlineZones.map((z) => [z.title, z]));
 
-    const branchZoneTwo = createZoneState({
-      actNumber: actSeed.act,
-      title: routeZoneNames[2],
-      kind: "battle",
-      zoneRole: "branchBattle",
-      description: "Second branch zone. It deepens the act route before the boss unlocks.",
-      encounterCount: clamp(actSeed.act + 1, 2, 4),
-      prerequisites: [openingZone.id],
-      content,
-    });
+    for (const branch of sideBranches) {
+      const parentZone = mainlineByName.get(branch.from);
+      if (!parentZone) continue;
 
+      const prerequisites = [parentZone.id];
+
+      // If a gate zone is specified, that zone must also be cleared
+      if (branch.gatedBy) {
+        const gateZone = mainlineByName.get(branch.gatedBy);
+        if (gateZone) prerequisites.push(gateZone.id);
+      }
+
+      const zone = createZoneState({
+        actNumber: actSeed.act,
+        title: branch.name,
+        kind: branch.kind || "battle",
+        zoneRole: `side_${slugify(branch.name)}`,
+        description: branch.description || "Optional side area with extra rewards.",
+        encounterCount: branch.encounters || 5,
+        prerequisites,
+        content,
+      });
+      sideZones.push(zone);
+    }
+
+    // World nodes gate behind the last mainline zone before the boss
+    const worldNodeGateZone = mainlineZones[mainlineZones.length - 1] || mainlineZones[0];
     const worldNodeZones = runtimeWindow.ROUGE_WORLD_NODES?.createActWorldNodes({
       actSeed,
-      openingZoneId: openingZone.id,
+      openingZoneId: worldNodeGateZone?.id || "",
     }) || [];
 
+    // Boss requires the last mainline zone
     const bossZone = createZoneState({
       actNumber: actSeed.act,
       title: bossZoneName,
@@ -124,7 +150,7 @@
       zoneRole: "boss",
       description: `Boss zone for ${actSeed.boss.name}. This closes the act and opens the next safe zone.`,
       encounterCount: 1,
-      prerequisites: [branchZoneOne.id, branchZoneTwo.id],
+      prerequisites: worldNodeGateZone ? [worldNodeGateZone.id] : [],
       content,
     });
 
@@ -137,7 +163,7 @@
         ...deepClone(actSeed.boss),
         profile: bossEntry?.bossProfile || null,
       },
-      zones: [openingZone, branchZoneOne, branchZoneTwo, ...worldNodeZones, bossZone],
+      zones: [...mainlineZones, ...sideZones, ...worldNodeZones, bossZone],
       complete: false,
     };
   }
@@ -212,19 +238,22 @@
       return act;
     }
 
-    const openingZone =
+    // World nodes gate behind the last mainline zone before the boss.
+    const nonBossZones = act.zones.filter((zone) => zone.kind !== "boss" && !runtimeWindow.ROUGE_WORLD_NODES?.isWorldNodeZone(zone));
+    const mainlineChain = nonBossZones.filter((zone) => zone.zoneRole === "opening" || (zone.zoneRole || "").startsWith("mainline_"));
+    const worldNodeGateZone =
+      mainlineChain[mainlineChain.length - 1] ||
       act.zones.find((zone) => zone.zoneRole === "opening") ||
-      act.zones.find((zone) => zone.kind === "battle" && (!Array.isArray(zone.prerequisites) || zone.prerequisites.length === 0)) ||
       act.zones[0] ||
       null;
 
-    if (!openingZone) {
+    if (!worldNodeGateZone) {
       return act;
     }
 
     const desiredWorldNodeZones = runtimeWindow.ROUGE_WORLD_NODES.createActWorldNodes({
       actSeed: buildActSeedFromState(act),
-      openingZoneId: openingZone.id,
+      openingZoneId: worldNodeGateZone.id,
     });
 
     const existingWorldNodesById = new Map(
