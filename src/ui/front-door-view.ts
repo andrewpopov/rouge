@@ -16,6 +16,10 @@
     });
   }
 
+  function getSettingLabel(enabled: boolean, positiveLabel: string, negativeLabel: string): string {
+    return enabled ? positiveLabel : negativeLabel;
+  }
+
   function getPhaseTone(savedRunSummary: SavedRunSummary | null, appEngine: AppEngineApi): string {
     if (savedRunSummary?.phase === appEngine.PHASES.RUN_COMPLETE) {
       return "cleared";
