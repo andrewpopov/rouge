@@ -83,6 +83,48 @@
         return true;
       case "begin-encounter":
         appState.ui.exploring = false;
+        appState.ui.explorationEvent = null;
+        render();
+        return true;
+      case "pick-event-choice": {
+        const explorationEvents = runtimeWindow.ROUGE_EXPLORATION_EVENTS;
+        const event = appState.ui.explorationEvent;
+        const choiceId = actionEl.dataset.choiceId || "";
+        if (explorationEvents && event && choiceId) {
+          const choice = event.choices.find((c) => c.id === choiceId);
+          if (choice?.requiresCardPick) {
+            event.pendingChoiceId = choiceId;
+          } else {
+            explorationEvents.applyExplorationEventChoice(appState.run, event, choiceId, appState.content);
+            appState.ui.explorationEvent = null;
+            appState.ui.exploring = false;
+          }
+        }
+        render();
+        return true;
+      }
+      case "pick-event-card": {
+        const explorationEvents = runtimeWindow.ROUGE_EXPLORATION_EVENTS;
+        const event = appState.ui.explorationEvent;
+        const cardId = actionEl.dataset.cardId || "";
+        if (explorationEvents && event?.pendingChoiceId && cardId) {
+          explorationEvents.applyExplorationEventChoice(appState.run, event, event.pendingChoiceId, appState.content, cardId);
+          appState.ui.explorationEvent = null;
+          appState.ui.exploring = false;
+        }
+        render();
+        return true;
+      }
+      case "skip-event-card-pick": {
+        if (appState.ui.explorationEvent) {
+          appState.ui.explorationEvent.pendingChoiceId = undefined;
+        }
+        render();
+        return true;
+      }
+      case "skip-exploration-event":
+        appState.ui.explorationEvent = null;
+        appState.ui.exploring = false;
         render();
         return true;
       case "select-enemy":

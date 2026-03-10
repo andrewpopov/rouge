@@ -4,13 +4,27 @@
 
   const MAX_ZONE_ENCOUNTERS = 5;
 
+  function slugifyZone(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  }
+
   function createEncounterSequence(
     kind: ZoneKind,
     count: number,
     actNumber: number,
     content: GameContent,
-    zoneRole?: ZoneRole
+    zoneRole?: ZoneRole,
+    zoneTitle?: string
   ): string[] {
+    // Try zone-specific encounters first for contiguous themed waves
+    if (zoneTitle && kind !== "boss") {
+      const zoneKey = `act_${actNumber}_${slugifyZone(zoneTitle)}`;
+      const zonePool = content?.generatedZoneEncounterIds?.[zoneKey];
+      if (Array.isArray(zonePool) && zonePool.length > 0) {
+        return Array.from({ length: clamp(count, 1, MAX_ZONE_ENCOUNTERS) }, (_, index) => zonePool[index % zonePool.length]);
+      }
+    }
+
     const actPools = (content?.generatedActEncounterIds?.[actNumber] || {}) as Partial<GeneratedActEncounterIds> &
       Record<string, string[] | undefined>;
     let sourcePool = null;
@@ -47,7 +61,7 @@
     content: GameContent;
   }): ZoneState {
     const { actNumber, title, kind, zoneRole, description, encounterCount, prerequisites, content } = config;
-    const encounterIds = createEncounterSequence(kind, encounterCount, actNumber, content, zoneRole);
+    const encounterIds = createEncounterSequence(kind, encounterCount, actNumber, content, zoneRole, title);
     const status = Array.isArray(prerequisites) && prerequisites.length === 0 ? "available" : "locked";
     return {
       id: `act_${actNumber}_${slugify(title)}`,

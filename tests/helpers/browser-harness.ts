@@ -92,6 +92,7 @@ const APP_RUNTIME_FILES = [
   "src/ui/render-utils.js",
   ...ITEM_RUNTIME_FILES,
   "src/rewards/reward-engine.js",
+  "src/exploration/exploration-events.js",
   ...WORLD_NODE_RUNTIME_FILES,
   ...RUN_RUNTIME_FILES,
   "src/town/service-registry.js",
@@ -171,6 +172,7 @@ export function createCombatHarness() {
     zones: readSeedJson<NonNullable<SeedBundle["zones"]>>("data/seeds/d2/zones.json"),
     bosses: readSeedJson<NonNullable<SeedBundle["bosses"]>>("data/seeds/d2/bosses.json"),
     enemyPools: readSeedJson<NonNullable<SeedBundle["enemyPools"]>>("data/seeds/d2/enemy-pools.json"),
+    zoneMonsters: readSeedJson<ZoneMonsterMap>("data/seeds/d2/zone-monsters.json"),
   };
   const classRuntimeContent = browserWindow.ROUGE_CLASS_REGISTRY.createRuntimeContent(browserWindow.ROUGE_GAME_CONTENT, seedBundle);
   const runtimeContent = browserWindow.ROUGE_ENCOUNTER_REGISTRY.createRuntimeContent(classRuntimeContent, seedBundle);
@@ -197,6 +199,7 @@ export function createAppHarness() {
     items: readSeedJson<SeedBundle["items"]>("data/seeds/d2/items.json"),
     runes: readSeedJson<SeedBundle["runes"]>("data/seeds/d2/runes.json"),
     runewords: readSeedJson<SeedBundle["runewords"]>("data/seeds/d2/runewords.json"),
+    zoneMonsters: readSeedJson<ZoneMonsterMap>("data/seeds/d2/zone-monsters.json"),
   };
   const browserWindow = sandbox.window as unknown as Window;
   const classRuntimeContent = browserWindow.ROUGE_CLASS_REGISTRY.createRuntimeContent(browserWindow.ROUGE_GAME_CONTENT, seedBundle);

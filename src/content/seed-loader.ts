@@ -12,6 +12,7 @@
     runes: "runes.json",
     runewords: "runewords.json",
     bosses: "bosses.json",
+    zoneMonsters: "zone-monsters.json",
   };
 
   let cachedPromise = null;

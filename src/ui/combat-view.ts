@@ -41,7 +41,97 @@
     return shuffled.slice(0, 3);
   }
 
+  function renderCardPickScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { escapeHtml } = services.renderUtils;
+    const run = appState.run;
+    const event = appState.ui.explorationEvent;
+    const explorationEvents = runtimeWindow.ROUGE_EXPLORATION_EVENTS;
+    const upgradableIds = explorationEvents?.getUpgradableCardIds(run, appState.content) || [];
+
+    root.innerHTML = `
+      ${common.renderNotice(appState, services.renderUtils)}
+      <div class="event-screen">
+        <div class="event-screen__header">
+          <div class="event-screen__icon">${event.icon}</div>
+          <h1 class="event-screen__title">${escapeHtml(event.title)}</h1>
+          <p class="event-screen__sub">Choose a card to upgrade</p>
+        </div>
+
+        <div class="event-card-pick">
+          ${upgradableIds.map((cardId) => {
+            const card = appState.content.cardCatalog[cardId];
+            const upgradedCard = appState.content.cardCatalog[`${cardId}_plus`];
+            if (!card || !upgradedCard) return "";
+            return `
+              <button class="event-card-pick__card" data-action="pick-event-card" data-card-id="${escapeHtml(cardId)}">
+                <div class="event-card-pick__current">
+                  <span class="event-card-pick__cost">${card.cost}</span>
+                  <span class="event-card-pick__name">${escapeHtml(card.title)}</span>
+                  <span class="event-card-pick__type">${card.target === "enemy" ? "Attack" : "Skill"}</span>
+                </div>
+                <div class="event-card-pick__arrow">\u2192</div>
+                <div class="event-card-pick__upgraded">
+                  <span class="event-card-pick__cost event-card-pick__cost--plus">${upgradedCard.cost}</span>
+                  <span class="event-card-pick__name event-card-pick__name--plus">${escapeHtml(upgradedCard.title)}</span>
+                  <span class="event-card-pick__desc">${escapeHtml(upgradedCard.text)}</span>
+                </div>
+              </button>
+            `;
+          }).join("")}
+        </div>
+
+        <button class="event-skip-btn" data-action="skip-event-card-pick">Never mind</button>
+      </div>
+    `;
+  }
+
+  function renderExplorationEvent(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { escapeHtml } = services.renderUtils;
+    const run = appState.run;
+    const event = appState.ui.explorationEvent;
+    const zone = services.runFactory.getZoneById(run, run.activeZoneId);
+    const zoneName = zone?.title || "Unknown";
+
+    root.innerHTML = `
+      ${common.renderNotice(appState, services.renderUtils)}
+      <div class="event-screen">
+        <div class="event-screen__header">
+          <span class="event-screen__eyebrow">${escapeHtml(zoneName)}</span>
+          <div class="event-screen__icon">${event.icon}</div>
+          <h1 class="event-screen__title">${escapeHtml(event.title)}</h1>
+        </div>
+
+        <div class="event-screen__scene">
+          <p class="event-screen__flavor">${escapeHtml(event.flavor)}</p>
+        </div>
+
+        <div class="event-screen__choices">
+          ${event.choices.map((choice) => `
+            <button class="event-choice" data-action="pick-event-choice" data-choice-id="${escapeHtml(choice.id)}">
+              <div class="event-choice__title">${escapeHtml(choice.title)}</div>
+              <div class="event-choice__desc">${escapeHtml(choice.description)}</div>
+            </button>
+          `).join("")}
+        </div>
+
+        <button class="event-skip-btn" data-action="skip-exploration-event">Leave</button>
+      </div>
+    `;
+  }
+
   function renderExploration(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+    if (appState.ui.explorationEvent?.pendingChoiceId) {
+      renderCardPickScreen(root, appState, services);
+      return;
+    }
+
+    if (appState.ui.explorationEvent) {
+      renderExplorationEvent(root, appState, services);
+      return;
+    }
+
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
     const run = appState.run;

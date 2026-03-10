@@ -19,9 +19,9 @@ test("zone roles map to distinct encounter themes within the same act", () => {
 
   const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
   const actOneEncounters = content.generatedActEncounterIds[1];
-  assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_opening_")));
-  assert.ok(branchMinibossZone.encounterIds.every((encounterId) => actOneEncounters.branchMiniboss.includes(encounterId)));
-  assert.ok(branchBattleZone.encounterIds.every((encounterId) => actOneEncounters.branchBattle.includes(encounterId)));
+  assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_opening_") || encounterId.startsWith("act_1_zone_")));
+  assert.ok(branchMinibossZone.encounterIds.every((encounterId) => actOneEncounters.branchMiniboss.includes(encounterId) || encounterId.startsWith("act_1_zone_")));
+  assert.ok(branchBattleZone.encounterIds.every((encounterId) => actOneEncounters.branchBattle.includes(encounterId) || encounterId.startsWith("act_1_zone_")));
 
   openingZone.encountersCleared = openingZone.encounterTotal;
   openingZone.cleared = true;
@@ -29,7 +29,7 @@ test("zone roles map to distinct encounter themes within the same act", () => {
 
   let result = appEngine.selectZone(state, branchMinibossZone.id);
   assert.equal(result.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_1_branch_miniboss/);
+  assert.match(state.run.activeEncounterId, /^act_1_(branch_miniboss|zone_)/);
 
   appEngine.returnToFrontDoor(state);
   appEngine.startCharacterSelect(state);
@@ -43,7 +43,7 @@ test("zone roles map to distinct encounter themes within the same act", () => {
 
   result = appEngine.selectZone(state, branchBattleZoneAgain.id);
   assert.equal(result.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_1_branch_battle/);
+  assert.match(state.run.activeEncounterId, /^act_1_(branch_battle|zone_)/);
 });
 
 test("quest world nodes resolve through the reward flow and persist outcomes on the run", () => {

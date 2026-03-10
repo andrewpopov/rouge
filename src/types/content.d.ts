@@ -201,6 +201,7 @@ interface GameContent {
   enemyCatalog: Record<string, EnemyTemplate>;
   encounterCatalog: Record<string, EncounterDefinition>;
   generatedActEncounterIds?: Record<number, GeneratedActEncounterIds>;
+  generatedZoneEncounterIds?: Record<string, string[]>;
 }
 
 interface ClassStartingResources {
@@ -313,6 +314,8 @@ interface EnemyPoolsSeedFile {
   enemyPools?: EnemyPoolEntry[];
 }
 
+type ZoneMonsterMap = Record<string, Record<string, string[]>>;
+
 interface SeedBundle {
   loadedAt?: string;
   classes?: {
@@ -326,4 +329,5 @@ interface SeedBundle {
   runes?: unknown;
   runewords?: unknown;
   bosses?: BossesSeedFile;
+  zoneMonsters?: ZoneMonsterMap;
 }

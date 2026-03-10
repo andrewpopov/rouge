@@ -150,6 +150,12 @@ interface EncounterRegistryEnemyBuildersApi {
   }): EnemyTemplate;
 }
 
+interface EncounterRegistryZoneContent {
+  enemyCatalog: Record<string, EnemyTemplate>;
+  encounterCatalog: Record<string, EncounterDefinition>;
+  encounterIds: string[];
+}
+
 interface EncounterRegistryBuildersApi {
   normalizeActPool(seedBundle: SeedBundle, actNumber: number): EnemyPoolEntryRef[];
   groupByRole(entries: EnemyPoolEntryRef[]): EncounterRegistryGroupedEntries;
@@ -158,6 +164,11 @@ interface EncounterRegistryBuildersApi {
     bossEntry: BossEntry | null | undefined;
     groupedEntries: EncounterRegistryGroupedEntries;
   }): EncounterRegistryActContent;
+  buildZoneEncounterSet(options: {
+    actNumber: number;
+    zoneName: string;
+    monsterNames: string[];
+  }): EncounterRegistryZoneContent | null;
 }
 
 interface EncounterRegistryApi {
@@ -694,6 +705,30 @@ interface AppEngineApi {
   returnToFrontDoor(state: AppState): void;
 }
 
+interface ExplorationEventChoice {
+  id: string;
+  title: string;
+  description: string;
+  effects: RewardChoiceEffect[];
+  requiresCardPick?: boolean;
+}
+
+interface ExplorationEvent {
+  id: string;
+  kind: "card_upgrade" | "blessing" | "gamble" | "mystery" | "trader" | "trial" | "rest" | "shrine";
+  title: string;
+  flavor: string;
+  icon: string;
+  choices: ExplorationEventChoice[];
+  pendingChoiceId?: string;
+}
+
+interface ExplorationEventsApi {
+  rollExplorationEvent(run: RunState, zone: ZoneState, content: GameContent, seed: number): ExplorationEvent | null;
+  applyExplorationEventChoice(run: RunState, event: ExplorationEvent, choiceId: string, content: GameContent, cardId?: string): ActionResult;
+  getUpgradableCardIds(run: RunState, content: GameContent): string[];
+}
+
 interface AppState {
   phase: AppPhase;
   content: GameContent;
@@ -713,6 +748,7 @@ interface AppState {
     hallSection: string;
     townFocus: string;
     exploring: boolean;
+    explorationEvent: ExplorationEvent | null;
   };
   profile: ProfileState;
   run: RunState | null;

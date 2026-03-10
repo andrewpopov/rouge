@@ -297,6 +297,7 @@ interface Window {
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
+  ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
   ROUGE_WORLD_NODE_CATALOG_OPPORTUNITIES: WorldNodeCatalogOpportunitiesApi;
   ROUGE_WORLD_NODE_CATALOG: WorldNodeCatalogApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;

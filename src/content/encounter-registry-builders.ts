@@ -826,9 +826,98 @@
     };
   }
 
+  function slugifyZone(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  }
+
+  function monsterNameToEntry(name, zoneSlug) {
+    const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    return { id: `z_${zoneSlug}_${baseId}`, name };
+  }
+
+  function spreadAcrossRoles(entries) {
+    const grouped = groupByRole(entries);
+    const usedIds = new Set();
+    const result = { raider: null, ranged: null, support: null, brute: null };
+    const roles = ["support", "ranged", "brute", "raider"];
+
+    roles.forEach((role) => {
+      const candidate = grouped[role].find((e) => !usedIds.has(e.id));
+      if (candidate) {
+        result[role] = candidate;
+        usedIds.add(candidate.id);
+      }
+    });
+
+    const unused = entries.filter((e) => !usedIds.has(e.id));
+    roles.forEach((role) => {
+      if (!result[role]) {
+        result[role] = unused.shift() || grouped[role][0] || entries[0];
+      }
+    });
+    return result;
+  }
+
+  function buildZoneEncounterSet({ actNumber, zoneName, monsterNames }) {
+    if (!Array.isArray(monsterNames) || monsterNames.length === 0) {
+      return null;
+    }
+
+    const zoneSlug = slugifyZone(zoneName);
+    const entries = monsterNames.map((n) => monsterNameToEntry(n, zoneSlug));
+    const spread = spreadAcrossRoles(entries);
+
+    const raiderA = buildEnemyTemplate({ actNumber, entry: spread.raider, role: "raider" });
+    const raiderB = buildEnemyTemplate({
+      actNumber,
+      entry: entries.length > 1 ? entries.find((e) => e.id !== spread.raider.id) || spread.raider : spread.raider,
+      role: "raider",
+      variant: "alt",
+    });
+    const rangedA = buildEnemyTemplate({ actNumber, entry: spread.ranged, role: "ranged" });
+    const supportA = buildEnemyTemplate({ actNumber, entry: spread.support, role: "support" });
+    const bruteA = buildEnemyTemplate({ actNumber, entry: spread.brute, role: "brute" });
+
+    const prefix = `act_${actNumber}_zone_${zoneSlug}`;
+    const enemyTemplates = [raiderA, raiderB, rangedA, supportA, bruteA];
+    const enemyCatalog = Object.fromEntries(enemyTemplates.map((t) => [t.templateId, t]));
+
+    const encounterIds = [
+      `${prefix}_patrol`,
+      `${prefix}_ambush`,
+      `${prefix}_swarm`,
+    ];
+
+    const encounterCatalog = {
+      [encounterIds[0]]: makeEncounter(
+        encounterIds[0],
+        `${zoneName} Patrol`,
+        `A pack of ${zoneName} denizens blocks the path.`,
+        [raiderA.templateId, raiderB.templateId, supportA.templateId]
+      ),
+      [encounterIds[1]]: makeEncounter(
+        encounterIds[1],
+        `${zoneName} Ambush`,
+        `${zoneName} creatures emerge from the shadows with ranged support.`,
+        [raiderA.templateId, rangedA.templateId, supportA.templateId],
+        [{ kind: "ambush_opening", value: 1 }]
+      ),
+      [encounterIds[2]]: makeEncounter(
+        encounterIds[2],
+        `${zoneName} Swarm`,
+        `A larger group of ${zoneName} inhabitants surges forward with brute force.`,
+        [raiderA.templateId, bruteA.templateId, rangedA.templateId, supportA.templateId],
+        [{ kind: "vanguard_rush", value: 1 }]
+      ),
+    };
+
+    return { enemyCatalog, encounterCatalog, encounterIds };
+  }
+
   runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS = {
     normalizeActPool,
     groupByRole,
     buildActEncounterSet,
+    buildZoneEncounterSet,
   };
 })();

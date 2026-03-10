@@ -280,6 +280,7 @@
         hallSection: "",
         townFocus: "",
         exploring: false,
+        explorationEvent: null,
       },
       profile,
       run: null,
@@ -828,6 +829,19 @@
     });
     state.phase = PHASES.ENCOUNTER;
     state.ui.exploring = true;
+
+    // Roll for an exploration event before combat begins
+    const explorationEvents = runtimeWindow.ROUGE_EXPLORATION_EVENTS;
+    const zone = runFactory.getZoneById(state.run, state.run.activeZoneId);
+    if (explorationEvents && zone) {
+      const encounterNum = (zone.encountersCleared || 0) + 1;
+      const eventSeed = state.run.deck.length * 13 + encounterNum * 41 + zone.title.length * 7 + state.run.gold;
+      const event = explorationEvents.rollExplorationEvent(state.run, zone, state.content, eventSeed);
+      state.ui.explorationEvent = event;
+    } else {
+      state.ui.explorationEvent = null;
+    }
+
     return { ok: true };
   }
 
