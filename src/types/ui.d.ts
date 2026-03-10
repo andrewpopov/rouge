@@ -319,6 +319,31 @@ interface Window {
   ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;
   ROUGE_CONTENT_VALIDATOR_WORLD_PATHS: ContentValidatorWorldPathsApi;
   ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES: ContentValidatorWorldOpportunitiesApi;
+  __ROUGE_CVWO_HELPERS: {
+    pushError(errors: string[], message: string): void;
+    validateStringIdList(values: unknown, label: string, errors: string[]): void;
+    validateKnownStringIds(values: unknown, knownValues: Set<string>, label: string, errors: string[], referenceType: string): void;
+    validateGrants(grants: unknown, label: string, errors: string[]): void;
+    validateNodeChoice(definition: unknown, choiceDefinition: unknown, label: string, expectedNodeType: string, errors: string[], linkedQuestId?: string): void;
+    validateRewardDefinition(definition: unknown, label: string, expectedNodeType: string, errors: string[], linkedQuestId?: string): void;
+    validateOpportunityShell(definition: unknown, label: string, errors: string[]): void;
+    validateRequiredNodeReference(definition: unknown, label: string, fieldName: string, expectedDefinition: unknown, referenceLabel: string, errors: string[]): void;
+    validateReserveStyleOpportunityVariants(options: unknown): void;
+  };
+  __ROUGE_CVWO_FAMILIES_A: {
+    validateReserveOpportunityFamily(options: unknown): void;
+    validateRelayOpportunityFamily(options: unknown): void;
+    validateCulminationOpportunityFamily(options: unknown): void;
+    validateLegacyOpportunityFamily(options: unknown): void;
+    validateReckoningOpportunityFamily(options: unknown): void;
+  };
+  __ROUGE_CVWO_FAMILIES_B: {
+    validateRecoveryOpportunityFamily(options: unknown): void;
+    validateAccordOpportunityFamily(options: unknown): void;
+    validateCovenantOpportunityFamily(options: unknown): void;
+    validateDetourOpportunityFamily(options: unknown): void;
+    validateEscalationOpportunityFamily(options: unknown): void;
+  };
   ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
   ROUGE_CONTENT_VALIDATOR: ContentValidatorApi;
   ROUGE_ENCOUNTER_REGISTRY: EncounterRegistryApi;

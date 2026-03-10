@@ -13,6 +13,9 @@ const SHARED_RUNTIME_FILES = [
 
 const VALIDATOR_RUNTIME_FILES = [
   "src/content/content-validator-world-paths.js",
+  "src/content/content-validator-world-opportunities-helpers.js",
+  "src/content/content-validator-world-opportunities-families.js",
+  "src/content/content-validator-world-opportunities-families-late.js",
   "src/content/content-validator-world-opportunities.js",
   "src/content/content-validator-runtime-content.js",
   "src/content/content-validator.js",
