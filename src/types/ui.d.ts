@@ -329,6 +329,13 @@ interface Window {
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
+  __ROUGE_OPP_HELPERS: {
+    nodeOutcomeEffect(...args: any[]): any;
+    questConsequenceEffect(...args: any[]): any;
+    buildOpportunityChoice(...args: any[]): any;
+    buildLateRouteVariant(...args: any[]): any;
+  };
+  __ROUGE_OPP_STAGING: Partial<WorldNodeCatalogOpportunitiesApi>;
   ROUGE_WORLD_NODE_CATALOG_OPPORTUNITIES: WorldNodeCatalogOpportunitiesApi;
   ROUGE_WORLD_NODE_CATALOG: WorldNodeCatalogApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;

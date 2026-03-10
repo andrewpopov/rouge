@@ -65,6 +65,20 @@ const APP_UI_RUNTIME_FILES = [
 ];
 
 const WORLD_NODE_RUNTIME_FILES = [
+  "src/quests/catalog-opp-helpers.js",
+  "src/quests/catalog-opp-additional.js",
+  "src/quests/catalog-opp-shrine.js",
+  "src/quests/catalog-opp-crossroad.js",
+  "src/quests/catalog-opp-reserve.js",
+  "src/quests/catalog-opp-relay.js",
+  "src/quests/catalog-opp-culmination.js",
+  "src/quests/catalog-opp-legacy.js",
+  "src/quests/catalog-opp-reckoning.js",
+  "src/quests/catalog-opp-recovery.js",
+  "src/quests/catalog-opp-accord.js",
+  "src/quests/catalog-opp-covenant.js",
+  "src/quests/catalog-opp-detour.js",
+  "src/quests/catalog-opp-escalation.js",
   "src/quests/world-node-catalog-opportunities.js",
   "src/quests/world-node-catalog.js",
   "src/quests/world-node-outcomes.js",
