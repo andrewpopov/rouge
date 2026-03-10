@@ -1,9 +1,25 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 const PORT = parseInt(process.env.PORT || "4173", 10);
 const DIST_DIR = path.resolve(__dirname, "../../dist");
+
+// Kill any previous server on this port
+try {
+  const pids = execSync(`lsof -ti tcp:${PORT}`, { encoding: "utf-8" }).trim();
+  if (pids) {
+    for (const pid of pids.split("\n")) {
+      try { process.kill(Number(pid), "SIGKILL"); } catch (_) {}
+    }
+    // Wait for port to be released
+    execSync("sleep 0.5");
+    console.log(`Killed previous process(es) on port ${PORT}`);
+  }
+} catch (_) {
+  // No process on port — nothing to kill
+}
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",

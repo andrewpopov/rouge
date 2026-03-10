@@ -380,9 +380,9 @@
               ${buildBadge(settings.showHints ? "Guidance On" : "Guidance Off", settings.showHints ? "available" : "locked")}
             </div>
             <div class="badge-row">
-              ${buildBadge(getSettingLabel(settings.showHints, "Hints Visible", "Hints Hidden"), settings.showHints ? "available" : "locked")}
-              ${buildBadge(getSettingLabel(settings.reduceMotion, "Reduced Motion", "Full Motion"), settings.reduceMotion ? "cleared" : "available")}
-              ${buildBadge(getSettingLabel(settings.compactMode, "Compact Layout", "Full Layout"), settings.compactMode ? "cleared" : "available")}
+              ${buildBadge(settings.showHints ? "Hints Visible" : "Hints Hidden", settings.showHints ? "available" : "locked")}
+              ${buildBadge(settings.reduceMotion ? "Reduced Motion" : "Full Motion", settings.reduceMotion ? "cleared" : "available")}
+              ${buildBadge(settings.compactMode ? "Compact Layout" : "Full Layout", settings.compactMode ? "cleared" : "available")}
             </div>
             <p>These are render-facing settings today. Future shell controls can attach here without moving profile ownership out of state modules.</p>
           </article>
