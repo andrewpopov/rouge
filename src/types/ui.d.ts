@@ -393,6 +393,8 @@ interface Window {
   ROUGE_UI_ACCOUNT_META: UiAccountMetaApi;
   ROUGE_UI_COMMON: UiCommonApi;
   ROUGE_FRONT_DOOR_EXPEDITION_VIEW: FrontDoorExpeditionViewApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_HALL_VIEW_SECTIONS: Record<string, (...args: any[]) => any>;
   ROUGE_FRONT_DOOR_HALL_VIEW: FrontDoorHallViewApi;
   ROUGE_SAFE_ZONE_OPERATIONS_VIEW: SafeZoneOperationsViewApi;
   ROUGE_ASSET_MAP: AssetMapApi;
