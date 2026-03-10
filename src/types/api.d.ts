@@ -729,6 +729,17 @@ interface ExplorationEventsApi {
   getUpgradableCardIds(run: RunState, content: GameContent): string[];
 }
 
+interface AssetMapApi {
+  getCardIcon(cardId: string, effects?: CardEffect[]): string;
+  getEnemyIcon(templateId: string): string;
+  getEnemySprite(templateId: string): string | null;
+  getClassPortrait(classId: string): string | null;
+  getClassSprite(classId: string): string | null;
+  getMercenarySprite(role: string): string | null;
+  getUiIcon(key: string): string | null;
+  getIntentIcon(intentDescription: string): string;
+}
+
 interface AppState {
   phase: AppPhase;
   content: GameContent;

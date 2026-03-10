@@ -72,10 +72,13 @@ const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/world-node-engine.js",
 ];
 
+const ASSET_MAP_FILES = ["src/content/asset-map.js"];
+
 const CONTENT_HELPER_RUNTIME_FILES = [
   ...SHARED_RUNTIME_FILES,
   ...VALIDATOR_RUNTIME_FILES,
   ...ENCOUNTER_REGISTRY_HELPER_FILES,
+  ...ASSET_MAP_FILES,
 ];
 
 const COMBAT_RUNTIME_FILES = [

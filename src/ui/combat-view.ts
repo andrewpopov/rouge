@@ -181,13 +181,8 @@
     `;
   }
 
-  function renderIntentIcon(intent: string): string {
-    if (intent.includes("attack") || intent.includes("deal") || intent.includes("damage")) return "\u2694";
-    if (intent.includes("guard") || intent.includes("block") || intent.includes("defend")) return "\u{1F6E1}";
-    if (intent.includes("buff") || intent.includes("strength")) return "\u2B06";
-    if (intent.includes("debuff") || intent.includes("weaken")) return "\u2B07";
-    if (intent.includes("heal")) return "\u{1F49A}";
-    return "\u2753";
+  function svgIcon(src: string, cls: string, alt: string): string {
+    return `<img src="${src}" class="${cls}" alt="${alt}" loading="lazy" />`;
   }
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
@@ -197,6 +192,7 @@
     }
 
     const common = runtimeWindow.ROUGE_UI_COMMON;
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const { escapeHtml } = services.renderUtils;
     const run = appState.run;
     const combat = appState.combat;
@@ -225,7 +221,7 @@
 
         <div class="combat-hud">
           <div class="combat-hud__left">
-            <span class="combat-hud__hp">\u2764 ${combat.hero.life}/${combat.hero.maxLife}</span>
+            <span class="combat-hud__hp">${assets ? svgIcon(assets.getUiIcon("hp") || "", "hud-icon", "HP") : "\u2764"} ${combat.hero.life}/${combat.hero.maxLife}</span>
             <span class="combat-hud__gold">\u{1F4B0} ${run.gold}</span>
             <span class="combat-hud__potions">\u{1F9EA} ${combat.potions}</span>
           </div>
@@ -244,13 +240,13 @@
 
           <div class="stage__allies">
             <div class="sprite ${combat.hero.alive ? "" : "sprite--dead"}">
-              <div class="sprite__figure sprite__figure--hero">${escapeHtml(run.className.charAt(0))}</div>
+              <div class="sprite__figure sprite__figure--hero">${assets ? svgIcon(assets.getClassSprite(run.classId) || assets.getClassPortrait(run.classId) || "", "sprite__portrait", run.className) : escapeHtml(run.className.charAt(0))}</div>
               <div class="sprite__bars">
                 <div class="sprite__hp-bar">
                   <div class="sprite__hp-fill sprite__hp-fill--hero" style="width:${hpPercent}%"></div>
                   <span class="sprite__hp-text">${combat.hero.life}/${combat.hero.maxLife}</span>
                 </div>
-                ${combat.hero.guard > 0 ? `<div class="sprite__status sprite__status--guard">\u{1F6E1} ${combat.hero.guard}</div>` : ""}
+                ${combat.hero.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${combat.hero.guard}</div>` : ""}
               </div>
               <div class="sprite__label">${escapeHtml(combat.hero.name)}</div>
               <button class="sprite__potion" data-action="use-potion-hero"
@@ -258,13 +254,13 @@
             </div>
 
             <div class="sprite ${combat.mercenary.alive ? "" : "sprite--dead"}">
-              <div class="sprite__figure sprite__figure--merc">${escapeHtml(combat.mercenary.role.charAt(0))}</div>
+              <div class="sprite__figure sprite__figure--merc">${assets ? svgIcon(assets.getMercenarySprite(combat.mercenary.role) || "", "sprite__portrait", combat.mercenary.role) : escapeHtml(combat.mercenary.role.charAt(0))}</div>
               <div class="sprite__bars">
                 <div class="sprite__hp-bar">
                   <div class="sprite__hp-fill sprite__hp-fill--merc" style="width:${mercHpPercent}%"></div>
                   <span class="sprite__hp-text">${combat.mercenary.life}/${combat.mercenary.maxLife}</span>
                 </div>
-                ${combat.mercenary.guard > 0 ? `<div class="sprite__status sprite__status--guard">\u{1F6E1} ${combat.mercenary.guard}</div>` : ""}
+                ${combat.mercenary.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${combat.mercenary.guard}</div>` : ""}
               </div>
               <div class="sprite__label">${escapeHtml(combat.mercenary.name)}</div>
               <button class="sprite__potion" data-action="use-potion-mercenary"
@@ -278,20 +274,21 @@
               const isDead = !enemy.alive;
               const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
               const intentDesc = services.combatEngine.describeIntent(enemy.currentIntent);
-              const intentIcon = renderIntentIcon(intentDesc);
+              const enemyIcon = assets ? assets.getEnemyIcon(enemy.templateId || enemy.id) : "";
+              const intentSvg = assets ? svgIcon(assets.getIntentIcon(intentDesc), "intent-icon", intentDesc) : "";
               return `
                 <button class="sprite sprite--enemy ${isSelected ? "sprite--targeted" : ""} ${isDead ? "sprite--dead" : ""}"
                         data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}"
                         ${isDead || Boolean(combat.outcome) ? "disabled" : ""}>
-                  ${!isDead && !combat.outcome ? `<div class="sprite__intent" title="${escapeHtml(intentDesc)}">${intentIcon}</div>` : ""}
-                  <div class="sprite__figure sprite__figure--enemy">${escapeHtml(enemy.name.charAt(0))}</div>
+                  ${!isDead && !combat.outcome ? `<div class="sprite__intent" title="${escapeHtml(intentDesc)}">${intentSvg || "\u2753"}</div>` : ""}
+                  <div class="sprite__figure sprite__figure--enemy">${assets ? svgIcon(enemyIcon, "sprite__portrait sprite__portrait--enemy", enemy.name) : escapeHtml(enemy.name.charAt(0))}</div>
                   <div class="sprite__bars">
                     <div class="sprite__hp-bar">
                       <div class="sprite__hp-fill sprite__hp-fill--enemy" style="width:${enemyHpPct}%"></div>
                       <span class="sprite__hp-text">${enemy.life}/${enemy.maxLife}</span>
                     </div>
-                    ${enemy.guard > 0 ? `<div class="sprite__status sprite__status--guard">\u{1F6E1} ${enemy.guard}</div>` : ""}
-                    ${enemy.burn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${enemy.burn}</div>` : ""}
+                    ${enemy.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${enemy.guard}</div>` : ""}
+                    ${enemy.burn > 0 ? `<div class="sprite__status sprite__status--burn">${assets ? svgIcon(assets.getUiIcon("burn") || "", "status-icon status-icon--burn", "Burn") : "\u{1F525}"} ${enemy.burn}</div>` : ""}
                   </div>
                   <div class="sprite__label">${escapeHtml(enemy.name)}</div>
                 </button>
@@ -333,7 +330,7 @@
                         data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
                         style="--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${i}">
                   <div class="fan-card__cost">${card.cost}</div>
-                  <div class="fan-card__art">${card.target === "enemy" ? "\u2694" : "\u{1F6E1}"}</div>
+                  <div class="fan-card__art">${assets ? svgIcon(assets.getCardIcon(instance.cardId, card.effects), "fan-card__icon" + (card.target === "enemy" ? " fan-card__icon--attack" : " fan-card__icon--skill"), card.title) : (card.target === "enemy" ? "\u2694" : "\u{1F6E1}")}</div>
                   <div class="fan-card__name">${escapeHtml(card.title)}</div>
                   <div class="fan-card__desc">${escapeHtml(card.text)}</div>
                   <div class="fan-card__type">${card.target === "enemy" ? "Attack" : "Skill"}</div>
