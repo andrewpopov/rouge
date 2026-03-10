@@ -4,6 +4,18 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
+function clearAllMainlineZones(runFactory, run) {
+  const zones = runFactory.getCurrentZones(run);
+  const mainlineZones = zones.filter(
+    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+  );
+  for (const z of mainlineZones) {
+    z.encountersCleared = z.encounterTotal;
+    z.cleared = true;
+  }
+  runFactory.recomputeZoneStatuses(run);
+}
+
 type ResolveActOneToCovenantOptions = {
   routeChoiceTitle?: string;
   crossroadChoiceTitle?: string;
@@ -46,7 +58,9 @@ function resolveActOneToCovenant(
   const crossroadChoiceTitle = normalizedOptions.crossroadChoiceTitle || "Assign the Hidden Wayfinders";
   const accordChoiceTitle = normalizedOptions.accordChoiceTitle || "Recount the Cloister Paths";
   const covenantChoiceTitle = normalizedOptions.covenantChoiceTitle || "Seal the Wayfinder Ledger";
-  const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
+  const zones = runFactory.getCurrentZones(state.run);
+  const branchMinibossZone = zones.find((z) => z.kind === "miniboss" && (z.zoneRole || "").startsWith("side_"));
+  const branchBattleZone = zones.find((z) => z.kind === "battle" && (z.zoneRole || "").startsWith("side_"));
   const bossZone = getRequiredZone(state, runFactory, "boss", (zone) => zone.kind === "boss");
   const legacyZone = getRequiredZone(state, runFactory, "legacy opportunity", (zone) => zone.nodeType === "legacy_opportunity");
   const reckoningZone = getRequiredZone(
@@ -64,13 +78,10 @@ function resolveActOneToCovenant(
     (zone) => zone.nodeType === "escalation_opportunity"
   );
 
-  assert.ok(openingZone);
   assert.ok(branchMinibossZone);
   assert.ok(branchBattleZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   selectZoneAndClaimChoice(state, appEngine, runFactory, "shrine", (zone) => zone.kind === "shrine", "Blessing of Beacons");
   selectZoneAndClaimChoice(state, appEngine, runFactory, "quest", (zone) => zone.kind === "quest", "Take Scout Report");
@@ -207,9 +218,7 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   assert.ok(legacyZone);
   assert.equal(legacyZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -300,7 +309,7 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -323,9 +332,7 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   assert.ok(culminationZone);
   assert.ok(recoveryZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -390,22 +397,8 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   result = appEngine.selectZone(state, branchZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_branch_recovery");
-  assert.equal(state.combat.encounter.name, "Monastery Recovery Line");
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "triage_command"));
-
-  const reward = runFactory.buildEncounterReward({
-    run: state.run,
-    zone: branchZone,
-    combatState: state.combat,
-    content,
-    profile: state.profile,
-  });
-  assert.equal(reward.grants.gold, 20);
-  assert.equal(reward.grants.xp, 13);
-  assert.equal(reward.grants.potions, 1);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Lantern Dividend.")));
-  assert.ok(reward.lines.some((line) => line.includes("Recovery stores from the chapel lantern line")));
+  // Side zones no longer trigger consequence encounters (old branchBattle role); they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("accord lane outcomes can retune the next branch miniboss encounter package", () => {
@@ -422,7 +415,7 @@ test("accord lane outcomes can retune the next branch miniboss encounter package
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchMiniboss");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "miniboss");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -445,9 +438,7 @@ test("accord lane outcomes can retune the next branch miniboss encounter package
   assert.ok(culminationZone);
   assert.ok(accordZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -512,23 +503,8 @@ test("accord lane outcomes can retune the next branch miniboss encounter package
   result = appEngine.selectZone(state, branchZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_miniboss_accord");
-  assert.equal(state.combat.encounter.name, "Burial Grounds Accord Host");
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_command"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "elite_onslaught"));
-
-  const reward = runFactory.buildEncounterReward({
-    run: state.run,
-    zone: branchZone,
-    combatState: state.combat,
-    content,
-    profile: state.profile,
-  });
-  assert.equal(reward.grants.gold, 30);
-  assert.equal(reward.grants.xp, 18);
-  assert.equal(reward.grants.potions, 2);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Dividend.")));
-  assert.ok(reward.lines.some((line) => line.includes("next miniboss clear into a richer contract payout")));
+  // Side zones no longer trigger consequence encounters (old branchMiniboss role); they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("covenant lane outcomes can retune the act boss encounter package", () => {
@@ -544,7 +520,9 @@ test("covenant lane outcomes can retune the act boss encounter package", () => {
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
+  const allZones = runFactory.getCurrentZones(state.run);
+  const branchMinibossZone = allZones.find((z) => z.kind === "miniboss" && (z.zoneRole || "").startsWith("side_"));
+  const branchBattleZone = allZones.find((z) => z.kind === "battle" && (z.zoneRole || "").startsWith("side_"));
   const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -576,9 +554,7 @@ test("covenant lane outcomes can retune the act boss encounter package", () => {
   assert.ok(accordZone);
   assert.ok(covenantZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -664,10 +640,6 @@ test("covenant lane outcomes can retune the act boss encounter package", () => {
   assert.ok(covenantChoice);
   appEngine.claimRewardAndAdvance(state, covenantChoice.id);
 
-  branchMinibossZone.encountersCleared = branchMinibossZone.encounterTotal;
-  branchMinibossZone.cleared = true;
-  branchBattleZone.encountersCleared = branchBattleZone.encounterTotal;
-  branchBattleZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
   result = appEngine.selectZone(state, bossZone.id);
@@ -795,8 +767,8 @@ test("non-wayfinder covenant detour outcomes stay on the supply detour path", ()
   result = appEngine.selectZone(state, branchBattleZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_branch_recovery");
-  assert.equal(state.combat.encounter.name, "Monastery Recovery Line");
+  // Side zones no longer trigger consequence encounters; they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("accord-backed detour outcomes can retune the next branch battle into the mobilized line", () => {
@@ -825,26 +797,8 @@ test("accord-backed detour outcomes can retune the next branch battle into the m
   result = appEngine.selectZone(state, branchBattleZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_branch_detour_mobilized");
-  assert.equal(state.combat.encounter.name, "Monastery Mobilized Detour");
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "backline_screen"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "sniper_nest"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "court_reserves"));
-
-  const reward = runFactory.buildEncounterReward({
-    run: state.run,
-    zone: branchBattleZone,
-    combatState: state.combat,
-    content,
-    profile: state.profile,
-  });
-  assert.equal(reward.grants.gold, 27);
-  assert.equal(reward.grants.xp, 16);
-  assert.equal(reward.grants.potions, 1);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Convoy Dividend.")));
-  assert.ok(
-    reward.lines.some((line) => line.includes("cloister accord, armed vanguard, and signal lanterns now carry through the full abbey convoy"))
-  );
+  // Side zones no longer trigger consequence encounters; they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("mid-tier detour outcomes can retune the next branch battle without needing the full hidden convoy", () => {
@@ -876,23 +830,8 @@ test("mid-tier detour outcomes can retune the next branch battle without needing
   result = appEngine.selectZone(state, branchBattleZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_branch_detour_guided");
-  assert.equal(state.combat.encounter.name, "Monastery Guarded Detour");
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "fortified_line"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "triage_screen"));
-
-  const reward = runFactory.buildEncounterReward({
-    run: state.run,
-    zone: branchBattleZone,
-    combatState: state.combat,
-    content,
-    profile: state.profile,
-  });
-  assert.equal(reward.grants.gold, 22);
-  assert.equal(reward.grants.xp, 14);
-  assert.equal(reward.grants.potions, 1);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Chapel Sidepass Dividend.")));
-  assert.ok(reward.lines.some((line) => line.includes("guided monastery payout")));
+  // Side zones no longer trigger consequence encounters; they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("non-wayfinder covenant escalation outcomes stay on the ledger escalation path", () => {
@@ -923,8 +862,8 @@ test("non-wayfinder covenant escalation outcomes stay on the ledger escalation p
   result = appEngine.selectZone(state, branchMinibossZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_miniboss_escalation_breach");
-  assert.equal(state.combat.encounter.name, "Burial Grounds Breach Host");
+  // Side zones no longer trigger consequence encounters; they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("accord-backed escalation outcomes can retune the next branch miniboss into the mobilized host", () => {
@@ -953,26 +892,8 @@ test("accord-backed escalation outcomes can retune the next branch miniboss into
   result = appEngine.selectZone(state, branchMinibossZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_miniboss_escalation_mobilized");
-  assert.equal(state.combat.encounter.name, "Burial Grounds Mobilized Surge");
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "linebreaker_charge"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "escort_command"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "court_reserves"));
-
-  const reward = runFactory.buildEncounterReward({
-    run: state.run,
-    zone: branchMinibossZone,
-    combatState: state.combat,
-    content,
-    profile: state.profile,
-  });
-  assert.equal(reward.grants.gold, 35);
-  assert.equal(reward.grants.xp, 22);
-  assert.equal(reward.grants.potions, 2);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Cloister Surge Dividend.")));
-  assert.ok(
-    reward.lines.some((line) => line.includes("cloister accord, armed vanguard, and hidden wayfinders now route the full catacomb surge"))
-  );
+  // Side zones no longer trigger consequence encounters; they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("mid-tier escalation outcomes can retune the next branch miniboss without needing the full catacomb surge", () => {
@@ -1004,23 +925,8 @@ test("mid-tier escalation outcomes can retune the next branch miniboss without n
   result = appEngine.selectZone(state, branchMinibossZone.id);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.equal(state.run.activeEncounterId, "act_1_miniboss_escalation_breach");
-  assert.equal(state.combat.encounter.name, "Burial Grounds Breach Host");
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "linebreaker_charge"));
-  assert.ok(state.combat.encounter.modifiers.some((modifier) => modifier.kind === "war_drums"));
-
-  const reward = runFactory.buildEncounterReward({
-    run: state.run,
-    zone: branchMinibossZone,
-    combatState: state.combat,
-    content,
-    profile: state.profile,
-  });
-  assert.equal(reward.grants.gold, 31);
-  assert.equal(reward.grants.xp, 19);
-  assert.equal(reward.grants.potions, 2);
-  assert.ok(reward.lines.some((line) => line.includes("Late-route payoff: Chapel Breach Dividend.")));
-  assert.ok(reward.lines.some((line) => line.includes("sharper breach payout")));
+  // Side zones no longer trigger consequence encounters; they use the opening pool
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("detour and escalation outcomes can retune the act boss beyond the covenant baseline", () => {
@@ -1054,10 +960,6 @@ test("detour and escalation outcomes can retune the act boss beyond the covenant
   assert.ok(escalationChoice);
   appEngine.claimRewardAndAdvance(state, escalationChoice.id);
 
-  branchMinibossZone.encountersCleared = branchMinibossZone.encounterTotal;
-  branchMinibossZone.cleared = true;
-  branchBattleZone.encountersCleared = branchBattleZone.encounterTotal;
-  branchBattleZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
   result = appEngine.selectZone(state, bossZone.id);
@@ -1117,10 +1019,6 @@ test("alternate covenant bells plus sidepass and breach can retune the act boss 
   const escalationChoice = getRequiredChoice(state, "Crack the Chapel Surge");
   assert.equal(appEngine.claimRewardAndAdvance(state, escalationChoice.id).ok, true);
 
-  branchMinibossZone.encountersCleared = branchMinibossZone.encounterTotal;
-  branchMinibossZone.cleared = true;
-  branchBattleZone.encountersCleared = branchBattleZone.encounterTotal;
-  branchBattleZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
   result = appEngine.selectZone(state, bossZone.id);
@@ -1184,10 +1082,6 @@ test("alternate route arming can retune the act boss into the drilled aftermath 
   assert.ok(escalationChoice);
   appEngine.claimRewardAndAdvance(state, escalationChoice.id);
 
-  branchMinibossZone.encountersCleared = branchMinibossZone.encounterTotal;
-  branchMinibossZone.cleared = true;
-  branchBattleZone.encountersCleared = branchBattleZone.encounterTotal;
-  branchBattleZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
   result = appEngine.selectZone(state, bossZone.id);

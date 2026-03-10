@@ -22,72 +22,144 @@
   }
 
   /**
-   * Each zone gets a position on the map as [x%, y%].
-   * Positions are keyed by zoneRole so they work across all acts.
-   * The graph flows: town -> opening -> branch1 / branch2 -> boss
-   * Quest and event nodes sit off the main path.
+   * Per-act position maps measured from the background images.
+   * Each key is the zone title; value is [x%, y%].
    */
-  const ZONE_POSITIONS: Record<string, [number, number]> = {
-    town:           [4, 50],
-    opening:        [22, 50],
-    branchMiniboss: [44, 26],
-    branchBattle:   [44, 74],
-    quest:          [62, 26],
-    event:          [62, 74],
-    boss:           [82, 50],
+  const ACT_POSITIONS: Record<number, Record<string, [number, number]>> = {
+    1: {
+      "town":              [6.4, 51],
+      "Blood Moor":        [19.2, 51],
+      "Cold Plains":       [33.4, 51],
+      "Stony Field":       [47.4, 51],
+      "The Underground Passage": [61.7, 51],
+      "Dark Wood":         [76.2, 51],
+      "Black Marsh":       [91.6, 51],
+      "Tamoe Highland":    [94.7, 69],
+      "Outer Cloister":    [77, 86],
+      "Barracks":          [62.4, 84],
+      "Jail":              [48.9, 84],
+      "Inner Cloister":    [33.9, 84],
+      "Cathedral":         [21.2, 84],
+      "Catacombs":         [6.7, 87],
+      "Den of Evil":       [18.7, 17],
+      "Burial Grounds":    [33.2, 14],
+      "Tristram":          [47.2, 14],
+      "Forgotten Tower":   [90.7, 20],
+    },
   };
 
-  /** Lines connecting zones, as [fromRole, toRole] pairs */
-  const ZONE_EDGES: [string, string][] = [
-    ["town", "opening"],
-    ["opening", "branchMiniboss"],
-    ["opening", "branchBattle"],
-    ["branchMiniboss", "boss"],
-    ["branchBattle", "boss"],
-    ["opening", "quest"],
-    ["quest", "event"],
-  ];
+  /**
+   * Look up measured positions for each zone, falling back to
+   * dynamic layout for acts without measured data.
+   */
+  function computePositions(zones: ZoneState[], actNumber: number): Map<string, [number, number]> {
+    const positions = new Map<string, [number, number]>();
+    const measured = ACT_POSITIONS[actNumber];
 
-  function getZonePosition(zone: ZoneState): [number, number] | null {
-    if (zone.kind === "boss") {return ZONE_POSITIONS.boss;}
-    if (zone.zoneRole && ZONE_POSITIONS[zone.zoneRole]) {return ZONE_POSITIONS[zone.zoneRole];}
-    if (zone.kind === "quest") {return ZONE_POSITIONS.quest;}
-    if (zone.kind === "event") {return ZONE_POSITIONS.event;}
-    return null;
-  }
+    if (measured) {
+      // Use measured town position
+      positions.set("town", measured["town"] || [4, 50]);
 
-  function buildSvgEdges(zones: ZoneState[]): string {
-    const roleMap = new Map<string, ZoneState>();
-    for (const z of zones) {
-      if (z.kind === "boss") {roleMap.set("boss", z);}
-      else if (z.kind === "quest") {roleMap.set("quest", z);}
-      else if (z.kind === "event") {roleMap.set("event", z);}
-      else if (z.zoneRole) {roleMap.set(z.zoneRole, z);}
-    }
-    // Always add a virtual town node
-    roleMap.set("town", { status: "cleared" } as ZoneState);
-
-    const lines: string[] = [];
-    for (const [fromRole, toRole] of ZONE_EDGES) {
-      const from = roleMap.get(fromRole);
-      const to = roleMap.get(toRole);
-      if (!from || !to) {continue;}
-      const fp = ZONE_POSITIONS[fromRole];
-      const tp = ZONE_POSITIONS[toRole];
-      if (!fp || !tp) {continue;}
-
-      const bothCleared = from.status === "cleared" && to.status === "cleared";
-      const active = from.status === "cleared" && to.status === "available";
-      let cls = "edge--locked";
-      if (bothCleared) {
-        cls = "edge--cleared";
-      } else if (active) {
-        cls = "edge--active";
+      // Match zones by title
+      for (const zone of zones) {
+        const pos = measured[zone.title];
+        if (pos) {
+          positions.set(zone.id, pos);
+        }
       }
 
-      lines.push(
-        `<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`
-      );
+      // Any zone without a measured position gets placed near its prerequisite
+      for (const zone of zones) {
+        if (positions.has(zone.id)) continue;
+        const parentId = (zone.prerequisites || [])[0];
+        const parentPos = parentId ? positions.get(parentId) : null;
+        if (parentPos) {
+          const yOffset = zone.kind === "quest" ? 18 : zone.kind === "event" ? 82 : parentPos[1] - 15;
+          positions.set(zone.id, [Math.min(parentPos[0] + 4, 94), yOffset]);
+        }
+      }
+      return positions;
+    }
+
+    // Fallback: dynamic layout for acts without measured data
+    const mainline = zones.filter((z) => z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_"));
+    const boss = zones.find((z) => z.kind === "boss");
+    const sides = zones.filter((z) => (z.zoneRole || "").startsWith("side_"));
+    const worldNodes = zones.filter((z) => z.kind === "quest" || z.kind === "event");
+
+    positions.set("town", [4, 50]);
+
+    const mainCount = mainline.length;
+    for (let i = 0; i < mainCount; i++) {
+      const x = 12 + (i / Math.max(mainCount - 1, 1)) * 76;
+      positions.set(mainline[i].id, [Math.round(x), 50]);
+    }
+
+    if (boss) {
+      positions.set(boss.id, [96, 50]);
+    }
+
+    const mainlineById = new Map(mainline.map((z) => [z.id, z]));
+    for (const side of sides) {
+      const parentId = (side.prerequisites || []).find((pid) => mainlineById.has(pid));
+      const parentPos = parentId ? positions.get(parentId) : null;
+      if (parentPos) {
+        positions.set(side.id, [parentPos[0], 18]);
+      }
+    }
+
+    for (const wn of worldNodes) {
+      const parentId = (wn.prerequisites || [])[0];
+      const parentPos = parentId ? positions.get(parentId) : null;
+      if (parentPos) {
+        const yOffset = wn.kind === "quest" ? 18 : 82;
+        positions.set(wn.id, [Math.min(parentPos[0] + 4, 94), yOffset]);
+      }
+    }
+
+    return positions;
+  }
+
+  /**
+   * Build SVG edge paths connecting zones based on prerequisite chains.
+   * Each zone draws an edge from each of its prerequisites.
+   */
+  function buildSvgEdges(zones: ZoneState[], positions: Map<string, [number, number]>): string {
+    const zoneById = new Map(zones.map((z) => [z.id, z]));
+    const lines: string[] = [];
+
+    // Town → opening edge
+    const opening = zones.find((z) => z.zoneRole === "opening");
+    if (opening) {
+      const fp = positions.get("town");
+      const tp = positions.get(opening.id);
+      if (fp && tp) {
+        const cls = opening.status === "cleared" ? "edge--cleared" : opening.status === "available" ? "edge--active" : "edge--locked";
+        lines.push(`<line x1="${fp[0]}" y1="${fp[1]}" x2="${tp[0]}" y2="${tp[1]}" class="map-edge ${cls}" />`);
+      }
+    }
+
+    // Every zone draws edges from its prerequisites
+    for (const zone of zones) {
+      const tp = positions.get(zone.id);
+      if (!tp) continue;
+      for (const prereqId of zone.prerequisites || []) {
+        const prereq = zoneById.get(prereqId);
+        const fp = positions.get(prereqId);
+        if (!fp || !prereq) continue;
+
+        const bothCleared = prereq.status === "cleared" && zone.status === "cleared";
+        const active = prereq.status === "cleared" && zone.status === "available";
+        const cls = bothCleared ? "edge--cleared" : active ? "edge--active" : "edge--locked";
+
+        // Use curves for vertical connections, straight lines for horizontal
+        if (Math.abs(fp[1] - tp[1]) > 10) {
+          const mx = (fp[0] + tp[0]) / 2;
+          lines.push(`<path d="M ${fp[0]} ${fp[1]} C ${mx} ${fp[1]}, ${mx} ${tp[1]}, ${tp[0]} ${tp[1]}" class="map-edge ${cls}" />`);
+        } else {
+          lines.push(`<line x1="${fp[0]}" y1="${fp[1]}" x2="${tp[0]}" y2="${tp[1]}" class="map-edge ${cls}" />`);
+        }
+      }
     }
     return lines.join("");
   }
@@ -95,10 +167,11 @@
   function buildWaypointNode(
     zone: ZoneState,
     reachable: boolean,
-    escapeHtml: (s: string) => string
+    escapeHtml: (s: string) => string,
+    positions: Map<string, [number, number]>
   ): string {
-    const pos = getZonePosition(zone);
-    if (!pos) {return "";}
+    const pos = positions.get(zone.id);
+    if (!pos) return "";
 
     const icon = ZONE_KIND_ICONS[zone.kind] || "\u2694";
     let statusClass = "waypoint--locked";
@@ -144,23 +217,25 @@
     const reachableZoneIds = new Set(services.runFactory.getReachableZones(run).map((z) => z.id));
     const clearedCount = currentZones.filter((z) => z.cleared).length;
 
-    // Filter out shrines and opportunities -- only show combat + quest + event + boss
+    // Filter out shrines, opportunities, and events -- only show combat + quest + boss
     const mapZones = currentZones.filter(
-      (z) => z.kind !== "shrine" && z.kind !== "opportunity"
+      (z) => z.kind !== "shrine" && z.kind !== "opportunity" && z.kind !== "event"
     );
 
     const actMapFile = getActMapFilename(run.actNumber);
+    const positions = computePositions(mapZones, run.actNumber);
 
     // Town waypoint (always shown, always cleared)
+    const townPos = positions.get("town") || [6.4, 53];
     const townWaypoint = `
-      <div class="waypoint waypoint--town" style="left:${ZONE_POSITIONS.town[0]}%;top:${ZONE_POSITIONS.town[1]}%">
+      <div class="waypoint waypoint--town" style="left:${townPos[0]}%;top:${townPos[1]}%">
         <span class="waypoint__icon">\u{1F3E0}</span>
         <span class="waypoint__label">${escapeHtml(run.safeZoneName)}</span>
       </div>
     `;
 
-    const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), escapeHtml)).join("");
-    const edges = buildSvgEdges(mapZones);
+    const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), escapeHtml, positions)).join("");
+    const edges = buildSvgEdges(mapZones, positions);
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const zoneTitles = Object.fromEntries(currentZones.map((zone) => [zone.id, zone.title]));
 

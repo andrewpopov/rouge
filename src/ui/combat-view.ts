@@ -184,6 +184,12 @@
             </button>
           `).join("")}
         </div>
+        ${appState.profile?.meta?.settings?.debugMode?.skipBattles ? `
+          <button class="end-turn-btn" data-action="debug-skip-encounter"
+            style="background:#822;margin-top:12px">
+            \u{1F41E} Skip Battle
+          </button>
+        ` : ""}
       </div>
     `;
   }
@@ -350,6 +356,12 @@
             ${combat.phase !== "player" || combat.outcome ? "disabled" : ""}>
             End Turn ${encounterNum}
           </button>
+          ${appState.profile?.meta?.settings?.debugMode?.skipBattles ? `
+            <button class="end-turn-btn" data-action="debug-skip-encounter"
+              style="background:#822;margin-top:4px">
+              \u{1F41E} Skip Battle
+            </button>
+          ` : ""}
         </div>
 
         <details class="town-operations-details">

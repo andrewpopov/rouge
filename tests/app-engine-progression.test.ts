@@ -916,9 +916,11 @@ test("upgrade rewards can upgrade a card already in the deck through the app flo
   state.run.deck = ["quick_slash"];
   appEngine.leaveSafeZone(state);
 
-  const [openingZone, branchMinibossZone] = runFactory.getCurrentZones(state.run);
+  const [openingZone, hubZone, branchMinibossZone] = runFactory.getCurrentZones(state.run);
   openingZone.encountersCleared = openingZone.encounterTotal;
   openingZone.cleared = true;
+  hubZone.encountersCleared = hubZone.encounterTotal;
+  hubZone.cleared = true;
   runFactory.recomputeZoneStatuses(state.run);
 
   appEngine.selectZone(state, branchMinibossZone.id);

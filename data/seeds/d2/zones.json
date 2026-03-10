@@ -1,5 +1,5 @@
 {
-  "version": "d2-canon-2026-03-05",
+  "version": "d2-canon-2026-03-10",
   "source": "https://classic.battle.net/diablo2exp/maps/",
   "encounterModel": {
     "encountersPerStage": {
@@ -38,13 +38,17 @@
         "Dark Wood",
         "Black Marsh",
         "Tamoe Highland",
-        "Monastery Gate",
         "Outer Cloister",
         "Barracks",
         "Jail",
         "Inner Cloister",
-        "Cathedral",
-        "Catacombs"
+        "Cathedral"
+      ],
+      "sideBranches": [
+        { "name": "Den of Evil", "from": "Blood Moor", "encounters": 5, "kind": "battle", "description": "A cave teeming with demons. Clear every last one." },
+        { "name": "Burial Grounds", "from": "Cold Plains", "encounters": 3, "kind": "miniboss", "description": "Blood Raven lurks among the risen dead." },
+        { "name": "Tristram", "from": "Stony Field", "gatedBy": "Dark Wood", "encounters": 4, "kind": "battle", "description": "The ruins of Tristram. Rescue Deckard Cain." },
+        { "name": "Forgotten Tower", "from": "Black Marsh", "encounters": 5, "kind": "miniboss", "description": "The Countess hoards runes in her crumbling tower." }
       ],
       "sideZones": [
         "Burial Grounds",
@@ -70,8 +74,13 @@
         "The Palace Cellar",
         "Arcane Sanctuary",
         "Canyon of the Magi",
-        "Tal Rasha's Tomb",
-        "Tal Rasha's Chamber"
+        "Tal Rasha's Tomb"
+      ],
+      "sideBranches": [
+        { "name": "Sewers", "from": "Rocky Waste", "encounters": 4, "kind": "battle", "description": "Dark tunnels beneath the city." },
+        { "name": "Halls of the Dead", "from": "Dry Hills", "encounters": 3, "kind": "miniboss", "description": "Ancient burial halls guarded by the undead." },
+        { "name": "Maggot Lair", "from": "Far Oasis", "encounters": 4, "kind": "battle", "description": "A writhing nest of insectoid horrors." },
+        { "name": "Valley of Snakes", "from": "Lost City", "encounters": 3, "kind": "battle", "description": "Serpentine temple deep in the desert." }
       ],
       "sideZones": [
         "Sewers",
@@ -98,8 +107,12 @@
         "Kurast Bazaar",
         "Upper Kurast",
         "Kurast Causeway",
-        "Travincal",
-        "Durance of Hate"
+        "Travincal"
+      ],
+      "sideBranches": [
+        { "name": "Spider Cavern", "from": "Spider Forest", "encounters": 4, "kind": "battle", "description": "Arachnid-infested caverns." },
+        { "name": "Flayer Dungeon", "from": "Flayer Jungle", "encounters": 4, "kind": "miniboss", "description": "The Flayer shaman lurks below." },
+        { "name": "Kurast Sewers", "from": "Kurast Bazaar", "encounters": 3, "kind": "battle", "description": "Flooded sewers beneath Kurast." }
       ],
       "sideZones": [
         "Spider Cavern",
@@ -121,9 +134,9 @@
         "Outer Steppes",
         "Plains of Despair",
         "City of the Damned",
-        "River of Flame",
-        "Chaos Sanctuary"
+        "River of Flame"
       ],
+      "sideBranches": [],
       "sideZones": []
     },
     {
@@ -146,8 +159,13 @@
         "The Ancients' Way",
         "Arreat Summit",
         "Worldstone Keep",
-        "Throne of Destruction",
-        "The Worldstone Chamber"
+        "Throne of Destruction"
+      ],
+      "sideBranches": [
+        { "name": "Nihlathak's Temple", "from": "Frigid Highlands", "encounters": 5, "kind": "miniboss", "description": "Nihlathak's icy stronghold." },
+        { "name": "Frozen River", "from": "Crystalline Passage", "encounters": 3, "kind": "battle", "description": "An icy cavern beneath the mountains." },
+        { "name": "Drifter Cavern", "from": "Glacial Trail", "encounters": 3, "kind": "battle", "description": "A freezing cave of wandering undead." },
+        { "name": "Infernal Pit", "from": "Arreat Summit", "encounters": 4, "kind": "battle", "description": "A fiery pit of demonic forces." }
       ],
       "sideZones": [
         "Nihlathak's Temple",

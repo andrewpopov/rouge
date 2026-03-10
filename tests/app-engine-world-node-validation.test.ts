@@ -684,15 +684,17 @@ test("boss rewards transition into the next act instead of ending the run early"
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone, branchZoneOne, branchZoneTwo] = runFactory.getCurrentZones(state.run);
-  const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
+  const zones = runFactory.getCurrentZones(state.run);
+  const bossZone = zones.find((zone) => zone.kind === "boss");
   assert.ok(bossZone);
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  branchZoneOne.encountersCleared = branchZoneOne.encounterTotal;
-  branchZoneOne.cleared = true;
-  branchZoneTwo.encountersCleared = branchZoneTwo.encounterTotal;
-  branchZoneTwo.cleared = true;
+  // Clear all mainline zones to unlock the boss
+  const mainlineZones = zones.filter(
+    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+  );
+  for (const z of mainlineZones) {
+    z.encountersCleared = z.encounterTotal;
+    z.cleared = true;
+  }
   runFactory.recomputeZoneStatuses(state.run);
 
   const result = appEngine.selectZone(state, bossZone.id);

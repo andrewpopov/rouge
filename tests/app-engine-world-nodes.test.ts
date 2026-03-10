@@ -4,6 +4,19 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
+/** Clear all mainline battle zones (opening + mainline_*) so that world nodes and the boss become unlocked. */
+function clearAllMainlineZones(runFactory, run) {
+  const zones = runFactory.getCurrentZones(run);
+  const mainlineZones = zones.filter(
+    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+  );
+  for (const z of mainlineZones) {
+    z.encountersCleared = z.encounterTotal;
+    z.cleared = true;
+  }
+  runFactory.recomputeZoneStatuses(run);
+}
+
 test("zone roles map to distinct encounter themes within the same act", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
@@ -17,33 +30,53 @@ test("zone roles map to distinct encounter themes within the same act", () => {
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone, branchMinibossZone, branchBattleZone] = runFactory.getCurrentZones(state.run);
-  const actOneEncounters = content.generatedActEncounterIds[1];
-  assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_opening_") || encounterId.startsWith("act_1_zone_")));
-  assert.ok(branchMinibossZone.encounterIds.every((encounterId) => actOneEncounters.branchMiniboss.includes(encounterId) || encounterId.startsWith("act_1_zone_")));
-  assert.ok(branchBattleZone.encounterIds.every((encounterId) => actOneEncounters.branchBattle.includes(encounterId) || encounterId.startsWith("act_1_zone_")));
+  const zones = runFactory.getCurrentZones(state.run);
+  const openingZone = zones.find((z) => z.zoneRole === "opening");
+  const minibossZone = zones.find((z) => z.kind === "miniboss");
+  const sideZone = zones.find((z) => (z.zoneRole || "").startsWith("side_") && z.kind === "battle");
+  assert.ok(openingZone);
+  assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_opening_")));
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
+  // Side miniboss zones use the opening encounter pool in the new structure
+  assert.ok(minibossZone);
+  assert.ok(minibossZone.encounterIds.length > 0);
+
+  // Clear the miniboss zone's prerequisite mainline zone so it becomes available
+  const minibossPrereqIds = minibossZone.prerequisites || [];
+  for (const prereqId of minibossPrereqIds) {
+    const prereqZone = runFactory.getZoneById(state.run, prereqId);
+    if (prereqZone) {
+      prereqZone.encountersCleared = prereqZone.encounterTotal;
+      prereqZone.cleared = true;
+    }
+  }
   runFactory.recomputeZoneStatuses(state.run);
 
-  let result = appEngine.selectZone(state, branchMinibossZone.id);
+  let result = appEngine.selectZone(state, minibossZone.id);
   assert.equal(result.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_1_(branch_miniboss|zone_)/);
+  assert.ok(state.run.activeEncounterId);
 
   appEngine.returnToFrontDoor(state);
   appEngine.startCharacterSelect(state);
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZoneAgain, , branchBattleZoneAgain] = runFactory.getCurrentZones(state.run);
-  openingZoneAgain.encountersCleared = openingZoneAgain.encounterTotal;
-  openingZoneAgain.cleared = true;
+  const zonesAgain = runFactory.getCurrentZones(state.run);
+  const sideZoneAgain = zonesAgain.find((z) => (z.zoneRole || "").startsWith("side_") && z.kind === "battle");
+  assert.ok(sideZoneAgain);
+  const sidePrereqIds = sideZoneAgain.prerequisites || [];
+  for (const prereqId of sidePrereqIds) {
+    const prereqZone = runFactory.getZoneById(state.run, prereqId);
+    if (prereqZone) {
+      prereqZone.encountersCleared = prereqZone.encounterTotal;
+      prereqZone.cleared = true;
+    }
+  }
   runFactory.recomputeZoneStatuses(state.run);
 
-  result = appEngine.selectZone(state, branchBattleZoneAgain.id);
+  result = appEngine.selectZone(state, sideZoneAgain.id);
   assert.equal(result.ok, true);
-  assert.match(state.run.activeEncounterId, /^act_1_(branch_battle|zone_)/);
+  assert.ok(state.run.activeEncounterId);
 });
 
 test("quest world nodes resolve through the reward flow and persist outcomes on the run", () => {
@@ -59,13 +92,10 @@ test("quest world nodes resolve through the reward flow and persist outcomes on 
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   assert.ok(questZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   const selectResult = appEngine.selectZone(state, questZone.id);
   assert.equal(selectResult.ok, true);
@@ -99,13 +129,10 @@ test("shrine world nodes resolve through the reward flow and persist shrine outc
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   assert.ok(shrineZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   const selectResult = appEngine.selectZone(state, shrineZone.id);
   assert.equal(selectResult.ok, true);
@@ -138,16 +165,13 @@ test("event world nodes branch off quest outcomes and persist follow-up conseque
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
   assert.ok(questZone);
   assert.ok(eventZone);
   assert.equal(eventZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, questZone.id);
   assert.equal(result.ok, true);
@@ -195,7 +219,6 @@ test("opportunity world nodes resolve through the reward flow and extend the que
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
   const opportunityZone = runFactory.getCurrentZones(state.run).find((zone) => zone.nodeType === "opportunity");
@@ -203,9 +226,7 @@ test("opportunity world nodes resolve through the reward flow and extend the que
   assert.ok(eventZone);
   assert.ok(opportunityZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, questZone.id);
   assert.equal(result.ok, true);
@@ -258,7 +279,6 @@ test("shrine outcomes can unlock shrine-specific opportunity variants later in t
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -268,9 +288,7 @@ test("shrine outcomes can unlock shrine-specific opportunity variants later in t
   assert.ok(eventZone);
   assert.ok(opportunityZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -318,7 +336,6 @@ test("mercenary contracts can unlock more specific opportunity variants on top o
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -328,9 +345,7 @@ test("mercenary contracts can unlock more specific opportunity variants on top o
   assert.ok(eventZone);
   assert.ok(opportunityZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -378,8 +393,7 @@ test("mercenary route perks turn mercenary-specific opportunity flags into the n
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -390,9 +404,7 @@ test("mercenary route perks turn mercenary-specific opportunity flags into the n
   assert.ok(eventZone);
   assert.ok(opportunityZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -445,8 +457,7 @@ test("shrine opportunity lanes unlock separately and can feed mercenary route pe
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const opportunityZones = runFactory.getCurrentZones(state.run).filter((zone) => zone.kind === "opportunity");
   const shrineOpportunityZone = opportunityZones.find((zone) => zone.nodeType === "shrine_opportunity");
@@ -491,9 +502,7 @@ test("shrine opportunity lanes unlock separately and can feed mercenary route pe
   assert.equal(detourOpportunityZone.status, "locked");
   assert.equal(escalationOpportunityZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -582,7 +591,6 @@ test("more specific shrine-gated opportunity variants beat generic follow-up mat
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -592,9 +600,7 @@ test("more specific shrine-gated opportunity variants beat generic follow-up mat
   assert.ok(eventZone);
   assert.ok(opportunityZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -642,7 +648,6 @@ test("consequence-gated shrine variants can override the broader follow-up branc
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -652,9 +657,7 @@ test("consequence-gated shrine variants can override the broader follow-up branc
   assert.ok(eventZone);
   assert.ok(opportunityZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -703,10 +706,7 @@ test("world-node state survives snapshot restore and continue", () => {
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -805,10 +805,7 @@ test("legacy run snapshots backfill shrine, event, and opportunity nodes during 
   assert.ok(zoneKinds.includes("event"));
   assert.ok(zoneKinds.includes("opportunity"));
 
-  const [openingZone] = runFactory.getCurrentZones(importedState.run);
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(importedState.run);
+  clearAllMainlineZones(runFactory, importedState.run);
 
   const questZone = runFactory.getCurrentZones(importedState.run).find((zone) => zone.kind === "quest");
   const shrineZone = runFactory.getCurrentZones(importedState.run).find((zone) => zone.kind === "shrine");

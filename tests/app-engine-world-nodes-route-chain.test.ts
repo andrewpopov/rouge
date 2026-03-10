@@ -4,6 +4,18 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
+function clearAllMainlineZones(runFactory, run) {
+  const zones = runFactory.getCurrentZones(run);
+  const mainlineZones = zones.filter(
+    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+  );
+  for (const z of mainlineZones) {
+    z.encountersCleared = z.encounterTotal;
+    z.cleared = true;
+  }
+  runFactory.recomputeZoneStatuses(run);
+}
+
 test("crossroad opportunity lanes unlock after both shrine and event paths resolve and pay off both states together", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
@@ -29,9 +41,7 @@ test("crossroad opportunity lanes unlock after both shrine and event paths resol
   assert.ok(crossroadZone);
   assert.equal(crossroadZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -103,9 +113,7 @@ test("reserve opportunity lanes unlock after the earlier opportunity branches re
   assert.ok(reserveZone);
   assert.equal(reserveZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -199,9 +207,7 @@ test("relay opportunity lanes unlock after reserve and pay off the reserve choic
   assert.ok(relayZone);
   assert.equal(relayZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -281,7 +287,7 @@ test("culmination opportunity lanes unlock after relay and pay off the earlier q
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -303,9 +309,7 @@ test("culmination opportunity lanes unlock after relay and pay off the earlier q
   assert.ok(culminationZone);
   assert.equal(culminationZone.status, "locked");
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -390,7 +394,7 @@ test("culmination mercenary route perks feed the next combat after the full post
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -411,9 +415,7 @@ test("culmination mercenary route perks feed the next combat after the full post
   assert.ok(relayZone);
   assert.ok(culminationZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -502,7 +504,7 @@ test("reserve mercenary route perks feed the next combat after the full route fa
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -519,9 +521,7 @@ test("reserve mercenary route perks feed the next combat after the full route fa
   assert.ok(crossroadZone);
   assert.ok(reserveZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);
@@ -596,7 +596,7 @@ test("crossroad mercenary route perks feed the next combat after the full route 
   appEngine.leaveSafeZone(state);
 
   const [openingZone] = runFactory.getCurrentZones(state.run);
-  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => zone.zoneRole === "branchBattle");
+  const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -607,9 +607,7 @@ test("crossroad mercenary route perks feed the next combat after the full route 
   assert.ok(eventZone);
   assert.ok(crossroadZone);
 
-  openingZone.encountersCleared = openingZone.encounterTotal;
-  openingZone.cleared = true;
-  runFactory.recomputeZoneStatuses(state.run);
+  clearAllMainlineZones(runFactory, state.run);
 
   let result = appEngine.selectZone(state, shrineZone.id);
   assert.equal(result.ok, true);

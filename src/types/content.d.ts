@@ -279,6 +279,15 @@ interface ActSeed {
   town: string;
   mainlineZones?: string[];
   sideZones?: string[];
+  sideBranches?: Array<{
+    name: string;
+    from: string;
+    gatedBy?: string;
+    encounters?: number;
+    kind?: ZoneKind;
+    description?: string;
+  }>;
+  openingDungeon?: string;
   boss: ActBossSeed;
 }
 

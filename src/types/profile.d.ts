@@ -1,13 +1,23 @@
+interface DebugModeConfig {
+  enabled: boolean;
+  skipBattles: boolean;
+  invulnerable: boolean;
+  oneHitKill: boolean;
+  infiniteGold: boolean;
+}
+
 interface ProfileMetaSettings {
   showHints: boolean;
   reduceMotion: boolean;
   compactMode: boolean;
+  debugMode: DebugModeConfig;
 }
 
 interface ProfileSettingsPatch {
   showHints?: boolean;
   reduceMotion?: boolean;
   compactMode?: boolean;
+  debugMode?: Partial<DebugModeConfig>;
 }
 
 interface ProfileMetaProgression {
