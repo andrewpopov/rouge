@@ -1582,18 +1582,49 @@ button.entity-card:disabled {
   text-align: center;
 }
 
-/* ── Departure button ── */
+/* ── Exit Gate (on-map world map portal) ── */
 
-.town-depart {
-  width: 100%;
-  max-width: 800px;
-  padding: 12px 16px;
-  background: var(--panel-strong);
-  border: 1px solid var(--line);
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+.town-exit-gate {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.town-exit-gate:hover {
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.town-exit-gate__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid var(--accent-bright);
+  background: rgba(212, 143, 70, 0.15);
+  box-shadow: 0 0 14px 3px rgba(212, 143, 70, 0.3);
+  animation: waypoint-pulse 2s ease-in-out infinite;
+}
+
+.town-exit-gate__label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--accent-bright);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.7);
 }
 
 /* ── Collapsed details for power users & tests ── */

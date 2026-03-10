@@ -97,12 +97,12 @@
 
     const npcs: TownNpc[] = [
       { id: "akara", name: "Akara", role: "Healer", icon: NPC_ICONS.akara, posX: 78, posY: 54, actions: healerActions, emptyLabel: "No recovery needed." },
-      { id: "charsi", name: "Charsi", role: "Blacksmith", icon: NPC_ICONS.charsi, posX: 32, posY: 12, actions: inventoryActions, emptyLabel: "No inventory actions available." },
-      { id: "gheed", name: "Gheed", role: "Vendor", icon: NPC_ICONS.gheed, posX: 18, posY: 48, actions: vendorActions, emptyLabel: "Vendor stock is empty." },
+      { id: "charsi", name: "Charsi", role: "Blacksmith", icon: NPC_ICONS.charsi, posX: 36, posY: 22, actions: inventoryActions, emptyLabel: "No inventory actions available." },
+      { id: "gheed", name: "Gheed", role: "Vendor", icon: NPC_ICONS.gheed, posX: 22, posY: 48, actions: vendorActions, emptyLabel: "Vendor stock is empty." },
       { id: "kashya", name: "Kashya", role: "Mercenary Captain", icon: NPC_ICONS.kashya, posX: 58, posY: 42, actions: mercenaryActions, emptyLabel: "No mercenary actions available.", isMerc: true },
       { id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 48, posY: 55, actions: progressionActions, emptyLabel: "No progression available." },
       { id: "warriv", name: "Warriv", role: "Quartermaster", icon: NPC_ICONS.warriv, posX: 36, posY: 42, actions: quartermasterActions, emptyLabel: "Belt is full." },
-      { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 52, posY: 30, actions: stashActions, emptyLabel: "The stash is empty." },
+      { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 50, posY: 40, actions: stashActions, emptyLabel: "The stash is empty." },
     ];
 
     const focusedNpc = townFocus ? npcs.find((n) => n.id === townFocus) : null;
@@ -151,10 +151,13 @@
                onerror="this.style.display='none'" />
           <div class="town-npc-layer">
             ${npcIcons}
+            <button class="town-exit-gate" style="left:82%;top:78%"
+                    data-action="leave-safe-zone"
+                    title="Exit to World Map">
+              <span class="town-exit-gate__icon">\u{1F6AA}</span>
+              <span class="town-exit-gate__label">World Map</span>
+            </button>
           </div>
-        </div>
-        <div class="town-depart">
-          <button class="primary-btn" data-action="leave-safe-zone">Step Onto The World Map</button>
         </div>
       </div>
       ${npcOverlay}
