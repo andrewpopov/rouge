@@ -3175,3 +3175,53 @@ button.waypoint:hover {
     height: 16px;
   }
 }
+
+/* ── Debug Bar ───────────────────────────────── */
+.debug-bar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(180, 40, 40, 0.85);
+  backdrop-filter: blur(6px);
+  border-bottom: 2px solid rgba(255, 80, 80, 0.5);
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.debug-bar__label {
+  font-weight: 700;
+  color: #fff;
+  margin-right: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.debug-flag {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 3px 10px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.debug-flag:hover {
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
+
+.debug-flag--on {
+  background: rgba(255, 220, 100, 0.25);
+  border-color: rgba(255, 220, 100, 0.6);
+  color: #ffe680;
+  font-weight: 600;
+}
