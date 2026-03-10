@@ -22,7 +22,7 @@ Editable source:
 - `index.html`
 - `styles.css`
 - `src/**/*.ts`
-- `src/types/game.d.ts`
+- `src/types/*.d.ts`
 - `tests/*.test.ts`
 - `data/seeds/d2/*.json`
 - `docs/COMBAT_FOUNDATION.md`
@@ -143,8 +143,29 @@ Rules:
 - `src/app/main.ts`
   - renders the UI and forwards DOM events into the app and combat APIs
 
-- `src/types/game.d.ts`
-  - shared structural contracts for app, run, combat, content, and test harnesses
+- `src/types/content.d.ts`
+  - card, enemy, encounter, seed, and game-content structural contracts
+
+- `src/types/combat.d.ts`
+  - combat state and combat override structural contracts
+
+- `src/types/items.d.ts`
+  - equipment, inventory, rune, runeword, and economy structural contracts
+
+- `src/types/world-nodes.d.ts`
+  - quest, shrine, event, and opportunity node definition contracts
+
+- `src/types/run.d.ts`
+  - zone, act, reward, run state, and run progression contracts
+
+- `src/types/profile.d.ts`
+  - profile, account summary, planning, and persistence envelope contracts
+
+- `src/types/api.d.ts`
+  - public module API interfaces for combat, content, items, run, world-node, persistence, and app-engine domains
+
+- `src/types/ui.d.ts`
+  - UI render service, view, and shell API contracts plus the Window interface
 
 ### Verification Layer
 

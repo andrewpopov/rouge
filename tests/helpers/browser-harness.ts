@@ -46,6 +46,7 @@ const PERSISTENCE_RUNTIME_FILES = [
 ];
 
 const APP_UI_RUNTIME_FILES = [
+  "src/ui/ui-account-meta.js",
   "src/ui/ui-common.js",
   "src/ui/launch-flow-view.js",
   "src/ui/front-door-expedition-view.js",
