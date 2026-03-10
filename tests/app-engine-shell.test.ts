@@ -304,11 +304,11 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Choose Your Path/);
-  assert.match(root.innerHTML, /World Map/);
-  assert.match(root.innerHTML, /worldmap-progress/);
+  assert.match(root.innerHTML, /actmap/);
+  assert.match(root.innerHTML, /Act \d/);
+  assert.match(root.innerHTML, /actmap__canvas/);
+  assert.match(root.innerHTML, /waypoint/);
   assert.match(root.innerHTML, /Route Atlas/);
-  assert.match(root.innerHTML, /Account Meta Continuity/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
   appEngine.selectZone(state, openingZoneId);
@@ -512,7 +512,7 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
 
   render();
-  assert.match(root.innerHTML, /Triggered by/);
+  assert.match(root.innerHTML, /actmap/);
 
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
   assert.ok(eventZone);
@@ -523,7 +523,6 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
 
   render();
   assert.match(root.innerHTML, /Aftermath Follow-Up/);
-  assert.match(root.innerHTML, /Triggered by/);
 });
 
 test("reward continuity desk tracks world-map, act-transition, and run-end handoffs", () => {
@@ -767,7 +766,7 @@ test("action dispatcher drives the front-door continue and abandon shell flow", 
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.match(root.innerHTML, /Choose Your Path/);
+  assert.match(root.innerHTML, /actmap/);
 
   appEngine.returnToFrontDoor(state);
   render();

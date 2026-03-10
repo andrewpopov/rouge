@@ -1685,9 +1685,264 @@ button.entity-card:disabled {
 }
 
 /* ══════════════════════════════════════════════
-   World Map Screen
+   Act Map Screen
    ══════════════════════════════════════════════ */
 
+.actmap {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+.actmap__hud {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px 0 10px;
+  border-bottom: 1px solid var(--line-strong);
+  margin-bottom: 12px;
+}
+
+.actmap__eyebrow {
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.actmap__name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--accent-bright);
+  margin: 2px 0 0;
+  letter-spacing: 0.04em;
+}
+
+.actmap__stats {
+  display: flex;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.actmap__sep { opacity: 0.4; }
+
+.actmap__canvas {
+  position: relative;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: rgba(10, 7, 6, 0.85);
+}
+
+.actmap__bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0.45;
+  filter: brightness(0.7) saturate(0.8);
+  pointer-events: none;
+  user-select: none;
+}
+
+.actmap__edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.map-edge {
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.map-edge.edge--cleared {
+  stroke: var(--success);
+  opacity: 0.5;
+}
+
+.map-edge.edge--active {
+  stroke: var(--accent-bright);
+  opacity: 0.8;
+  stroke-dasharray: 6 4;
+  animation: edge-march 1s linear infinite;
+}
+
+.map-edge.edge--locked {
+  stroke: rgba(235, 200, 149, 0.12);
+  stroke-dasharray: 3 6;
+}
+
+@keyframes edge-march {
+  to { stroke-dashoffset: -10; }
+}
+
+.waypoint {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  color: var(--text);
+  cursor: default;
+  transition: transform 0.15s;
+}
+
+button.waypoint { cursor: pointer; }
+
+button.waypoint:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.waypoint__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  border: 2px solid;
+  background: rgba(15, 10, 8, 0.85);
+  position: relative;
+}
+
+.waypoint__label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.7);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.waypoint__check {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 0.6rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--success);
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.waypoint__progress {
+  font-size: 0.6rem;
+  color: var(--accent);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.waypoint--town .waypoint__icon {
+  border-color: rgba(235, 200, 149, 0.4);
+  background: rgba(42, 30, 20, 0.9);
+  font-size: 1.2rem;
+}
+
+.waypoint--available .waypoint__icon {
+  border-color: var(--accent-bright);
+  background: rgba(212, 143, 70, 0.2);
+  box-shadow: 0 0 12px 2px rgba(212, 143, 70, 0.3);
+  animation: waypoint-pulse 2s ease-in-out infinite;
+}
+
+.waypoint--cleared .waypoint__icon {
+  border-color: var(--success);
+  background: rgba(134, 185, 147, 0.15);
+  opacity: 0.65;
+}
+
+.waypoint--locked .waypoint__icon {
+  border-color: rgba(235, 200, 149, 0.12);
+  background: rgba(15, 10, 8, 0.7);
+  opacity: 0.35;
+}
+
+.waypoint--locked .waypoint__label { opacity: 0.35; }
+
+@keyframes waypoint-pulse {
+  0%, 100% { box-shadow: 0 0 8px 1px rgba(212, 143, 70, 0.25); }
+  50% { box-shadow: 0 0 18px 4px rgba(212, 143, 70, 0.45); }
+}
+
+.actmap__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 3;
+}
+
+.actmap__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transition: width 0.5s ease;
+}
+
+.actmap__actions {
+  padding: 10px 0 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.actmap__retreat {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid rgba(235, 200, 149, 0.15);
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.actmap__retreat:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .actmap__hud {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .waypoint__icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .waypoint__label {
+    font-size: 0.55rem;
+    max-width: 70px;
+  }
+}
+
+/* legacy classes kept for details section */
 .worldmap-screen {
   width: 100%;
   max-width: 860px;
