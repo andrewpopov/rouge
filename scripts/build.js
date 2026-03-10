@@ -64,12 +64,21 @@ function cleanDist() {
   fs.mkdirSync(DIST, { recursive: true });
 }
 
+function cacheBustIndex() {
+  const indexPath = path.join(DIST, "index.html");
+  const version = Date.now().toString(36);
+  let html = fs.readFileSync(indexPath, "utf8");
+  html = html.replace(/(\.(?:js|css))"/g, `$1?v=${version}"`);
+  fs.writeFileSync(indexPath, html, "utf8");
+}
+
 function main() {
   cleanDist();
 
   const runtimeFiles = getRuntimeFiles();
   runtimeFiles.forEach(copyFile);
   REQUIRED_DIRECTORIES.forEach(copyDirectory);
+  cacheBustIndex();
 
   const buildManifest = {
     builtAt: new Date().toISOString(),

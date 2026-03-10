@@ -56,7 +56,16 @@
         appEngine.abandonSavedRun(appState);
         render();
         return true;
+      case "focus-town-npc":
+        appState.ui.townFocus = actionEl.dataset.npcId || "";
+        render();
+        return true;
+      case "close-town-npc":
+        appState.ui.townFocus = "";
+        render();
+        return true;
       case "leave-safe-zone":
+        appState.ui.townFocus = "";
         appEngine.leaveSafeZone(appState);
         render();
         return true;
@@ -70,6 +79,10 @@
         return true;
       case "select-zone":
         appEngine.selectZone(appState, actionEl.dataset.zoneId || "");
+        render();
+        return true;
+      case "begin-encounter":
+        appState.ui.exploring = false;
         render();
         return true;
       case "select-enemy":
@@ -117,6 +130,21 @@
         return true;
       case "return-front-door":
         appEngine.returnToFrontDoor(appState);
+        appState.ui.hallExpanded = true;
+        render();
+        return true;
+      case "expand-hall":
+        appState.ui.hallExpanded = true;
+        appState.ui.hallSection = actionEl.dataset.section || "";
+        render();
+        return true;
+      case "collapse-hall":
+        appState.ui.hallExpanded = false;
+        appState.ui.hallSection = "";
+        render();
+        return true;
+      case "switch-hall-section":
+        appState.ui.hallSection = actionEl.dataset.section || "";
         render();
         return true;
       case "set-account-progression-focus":

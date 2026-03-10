@@ -27,6 +27,7 @@ module.exports = [
       "assets/diablo2_downloads/**",
       "playwright-report/**",
       "test-results/**",
+      "ecosystem.config.js",
     ],
   },
   {

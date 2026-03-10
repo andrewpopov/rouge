@@ -1,236 +1,271 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+  interface ExploreOption {
+    title: string;
+    flavor: string;
+    icon: string;
+  }
+
+  const ZONE_EXPLORE_OPTIONS: Record<string, ExploreOption[]> = {
+    battle: [
+      { title: "Scout Ahead", flavor: "Move carefully through the underbrush. Something stirs in the shadows ahead.", icon: "\u{1F441}" },
+      { title: "Charge Forward", flavor: "No time for caution. Draw steel and press into the clearing.", icon: "\u2694" },
+      { title: "Follow the Trail", flavor: "Tracks in the mud lead deeper. Whatever made them was large.", icon: "\u{1F43E}" },
+    ],
+    miniboss: [
+      { title: "Enter the Lair", flavor: "The air grows heavy with malice. A powerful creature guards this passage.", icon: "\u{1F480}" },
+      { title: "Challenge the Guardian", flavor: "A towering figure blocks the path. It has been waiting for you.", icon: "\u2620" },
+      { title: "Disturb the Nest", flavor: "Bones crunch underfoot. This is no ordinary hunting ground.", icon: "\u{1F5E1}" },
+    ],
+    boss: [
+      { title: "Confront the Evil", flavor: "The final threshold. Beyond lies the source of corruption in this land.", icon: "\u{1F525}" },
+      { title: "Begin the Assault", flavor: "Your party steels themselves. This is what the entire journey has led to.", icon: "\u26A1" },
+      { title: "Open the Gate", flavor: "Ancient seals crack and groan. There is no turning back now.", icon: "\u{1F6AA}" },
+    ],
+  };
+
+  const GENERIC_OPTIONS: ExploreOption[] = [
+    { title: "Explore", flavor: "The path ahead is uncertain. Press on and see what fate has in store.", icon: "\u{1F9ED}" },
+    { title: "Investigate", flavor: "Something catches your eye in the distance. It warrants a closer look.", icon: "\u{1F50D}" },
+    { title: "Advance", flavor: "The road stretches onward. Your party moves deeper into the unknown.", icon: "\u{1F6B6}" },
+  ];
+
+  function getExploreOptions(zoneKind: string, seed: number): ExploreOption[] {
+    const pool = ZONE_EXPLORE_OPTIONS[zoneKind] || GENERIC_OPTIONS;
+    const shuffled = [...pool].sort((a, b) => {
+      const ha = (seed * 31 + a.title.length) % 100;
+      const hb = (seed * 31 + b.title.length) % 100;
+      return ha - hb;
+    });
+    return shuffled.slice(0, 3);
+  }
+
+  function renderExploration(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
-    const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
+    const { escapeHtml } = services.renderUtils;
+    const run = appState.run;
+    const combat = appState.combat;
+    const zone = services.runFactory.getZoneById(run, run.activeZoneId);
+    const zoneName = zone?.title || combat.encounter.name;
+    const zoneKind = zone?.kind || "battle";
+    const encounterNum = (zone?.encountersCleared || 0) + 1;
+    const encounterTotal = zone?.encounterTotal || 1;
+    const seed = zoneName.length + encounterNum;
+    const options = getExploreOptions(zoneKind, seed);
+
+    root.innerHTML = `
+      ${common.renderNotice(appState, services.renderUtils)}
+      <div class="explore-screen">
+        <div class="explore-header">
+          <span class="explore-header__eyebrow">Encounter ${encounterNum} of ${encounterTotal}</span>
+          <h1 class="explore-header__zone">${escapeHtml(zoneName)}</h1>
+          <div class="explore-header__stats">
+            <span>${escapeHtml(run.className)} Lv.${run.level}</span>
+            <span>\u00b7</span>
+            <span>HP ${run.hero.currentLife}/${run.hero.maxLife}</span>
+            <span>\u00b7</span>
+            <span>${run.gold}g</span>
+          </div>
+        </div>
+
+        <div class="explore-scene">
+          <div class="explore-scene__ambience"></div>
+          <p class="explore-scene__text">${escapeHtml(
+            zoneKind === "boss" ? "An oppressive darkness settles over the land. The final challenge awaits."
+              : zoneKind === "miniboss" ? "The air thickens with dread. Something powerful lurks nearby."
+              : "Your party enters the area. The sounds of civilization fade behind you."
+          )}</p>
+        </div>
+
+        <div class="explore-choices">
+          ${options.map((opt) => `
+            <button class="explore-card" data-action="begin-encounter">
+              <div class="explore-card__icon">${opt.icon}</div>
+              <div class="explore-card__title">${escapeHtml(opt.title)}</div>
+              <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderIntentIcon(intent: string): string {
+    if (intent.includes("attack") || intent.includes("deal") || intent.includes("damage")) return "\u2694";
+    if (intent.includes("guard") || intent.includes("block") || intent.includes("defend")) return "\u{1F6E1}";
+    if (intent.includes("buff") || intent.includes("strength")) return "\u2B06";
+    if (intent.includes("debuff") || intent.includes("weaken")) return "\u2B07";
+    if (intent.includes("heal")) return "\u{1F49A}";
+    return "\u2753";
+  }
+
+  function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+    if (appState.ui.exploring) {
+      renderExploration(root, appState, services);
+      return;
+    }
+
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const { escapeHtml } = services.renderUtils;
     const run = appState.run;
     const combat = appState.combat;
     const zone = services.runFactory.getZoneById(run, run.activeZoneId);
     const selectedEnemy = combat.enemies.find((enemy) => enemy.id === combat.selectedEnemyId && enemy.alive) || null;
-    const livingEnemies = combat.enemies.filter((enemy) => enemy.alive).length;
-    const playableCards = combat.hand.filter((instance) => {
-      const card = appState.content.cardCatalog[instance.cardId];
-      return card && combat.hero.energy >= card.cost;
-    }).length;
+
     let phaseText = "Enemy Turn";
     if (combat.outcome === "victory") {
       phaseText = "Victory";
     } else if (combat.outcome === "defeat") {
       phaseText = "Defeat";
     } else if (combat.phase === "player") {
-      phaseText = "Player Turn";
+      phaseText = "Your Turn";
     }
 
-    let targetHint = "Select a living enemy before using a targeted card.";
-    if (selectedEnemy) {
-      targetHint = `Target locked: ${selectedEnemy.name}.`;
-    } else if (combat.outcome === "victory") {
-      targetHint = "Encounter cleared. The next click on a reward advances the run.";
-    } else if (combat.outcome === "defeat") {
-      targetHint = "The expedition failed here. Review the run-end summary and return to the front door.";
-    }
+    const zoneName = zone?.title || combat.encounter.name;
+    const encounterNum = (zone?.encountersCleared || 0) + 1;
+    const encounterTotal = zone?.encounterTotal || 1;
+    const hpPercent = Math.round((combat.hero.life / combat.hero.maxLife) * 100);
+    const mercHpPercent = Math.round((combat.mercenary.life / combat.mercenary.maxLife) * 100);
+    const cardCount = combat.hand.length;
 
-    const actionWindowLabel = combat.phase === "player" && !combat.outcome ? "Your Turn" : phaseText;
-    const actionWindowTone = combat.phase === "player" && !combat.outcome ? "available" : "locked";
-    let exitBadgeLabel = `${livingEnemies} hostiles`;
-    let exitBadgeTone = "available";
-    let exitCopy = "Defeat every hostile to hand back into the reward phase.";
-    if (combat.outcome === "victory") {
-      exitBadgeLabel = "Reward Ready";
-      exitBadgeTone = "cleared";
-      exitCopy = "Claim a reward to mutate the run and return to the route.";
-    } else if (combat.outcome === "defeat") {
-      exitBadgeLabel = "Run Ended";
-      exitBadgeTone = "locked";
-      exitCopy = "The run summary now owns the failure review.";
-    }
+    root.innerHTML = `
+      ${common.renderNotice(appState, services.renderUtils)}
+      <div class="combat-screen">
 
-    services.renderUtils.buildShell(root, {
-      eyebrow: "Encounter",
-      title: zone?.title || combat.encounter.name,
-      copy:
-        "Combat still runs through the deterministic engine, but the surrounding shell now explains encounter progress, target selection, turn flow, and how victory feeds back into the map.",
-      body: `
-        ${common.renderRunStatus(run, phaseText, services.renderUtils)}
-        <section class="panel flow-panel">
-          <div class="panel-head">
-            <h2>Encounter Brief</h2>
-            <p>${escapeHtml(`${zone?.title || combat.encounter.name} is one stop in the current route. Life, belt charges, and loadout bonuses will all carry back out when this fight resolves.`)}</p>
+        <div class="combat-hud">
+          <div class="combat-hud__left">
+            <span class="combat-hud__hp">\u2764 ${combat.hero.life}/${combat.hero.maxLife}</span>
+            <span class="combat-hud__gold">\u{1F4B0} ${run.gold}</span>
+            <span class="combat-hud__potions">\u{1F9EA} ${combat.potions}</span>
           </div>
-          <div class="feature-grid feature-grid-wide">
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Encounter Count</strong>
-                ${buildBadge(`${(zone?.encountersCleared || 0) + 1}/${zone?.encounterTotal || 1}`, "available")}
-              </div>
-              <p>${escapeHtml(zone ? `${zone.title} keeps its cleared progress if you later return to town.` : "This encounter resolves against the active route state.")}</p>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Target Rail</strong>
-                ${buildBadge(selectedEnemy ? selectedEnemy.name : "No Target", selectedEnemy ? "available" : "locked")}
-              </div>
-              <p>${escapeHtml(targetHint)}</p>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Action Window</strong>
-                ${buildBadge(actionWindowLabel, actionWindowTone)}
-              </div>
-              <p>${escapeHtml(`${playableCards} card${playableCards === 1 ? "" : "s"} are currently affordable with ${combat.hero.energy} energy.`)}</p>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Exit Condition</strong>
-                ${buildBadge(exitBadgeLabel, exitBadgeTone)}
-              </div>
-              <p>${escapeHtml(exitCopy)}</p>
-            </article>
+          <div class="combat-hud__center">
+            <span class="combat-hud__phase combat-hud__phase--${combat.outcome || combat.phase}">${escapeHtml(phaseText)}</span>
+            <span class="combat-hud__zone">${escapeHtml(zoneName)} \u00b7 ${encounterNum}/${encounterTotal}</span>
           </div>
-        </section>
+          <div class="combat-hud__right">
+            <span class="combat-hud__floor">Floor ${encounterNum}</span>
+          </div>
+        </div>
 
-        <section class="battle-grid">
-          <article class="panel battle-panel">
-            <div class="panel-head">
-              <h2>Allied Line</h2>
-              <p>Party state is run-owned. Potions, damage taken, and mercenary survival will all write back into the expedition on resolution.</p>
-            </div>
-            <div class="entity-row">
-              <article class="entity-card ally ${combat.hero.alive ? "" : "dead"}">
-                <div class="entity-name-row">
-                  <strong class="entity-name">${escapeHtml(combat.hero.name)}</strong>
-                  <span class="entity-role">${escapeHtml(combat.hero.className)}</span>
+        <div class="stage">
+          <div class="stage__backdrop"></div>
+          <div class="stage__floor"></div>
+
+          <div class="stage__allies">
+            <div class="sprite ${combat.hero.alive ? "" : "sprite--dead"}">
+              <div class="sprite__figure sprite__figure--hero">${escapeHtml(run.className.charAt(0))}</div>
+              <div class="sprite__bars">
+                <div class="sprite__hp-bar">
+                  <div class="sprite__hp-fill sprite__hp-fill--hero" style="width:${hpPercent}%"></div>
+                  <span class="sprite__hp-text">${combat.hero.life}/${combat.hero.maxLife}</span>
                 </div>
-                <div class="entity-stat-grid">
-                  ${buildStat("Life", `${combat.hero.life}/${combat.hero.maxLife}`)}
-                  ${buildStat("Guard", combat.hero.guard)}
-                  ${buildStat("Energy", `${combat.hero.energy}/${combat.hero.maxEnergy}`)}
-                  ${buildStat("Hand", combat.hand.length)}
-                </div>
-                <p class="entity-passive">Targeted skills need a locked enemy. Potions and party-wide tools do not.</p>
-              </article>
-              <article class="entity-card ally ${combat.mercenary.alive ? "" : "dead"}">
-                <div class="entity-name-row">
-                  <strong class="entity-name">${escapeHtml(combat.mercenary.name)}</strong>
-                  <span class="entity-role">${escapeHtml(combat.mercenary.role)}</span>
-                </div>
-                <div class="entity-stat-grid">
-                  ${buildStat("Life", `${combat.mercenary.life}/${combat.mercenary.maxLife}`)}
-                  ${buildStat("Guard", combat.mercenary.guard)}
-                  ${buildStat("Attack", combat.mercenary.attack)}
-                  ${buildStat("Bonus", combat.mercenary.nextAttackBonus)}
-                </div>
-                <p class="entity-passive">${escapeHtml(combat.mercenary.passiveText)}</p>
-              </article>
+                ${combat.hero.guard > 0 ? `<div class="sprite__status sprite__status--guard">\u{1F6E1} ${combat.hero.guard}</div>` : ""}
+              </div>
+              <div class="sprite__label">${escapeHtml(combat.hero.name)}</div>
+              <button class="sprite__potion" data-action="use-potion-hero"
+                ${combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || combat.outcome ? "disabled" : ""}>\u{1F9EA}</button>
             </div>
-            <div class="action-row">
-              <button class="neutral-btn" data-action="use-potion-hero" ${combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || combat.outcome ? "disabled" : ""}>Potion Hero</button>
-              <button class="neutral-btn" data-action="use-potion-mercenary" ${combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || combat.outcome ? "disabled" : ""}>Potion Mercenary</button>
-              <button class="primary-btn" data-action="end-turn" ${combat.phase !== "player" || combat.outcome ? "disabled" : ""}>End Turn</button>
-            </div>
-          </article>
 
-          <article class="panel battle-panel">
-            <div class="panel-head">
-              <h2>Enemy Front</h2>
-              <p>Select a hostile to anchor targeted card play. Enemy intent text stays visible so the shell communicates pressure without touching combat rules.</p>
+            <div class="sprite ${combat.mercenary.alive ? "" : "sprite--dead"}">
+              <div class="sprite__figure sprite__figure--merc">${escapeHtml(combat.mercenary.role.charAt(0))}</div>
+              <div class="sprite__bars">
+                <div class="sprite__hp-bar">
+                  <div class="sprite__hp-fill sprite__hp-fill--merc" style="width:${mercHpPercent}%"></div>
+                  <span class="sprite__hp-text">${combat.mercenary.life}/${combat.mercenary.maxLife}</span>
+                </div>
+                ${combat.mercenary.guard > 0 ? `<div class="sprite__status sprite__status--guard">\u{1F6E1} ${combat.mercenary.guard}</div>` : ""}
+              </div>
+              <div class="sprite__label">${escapeHtml(combat.mercenary.name)}</div>
+              <button class="sprite__potion" data-action="use-potion-mercenary"
+                ${combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || combat.outcome ? "disabled" : ""}>\u{1F9EA}</button>
             </div>
-            <div class="entity-row enemy-row">
-              ${combat.enemies
-                .map((enemy) => {
-                  const enemyStateClass = enemy.alive ? "" : "dead";
-                  const enemySelectionClass = selectedEnemy?.id === enemy.id ? "selected" : "";
-                  const enemyDisabled = !enemy.alive || Boolean(combat.outcome);
-                  const enemyStatusLabel = enemy.alive ? "Hostile" : "Downed";
-                  return `
-                    <button class="entity-card enemy ${enemyStateClass} ${enemySelectionClass}" data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}" ${enemyDisabled ? "disabled" : ""}>
-                      <div class="entity-name-row">
-                        <strong class="entity-name">${escapeHtml(enemy.name)}</strong>
-                        <span class="entity-role">${enemyStatusLabel}</span>
-                      </div>
-                      <div class="entity-stat-grid">
-                        ${buildStat("Life", `${enemy.life}/${enemy.maxLife}`)}
-                        ${buildStat("Guard", enemy.guard)}
-                        ${buildStat("Burn", enemy.burn)}
-                        ${buildStat("Intent", enemy.intentIndex + 1)}
-                      </div>
-                      <p class="entity-intent">${escapeHtml(services.combatEngine.describeIntent(enemy.currentIntent))}</p>
-                    </button>
-                  `;
-                })
-                .join("")}
-            </div>
-            <p class="target-hint">${escapeHtml(targetHint)}</p>
-          </article>
-        </section>
+          </div>
 
-        <section class="panel flow-panel">
-          <div class="panel-head">
-            <h2>Battle Orders</h2>
-            <p>The shell now tells the player what to do next in combat without adding new combat-side state.</p>
-          </div>
-          <div class="feature-grid feature-grid-wide">
-            <article class="feature-card">
-              <strong>1. Lock A Target</strong>
-              <p>${escapeHtml(targetHint)}</p>
-            </article>
-            <article class="feature-card">
-              <strong>2. Spend Energy</strong>
-              <p>Play cards while you have energy. If a skill says enemy target, the shell expects a selected living hostile.</p>
-            </article>
-            <article class="feature-card">
-              <strong>3. Keep The Party Alive</strong>
-              <p>Potions are scarce and carry between encounters. Use them when preserving run momentum matters, not just to perfect a single fight.</p>
-            </article>
-            <article class="feature-card">
-              <strong>4. End Turn Cleanly</strong>
-              <p>Once your line is spent, end the turn so the mercenary and enemy intents can resolve. Victory sends you to reward; defeat sends you to run-end review.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="panel hand-panel">
-          <div class="panel-head">
-            <h2>Hand</h2>
-            <p>Encounter decks reset per fight, but the route remembers what happened to Life, potions, and build state after the outcome is synced.</p>
-          </div>
-          <div class="hand-row">
-            ${combat.hand
-              .map((instance) => {
-                const card = appState.content.cardCatalog[instance.cardId];
-                const requiresTarget = card.target === "enemy";
-                const disabled =
-                  combat.outcome ||
-                  combat.phase !== "player" ||
-                  combat.hero.energy < card.cost ||
-                  (requiresTarget && !selectedEnemy);
-                return `
-                  <button class="card-btn" data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}" ${disabled ? "disabled" : ""}>
-                    <div class="card-top">
-                      <strong class="card-title">${escapeHtml(card.title)}</strong>
-                      <span class="card-cost">${escapeHtml(card.cost)}</span>
+          <div class="stage__enemies">
+            ${combat.enemies.map((enemy) => {
+              const isSelected = selectedEnemy?.id === enemy.id;
+              const isDead = !enemy.alive;
+              const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
+              const intentDesc = services.combatEngine.describeIntent(enemy.currentIntent);
+              const intentIcon = renderIntentIcon(intentDesc);
+              return `
+                <button class="sprite sprite--enemy ${isSelected ? "sprite--targeted" : ""} ${isDead ? "sprite--dead" : ""}"
+                        data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}"
+                        ${isDead || Boolean(combat.outcome) ? "disabled" : ""}>
+                  ${!isDead && !combat.outcome ? `<div class="sprite__intent" title="${escapeHtml(intentDesc)}">${intentIcon}</div>` : ""}
+                  <div class="sprite__figure sprite__figure--enemy">${escapeHtml(enemy.name.charAt(0))}</div>
+                  <div class="sprite__bars">
+                    <div class="sprite__hp-bar">
+                      <div class="sprite__hp-fill sprite__hp-fill--enemy" style="width:${enemyHpPct}%"></div>
+                      <span class="sprite__hp-text">${enemy.life}/${enemy.maxLife}</span>
                     </div>
-                    <p class="card-copy">${escapeHtml(card.text)}</p>
-                    <p class="card-target">${card.target === "enemy" ? "Targeted Skill" : "Party Skill"}</p>
-                  </button>
-                `;
-              })
-              .join("")}
+                    ${enemy.guard > 0 ? `<div class="sprite__status sprite__status--guard">\u{1F6E1} ${enemy.guard}</div>` : ""}
+                    ${enemy.burn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${enemy.burn}</div>` : ""}
+                  </div>
+                  <div class="sprite__label">${escapeHtml(enemy.name)}</div>
+                </button>
+              `;
+            }).join("")}
           </div>
-        </section>
 
-        <section class="panel log-panel">
-          <div class="panel-head">
-            <h2>Combat Log</h2>
-            <p>Most recent actions stay at the top so the player can reconstruct why the encounter state looks the way it does.</p>
+          ${combat.outcome ? `
+            <div class="stage__outcome stage__outcome--${combat.outcome}">
+              <div class="stage__outcome-title">${combat.outcome === "victory" ? "\u2694 Victory!" : "\u{1F480} Defeat"}</div>
+              <div class="stage__outcome-sub">${combat.outcome === "victory"
+                ? "The enemies fall. Claim your reward."
+                : "Your expedition ends here."}</div>
+            </div>
+          ` : ""}
+        </div>
+
+        <div class="combat-tray">
+          <div class="energy-orb">
+            <div class="energy-orb__value">${combat.hero.energy}</div>
+            <div class="energy-orb__max">/${combat.hero.maxEnergy}</div>
           </div>
-          <ol class="log-list">
+
+          <div class="card-fan" style="--card-count:${cardCount}">
+            ${combat.hand.map((instance, i) => {
+              const card = appState.content.cardCatalog[instance.cardId];
+              const requiresTarget = card.target === "enemy";
+              const cantPlay =
+                combat.outcome ||
+                combat.phase !== "player" ||
+                combat.hero.energy < card.cost ||
+                (requiresTarget && !selectedEnemy);
+              const mid = (cardCount - 1) / 2;
+              const offset = i - mid;
+              const rotation = offset * 4;
+              const translateY = Math.abs(offset) * 6;
+              return `
+                <button class="fan-card ${cantPlay ? "fan-card--disabled" : ""} ${card.target === "enemy" ? "fan-card--attack" : "fan-card--skill"}"
+                        data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
+                        style="--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${i}">
+                  <div class="fan-card__cost">${card.cost}</div>
+                  <div class="fan-card__art">${card.target === "enemy" ? "\u2694" : "\u{1F6E1}"}</div>
+                  <div class="fan-card__name">${escapeHtml(card.title)}</div>
+                  <div class="fan-card__desc">${escapeHtml(card.text)}</div>
+                  <div class="fan-card__type">${card.target === "enemy" ? "Attack" : "Skill"}</div>
+                </button>
+              `;
+            }).join("")}
+          </div>
+
+          <button class="end-turn-btn" data-action="end-turn"
+            ${combat.phase !== "player" || combat.outcome ? "disabled" : ""}>
+            End Turn ${encounterNum}
+          </button>
+        </div>
+
+        <details class="town-operations-details">
+          <summary class="town-operations-toggle">Combat Log</summary>
+          <ol class="log-list combat-log-list">
             ${combat.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}
           </ol>
-        </section>
-      `,
-    });
+        </details>
+      </div>
+    `;
   }
 
   runtimeWindow.ROUGE_COMBAT_VIEW = {

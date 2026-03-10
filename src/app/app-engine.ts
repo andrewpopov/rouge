@@ -827,6 +827,7 @@
       randomFn: state.randomFn,
     });
     state.phase = PHASES.ENCOUNTER;
+    state.ui.exploring = true;
     return { ok: true };
   }
 

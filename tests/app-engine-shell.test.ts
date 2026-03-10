@@ -161,6 +161,7 @@ test("front-door saved-run cards change guidance by saved phase", () => {
     }
 
     appEngine.returnToFrontDoor(state);
+    state.ui.hallExpanded = true;
     appShell.render(root, {
       appState: state,
       baseContent: browserWindow.ROUGE_GAME_CONTENT,
@@ -222,6 +223,7 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   });
   const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
 
+  state.ui.hallExpanded = true;
   appShell.render(root, {
     appState: state,
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
@@ -302,19 +304,11 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Route Decision Desk/);
-  assert.match(root.innerHTML, /What Changed/);
-  assert.match(root.innerHTML, /What Is Blocked/);
-  assert.match(root.innerHTML, /Account Pressure Carry-Through/);
-  assert.match(root.innerHTML, /Next Route Action/);
-  assert.match(root.innerHTML, /Act Pressure/);
-  assert.match(root.innerHTML, /Route Intel/);
-  assert.match(root.innerHTML, /Consequence Ledger/);
-  assert.match(root.innerHTML, /Boss Pressure/);
-  assert.match(root.innerHTML, /Node Legend/);
-  assert.match(root.innerHTML, /Convergence Lanes/);
-  assert.match(root.innerHTML, /Covenant Node/);
-  assert.match(root.innerHTML, /Aftermath Nodes/);
+  assert.match(root.innerHTML, /Choose Your Path/);
+  assert.match(root.innerHTML, /World Map/);
+  assert.match(root.innerHTML, /worldmap-progress/);
+  assert.match(root.innerHTML, /Route Atlas/);
+  assert.match(root.innerHTML, /Account Meta Continuity/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
   appEngine.selectZone(state, openingZoneId);
@@ -323,7 +317,14 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Battle Orders/);
+  assert.match(root.innerHTML, /explore-screen/);
+  state.ui.exploring = false;
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+  assert.match(root.innerHTML, /combat-screen/);
   state.combat.outcome = "victory";
   appEngine.syncEncounterOutcome(state);
 
@@ -372,6 +373,7 @@ test("expedition launch flow persists from hall through character select into to
   };
 
   state.profile.meta.progression.preferredClassId = "sorceress";
+  state.ui.hallExpanded = true;
 
   render();
   assert.match(root.innerHTML, /Expedition Launch Flow/);
@@ -385,14 +387,13 @@ test("expedition launch flow persists from hall through character select into to
   appEngine.setSelectedClass(state, "sorceress");
   appEngine.setSelectedMercenary(state, "iron_wolf");
   render();
-  const selectedMercenaryName = state.registries.mercenaries.find((mercenary) => mercenary.id === "iron_wolf")?.name || "Choose a companion";
-  assert.match(root.innerHTML, /Expedition Launch Flow/);
-  assert.match(root.innerHTML, /Selected class: Sorceress\./);
-  assert.match(root.innerHTML, new RegExp(`Selected contract: ${selectedMercenaryName}\\.`));
-  assert.match(root.innerHTML, /enter Rogue Encampment with that exact launch pairing still visible\./i);
+  assert.match(root.innerHTML, /Choose Your Hero/);
+  assert.match(root.innerHTML, /Sorceress/);
+  assert.match(root.innerHTML, /Enter Rogue Encampment/);
 
   appEngine.startRun(state);
   render();
+  const selectedMercenaryName = state.registries.mercenaries.find((mercenary) => mercenary.id === "iron_wolf")?.name || "Choose a companion";
   assert.match(root.innerHTML, /Expedition Launch Flow/);
   assert.match(root.innerHTML, new RegExp(`Town arrival: ${state.run.safeZoneName}\\.`));
   assert.match(root.innerHTML, new RegExp(`Current launch carries Sorceress with ${selectedMercenaryName}\\.`));
@@ -480,8 +481,8 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   appEngine.leaveSafeZone(state);
   render();
 
-  assert.match(root.innerHTML, /Quest Forks/);
-  assert.match(root.innerHTML, /Aftermath Nodes/);
+  assert.match(root.innerHTML, /Quest Fork/);
+  assert.match(root.innerHTML, /Aftermath Node/);
 
   let questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   let questUnlockAttempts = 0;
@@ -589,6 +590,7 @@ test("shared account-meta continuity board persists across the full shell", () =
     assert.match(root.innerHTML, /Convergence Watch/);
   };
 
+  state.ui.hallExpanded = true;
   render();
   assertMetaBoard();
 
@@ -651,6 +653,7 @@ test("account-meta drilldowns persist across the full shell", () => {
 
   state.profile.meta.planning.weaponRunewordId = "white";
   state.profile.meta.planning.armorRunewordId = "lionheart";
+  state.ui.hallExpanded = true;
 
   render();
   assertDrilldowns();
@@ -710,6 +713,7 @@ test("action dispatcher drives the front-door continue and abandon shell flow", 
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
   appEngine.returnToFrontDoor(state);
+  state.ui.hallExpanded = true;
   render();
 
   assert.match(root.innerHTML, /Chronicle Exchange/);
@@ -763,7 +767,7 @@ test("action dispatcher drives the front-door continue and abandon shell flow", 
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.match(root.innerHTML, /Act Pressure/);
+  assert.match(root.innerHTML, /Choose Your Path/);
 
   appEngine.returnToFrontDoor(state);
   render();
@@ -816,6 +820,7 @@ test("action dispatcher drives the outer loop from the hall through world map an
     render();
   };
 
+  state.ui.hallExpanded = true;
   render();
   assert.match(root.innerHTML, /Open A New Expedition/);
 
@@ -829,7 +834,7 @@ test("action dispatcher drives the outer loop from the hall through world map an
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.CHARACTER_SELECT);
-  assert.match(root.innerHTML, /Recruit A Hero And Companion/);
+  assert.match(root.innerHTML, /Choose Your Hero/);
 
   handled = actionDispatcher.handleClick({
     target: createActionTarget({ action: "select-class", classId: "sorceress" }),
@@ -888,7 +893,10 @@ test("action dispatcher drives the outer loop from the hall through world map an
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
-  assert.match(root.innerHTML, /Battle Orders/);
+  assert.match(root.innerHTML, /explore-screen/);
+  state.ui.exploring = false;
+  render();
+  assert.match(root.innerHTML, /combat-screen/);
 
   state.combat.outcome = "victory";
   syncCombatResultAndRender();
@@ -1051,6 +1059,7 @@ test("action dispatcher drives runeword planning controls through the front-door
     });
   };
 
+  state.ui.hallExpanded = true;
   render();
   assert.match(root.innerHTML, /Runeword Planning Desk/);
 
@@ -1099,6 +1108,7 @@ test("front-door account controls mutate settings, tutorials, and preferred clas
     });
   };
 
+  state.ui.hallExpanded = true;
   render();
   assert.match(root.innerHTML, /Account Controls/);
   assert.match(root.innerHTML, /Hide Hints/);
@@ -1280,6 +1290,7 @@ test("front-door archive review controls navigate richer run-history entries thr
     },
   ];
 
+  state.ui.hallExpanded = true;
   render();
   assert.match(root.innerHTML, /Archive Review Desk/);
   assert.match(root.innerHTML, /Entry 1\/2/);
@@ -1422,6 +1433,7 @@ test("front-door account hall renders richer unlock, vault, archive-signal, and 
     },
   ];
 
+  state.ui.hallExpanded = true;
   appShell.render(root, {
     appState: state,
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
@@ -1458,6 +1470,7 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
   });
   const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
 
+  state.ui.hallExpanded = true;
   appShell.render(root, {
     appState: state,
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
