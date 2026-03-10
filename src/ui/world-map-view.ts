@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -79,7 +78,12 @@
 
       const bothCleared = from.status === "cleared" && to.status === "cleared";
       const active = from.status === "cleared" && to.status === "available";
-      const cls = bothCleared ? "edge--cleared" : active ? "edge--active" : "edge--locked";
+      let cls = "edge--locked";
+      if (bothCleared) {
+        cls = "edge--cleared";
+      } else if (active) {
+        cls = "edge--active";
+      }
 
       lines.push(
         `<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`
@@ -97,10 +101,12 @@
     if (!pos) {return "";}
 
     const icon = ZONE_KIND_ICONS[zone.kind] || "\u2694";
-    const statusClass =
-      zone.status === "cleared" ? "waypoint--cleared"
-        : zone.status === "available" && reachable ? "waypoint--available"
-        : "waypoint--locked";
+    let statusClass = "waypoint--locked";
+    if (zone.status === "cleared") {
+      statusClass = "waypoint--cleared";
+    } else if (zone.status === "available" && reachable) {
+      statusClass = "waypoint--available";
+    }
 
     const canClick = zone.status === "available" && reachable;
     const tag = canClick ? "button" : "div";

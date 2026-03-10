@@ -21,24 +21,128 @@ interface CombatModifiersApi {
   applyEncounterModifiers(state: CombatState): void;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface WorldNodeVariantsApi {
-  resolveEventFollowUp(run: RunState, actNumber: number): any;
-  resolveOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveCrossroadOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveShrineOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveReserveOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveRelayOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveCulminationOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveLegacyOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveReckoningOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveRecoveryOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveAccordOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveCovenantOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveDetourOpportunityVariant(run: RunState, actNumber: number): any;
-  resolveEscalationOpportunityVariant(run: RunState, actNumber: number): any;
+interface EventFollowUpResult {
+  eventDefinition: EventNodeDefinition;
+  questRecord: QuestOutcomeRecord;
+  followUp: WorldNodeRewardDefinition;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
+
+interface OpportunityVariantResult {
+  opportunityDefinition: OpportunityNodeDefinition;
+  questRecord: QuestOutcomeRecord;
+  variant: OpportunityNodeVariantDefinition;
+}
+
+interface CrossroadVariantResult {
+  crossroadOpportunityDefinition: CrossroadOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  shrineRecord: WorldNodeOutcomeRecord;
+  variant: OpportunityNodeVariantDefinition;
+}
+
+interface ShrineVariantResult {
+  shrineOpportunityDefinition: ShrineOpportunityDefinition;
+  shrineRecord: WorldNodeOutcomeRecord;
+  variant: ShrineOpportunityVariantDefinition;
+}
+
+interface ReserveVariantResult {
+  reserveOpportunityDefinition: ReserveOpportunityDefinition;
+  opportunityRecord: WorldNodeOutcomeRecord;
+  shrineOpportunityRecord: WorldNodeOutcomeRecord;
+  crossroadOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface RelayVariantResult {
+  relayOpportunityDefinition: RelayOpportunityDefinition;
+  reserveOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface CulminationVariantResult {
+  culminationOpportunityDefinition: CulminationOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  relayOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: OpportunityNodeVariantDefinition;
+}
+
+interface LegacyVariantResult {
+  legacyOpportunityDefinition: LegacyOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  culminationOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface ReckoningVariantResult {
+  reckoningOpportunityDefinition: ReckoningOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  reserveOpportunityRecord: WorldNodeOutcomeRecord;
+  culminationOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface RecoveryVariantResult {
+  recoveryOpportunityDefinition: RecoveryOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  shrineOpportunityRecord: WorldNodeOutcomeRecord;
+  culminationOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface AccordVariantResult {
+  accordOpportunityDefinition: AccordOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  shrineOpportunityRecord: WorldNodeOutcomeRecord;
+  crossroadOpportunityRecord: WorldNodeOutcomeRecord;
+  culminationOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface CovenantVariantResult {
+  covenantOpportunityDefinition: CovenantOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  legacyOpportunityRecord: WorldNodeOutcomeRecord;
+  reckoningOpportunityRecord: WorldNodeOutcomeRecord;
+  recoveryOpportunityRecord: WorldNodeOutcomeRecord;
+  accordOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface DetourVariantResult {
+  detourOpportunityDefinition: DetourOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  recoveryOpportunityRecord: WorldNodeOutcomeRecord;
+  accordOpportunityRecord: WorldNodeOutcomeRecord;
+  covenantOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface EscalationVariantResult {
+  escalationOpportunityDefinition: EscalationOpportunityDefinition;
+  questRecord: QuestOutcomeRecord;
+  legacyOpportunityRecord: WorldNodeOutcomeRecord;
+  reckoningOpportunityRecord: WorldNodeOutcomeRecord;
+  covenantOpportunityRecord: WorldNodeOutcomeRecord;
+  variant: ReserveOpportunityVariantDefinition;
+}
+
+interface WorldNodeVariantsApi {
+  resolveEventFollowUp(run: RunState, actNumber: number): EventFollowUpResult;
+  resolveOpportunityVariant(run: RunState, actNumber: number): OpportunityVariantResult;
+  resolveCrossroadOpportunityVariant(run: RunState, actNumber: number): CrossroadVariantResult;
+  resolveShrineOpportunityVariant(run: RunState, actNumber: number): ShrineVariantResult;
+  resolveReserveOpportunityVariant(run: RunState, actNumber: number): ReserveVariantResult;
+  resolveRelayOpportunityVariant(run: RunState, actNumber: number): RelayVariantResult;
+  resolveCulminationOpportunityVariant(run: RunState, actNumber: number): CulminationVariantResult;
+  resolveLegacyOpportunityVariant(run: RunState, actNumber: number): LegacyVariantResult;
+  resolveReckoningOpportunityVariant(run: RunState, actNumber: number): ReckoningVariantResult;
+  resolveRecoveryOpportunityVariant(run: RunState, actNumber: number): RecoveryVariantResult;
+  resolveAccordOpportunityVariant(run: RunState, actNumber: number): AccordVariantResult;
+  resolveCovenantOpportunityVariant(run: RunState, actNumber: number): CovenantVariantResult;
+  resolveDetourOpportunityVariant(run: RunState, actNumber: number): DetourVariantResult;
+  resolveEscalationOpportunityVariant(run: RunState, actNumber: number): EscalationVariantResult;
+}
 
 interface WorldNodeZonesApi {
   buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition): RewardChoice;
