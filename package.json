@@ -23,7 +23,9 @@
     "test:coverage": "node ./scripts/run-coverage.js",
     "test:e2e:built": "node ./scripts/run-e2e.js",
     "test:e2e": "npm run build && npm run test:e2e:built",
-    "test": "npm run compile && npm run test:compiled"
+    "test": "npm run compile && npm run test:compiled",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:quick": "./scripts/deploy.sh --skip-build"
   },
   "keywords": [],
   "author": "",

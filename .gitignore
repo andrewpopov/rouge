@@ -12,6 +12,7 @@ generated/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 
 # Local/generated test artifacts
 playwright-report/
