@@ -358,6 +358,14 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_GC_REWARDS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_WNC_QUESTS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_WNC_SHRINES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_WNC_OPPS_A: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_WNC_OPPS_B: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PERSISTENCE_CORE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_TOWN_PRICING: Record<string, any>;
