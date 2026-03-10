@@ -320,9 +320,10 @@
         </div>
 
         <div class="combat-tray">
-          <div class="energy-orb">
+          <div class="energy-orb" title="Energy: play cards that cost this much or less">
             <div class="energy-orb__value">${combat.hero.energy}</div>
             <div class="energy-orb__max">/${combat.hero.maxEnergy}</div>
+            <div class="energy-orb__label">Energy</div>
           </div>
 
           <div class="card-fan" style="--card-count:${cardCount}">
@@ -354,7 +355,7 @@
 
           <button class="end-turn-btn" data-action="end-turn"
             ${combat.phase !== "player" || combat.outcome ? "disabled" : ""}>
-            End Turn ${encounterNum}
+            End Turn
           </button>
           ${appState.profile?.meta?.settings?.debugMode?.skipBattles ? `
             <button class="end-turn-btn" data-action="debug-skip-encounter"
