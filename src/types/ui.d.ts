@@ -352,6 +352,12 @@ interface Window {
   ROUGE_ITEM_CATALOG: ItemCatalogApi;
   ROUGE_ITEM_LOADOUT: ItemLoadoutApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_MERCENARIES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_ENCOUNTERS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_REWARDS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PERSISTENCE_CORE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_TOWN_PRICING: Record<string, any>;

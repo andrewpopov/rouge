@@ -6,6 +6,9 @@ const ROOT = path.resolve(__dirname, "../../..");
 const GENERATED_ROOT = path.join(ROOT, "generated");
 
 const SHARED_RUNTIME_FILES = [
+  "src/content/game-content-mercenaries.js",
+  "src/content/game-content-encounters.js",
+  "src/content/game-content-rewards.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
   "src/combat/combat-engine.js",
