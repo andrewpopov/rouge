@@ -144,8 +144,7 @@
   }
 
   function getClassSprite(classId: string): string | null {
-    const slug = classId.toLowerCase();
-    return `${SPRITE_BASE}/classes/${slug}.png`;
+    return CLASS_PORTRAITS[classId] || null;
   }
 
   function getMercenarySprite(role: string): string | null {

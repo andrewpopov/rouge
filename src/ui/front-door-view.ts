@@ -1,6 +1,10 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  function getSettingLabel(flag: boolean, onLabel: string, offLabel: string): string {
+    return flag ? onLabel : offLabel;
+  }
+
   function formatTimestamp(timestamp: string, includeYear = false): string {
     const parsed = new Date(timestamp);
     if (Number.isNaN(parsed.getTime())) {

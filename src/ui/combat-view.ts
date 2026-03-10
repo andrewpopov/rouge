@@ -195,7 +195,7 @@
   }
 
   function svgIcon(src: string, cls: string, alt: string): string {
-    return `<img src="${src}" class="${cls}" alt="${alt}" loading="lazy" />`;
+    return `<img src="${src}" class="${cls}" alt="${alt}" loading="lazy" onerror="this.style.display='none'" />`;
   }
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
@@ -267,7 +267,7 @@
             </div>
 
             <div class="sprite ${combat.mercenary.alive ? "" : "sprite--dead"}">
-              <div class="sprite__figure sprite__figure--merc">${assets ? svgIcon(assets.getMercenarySprite(combat.mercenary.role) || "", "sprite__portrait", combat.mercenary.role) : escapeHtml(combat.mercenary.role.charAt(0))}</div>
+              <div class="sprite__figure sprite__figure--merc">${assets ? svgIcon(assets.getMercenarySprite(combat.mercenary.id) || "", "sprite__portrait", combat.mercenary.role) : escapeHtml(combat.mercenary.role.charAt(0))}</div>
               <div class="sprite__bars">
                 <div class="sprite__hp-bar">
                   <div class="sprite__hp-fill sprite__hp-fill--merc" style="width:${mercHpPercent}%"></div>
