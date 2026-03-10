@@ -261,7 +261,8 @@ test("built app smoke reaches encounter, reward, act transition, and run summary
   await (await expectPhase(livePage.page, '[data-action="leave-safe-zone"]', "safe zone")).click();
   await expectPhase(livePage.page, '[data-action="select-zone"][data-zone-id="act_1_blood_moor"]', "world map route open");
   await livePage.page.locator('[data-action="select-zone"][data-zone-id="act_1_blood_moor"]').dispatchEvent("click");
-  await expectText(livePage.page, "Encounter Brief", "encounter shell");
+  await expectText(livePage.page, "explore-screen", "exploration screen");
+  await livePage.page.locator('[data-action="begin-encounter"]').first().dispatchEvent("click");
   await expectPhase(livePage.page, '[data-action="end-turn"]', "encounter controls");
   assert.deepEqual(livePage.failures, []);
 

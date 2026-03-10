@@ -1252,6 +1252,10 @@ interface AppState {
     selectedMercenaryId: string;
     reviewedHistoryIndex: number;
     confirmAbandonSavedRun: boolean;
+    hallExpanded: boolean;
+    hallSection: string;
+    townFocus: string;
+    exploring: boolean;
   };
   profile: ProfileState;
   run: RunState | null;

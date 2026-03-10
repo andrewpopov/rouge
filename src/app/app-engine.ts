@@ -276,6 +276,10 @@
         selectedMercenaryId: mercenaries[0]?.id || "",
         reviewedHistoryIndex: 0,
         confirmAbandonSavedRun: false,
+        hallExpanded: false,
+        hallSection: "",
+        townFocus: "",
+        exploring: false,
       },
       profile,
       run: null,
@@ -823,6 +827,7 @@
       randomFn: state.randomFn,
     });
     state.phase = PHASES.ENCOUNTER;
+    state.ui.exploring = true;
     return { ok: true };
   }
 

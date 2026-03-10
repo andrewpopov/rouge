@@ -33,7 +33,7 @@ function serveFile(res, filePath) {
     }
     res.writeHead(200, {
       "Content-Type": contentType,
-      "Cache-Control": ext === ".html" ? "no-cache" : "public, max-age=86400",
+      "Cache-Control": ext === ".html" || ext === ".js" || ext === ".css" ? "no-cache, no-store, must-revalidate" : "public, max-age=86400",
     });
     res.end(data);
   });
