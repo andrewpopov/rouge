@@ -41,6 +41,7 @@
         <div class="merchant-card__icon">${icon}</div>
         <div class="merchant-card__name">${escapeHtml(a.title)}</div>
         ${a.subtitle ? `<div class="merchant-card__sub">${escapeHtml(a.subtitle)}</div>` : ""}
+        ${a.description ? `<div class="merchant-card__desc">${escapeHtml(a.description)}</div>` : ""}
         ${a.cost > 0
           ? `<div class="merchant-card__price ${canAfford ? "" : "merchant-card__price--cant-afford"}">
               <span class="merchant-card__coin">\u{1F4B0}</span> ${a.cost}
@@ -118,7 +119,7 @@
                   title="${escapeHtml(npc.name)} \u2014 ${escapeHtml(npc.role)}">
             <span class="town-npc-icon__dot"></span>
             <span class="town-npc-icon__label">${escapeHtml(npc.name)}</span>
-            ${hasActions ? `<span class="town-npc-icon__badge">${npc.actions.length}</span>` : ""}
+            ${hasActions ? `<span class="town-npc-icon__badge" title="${npc.actions.length} action${npc.actions.length === 1 ? "" : "s"} available">${npc.actions.length}</span>` : ""}
           </button>
         `;
       })

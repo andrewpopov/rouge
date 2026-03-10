@@ -286,16 +286,25 @@
                 : "<p>No autosaved route is currently parked in the hall.</p>"
             }
           </article>
-          <article class="feature-card">
-            <strong>Stash Vault</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Entries", stashEntries)}
-              ${buildStat("Gear", stashEquipmentCount)}
-              ${buildStat("Runes", stashRuneCount)}
-              ${buildStat("Socket Bases", stashSummary.socketReadyEquipmentCount)}
-            </div>
-            <p>${escapeHtml(`Anything sent to stash leaves the current run inventory and waits here for withdrawal from a future town. Socketed runes stored: ${stashSummary.socketedRuneCount}. Active runeword bases archived: ${stashSummary.runewordEquipmentCount}.`)}</p>
-          </article>
+          ${stashEntries === 0 && stashEquipmentCount === 0 && stashRuneCount === 0
+            ? `<article class="feature-card feature-card--empty">
+                <div class="entity-name-row">
+                  <strong>Stash Vault</strong>
+                  ${buildBadge("Empty", "locked")}
+                </div>
+                <p class="feature-card__empty-hint">Send items to stash during a town visit to store them here.</p>
+              </article>`
+            : `<article class="feature-card">
+                <strong>Stash Vault</strong>
+                <div class="entity-stat-grid">
+                  ${buildStat("Entries", stashEntries)}
+                  ${buildStat("Gear", stashEquipmentCount)}
+                  ${buildStat("Runes", stashRuneCount)}
+                  ${buildStat("Socket Bases", stashSummary.socketReadyEquipmentCount)}
+                </div>
+                <p>${escapeHtml(`Anything sent to stash leaves the current run inventory and waits here for withdrawal from a future town. Socketed runes stored: ${stashSummary.socketedRuneCount}. Active runeword bases archived: ${stashSummary.runewordEquipmentCount}.`)}</p>
+              </article>`
+          }
           <article class="feature-card">
             <strong>Archive Ledger</strong>
             <div class="entity-stat-grid">
@@ -570,6 +579,19 @@
     const readyCharterCount = planningOverview.readyCharterCount;
     const preparedCharterCount = planningOverview.preparedCharterCount;
     const { tone: forecastTone, copy: forecastCopy } = getVaultForecast(planning);
+
+    const vaultIsEmpty = stashSummary.entryCount === 0 && planning.plannedRunewordCount === 0;
+
+    if (vaultIsEmpty) {
+      return `
+        <section class="panel flow-panel feature-card--empty" id="hall-vault">
+          <div class="panel-head">
+            <h2>Vault Logistics</h2>
+          </div>
+          <p class="feature-card__empty-hint">The vault is empty. Send items to stash and pin runeword charters to populate this section.</p>
+        </section>
+      `;
+    }
 
     return `
       <section class="panel flow-panel" id="hall-vault">
