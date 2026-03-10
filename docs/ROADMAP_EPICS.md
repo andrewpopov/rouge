@@ -10,7 +10,7 @@ Backlog rule:
 | Epic | Status | Owner | Current note |
 |---|---|---|---|
 | `ROUGE-1` Architecture And Code Quality | `active` | Agent 4 | Keep the compiled-browser harness stable, continue hotspot extractions, and codify the resulting seams. |
-| `ROUGE-2` Progression, Economy, And Account Backbone | `active` | Agent 2 | Broaden account growth, archive or stash read models, and longer-horizon economy pressure on top of the live planning and convergence layer. |
+| `ROUGE-2` Progression, Economy, And Account Backbone | `active` | Agent 2 | Broaden account review data, archive or stash read models, and longer-horizon economy pressure on top of the live third-wave planning and convergence layer. |
 | `ROUGE-3` World Content And Combat Depth | `active` | Agent 3 | Deepen late-route consequence fabrics, encounter breadth, and validation where authored content can still drift silently. |
 | `ROUGE-21` Account Meta Continuity | `implemented` | Agent 1 | The shared account-meta continuity board, charter or convergence drilldowns, and compiled-browser shell coverage are live on `master`. |
 | `ROUGE-52` Expedition Launch And Town Prep Clarity | `implemented` | Agent 1 | The expedition launch runway and safe-zone before-or-after desk are live on `master`. |

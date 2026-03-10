@@ -49,6 +49,20 @@
           target: 4,
           getProgress: (metrics) => metrics.completedRuns,
         },
+        {
+          id: "sovereign_annals",
+          rewardFeatureId: "sovereign_annals",
+          prerequisiteIds: ["eternal_annals"],
+          target: 8,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
+        {
+          id: "imperial_annals",
+          rewardFeatureId: "imperial_annals",
+          prerequisiteIds: ["sovereign_annals"],
+          target: 10,
+          getProgress: (metrics) => metrics.runHistoryCount,
+        },
       ],
     },
     {
@@ -103,6 +117,20 @@
           target: 4000,
           getProgress: (metrics) => metrics.totalGoldCollected,
         },
+        {
+          id: "merchant_principate",
+          rewardFeatureId: "merchant_principate",
+          prerequisiteIds: ["treasury_exchange"],
+          target: 6500,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
+        {
+          id: "trade_hegemony",
+          rewardFeatureId: "trade_hegemony",
+          prerequisiteIds: ["merchant_principate"],
+          target: 9000,
+          getProgress: (metrics) => metrics.totalGoldCollected,
+        },
       ],
     },
     {
@@ -150,6 +178,20 @@
           target: 12,
           getProgress: (metrics) => metrics.totalBossesDefeated,
         },
+        {
+          id: "legend_doctrine",
+          rewardFeatureId: "legend_doctrine",
+          prerequisiteIds: ["apex_doctrine"],
+          target: 16,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
+        {
+          id: "mythic_doctrine",
+          rewardFeatureId: "mythic_doctrine",
+          prerequisiteIds: ["legend_doctrine"],
+          target: 20,
+          getProgress: (metrics) => metrics.totalBossesDefeated,
+        },
       ],
     },
   ];
@@ -168,6 +210,36 @@
       id: "paragon_exchange",
       rewardFeatureId: "paragon_exchange",
       requiredFeatureIds: ["treasury_exchange", "apex_doctrine"],
+    },
+    {
+      id: "sovereign_exchange",
+      rewardFeatureId: "sovereign_exchange",
+      requiredFeatureIds: ["sovereign_annals", "merchant_principate"],
+    },
+    {
+      id: "legendary_annals",
+      rewardFeatureId: "legendary_annals",
+      requiredFeatureIds: ["sovereign_annals", "legend_doctrine"],
+    },
+    {
+      id: "ascendant_exchange",
+      rewardFeatureId: "ascendant_exchange",
+      requiredFeatureIds: ["merchant_principate", "legend_doctrine"],
+    },
+    {
+      id: "imperial_exchange",
+      rewardFeatureId: "imperial_exchange",
+      requiredFeatureIds: ["imperial_annals", "trade_hegemony"],
+    },
+    {
+      id: "immortal_annals",
+      rewardFeatureId: "immortal_annals",
+      requiredFeatureIds: ["imperial_annals", "mythic_doctrine"],
+    },
+    {
+      id: "mythic_exchange",
+      rewardFeatureId: "mythic_exchange",
+      requiredFeatureIds: ["trade_hegemony", "mythic_doctrine"],
     },
   ];
 
