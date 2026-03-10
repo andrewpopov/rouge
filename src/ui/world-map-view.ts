@@ -119,7 +119,6 @@
     `;
   }
 
-  // Keep old helpers available for the details section
   function getNodeFamilyLabel(zone: ZoneState | null): string {
     if (!zone) return "Route";
     if (zone.kind === "quest") return "Quest Fork";

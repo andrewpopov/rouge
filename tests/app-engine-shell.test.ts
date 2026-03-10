@@ -879,7 +879,7 @@ test("action dispatcher drives the outer loop from the hall through world map an
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
-  assert.match(root.innerHTML, /Route Atlas/);
+  assert.match(root.innerHTML, /actmap/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
   handled = actionDispatcher.handleClick({
