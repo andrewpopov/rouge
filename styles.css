@@ -1764,7 +1764,7 @@ button.entity-card:disabled {
   position: relative;
   width: 100%;
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--line-strong);
   background: rgba(10, 7, 6, 0.85);
 }
@@ -1777,6 +1777,7 @@ button.entity-card:disabled {
   filter: brightness(0.65) saturate(0.7);
   pointer-events: none;
   user-select: none;
+  border-radius: inherit;
 }
 
 .actmap__edges {
@@ -1858,9 +1859,10 @@ button.waypoint:hover {
   letter-spacing: 0.03em;
   white-space: nowrap;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 1), 0 0 12px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.6);
-  max-width: 100px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .waypoint__check {
@@ -1971,7 +1973,7 @@ button.waypoint:hover {
 
   .waypoint__label {
     font-size: 0.55rem;
-    max-width: 70px;
+    max-width: 80px;
   }
 }
 

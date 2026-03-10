@@ -27,24 +27,28 @@
    */
   const ACT_POSITIONS: Record<number, Record<string, [number, number]>> = {
     1: {
-      "town":              [6.4, 51],
-      "Blood Moor":        [19.2, 51],
-      "Cold Plains":       [33.4, 51],
-      "Stony Field":       [47.4, 51],
-      "The Underground Passage": [61.7, 51],
-      "Dark Wood":         [76.2, 51],
-      "Black Marsh":       [91.6, 51],
-      "Tamoe Highland":    [94.7, 69],
-      "Outer Cloister":    [77, 86],
-      "Barracks":          [62.4, 84],
-      "Jail":              [48.9, 84],
-      "Inner Cloister":    [33.9, 84],
-      "Cathedral":         [21.2, 84],
-      "Catacombs":         [6.7, 87],
-      "Den of Evil":       [18.7, 17],
-      "Burial Grounds":    [33.2, 14],
-      "Tristram":          [47.2, 14],
-      "Forgotten Tower":   [90.7, 20],
+      // Mainline (left→right across the middle)
+      "town":              [5, 48],
+      "Blood Moor":        [17, 48],
+      "Cold Plains":       [29, 48],
+      "Stony Field":       [41, 48],
+      "The Underground Passage": [55, 48],
+      "Dark Wood":         [68, 48],
+      "Black Marsh":       [80, 48],
+      // Monastery wrap (right→left along bottom)
+      "Tamoe Highland":    [85, 62],
+      "Outer Cloister":    [85, 82],
+      "Barracks":          [74, 82],
+      "Jail":              [60, 82],
+      "Inner Cloister":    [46, 82],
+      "Cathedral":         [32, 82],
+      "Catacombs":         [14, 82],
+      // Side branches (upper row, spaced well apart)
+      "Den of Evil":       [17, 18],
+      "Burial Grounds":    [35, 14],
+      "Tristram":          [52, 18],
+      "Tristram Relief":   [43, 5],
+      "Forgotten Tower":   [80, 18],
     },
   };
 
