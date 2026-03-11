@@ -1814,7 +1814,7 @@ button.entity-card:disabled {
 }
 
 .map-edge {
-  stroke-width: 2;
+  stroke-width: 1.5px;
   stroke-linecap: round;
   fill: none;
 }
@@ -1827,17 +1827,17 @@ button.entity-card:disabled {
 .map-edge.edge--active {
   stroke: var(--accent-bright);
   opacity: 0.8;
-  stroke-dasharray: 6 4;
+  stroke-dasharray: 6px 4px;
   animation: edge-march 1s linear infinite;
 }
 
 .map-edge.edge--locked {
   stroke: rgba(235, 200, 149, 0.12);
-  stroke-dasharray: 3 6;
+  stroke-dasharray: 3px 6px;
 }
 
 @keyframes edge-march {
-  to { stroke-dashoffset: -10; }
+  to { stroke-dashoffset: -10px; }
 }
 
 .waypoint {

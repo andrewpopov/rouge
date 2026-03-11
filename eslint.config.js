@@ -74,7 +74,7 @@ module.exports = [
       eqeqeq: ["error", "always"],
       "guard-for-in": "error",
       "max-depth": ["error", 4],
-      "max-lines": ["error", { max: 950, skipBlankLines: true, skipComments: true }],
+      "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
       "max-params": ["error", 8],
       "no-console": "error",
       "no-else-return": "error",

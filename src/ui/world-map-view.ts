@@ -30,8 +30,8 @@
       // Mainline (left→right across the middle)
       "town":              [5, 48],
       "Blood Moor":        [17, 48],
-      "Cold Plains":       [29, 48],
-      "Stony Field":       [41, 48],
+      "Cold Plains":       [33, 48],
+      "Stony Field":       [45, 48],
       "The Underground Passage": [55, 48],
       "Dark Wood":         [68, 48],
       "Black Marsh":       [80, 48],
@@ -47,7 +47,6 @@
       "Den of Evil":       [17, 18],
       "Burial Grounds":    [35, 14],
       "Tristram":          [52, 18],
-      "Tristram Relief":   [43, 5],
       "Forgotten Tower":   [80, 18],
     },
   };
@@ -139,7 +138,7 @@
       const tp = positions.get(opening.id);
       if (fp && tp) {
         const cls = opening.status === "cleared" ? "edge--cleared" : opening.status === "available" ? "edge--active" : "edge--locked";
-        lines.push(`<line x1="${fp[0]}" y1="${fp[1]}" x2="${tp[0]}" y2="${tp[1]}" class="map-edge ${cls}" />`);
+        lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
       }
     }
 
@@ -159,9 +158,9 @@
         // Use curves for vertical connections, straight lines for horizontal
         if (Math.abs(fp[1] - tp[1]) > 10) {
           const mx = (fp[0] + tp[0]) / 2;
-          lines.push(`<path d="M ${fp[0]} ${fp[1]} C ${mx} ${fp[1]}, ${mx} ${tp[1]}, ${tp[0]} ${tp[1]}" class="map-edge ${cls}" />`);
+          lines.push(`<path d="M ${fp[0]}% ${fp[1]}% C ${mx}% ${fp[1]}%, ${mx}% ${tp[1]}%, ${tp[0]}% ${tp[1]}%" class="map-edge ${cls}" />`);
         } else {
-          lines.push(`<line x1="${fp[0]}" y1="${fp[1]}" x2="${tp[0]}" y2="${tp[1]}" class="map-edge ${cls}" />`);
+          lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
         }
       }
     }
@@ -266,7 +265,7 @@
                alt="${escapeHtml(run.actTitle)}"
                draggable="false" />
 
-          <svg class="actmap__edges" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg class="actmap__edges">
             ${edges}
           </svg>
 
