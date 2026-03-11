@@ -917,6 +917,38 @@
       return { ok: true };
     }
 
+    // Zone still has encounters remaining — go straight into the next fight
+    if (!reward.clearsZone && reward.zoneId) {
+      const beginResult = runFactory.beginZone(state.run, reward.zoneId, state.content);
+      if (beginResult.ok && beginResult.type === "encounter") {
+        const overrides = runFactory.createCombatOverrides(state.run, state.content);
+        const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
+        state.combat = state.combatEngine.createCombatState({
+          content: { ...state.content, hero: overrides.heroState },
+          encounterId: beginResult.encounterId,
+          mercenaryId: state.run.mercenary.id,
+          heroState: overrides.heroState,
+          mercenaryState: { ...overrides.mercenaryState, ...mercenaryRouteBonuses },
+          starterDeck: overrides.starterDeck,
+          initialPotions: overrides.initialPotions,
+          randomFn: state.randomFn,
+        });
+        state.phase = PHASES.ENCOUNTER;
+        state.ui.exploring = true;
+        runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
+        persistRunIfPossible(state);
+        return { ok: true };
+      }
+      // If beginZone returns a reward-type (world node) or fails, fall through to world map
+      if (beginResult.ok && beginResult.type === "reward") {
+        state.run.pendingReward = beginResult.reward;
+        state.combat = null;
+        state.phase = PHASES.REWARD;
+        persistRunIfPossible(state);
+        return { ok: true };
+      }
+    }
+
     state.phase = PHASES.WORLD_MAP;
     persistRunIfPossible(state);
     return { ok: true };

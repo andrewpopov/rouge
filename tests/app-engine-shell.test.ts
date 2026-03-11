@@ -124,7 +124,7 @@ test("continueSavedRun restores a reward snapshot and advances back to the route
 
   const rewardChoiceId = resumedState.run.pendingReward.choices[0].id;
   assert.equal(appEngine.claimRewardAndAdvance(resumedState, rewardChoiceId).ok, true);
-  assert.equal(resumedState.phase, appEngine.PHASES.WORLD_MAP);
+  assert.equal(resumedState.phase, appEngine.PHASES.ENCOUNTER);
   assert.equal(resumedState.run.pendingReward, null);
 });
 
@@ -907,6 +907,22 @@ test("action dispatcher drives the outer loop from the hall through world map an
     syncCombatResultAndRender,
   });
   assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+
+  // Zone has a second encounter — fight through it so we land on world_map
+  state.combat.outcome = "victory";
+  syncCombatResultAndRender();
+  assert.equal(state.phase, appEngine.PHASES.REWARD);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "claim-reward-choice", choiceId: state.run.pendingReward.choices[0].id }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
 
   handled = actionDispatcher.handleClick({
@@ -920,7 +936,7 @@ test("action dispatcher drives the outer loop from the hall through world map an
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.SAFE_ZONE);
   assert.match(root.innerHTML, /Town Districts/);
-  assert.equal(runFactory.getZoneById(state.run, openingZoneId).encountersCleared, 1);
+  assert.equal(runFactory.getZoneById(state.run, openingZoneId).encountersCleared, 2);
 });
 
 test("action dispatcher drives act-transition and failed-run shell exits", () => {

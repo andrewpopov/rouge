@@ -32,7 +32,7 @@ test("reward choices can add a new card to the run deck", () => {
 
   assert.equal(state.run.deck.length, deckSizeBeforeReward + 1);
   assert.ok(state.run.deck.includes(cardId));
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
 });
 
 test("equipment rewards persist on the run and feed the next encounter state", () => {
@@ -73,8 +73,7 @@ test("equipment rewards persist on the run and feed the next encounter state", (
   }
 
   const combatBonuses = itemSystem.buildCombatBonuses(state.run, content);
-  const result = appEngine.selectZone(state, openingZoneId);
-  assert.equal(result.ok, true);
+  // claimRewardAndAdvance auto-advances into the next encounter when the zone isn't cleared
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
   assert.equal(state.combat.hero.damageBonus, combatBonuses.heroDamageBonus || 0);
   assert.equal(state.combat.hero.guardBonus, combatBonuses.heroGuardBonus || 0);

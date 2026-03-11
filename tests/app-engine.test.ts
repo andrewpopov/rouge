@@ -79,17 +79,13 @@ test("world map zones loop encounter to reward and preserve multi-encounter prog
   assert.equal(state.run.pendingReward.choices.length, 3);
 
   appEngine.claimRewardAndAdvance(state);
-  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
 
   const zone = runFactory.getZoneById(state.run, openingZoneId);
   assert.equal(zone.encountersCleared, 1);
   assert.equal(zone.cleared, false);
   assert.equal(state.run.hero.currentLife, 33);
   assert.equal(state.run.belt.current, 1);
-
-  result = appEngine.selectZone(state, openingZoneId);
-  assert.equal(result.ok, true);
-  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
 });
 
 test("safe-zone services can heal, refill, and change mercenary contracts without losing map progress", () => {
@@ -130,12 +126,18 @@ test("safe-zone services can heal, refill, and change mercenary contracts withou
   state.combat.outcome = "victory";
   appEngine.syncEncounterOutcome(state);
   appEngine.claimRewardAndAdvance(state);
+  assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
+
+  // Fight through the second encounter so the zone clears and we reach world_map
+  state.combat.outcome = "victory";
+  appEngine.syncEncounterOutcome(state);
+  appEngine.claimRewardAndAdvance(state);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
 
   result = appEngine.returnToSafeZone(state);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.SAFE_ZONE);
-  assert.equal(runFactory.getZoneById(state.run, openingZoneId).encountersCleared, 1);
+  assert.equal(runFactory.getZoneById(state.run, openingZoneId).encountersCleared, 2);
 });
 
 test("safe-zone services can revive a fallen current mercenary", () => {
