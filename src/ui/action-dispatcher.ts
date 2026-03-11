@@ -277,6 +277,11 @@
         appEngine.startCharacterSelect(appState);
         render();
         return true;
+      case "toggle-game-menu": {
+        const panel = document.getElementById("game-menu-panel");
+        if (panel) panel.classList.toggle("game-menu__panel--open");
+        return true;
+      }
       case "select-class":
         appEngine.setSelectedClass(appState, actionEl.dataset.classId || "");
         render();

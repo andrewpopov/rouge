@@ -2472,10 +2472,11 @@ button.waypoint:hover {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% 110%, rgba(90, 40, 15, 0.5), transparent 60%),
-    radial-gradient(ellipse at 20% 20%, rgba(140, 50, 10, 0.15), transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(100, 30, 10, 0.12), transparent 50%),
-    linear-gradient(180deg, rgba(5, 2, 1, 0.98) 0%, rgba(18, 8, 4, 0.96) 30%, rgba(40, 18, 10, 0.92) 70%, rgba(55, 28, 14, 0.88) 100%);
+    radial-gradient(ellipse at 50% 100%, rgba(160, 70, 20, 0.35), transparent 50%),
+    radial-gradient(ellipse at 25% 30%, rgba(120, 40, 10, 0.2), transparent 45%),
+    radial-gradient(ellipse at 75% 25%, rgba(90, 25, 8, 0.18), transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(60, 20, 8, 0.4), transparent 80%),
+    linear-gradient(180deg, #040201 0%, #0e0604 20%, #1e0e08 45%, #2d160c 70%, #3a1e10 100%);
   z-index: 0;
 }
 
@@ -2484,21 +2485,35 @@ button.waypoint:hover {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% 85%, rgba(220, 120, 40, 0.1), transparent 40%),
-    radial-gradient(ellipse at 15% 60%, rgba(180, 60, 20, 0.06), transparent 35%),
-    radial-gradient(ellipse at 85% 60%, rgba(180, 60, 20, 0.06), transparent 35%);
+    radial-gradient(ellipse at 50% 80%, rgba(255, 140, 40, 0.12), transparent 45%),
+    radial-gradient(ellipse at 10% 70%, rgba(200, 80, 20, 0.08), transparent 30%),
+    radial-gradient(ellipse at 90% 70%, rgba(200, 80, 20, 0.08), transparent 30%),
+    radial-gradient(ellipse at 50% 10%, rgba(80, 30, 10, 0.15), transparent 50%);
 }
 
 .stage__backdrop::after {
   content: "";
   position: absolute;
-  left: 10%;
-  right: 10%;
-  top: 15%;
-  bottom: 40%;
-  border: 1px solid rgba(120, 50, 20, 0.06);
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  background: radial-gradient(ellipse at 50% 100%, rgba(200, 90, 20, 0.05), transparent 60%);
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.03) 3px,
+      rgba(0, 0, 0, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 5px,
+      rgba(0, 0, 0, 0.02) 5px,
+      rgba(0, 0, 0, 0.02) 6px
+    );
+  opacity: 0.5;
 }
 
 .stage__floor {
@@ -2506,9 +2521,11 @@ button.waypoint:hover {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 90px;
-  background: linear-gradient(180deg, rgba(50, 25, 12, 0.6) 0%, rgba(35, 18, 8, 0.95) 100%);
-  border-top: 1px solid rgba(140, 70, 30, 0.12);
+  height: 100px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(120, 60, 20, 0.3), transparent 60%),
+    linear-gradient(180deg, #2a1508 0%, #1a0c06 40%, #0d0603 100%);
+  border-top: 1px solid rgba(180, 90, 30, 0.2);
   z-index: 0;
 }
 
@@ -2517,9 +2534,9 @@ button.waypoint:hover {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% -20%, rgba(220, 120, 40, 0.15), transparent 60%),
-    radial-gradient(ellipse at 30% 0%, rgba(200, 100, 30, 0.08), transparent 40%),
-    radial-gradient(ellipse at 70% 0%, rgba(200, 100, 30, 0.08), transparent 40%);
+    radial-gradient(ellipse at 50% -30%, rgba(255, 150, 50, 0.18), transparent 50%),
+    radial-gradient(ellipse at 25% 0%, rgba(200, 100, 30, 0.1), transparent 35%),
+    radial-gradient(ellipse at 75% 0%, rgba(200, 100, 30, 0.1), transparent 35%);
 }
 
 .stage__allies,
@@ -3275,4 +3292,88 @@ button.waypoint:hover {
   border-color: rgba(255, 220, 100, 0.6);
   color: #ffe680;
   font-weight: 600;
+}
+
+/* ── Game Menu (always visible during run) ── */
+
+.game-menu {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
+}
+
+.game-menu__toggle {
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid rgba(235, 200, 149, 0.3);
+  background: rgba(15, 10, 8, 0.85);
+  backdrop-filter: blur(6px);
+  color: var(--text-muted, rgba(235, 200, 149, 0.6));
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.game-menu__toggle:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.game-menu__panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: rgba(15, 10, 8, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(235, 200, 149, 0.25);
+  border-radius: 6px;
+  padding: 6px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.game-menu__panel--open {
+  display: block;
+}
+
+.game-menu__section {
+  padding: 4px 0;
+}
+
+.game-menu__section + .game-menu__section {
+  border-top: 1px solid rgba(235, 200, 149, 0.12);
+}
+
+.game-menu__item {
+  appearance: none;
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.game-menu__item:hover {
+  background: rgba(235, 200, 149, 0.1);
+}
+
+.game-menu__item--danger {
+  color: var(--danger, #cf7b6f);
+}
+
+.game-menu__item--active {
+  color: #ffe680;
 }

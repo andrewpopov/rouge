@@ -17,6 +17,33 @@
     </div>`;
   }
 
+  /** Phases that represent an active run */
+  const RUN_PHASES = new Set([
+    "safe_zone", "world_map", "encounter", "reward",
+    "act_transition", "run_complete", "run_failed",
+  ]);
+
+  function buildGameMenu(appState: AppState): string {
+    const debug = appState.profile?.meta?.settings?.debugMode;
+    const debugEnabled = debug?.enabled ?? false;
+
+    return `<div class="game-menu">
+      <button class="game-menu__toggle" data-action="toggle-game-menu">\u2630</button>
+      <div class="game-menu__panel" id="game-menu-panel">
+        <div class="game-menu__section">
+          <button class="game-menu__item" data-action="return-safe-zone">\u2190 Return to Town</button>
+          <button class="game-menu__item game-menu__item--danger" data-action="prompt-abandon-saved-run">\u2717 Abandon Run</button>
+        </div>
+        <div class="game-menu__section">
+          <button class="game-menu__item ${debugEnabled ? "game-menu__item--active" : ""}"
+            data-action="toggle-profile-setting"
+            data-setting-key="debugMode.enabled"
+            data-setting-value="${String(!debugEnabled)}">\u{1F41E} Debug ${debugEnabled ? "ON" : "OFF"}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
   function render(root: HTMLElement, { appState, baseContent, bootState }: AppShellRenderConfig): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const services = common.getServices();
@@ -67,6 +94,10 @@
     const debug = appState.profile?.meta?.settings?.debugMode;
     if (debug?.enabled) {
       root.innerHTML = buildDebugBar(debug) + root.innerHTML;
+    }
+
+    if (RUN_PHASES.has(appState.phase)) {
+      root.innerHTML = buildGameMenu(appState) + root.innerHTML;
     }
   }
 
