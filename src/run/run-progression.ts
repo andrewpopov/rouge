@@ -301,7 +301,7 @@
     const maxRank = treeSummary?.maxRank || Math.max(1, toBonusValue(tree.maxRank, tree.skills.length));
     const canSpend = run.progression.classPointsAvailable > 0 && treeRank < maxRank;
     const threshold = Math.max(1, toBonusValue(tree.unlockThreshold, 2));
-    const bonusPreview = Array.isArray(treeSummary?.bonusLines) ? treeSummary.bonusLines.slice(0, 2) : [];
+    const bonusPreview = Array.isArray(treeSummary?.bonusLines) ? treeSummary.bonusLines.slice(0, runtimeWindow.ROUGE_LIMITS.BONUS_PREVIEW) : [];
 
     let actionLabel = "Locked";
     if (treeRank >= maxRank) {

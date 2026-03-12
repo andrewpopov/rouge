@@ -68,8 +68,8 @@
       socketReadyEquipmentCount: equipmentEntries.filter((entry) => toNumber(entry?.equipment?.socketsUnlocked, 0) > 0).length,
       socketedRuneCount: equipmentEntries.reduce((total, entry) => total + toNumber(entry?.equipment?.insertedRunes?.length, 0), 0),
       runewordEquipmentCount: equipmentEntries.filter((entry) => entry?.equipment?.runewordId).length,
-      itemIds: uniqueStrings(equipmentEntries.map((entry) => entry?.equipment?.itemId)).slice(0, 4),
-      runeIds: uniqueStrings(runeEntries.map((entry) => entry?.runeId)).slice(0, 4),
+      itemIds: uniqueStrings(equipmentEntries.map((entry) => entry?.equipment?.itemId)).slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_IDS),
+      runeIds: uniqueStrings(runeEntries.map((entry) => entry?.runeId)).slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_IDS),
     };
   }
 
@@ -125,8 +125,8 @@
         const completedPlannedRunewordIds = getCompletedPlannedRunewordIds(entry);
         return plannedRunewordIds.some((runewordId) => !completedPlannedRunewordIds.includes(runewordId));
       }).length,
-      recentFeatureIds: uniqueStrings(history.slice(0, 4).flatMap((entry) => entry?.newFeatureIds || [])).slice(0, 6),
-      recentPlannedRunewordIds: uniqueStrings(history.slice(0, 4).flatMap((entry) => getPlannedRunewordIds(entry))).slice(0, 6),
+      recentFeatureIds: uniqueStrings(history.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SCAN).flatMap((entry) => entry?.newFeatureIds || [])).slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_FEATURE_IDS),
+      recentPlannedRunewordIds: uniqueStrings(history.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SCAN).flatMap((entry) => getPlannedRunewordIds(entry))).slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNEWORD_IDS),
     };
   }
 

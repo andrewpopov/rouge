@@ -109,7 +109,7 @@ interface Window {
       return '<p class="flow-copy">No world outcomes are logged on this run yet. Quest chains, shrine blessings, and aftermath nodes will all write back here.</p>';
     }
 
-    return renderUtils.buildStringList(worldLines.slice(0, 6), "log-list reward-list ledger-list");
+    return renderUtils.buildStringList(worldLines.slice(0, runtimeWindow.ROUGE_LIMITS.WORLD_OUTCOMES_LOG), "log-list reward-list ledger-list");
   }
 
   function buildDepartureBriefingMarkup(
@@ -659,7 +659,7 @@ interface Window {
                 `Tutorials completed ${profileSummary.completedTutorialCount} of ${profileSummary.seenTutorialCount}, with ${Math.max(0, profileSummary.seenTutorialCount - profileSummary.completedTutorialCount)} still pending.`,
                 `Focused tree ${accountSummary.focusedTreeTitle || "Unset"}, next milestone ${accountSummary.nextMilestoneTitle || "all cleared"}.`,
                 `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
-                `Town features online: ${(appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId)).slice(0, 3).join(", ") || "none yet"}.`,
+                `Town features online: ${(appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId)).slice(0, runtimeWindow.ROUGE_LIMITS.TOWN_FEATURES_PREVIEW).join(", ") || "none yet"}.`,
               ],
               "log-list reward-list ledger-list"
             )}

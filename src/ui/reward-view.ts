@@ -182,7 +182,7 @@
     let accountPressureLines = [
       `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
       `Training ranks carried on this expedition: ${trainingRanks}.`,
-      ...planningStageLines.slice(0, 1),
+      ...planningStageLines.slice(0, runtimeWindow.ROUGE_LIMITS.PLANNING_STAGE_COMPACT),
     ].filter(Boolean);
 
     if (review.availableConvergenceCount > 0) {
@@ -191,7 +191,7 @@
       accountPressureLines = [
         `Ready convergence lane${review.availableConvergenceCount === 1 ? "" : "s"}: ${review.availableConvergenceCount}.`,
         `Next convergence: ${review.nextConvergenceTitle || "all current convergence lanes are online"}.`,
-        ...planningStageLines.slice(0, 1),
+        ...planningStageLines.slice(0, runtimeWindow.ROUGE_LIMITS.PLANNING_STAGE_COMPACT),
       ].filter(Boolean);
     } else if (planning.plannedRunewordCount > 0) {
       accountPressureLabel = "Charters Live";
@@ -199,7 +199,7 @@
       accountPressureLines = [
         `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
         planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
-        ...planningStageLines.slice(0, 2),
+        ...planningStageLines.slice(0, runtimeWindow.ROUGE_LIMITS.PLANNING_STAGE_EXTENDED),
       ].filter(Boolean);
     }
 

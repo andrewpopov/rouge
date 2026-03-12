@@ -15,8 +15,8 @@ const NPM_EXECUTABLE = process.platform === "win32" ? "npm.cmd" : "npm";
 const STAGES = [
   { name: "lint", command: NPM_EXECUTABLE, args: ["run", "lint"] },
   { name: "build", command: NPM_EXECUTABLE, args: ["run", "build"] },
-  { name: "test:compiled", command: NPM_EXECUTABLE, args: ["run", "test:compiled"] },
-  { name: "test:e2e:built", command: NPM_EXECUTABLE, args: ["run", "test:e2e:built"] },
+  { name: "test", command: "node", args: ["--test", "generated/tests/*.test.js"] },
+  { name: "test:e2e", command: "node", args: ["./scripts/run-e2e.js"] },
 ];
 
 async function main() {
@@ -45,11 +45,11 @@ async function main() {
         exitCode: result.code,
       });
 
-      if (stage.name === "test:compiled") {
+      if (stage.name === "test") {
         entry.compiledTests = parseNodeTestSummary(result.output);
       }
 
-      if (stage.name === "test:e2e:built") {
+      if (stage.name === "test:e2e") {
         entry.builtBundleSmoke = parseNodeTestSummary(result.output);
       }
 

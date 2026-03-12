@@ -12,7 +12,7 @@
 
   function appendLog(state, message) {
     state.log.unshift(message);
-    state.log = state.log.slice(0, 18);
+    state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
   }
 
   function shuffleInPlace(items, randomFn) {

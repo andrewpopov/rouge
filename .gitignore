@@ -25,3 +25,7 @@ assets/source/
 
 # Local archives
 *.zip
+
+# Preview/temp artifacts
+*.preview
+*.tmp

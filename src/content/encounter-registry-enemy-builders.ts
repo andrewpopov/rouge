@@ -96,7 +96,7 @@
       merged.push(...poolEntry.nativeEnemies);
     }
     if (Array.isArray(poolEntry?.guestEnemiesNightmareHell)) {
-      merged.push(...poolEntry.guestEnemiesNightmareHell.slice(0, 6));
+      merged.push(...poolEntry.guestEnemiesNightmareHell.slice(0, runtimeWindow.ROUGE_LIMITS.NIGHTMARE_HELL_GUEST_ENEMIES));
     }
     return uniqueById(merged);
   }

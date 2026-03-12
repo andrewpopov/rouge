@@ -190,7 +190,7 @@
     if (labels.length === 2) {
       return `${labels[0]} and ${labels[1]}`;
     }
-    return `${labels.slice(0, 2).join(", ")}, +${labels.length - 2} more`;
+    return `${labels.slice(0, runtimeWindow.ROUGE_LIMITS.LABEL_PREVIEW).join(", ")}, +${labels.length - 2} more`;
   }
 
   function getTargetRunewordForEquipment(equipment, run, content, profile = null) {

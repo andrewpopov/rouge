@@ -12,79 +12,9 @@
     return getWorldNodeCatalogApi().getCatalog();
   }
 
-  function getQuestDefinition(actNumber) {
-    const quests = getCatalog().quests;
-    return quests[actNumber] || quests[1];
-  }
-
-  function getEventDefinition(actNumber) {
-    const events = getCatalog().events;
-    return events[actNumber] || events[1];
-  }
-
-  function getOpportunityDefinition(actNumber) {
-    const opportunities = getCatalog().opportunities;
-    return opportunities[actNumber] || opportunities[1];
-  }
-
-  function getCrossroadOpportunityDefinition(actNumber) {
-    const crossroadOpportunities = getCatalog().crossroadOpportunities;
-    return crossroadOpportunities[actNumber] || crossroadOpportunities[1];
-  }
-
-  function getShrineOpportunityDefinition(actNumber) {
-    const shrineOpportunities = getCatalog().shrineOpportunities;
-    return shrineOpportunities[actNumber] || shrineOpportunities[1];
-  }
-
-  function getReserveOpportunityDefinition(actNumber) {
-    const reserveOpportunities = getCatalog().reserveOpportunities;
-    return reserveOpportunities[actNumber] || reserveOpportunities[1];
-  }
-
-  function getRelayOpportunityDefinition(actNumber) {
-    const relayOpportunities = getCatalog().relayOpportunities;
-    return relayOpportunities[actNumber] || relayOpportunities[1];
-  }
-
-  function getCulminationOpportunityDefinition(actNumber) {
-    const culminationOpportunities = getCatalog().culminationOpportunities;
-    return culminationOpportunities[actNumber] || culminationOpportunities[1];
-  }
-
-  function getLegacyOpportunityDefinition(actNumber) {
-    const legacyOpportunities = getCatalog().legacyOpportunities;
-    return legacyOpportunities[actNumber] || legacyOpportunities[1];
-  }
-
-  function getReckoningOpportunityDefinition(actNumber) {
-    const reckoningOpportunities = getCatalog().reckoningOpportunities;
-    return reckoningOpportunities[actNumber] || reckoningOpportunities[1];
-  }
-
-  function getRecoveryOpportunityDefinition(actNumber) {
-    const recoveryOpportunities = getCatalog().recoveryOpportunities;
-    return recoveryOpportunities[actNumber] || recoveryOpportunities[1];
-  }
-
-  function getAccordOpportunityDefinition(actNumber) {
-    const accordOpportunities = getCatalog().accordOpportunities;
-    return accordOpportunities[actNumber] || accordOpportunities[1];
-  }
-
-  function getCovenantOpportunityDefinition(actNumber) {
-    const covenantOpportunities = getCatalog().covenantOpportunities;
-    return covenantOpportunities[actNumber] || covenantOpportunities[1];
-  }
-
-  function getDetourOpportunityDefinition(actNumber) {
-    const detourOpportunities = getCatalog().detourOpportunities;
-    return detourOpportunities[actNumber] || detourOpportunities[1];
-  }
-
-  function getEscalationOpportunityDefinition(actNumber) {
-    const escalationOpportunities = getCatalog().escalationOpportunities;
-    return escalationOpportunities[actNumber] || escalationOpportunities[1];
+  function getCatalogEntry(key, actNumber) {
+    const entries = getCatalog()[key];
+    return entries[actNumber] || entries[1];
   }
 
   function findChoiceByOutcomeId(definition, outcomeId) {
@@ -94,8 +24,8 @@
   }
 
   function resolveEventFollowUp(run, actNumber) {
-    const eventDefinition = getEventDefinition(actNumber);
-    const questDefinition = getQuestDefinition(actNumber);
+    const eventDefinition = getCatalogEntry("events", actNumber);
+    const questDefinition = getCatalogEntry("quests", actNumber);
     const questRecord = run?.world?.questOutcomes?.[eventDefinition.requiresQuestId] || null;
 
     if (!questRecord?.outcomeId) {
@@ -152,7 +82,7 @@
   }
 
   function resolveOpportunityVariant(run, actNumber) {
-    const opportunityDefinition = getOpportunityDefinition(actNumber);
+    const opportunityDefinition = getCatalogEntry("opportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[opportunityDefinition.requiresQuestId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
     const currentMercenaryId = String(run?.mercenary?.id || "");
@@ -205,7 +135,7 @@
   }
 
   function resolveCrossroadOpportunityVariant(run, actNumber) {
-    const crossroadOpportunityDefinition = getCrossroadOpportunityDefinition(actNumber);
+    const crossroadOpportunityDefinition = getCatalogEntry("crossroadOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[crossroadOpportunityDefinition.requiresQuestId] || null;
     const shrineRecord = run?.world?.shrineOutcomes?.[crossroadOpportunityDefinition.requiresShrineId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
@@ -266,7 +196,7 @@
   }
 
   function resolveShrineOpportunityVariant(run, actNumber) {
-    const shrineOpportunityDefinition = getShrineOpportunityDefinition(actNumber);
+    const shrineOpportunityDefinition = getCatalogEntry("shrineOpportunities", actNumber);
     const shrineRecord = run?.world?.shrineOutcomes?.[shrineOpportunityDefinition.requiresShrineId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
     const currentMercenaryId = String(run?.mercenary?.id || "");
@@ -311,7 +241,7 @@
   }
 
   function resolveReserveOpportunityVariant(run, actNumber) {
-    const reserveOpportunityDefinition = getReserveOpportunityDefinition(actNumber);
+    const reserveOpportunityDefinition = getCatalogEntry("reserveOpportunities", actNumber);
     const opportunityRecord = run?.world?.opportunityOutcomes?.[reserveOpportunityDefinition.requiresOpportunityId] || null;
     const shrineOpportunityRecord = run?.world?.opportunityOutcomes?.[reserveOpportunityDefinition.requiresShrineOpportunityId] || null;
     const crossroadOpportunityRecord = run?.world?.opportunityOutcomes?.[reserveOpportunityDefinition.requiresCrossroadOpportunityId] || null;
@@ -366,7 +296,7 @@
   }
 
   function resolveRelayOpportunityVariant(run, actNumber) {
-    const relayOpportunityDefinition = getRelayOpportunityDefinition(actNumber);
+    const relayOpportunityDefinition = getCatalogEntry("relayOpportunities", actNumber);
     const reserveOpportunityRecord = run?.world?.opportunityOutcomes?.[relayOpportunityDefinition.requiresReserveOpportunityId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
 
@@ -405,7 +335,7 @@
   }
 
   function resolveCulminationOpportunityVariant(run, actNumber) {
-    const culminationOpportunityDefinition = getCulminationOpportunityDefinition(actNumber);
+    const culminationOpportunityDefinition = getCatalogEntry("culminationOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[culminationOpportunityDefinition.requiresQuestId] || null;
     const relayOpportunityRecord = run?.world?.opportunityOutcomes?.[culminationOpportunityDefinition.requiresRelayOpportunityId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
@@ -466,7 +396,7 @@
   }
 
   function resolveLegacyOpportunityVariant(run, actNumber) {
-    const legacyOpportunityDefinition = getLegacyOpportunityDefinition(actNumber);
+    const legacyOpportunityDefinition = getCatalogEntry("legacyOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[legacyOpportunityDefinition.requiresQuestId] || null;
     const culminationOpportunityRecord = run?.world?.opportunityOutcomes?.[legacyOpportunityDefinition.requiresCulminationOpportunityId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
@@ -519,7 +449,7 @@
   }
 
   function resolveReckoningOpportunityVariant(run, actNumber) {
-    const reckoningOpportunityDefinition = getReckoningOpportunityDefinition(actNumber);
+    const reckoningOpportunityDefinition = getCatalogEntry("reckoningOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[reckoningOpportunityDefinition.requiresQuestId] || null;
     const reserveOpportunityRecord = run?.world?.opportunityOutcomes?.[reckoningOpportunityDefinition.requiresReserveOpportunityId] || null;
     const culminationOpportunityRecord = run?.world?.opportunityOutcomes?.[reckoningOpportunityDefinition.requiresCulminationOpportunityId] || null;
@@ -580,7 +510,7 @@
   }
 
   function resolveRecoveryOpportunityVariant(run, actNumber) {
-    const recoveryOpportunityDefinition = getRecoveryOpportunityDefinition(actNumber);
+    const recoveryOpportunityDefinition = getCatalogEntry("recoveryOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[recoveryOpportunityDefinition.requiresQuestId] || null;
     const shrineOpportunityRecord = run?.world?.opportunityOutcomes?.[recoveryOpportunityDefinition.requiresShrineOpportunityId] || null;
     const culminationOpportunityRecord = run?.world?.opportunityOutcomes?.[recoveryOpportunityDefinition.requiresCulminationOpportunityId] || null;
@@ -641,7 +571,7 @@
   }
 
   function resolveAccordOpportunityVariant(run, actNumber) {
-    const accordOpportunityDefinition = getAccordOpportunityDefinition(actNumber);
+    const accordOpportunityDefinition = getCatalogEntry("accordOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[accordOpportunityDefinition.requiresQuestId] || null;
     const shrineOpportunityRecord = run?.world?.opportunityOutcomes?.[accordOpportunityDefinition.requiresShrineOpportunityId] || null;
     const crossroadOpportunityRecord = run?.world?.opportunityOutcomes?.[accordOpportunityDefinition.requiresCrossroadOpportunityId] || null;
@@ -708,7 +638,7 @@
   }
 
   function resolveCovenantOpportunityVariant(run, actNumber) {
-    const covenantOpportunityDefinition = getCovenantOpportunityDefinition(actNumber);
+    const covenantOpportunityDefinition = getCatalogEntry("covenantOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[covenantOpportunityDefinition.requiresQuestId] || null;
     const legacyOpportunityRecord = run?.world?.opportunityOutcomes?.[covenantOpportunityDefinition.requiresLegacyOpportunityId] || null;
     const reckoningOpportunityRecord = run?.world?.opportunityOutcomes?.[covenantOpportunityDefinition.requiresReckoningOpportunityId] || null;
@@ -783,7 +713,7 @@
   }
 
   function resolveDetourOpportunityVariant(run, actNumber) {
-    const detourOpportunityDefinition = getDetourOpportunityDefinition(actNumber);
+    const detourOpportunityDefinition = getCatalogEntry("detourOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[detourOpportunityDefinition.requiresQuestId] || null;
     const recoveryOpportunityRecord = run?.world?.opportunityOutcomes?.[detourOpportunityDefinition.requiresRecoveryOpportunityId] || null;
     const accordOpportunityRecord = run?.world?.opportunityOutcomes?.[detourOpportunityDefinition.requiresAccordOpportunityId] || null;
@@ -850,7 +780,7 @@
   }
 
   function resolveEscalationOpportunityVariant(run, actNumber) {
-    const escalationOpportunityDefinition = getEscalationOpportunityDefinition(actNumber);
+    const escalationOpportunityDefinition = getCatalogEntry("escalationOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[escalationOpportunityDefinition.requiresQuestId] || null;
     const legacyOpportunityRecord = run?.world?.opportunityOutcomes?.[escalationOpportunityDefinition.requiresLegacyOpportunityId] || null;
     const reckoningOpportunityRecord = run?.world?.opportunityOutcomes?.[escalationOpportunityDefinition.requiresReckoningOpportunityId] || null;

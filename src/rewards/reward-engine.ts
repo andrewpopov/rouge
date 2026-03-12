@@ -603,7 +603,7 @@
       choices.push(pickBoonChoice(zone.zoneRole, seed + choices.length, profile, actNumber));
     }
 
-    return choices.slice(0, 3);
+    return choices.slice(0, runtimeWindow.ROUGE_LIMITS.REWARD_CHOICES);
   }
 
   function buildRewardChoices({ content, run, zone, actNumber, encounterNumber, profile = null }) {

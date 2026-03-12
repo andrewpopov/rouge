@@ -316,7 +316,32 @@ interface ActionDispatcherApi {
   handleClick(config: ActionDispatcherConfig): boolean;
 }
 
+interface RougeLimits {
+  COMBAT_LOG_SIZE: number;
+  STASH_PREVIEW_IDS: number;
+  STASH_PREVIEW_ENTRIES: number;
+  RUN_HISTORY_PREVIEW: number;
+  RECENT_RUNS_SCAN: number;
+  RECENT_FEATURE_IDS: number;
+  RECENT_RUNEWORD_IDS: number;
+  REWARD_CHOICES: number;
+  CARD_CHOICES: number;
+  TUTORIAL_CATEGORY_PREVIEW: number;
+  TUTORIAL_ACTION_ROWS: number;
+  TOWN_FEATURES_PREVIEW: number;
+  WORLD_OUTCOMES_LOG: number;
+  LABEL_PREVIEW: number;
+  BONUS_PREVIEW: number;
+  PROGRESSION_PREVIEW_LINES: number;
+  MARKET_PREVIEW_LINES: number;
+  PLANNING_STAGE_COMPACT: number;
+  PLANNING_STAGE_EXTENDED: number;
+  RECENT_RUNS_SUMMARY: number;
+  NIGHTMARE_HELL_GUEST_ENEMIES: number;
+}
+
 interface Window {
+  ROUGE_LIMITS: RougeLimits;
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_DEBUG: DebugModeConfig | null;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;

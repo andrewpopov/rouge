@@ -95,7 +95,7 @@
       const hb = (seed * 31 + b.title.length) % 100;
       return ha - hb;
     });
-    return shuffled.slice(0, 3);
+    return shuffled.slice(0, runtimeWindow.ROUGE_LIMITS.CARD_CHOICES);
   }
 
   function renderCardPickScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {

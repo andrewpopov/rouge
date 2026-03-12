@@ -91,84 +91,9 @@
     };
   }
 
-  function getQuestDefinition(actNumber) {
-    const quests = getCatalog().quests;
-    return quests[actNumber] || quests[1];
-  }
-
-  function getShrineDefinition(actNumber) {
-    const shrines = getCatalog().shrines;
-    return shrines[actNumber] || shrines[1];
-  }
-
-  function getEventDefinition(actNumber) {
-    const events = getCatalog().events;
-    return events[actNumber] || events[1];
-  }
-
-  function getOpportunityDefinition(actNumber) {
-    const opportunities = getCatalog().opportunities;
-    return opportunities[actNumber] || opportunities[1];
-  }
-
-  function getCrossroadOpportunityDefinition(actNumber) {
-    const crossroadOpportunities = getCatalog().crossroadOpportunities;
-    return crossroadOpportunities[actNumber] || crossroadOpportunities[1];
-  }
-
-  function getShrineOpportunityDefinition(actNumber) {
-    const shrineOpportunities = getCatalog().shrineOpportunities;
-    return shrineOpportunities[actNumber] || shrineOpportunities[1];
-  }
-
-  function getReserveOpportunityDefinition(actNumber) {
-    const reserveOpportunities = getCatalog().reserveOpportunities;
-    return reserveOpportunities[actNumber] || reserveOpportunities[1];
-  }
-
-  function getRelayOpportunityDefinition(actNumber) {
-    const relayOpportunities = getCatalog().relayOpportunities;
-    return relayOpportunities[actNumber] || relayOpportunities[1];
-  }
-
-  function getCulminationOpportunityDefinition(actNumber) {
-    const culminationOpportunities = getCatalog().culminationOpportunities;
-    return culminationOpportunities[actNumber] || culminationOpportunities[1];
-  }
-
-  function getLegacyOpportunityDefinition(actNumber) {
-    const legacyOpportunities = getCatalog().legacyOpportunities;
-    return legacyOpportunities[actNumber] || legacyOpportunities[1];
-  }
-
-  function getReckoningOpportunityDefinition(actNumber) {
-    const reckoningOpportunities = getCatalog().reckoningOpportunities;
-    return reckoningOpportunities[actNumber] || reckoningOpportunities[1];
-  }
-
-  function getRecoveryOpportunityDefinition(actNumber) {
-    const recoveryOpportunities = getCatalog().recoveryOpportunities;
-    return recoveryOpportunities[actNumber] || recoveryOpportunities[1];
-  }
-
-  function getAccordOpportunityDefinition(actNumber) {
-    const accordOpportunities = getCatalog().accordOpportunities;
-    return accordOpportunities[actNumber] || accordOpportunities[1];
-  }
-
-  function getCovenantOpportunityDefinition(actNumber) {
-    const covenantOpportunities = getCatalog().covenantOpportunities;
-    return covenantOpportunities[actNumber] || covenantOpportunities[1];
-  }
-
-  function getDetourOpportunityDefinition(actNumber) {
-    const detourOpportunities = getCatalog().detourOpportunities;
-    return detourOpportunities[actNumber] || detourOpportunities[1];
-  }
-
-  function getEscalationOpportunityDefinition(actNumber) {
-    const escalationOpportunities = getCatalog().escalationOpportunities;
-    return escalationOpportunities[actNumber] || escalationOpportunities[1];
+  function getCatalogEntry(key, actNumber) {
+    const entries = getCatalog()[key];
+    return entries[actNumber] || entries[1];
   }
 
   function isShrineOpportunityNodeId(nodeId) {
@@ -183,7 +108,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("quest", getQuestDefinition(actSeed.act), actSeed, prerequisites);
+    return buildNodeZone("quest", getCatalogEntry("quests", actSeed.act), actSeed, prerequisites);
   }
 
   function createShrineZone({
@@ -194,7 +119,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("shrine", getShrineDefinition(actSeed.act), actSeed, prerequisites);
+    return buildNodeZone("shrine", getCatalogEntry("shrines", actSeed.act), actSeed, prerequisites);
   }
 
   function createEventZone({
@@ -205,7 +130,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("event", getEventDefinition(actSeed.act), actSeed, prerequisites);
+    return buildNodeZone("event", getCatalogEntry("events", actSeed.act), actSeed, prerequisites);
   }
 
   function createOpportunityZone({
@@ -216,7 +141,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getOpportunityDefinition(actSeed.act), actSeed, prerequisites);
+    return buildNodeZone("opportunity", getCatalogEntry("opportunities", actSeed.act), actSeed, prerequisites);
   }
 
   function createCrossroadOpportunityZone({
@@ -227,7 +152,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCrossroadOpportunityDefinition(actSeed.act), actSeed, prerequisites, "crossroad_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("crossroadOpportunities", actSeed.act), actSeed, prerequisites, "crossroad_opportunity");
   }
 
   function createShrineOpportunityZone({
@@ -238,7 +163,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getShrineOpportunityDefinition(actSeed.act), actSeed, prerequisites, "shrine_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("shrineOpportunities", actSeed.act), actSeed, prerequisites, "shrine_opportunity");
   }
 
   function createReserveOpportunityZone({
@@ -249,7 +174,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getReserveOpportunityDefinition(actSeed.act), actSeed, prerequisites, "reserve_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("reserveOpportunities", actSeed.act), actSeed, prerequisites, "reserve_opportunity");
   }
 
   function createRelayOpportunityZone({
@@ -260,7 +185,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getRelayOpportunityDefinition(actSeed.act), actSeed, prerequisites, "relay_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("relayOpportunities", actSeed.act), actSeed, prerequisites, "relay_opportunity");
   }
 
   function createCulminationOpportunityZone({
@@ -271,7 +196,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCulminationOpportunityDefinition(actSeed.act), actSeed, prerequisites, "culmination_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("culminationOpportunities", actSeed.act), actSeed, prerequisites, "culmination_opportunity");
   }
 
   function createLegacyOpportunityZone({
@@ -282,7 +207,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getLegacyOpportunityDefinition(actSeed.act), actSeed, prerequisites, "legacy_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("legacyOpportunities", actSeed.act), actSeed, prerequisites, "legacy_opportunity");
   }
 
   function createReckoningOpportunityZone({
@@ -293,7 +218,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getReckoningOpportunityDefinition(actSeed.act), actSeed, prerequisites, "reckoning_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("reckoningOpportunities", actSeed.act), actSeed, prerequisites, "reckoning_opportunity");
   }
 
   function createRecoveryOpportunityZone({
@@ -304,7 +229,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getRecoveryOpportunityDefinition(actSeed.act), actSeed, prerequisites, "recovery_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("recoveryOpportunities", actSeed.act), actSeed, prerequisites, "recovery_opportunity");
   }
 
   function createAccordOpportunityZone({
@@ -315,7 +240,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getAccordOpportunityDefinition(actSeed.act), actSeed, prerequisites, "accord_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("accordOpportunities", actSeed.act), actSeed, prerequisites, "accord_opportunity");
   }
 
   function createCovenantOpportunityZone({
@@ -326,7 +251,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCovenantOpportunityDefinition(actSeed.act), actSeed, prerequisites, "covenant_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("covenantOpportunities", actSeed.act), actSeed, prerequisites, "covenant_opportunity");
   }
 
   function createDetourOpportunityZone({
@@ -337,7 +262,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getDetourOpportunityDefinition(actSeed.act), actSeed, prerequisites, "detour_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("detourOpportunities", actSeed.act), actSeed, prerequisites, "detour_opportunity");
   }
 
   function createEscalationOpportunityZone({
@@ -348,7 +273,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getEscalationOpportunityDefinition(actSeed.act), actSeed, prerequisites, "escalation_opportunity");
+    return buildNodeZone("opportunity", getCatalogEntry("escalationOpportunities", actSeed.act), actSeed, prerequisites, "escalation_opportunity");
   }
 
   function createActWorldNodes({
@@ -449,22 +374,23 @@
 
   runtimeWindow.ROUGE_WORLD_NODE_ZONES = {
     buildChoice,
-    getQuestDefinition,
-    getShrineDefinition,
-    getEventDefinition,
-    getOpportunityDefinition,
-    getCrossroadOpportunityDefinition,
-    getShrineOpportunityDefinition,
-    getReserveOpportunityDefinition,
-    getRelayOpportunityDefinition,
-    getCulminationOpportunityDefinition,
-    getLegacyOpportunityDefinition,
-    getReckoningOpportunityDefinition,
-    getRecoveryOpportunityDefinition,
-    getAccordOpportunityDefinition,
-    getCovenantOpportunityDefinition,
-    getDetourOpportunityDefinition,
-    getEscalationOpportunityDefinition,
+    getCatalogEntry,
+    getQuestDefinition: (actNumber) => getCatalogEntry("quests", actNumber),
+    getShrineDefinition: (actNumber) => getCatalogEntry("shrines", actNumber),
+    getEventDefinition: (actNumber) => getCatalogEntry("events", actNumber),
+    getOpportunityDefinition: (actNumber) => getCatalogEntry("opportunities", actNumber),
+    getCrossroadOpportunityDefinition: (actNumber) => getCatalogEntry("crossroadOpportunities", actNumber),
+    getShrineOpportunityDefinition: (actNumber) => getCatalogEntry("shrineOpportunities", actNumber),
+    getReserveOpportunityDefinition: (actNumber) => getCatalogEntry("reserveOpportunities", actNumber),
+    getRelayOpportunityDefinition: (actNumber) => getCatalogEntry("relayOpportunities", actNumber),
+    getCulminationOpportunityDefinition: (actNumber) => getCatalogEntry("culminationOpportunities", actNumber),
+    getLegacyOpportunityDefinition: (actNumber) => getCatalogEntry("legacyOpportunities", actNumber),
+    getReckoningOpportunityDefinition: (actNumber) => getCatalogEntry("reckoningOpportunities", actNumber),
+    getRecoveryOpportunityDefinition: (actNumber) => getCatalogEntry("recoveryOpportunities", actNumber),
+    getAccordOpportunityDefinition: (actNumber) => getCatalogEntry("accordOpportunities", actNumber),
+    getCovenantOpportunityDefinition: (actNumber) => getCatalogEntry("covenantOpportunities", actNumber),
+    getDetourOpportunityDefinition: (actNumber) => getCatalogEntry("detourOpportunities", actNumber),
+    getEscalationOpportunityDefinition: (actNumber) => getCatalogEntry("escalationOpportunities", actNumber),
     isShrineOpportunityNodeId,
     createQuestZone,
     createShrineZone,

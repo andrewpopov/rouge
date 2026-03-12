@@ -53,9 +53,9 @@
     const activeTutorialIds = Array.isArray(accountSummary.activeTutorialIds) ? accountSummary.activeTutorialIds : [];
     const dismissedTutorialIds = Array.isArray(appState.profile?.meta?.tutorials?.dismissedIds) ? appState.profile.meta.tutorials.dismissedIds : [];
     const completedTutorialIds = Array.isArray(appState.profile?.meta?.tutorials?.completedIds) ? appState.profile.meta.tutorials.completedIds : [];
-    const activePreviewLabels = activeTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
-    const dismissedPreviewLabels = dismissedTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
-    const completedPreviewLabels = completedTutorialIds.slice(0, 3).map((tutorialId) => common.getTutorialLabel(tutorialId));
+    const activePreviewLabels = activeTutorialIds.slice(0, runtimeWindow.ROUGE_LIMITS.TUTORIAL_CATEGORY_PREVIEW).map((tutorialId) => common.getTutorialLabel(tutorialId));
+    const dismissedPreviewLabels = dismissedTutorialIds.slice(0, runtimeWindow.ROUGE_LIMITS.TUTORIAL_CATEGORY_PREVIEW).map((tutorialId) => common.getTutorialLabel(tutorialId));
+    const completedPreviewLabels = completedTutorialIds.slice(0, runtimeWindow.ROUGE_LIMITS.TUTORIAL_CATEGORY_PREVIEW).map((tutorialId) => common.getTutorialLabel(tutorialId));
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const plannedWeaponLabel = planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "Unset";
@@ -79,7 +79,7 @@
 
     const buildTutorialActionRows = (tutorialIds: string[], primaryAction: string, primaryLabel: string, secondaryAction = "", secondaryLabel = ""): string => {
       return tutorialIds
-        .slice(0, 2)
+        .slice(0, runtimeWindow.ROUGE_LIMITS.TUTORIAL_ACTION_ROWS)
         .map((tutorialId) => {
           const tutorialLabel = common.getTutorialLabel(tutorialId);
           return `

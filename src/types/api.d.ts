@@ -146,6 +146,8 @@ interface WorldNodeVariantsApi {
 
 interface WorldNodeZonesApi {
   buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition): RewardChoice;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getCatalogEntry(key: string, actNumber: number): any;
   getQuestDefinition(actNumber: number): QuestNodeDefinition;
   getShrineDefinition(actNumber: number): ShrineNodeDefinition;
   getEventDefinition(actNumber: number): EventNodeDefinition;

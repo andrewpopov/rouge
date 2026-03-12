@@ -359,7 +359,7 @@
         { label: "Attr", value: formatTransition(run.progression.attributePointsAvailable, attributeAfter) },
         { label: focusLabel, value: formatTransition(focusBefore, focusAfter) },
       ],
-      [projectedLine, progressionAction.description, ...progressionAction.previewLines.slice(0, 2)],
+      [projectedLine, progressionAction.description, ...progressionAction.previewLines.slice(0, runtimeWindow.ROUGE_LIMITS.PROGRESSION_PREVIEW_LINES)],
       renderUtils,
       "Stable"
     );
@@ -386,7 +386,7 @@
       ],
       [
         `Projected market reset: gold ${run.gold} -> ${projectedGold}, refresh ${run.town.vendor.refreshCount} -> ${run.town.vendor.refreshCount + 1}, stock rerolls after the fee.`,
-        ...(marketAction?.previewLines.slice(0, 3) || ["Vendor refresh is the live trade reset for this town stop."]),
+        ...(marketAction?.previewLines.slice(0, runtimeWindow.ROUGE_LIMITS.MARKET_PREVIEW_LINES) || ["Vendor refresh is the live trade reset for this town stop."]),
         `Current charter push stays visible through the reroll: ${planningOverview.nextActionLabel || "Quiet"}.`,
       ],
       renderUtils,
