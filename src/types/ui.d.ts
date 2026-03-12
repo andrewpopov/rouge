@@ -149,6 +149,7 @@ interface UiAccountMetaApi {
 }
 
 interface UiCommonApi {
+  getPreviewLabel(labels: string[], emptyLabel: string, maxItems?: number): string;
   getServices(): UiRenderServices;
   getBonusValue(value: unknown): number;
   getDerivedPartyState(run: RunState, content: GameContent, itemSystem: ItemSystemApi): DerivedPartyState;

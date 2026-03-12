@@ -45,16 +45,6 @@
       .join(" ");
   }
 
-  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
-    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
-    if (filtered.length === 0) {
-      return emptyLabel;
-    }
-
-    const visible = filtered.slice(0, maxItems);
-    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
-  }
-
   function getClassName(appState: AppState, classId: string): string {
     return appState.registries.classes.find((entry) => entry.id === classId)?.name || classId;
   }
@@ -476,7 +466,7 @@
           ? `${review.availableConvergenceCount} convergence lane${review.availableConvergenceCount === 1 ? "" : "s"} are also ready in the hall.`
           : `No ready convergence is competing with the live route right now; next lane is ${review.nextConvergenceTitle || "already online"}.`,
         planning.plannedRunewordCount > 0
-          ? `If you archive or finish the run first, re-check Vault Logistics for ${getPreviewLabel(plannedRunewordLabels, "current charters")}.`
+          ? `If you archive or finish the run first, re-check Vault Logistics for ${common.getPreviewLabel(plannedRunewordLabels, "current charters")}.`
           : "No charter target is currently asking you to abandon the parked route for vault work.",
       ];
     } else if (review.availableConvergenceCount > 0) {
@@ -487,7 +477,7 @@
         `Next convergence: ${review.nextConvergenceTitle || "see the progression gallery"}.`,
         nextConvergence ? `Effect waiting behind it: ${nextConvergence.effectSummary}` : "Review the convergence cards for the exact reward effect.",
         planning.plannedRunewordCount > 0
-          ? `Charter pressure is still live too: ${getPreviewLabel(plannedRunewordLabels, "no charter names available")}.`
+          ? `Charter pressure is still live too: ${common.getPreviewLabel(plannedRunewordLabels, "no charter names available")}.`
           : "No active runeword charter is competing with that convergence review.",
       ];
     } else if (planning.plannedRunewordCount > 0) {
@@ -495,7 +485,7 @@
       nextMoveTone = planningOverview.readyCharterCount > 0 || planningOverview.preparedCharterCount > 0 ? "available" : "locked";
       nextMoveCopy = planningOverview.nextActionSummary || "Charters are pinned, but the vault is still short on base or rune depth. Review logistics before you draft.";
       nextMoveLines = [
-        `Pinned targets: ${getPreviewLabel(plannedRunewordLabels, "no current charter labels")}.`,
+        `Pinned targets: ${common.getPreviewLabel(plannedRunewordLabels, "no current charter labels")}.`,
         `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
         `Vault readiness: ${planningOverview.readyCharterCount} ready, ${planningOverview.preparedCharterCount} prepared, ${planningOverview.missingBaseCharterCount} missing base.`,
         `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed.`,
@@ -509,7 +499,7 @@
           : "No fresh feature burst landed, but the archive pulse can still steer the next class or focus choice.";
       nextMoveLines = [
         `Latest expedition: ${archiveSummary.latestClassName || "unknown class"} (${archiveSummary.latestOutcome || "awaiting outcome"}).`,
-        `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "none from the latest archive")}.`,
+        `Recent feature burst: ${common.getPreviewLabel(recentFeatureLabels, "none from the latest archive")}.`,
         `Latest favored tree: ${archiveSummary.favoredTreeName || accountSummary.focusedTreeTitle || "no favored tree archived yet"}.`,
       ];
     }
@@ -537,8 +527,8 @@
             </div>
             ${buildStringList(
               [
-                `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "no new account features")}.`,
-                `Recent charter carry-through: ${getPreviewLabel(recentPlannedRunewordLabels, "no charter targets echoed into the archive")}.`,
+                `Recent feature burst: ${common.getPreviewLabel(recentFeatureLabels, "no new account features")}.`,
+                `Recent charter carry-through: ${common.getPreviewLabel(recentPlannedRunewordLabels, "no charter targets echoed into the archive")}.`,
                 `Archive spread now reads ${archiveSummary.completedCount} cleared, ${archiveSummary.failedCount} failed, ${archiveSummary.abandonedCount} abandoned.`,
               ],
               "log-list reward-list ledger-list"
@@ -560,7 +550,7 @@
                 `Focused tree momentum: ${accountSummary.focusedTreeTitle || "no active tree focus"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
                 `Next convergence: ${review.nextConvergenceTitle || "every current convergence is already online"}.`,
                 nextConvergence
-                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; all links are already in place")}.`
+                  ? `Missing links: ${common.getPreviewLabel(nextConvergence.missingFeatureTitles, "none; all links are already in place")}.`
                   : "No blocked convergence details remain because the current authored lanes are already online.",
                 nextConvergence ? `Effect: ${nextConvergence.effectSummary}` : "Review the progression gallery for the full cross-tree ledger.",
               ],
@@ -580,7 +570,7 @@
             </div>
             ${buildStringList(
               [
-                `Pinned runewords: ${getPreviewLabel(plannedRunewordLabels, "no active runeword charter")}.`,
+                `Pinned runewords: ${common.getPreviewLabel(plannedRunewordLabels, "no active runeword charter")}.`,
                 `Capstone pressure: ${review.nextCapstoneTitle || "every current capstone is online"}.`,
                 `Vault support: ${stashSummary.socketReadyEquipmentCount} socket-ready bases, ${stashSummary.runeCount} runes, ${stashSummary.runewordEquipmentCount} active runeword base${stashSummary.runewordEquipmentCount === 1 ? "" : "s"} in storage.`,
                 `Archive charter record: ${planning.fulfilledPlanCount} fulfilled, ${planning.unfulfilledPlanCount} missed across ${archiveSummary.planningArchiveCount} tracked planning run${archiveSummary.planningArchiveCount === 1 ? "" : "s"}.`,

@@ -94,16 +94,6 @@
     ];
   }
 
-  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
-    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
-    if (filtered.length === 0) {
-      return emptyLabel;
-    }
-
-    const visible = filtered.slice(0, maxItems);
-    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
-  }
-
   function buildRewardLedgerLines(run: RunState): string[] {
     const questLines = Object.values(run.world?.questOutcomes || {}).map((entry) => `Quest · ${entry.title}: ${entry.outcomeTitle}.`);
     const shrineLines = Object.values(run.world?.shrineOutcomes || {}).map((entry) => `Shrine · ${entry.title}: ${entry.outcomeTitle}.`);
@@ -175,7 +165,7 @@
       resolutionLine,
     ];
 
-    const routeCarryLines = [ledgerLines[0], routeCarryLine, `Active runewords riding the next combat: ${getPreviewLabel(activeRunewordNames, "none active yet")}.`];
+    const routeCarryLines = [ledgerLines[0], routeCarryLine, `Active runewords riding the next combat: ${common.getPreviewLabel(activeRunewordNames, "none active yet")}.`];
 
     let accountPressureLabel = "Focused Tree";
     let accountPressureTone = accountSummary.focusedTreeId ? "cleared" : "locked";

@@ -145,16 +145,6 @@
       .join(" ");
   }
 
-  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
-    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
-    if (filtered.length === 0) {
-      return emptyLabel;
-    }
-
-    const visible = filtered.slice(0, maxItems);
-    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
-  }
-
   function createDefaultPlanningSummary(): ProfilePlanningSummary {
     const overview: ProfilePlanningOverviewSummary = {
       compatibleCharterCount: 0,
@@ -241,6 +231,7 @@
     renderUtils: RenderUtilsApi,
     options: AccountMetaContinuityOptions = {}
   ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
     const title = options.title || "Account Meta Continuity";
     const copy =
@@ -387,8 +378,8 @@
                 archive.latestClassName
                   ? `Latest archive: ${archive.latestClassName} · ${humanizeId(archive.latestOutcome || "completed")}.`
                   : "Latest archive: no run has been logged yet.",
-                `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "none in recent archives")}.`,
-                `Recent charter pressure: ${getPreviewLabel(recentPlannedRunewordLabels, "no charter carry-through yet")}.`,
+                `Recent feature burst: ${common.getPreviewLabel(recentFeatureLabels, "none in recent archives")}.`,
+                `Recent charter pressure: ${common.getPreviewLabel(recentPlannedRunewordLabels, "no charter carry-through yet")}.`,
               ],
               "log-list reward-list ledger-list"
             )}
@@ -450,7 +441,7 @@
                 nextConvergence ? `Next convergence: ${nextConvergence.title}.` : "Next convergence: every current cross-tree lane is already online.",
                 nextConvergence?.effectSummary ? `Effect: ${nextConvergence.effectSummary}` : "Effect: no further convergence effect is pending right now.",
                 nextConvergence
-                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; every required link is already in place")}.`
+                  ? `Missing links: ${common.getPreviewLabel(nextConvergence.missingFeatureTitles, "none; every required link is already in place")}.`
                   : "Missing links: no blocked convergence requirements remain.",
               ],
               "log-list reward-list ledger-list"
@@ -467,6 +458,7 @@
     renderUtils: RenderUtilsApi,
     options: AccountMetaDrilldownOptions = {}
   ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
     const title = options.title || "Account Meta Drilldowns";
     const copy =
@@ -633,7 +625,7 @@
                 nextConvergence ? `Next lane: ${nextConvergence.title}.` : "Next lane: every current cross-tree lane is already online.",
                 nextConvergence?.effectSummary ? `Effect waiting there: ${nextConvergence.effectSummary}` : "Effect waiting there: no further convergence effect is pending right now.",
                 nextConvergence
-                  ? `Missing links: ${getPreviewLabel(nextConvergence.missingFeatureTitles, "none; every required link is already in place")}.`
+                  ? `Missing links: ${common.getPreviewLabel(nextConvergence.missingFeatureTitles, "none; every required link is already in place")}.`
                   : "Missing links: no blocked convergence requirements remain.",
                 convergenceFollowThrough,
               ],
@@ -650,6 +642,7 @@
     renderUtils: RenderUtilsApi,
     options: AccountTreeReviewOptions = {}
   ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = renderUtils;
     const showControls = options.showControls !== false;
     const trees = Array.isArray(accountSummary?.trees) ? accountSummary.trees : [];
@@ -742,7 +735,7 @@
                   [
                     tree.description,
                     capstoneBadgeLabel,
-                    `Unlocked features: ${getPreviewLabel(unlockedFeatureLabels, "none yet")}.`,
+                    `Unlocked features: ${common.getPreviewLabel(unlockedFeatureLabels, "none yet")}.`,
                     `Next milestone: ${treeNextMilestone ? `${treeNextMilestone.title} (${treeNextMilestone.progress}/${treeNextMilestone.target})` : "All milestones cleared."}`,
                     blockedMilestone ? `Blocked by prerequisites: ${blockedMilestone.blockedByTitles.join(", ")}.` : "No prerequisite blocks remain in this tree.",
                   ],
@@ -771,9 +764,9 @@
                       ${buildStringList(
                         [
                           convergence.description,
-                          `Requirements: ${getPreviewLabel(convergence.requiredFeatureTitles, "none")}.`,
+                          `Requirements: ${common.getPreviewLabel(convergence.requiredFeatureTitles, "none")}.`,
                           convergence.missingFeatureTitles.length > 0
-                            ? `Missing links: ${getPreviewLabel(convergence.missingFeatureTitles, "none")}.`
+                            ? `Missing links: ${common.getPreviewLabel(convergence.missingFeatureTitles, "none")}.`
                             : "Every required capstone is already in place.",
                           `Effect: ${convergence.effectSummary}`,
                         ],

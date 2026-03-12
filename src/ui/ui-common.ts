@@ -198,7 +198,18 @@
     };
   }
 
+  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
+    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
+    if (filtered.length === 0) {
+      return emptyLabel;
+    }
+
+    const visible = filtered.slice(0, maxItems);
+    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
+  }
+
   runtimeWindow.ROUGE_UI_COMMON = {
+    getPreviewLabel,
     getServices,
     getBonusValue,
     getDerivedPartyState,

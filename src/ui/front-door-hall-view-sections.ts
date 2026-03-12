@@ -55,16 +55,6 @@
     return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
   }
 
-  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
-    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
-    if (filtered.length === 0) {
-      return emptyLabel;
-    }
-
-    const visible = filtered.slice(0, maxItems);
-    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
-  }
-
   function getArchiveReviewState(appState: AppState, accountSummary: ProfileAccountSummary) {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const historyEntries = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory : [];
@@ -350,10 +340,10 @@
             </div>
             ${buildStringList(
               [
-                `Unlocked classes: ${getPreviewLabel(unlockedClassLabels, "none yet")}.`,
-                `Boss trophies: ${getPreviewLabel(unlockedBossLabels, "none yet")}.`,
-                `Runewords forged: ${getPreviewLabel(unlockedRunewordLabels, "none yet")}.`,
-                `Account systems online: ${getPreviewLabel(unlockedTownFeatureLabels, "none yet")}.`,
+                `Unlocked classes: ${common.getPreviewLabel(unlockedClassLabels, "none yet")}.`,
+                `Boss trophies: ${common.getPreviewLabel(unlockedBossLabels, "none yet")}.`,
+                `Runewords forged: ${common.getPreviewLabel(unlockedRunewordLabels, "none yet")}.`,
+                `Account systems online: ${common.getPreviewLabel(unlockedTownFeatureLabels, "none yet")}.`,
               ],
               "log-list reward-list ledger-list"
             )}
@@ -374,8 +364,8 @@
             </div>
             ${buildStringList(
               [
-                `Seen guidance: ${getPreviewLabel(seenTutorialLabels, "none yet")}.`,
-                `Completed guidance: ${getPreviewLabel(completedTutorialLabels, "none yet")}.`,
+                `Seen guidance: ${common.getPreviewLabel(seenTutorialLabels, "none yet")}.`,
+                `Completed guidance: ${common.getPreviewLabel(completedTutorialLabels, "none yet")}.`,
                 `Next account prompt: ${nextTutorialLabel}.`,
               ],
               "log-list reward-list ledger-list"
@@ -525,7 +515,7 @@
             </div>
             ${buildStringList(
               [
-                `Class roster: ${getPreviewLabel(unlockedClassLabels, "none yet")}.`,
+                `Class roster: ${common.getPreviewLabel(unlockedClassLabels, "none yet")}.`,
                 `Focused draft signal: ${profileSummary.preferredClassId ? getClassName(appState, profileSummary.preferredClassId) : "no preferred class pinned yet"}.`,
                 `Recent class pressure: ${archiveSummary.latestClassName || "no archive yet"}.`,
               ],
@@ -545,7 +535,7 @@
             </div>
             ${buildStringList(
               [
-                `Boss gallery: ${getPreviewLabel(unlockedBossLabels, "none yet")}.`,
+                `Boss gallery: ${common.getPreviewLabel(unlockedBossLabels, "none yet")}.`,
                 `Latest favored tree: ${archiveSummary.favoredTreeName || "no archived focus yet"}.`,
                 `The mastery lane now feeds these trophies without needing another hall rewrite.`,
               ],
@@ -565,8 +555,8 @@
             </div>
             ${buildStringList(
               [
-                `Runeword codex: ${getPreviewLabel(unlockedRunewordLabels, "none yet")}.`,
-                `Recent charter pressure: ${getPreviewLabel(recentPlannedRunewordLabels, "no recent charter carry-through")}.`,
+                `Runeword codex: ${common.getPreviewLabel(unlockedRunewordLabels, "none yet")}.`,
+                `Recent charter pressure: ${common.getPreviewLabel(recentPlannedRunewordLabels, "no recent charter carry-through")}.`,
                 `Weapon ledger: ${planning.weaponRunewordId ? getRunewordLabel(appState, planning.weaponRunewordId) : "no weapon charter"}. Armor ledger: ${planning.armorRunewordId ? getRunewordLabel(appState, planning.armorRunewordId) : "no armor charter"}.`,
               ],
               "log-list reward-list ledger-list"
@@ -586,9 +576,9 @@
             <p>${escapeHtml("These are read-only hall summaries built on the current unlock and archive seams, leaving room for broader Agent 2 progression read models later.")}</p>
             ${buildStringList(
               [
-                `Focused tree rewards: ${getPreviewLabel(unlockedFeatureLabels, "none yet")}.`,
-                `Town systems online: ${getPreviewLabel(unlockedTownFeatureLabels, "none yet")}.`,
-                `Recent feature burst: ${getPreviewLabel(recentFeatureLabels, "no new feature burst")}.`,
+                `Focused tree rewards: ${common.getPreviewLabel(unlockedFeatureLabels, "none yet")}.`,
+                `Town systems online: ${common.getPreviewLabel(unlockedTownFeatureLabels, "none yet")}.`,
+                `Recent feature burst: ${common.getPreviewLabel(recentFeatureLabels, "no new feature burst")}.`,
               ],
               "log-list reward-list ledger-list"
             )}
@@ -688,8 +678,8 @@
             </div>
             ${buildStringList(
               [
-                `Vault loadout watch: ${getPreviewLabel(stashEquipmentLabels, "no stored gear")}.`,
-                `Rune reserve: ${getPreviewLabel(stashRuneLabels, "no banked runes")}.`,
+                `Vault loadout watch: ${common.getPreviewLabel(stashEquipmentLabels, "no stored gear")}.`,
+                `Rune reserve: ${common.getPreviewLabel(stashRuneLabels, "no banked runes")}.`,
                 `Latest archive push: ${archiveSummary.latestClassName || "no archived class yet"}.`,
               ],
               "log-list reward-list ledger-list"
@@ -708,8 +698,8 @@
             </div>
             ${buildStringList(
               [
-                `Socket-tracked gear: ${getPreviewLabel(socketTrackedLabels, "none with sockets yet")}.`,
-                `Charged bases: ${getPreviewLabel(chargedBaseLabels, "no runed or runeword bases")}.`,
+                `Socket-tracked gear: ${common.getPreviewLabel(socketTrackedLabels, "none with sockets yet")}.`,
+                `Charged bases: ${common.getPreviewLabel(chargedBaseLabels, "no runed or runeword bases")}.`,
                 `Archived loadout tier pressure: ${archiveSummary.highestLoadoutTier || 0}.`,
               ],
               "log-list reward-list ledger-list"
@@ -772,7 +762,6 @@
     getItemLabel,
     getRuneLabel,
     getRunewordLabel,
-    getPreviewLabel,
     getArchiveReviewState,
     getCapstoneTone,
     getCapstoneReviewTone,

@@ -56,16 +56,6 @@ interface Window {
     }, 0);
   }
 
-  function getPreviewLabel(labels: string[], emptyLabel: string, maxItems = 3): string {
-    const filtered = Array.isArray(labels) ? labels.filter(Boolean) : [];
-    if (filtered.length === 0) {
-      return emptyLabel;
-    }
-
-    const visible = filtered.slice(0, maxItems);
-    return filtered.length > maxItems ? `${visible.join(", ")}, +${filtered.length - maxItems} more` : visible.join(", ");
-  }
-
   function buildServiceDrilldownCard(
     title: string,
     badgeLabel: string,
@@ -278,7 +268,7 @@ interface Window {
       nextPrepTone = tradeActionTitles.length > 0 || planningOverview.readyCharterCount > 0 || planningOverview.preparedCharterCount > 0 ? "available" : "locked";
       nextPrepCopy = planningOverview.nextActionSummary || "Carry, stash, and vendor pressure still matter for the next departure, especially if you are steering around a pinned runeword target.";
       nextPrepLines = [
-        `Trade lane: ${getPreviewLabel(tradeActionTitles, "no open trade actions")}.`,
+        `Trade lane: ${common.getPreviewLabel(tradeActionTitles, "no open trade actions")}.`,
         `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
         `Vault readiness: ${planningOverview.readyCharterCount} ready, ${planningOverview.preparedCharterCount} prepared, ${planningOverview.missingBaseCharterCount} missing base.`,
       ];
@@ -313,8 +303,8 @@ interface Window {
             </div>
             ${buildStringList(
               [
-                `Current loadout: ${getPreviewLabel(derivedParty.loadoutLines, "no equipment equipped yet")}.`,
-                `Active runewords: ${getPreviewLabel(derivedParty.activeRunewords, "none on this run yet")}.`,
+                `Current loadout: ${common.getPreviewLabel(derivedParty.loadoutLines, "no equipment equipped yet")}.`,
+                `Active runewords: ${common.getPreviewLabel(derivedParty.activeRunewords, "none on this run yet")}.`,
                 `Vault reserve: ${stashSummary.equipmentCount} gear, ${stashSummary.runeCount} runes, ${stashSummary.socketReadyEquipmentCount} socket-ready bases.`,
               ],
               "log-list reward-list ledger-list"
@@ -333,8 +323,8 @@ interface Window {
             </div>
             ${buildStringList(
               [
-                `Pinned charters: ${getPreviewLabel(plannedRunewordLabels, "none active")}.`,
-                `Trade pressure: ${getPreviewLabel(tradeActionTitles, "no open trade or stash actions")}.`,
+                `Pinned charters: ${common.getPreviewLabel(plannedRunewordLabels, "none active")}.`,
+                `Trade pressure: ${common.getPreviewLabel(tradeActionTitles, "no open trade or stash actions")}.`,
                 `Next charter push: ${planningOverview.nextActionLabel || "Quiet"}. ${planningOverview.nextActionSummary || "No active runeword charter is pinned across the account."}`,
                 charterStageLines[0],
                 charterStageLines[1],
@@ -359,7 +349,7 @@ interface Window {
                 `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
                 `Next capstone: ${review.nextCapstoneTitle || "every current capstone is already online"}.`,
                 `Next convergence: ${review.nextConvergenceTitle || "every current convergence is already online"}.`,
-                `Town systems online: ${getPreviewLabel(townFeatureLabels, "none yet")}.`,
+                `Town systems online: ${common.getPreviewLabel(townFeatureLabels, "none yet")}.`,
               ],
               "log-list reward-list ledger-list"
             )}
@@ -767,7 +757,7 @@ interface Window {
               { label: "Actions", value: healerActions.length + quartermasterActions.length },
             ],
             [
-              `Recovery actions: ${getPreviewLabel(recoveryActionTitles, "none queued")}.`,
+              `Recovery actions: ${common.getPreviewLabel(recoveryActionTitles, "none queued")}.`,
               `Hero missing ${missingHeroLife} Life, mercenary missing ${missingMercenaryLife}, belt missing ${missingBelt} charge${missingBelt === 1 ? "" : "s"}.`,
               "Use recovery before departure when preserving route momentum matters more than banking gold.",
             ],
@@ -784,7 +774,7 @@ interface Window {
               { label: "Training", value: trainingRanks },
             ],
             [
-              `Training actions: ${getPreviewLabel(progressionActionTitles, "no spend actions")}.`,
+              `Training actions: ${common.getPreviewLabel(progressionActionTitles, "no spend actions")}.`,
               `Unlocked class skills ${run.progression.classProgression.unlockedSkillIds.length}, boss trophies ${run.progression.bossTrophies.length}.`,
               "Town only explains the spend pressure here. Progression ownership stays with the run systems.",
             ],
@@ -801,7 +791,7 @@ interface Window {
               { label: "Charters", value: planning.plannedRunewordCount },
             ],
             [
-              `Trade actions: ${getPreviewLabel(tradeActionTitles, "no open trade pressure")}.`,
+              `Trade actions: ${common.getPreviewLabel(tradeActionTitles, "no open trade pressure")}.`,
               `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
               "Review this lane before leaving when you want to pivot bases, socket pressure, or stash custody ahead of the next route.",
             ],
@@ -818,7 +808,7 @@ interface Window {
               { label: "Actions", value: mercenaryActions.length },
             ],
             [
-              `Contract actions: ${getPreviewLabel(mercenaryActionTitles, "no contract changes")}.`,
+              `Contract actions: ${common.getPreviewLabel(mercenaryActionTitles, "no contract changes")}.`,
               `${run.mercenary.name} currently projects ${derivedParty.mercenary.attack} attack into the next combat.`,
               "Revives and contract swaps remain town actions; this panel only clarifies the pressure before departure.",
             ],
