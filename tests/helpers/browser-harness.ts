@@ -124,6 +124,7 @@ const APP_RUNTIME_FILES = [
   "src/ui/render-utils.js",
   ...ITEM_RUNTIME_FILES,
   "src/rewards/reward-engine.js",
+  "src/exploration/zone-flavor.js",
   "src/exploration/exploration-events.js",
   ...WORLD_NODE_RUNTIME_FILES,
   ...RUN_RUNTIME_FILES,

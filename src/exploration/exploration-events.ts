@@ -931,12 +931,13 @@
 
     const template = eligible[seed % eligible.length];
     const choices = template.buildChoices(run, content);
+    const zoneFlavor = runtimeWindow.__ROUGE_ZONE_FLAVOR?.getZoneFlavor(template.id, zone.title);
 
     return {
       id: template.id,
       kind: template.kind,
       title: template.title,
-      flavor: template.flavor,
+      flavor: zoneFlavor || template.flavor,
       icon: template.icon,
       choices,
     };
