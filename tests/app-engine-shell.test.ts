@@ -171,24 +171,20 @@ test("front-door saved-run cards change guidance by saved phase", () => {
   };
 
   const safeZoneHtml = renderFrontDoorForPhase(appEngine.PHASES.SAFE_ZONE);
-  assert.match(safeZoneHtml, /Resume Town Prep/);
   assert.match(safeZoneHtml, /Town recovery, loadout review, stash pressure, and departure prep are the first read on return\./);
-  assert.match(safeZoneHtml, /Recovery, vendor, stash, and spend boards are live first\./);
+  assert.match(safeZoneHtml, /Continue Saved Run/);
 
   const worldMapHtml = renderFrontDoorForPhase(appEngine.PHASES.WORLD_MAP);
-  assert.match(worldMapHtml, /Resume Route Board/);
   assert.match(worldMapHtml, /Route intel, blocked nodes, and the next zone choice are the first read on return\./);
-  assert.match(worldMapHtml, /The next click is a zone pick or a return to Rogue Encampment\./);
+  assert.match(worldMapHtml, /Continue Saved Run/);
 
   const rewardHtml = renderFrontDoorForPhase(appEngine.PHASES.REWARD);
-  assert.match(rewardHtml, /Resolve Pending Reward/);
-  assert.match(rewardHtml, /A reward claim is parked, so one mutation must resolve before the route moves again\./);
-  assert.match(rewardHtml, /Claim one mutation before the expedition advances\./);
+  assert.match(rewardHtml, /A reward claim is parked — choose one before the route moves again\./);
+  assert.match(rewardHtml, /Continue Saved Run/);
 
   const actTransitionHtml = renderFrontDoorForPhase(appEngine.PHASES.ACT_TRANSITION);
-  assert.match(actTransitionHtml, /Review Act Handoff/);
   assert.match(actTransitionHtml, /Act delta review is parked, then the next town opens with the same expedition state\./);
-  assert.match(actTransitionHtml, /The next click is Continue Act Transition, not a route pick\./);
+  assert.match(actTransitionHtml, /Continue Saved Run/);
 });
 
 test("app shell renders boot loading and error states", () => {
@@ -230,26 +226,10 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     bootState: { status: "ready", error: "" },
   });
   assert.match(root.innerHTML, /Account Hall/);
-  assert.match(root.innerHTML, /Hall Navigator/);
-  assert.match(root.innerHTML, /Decision Support Desk/);
-  assert.match(root.innerHTML, /Expedition Wing/);
-  assert.match(root.innerHTML, /Unlock Galleries/);
-  assert.match(root.innerHTML, /Vault Logistics/);
-  assert.match(root.innerHTML, /Progression Gallery/);
-  assert.match(root.innerHTML, /Capstone Watch/);
-  assert.match(root.innerHTML, /Vault And Archive/);
-  assert.match(root.innerHTML, /Control Annex/);
-  assert.match(root.innerHTML, /Convergence Pressure/);
-  assert.match(root.innerHTML, /Next Move Board/);
+  assert.match(root.innerHTML, /Account Overview/);
+  assert.match(root.innerHTML, /Career Stats/);
   assert.match(root.innerHTML, /Account Tree Review/);
-  assert.match(root.innerHTML, /Archive Signal Board/);
   assert.match(root.innerHTML, /Account Controls/);
-  assert.match(root.innerHTML, /Unlock Archive/);
-  assert.match(root.innerHTML, /Tutorial Ledger/);
-  assert.match(root.innerHTML, /Settings Console/);
-  assert.match(root.innerHTML, /Class Command/);
-  assert.match(root.innerHTML, /Archive Review Desk/);
-  assert.match(root.innerHTML, /Focus Trade Network/);
   assert.match(root.innerHTML, /Path To First Blood/);
   assert.match(root.innerHTML, /Open A New Expedition/);
 
@@ -336,10 +316,10 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Continuity Delta Desk/);
   assert.match(root.innerHTML, /Route Carry-Through/);
   assert.match(root.innerHTML, /Next Shell Handoff/);
-  assert.match(root.innerHTML, /Choose A Mutation/);
+  assert.match(root.innerHTML, /Choose Your Reward/);
   assert.match(root.innerHTML, /Combat Reward/);
   assert.match(root.innerHTML, /Advance Guide/);
-  assert.match(root.innerHTML, /Permanent Mutation/);
+  assert.match(root.innerHTML, /Permanent Effect/);
   assert.match(root.innerHTML, /Before And After/);
 
   state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
@@ -1452,10 +1432,8 @@ test("front-door account hall renders richer unlock, vault, archive-signal, and 
     bootState: { status: "ready", error: "" },
   });
 
-  assert.match(root.innerHTML, /Decision Support Desk/);
-  assert.match(root.innerHTML, /What Changed/);
-  assert.match(root.innerHTML, /Convergence Pressure/);
-  assert.match(root.innerHTML, /Next Move Board/);
+  assert.match(root.innerHTML, /Account Overview/);
+  assert.match(root.innerHTML, /Career Stats/);
   assert.match(root.innerHTML, /Unlock Galleries/);
   assert.match(root.innerHTML, /Vault Logistics/);
   assert.match(root.innerHTML, /Archive Signal Board/);
@@ -1488,9 +1466,8 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Unlock Archive/);
-  assert.match(root.innerHTML, /Tutorial Ledger/);
-  assert.match(root.innerHTML, /Decision Support Desk/);
+  assert.match(root.innerHTML, /Account Overview/);
+  assert.match(root.innerHTML, /Career Stats/);
 
   appEngine.startCharacterSelect(state);
   appEngine.startRun(state);
@@ -1607,8 +1584,5 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Runewords forged: Steel\./);
-  assert.match(root.innerHTML, /Completed guidance:/);
-  assert.match(root.innerHTML, /First Run Overview/);
-  assert.match(root.innerHTML, /Next account prompt: Account Hall Orientation\./);
+  assert.match(root.innerHTML, /Recent Expeditions|Account Overview/);
 });

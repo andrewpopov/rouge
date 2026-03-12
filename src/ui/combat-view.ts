@@ -7,9 +7,59 @@
     icon: string;
   }
 
-  function getExploreSceneText(zoneKind: string): string {
+  const ZONE_SCENE_TEXT: Record<string, string> = {
+    "blood moor": "Crimson fog clings to the moor. The stench of decay grows stronger with each step.",
+    "den of evil": "Torchlight flickers across cavern walls slick with ichor. Something skitters in the dark.",
+    "cold plains": "A bitter wind sweeps across the barren fields. Distant howls echo from the tree line.",
+    "burial grounds": "Crumbling headstones jut from the earth like broken teeth. The dead do not rest here.",
+    "stony field": "Ancient cairns dot the rocky landscape. The ground trembles with an unnatural rhythm.",
+    "underground passage": "Damp stone corridors twist deeper into the earth. Water drips in an unsettling cadence.",
+    "dark wood": "Gnarled branches claw at the sky overhead. The forest itself seems to breathe.",
+    "tristram": "The ruins of a once-proud village smolder. Evil has left its mark here.",
+    "black marsh": "Murky water bubbles with foul gases. The path ahead is treacherous and uncertain.",
+    "tamoe highland": "The mountain pass narrows. Fortified walls of the monastery loom above.",
+    "monastery gate": "Iron-bound gates stand twisted and broken. Beyond them, corruption festers.",
+    "catacombs": "Cracked stone pillars line the descent. An oppressive chill seeps from the walls.",
+    "rocky waste": "Sun-bleached bones litter the sand. Heat shimmers distort the horizon.",
+    "dry hills": "Parched earth crunches underfoot. Vultures circle lazily overhead.",
+    "far oasis": "Palm fronds rustle near stagnant pools. The oasis offers no sanctuary.",
+    "lost city": "Sand-choked ruins of an ancient civilization stretch before you. Shadows move within.",
+    "valley of snakes": "The canyon walls narrow. Scales rasp against stone all around you.",
+    "arcane sanctuary": "Reality bends and fractures. Impossible geometry extends in every direction.",
+    "canyon of the magi": "Seven tombs lie buried in the canyon walls. Only one holds the true evil.",
+    "kurast docks": "Rotting wooden piers creak underfoot. The jungle presses in from all sides.",
+    "spider forest": "Massive webs span between the trees. Cocoons hang like grotesque fruit.",
+    "great marsh": "Thick reeds and fog make every direction look the same. You are not alone here.",
+    "flayer jungle": "Tiny footprints and crude totems mark this as hostile territory.",
+    "lower kurast": "Crumbling temples peek through the canopy. The jungle is reclaiming this place.",
+    "kurast bazaar": "Abandoned market stalls overflow with rot. The merchants fled long ago.",
+    "travincal": "The great temple complex has been desecrated. Dark prayers echo from within.",
+    "durance of hate": "The descent grows colder with each level. Mephisto's hatred is almost tangible.",
+    "outer steppes": "An endless plain of ash stretches before the fortress. The sky burns red.",
+    "plains of despair": "Tortured souls wander aimlessly across the blasted landscape.",
+    "city of the damned": "Towers of bone and sinew rise from a lake of fire. This is no city for the living.",
+    "river of flame": "Molten rock flows in channels cut by demonic hands. The heat is unbearable.",
+    "chaos sanctuary": "Five seal stones pulse with infernal energy. The Dark Lord waits at the center.",
+    "harrogath": "The last bastion of the barbarian tribes. The mountain summit looms above.",
+    "bloody foothills": "Siege engines smolder on the slopes. The assault on Mount Arreat has begun.",
+    "frigid highlands": "Ice and snow coat everything. The cold cuts through armor like a blade.",
+    "arreat plateau": "Sacred ground of the ancients. The mountain demands respect from all who climb.",
+    "crystalline passage": "Ice crystals refract light into blinding rainbows. The beauty hides danger.",
+    "glacial trail": "The path narrows to a frozen ledge. One wrong step means a fatal fall.",
+    "frozen tundra": "Endless white stretches to the horizon. The wind howls with fury.",
+    "ancient way": "Weathered statues of barbarian heroes line the path to the summit.",
+    "worldstone keep": "The final descent. Reality itself trembles around the corrupted Worldstone.",
+  };
+
+  function getExploreSceneText(zoneKind: string, zoneTitle: string): string {
     if (zoneKind === "miniboss") {
       return "The air thickens with dread. Something powerful lurks nearby.";
+    }
+    const key = zoneTitle.toLowerCase();
+    for (const [zoneKey, text] of Object.entries(ZONE_SCENE_TEXT)) {
+      if (key.includes(zoneKey)) {
+        return text;
+      }
     }
     return "Your party enters the area. The sounds of civilization fade behind you.";
   }
@@ -171,7 +221,7 @@
           <p class="explore-scene__text">${escapeHtml(
             zoneKind === "boss"
               ? "An oppressive darkness settles over the land. The final challenge awaits."
-              : getExploreSceneText(zoneKind)
+              : getExploreSceneText(zoneKind, zoneName)
           )}</p>
         </div>
 
@@ -243,7 +293,7 @@
             <span class="combat-hud__zone">${escapeHtml(zoneName)} \u00b7 ${encounterNum}/${encounterTotal}</span>
           </div>
           <div class="combat-hud__right">
-            <span class="combat-hud__floor">Floor ${encounterNum}</span>
+            <span class="combat-hud__floor">Wave ${encounterNum}</span>
           </div>
         </div>
 
@@ -293,7 +343,7 @@
                 <button class="sprite sprite--enemy ${isSelected ? "sprite--targeted" : ""} ${isDead ? "sprite--dead" : ""}"
                         data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}"
                         ${isDead || Boolean(combat.outcome) ? "disabled" : ""}>
-                  ${!isDead && !combat.outcome ? `<div class="sprite__intent" title="${escapeHtml(intentDesc)}">${intentSvg || "\u2753"}</div>` : ""}
+                  ${!isDead && !combat.outcome ? `<div class="sprite__intent"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span></div>` : ""}
                   <div class="sprite__figure sprite__figure--enemy">${assets ? svgIcon(enemyIcon, "sprite__portrait sprite__portrait--enemy", enemy.name) : escapeHtml(enemy.name.charAt(0))}</div>
                   <div class="sprite__bars">
                     <div class="sprite__hp-bar">

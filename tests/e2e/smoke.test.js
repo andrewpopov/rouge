@@ -285,7 +285,7 @@ test("built app smoke reaches encounter, reward, act transition, and run summary
 
   await runSummaryPage.page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
   await (await expectPhase(runSummaryPage.page, '[data-action="continue-saved-run"]', "front door reward-to-summary restore")).click();
-  await expectText(runSummaryPage.page, "Choose A Mutation", "run-ending reward screen");
+  await expectText(runSummaryPage.page, "Choose Your Reward", "run-ending reward screen");
   await runSummaryPage.page.locator('[data-action="claim-reward-choice"]').first().waitFor({ state: "visible", timeout: 15000 });
   await runSummaryPage.page.locator('[data-action="claim-reward-choice"]').first().click();
   await expectText(runSummaryPage.page, "Hall Handoff", "run summary review");

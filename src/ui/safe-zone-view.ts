@@ -119,6 +119,7 @@
                   title="${escapeHtml(npc.name)} \u2014 ${escapeHtml(npc.role)}">
             <span class="town-npc-icon__dot"></span>
             <span class="town-npc-icon__label">${escapeHtml(npc.name)}</span>
+            <span class="town-npc-icon__role">${escapeHtml(npc.role)}</span>
             ${hasActions ? `<span class="town-npc-icon__badge" title="${npc.actions.length} action${npc.actions.length === 1 ? "" : "s"} available">${npc.actions.length}</span>` : ""}
           </button>
         `;

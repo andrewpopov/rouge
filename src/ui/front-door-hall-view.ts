@@ -13,6 +13,7 @@
     getCapstoneReviewTone,
     getTreeCapstoneBadgeLabel,
     buildAccountOverviewMarkup,
+    buildAccountDashboardMarkup,
     buildUnlockGalleryMarkup,
     buildVaultLogisticsMarkup,
   } = runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS;
@@ -631,6 +632,7 @@
   runtimeWindow.ROUGE_FRONT_DOOR_HALL_VIEW = {
     buildHallTabNav,
     buildAccountOverviewMarkup,
+    buildAccountDashboardMarkup,
     buildUnlockGalleryMarkup,
     buildVaultLogisticsMarkup,
     buildAccountControlsMarkup,

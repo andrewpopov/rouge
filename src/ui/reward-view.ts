@@ -74,7 +74,7 @@
     if (reward.endsRun) {
       return [
         "Choose one reward effect.",
-        "Apply the mutation.",
+        "Apply the reward.",
         "Move directly into the run-end review.",
       ];
     }
@@ -82,14 +82,14 @@
     if (reward.endsAct) {
       return [
         "Choose one reward effect.",
-        "Apply the mutation.",
+        "Apply the reward.",
         "Move into the act transition wrapper and then the next town.",
       ];
     }
 
     return [
       "Choose one reward effect.",
-      "Apply the mutation immediately to the current expedition.",
+      "Apply the reward immediately to the current expedition.",
       "Return to the world map or next route state after the claim resolves.",
     ];
   }
@@ -425,7 +425,7 @@
     const grantSummary = `Shared grants after claim: gold ${run.gold} -> ${run.gold + reward.grants.gold + goldBonus}, XP ${run.xp} -> ${run.xp + reward.grants.xp}, belt ${run.belt.current}/${run.belt.max} -> ${afterBeltCurrent}/${afterBeltMax}.`;
 
     if (lines.length === 0) {
-      return [grantSummary, "No extra mutation beyond the shared grants on this reward."];
+      return [grantSummary, "No extra effect beyond the shared grants on this reward."];
     }
 
     return [grantSummary, ...lines];
@@ -533,7 +533,7 @@
             <span class="reward-grant">\u2764 ${run.hero.currentLife}/${run.hero.maxLife}</span>
           </div>
 
-          <h2 class="reward-popup__choose-label">Choose A Mutation</h2>
+          <h2 class="reward-popup__choose-label">Choose Your Reward</h2>
 
           <div class="reward-popup__choices">
             ${reward.choices.map((choice) => {
@@ -558,7 +558,7 @@
           <section class="battle-grid">
             <article class="panel battle-panel">
               <div class="panel-head">
-                <h2>Mutation Ledger</h2>
+                <h2>Reward Ledger</h2>
                 <p>${escapeHtml(reward.zoneTitle)}</p>
               </div>
               ${buildStringList(reward.lines)}
@@ -581,7 +581,7 @@
                   <p>These grants land no matter which choice you pick.</p>
                 </article>
                 <article class="feature-card">
-                  <strong>Permanent Mutation</strong>
+                  <strong>Permanent Effect</strong>
                   <p>Choice effects can alter deck composition, party stats, equipment, socket state, runeword setup, or the world ledger before the route continues.</p>
                 </article>
                 <article class="feature-card">
@@ -596,11 +596,11 @@
               ${buildRewardContinuityMarkup(appState, services, run, reward, derivedParty, trainingRanks)}
               ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
                 copy:
-                  "Reward claims mutate the run, but the same account-meta board stays visible here so archive pressure, charter staging, mastery focus, and convergence readiness never disappear behind the mutation choice.",
+                  "Reward claims change the run, but the same account-meta board stays visible here so archive pressure, charter staging, mastery focus, and convergence readiness never disappear behind the reward choice.",
               })}
               ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
                 copy:
-                  "The reward surface now keeps pinned charter slots and the next convergence lane explicit before you commit to a mutation that hands the run back to map, transition, or archive review.",
+                  "The reward surface now keeps pinned charter slots and the next convergence lane explicit before you commit to a choice that hands the run back to map, transition, or archive review.",
                 charterFollowThrough:
                   "If the claim does not solve the pinned charter pressure, use the next shell handoff to route back toward town or the hall with that slot target still in mind.",
                 convergenceFollowThrough:
@@ -619,7 +619,7 @@
 
             <article class="panel battle-panel">
               <div class="panel-head">
-                <h2>Choose A Mutation</h2>
+                <h2>Choose Your Reward</h2>
                 <p>${escapeHtml(`${buttonLabel} only after selecting one choice. The preview badges call out the systems each option will change.`)}</p>
               </div>
               ${buildChoiceList(reward.choices)}

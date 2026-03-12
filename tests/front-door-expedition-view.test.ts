@@ -67,11 +67,11 @@ test("front-door expedition module keeps reward recovery guidance phase-specific
   const accountSummary = appEngine.getAccountProgressSummary(state);
 
   const expeditionMarkup = expeditionView.buildExpeditionSectionMarkup(state, services, savedRunSummary);
-  assert.match(expeditionMarkup, /Mutation Claim/);
+  assert.match(expeditionMarkup, /Reward Claim/);
 
   const decisionMarkup = expeditionView.buildHallDecisionSupportMarkup(state, services, savedRunSummary, accountSummary);
   assert.match(decisionMarkup, /Resolve Pending Reward/);
-  assert.match(decisionMarkup, /A reward claim is parked, so one mutation must resolve before the route moves again\./);
+  assert.match(decisionMarkup, /A reward claim is parked — choose one before the route moves again\./);
 
   const guidedMarkup = expeditionView.buildGuidedStartMarkup(state, services, savedRunSummary);
   assert.match(guidedMarkup, /Next shell: Reward\./);

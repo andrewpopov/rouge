@@ -520,6 +520,24 @@ button.entity-card,
   color: var(--text);
 }
 
+.danger-link-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  opacity: 0.7;
+  transition: opacity 140ms ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.danger-link-btn:hover {
+  opacity: 1;
+}
+
 .primary-btn:hover,
 .neutral-btn:hover,
 .card-btn:hover,
@@ -997,6 +1015,57 @@ button.entity-card:disabled {
   flex-shrink: 0;
 }
 
+.welcome-recent-runs {
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--panel-base);
+  border-radius: 16px;
+}
+
+.welcome-recent-heading {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.welcome-recent-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.welcome-recent-entry:last-child {
+  border-bottom: none;
+}
+
+.welcome-recent-class {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.welcome-recent-detail {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.welcome-flavor {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.welcome-flavor-text {
+  font-family: var(--font-display);
+  color: var(--muted);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
 @media (max-width: 760px) {
   .welcome-menu-item {
     flex-wrap: wrap;
@@ -1332,6 +1401,14 @@ button.entity-card:disabled {
   white-space: nowrap;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+.town-npc-icon__role {
+  font-size: 0.5rem;
+  color: var(--gold);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  opacity: 0.85;
 }
 
 .town-npc-icon__badge {
@@ -2598,12 +2675,35 @@ button.waypoint:hover {
 
 .sprite__intent {
   position: absolute;
-  top: -24px;
+  top: -38px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   animation: intent-bob 1.5s ease-in-out infinite;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.sprite__intent-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.sprite__intent-icon .intent-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.sprite__intent-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 @keyframes intent-bob {

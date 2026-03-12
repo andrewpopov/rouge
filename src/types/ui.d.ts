@@ -201,6 +201,13 @@ interface FrontDoorHallViewApi {
     phaseTone: string,
     accountSummary: ProfileAccountSummary
   ): string;
+  buildAccountDashboardMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    phaseTone: string,
+    accountSummary: ProfileAccountSummary
+  ): string;
   buildUnlockGalleryMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string;
   buildVaultLogisticsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string;
   buildAccountControlsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string;

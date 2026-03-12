@@ -145,10 +145,10 @@
           expeditionLabel: "Reward Pending",
           decisionLabel: "Resolve Pending Reward",
           nextSurfaceLabel: "Reward",
-          focusLabel: "Mutation Claim",
-          summaryLine: "A reward claim is parked, so one mutation must resolve before the route moves again.",
+          focusLabel: "Reward Claim",
+          summaryLine: "A reward claim is parked — choose one before the route moves again.",
           checklistLines: [
-            "Next shell: Reward. Claim one mutation before the expedition advances.",
+            "Next shell: Reward. Pick one reward before the expedition advances.",
             "The next decision is a reward pick, not a zone pick or town service.",
             "Deck, loadout, progression, and supply changes can land immediately from this claim.",
           ],
@@ -669,7 +669,7 @@
           <button class="neutral-btn" data-action="cancel-abandon-saved-run">Keep Expedition</button>
           <button class="neutral-btn" data-action="confirm-abandon-saved-run">Archive Expedition</button>
         `
-      : '<button class="neutral-btn" data-action="prompt-abandon-saved-run">Release This Expedition</button>';
+      : '<button class="danger-link-btn" data-action="prompt-abandon-saved-run">Release This Expedition</button>';
 
     return `
       <section class="panel flow-panel" id="hall-expedition">

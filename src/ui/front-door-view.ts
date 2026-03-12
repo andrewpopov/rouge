@@ -1378,7 +1378,7 @@
           </div>
           <div class="cta-row" style="margin-top:18px">
             <button class="primary-btn" data-action="continue-saved-run">Continue Expedition</button>
-            <button class="neutral-btn" data-action="prompt-abandon-saved-run">Abandon Run</button>
+            <button class="danger-link-btn" data-action="prompt-abandon-saved-run">Abandon Run</button>
           </div>
           ${appState.ui.confirmAbandonSavedRun ? `
             <div class="panel confirm-panel" style="margin-top:14px;padding:16px 18px">
@@ -1428,6 +1428,24 @@
         </nav>`
       : "";
 
+    const recentRunStrip = recentRuns.length > 0
+      ? `<div class="welcome-recent-runs">
+          <p class="welcome-recent-heading">Recent Expeditions</p>
+          ${recentRuns.map((run) => `
+            <div class="welcome-recent-entry">
+              <span class="welcome-recent-class">${escapeHtml(run.className || "Unknown")}</span>
+              <span class="welcome-recent-detail">Lv.${run.level} \u00b7 ${escapeHtml(run.outcome || "unknown")}</span>
+            </div>
+          `).join("")}
+        </div>`
+      : "";
+
+    const flavorSection = runCount === 0
+      ? `<div class="welcome-flavor">
+          <p class="welcome-flavor-text">Build a deck. Forge runewords. Conquer five acts.</p>
+        </div>`
+      : "";
+
     root.innerHTML = `
       <section class="welcome-hero panel">
         <p class="eyebrow">Roguelite Deckbuilder</p>
@@ -1442,7 +1460,9 @@
       <div class="shell-body">
         ${savedRunCard}
         ${startSection}
+        ${flavorSection}
         ${menuItems}
+        ${!savedRunSummary ? recentRunStrip : ""}
       </div>
     `;
   }
@@ -1478,9 +1498,7 @@
       <div class="shell-body">
         ${hallView.buildHallTabNav(section)}
         <div data-hall-tab="overview" style="${hide("overview")}">
-          ${hallView.buildAccountOverviewMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
-          ${expeditionView.buildHallNavigatorMarkup(appState, services, savedRunSummary, accountSummary)}
-          ${expeditionView.buildHallDecisionSupportMarkup(appState, services, savedRunSummary, accountSummary)}
+          ${hallView.buildAccountDashboardMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         </div>
         <div data-hall-tab="expedition" style="${hide("expedition")}">
           ${expeditionSection}

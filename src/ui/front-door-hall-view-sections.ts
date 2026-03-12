@@ -386,6 +386,81 @@
     `;
   }
 
+  function buildAccountDashboardMarkup(
+    appState: AppState,
+    services: UiRenderServices,
+    savedRunSummary: SavedRunSummary | null,
+    phaseTone: string,
+    accountSummary: ProfileAccountSummary
+  ): string {
+    const { buildBadge, buildStat } = services.renderUtils;
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
+    const archiveSummary = accountSummary.archive || {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: 0,
+      latestClassName: "",
+      latestOutcome: "",
+    };
+    const unlocks = appState.profile?.meta?.unlocks || { classIds: [], bossIds: [], runewordIds: [] };
+    const unlockTotal = (unlocks.classIds?.length || 0) + (unlocks.bossIds?.length || 0) + (unlocks.runewordIds?.length || 0);
+    const stashEntries = accountSummary.stash?.entryCount || 0;
+
+    const expeditionCard = savedRunSummary
+      ? `<article class="feature-card">
+          <div class="entity-name-row">
+            <strong>Active Expedition</strong>
+            ${buildBadge(savedRunSummary.phaseLabel, phaseTone)}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Class", savedRunSummary.className)}
+            ${buildStat("Level", savedRunSummary.level)}
+            ${buildStat("Act", savedRunSummary.actTitle)}
+            ${buildStat("Zones", savedRunSummary.zonesCleared)}
+          </div>
+          <div class="cta-row" style="margin-top:12px">
+            <button class="primary-btn" data-action="continue-saved-run">Continue Expedition</button>
+          </div>
+        </article>`
+      : `<article class="feature-card">
+          <div class="entity-name-row">
+            <strong>No Active Expedition</strong>
+            ${buildBadge("Ready", "cleared")}
+          </div>
+          <p>Choose a hero, hire a mercenary, and begin a new run.</p>
+          <div class="cta-row" style="margin-top:12px">
+            <button class="primary-btn" data-action="start-character-select">New Expedition</button>
+          </div>
+        </article>`;
+
+    return `
+      <section class="panel flow-panel" id="hall-overview">
+        <div class="panel-head">
+          <h2>Account Overview</h2>
+        </div>
+        <div class="feature-grid feature-grid-wide">
+          ${expeditionCard}
+          <article class="feature-card">
+            <strong>Career Stats</strong>
+            <div class="entity-stat-grid">
+              ${buildStat("Runs", archiveSummary.entryCount)}
+              ${buildStat("Cleared", archiveSummary.completedCount)}
+              ${buildStat("Highest Lv", profileSummary.highestLevel || 1)}
+              ${buildStat("Highest Act", profileSummary.highestActCleared || 0)}
+            </div>
+            <div class="entity-stat-grid" style="margin-top:8px">
+              ${buildStat("Unlocks", unlockTotal)}
+              ${buildStat("Stash", stashEntries)}
+              ${buildStat("Bosses Slain", profileSummary.totalBossesDefeated)}
+              ${buildStat("Gold Earned", profileSummary.totalGoldCollected)}
+            </div>
+          </article>
+        </div>
+      </section>
+    `;
+  }
+
   function buildUnlockGalleryMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
@@ -704,6 +779,7 @@
     getVaultForecast,
     getTreeCapstoneBadgeLabel,
     buildAccountOverviewMarkup,
+    buildAccountDashboardMarkup,
     buildUnlockGalleryMarkup,
     buildVaultLogisticsMarkup,
   };
