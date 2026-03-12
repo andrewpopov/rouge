@@ -6,68 +6,68 @@ import { createAppHarness as createHarness } from "./helpers/browser-harness";
 test("world-node validation fails clearly when quest follow-up data is missing", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  delete catalog.quests[1].choices[0].followUp;
+  delete catalog.quests[2].choices[0].followUp;
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.quests\.1\.choices\[0\] is missing follow-up event content\./);
+  }, /worldNodes\.quests\.2\.choices\[0\] is missing follow-up event content\./);
 });
 
 test("world-node validation fails clearly when an opportunity choice is missing quest consequence data", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants[0].choices[0].effects = catalog.opportunities[1].variants[0].choices[0].effects.filter((effect) => {
+  catalog.opportunities[2].variants[0].choices[0].effects = catalog.opportunities[2].variants[0].choices[0].effects.filter((effect) => {
     return effect.kind !== "record_quest_consequence";
   });
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1\.variants\[0\]\.choices\[0\] is missing a valid record_quest_consequence effect\./);
+  }, /worldNodes\.opportunities\.2\.variants\[0\]\.choices\[0\] is missing a valid record_quest_consequence effect\./);
 });
 
 test("world-node validation fails clearly when an opportunity variant requires an unknown flag", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants[0].requiresFlagIds = ["missing_flag"];
+  catalog.opportunities[2].variants[0].requiresFlagIds = ["missing_flag"];
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1\.variants\[0\]\.requiresFlagIds\[0\] references unknown flag "missing_flag"\./);
+  }, /worldNodes\.opportunities\.2\.variants\[0\]\.requiresFlagIds\[0\] references unknown flag "missing_flag"\./);
 });
 
 test("world-node validation fails clearly when an opportunity variant requires an unknown mercenary contract", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants[1].requiresMercenaryIds = ["missing_contract"];
+  catalog.opportunities[2].variants[1].requiresMercenaryIds = ["missing_contract"];
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1\.variants\[1\]\.requiresMercenaryIds\[0\] references unknown mercenary contract "missing_contract"\./);
+  }, /worldNodes\.opportunities\.2\.variants\[1\]\.requiresMercenaryIds\[0\] references unknown mercenary contract "missing_contract"\./);
 });
 
 test("world-node validation fails clearly when a shrine opportunity variant requires an unknown shrine outcome", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.shrineOpportunities[1].variants[0].requiresShrineOutcomeIds = ["missing_shrine_outcome"];
+  catalog.shrineOpportunities[2].variants[0].requiresShrineOutcomeIds = ["missing_shrine_outcome"];
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.shrineOpportunities\.1\.variants\[0\]\.requiresShrineOutcomeIds\[0\] references unknown shrine outcome "missing_shrine_outcome"\./);
+  }, /worldNodes\.shrineOpportunities\.2\.variants\[0\]\.requiresShrineOutcomeIds\[0\] references unknown shrine outcome "missing_shrine_outcome"\./);
 });
 
 test("world-node validation fails clearly when shrine opportunity variants reuse the same requirement signature", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  const scoutScreenVariant = catalog.shrineOpportunities[1].variants.find((variant: { id: string }) => variant.id === "scout_screen");
-  assert.ok(scoutScreenVariant);
-  catalog.shrineOpportunities[1].variants.push({
-    ...scoutScreenVariant,
-    id: "duplicate_scout_screen_signature",
+  const firstVariant = catalog.shrineOpportunities[2].variants[0];
+  assert.ok(firstVariant);
+  catalog.shrineOpportunities[2].variants.push({
+    ...firstVariant,
+    id: "duplicate_variant_signature",
   });
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.shrineOpportunities\.1\.variants\[\d+\] reuses requirement signature with variant "scout_screen"\./);
+  }, /worldNodes\.shrineOpportunities\.2\.variants\[\d+\] reuses requirement signature with variant/);
 });
 
 test("runtime content validation fails clearly when a mercenary route perk requires an unknown world flag", () => {
@@ -459,28 +459,29 @@ test("runtime content validation fails clearly when a mercenary loses its covena
 test("world-node validation fails clearly when opportunity variants reuse the same requirement signature", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants.push({
-    ...catalog.opportunities[1].variants[2],
-    id: "duplicate_refugee_signature",
+  catalog.opportunities[2].variants.push({
+    ...catalog.opportunities[2].variants[2],
+    id: "duplicate_variant_signature",
   });
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1\.variants\[\d+\] reuses requirement signature with variant "refugee_muster"\./);
+  }, /worldNodes\.opportunities\.2\.variants\[\d+\] reuses requirement signature with variant/);
 });
 
 test("world-node validation fails clearly when opportunity paths have multiple equally specific matches", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants.push({
-    id: "ambiguous_scout_command",
-    title: "Ambiguous Scout Command",
-    description: "Conflicts with the mercenary-specific scout path.",
+  catalog.opportunities[2].variants.push({
+    id: "ambiguous_desert_command",
+    title: "Ambiguous Desert Command",
+    description: "Conflicts with the mercenary-specific desert path.",
     summary: "This variant should fail because it overlaps with the same authored path at equal specificity.",
     grants: { gold: 1, xp: 1, potions: 0 },
-    requiresPrimaryOutcomeIds: ["take_scout_report"],
-    requiresFollowUpOutcomeIds: ["mark_the_paths", "arm_the_sentries"],
-    requiresFlagIds: ["rogue_vigil_volley"],
+    requiresPrimaryOutcomeIds: ["seal_the_chamber"],
+    requiresFollowUpOutcomeIds: ["relay_to_the_caravan", "relay_to_the_scouts"],
+    requiresFlagIds: ["sunwell_march"],
+    requiresMercenaryIds: ["desert_guard"],
     choices: [
       {
         id: "issue_duplicate_orders",
@@ -491,18 +492,18 @@ test("world-node validation fails clearly when opportunity paths have multiple e
           {
             kind: "record_node_outcome",
             nodeType: "opportunity",
-            nodeId: "rogue_route_opportunity",
+            nodeId: "sunwell_route_opportunity",
             outcomeId: "issue_duplicate_orders",
             outcomeTitle: "Issue Duplicate Orders",
-            flagIds: ["rogue_route_duplicate_orders"],
+            flagIds: ["sunwell_duplicate_orders"],
           },
           {
             kind: "record_quest_consequence",
-            questId: "tristram_relief",
+            questId: "lost_reliquary",
             outcomeId: "issue_duplicate_orders",
             outcomeTitle: "Issue Duplicate Orders",
             consequenceId: "duplicate_orders_issued",
-            flagIds: ["rogue_route_duplicate_orders"],
+            flagIds: ["sunwell_duplicate_orders"],
           },
           { kind: "gold_bonus", value: 1 },
         ],
@@ -512,20 +513,20 @@ test("world-node validation fails clearly when opportunity paths have multiple e
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1 has ambiguous variants for authored path "take_scout_report -> mark_the_paths \+ shrine:blessing_of_volley \+ merc:rogue_scout"/);
+  }, /worldNodes\.opportunities\.2 has ambiguous variants for authored path/);
 });
 
 test("world-node validation fails clearly when an opportunity variant is unreachable from any authored path", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[1].variants.push({
+  catalog.opportunities[2].variants.push({
     id: "impossible_cross_branch_variant",
     title: "Impossible Cross-Branch Variant",
     description: "This should never resolve.",
     summary: "Broken authoring.",
     grants: { gold: 0, xp: 0, potions: 0 },
-    requiresPrimaryOutcomeIds: ["escort_survivors"],
-    requiresFollowUpOutcomeIds: ["train_the_watch"],
+    requiresPrimaryOutcomeIds: ["harvest_the_relics"],
+    requiresFollowUpOutcomeIds: ["relay_to_the_caravan"],
     requiresConsequenceIds: ["caravan_secured"],
     choices: [
       {
@@ -537,14 +538,14 @@ test("world-node validation fails clearly when an opportunity variant is unreach
           {
             kind: "record_node_outcome",
             nodeType: "opportunity",
-            nodeId: "rogue_route_opportunity",
+            nodeId: "sunwell_route_opportunity",
             outcomeId: "broken_choice",
             outcomeTitle: "Broken Choice",
             flagIds: ["broken_flag"],
           },
           {
             kind: "record_quest_consequence",
-            questId: "tristram_relief",
+            questId: "lost_reliquary",
             outcomeId: "broken_choice",
             outcomeTitle: "Broken Choice",
             consequenceId: "broken_consequence",
@@ -557,67 +558,67 @@ test("world-node validation fails clearly when an opportunity variant is unreach
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.opportunities\.1\.variants\[\d+\] is unreachable from any authored quest\/event\/shrine path\./);
+  }, /worldNodes\.opportunities\.2\.variants\[\d+\] is unreachable from any authored quest\/event\/shrine path\./);
 });
 
 test("world-node validation fails clearly when a crossroad opportunity requires the wrong shrine", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.crossroadOpportunities[1].requiresShrineId = "missing_shrine";
+  catalog.crossroadOpportunities[2].requiresShrineId = "missing_shrine";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.crossroadOpportunities\.1 requires shrine "missing_shrine" but act shrine is "rogue_vigil_shrine"\./);
+  }, /worldNodes\.crossroadOpportunities\.2 requires shrine "missing_shrine" but act shrine is "sunwell_shrine"\./);
 });
 
 test("world-node validation fails clearly when a reserve opportunity requires the wrong crossroad node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.reserveOpportunities[1].requiresCrossroadOpportunityId = "missing_crossroad";
+  catalog.reserveOpportunities[2].requiresCrossroadOpportunityId = "missing_crossroad";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.reserveOpportunities\.1 requires crossroad opportunity "missing_crossroad" but act crossroad opportunity is "rogue_crossroads_opportunity"\./);
+  }, /worldNodes\.reserveOpportunities\.2 requires crossroad opportunity "missing_crossroad" but act crossroad opportunity is "sunwell_crossroads_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a relay opportunity requires the wrong reserve node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.relayOpportunities[1].requiresReserveOpportunityId = "missing_reserve";
+  catalog.relayOpportunities[2].requiresReserveOpportunityId = "missing_reserve";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.relayOpportunities\.1 requires reserve opportunity "missing_reserve" but act reserve opportunity is "rogue_reserve_opportunity"\./);
+  }, /worldNodes\.relayOpportunities\.2 requires reserve opportunity "missing_reserve" but act reserve opportunity is "sunwell_reserve_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a culmination opportunity requires the wrong relay node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.culminationOpportunities[1].requiresRelayOpportunityId = "missing_relay";
+  catalog.culminationOpportunities[2].requiresRelayOpportunityId = "missing_relay";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.culminationOpportunities\.1 requires relay opportunity "missing_relay" but act relay opportunity is "rogue_relay_opportunity"\./);
+  }, /worldNodes\.culminationOpportunities\.2 requires relay opportunity "missing_relay" but act relay opportunity is "sunwell_relay_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a legacy opportunity requires the wrong culmination node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.legacyOpportunities[1].requiresCulminationOpportunityId = "missing_culmination";
+  catalog.legacyOpportunities[2].requiresCulminationOpportunityId = "missing_culmination";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.legacyOpportunities\.1 requires culmination opportunity "missing_culmination" but act culmination opportunity is "rogue_culmination_opportunity"\./);
+  }, /worldNodes\.legacyOpportunities\.2 requires culmination opportunity "missing_culmination" but act culmination opportunity is "sunwell_culmination_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a reckoning opportunity requires the wrong reserve node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.reckoningOpportunities[1].requiresReserveOpportunityId = "missing_reserve";
+  catalog.reckoningOpportunities[2].requiresReserveOpportunityId = "missing_reserve";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.reckoningOpportunities\.1 requires reserve opportunity "missing_reserve" but act reserve opportunity is "rogue_reserve_opportunity"\./);
+  }, /worldNodes\.reckoningOpportunities\.2 requires reserve opportunity "missing_reserve" but act reserve opportunity is "sunwell_reserve_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a recovery opportunity requires the wrong shrine node", () => {

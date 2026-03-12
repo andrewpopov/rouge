@@ -155,13 +155,7 @@
         const active = prereq.status === "cleared" && zone.status === "available";
         const cls = bothCleared ? "edge--cleared" : active ? "edge--active" : "edge--locked";
 
-        // Use curves for vertical connections, straight lines for horizontal
-        if (Math.abs(fp[1] - tp[1]) > 10) {
-          const mx = (fp[0] + tp[0]) / 2;
-          lines.push(`<path d="M ${fp[0]}% ${fp[1]}% C ${mx}% ${fp[1]}%, ${mx}% ${tp[1]}%, ${tp[0]}% ${tp[1]}%" class="map-edge ${cls}" />`);
-        } else {
-          lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
-        }
+        lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
       }
     }
     return lines.join("");
@@ -220,7 +214,7 @@
     const reachableZoneIds = new Set(services.runFactory.getReachableZones(run).map((z) => z.id));
     const clearedCount = currentZones.filter((z) => z.cleared).length;
 
-    // Filter out shrines, opportunities, and events -- only show combat + quest + boss
+    // Filter out shrines, opportunities, events, and unmapped zones
     const mapZones = currentZones.filter(
       (z) => z.kind !== "shrine" && z.kind !== "opportunity" && z.kind !== "event"
     );

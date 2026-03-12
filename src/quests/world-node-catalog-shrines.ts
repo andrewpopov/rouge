@@ -577,16 +577,6 @@
   };
 
   const EVENT_DEFINITIONS: Record<number, EventNodeDefinition> = {
-    1: {
-      kind: "event",
-      id: "tristram_relief_aftermath",
-      title: "Tristram Aftermath",
-      zoneTitle: "Tristram Aftermath",
-      description: "The Tristram detour creates one more follow-up choice after the first relief decision is made.",
-      summary: "Your earlier Tristram choice changes what this route-side event offers.",
-      grants: { gold: 6, xp: 8, potions: 0 },
-      requiresQuestId: "tristram_relief",
-    },
     2: {
       kind: "event",
       id: "lost_reliquary_aftermath",

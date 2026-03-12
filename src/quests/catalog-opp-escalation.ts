@@ -5,68 +5,6 @@
   const { buildLateRouteVariant } = helpers;
 
   const ESCALATION_OPPORTUNITY_DEFINITIONS: Record<number, EscalationOpportunityDefinition> = {
-    1: {
-      kind: "opportunity",
-      id: "rogue_escalation_opportunity",
-      title: "Catacomb Escalation",
-      zoneTitle: "Catacomb Escalation",
-      description: "After the monastery covenant closes, the rogue line can also sharpen into a harsher escalation that spends the late gains on direct pressure.",
-      summary: "The post-covenant route now fans back out into a higher-risk rogue escalation lane.",
-      grants: { gold: 10, xp: 12, potions: 0 },
-      requiresQuestId: "tristram_relief",
-      requiresLegacyOpportunityId: "rogue_legacy_opportunity",
-      requiresReckoningOpportunityId: "rogue_reckoning_opportunity",
-      requiresCovenantOpportunityId: "rogue_covenant_opportunity",
-      variants: [
-        buildLateRouteVariant(buildEscalationChoice, "rogue_escalation_opportunity", "tristram_relief", {
-          id: "ridge_escalation",
-          title: "Ridge Escalation",
-          description: "Even without a cleaner line, the rogues can still turn the late route into one final ridge push.",
-          summary: "A fallback escalation opens after the covenant resolves.",
-          grants: { gold: 6, xp: 8, potions: 0 },
-          choice: {
-            outcomeId: "press_the_ridge_watch",
-            title: "Press the Ridge Watch",
-            description: "Spend the late route on a direct ridge surge instead of another slower sweep.",
-            consequenceId: "ridge_watch_pressed",
-            flagIds: ["rogue_escalation_ridge_watch"],
-            extraEffects: [{ kind: "gold_bonus", value: 12 }],
-          },
-        }),
-        buildLateRouteVariant(buildEscalationChoice, "rogue_escalation_opportunity", "tristram_relief", {
-          id: "ledger_escalation",
-          title: "Ledger Escalation",
-          description: "Legacy wayfinders and the chapel ledger turn the escalation lane into a true pressure route instead of one more ridge check.",
-          summary: "The legacy and reckoning lanes now sharpen the monastery into a direct strike route.",
-          grants: { gold: 8, xp: 8, potions: 0 },
-          requiresFlagIds: ["rogue_legacy_wayfinder_chain", "rogue_reckoning_chapel_ledger"],
-          choice: {
-            outcomeId: "crack_the_chapel_surge",
-            title: "Crack the Chapel Surge",
-            description: "Turn the wayfinder chain and chapel ledger into a harder pressure wave through the monastery.",
-            consequenceId: "chapel_surge_cracked",
-            flagIds: ["rogue_escalation_chapel_surge"],
-            extraEffects: [{ kind: "mercenary_attack", value: 1 }],
-          },
-        }),
-        buildLateRouteVariant(buildEscalationChoice, "rogue_escalation_opportunity", "tristram_relief", {
-          id: "catacomb_escalation",
-          title: "Catacomb Escalation",
-          description: "The sealed wayfinder ledger turns the escalation into a full catacomb surge that changes how the next elite line behaves.",
-          summary: "A full rogue late-route close can now be spent on one sharper catacomb surge instead of another cautious setup.",
-          grants: { gold: 8, xp: 8, potions: 0 },
-          requiresFlagIds: ["rogue_legacy_wayfinder_chain", "rogue_reckoning_chapel_ledger", "rogue_covenant_wayfinder_ledger"],
-          choice: {
-            outcomeId: "drive_the_catacomb_surge",
-            title: "Drive the Catacomb Surge",
-            description: "Spend the legacy, reckoning, and covenant lines on one direct catacomb surge before Andariel.",
-            consequenceId: "catacomb_surge_driven",
-            flagIds: ["rogue_escalation_catacomb_surge"],
-            extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_energy", value: 1 }],
-          },
-        }),
-      ],
-    },
     2: {
       kind: "opportunity",
       id: "sunwell_escalation_opportunity",

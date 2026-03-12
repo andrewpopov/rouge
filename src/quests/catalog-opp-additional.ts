@@ -4,65 +4,6 @@
   const { nodeOutcomeEffect, questConsequenceEffect } = helpers;
 
   const ADDITIONAL_OPPORTUNITY_VARIANTS: Record<number, OpportunityNodeVariantDefinition[]> = {
-    1: [
-      {
-        id: "beacon_bastion",
-        title: "Beacon Bastion",
-        description: "The beacon blessing and the trained watch let you turn the ridge into a live signal bastion.",
-        summary: "A trained watch and shrine beacons create a more specific rogue-route payoff.",
-        grants: { gold: 6, xp: 8, potions: 0 },
-        requiresPrimaryOutcomeIds: ["escort_survivors"],
-        requiresFollowUpOutcomeIds: ["train_the_watch"],
-        requiresConsequenceIds: ["watch_trained"],
-        requiresFlagIds: ["rogue_vigil_beacons"],
-        choices: [
-          {
-            id: "raise_the_ridge_lanterns",
-            title: "Raise the Ridge Lanterns",
-            subtitle: "Route Opportunity",
-            description: "Commit the blessing to the ridge posts and keep every fallback cleaner.",
-            effects: [
-              nodeOutcomeEffect("opportunity", "rogue_route_opportunity", "raise_the_ridge_lanterns", "Raise the Ridge Lanterns", [
-                "rogue_route_ridge_lanterns",
-              ]),
-              questConsequenceEffect(
-                "tristram_relief",
-                "raise_the_ridge_lanterns",
-                "Raise the Ridge Lanterns",
-                "ridge_lanterns_raised",
-                ["rogue_route_ridge_lanterns"]
-              ),
-              { kind: "hero_max_energy", value: 1 },
-              { kind: "gold_bonus", value: 10 },
-            ],
-          },
-          {
-            id: "rotate_the_beacon_wardens",
-            title: "Rotate the Beacon Wardens",
-            subtitle: "Route Opportunity",
-            description: "Use the same bastion to keep the wardens fresh and the line harder to crack.",
-            effects: [
-              nodeOutcomeEffect(
-                "opportunity",
-                "rogue_route_opportunity",
-                "rotate_the_beacon_wardens",
-                "Rotate the Beacon Wardens",
-                ["rogue_route_beacon_wardens"]
-              ),
-              questConsequenceEffect(
-                "tristram_relief",
-                "rotate_the_beacon_wardens",
-                "Rotate the Beacon Wardens",
-                "beacon_wardens_rotated",
-                ["rogue_route_beacon_wardens"]
-              ),
-              { kind: "mercenary_max_life", value: 4 },
-              { kind: "refill_potions", value: 1 },
-            ],
-          },
-        ],
-      },
-    ],
     2: [
       {
         id: "welltrain_convoy",

@@ -5,68 +5,6 @@
   const { buildLateRouteVariant } = helpers;
 
   const DETOUR_OPPORTUNITY_DEFINITIONS: Record<number, DetourOpportunityDefinition> = {
-    1: {
-      kind: "opportunity",
-      id: "rogue_detour_opportunity",
-      title: "Monastery Detour",
-      zoneTitle: "Monastery Detour",
-      description: "After the monastery covenant closes, the rogue line can still peel into a quieter detour that banks recovery work instead of rushing the catacombs.",
-      summary: "The post-covenant route now fans back out into a safer rogue detour lane.",
-      grants: { gold: 10, xp: 12, potions: 0 },
-      requiresQuestId: "tristram_relief",
-      requiresRecoveryOpportunityId: "rogue_recovery_opportunity",
-      requiresAccordOpportunityId: "rogue_accord_opportunity",
-      requiresCovenantOpportunityId: "rogue_covenant_opportunity",
-      variants: [
-        buildLateRouteVariant(buildDetourChoice, "rogue_detour_opportunity", "tristram_relief", {
-          id: "supply_detour",
-          title: "Supply Detour",
-          description: "Even without a cleaner monastery line, the rogues can still cut one late supply detour before the catacombs open.",
-          summary: "A fallback detour opens after the covenant resolves.",
-          grants: { gold: 6, xp: 8, potions: 0 },
-          choice: {
-            outcomeId: "secure_the_abbey_sidepass",
-            title: "Secure the Abbey Sidepass",
-            description: "Cut a quiet line through the abbey stores and hold it ready for the next clash.",
-            consequenceId: "abbey_sidepass_secured",
-            flagIds: ["rogue_detour_abbey_sidepass"],
-            extraEffects: [{ kind: "refill_potions", value: 1 }],
-          },
-        }),
-        buildLateRouteVariant(buildDetourChoice, "rogue_detour_opportunity", "tristram_relief", {
-          id: "lantern_detour",
-          title: "Lantern Detour",
-          description: "Recovery lanterns and cloister path marks turn the detour lane into a true chapel sidepass instead of one more store check.",
-          summary: "The recovery and accord lanes now open a safer sidepass through the monastery.",
-          grants: { gold: 8, xp: 8, potions: 0 },
-          requiresFlagIds: ["rogue_recovery_chapel_lanterns", "rogue_accord_cloister_paths"],
-          choice: {
-            outcomeId: "open_the_chapel_sidepass",
-            title: "Open the Chapel Sidepass",
-            description: "Turn the relit chapel lanterns and marked cloister paths into a guarded sidepass around the next push.",
-            consequenceId: "chapel_sidepass_opened",
-            flagIds: ["rogue_detour_chapel_sidepass"],
-            extraEffects: [{ kind: "hero_max_life", value: 2 }],
-          },
-        }),
-        buildLateRouteVariant(buildDetourChoice, "rogue_detour_opportunity", "tristram_relief", {
-          id: "wayfinder_detour",
-          title: "Wayfinder Detour",
-          description: "The sealed wayfinder ledger turns the detour into a hidden convoy route that changes how the monastery handles the next fight.",
-          summary: "A full rogue late-route close can now turn into a protected convoy detour instead of one more straight assault lane.",
-          grants: { gold: 8, xp: 8, potions: 0 },
-          requiresFlagIds: ["rogue_recovery_chapel_lanterns", "rogue_accord_cloister_paths", "rogue_covenant_wayfinder_ledger"],
-          choice: {
-            outcomeId: "stage_the_hidden_abbey_convoy",
-            title: "Stage the Hidden Abbey Convoy",
-            description: "Move the covenant ledger, lantern chain, and cloister marks into one hidden convoy around the monastery flank.",
-            consequenceId: "hidden_abbey_convoy_staged",
-            flagIds: ["rogue_detour_hidden_convoy"],
-            extraEffects: [{ kind: "hero_max_life", value: 2 }, { kind: "belt_capacity", value: 1 }],
-          },
-        }),
-      ],
-    },
     2: {
       kind: "opportunity",
       id: "sunwell_detour_opportunity",
