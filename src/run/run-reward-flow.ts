@@ -4,6 +4,26 @@
   const { getCurrentAct, getZoneById, recomputeZoneStatuses, syncCurrentActFields } = runtimeWindow.ROUGE_RUN_ROUTE_BUILDER;
   const { syncLevelProgression } = runtimeWindow.ROUGE_RUN_PROGRESSION;
 
+  // --- Encounter reward scaling ---
+  const BATTLE_BASE_GOLD = 10;
+  const BATTLE_GOLD_PER_ACT = 4;
+  const BATTLE_BASE_XP = 6;
+  const BATTLE_XP_PER_ACT = 3;
+
+  const MINIBOSS_BASE_GOLD = 16;
+  const MINIBOSS_GOLD_PER_ACT = 6;
+  const MINIBOSS_BASE_XP = 10;
+  const MINIBOSS_XP_PER_ACT = 4;
+  const MINIBOSS_POTION_CHARGES = 1;
+
+  const BOSS_BASE_GOLD = 28;
+  const BOSS_GOLD_PER_ACT = 10;
+  const BOSS_BASE_XP = 18;
+  const BOSS_XP_PER_ACT = 6;
+  const BOSS_POTION_CHARGES = 1;
+
+  const ECONOMY_LEDGER_GOLD_MULTIPLIER = 1.25;
+
   function hasTownFeature(profile, featureId) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
   }
@@ -15,7 +35,7 @@
 
     return {
       ...grants,
-      gold: Math.max(0, Math.ceil((Number.parseInt(String(grants?.gold || 0), 10) || 0) * 1.25)),
+      gold: Math.max(0, Math.ceil((Number.parseInt(String(grants?.gold || 0), 10) || 0) * ECONOMY_LEDGER_GOLD_MULTIPLIER)),
     };
   }
 
@@ -27,9 +47,9 @@
     const rewardEngine = runtimeWindow.ROUGE_REWARD_ENGINE;
 
     const rewardByKind = {
-      battle: { gold: 10 + actScale * 4, xp: 6 + actScale * 3, potions: 0 },
-      miniboss: { gold: 16 + actScale * 6, xp: 10 + actScale * 4, potions: 1 },
-      boss: { gold: 28 + actScale * 10, xp: 18 + actScale * 6, potions: 1 },
+      battle: { gold: BATTLE_BASE_GOLD + actScale * BATTLE_GOLD_PER_ACT, xp: BATTLE_BASE_XP + actScale * BATTLE_XP_PER_ACT, potions: 0 },
+      miniboss: { gold: MINIBOSS_BASE_GOLD + actScale * MINIBOSS_GOLD_PER_ACT, xp: MINIBOSS_BASE_XP + actScale * MINIBOSS_XP_PER_ACT, potions: MINIBOSS_POTION_CHARGES },
+      boss: { gold: BOSS_BASE_GOLD + actScale * BOSS_GOLD_PER_ACT, xp: BOSS_BASE_XP + actScale * BOSS_XP_PER_ACT, potions: BOSS_POTION_CHARGES },
     };
 
     const grants = scaleEncounterRewardGrants(rewardByKind[zone.kind] || rewardByKind.battle, profile);

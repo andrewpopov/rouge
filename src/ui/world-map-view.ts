@@ -73,11 +73,18 @@
 
       // Any zone without a measured position gets placed near its prerequisite
       for (const zone of zones) {
-        if (positions.has(zone.id)) continue;
+        if (positions.has(zone.id)) { continue; }
         const parentId = (zone.prerequisites || [])[0];
         const parentPos = parentId ? positions.get(parentId) : null;
         if (parentPos) {
-          const yOffset = zone.kind === "quest" ? 18 : zone.kind === "event" ? 82 : parentPos[1] - 15;
+          let yOffset: number;
+          if (zone.kind === "quest") {
+            yOffset = 18;
+          } else if (zone.kind === "event") {
+            yOffset = 82;
+          } else {
+            yOffset = parentPos[1] - 15;
+          }
           positions.set(zone.id, [Math.min(parentPos[0] + 4, 94), yOffset]);
         }
       }
@@ -137,7 +144,14 @@
       const fp = positions.get("town");
       const tp = positions.get(opening.id);
       if (fp && tp) {
-        const cls = opening.status === "cleared" ? "edge--cleared" : opening.status === "available" ? "edge--active" : "edge--locked";
+        let cls: string;
+        if (opening.status === "cleared") {
+          cls = "edge--cleared";
+        } else if (opening.status === "available") {
+          cls = "edge--active";
+        } else {
+          cls = "edge--locked";
+        }
         lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
       }
     }
@@ -145,15 +159,22 @@
     // Every zone draws edges from its prerequisites
     for (const zone of zones) {
       const tp = positions.get(zone.id);
-      if (!tp) continue;
+      if (!tp) { continue; }
       for (const prereqId of zone.prerequisites || []) {
         const prereq = zoneById.get(prereqId);
         const fp = positions.get(prereqId);
-        if (!fp || !prereq) continue;
+        if (!fp || !prereq) { continue; }
 
         const bothCleared = prereq.status === "cleared" && zone.status === "cleared";
         const active = prereq.status === "cleared" && zone.status === "available";
-        const cls = bothCleared ? "edge--cleared" : active ? "edge--active" : "edge--locked";
+        let cls: string;
+        if (bothCleared) {
+          cls = "edge--cleared";
+        } else if (active) {
+          cls = "edge--active";
+        } else {
+          cls = "edge--locked";
+        }
 
         lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
       }
@@ -168,7 +189,7 @@
     positions: Map<string, [number, number]>
   ): string {
     const pos = positions.get(zone.id);
-    if (!pos) return "";
+    if (!pos) { return ""; }
 
     const icon = ZONE_KIND_ICONS[zone.kind] || "\u2694";
     let statusClass = "waypoint--locked";

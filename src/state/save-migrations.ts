@@ -2,8 +2,6 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const CURRENT_SCHEMA_VERSION = 5;
-  const MAX_HERO_ENERGY = 6;
-  const MAX_HERO_POTION_HEAL = 24;
   const LEVEL_TRAINING_ORDER = ["vitality", "focus", "command"];
 
   function deepClone(value) {
@@ -153,8 +151,8 @@
     }
 
     if (track === "focus") {
-      run.hero.maxEnergy = clamp(toNumber(run.hero?.maxEnergy, 1) + 1, 1, MAX_HERO_ENERGY);
-      run.hero.potionHeal = clamp(toNumber(run.hero?.potionHeal, 1) + 1, 1, MAX_HERO_POTION_HEAL);
+      run.hero.maxEnergy = clamp(toNumber(run.hero?.maxEnergy, 1) + 1, 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_ENERGY);
+      run.hero.potionHeal = clamp(toNumber(run.hero?.potionHeal, 1) + 1, 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_POTION_HEAL);
       return;
     }
 
