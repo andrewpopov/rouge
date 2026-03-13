@@ -223,6 +223,20 @@
     return content?.classProgressionCatalog?.[classId] || null;
   }
 
+  const CLASS_PREFERRED_FAMILIES = {
+    barbarian: ["Swords", "Maces", "Polearms"],
+    paladin: ["Swords", "Maces"],
+    amazon: ["Polearms", "Swords"],
+    assassin: ["Swords"],
+    druid: ["Staves", "Maces"],
+    sorceress: ["Wands", "Staves"],
+    necromancer: ["Wands"],
+  };
+
+  function getPreferredWeaponFamilies(classId) {
+    return CLASS_PREFERRED_FAMILIES[classId] || [];
+  }
+
   runtimeWindow.ROUGE_CLASS_REGISTRY = {
     createRuntimeContent,
     listPlayableClasses,
@@ -231,5 +245,6 @@
     getStarterDeckForClass,
     createHeroFromClass,
     getClassProgression,
+    getPreferredWeaponFamilies,
   };
 })();

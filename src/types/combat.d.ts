@@ -60,6 +60,10 @@ interface CombatState {
   hand: CardInstance[];
   log: string[];
   selectedEnemyId: string;
+  meleeUsed?: boolean;
+  weaponFamily?: string;
+  weaponDamageBonus?: number;
+  classPreferredFamilies?: string[];
 }
 
 interface CombatMercenaryRouteBonusState {

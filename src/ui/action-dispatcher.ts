@@ -360,6 +360,12 @@
           syncCombatResultAndRender();
         }
         return true;
+      case "melee-strike":
+        if (appState.combat) {
+          combatEngine.meleeStrike(appState.combat, appState.content);
+          syncCombatResultAndRender();
+        }
+        return true;
       case "end-turn":
         if (appState.combat) {
           combatEngine.endTurn(appState.combat);
