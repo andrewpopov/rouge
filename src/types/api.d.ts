@@ -8,10 +8,14 @@ interface CombatEngineApi {
     mercenaryState?: Partial<MercenaryDefinition & CombatMercenaryRouteBonusState> | null;
     starterDeck?: string[] | null;
     initialPotions?: number;
+    weaponFamily?: string;
+    weaponDamageBonus?: number;
+    classPreferredFamilies?: string[];
   }): CombatState;
   playCard(state: CombatState, content: GameContent, instanceId: string, targetId?: string): ActionResult;
   endTurn(state: CombatState): ActionResult;
   usePotion(state: CombatState, targetId: "hero" | "mercenary"): ActionResult;
+  meleeStrike(state: CombatState, content: GameContent): ActionResult;
   describeIntent(intent: EnemyIntent | null): string;
   getLivingEnemies(state: CombatState): CombatEnemyState[];
   getFirstLivingEnemyId(state: CombatState): string;
@@ -143,6 +147,7 @@ interface ClassRegistryApi {
   getStarterDeckForClass(content: GameContent, classId: string): string[];
   createHeroFromClass(content: GameContent, classDefinition: ClassDefinition): HeroDefinition;
   getClassProgression(content: GameContent, classId: string): RuntimeClassProgressionDefinition | null;
+  getPreferredWeaponFamilies(classId: string): string[];
 }
 
 interface ItemDataApi {
@@ -185,6 +190,9 @@ interface ItemCatalogApi {
     preferredRunewordId?: string
   ): RuntimeRunewordDefinition | null;
   getRuneRewardPool(slot: "weapon" | "armor"): string[];
+  getWeaponFamily(itemId: string, content: GameContent): string;
+  rollItemRarity(zoneKind: string, randomFn: RandomFn): string;
+  generateRarityBonuses(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): ItemBonusSet;
 }
 
 interface ItemLoadoutApi {

@@ -5,6 +5,8 @@ interface RunEquipmentState {
   socketsUnlocked: number;
   insertedRunes: string[];
   runewordId: string;
+  rarity?: string;
+  rarityBonuses?: ItemBonusSet;
 }
 
 interface InventoryEquipmentEntry {
@@ -38,6 +40,7 @@ interface RunTownState {
 interface ItemTemplateDefinition {
   sourceId: string;
   slot: string;
+  family?: string;
   actRequirement: number;
   progressionTier: number;
   bonuses: ItemBonusSet;

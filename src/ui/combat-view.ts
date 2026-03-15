@@ -277,6 +277,11 @@
     const hpPercent = Math.round((combat.hero.life / combat.hero.maxLife) * 100);
     const mercHpPercent = Math.round((combat.mercenary.life / combat.mercenary.maxLife) * 100);
     const cardCount = combat.hand.length;
+    const weaponEquip = run.loadout?.weapon;
+    const weaponItem = weaponEquip ? appState.content.itemCatalog?.[weaponEquip.itemId] : null;
+    const weaponRarity = weaponEquip?.rarity || "white";
+    const rarityColor = weaponRarity === "brown" ? "#c59a46" : weaponRarity === "yellow" ? "#ddc63b" : "#aaa";
+    const canMelee = combat.phase === "player" && !combat.outcome && !combat.meleeUsed && (combat.weaponDamageBonus || 0) > 0;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -294,6 +299,7 @@
           </div>
           <div class="combat-hud__right">
             <span class="combat-hud__floor">Wave ${encounterNum}</span>
+            ${weaponItem ? `<span style="color:${rarityColor};font-weight:bold;font-size:0.8em">${escapeHtml(weaponItem.name)}</span>` : ""}
           </div>
         </div>
 
@@ -402,6 +408,8 @@
               `;
             }).join("")}
           </div>
+
+          ${canMelee ? `<button class="end-turn-btn" data-action="melee-strike" style="background:#754;margin-bottom:4px">\u2694 Melee Strike (${combat.weaponDamageBonus})</button>` : ""}
 
           <button class="end-turn-btn" data-action="end-turn"
             ${combat.phase !== "player" || combat.outcome ? "disabled" : ""}>

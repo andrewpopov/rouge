@@ -22,7 +22,7 @@
       sourceId: template.sourceId,
       name: seedEntry?.name || template.sourceId,
       slot: template.slot,
-      family: seedEntry?.family || (template.slot === "weapon" ? "Weapons" : "Body Armor"),
+      family: seedEntry?.family || template.family || (template.slot === "weapon" ? "Weapons" : "Body Armor"),
       summary: seedEntry?.summary || "A salvaged piece of gear adapted for Rouge's persistent build growth.",
       actRequirement: template.actRequirement,
       progressionTier: template.progressionTier,
@@ -200,6 +200,8 @@
       socketsUnlocked,
       insertedRunes,
       runewordId: "",
+      rarity: candidate.rarity || "white",
+      rarityBonuses: candidate.rarityBonuses || {},
     };
 
     equipment.runewordId = resolveRunewordId(equipment, content);
@@ -263,6 +265,42 @@
     return [...(RUNE_REWARD_POOLS[slot] || [])];
   }
 
+  function getWeaponFamily(itemId, content) {
+    const item = getItemDefinition(content, itemId);
+    return item?.family || "";
+  }
+
+  const EXTRA_BONUS_POOL = [
+    { heroDamageBonus: 1 }, { heroDamageBonus: 2 }, { heroGuardBonus: 1 }, { heroGuardBonus: 2 },
+    { heroBurnBonus: 1 }, { heroBurnBonus: 2 }, { heroMaxLife: 3 }, { heroMaxLife: 6 },
+    { heroMaxEnergy: 1 }, { heroPotionHeal: 1 }, { heroPotionHeal: 2 },
+    { mercenaryAttack: 1 }, { mercenaryAttack: 2 }, { mercenaryMaxLife: 3 }, { mercenaryMaxLife: 6 },
+  ];
+
+  function rollItemRarity(zoneKind, randomFn) {
+    const roll = randomFn();
+    if (zoneKind === "boss") return roll < 0.30 ? "white" : roll < 0.70 ? "yellow" : "brown";
+    if (zoneKind === "miniboss") return roll < 0.50 ? "white" : roll < 0.85 ? "yellow" : "brown";
+    return roll < 0.70 ? "white" : roll < 0.95 ? "yellow" : "brown";
+  }
+
+  function generateRarityBonuses(itemDef, rarity, randomFn) {
+    if (!itemDef || rarity === "white" || !rarity) return {};
+    const multiplier = rarity === "brown" ? 1.5 : 1.3;
+    const extraLineCount = rarity === "brown" ? 2 : 1;
+    const scaled = {};
+    Object.entries(itemDef.bonuses || {}).forEach(([key, value]) => {
+      const base = toNumber(value, 0);
+      const boosted = Math.ceil(base * multiplier);
+      if (boosted > base) scaled[key] = boosted - base;
+    });
+    for (let i = 0; i < extraLineCount; i++) {
+      const pick = EXTRA_BONUS_POOL[Math.floor(randomFn() * EXTRA_BONUS_POOL.length)];
+      Object.entries(pick).forEach(([key, value]) => { scaled[key] = (scaled[key] || 0) + value; });
+    }
+    return scaled;
+  }
+
   runtimeWindow.ROUGE_ITEM_CATALOG = {
     clamp,
     uniquePush,
@@ -279,5 +317,8 @@
     buildHydratedLoadout,
     getPreferredRunewordForEquipment,
     getRuneRewardPool,
+    getWeaponFamily,
+    rollItemRarity,
+    generateRarityBonuses,
   };
 })();

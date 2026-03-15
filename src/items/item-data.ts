@@ -6,6 +6,7 @@
     item_short_sword: {
       sourceId: "short_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 1,
       progressionTier: 1,
       bonuses: {
@@ -16,6 +17,7 @@
     item_scimitar: {
       sourceId: "scimitar",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 2,
       progressionTier: 2,
       bonuses: {
@@ -26,6 +28,7 @@
     item_sabre: {
       sourceId: "sabre",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 3,
       progressionTier: 3,
       bonuses: {
@@ -36,6 +39,7 @@
     item_long_sword: {
       sourceId: "long_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 3,
       progressionTier: 3,
       bonuses: {
@@ -46,6 +50,7 @@
     item_falchion: {
       sourceId: "falchion",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 4,
       progressionTier: 4,
       bonuses: {
@@ -56,6 +61,7 @@
     item_crystal_sword: {
       sourceId: "crystal_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 4,
       progressionTier: 4,
       bonuses: {
@@ -66,6 +72,7 @@
     item_bastard_sword: {
       sourceId: "bastard_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
@@ -76,6 +83,7 @@
     item_broad_sword: {
       sourceId: "broad_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 5,
       bonuses: {
@@ -86,6 +94,7 @@
     item_war_sword: {
       sourceId: "war_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 6,
       bonuses: {
@@ -96,6 +105,7 @@
     item_rune_sword: {
       sourceId: "rune_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 7,
       bonuses: {
@@ -107,6 +117,7 @@
     item_legend_sword: {
       sourceId: "legend_sword",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 7,
       bonuses: {
@@ -117,6 +128,7 @@
     item_zweihander: {
       sourceId: "zweihander",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 6,
       bonuses: {
@@ -127,6 +139,7 @@
     item_balrog_blade: {
       sourceId: "balrog_blade",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 8,
       bonuses: {
@@ -138,6 +151,7 @@
     item_colossus_blade: {
       sourceId: "colossus_blade",
       slot: "weapon",
+      family: "Swords",
       actRequirement: 5,
       progressionTier: 8,
       bonuses: {
@@ -148,6 +162,7 @@
     item_mace: {
       sourceId: "mace",
       slot: "weapon",
+      family: "Maces",
       actRequirement: 2,
       progressionTier: 2,
       bonuses: {
@@ -158,6 +173,7 @@
     item_war_hammer: {
       sourceId: "war_hammer",
       slot: "weapon",
+      family: "Maces",
       actRequirement: 5,
       progressionTier: 6,
       bonuses: {
@@ -168,6 +184,7 @@
     item_partizan: {
       sourceId: "partizan",
       slot: "weapon",
+      family: "Polearms",
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
@@ -178,6 +195,7 @@
     item_grim_scythe: {
       sourceId: "grim_scythe",
       slot: "weapon",
+      family: "Polearms",
       actRequirement: 5,
       progressionTier: 7,
       bonuses: {
@@ -189,6 +207,7 @@
     item_wand: {
       sourceId: "wand",
       slot: "weapon",
+      family: "Wands",
       actRequirement: 4,
       progressionTier: 4,
       bonuses: {
@@ -199,6 +218,7 @@
     item_yew_wand: {
       sourceId: "yew_wand",
       slot: "weapon",
+      family: "Wands",
       actRequirement: 2,
       progressionTier: 2,
       bonuses: {
@@ -209,6 +229,7 @@
     item_bone_wand: {
       sourceId: "bone_wand",
       slot: "weapon",
+      family: "Wands",
       actRequirement: 5,
       progressionTier: 5,
       bonuses: {
@@ -219,6 +240,7 @@
     item_lich_wand: {
       sourceId: "lich_wand",
       slot: "weapon",
+      family: "Wands",
       actRequirement: 5,
       progressionTier: 7,
       bonuses: {
@@ -229,6 +251,7 @@
     item_battle_staff: {
       sourceId: "battle_staff",
       slot: "weapon",
+      family: "Staves",
       actRequirement: 3,
       progressionTier: 3,
       bonuses: {
@@ -239,6 +262,7 @@
     item_gnarled_staff: {
       sourceId: "gnarled_staff",
       slot: "weapon",
+      family: "Staves",
       actRequirement: 3,
       progressionTier: 3,
       bonuses: {
@@ -249,6 +273,7 @@
     item_war_staff: {
       sourceId: "war_staff",
       slot: "weapon",
+      family: "Staves",
       actRequirement: 5,
       progressionTier: 5,
       bonuses: {

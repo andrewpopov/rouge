@@ -10,6 +10,8 @@
     getRuneDefinition,
     isRunewordCompatibleWithItem,
     isRuneAllowedInSlot,
+    rollItemRarity,
+    generateRarityBonuses,
     toNumber,
   } = itemCatalog;
   const { getAccountEconomyFeatures, getPlannedRunewordArchiveState, getPlannedRunewordId } = itemTown;
@@ -35,6 +37,8 @@
       plannedRuneword?: RuntimeRunewordDefinition | null;
       planningUnfulfilled?: boolean;
       planningCharter?: ProfilePlanningCharterSummary | null;
+      rarity?: string;
+      rarityBonuses?: ItemBonusSet;
     } = {}
   ) {
     const item = getItemDefinition(content, itemId);
@@ -42,14 +46,24 @@
       return null;
     }
 
+    const rarity = options.rarity || "white";
+    const rarityBonuses = options.rarityBonuses || {};
+    const combinedBonuses = { ...item.bonuses };
+    Object.entries(rarityBonuses).forEach(([k, v]) => { combinedBonuses[k] = (combinedBonuses[k] || 0) + toNumber(v, 0); });
+    let rarityLabel = "";
+    if (rarity === "brown") { rarityLabel = "Unique"; }
+    else if (rarity === "yellow") { rarityLabel = "Magic"; }
+    const rarityTitle = rarityLabel ? `${rarityLabel} ${item.name}` : item.name;
+
     const loadout = buildHydratedLoadout(run, content);
     const currentEquipment = loadout[item.slot];
     const features = getAccountEconomyFeatures(options.profile);
     const previewLines = [
-      ...describeBonuses(item.bonuses),
+      ...describeBonuses(combinedBonuses),
       `Base sockets ${item.maxSockets}.`,
       buildReplacementText(currentEquipment, item, content),
     ];
+    if (rarityLabel) { previewLines.unshift(`Rarity: ${rarityLabel}.`); }
     if (options.plannedRuneword && isRunewordCompatibleWithItem(item, options.plannedRuneword)) {
       previewLines.push(`Planning charter: ${options.plannedRuneword.name}.`);
     }
@@ -119,11 +133,11 @@
     return {
       id: `reward_item_${item.id}`,
       kind: "item",
-      title: item.name,
+      title: rarityTitle,
       subtitle: item.slot === "weapon" ? "Equip Weapon" : "Equip Armor",
       description: item.summary,
       previewLines,
-      effects: [{ kind: "equip_item", itemId: item.id }],
+      effects: [{ kind: "equip_item", itemId: item.id, rarity, rarityBonuses }],
     };
   }
 
@@ -186,7 +200,7 @@
     };
   }
 
-  function buildChoiceForSlot(slot, run, zone, actNumber, encounterNumber, content, profile = null) {
+  function buildChoiceForSlot(slot, run, zone, actNumber, encounterNumber, content, profile = null, rarityOpts: { rarity?: string; rarityBonuses?: ItemBonusSet } = {}) {
     const loadout = buildHydratedLoadout(run, content);
     const equipment = loadout[slot];
     const upgradeItem = getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile);
@@ -202,6 +216,7 @@
             plannedRuneword,
             planningUnfulfilled: planningArchiveState.unfulfilled,
             planningCharter,
+            ...rarityOpts,
           })
         : null;
     }
@@ -229,6 +244,7 @@
         plannedRuneword,
         planningUnfulfilled: planningArchiveState.unfulfilled,
         planningCharter,
+        ...rarityOpts,
       });
     }
 
@@ -249,6 +265,7 @@
         plannedRuneword,
         planningUnfulfilled: planningArchiveState.unfulfilled,
         planningCharter,
+        ...rarityOpts,
       });
     }
 
@@ -267,12 +284,17 @@
   }
 
   function buildEquipmentChoice({ content, run, zone, actNumber, encounterNumber, profile = null }) {
+    const randomFn = Math.random;
+    const rarity = rollItemRarity(zone?.kind || "battle", randomFn);
     const focusSlots = getFocusSlots(run, actNumber, encounterNumber, content);
     for (let index = 0; index < focusSlots.length; index += 1) {
-      const choice = buildChoiceForSlot(focusSlots[index], run, zone, actNumber, encounterNumber, content, profile);
-      if (choice) {
-        return choice;
-      }
+      const slot = focusSlots[index];
+      const upgradeItem = getUpgradeItemForSlot(slot, buildHydratedLoadout(run, content)[slot], actNumber, zone, run, content, profile);
+      const itemDef = upgradeItem ? getItemDefinition(content, upgradeItem.id) : null;
+      const rarityBonuses = itemDef && rarity !== "white" ? generateRarityBonuses(itemDef, rarity, randomFn) : {};
+      const rarityOpts = { rarity, rarityBonuses };
+      const choice = buildChoiceForSlot(slot, run, zone, actNumber, encounterNumber, content, profile, rarityOpts);
+      if (choice) { return choice; }
     }
     return null;
   }

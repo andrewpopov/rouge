@@ -132,6 +132,8 @@
       socketsUnlocked: toNumber(equipment.socketsUnlocked, 0),
       insertedRunes: Array.isArray(equipment.insertedRunes) ? [...equipment.insertedRunes] : [],
       runewordId: equipment.runewordId || "",
+      rarity: equipment.rarity || "white",
+      rarityBonuses: equipment.rarityBonuses || {},
     };
   }
 
@@ -328,11 +330,9 @@
     };
   }
 
-  function addEquipmentToInventory(run, itemId, content): InventoryEquipmentEntry | null {
+  function addEquipmentToInventory(run, itemId, content, rarity = "white", rarityBonuses = {}): InventoryEquipmentEntry | null {
     const item = getItemDefinition(content, itemId);
-    if (!item) {
-      return null;
-    }
+    if (!item) { return null; }
     const entryId = allocateInventoryEntryId(run);
     const entry: InventoryEquipmentEntry = {
       entryId,
@@ -344,6 +344,8 @@
         socketsUnlocked: 0,
         insertedRunes: [],
         runewordId: "",
+        rarity,
+        rarityBonuses,
       },
     };
     run.inventory.carried.push(entry);

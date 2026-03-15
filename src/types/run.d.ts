@@ -50,6 +50,8 @@ interface RewardChoiceEffect {
   outcomeTitle?: string;
   consequenceId?: string;
   flagIds?: string[];
+  rarity?: string;
+  rarityBonuses?: ItemBonusSet;
 }
 
 interface RewardChoice {

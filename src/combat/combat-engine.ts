@@ -13,6 +13,7 @@
     startPlayerTurn,
     endTurn,
     usePotion,
+    meleeStrike,
     _shuffleInPlace: shuffleInPlace,
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
 
@@ -310,6 +311,9 @@
     mercenaryState = null,
     starterDeck = null,
     initialPotions = 2,
+    weaponFamily = "",
+    weaponDamageBonus = 0,
+    classPreferredFamilies = [],
   }) {
     const encounter = content.encounterCatalog[encounterId];
     const state = {
@@ -328,6 +332,10 @@
       hand: [],
       log: [],
       selectedEnemyId: "",
+      meleeUsed: false,
+      weaponFamily,
+      weaponDamageBonus,
+      classPreferredFamilies,
     };
 
     state.drawPile = createDeck(state, content, starterDeck);
@@ -344,6 +352,7 @@
     playCard,
     endTurn,
     usePotion,
+    meleeStrike,
     describeIntent,
     getLivingEnemies,
     getFirstLivingEnemyId,
