@@ -10,7 +10,6 @@
     getRuneDefinition,
     getRuneRewardPool,
     getRunewordDefinition,
-    getWeaponFamily,
     isRunewordCompatibleWithItem,
     isRuneAllowedInSlot,
     resolveRunewordId,
@@ -18,42 +17,23 @@
     generateRarityBonuses,
     toNumber,
   } = itemCatalog;
-  const classRegistry = runtimeWindow.ROUGE_CLASS_REGISTRY;
   const { getAccountEconomyFeatures, getPlannedRunewordArchiveState, getPlannedRunewordId } = itemTown;
 
   function describeBonuses(bonuses) {
     const lines = [];
-    if (bonuses.heroDamageBonus) {
-      lines.push(`Hero card damage +${bonuses.heroDamageBonus}.`);
-    }
-    if (bonuses.heroGuardBonus) {
-      lines.push(`Guard skills +${bonuses.heroGuardBonus}.`);
-    }
-    if (bonuses.heroBurnBonus) {
-      lines.push(`Burn application +${bonuses.heroBurnBonus}.`);
-    }
-    if (bonuses.heroMaxLife) {
-      lines.push(`Hero max Life +${bonuses.heroMaxLife}.`);
-    }
-    if (bonuses.heroMaxEnergy) {
-      lines.push(`Hero max Energy +${bonuses.heroMaxEnergy}.`);
-    }
-    if (bonuses.heroPotionHeal) {
-      lines.push(`Potion healing +${bonuses.heroPotionHeal}.`);
-    }
-    if (bonuses.mercenaryAttack) {
-      lines.push(`Mercenary attack +${bonuses.mercenaryAttack}.`);
-    }
-    if (bonuses.mercenaryMaxLife) {
-      lines.push(`Mercenary max Life +${bonuses.mercenaryMaxLife}.`);
-    }
+    if (bonuses.heroDamageBonus) { lines.push(`Hero card damage +${bonuses.heroDamageBonus}.`); }
+    if (bonuses.heroGuardBonus) { lines.push(`Guard skills +${bonuses.heroGuardBonus}.`); }
+    if (bonuses.heroBurnBonus) { lines.push(`Burn application +${bonuses.heroBurnBonus}.`); }
+    if (bonuses.heroMaxLife) { lines.push(`Hero max Life +${bonuses.heroMaxLife}.`); }
+    if (bonuses.heroMaxEnergy) { lines.push(`Hero max Energy +${bonuses.heroMaxEnergy}.`); }
+    if (bonuses.heroPotionHeal) { lines.push(`Potion healing +${bonuses.heroPotionHeal}.`); }
+    if (bonuses.mercenaryAttack) { lines.push(`Mercenary attack +${bonuses.mercenaryAttack}.`); }
+    if (bonuses.mercenaryMaxLife) { lines.push(`Mercenary max Life +${bonuses.mercenaryMaxLife}.`); }
     return lines;
   }
 
   function getEquipmentProgressScore(equipment, content) {
-    if (!equipment) {
-      return 0;
-    }
+    if (!equipment) { return 0; }
     const item = getItemDefinition(content, equipment.itemId);
     return (item?.progressionTier || 0) * 10 + equipment.socketsUnlocked * 2 + equipment.insertedRunes.length + (equipment.runewordId ? 5 : 0);
   }
@@ -63,10 +43,7 @@
     const baseOrder = (actNumber + encounterNumber + run.summary.encountersCleared) % 2 === 0 ? ["weapon", "armor"] : ["armor", "weapon"];
     return [...baseOrder].sort((left, right) => {
       const scoreDelta = getEquipmentProgressScore(loadout[left], content) - getEquipmentProgressScore(loadout[right], content);
-      if (scoreDelta !== 0) {
-        return scoreDelta;
-      }
-      return baseOrder.indexOf(left) - baseOrder.indexOf(right);
+      return scoreDelta !== 0 ? scoreDelta : baseOrder.indexOf(left) - baseOrder.indexOf(right);
     });
   }
 
@@ -99,45 +76,20 @@
     return runeword?.slot === slot ? runeword : null;
   }
 
+  const DEFAULT_PLANNING_OVERVIEW = {
+    compatibleCharterCount: 0, preparedCharterCount: 0, readyCharterCount: 0, missingBaseCharterCount: 0,
+    socketCommissionCharterCount: 0, repeatForgeReadyCharterCount: 0, trackedBaseCount: 0, highestTrackedBaseTier: 0,
+    totalSocketStepsRemaining: 0, compatibleRunewordIds: [], preparedRunewordIds: [], readyRunewordIds: [],
+    missingBaseRunewordIds: [], fulfilledRunewordIds: [], bestFulfilledActsCleared: 0, bestFulfilledLoadoutTier: 0,
+    nextAction: "idle", nextActionLabel: "Quiet", nextActionSummary: "No active runeword charter is pinned across the account.",
+  };
   function getPlanningSummary(profile, content = null) {
-    return (
-      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
-        weaponRunewordId: "",
-        armorRunewordId: "",
-        plannedRunewordCount: 0,
-        fulfilledPlanCount: 0,
-        unfulfilledPlanCount: 0,
-        weaponArchivedRunCount: 0,
-        weaponCompletedRunCount: 0,
-        weaponBestActsCleared: 0,
-        armorArchivedRunCount: 0,
-        armorCompletedRunCount: 0,
-        armorBestActsCleared: 0,
-        overview: {
-          compatibleCharterCount: 0,
-          preparedCharterCount: 0,
-          readyCharterCount: 0,
-          missingBaseCharterCount: 0,
-          socketCommissionCharterCount: 0,
-          repeatForgeReadyCharterCount: 0,
-          trackedBaseCount: 0,
-          highestTrackedBaseTier: 0,
-          totalSocketStepsRemaining: 0,
-          compatibleRunewordIds: [],
-          preparedRunewordIds: [],
-          readyRunewordIds: [],
-          missingBaseRunewordIds: [],
-          fulfilledRunewordIds: [],
-          bestFulfilledActsCleared: 0,
-          bestFulfilledLoadoutTier: 0,
-          nextAction: "idle",
-          nextActionLabel: "Quiet",
-          nextActionSummary: "No active runeword charter is pinned across the account.",
-        },
-        weaponCharter: undefined,
-        armorCharter: undefined,
-      }
-    );
+    return runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
+      weaponRunewordId: "", armorRunewordId: "", plannedRunewordCount: 0, fulfilledPlanCount: 0, unfulfilledPlanCount: 0,
+      weaponArchivedRunCount: 0, weaponCompletedRunCount: 0, weaponBestActsCleared: 0,
+      armorArchivedRunCount: 0, armorCompletedRunCount: 0, armorBestActsCleared: 0,
+      overview: { ...DEFAULT_PLANNING_OVERVIEW }, weaponCharter: undefined, armorCharter: undefined,
+    };
   }
 
   function getPlanningCharterSummary(profile, slot, content = null) {
@@ -186,44 +138,25 @@
     return [...upgradeItems].sort((left, right) => {
       const rightBeatsParkedBase = Number(toNumber(right?.progressionTier, 0) > charterBaseTier);
       const leftBeatsParkedBase = Number(toNumber(left?.progressionTier, 0) > charterBaseTier);
-      if (rightBeatsParkedBase !== leftBeatsParkedBase) {
-        return rightBeatsParkedBase - leftBeatsParkedBase;
-      }
-
-      const rightParagonPremium = Number(
-        (features.paragonExchange || features.ascendantExchange || features.mythicExchange) &&
-          isLateActPivotZone(zone, actNumber) &&
-          toNumber(right?.progressionTier, 0) >= Math.max(features.ascendantExchange || features.mythicExchange ? 7 : 6, actNumber + 1) &&
-          toNumber(right?.maxSockets, 0) >= (features.ascendantExchange || features.mythicExchange ? 4 : 3)
-      );
-      const leftParagonPremium = Number(
-        (features.paragonExchange || features.ascendantExchange || features.mythicExchange) &&
-          isLateActPivotZone(zone, actNumber) &&
-          toNumber(left?.progressionTier, 0) >= Math.max(features.ascendantExchange || features.mythicExchange ? 7 : 6, actNumber + 1) &&
-          toNumber(left?.maxSockets, 0) >= (features.ascendantExchange || features.mythicExchange ? 4 : 3)
-      );
-      if (rightParagonPremium !== leftParagonPremium) {
-        return rightParagonPremium - leftParagonPremium;
-      }
-
+      if (rightBeatsParkedBase !== leftBeatsParkedBase) { return rightBeatsParkedBase - leftBeatsParkedBase; }
+      const hasParagon = features.paragonExchange || features.ascendantExchange || features.mythicExchange;
+      const paragonHighTier = features.ascendantExchange || features.mythicExchange;
+      const paragonMinTier = Math.max(paragonHighTier ? 7 : 6, actNumber + 1);
+      const paragonMinSockets = paragonHighTier ? 4 : 3;
+      const isLatePivot = isLateActPivotZone(zone, actNumber);
+      const rightParagonPremium = Number(hasParagon && isLatePivot &&
+        toNumber(right?.progressionTier, 0) >= paragonMinTier && toNumber(right?.maxSockets, 0) >= paragonMinSockets);
+      const leftParagonPremium = Number(hasParagon && isLatePivot &&
+        toNumber(left?.progressionTier, 0) >= paragonMinTier && toNumber(left?.maxSockets, 0) >= paragonMinSockets);
+      if (rightParagonPremium !== leftParagonPremium) { return rightParagonPremium - leftParagonPremium; }
       const rightPreserves = Number(toNumber(right?.maxSockets, 0) >= preservedSockets);
       const leftPreserves = Number(toNumber(left?.maxSockets, 0) >= preservedSockets);
-      if (rightPreserves !== leftPreserves) {
-        return rightPreserves - leftPreserves;
-      }
-
+      if (rightPreserves !== leftPreserves) { return rightPreserves - leftPreserves; }
       const rightPreferred = Number(toNumber(right?.maxSockets, 0) >= preferredSockets);
       const leftPreferred = Number(toNumber(left?.maxSockets, 0) >= preferredSockets);
-      if (rightPreferred !== leftPreferred) {
-        return rightPreferred - leftPreferred;
-      }
-
+      if (rightPreferred !== leftPreferred) { return rightPreferred - leftPreferred; }
       const tierDelta = toNumber(right?.progressionTier, 0) - toNumber(left?.progressionTier, 0);
-      if (tierDelta !== 0) {
-        return tierDelta;
-      }
-
-      return toNumber(right?.maxSockets, 0) - toNumber(left?.maxSockets, 0);
+      return tierDelta !== 0 ? tierDelta : toNumber(right?.maxSockets, 0) - toNumber(left?.maxSockets, 0);
     });
   }
 
@@ -233,63 +166,28 @@
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
     const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
     const planningCharter = getPlanningCharterSummary(profile, slot, content);
+    const hasEconomyPlanning = features.runewordCodex || features.treasuryExchange || features.merchantPrincipate ||
+      features.tradeHegemony || features.sovereignExchange || features.imperialExchange || features.mythicExchange || features.economyFocus;
     if (!equipment) {
       const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled, planningCharter);
-      if (
-        plannedRuneword &&
-        !planningCharter?.compatibleBaseCount &&
-        (
-          features.runewordCodex ||
-          features.treasuryExchange ||
-          features.merchantPrincipate ||
-          features.tradeHegemony ||
-          features.sovereignExchange ||
-          features.imperialExchange ||
-          features.mythicExchange ||
-          features.economyFocus
-        )
-      ) {
+      if (plannedRuneword && !planningCharter?.compatibleBaseCount && hasEconomyPlanning) {
         const plannedItems = sortedItems.filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword));
         return plannedItems[0] || sortedItems[0] || null;
       }
       return sortedItems[0] || null;
     }
-
     const currentItem = getItemDefinition(content, equipment.itemId);
     const currentTier = currentItem?.progressionTier || 0;
     const upgradeItems = availableItems.filter((item) => item.progressionTier > currentTier);
-    const shouldForcePlanningReplacement =
-      plannedRuneword &&
-      (
-        features.runewordCodex ||
-        features.treasuryExchange ||
-        features.merchantPrincipate ||
-        features.tradeHegemony ||
-        features.sovereignExchange ||
-        features.imperialExchange ||
-        features.mythicExchange ||
-        features.economyFocus
-      ) &&
+    const shouldForcePlanningReplacement = plannedRuneword && hasEconomyPlanning &&
       (!planningCharter?.compatibleBaseCount ||
         (isLateActPivotZone(zone, actNumber) && toNumber(planningCharter?.bestBaseTier, 0) < Math.max(actNumber, currentTier + 1)));
-    const planningItems =
-      shouldForcePlanningReplacement
-        ? availableItems.filter((item) => item.id !== currentItem?.id && item.progressionTier >= currentTier && isRunewordCompatibleWithItem(item, plannedRuneword))
-        : [];
+    const planningItems = shouldForcePlanningReplacement
+      ? availableItems.filter((item) => item.id !== currentItem?.id && item.progressionTier >= currentTier && isRunewordCompatibleWithItem(item, plannedRuneword))
+      : [];
     const candidateItems = planningItems.length > 0 ? planningItems : upgradeItems;
-    if (candidateItems.length === 0) {
-      return null;
-    }
-    const sortedUpgradeItems = sortRewardUpgradeItems(
-      candidateItems,
-      equipment,
-      actNumber,
-      zone,
-      profile,
-      plannedRuneword,
-      planningArchiveState.unfulfilled,
-      planningCharter
-    );
+    if (candidateItems.length === 0) { return null; }
+    const sortedUpgradeItems = sortRewardUpgradeItems(candidateItems, equipment, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled, planningCharter);
     if (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchBattle") {
       return sortedUpgradeItems[0] || null;
     }
@@ -330,7 +228,9 @@
     const rarityBonuses = options.rarityBonuses || {};
     const combinedBonuses = { ...item.bonuses };
     Object.entries(rarityBonuses).forEach(([k, v]) => { combinedBonuses[k] = (combinedBonuses[k] || 0) + toNumber(v, 0); });
-    const rarityLabel = rarity === "brown" ? "Unique" : rarity === "yellow" ? "Magic" : "";
+    let rarityLabel = "";
+    if (rarity === "brown") { rarityLabel = "Unique"; }
+    else if (rarity === "yellow") { rarityLabel = "Magic"; }
     const rarityTitle = rarityLabel ? `${rarityLabel} ${item.name}` : item.name;
 
     const loadout = buildHydratedLoadout(run, content);
