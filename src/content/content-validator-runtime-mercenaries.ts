@@ -237,7 +237,7 @@
         );
       }
       if (
-        reserveRouteFlagIds.size > 0 &&
+        reserveLinkedRoutePerkCount > 0 &&
         reserveLinkedRoutePerkCount < MIN_RESERVE_LINKED_ROUTE_PERKS_PER_MERCENARY
       ) {
         pushError(
@@ -245,14 +245,14 @@
           `${label} must define at least ${MIN_RESERVE_LINKED_ROUTE_PERKS_PER_MERCENARY} reserve-linked route perk.`
         );
       }
-      if (relayRouteFlagIds.size > 0 && relayLinkedRoutePerkCount < MIN_RELAY_LINKED_ROUTE_PERKS_PER_MERCENARY) {
+      if (relayLinkedRoutePerkCount > 0 && relayLinkedRoutePerkCount < MIN_RELAY_LINKED_ROUTE_PERKS_PER_MERCENARY) {
         pushError(
           errors,
           `${label} must define at least ${MIN_RELAY_LINKED_ROUTE_PERKS_PER_MERCENARY} relay-linked route perk.`
         );
       }
       if (
-        culminationRouteFlagIds.size > 0 &&
+        culminationLinkedRoutePerkCount > 0 &&
         culminationLinkedRoutePerkCount < MIN_CULMINATION_LINKED_ROUTE_PERKS_PER_MERCENARY
       ) {
         pushError(
@@ -260,14 +260,14 @@
           `${label} must define at least ${MIN_CULMINATION_LINKED_ROUTE_PERKS_PER_MERCENARY} culmination-linked route perk.`
         );
       }
-      if (legacyRouteFlagIds.size > 0 && legacyLinkedRoutePerkCount < MIN_LEGACY_LINKED_ROUTE_PERKS_PER_MERCENARY) {
+      if (legacyLinkedRoutePerkCount > 0 && legacyLinkedRoutePerkCount < MIN_LEGACY_LINKED_ROUTE_PERKS_PER_MERCENARY) {
         pushError(
           errors,
           `${label} must define at least ${MIN_LEGACY_LINKED_ROUTE_PERKS_PER_MERCENARY} legacy-linked route perk.`
         );
       }
       if (
-        reckoningRouteFlagIds.size > 0 &&
+        reckoningLinkedRoutePerkCount > 0 &&
         reckoningLinkedRoutePerkCount < MIN_RECKONING_LINKED_ROUTE_PERKS_PER_MERCENARY
       ) {
         pushError(
@@ -275,19 +275,19 @@
           `${label} must define at least ${MIN_RECKONING_LINKED_ROUTE_PERKS_PER_MERCENARY} reckoning-linked route perk.`
         );
       }
-      if (recoveryRouteFlagIds.size > 0 && recoveryLinkedRoutePerkCount < MIN_RECOVERY_LINKED_ROUTE_PERKS_PER_MERCENARY) {
+      if (recoveryLinkedRoutePerkCount > 0 && recoveryLinkedRoutePerkCount < MIN_RECOVERY_LINKED_ROUTE_PERKS_PER_MERCENARY) {
         pushError(
           errors,
           `${label} must define at least ${MIN_RECOVERY_LINKED_ROUTE_PERKS_PER_MERCENARY} recovery-linked route perk.`
         );
       }
-      if (accordRouteFlagIds.size > 0 && accordLinkedRoutePerkCount < MIN_ACCORD_LINKED_ROUTE_PERKS_PER_MERCENARY) {
+      if (accordLinkedRoutePerkCount > 0 && accordLinkedRoutePerkCount < MIN_ACCORD_LINKED_ROUTE_PERKS_PER_MERCENARY) {
         pushError(
           errors,
           `${label} must define at least ${MIN_ACCORD_LINKED_ROUTE_PERKS_PER_MERCENARY} accord-linked route perk.`
         );
       }
-      if (covenantRouteFlagIds.size > 0 && covenantLinkedRoutePerkCount < MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY) {
+      if (covenantLinkedRoutePerkCount > 0 && covenantLinkedRoutePerkCount < MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY) {
         pushError(
           errors,
           `${label} must define at least ${MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY} covenant-linked route perk.`

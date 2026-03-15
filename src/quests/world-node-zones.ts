@@ -93,7 +93,11 @@
 
   function getCatalogEntry(key, actNumber) {
     const entries = getCatalog()[key];
-    return entries[actNumber] || entries[1];
+    if (entries[actNumber]) {
+      return entries[actNumber];
+    }
+    const keys = Object.keys(entries).map(Number).sort((a, b) => a - b);
+    return entries[keys[0]];
   }
 
   function isShrineOpportunityNodeId(nodeId) {

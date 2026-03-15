@@ -166,7 +166,7 @@
         if (!item) {
           return { ok: false, message: "Reward item is invalid." };
         }
-        const entry = addEquipmentToInventory(run, item.id, content);
+        const entry = addEquipmentToInventory(run, item.id, content, effect.rarity || "white", effect.rarityBonuses || {});
         if (!entry) {
           return { ok: false, message: "Reward item could not be created." };
         }
@@ -230,6 +230,7 @@
         const item = getItemDefinition(content, equipment.itemId);
         const activeRuneword = getRunewordDefinition(content, resolveRunewordId(equipment, content));
         addBonuses(total, item?.bonuses || {});
+        addBonuses(total, equipment.rarityBonuses || {});
         equipment.insertedRunes.forEach((runeId) => addBonuses(total, getRuneDefinition(content, runeId)?.bonuses || {}));
         addBonuses(total, activeRuneword?.bonuses || {});
       });

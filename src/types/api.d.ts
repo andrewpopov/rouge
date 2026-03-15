@@ -212,7 +212,7 @@ interface ItemLoadoutApi {
     nextItemId: string,
     content: GameContent
   ): { socketsUnlocked: number; insertedRunes: string[] };
-  addEquipmentToInventory(run: RunState, itemId: string, content: GameContent): InventoryEquipmentEntry | null;
+  addEquipmentToInventory(run: RunState, itemId: string, content: GameContent, rarity?: string, rarityBonuses?: ItemBonusSet): InventoryEquipmentEntry | null;
   addRuneToInventory(run: RunState, runeId: string, content: GameContent): InventoryRuneEntry | null;
   findCarriedEntry(run: RunState, entryId: string): InventoryEntry | null;
   removeCarriedEntry(run: RunState, entryId: string): InventoryEntry | null;

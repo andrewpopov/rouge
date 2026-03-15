@@ -114,9 +114,11 @@
         seenNodeIds.set(definition.id, label);
       });
 
-      if (!questDefinition) {
+      const isQuestAct = actNumber in quests || actNumber in events || actNumber in opportunities;
+
+      if (!questDefinition && isQuestAct) {
         pushError(errors, `World-node catalog is missing a quest definition for act ${actKey}.`);
-      } else {
+      } else if (questDefinition) {
         if (!questDefinition.zoneTitle) {
           pushError(errors, `worldNodes.quests.${actKey} is missing a zoneTitle.`);
         }
@@ -138,9 +140,9 @@
         validateRewardDefinition(shrineDefinition, `worldNodes.shrines.${actKey}`, "shrine", errors);
       }
 
-      if (!eventDefinition) {
+      if (!eventDefinition && isQuestAct) {
         pushError(errors, `World-node catalog is missing an event definition for act ${actKey}.`);
-      } else {
+      } else if (eventDefinition) {
         if (!eventDefinition.zoneTitle) {
           pushError(errors, `worldNodes.events.${actKey} is missing a zoneTitle.`);
         }
@@ -157,9 +159,9 @@
 
       const referenceState = collectActReferenceState(questDefinition, shrineDefinition);
 
-      if (!opportunityDefinition) {
+      if (!opportunityDefinition && isQuestAct) {
         pushError(errors, `World-node catalog is missing an opportunity definition for act ${actKey}.`);
-      } else {
+      } else if (opportunityDefinition) {
         if (!opportunityDefinition.zoneTitle) {
           pushError(errors, `worldNodes.opportunities.${actKey} is missing a zoneTitle.`);
         }
@@ -351,14 +353,16 @@
         }
       }
 
-      validateCrossroadOpportunitySection(
-        actKey,
-        crossroadOpportunityDefinition,
-        questDefinition,
-        shrineDefinition,
-        referenceState,
-        errors
-      );
+      if (isQuestAct) {
+        validateCrossroadOpportunitySection(
+          actKey,
+          crossroadOpportunityDefinition,
+          questDefinition,
+          shrineDefinition,
+          referenceState,
+          errors
+        );
+      }
 
       validateShrineOpportunitySection(
         actKey,
@@ -367,6 +371,10 @@
         referenceState,
         errors
       );
+
+      if (!isQuestAct) {
+        return;
+      }
 
       validateLateRouteOpportunityFamilies({
         accordOpportunityDefinition,

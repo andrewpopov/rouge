@@ -134,7 +134,7 @@
     const enemyCatalog = content?.enemyCatalog || {};
     const encounterCatalog = content?.encounterCatalog || {};
     const eliteAffixesByAct = {};
-    const worldNodeCatalog = runtimeWindow.ROUGE_WORLD_NODES?.getCatalog?.();
+    const worldNodeCatalog = runtimeWindow.ROUGE_WORLD_NODE_CATALOG?.getCatalog?.();
     const knownWorldFlagIds = new Set([
       ...Object.values(worldNodeCatalog?.quests || {}).flatMap((questDefinition) => (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).flatMap((choiceDefinition) => [...collectEffectFlagIds(choiceDefinition?.effects), ...(Array.isArray(choiceDefinition?.followUp?.choices) ? choiceDefinition.followUp.choices : []).flatMap((followUpChoiceDefinition) => [...collectEffectFlagIds(followUpChoiceDefinition?.effects)])])),
       ...Object.values(worldNodeCatalog?.shrines || {}).flatMap((shrineDefinition) => (Array.isArray(shrineDefinition?.choices) ? shrineDefinition.choices : []).flatMap((choiceDefinition) => [...collectEffectFlagIds(choiceDefinition?.effects)])),
@@ -153,6 +153,15 @@
       ...Object.values(worldNodeCatalog?.escalationOpportunities || {}).flatMap((escalationOpportunityDefinition) => (Array.isArray(escalationOpportunityDefinition?.variants) ? escalationOpportunityDefinition.variants : []).flatMap((variantDefinition) => (Array.isArray(variantDefinition?.choices) ? variantDefinition.choices : []).flatMap((choiceDefinition) => [...collectEffectFlagIds(choiceDefinition?.effects)]))),
     ]);
 
+    (Object.values(mercenaryCatalog) as MercenaryDefinition[]).forEach((mercenary) => {
+      (Array.isArray(mercenary?.routePerks) ? mercenary.routePerks : []).forEach((routePerk) => {
+        (Array.isArray(routePerk?.requiredFlagIds) ? routePerk.requiredFlagIds : []).forEach((flagId) => {
+          if (typeof flagId === "string" && flagId) {
+            knownWorldFlagIds.add(flagId);
+          }
+        });
+      });
+    });
     validateMercenaryCatalog(mercenaryCatalog, knownWorldFlagIds, worldNodeCatalog, errors);
 
     validateCardIdList(content?.starterDeck, cardCatalog, "starterDeck", errors);
@@ -320,7 +329,12 @@
     });
 
     Object.keys(content?.generatedActEncounterIds || {}).forEach((actNumber) => {
-      const encounterPackages = Array.isArray(content?.consequenceEncounterPackages?.[Number(actNumber)])
+      const hasEncounterPackages = Array.isArray(content?.consequenceEncounterPackages?.[Number(actNumber)]);
+      const hasRewardPackages = Array.isArray(content?.consequenceRewardPackages?.[Number(actNumber)]);
+      if (!hasEncounterPackages && !hasRewardPackages) {
+        return;
+      }
+      const encounterPackages = hasEncounterPackages
         ? content.consequenceEncounterPackages[Number(actNumber)]
         : [];
       if (encounterPackages.length < MIN_CONSEQUENCE_ENCOUNTER_PACKAGES_PER_ACT) {

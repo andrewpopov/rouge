@@ -280,7 +280,9 @@
     const weaponEquip = run.loadout?.weapon;
     const weaponItem = weaponEquip ? appState.content.itemCatalog?.[weaponEquip.itemId] : null;
     const weaponRarity = weaponEquip?.rarity || "white";
-    const rarityColor = weaponRarity === "brown" ? "#c59a46" : weaponRarity === "yellow" ? "#ddc63b" : "#aaa";
+    let rarityColor = "#aaa";
+    if (weaponRarity === "brown") { rarityColor = "#c59a46"; }
+    else if (weaponRarity === "yellow") { rarityColor = "#ddc63b"; }
     const canMelee = combat.phase === "player" && !combat.outcome && !combat.meleeUsed && (combat.weaponDamageBonus || 0) > 0;
 
     root.innerHTML = `

@@ -181,9 +181,13 @@
             ${reward.choices.map((choice) => {
               const icons = getEffectIcons(choice);
               const choiceRarity = choice.effects?.find((e) => e.rarity)?.rarity || "white";
-              const borderColor = choiceRarity === "brown" ? "#c59a46" : choiceRarity === "yellow" ? "#ddc63b" : "";
+              let borderColor = "";
+              if (choiceRarity === "brown") { borderColor = "#c59a46"; }
+              else if (choiceRarity === "yellow") { borderColor = "#ddc63b"; }
               const borderStyle = borderColor ? `border:2px solid ${borderColor}` : "";
-              const rarityTag = choiceRarity === "brown" ? "Unique " : choiceRarity === "yellow" ? "Magic " : "";
+              let rarityTag = "";
+              if (choiceRarity === "brown") { rarityTag = "Unique "; }
+              else if (choiceRarity === "yellow") { rarityTag = "Magic "; }
               return `
                 <button class="reward-choice-card" data-action="claim-reward-choice" data-choice-id="${escapeHtml(choice.id)}" style="${borderStyle}">
                   <div class="reward-choice-card__icons">${icons.join(" ")}${rarityTag ? ` <span style="color:${borderColor};font-size:0.75em">${rarityTag}</span>` : ""}</div>

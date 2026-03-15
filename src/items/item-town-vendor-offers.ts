@@ -299,6 +299,7 @@
   }
 
   runtimeWindow.__ROUGE_ITEM_TOWN_VENDOR_OFFERS = {
+    pickUniqueDefinitions,
     pickVendorEquipmentOffers,
     fillDefinitionSelection,
   };

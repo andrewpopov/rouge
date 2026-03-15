@@ -377,12 +377,35 @@
     return items;
   }
 
+  function meleeStrike(state, _content) {
+    if (state.phase !== "player" || state.outcome) {
+      return { ok: false, message: "Cannot melee right now." };
+    }
+    if (state.meleeUsed) {
+      return { ok: false, message: "Melee already used this turn." };
+    }
+    const baseDamage = Math.max(1, state.weaponDamageBonus || 0);
+    const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
+    const familyMatch = preferred.includes(state.weaponFamily || "");
+    const damage = familyMatch ? baseDamage + 2 : baseDamage;
+    const target = state.enemies.find((e) => e.id === state.selectedEnemyId && e.alive) || getLivingEnemies(state)[0];
+    if (!target) {
+      return { ok: false, message: "No living enemy." };
+    }
+    const dealt = dealDamage(state, target, damage);
+    state.meleeUsed = true;
+    appendLog(state, `Melee strike hits ${target.name} for ${dealt}${familyMatch ? " (proficient)" : ""}.`);
+    checkOutcome(state);
+    return { ok: true, message: "Melee strike landed." };
+  }
+
   function startPlayerTurn(state) {
     if (state.outcome) {
       return;
     }
     state.phase = "player";
     state.turn += 1;
+    state.meleeUsed = false;
     state.hero.guard = 0;
     if (state.mercenary.alive) {
       state.mercenary.guard = 0;
@@ -455,6 +478,7 @@
     appendLog,
     drawCards,
     discardHand,
+    meleeStrike,
     startPlayerTurn,
     endTurn,
     usePotion,

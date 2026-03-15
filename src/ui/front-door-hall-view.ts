@@ -4,12 +4,13 @@
   const {
     getClassName,
     getRunewordLabel,
-    getPreviewLabel,
     buildAccountOverviewMarkup,
     buildAccountDashboardMarkup,
     buildUnlockGalleryMarkup,
     buildVaultLogisticsMarkup,
   } = runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS;
+
+  const { getPreviewLabel } = runtimeWindow.ROUGE_UI_COMMON;
 
   function buildAccountControlsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
     const common = runtimeWindow.ROUGE_UI_COMMON;
