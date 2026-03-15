@@ -61,13 +61,13 @@ test("opportunity nodes fail cleanly when the required follow-up state is missin
   questZone.cleared = true;
   eventZone.encountersCleared = eventZone.encounterTotal;
   eventZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "primary_resolved",
     followUpNodeId: "",
     followUpOutcomeId: "",
@@ -112,19 +112,19 @@ test("crossroad opportunity nodes fail cleanly when the shrine state is missing"
   shrineZone.cleared = true;
   eventZone.encountersCleared = eventZone.encounterTotal;
   eventZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -169,39 +169,39 @@ test("reserve opportunity nodes fail cleanly when the crossroad state is missing
   shrineOpportunityZone.cleared = true;
   crossroadZone.encountersCleared = crossroadZone.encounterTotal;
   crossroadZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_route_opportunity = {
-    nodeId: "rogue_route_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_route_opportunity = {
+    nodeId: "sunwell_route_opportunity",
     zoneId: opportunityZone.id,
     actNumber: 1,
-    title: "Rogue Route Opportunity",
-    outcomeId: "raise_the_ridge_lanterns",
-    outcomeTitle: "Raise the Ridge Lanterns",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_route_ridge_lanterns"],
+    title: "Sunwell Route Opportunity",
+    outcomeId: "drive_the_lance_column",
+    outcomeTitle: "Drive the Lance Column",
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_lance_column"],
   };
-  state.run.world.opportunityOutcomes.rogue_vigil_route_opportunity = {
-    nodeId: "rogue_vigil_route_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_shrine_opportunity = {
+    nodeId: "sunwell_shrine_opportunity",
     zoneId: shrineOpportunityZone.id,
     actNumber: 1,
-    title: "Rogue Vigil",
+    title: "Sunwell Shrine Opportunity",
     outcomeId: "raise_the_signal_lanterns",
     outcomeTitle: "Raise the Signal Lanterns",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_vigil_signal_lanterns"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_shrine_signal_lanterns"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -266,19 +266,19 @@ test("culmination opportunity nodes fail cleanly when the relay state is missing
   openingZone.cleared = true;
   relayZone.encountersCleared = relayZone.encounterTotal;
   relayZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -315,19 +315,19 @@ test("legacy opportunity nodes fail cleanly when the culmination state is missin
   openingZone.cleared = true;
   culminationZone.encountersCleared = culminationZone.encounterTotal;
   culminationZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -364,29 +364,29 @@ test("reckoning opportunity nodes fail cleanly when the reserve state is missing
   openingZone.cleared = true;
   culminationZone.encountersCleared = culminationZone.encounterTotal;
   culminationZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_culmination_opportunity = {
-    nodeId: "rogue_culmination_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_culmination_opportunity = {
+    nodeId: "sunwell_culmination_opportunity",
     zoneId: culminationZone.id,
     actNumber: 1,
-    title: "Rogue Culmination",
+    title: "Sunwell Culmination",
     outcomeId: "last_wayfinders_commissioned",
     outcomeTitle: "Commission the Last Wayfinders",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_culmination_last_wayfinders"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_culmination_last_wayfinders"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -423,29 +423,29 @@ test("recovery opportunity nodes fail cleanly when the shrine state is missing",
   openingZone.cleared = true;
   culminationZone.encountersCleared = culminationZone.encounterTotal;
   culminationZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_culmination_opportunity = {
-    nodeId: "rogue_culmination_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_culmination_opportunity = {
+    nodeId: "sunwell_culmination_opportunity",
     zoneId: culminationZone.id,
     actNumber: 1,
-    title: "Rogue Culmination",
+    title: "Sunwell Culmination",
     outcomeId: "last_wayfinders_commissioned",
     outcomeTitle: "Commission the Last Wayfinders",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_culmination_last_wayfinders"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_culmination_last_wayfinders"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -484,39 +484,39 @@ test("accord opportunity nodes fail cleanly when the crossroad state is missing"
   openingZone.cleared = true;
   culminationZone.encountersCleared = culminationZone.encounterTotal;
   culminationZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_vigil_route_opportunity = {
-    nodeId: "rogue_vigil_route_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_shrine_opportunity = {
+    nodeId: "sunwell_shrine_opportunity",
     zoneId: shrineOpportunityZone.id,
     actNumber: 1,
-    title: "Rogue Vigil Route",
+    title: "Sunwell Shrine Opportunity",
     outcomeId: "raise_the_signal_lanterns",
     outcomeTitle: "Raise the Signal Lanterns",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_vigil_signal_lanterns"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_shrine_signal_lanterns"],
   };
-  state.run.world.opportunityOutcomes.rogue_culmination_opportunity = {
-    nodeId: "rogue_culmination_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_culmination_opportunity = {
+    nodeId: "sunwell_culmination_opportunity",
     zoneId: culminationZone.id,
     actNumber: 1,
-    title: "Rogue Culmination",
+    title: "Sunwell Culmination",
     outcomeId: "last_wayfinders_commissioned",
     outcomeTitle: "Commission the Last Wayfinders",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_culmination_last_wayfinders"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_culmination_last_wayfinders"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -565,49 +565,49 @@ test("covenant opportunity nodes fail cleanly when the accord state is missing",
   recoveryZone.cleared = true;
   accordZone.encountersCleared = accordZone.encounterTotal;
   accordZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_legacy_opportunity = {
-    nodeId: "rogue_legacy_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_legacy_opportunity = {
+    nodeId: "sunwell_legacy_opportunity",
     zoneId: legacyZone.id,
     actNumber: 1,
-    title: "Rogue Legacy",
+    title: "Sunwell Legacy",
     outcomeId: "extend_the_wayfinder_chain",
     outcomeTitle: "Extend the Wayfinder Chain",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_legacy_wayfinder_chain"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_legacy_wayfinder_chain"],
   };
-  state.run.world.opportunityOutcomes.rogue_reckoning_opportunity = {
-    nodeId: "rogue_reckoning_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_reckoning_opportunity = {
+    nodeId: "sunwell_reckoning_opportunity",
     zoneId: reckoningZone.id,
     actNumber: 1,
-    title: "Rogue Reckoning",
+    title: "Sunwell Reckoning",
     outcomeId: "break_the_last_chapel_ledger",
     outcomeTitle: "Break the Last Chapel Ledger",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_reckoning_chapel_ledger"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_reckoning_chapel_ledger"],
   };
-  state.run.world.opportunityOutcomes.rogue_recovery_opportunity = {
-    nodeId: "rogue_recovery_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_recovery_opportunity = {
+    nodeId: "sunwell_recovery_opportunity",
     zoneId: recoveryZone.id,
     actNumber: 1,
-    title: "Rogue Recovery",
+    title: "Sunwell Recovery",
     outcomeId: "rehang_the_chapel_lanterns",
     outcomeTitle: "Rehang the Chapel Lanterns",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_recovery_chapel_lanterns"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_recovery_chapel_lanterns"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -648,39 +648,39 @@ test("detour opportunity nodes fail cleanly when the covenant state is missing",
   recoveryZone.cleared = true;
   accordZone.encountersCleared = accordZone.encounterTotal;
   accordZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_recovery_opportunity = {
-    nodeId: "rogue_recovery_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_recovery_opportunity = {
+    nodeId: "sunwell_recovery_opportunity",
     zoneId: recoveryZone.id,
     actNumber: 1,
-    title: "Rogue Recovery",
+    title: "Sunwell Recovery",
     outcomeId: "rehang_the_chapel_lanterns",
     outcomeTitle: "Rehang the Chapel Lanterns",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_recovery_chapel_lanterns"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_recovery_chapel_lanterns"],
   };
-  state.run.world.opportunityOutcomes.rogue_accord_opportunity = {
-    nodeId: "rogue_accord_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_accord_opportunity = {
+    nodeId: "sunwell_accord_opportunity",
     zoneId: accordZone.id,
     actNumber: 1,
-    title: "Rogue Accord",
+    title: "Sunwell Accord",
     outcomeId: "recount_the_cloister_paths",
     outcomeTitle: "Recount the Cloister Paths",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_accord_cloister_paths"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_accord_cloister_paths"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 
@@ -721,39 +721,39 @@ test("escalation opportunity nodes fail cleanly when the legacy state is missing
   reckoningZone.cleared = true;
   covenantZone.encountersCleared = covenantZone.encounterTotal;
   covenantZone.cleared = true;
-  state.run.world.questOutcomes.tristram_relief = {
-    questId: "tristram_relief",
+  state.run.world.questOutcomes.lost_reliquary = {
+    questId: "lost_reliquary",
     zoneId: questZone.id,
     actNumber: 1,
-    title: "Tristram Relief",
-    outcomeId: "take_scout_report",
-    outcomeTitle: "Take Scout Report",
+    title: "Lost Reliquary",
+    outcomeId: "seal_the_chamber",
+    outcomeTitle: "Seal the Chamber",
     status: "follow_up_resolved",
     followUpNodeId: eventZone.id,
-    followUpOutcomeId: "mark_the_paths",
-    followUpOutcomeTitle: "Mark the Paths",
-    consequenceIds: ["paths_marked"],
-    flags: ["tristram_paths_marked"],
+    followUpOutcomeId: "relay_to_the_caravan",
+    followUpOutcomeTitle: "Relay to the Caravan",
+    consequenceIds: ["caravan_warded"],
+    flags: ["lost_reliquary_caravan_warded"],
   };
-  state.run.world.opportunityOutcomes.rogue_reckoning_opportunity = {
-    nodeId: "rogue_reckoning_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_reckoning_opportunity = {
+    nodeId: "sunwell_reckoning_opportunity",
     zoneId: reckoningZone.id,
     actNumber: 1,
-    title: "Rogue Reckoning",
+    title: "Sunwell Reckoning",
     outcomeId: "break_the_last_chapel_ledger",
     outcomeTitle: "Break the Last Chapel Ledger",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_reckoning_chapel_ledger"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_reckoning_chapel_ledger"],
   };
-  state.run.world.opportunityOutcomes.rogue_covenant_opportunity = {
-    nodeId: "rogue_covenant_opportunity",
+  state.run.world.opportunityOutcomes.sunwell_covenant_opportunity = {
+    nodeId: "sunwell_covenant_opportunity",
     zoneId: covenantZone.id,
     actNumber: 1,
-    title: "Rogue Covenant",
+    title: "Sunwell Covenant",
     outcomeId: "seal_the_wayfinder_ledger",
     outcomeTitle: "Seal the Wayfinder Ledger",
-    linkedQuestId: "tristram_relief",
-    flagIds: ["rogue_covenant_wayfinder_ledger"],
+    linkedQuestId: "lost_reliquary",
+    flagIds: ["sunwell_covenant_wayfinder_ledger"],
   };
   runFactory.recomputeZoneStatuses(state.run);
 

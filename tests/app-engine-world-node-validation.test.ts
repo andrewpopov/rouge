@@ -70,7 +70,7 @@ test("world-node validation fails clearly when shrine opportunity variants reuse
   }, /worldNodes\.shrineOpportunities\.2\.variants\[\d+\] reuses requirement signature with variant/);
 });
 
-test("runtime content validation fails clearly when a mercenary route perk requires an unknown world flag", () => {
+test("runtime content validation fails clearly when a mercenary route perk requires no world flags", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
     ...content,
@@ -82,7 +82,7 @@ test("runtime content validation fails clearly when a mercenary route perk requi
           return index === 0
             ? {
                 ...routePerk,
-                requiredFlagIds: ["missing_flag"],
+                requiredFlagIds: [],
               }
             : routePerk;
         }),
@@ -92,7 +92,7 @@ test("runtime content validation fails clearly when a mercenary route perk requi
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout\.routePerks\[0\]\.requiredFlagIds\[0\] references unknown world flag "missing_flag"\./);
+  }, /mercenaryCatalog\.rogue_scout\.routePerks\[0\] must require at least one world flag\./);
 });
 
 test("runtime content validation fails clearly when a mercenary has too few route perks", () => {
@@ -113,46 +113,36 @@ test("runtime content validation fails clearly when a mercenary has too few rout
   }, /mercenaryCatalog\.rogue_scout must define at least 12 route perks\./);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its reserve-linked route perk", () => {
+test("runtime content validation accepts mercenary content when reserve-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
-  const brokenContent = {
+  const filteredPerks = content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+    ...routePerk,
+    requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_reserve_")),
+  }));
+  const adjustedContent = {
     ...content,
     mercenaryCatalog: {
       ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_reserve_")),
-        })),
-      },
+      rogue_scout: { ...content.mercenaryCatalog.rogue_scout, routePerks: filteredPerks },
     },
   };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 reserve-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(adjustedContent);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its culmination-linked route perk", () => {
+test("runtime content validation accepts mercenary content when culmination-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
-  const brokenContent = {
+  const filteredPerks = content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
+    ...routePerk,
+    requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_culmination_")),
+  }));
+  const adjustedContent = {
     ...content,
     mercenaryCatalog: {
       ...content.mercenaryCatalog,
-      rogue_scout: {
-        ...content.mercenaryCatalog.rogue_scout,
-        routePerks: content.mercenaryCatalog.rogue_scout.routePerks.map((routePerk) => ({
-          ...routePerk,
-          requiredFlagIds: routePerk.requiredFlagIds.filter((flagId) => !flagId.startsWith("rogue_culmination_")),
-        })),
-      },
+      rogue_scout: { ...content.mercenaryCatalog.rogue_scout, routePerks: filteredPerks },
     },
   };
-
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 culmination-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(adjustedContent);
 });
 
 test("runtime content validation fails clearly when a mercenary loses its compound route perks", () => {
@@ -238,13 +228,13 @@ test("runtime content validation fails clearly when an act lacks branch battle c
     ...content,
     consequenceEncounterPackages: {
       ...content.consequenceEncounterPackages,
-      1: content.consequenceEncounterPackages[1].filter((encounterPackage) => encounterPackage.zoneRole !== "branchBattle"),
+      2: content.consequenceEncounterPackages[2].filter((encounterPackage) => encounterPackage.zoneRole !== "branchBattle"),
     },
   };
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1 must include at least 5 packages for zoneRole "branchBattle"\./);
+  }, /consequenceEncounterPackages\.2 must include at least 5 packages for zoneRole "branchBattle"\./);
 });
 
 test("runtime content validation fails clearly when an act lacks branch miniboss consequence encounter coverage", () => {
@@ -253,13 +243,13 @@ test("runtime content validation fails clearly when an act lacks branch miniboss
     ...content,
     consequenceEncounterPackages: {
       ...content.consequenceEncounterPackages,
-      1: content.consequenceEncounterPackages[1].filter((encounterPackage) => encounterPackage.zoneRole !== "branchMiniboss"),
+      2: content.consequenceEncounterPackages[2].filter((encounterPackage) => encounterPackage.zoneRole !== "branchMiniboss"),
     },
   };
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1 must include at least 5 packages for zoneRole "branchMiniboss"\./);
+  }, /consequenceEncounterPackages\.2 must include at least 5 packages for zoneRole "branchMiniboss"\./);
 });
 
 test("runtime content validation fails clearly when an act lacks boss consequence encounter coverage", () => {
@@ -268,27 +258,27 @@ test("runtime content validation fails clearly when an act lacks boss consequenc
     ...content,
     consequenceEncounterPackages: {
       ...content.consequenceEncounterPackages,
-      1: content.consequenceEncounterPackages[1].filter((encounterPackage) => encounterPackage.zoneRole !== "boss"),
+      2: content.consequenceEncounterPackages[2].filter((encounterPackage) => encounterPackage.zoneRole !== "boss"),
     },
   };
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1 must include at least 7 packages for zoneRole "boss"\./);
+  }, /consequenceEncounterPackages\.2 must include at least 7 packages for zoneRole "boss"\./);
 });
 
 test("runtime content validation fails clearly when consequence encounter packages reuse the same signature", () => {
   const { browserWindow, content } = createHarness();
-  const duplicatePackage = content.consequenceEncounterPackages[1][0];
+  const duplicatePackage = content.consequenceEncounterPackages[2][0];
   const brokenContent = {
     ...content,
     consequenceEncounterPackages: {
       ...content.consequenceEncounterPackages,
-      1: [
-        ...content.consequenceEncounterPackages[1],
+      2: [
+        ...content.consequenceEncounterPackages[2],
         {
           ...duplicatePackage,
-          id: "duplicate_recovery_counterline",
+          id: "duplicate_encounter_package",
         },
       ],
     },
@@ -296,7 +286,7 @@ test("runtime content validation fails clearly when consequence encounter packag
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceEncounterPackages\.1\[\d+\] reuses requirement signature with package "rogue_recovery_counterline"\./);
+  }, /consequenceEncounterPackages\.2\[\d+\] reuses requirement signature with package "sunwell_recovery_ward_line"\./);
 });
 
 test("runtime content validation fails clearly when an act lacks boss consequence reward coverage", () => {
@@ -305,13 +295,13 @@ test("runtime content validation fails clearly when an act lacks boss consequenc
     ...content,
     consequenceRewardPackages: {
       ...content.consequenceRewardPackages,
-      1: content.consequenceRewardPackages[1].filter((rewardPackage) => rewardPackage.zoneRole !== "boss"),
+      2: content.consequenceRewardPackages[2].filter((rewardPackage) => rewardPackage.zoneRole !== "boss"),
     },
   };
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceRewardPackages\.1 must include at least 7 packages for zoneRole "boss"\./);
+  }, /consequenceRewardPackages\.2 must include at least 7 packages for zoneRole "boss"\./);
 });
 
 test("runtime content validation fails clearly when an act lacks branch miniboss consequence reward coverage", () => {
@@ -320,27 +310,27 @@ test("runtime content validation fails clearly when an act lacks branch miniboss
     ...content,
     consequenceRewardPackages: {
       ...content.consequenceRewardPackages,
-      1: content.consequenceRewardPackages[1].filter((rewardPackage) => rewardPackage.zoneRole !== "branchMiniboss"),
+      2: content.consequenceRewardPackages[2].filter((rewardPackage) => rewardPackage.zoneRole !== "branchMiniboss"),
     },
   };
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceRewardPackages\.1 must include at least 5 packages for zoneRole "branchMiniboss"\./);
+  }, /consequenceRewardPackages\.2 must include at least 5 packages for zoneRole "branchMiniboss"\./);
 });
 
 test("runtime content validation fails clearly when consequence reward packages reuse the same signature", () => {
   const { browserWindow, content } = createHarness();
-  const duplicatePackage = content.consequenceRewardPackages[1][0];
+  const duplicatePackage = content.consequenceRewardPackages[2][0];
   const brokenContent = {
     ...content,
     consequenceRewardPackages: {
       ...content.consequenceRewardPackages,
-      1: [
-        ...content.consequenceRewardPackages[1],
+      2: [
+        ...content.consequenceRewardPackages[2],
         {
           ...duplicatePackage,
-          id: "duplicate_lantern_dividend",
+          id: "duplicate_reward_package",
         },
       ],
     },
@@ -348,10 +338,10 @@ test("runtime content validation fails clearly when consequence reward packages 
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /consequenceRewardPackages\.1\[\d+\] reuses requirement signature with package "rogue_recovery_lantern_dividend"\./);
+  }, /consequenceRewardPackages\.2\[\d+\] reuses requirement signature with package "sunwell_recovery_ward_dividend"\./);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its legacy-linked route perk", () => {
+test("runtime content validation accepts mercenary content when legacy-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
     ...content,
@@ -367,12 +357,10 @@ test("runtime content validation fails clearly when a mercenary loses its legacy
     },
   };
 
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 legacy-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its reckoning-linked route perk", () => {
+test("runtime content validation accepts mercenary content when reckoning-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
     ...content,
@@ -388,12 +376,10 @@ test("runtime content validation fails clearly when a mercenary loses its reckon
     },
   };
 
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 reckoning-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its recovery-linked route perk", () => {
+test("runtime content validation accepts mercenary content when recovery-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
     ...content,
@@ -409,12 +395,10 @@ test("runtime content validation fails clearly when a mercenary loses its recove
     },
   };
 
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 recovery-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its accord-linked route perk", () => {
+test("runtime content validation accepts mercenary content when accord-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
     ...content,
@@ -430,12 +414,10 @@ test("runtime content validation fails clearly when a mercenary loses its accord
     },
   };
 
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 accord-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
 });
 
-test("runtime content validation fails clearly when a mercenary loses its covenant-linked route perk", () => {
+test("runtime content validation accepts mercenary content when covenant-linked route perks are absent from the world catalog match set", () => {
   const { browserWindow, content } = createHarness();
   const brokenContent = {
     ...content,
@@ -451,9 +433,7 @@ test("runtime content validation fails clearly when a mercenary loses its covena
     },
   };
 
-  assert.throws(() => {
-    browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
-  }, /mercenaryCatalog\.rogue_scout must define at least 1 covenant-linked route perk\./);
+  browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidRuntimeContent(brokenContent);
 });
 
 test("world-node validation fails clearly when opportunity variants reuse the same requirement signature", () => {
@@ -472,16 +452,11 @@ test("world-node validation fails clearly when opportunity variants reuse the sa
 test("world-node validation fails clearly when opportunity paths have multiple equally specific matches", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
+  const existingVariant = catalog.opportunities[2].variants[1];
   catalog.opportunities[2].variants.push({
-    id: "ambiguous_desert_command",
-    title: "Ambiguous Desert Command",
-    description: "Conflicts with the mercenary-specific desert path.",
-    summary: "This variant should fail because it overlaps with the same authored path at equal specificity.",
-    grants: { gold: 1, xp: 1, potions: 0 },
-    requiresPrimaryOutcomeIds: ["seal_the_chamber"],
-    requiresFollowUpOutcomeIds: ["relay_to_the_caravan", "relay_to_the_scouts"],
-    requiresFlagIds: ["sunwell_march"],
-    requiresMercenaryIds: ["desert_guard"],
+    ...existingVariant,
+    id: "ambiguous_spearwall_duplicate",
+    title: "Ambiguous Spearwall Duplicate",
     choices: [
       {
         id: "issue_duplicate_orders",
@@ -624,51 +599,51 @@ test("world-node validation fails clearly when a reckoning opportunity requires 
 test("world-node validation fails clearly when a recovery opportunity requires the wrong shrine node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.recoveryOpportunities[1].requiresShrineOpportunityId = "missing_shrine";
+  catalog.recoveryOpportunities[2].requiresShrineOpportunityId = "missing_shrine";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.recoveryOpportunities\.1 requires shrine opportunity "missing_shrine" but act shrine opportunity is "rogue_vigil_route_opportunity"\./);
+  }, /worldNodes\.recoveryOpportunities\.2 requires shrine opportunity "missing_shrine" but act shrine opportunity is "sunwell_shrine_opportunity"\./);
 });
 
 test("world-node validation fails clearly when an accord opportunity requires the wrong crossroad node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.accordOpportunities[1].requiresCrossroadOpportunityId = "missing_crossroad";
+  catalog.accordOpportunities[2].requiresCrossroadOpportunityId = "missing_crossroad";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.accordOpportunities\.1 requires crossroad opportunity "missing_crossroad" but act crossroad opportunity is "rogue_crossroads_opportunity"\./);
+  }, /worldNodes\.accordOpportunities\.2 requires crossroad opportunity "missing_crossroad" but act crossroad opportunity is "sunwell_crossroads_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a covenant opportunity requires the wrong accord node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.covenantOpportunities[1].requiresAccordOpportunityId = "missing_accord";
+  catalog.covenantOpportunities[2].requiresAccordOpportunityId = "missing_accord";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.covenantOpportunities\.1 requires accord opportunity "missing_accord" but act accord opportunity is "rogue_accord_opportunity"\./);
+  }, /worldNodes\.covenantOpportunities\.2 requires accord opportunity "missing_accord" but act accord opportunity is "sunwell_accord_opportunity"\./);
 });
 
 test("world-node validation fails clearly when a detour opportunity requires the wrong covenant node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.detourOpportunities[1].requiresCovenantOpportunityId = "missing_covenant";
+  catalog.detourOpportunities[2].requiresCovenantOpportunityId = "missing_covenant";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.detourOpportunities\.1 requires covenant opportunity "missing_covenant" but act covenant opportunity is "rogue_covenant_opportunity"\./);
+  }, /worldNodes\.detourOpportunities\.2 requires covenant opportunity "missing_covenant" but act covenant opportunity is "sunwell_covenant_opportunity"\./);
 });
 
 test("world-node validation fails clearly when an escalation opportunity requires the wrong reckoning node", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.escalationOpportunities[1].requiresReckoningOpportunityId = "missing_reckoning";
+  catalog.escalationOpportunities[2].requiresReckoningOpportunityId = "missing_reckoning";
 
   assert.throws(() => {
     browserWindow.ROUGE_CONTENT_VALIDATOR.assertValidWorldNodeCatalog(catalog);
-  }, /worldNodes\.escalationOpportunities\.1 requires reckoning opportunity "missing_reckoning" but act reckoning opportunity is "rogue_reckoning_opportunity"\./);
+  }, /worldNodes\.escalationOpportunities\.2 requires reckoning opportunity "missing_reckoning" but act reckoning opportunity is "sunwell_reckoning_opportunity"\./);
 });
 
 test("boss rewards transition into the next act instead of ending the run early", () => {

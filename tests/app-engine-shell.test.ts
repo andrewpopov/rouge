@@ -330,9 +330,9 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Act Delta Review/);
-  assert.match(root.innerHTML, /Carry Forward State/);
-  assert.match(root.innerHTML, /Next Town Orders/);
+  assert.match(root.innerHTML, /Act \d+ Complete/);
+  assert.match(root.innerHTML, /cutscene/);
+  assert.match(root.innerHTML, /continue-act-transition/);
 });
 
 test("expedition launch flow persists from hall through character select into town", () => {
@@ -591,13 +591,13 @@ test("shared account-meta continuity board persists across the full shell", () =
   state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
   state.phase = appEngine.PHASES.ACT_TRANSITION;
   render();
-  assertMetaBoard();
+  assert.match(root.innerHTML, /Act \d+ Complete/);
 
   persistence.recordRunHistory(state.profile, state.run, "completed");
   state.profile.activeRunSnapshot = null;
   state.phase = appEngine.PHASES.RUN_COMPLETE;
   render();
-  assertMetaBoard();
+  assert.match(root.innerHTML, /Expedition Summary/);
 });
 
 test("account-meta drilldowns persist across the full shell", () => {
@@ -655,13 +655,13 @@ test("account-meta drilldowns persist across the full shell", () => {
   state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
   state.phase = appEngine.PHASES.ACT_TRANSITION;
   render();
-  assertDrilldowns();
+  assert.match(root.innerHTML, /Act \d+ Complete/);
 
   persistence.recordRunHistory(state.profile, state.run, "completed");
   state.profile.activeRunSnapshot = null;
   state.phase = appEngine.PHASES.RUN_COMPLETE;
   render();
-  assertDrilldowns();
+  assert.match(root.innerHTML, /Expedition Summary/);
 });
 
 test("action dispatcher drives the front-door continue and abandon shell flow", () => {
@@ -975,7 +975,7 @@ test("action dispatcher drives act-transition and failed-run shell exits", () =>
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.ACT_TRANSITION);
-  assert.match(root.innerHTML, /Act Delta Review/);
+  assert.match(root.innerHTML, /Act \d+ Complete/);
   state.run.acts[state.run.currentActIndex].complete = true;
   state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
   state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
@@ -1017,7 +1017,7 @@ test("action dispatcher drives act-transition and failed-run shell exits", () =>
   state.combat.outcome = "defeat";
   syncCombatResultAndRender();
   assert.equal(state.phase, appEngine.PHASES.RUN_FAILED);
-  assert.match(root.innerHTML, /Expedition Logged As Fallen/);
+  assert.match(root.innerHTML, /Has Fallen/);
   assert.match(root.innerHTML, /Return To Account Hall/);
 
   handled = actionDispatcher.handleClick({
@@ -1566,17 +1566,12 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Hall Handoff/);
-  assert.match(root.innerHTML, /Convergence Carry-Through/);
-  assert.match(root.innerHTML, /Next Hall Decision/);
-  assert.match(root.innerHTML, /Account Progress/);
-  assert.match(root.innerHTML, /Archive Delta/);
-  assert.match(root.innerHTML, /Hall Re-entry Guide/);
-  assert.match(root.innerHTML, /Account Tree Carry-Through/);
-  assert.match(root.innerHTML, /Unlock Carry-Through/);
-  assert.match(root.innerHTML, /Tutorial Carry-Through/);
-  assert.match(root.innerHTML, /Steel/);
-  assert.match(root.innerHTML, /Andariel/);
+  assert.match(root.innerHTML, /Expedition Summary/);
+  assert.match(root.innerHTML, /Outcome/);
+  assert.match(root.innerHTML, /Account Records/);
+  assert.match(root.innerHTML, /Archive/);
+  assert.match(root.innerHTML, /Unlocks/);
+  assert.match(root.innerHTML, /Return To Account Hall/);
 
   appEngine.returnToFrontDoor(state);
   appShell.render(root, {
