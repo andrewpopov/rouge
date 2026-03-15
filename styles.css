@@ -1299,7 +1299,9 @@ button.entity-card:disabled {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0;
+  min-height: 60vh;
 }
 
 .town-status {
@@ -1959,14 +1961,15 @@ button.waypoint:hover {
   transform: translateX(-50%);
   margin-top: 3px;
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   letter-spacing: 0.03em;
-  white-space: nowrap;
+  white-space: normal;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 1), 0 0 12px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.6);
-  max-width: 110px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+  line-height: 1.2;
 }
 
 .waypoint__check {
@@ -1987,12 +1990,13 @@ button.waypoint:hover {
 
 .waypoint__progress {
   position: absolute;
-  top: calc(100% + 17px);
+  top: calc(100% + 28px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.6rem;
   color: var(--accent);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
 }
 
 .waypoint--town .waypoint__icon {
@@ -2675,25 +2679,29 @@ button.waypoint:hover {
 
 .sprite__intent {
   position: absolute;
-  top: -38px;
+  top: -42px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 4px;
   animation: intent-bob 1.5s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  background: rgba(10, 6, 4, 0.88);
+  border: 1px solid rgba(235, 200, 149, 0.2);
+  border-radius: 4px;
+  padding: 3px 8px 3px 5px;
+  white-space: nowrap;
 }
 
 .sprite__intent-icon {
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .sprite__intent-icon .intent-icon {
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
 }
 
 .sprite__intent-label {
@@ -2708,7 +2716,7 @@ button.waypoint:hover {
 
 @keyframes intent-bob {
   0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-4px); }
+  50% { transform: translateX(-50%) translateY(-3px); }
 }
 
 .sprite__figure {
@@ -3147,7 +3155,7 @@ button.waypoint:hover {
 
 .reward-popup {
   width: 100%;
-  max-width: 520px;
+  max-width: 780px;
   max-height: 85vh;
   overflow-y: auto;
   background: linear-gradient(180deg, rgba(42, 30, 20, 0.97) 0%, rgba(20, 14, 10, 0.98) 100%);
@@ -3216,8 +3224,8 @@ button.waypoint:hover {
 }
 
 .reward-popup__choices {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
 
@@ -3238,8 +3246,8 @@ button.waypoint:hover {
 
 .reward-choice-card:hover {
   border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(212, 143, 70, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(212, 143, 70, 0.2);
 }
 
 .reward-choice-card__icons {
@@ -3274,8 +3282,13 @@ button.waypoint:hover {
   }
 
   .reward-popup {
+    max-width: 520px;
     max-height: 90vh;
     padding: 16px;
+  }
+
+  .reward-popup__choices {
+    grid-template-columns: 1fr;
   }
 }
 
