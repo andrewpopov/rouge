@@ -279,20 +279,27 @@
 
   function rollItemRarity(zoneKind, randomFn) {
     const roll = randomFn();
-    if (zoneKind === "boss") return roll < 0.30 ? "white" : roll < 0.70 ? "yellow" : "brown";
-    if (zoneKind === "miniboss") return roll < 0.50 ? "white" : roll < 0.85 ? "yellow" : "brown";
-    return roll < 0.70 ? "white" : roll < 0.95 ? "yellow" : "brown";
+    if (zoneKind === "boss") {
+      if (roll < 0.30) { return "white"; }
+      return roll < 0.70 ? "yellow" : "brown";
+    }
+    if (zoneKind === "miniboss") {
+      if (roll < 0.50) { return "white"; }
+      return roll < 0.85 ? "yellow" : "brown";
+    }
+    if (roll < 0.70) { return "white"; }
+    return roll < 0.95 ? "yellow" : "brown";
   }
 
   function generateRarityBonuses(itemDef, rarity, randomFn) {
-    if (!itemDef || rarity === "white" || !rarity) return {};
+    if (!itemDef || rarity === "white" || !rarity) { return {}; }
     const multiplier = rarity === "brown" ? 1.5 : 1.3;
     const extraLineCount = rarity === "brown" ? 2 : 1;
     const scaled = {};
     Object.entries(itemDef.bonuses || {}).forEach(([key, value]) => {
       const base = toNumber(value, 0);
       const boosted = Math.ceil(base * multiplier);
-      if (boosted > base) scaled[key] = boosted - base;
+      if (boosted > base) { scaled[key] = boosted - base; }
     });
     for (let i = 0; i < extraLineCount; i++) {
       const pick = EXTRA_BONUS_POOL[Math.floor(randomFn() * EXTRA_BONUS_POOL.length)];

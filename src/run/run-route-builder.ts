@@ -126,14 +126,14 @@
 
     for (const branch of sideBranches) {
       const parentZone = mainlineByName.get(branch.from);
-      if (!parentZone) continue;
+      if (!parentZone) { continue; }
 
       const prerequisites = [parentZone.id];
 
       // If a gate zone is specified, that zone must also be cleared
       if (branch.gatedBy) {
         const gateZone = mainlineByName.get(branch.gatedBy);
-        if (gateZone) prerequisites.push(gateZone.id);
+        if (gateZone) { prerequisites.push(gateZone.id); }
       }
 
       const zone = createZoneState({

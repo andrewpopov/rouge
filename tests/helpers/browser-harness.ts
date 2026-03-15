@@ -6,11 +6,17 @@ const ROOT = path.resolve(__dirname, "../../..");
 const GENERATED_ROOT = path.join(ROOT, "generated");
 
 const SHARED_RUNTIME_FILES = [
+  "src/app/constants.js",
+  "src/content/game-content-mercenaries-late.js",
   "src/content/game-content-mercenaries.js",
+  "src/content/game-content-encounters-late.js",
   "src/content/game-content-encounters.js",
+  "src/content/game-content-rewards-late-b.js",
+  "src/content/game-content-rewards-late.js",
   "src/content/game-content-rewards.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
+  "src/combat/combat-engine-turns.js",
   "src/combat/combat-engine.js",
 ];
 
@@ -18,24 +24,37 @@ const VALIDATOR_RUNTIME_FILES = [
   "src/content/content-validator-world-paths.js",
   "src/content/content-validator-world-opportunities-helpers.js",
   "src/content/content-validator-world-opportunities-families.js",
+  "src/content/content-validator-world-opportunities-families-late-b.js",
   "src/content/content-validator-world-opportunities-families-late.js",
   "src/content/content-validator-world-opportunities.js",
+  "src/content/content-validator-runtime-mercenaries.js",
   "src/content/content-validator-runtime-content.js",
+  "src/content/content-validator-world-catalog-sections.js",
+  "src/content/content-validator-world-catalog.js",
   "src/content/content-validator.js",
 ];
 
 const ENCOUNTER_REGISTRY_HELPER_FILES = [
+  "src/content/encounter-registry-enemy-builders-data.js",
   "src/content/encounter-registry-enemy-builders.js",
+  "src/content/encounter-registry-builders-boss.js",
+  "src/content/encounter-registry-builders-zones.js",
   "src/content/encounter-registry-builders.js",
 ];
 
 const ITEM_RUNTIME_FILES = [
+  "src/items/item-data-runes.js",
   "src/items/item-data.js",
   "src/items/item-catalog.js",
   "src/items/item-loadout.js",
+  "src/items/item-loadout-ops.js",
   "src/items/item-town-pricing.js",
+  "src/items/item-town-pricing-fees.js",
+  "src/items/item-town-vendor-offers.js",
   "src/items/item-town-vendor.js",
+  "src/items/item-town-actions.js",
   "src/items/item-town.js",
+  "src/items/item-system-rewards.js",
   "src/items/item-system.js",
 ];
 
@@ -49,24 +68,33 @@ const RUN_RUNTIME_FILES = [
 
 const PERSISTENCE_RUNTIME_FILES = [
   "src/state/save-migrations.js",
+  "src/state/profile-migrations-data.js",
   "src/state/profile-migrations.js",
+  "src/state/persistence-core-data.js",
   "src/state/persistence-core.js",
+  "src/state/persistence-planning.js",
   "src/state/persistence.js",
 ];
 
 const APP_UI_RUNTIME_FILES = [
   "src/ui/ui-account-meta.js",
+  "src/ui/ui-account-meta-drilldown.js",
   "src/ui/ui-common.js",
   "src/ui/launch-flow-view.js",
+  "src/ui/front-door-expedition-view-decision.js",
   "src/ui/front-door-expedition-view.js",
   "src/ui/front-door-hall-view-sections.js",
+  "src/ui/front-door-hall-view-sections-vault.js",
+  "src/ui/front-door-hall-view-archive.js",
   "src/ui/front-door-hall-view.js",
   "src/ui/front-door-view.js",
   "src/ui/character-select-view.js",
+  "src/ui/safe-zone-operations-view-markup.js",
   "src/ui/safe-zone-operations-view.js",
   "src/ui/safe-zone-view.js",
   "src/ui/world-map-view.js",
   "src/ui/combat-view.js",
+  "src/ui/reward-view-continuity.js",
   "src/ui/reward-view.js",
   "src/ui/act-transition-view.js",
   "src/ui/run-summary-view.js",
@@ -78,6 +106,7 @@ const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/catalog-opp-helpers.js",
   "src/quests/catalog-opp-additional.js",
   "src/quests/catalog-opp-shrine.js",
+  "src/quests/catalog-opp-shrine-b.js",
   "src/quests/catalog-opp-crossroad.js",
   "src/quests/catalog-opp-reserve.js",
   "src/quests/catalog-opp-relay.js",
@@ -91,13 +120,16 @@ const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/catalog-opp-escalation.js",
   "src/quests/world-node-catalog-opportunities.js",
   "src/quests/world-node-catalog-quests.js",
+  "src/quests/world-node-catalog-shrines-quests.js",
   "src/quests/world-node-catalog-shrines.js",
   "src/quests/world-node-catalog-opportunities-a.js",
   "src/quests/world-node-catalog-opportunities-b.js",
+  "src/quests/world-node-catalog-opportunities-b2.js",
   "src/quests/world-node-catalog.js",
   "src/quests/world-node-outcomes.js",
   "src/quests/world-node-zones.js",
   "src/quests/world-node-variants.js",
+  "src/quests/world-node-variants-b.js",
   "src/quests/world-node-engine.js",
 ];
 
@@ -123,13 +155,17 @@ const APP_RUNTIME_FILES = [
   "src/character/class-registry.js",
   "src/ui/render-utils.js",
   ...ITEM_RUNTIME_FILES,
+  "src/rewards/reward-engine-progression.js",
   "src/rewards/reward-engine.js",
   "src/exploration/zone-flavor.js",
+  "src/exploration/exploration-events-templates.js",
   "src/exploration/exploration-events.js",
   ...WORLD_NODE_RUNTIME_FILES,
   ...RUN_RUNTIME_FILES,
   "src/town/service-registry.js",
   ...PERSISTENCE_RUNTIME_FILES,
+  "src/app/app-engine-run.js",
+  "src/app/app-engine-profile.js",
   "src/app/app-engine.js",
   ...APP_UI_RUNTIME_FILES,
 ];

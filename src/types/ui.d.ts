@@ -339,6 +339,8 @@ interface RougeLimits {
   PLANNING_STAGE_EXTENDED: number;
   RECENT_RUNS_SUMMARY: number;
   NIGHTMARE_HELL_GUEST_ENEMIES: number;
+  MAX_HERO_ENERGY: number;
+  MAX_HERO_POTION_HEAL: number;
 }
 
 interface Window {
@@ -348,7 +350,13 @@ interface Window {
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
   ROUGE_COMBAT_MODIFIERS: CombatModifiersApi;
   ROUGE_SEED_LOADER: SeedLoaderApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA: Record<string, any>;
   ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES: Record<string, any>;
   ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;
   ROUGE_CONTENT_VALIDATOR_WORLD_PATHS: ContentValidatorWorldPathsApi;
   ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES: ContentValidatorWorldOpportunitiesApi;
@@ -370,6 +378,10 @@ interface Window {
     validateLegacyOpportunityFamily(options: unknown): void;
     validateReckoningOpportunityFamily(options: unknown): void;
   };
+  __ROUGE_CVWO_FAMILIES_C: {
+    validateDetourOpportunityFamily(options: unknown): void;
+    validateEscalationOpportunityFamily(options: unknown): void;
+  };
   __ROUGE_CVWO_FAMILIES_B: {
     validateRecoveryOpportunityFamily(options: unknown): void;
     validateAccordOpportunityFamily(options: unknown): void;
@@ -377,7 +389,13 @@ interface Window {
     validateDetourOpportunityFamily(options: unknown): void;
     validateEscalationOpportunityFamily(options: unknown): void;
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_CV_RUNTIME_MERCENARIES: Record<string, any>;
   ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_CV_WORLD_CATALOG_SECTIONS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_CV_WORLD_CATALOG: Record<string, any>;
   ROUGE_CONTENT_VALIDATOR: ContentValidatorApi;
   ROUGE_ENCOUNTER_REGISTRY: EncounterRegistryApi;
   ROUGE_CLASS_REGISTRY: ClassRegistryApi;
@@ -385,9 +403,17 @@ interface Window {
   ROUGE_ITEM_CATALOG: ItemCatalogApi;
   ROUGE_ITEM_LOADOUT: ItemLoadoutApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_MERCENARIES_LATE: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_GC_MERCENARIES: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_ENCOUNTERS_LATE: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_GC_ENCOUNTERS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_REWARDS_LATE_B: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_GC_REWARDS_LATE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_GC_REWARDS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -401,9 +427,37 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PERSISTENCE_CORE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_PERSISTENCE_CORE_DATA: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_PERSISTENCE_PLANNING: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_PROFILE_MIGRATIONS_DATA: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_ENGINE_TURNS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_EXPLORATION_EVENT_TEMPLATES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_REWARD_ENGINE_PROGRESSION: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_APP_ENGINE_RUN: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_APP_ENGINE_PROFILE: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_DATA_RUNES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_LOADOUT_OPS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_TOWN_PRICING: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_TOWN_PRICING_FEES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_TOWN_VENDOR_OFFERS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_TOWN_VENDOR: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_TOWN_ACTIONS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_SYSTEM_REWARDS: Record<string, any>;
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
@@ -427,6 +481,10 @@ interface Window {
     ): ReserveOpportunityVariantDefinition;
   };
   __ROUGE_OPP_STAGING: Partial<WorldNodeCatalogOpportunitiesApi>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_WNC_SHRINES_QUESTS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_WNV_HELPERS: Record<string, any>;
   ROUGE_WORLD_NODE_CATALOG_OPPORTUNITIES: WorldNodeCatalogOpportunitiesApi;
   ROUGE_WORLD_NODE_CATALOG: WorldNodeCatalogApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
@@ -444,13 +502,27 @@ interface Window {
   ROUGE_PROFILE_MIGRATIONS: ProfileMigrationApi;
   ROUGE_PERSISTENCE: PersistenceApi;
   ROUGE_APP_ENGINE: AppEngineApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_APP_ENGINE_RUN: Record<string, any>;
   ROUGE_UI_ACCOUNT_META: UiAccountMetaApi;
   ROUGE_UI_COMMON: UiCommonApi;
   ROUGE_FRONT_DOOR_EXPEDITION_VIEW: FrontDoorExpeditionViewApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_EXPEDITION_DECISION: Record<string, (...args: any[]) => any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_HALL_VIEW_SECTIONS: Record<string, (...args: any[]) => any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_HALL_VIEW_SECTIONS_VAULT: Record<string, (...args: any[]) => any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_HALL_VIEW_ARCHIVE: Record<string, (...args: any[]) => any>;
   ROUGE_FRONT_DOOR_HALL_VIEW: FrontDoorHallViewApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_SAFE_ZONE_OPS_MARKUP: Record<string, (...args: any[]) => any>;
   ROUGE_SAFE_ZONE_OPERATIONS_VIEW: SafeZoneOperationsViewApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_REWARD_VIEW_CONTINUITY: Record<string, (...args: any[]) => any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ACCOUNT_META_DRILLDOWN: Record<string, (...args: any[]) => any>;
   ROUGE_ASSET_MAP: AssetMapApi;
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;

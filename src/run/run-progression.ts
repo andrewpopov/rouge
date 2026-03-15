@@ -11,9 +11,6 @@
     toBonusValue,
   } = runtimeWindow.ROUGE_RUN_STATE;
 
-  const MAX_HERO_ENERGY = 6;
-  const MAX_HERO_POTION_HEAL = 24;
-
   function getClassProgression(content, classId) {
     return runtimeWindow.ROUGE_CLASS_REGISTRY?.getClassProgression?.(content, classId) || null;
   }
@@ -199,8 +196,8 @@
     }
 
     if (track === "focus") {
-      run.hero.maxEnergy = clamp(run.hero.maxEnergy + 1, 1, MAX_HERO_ENERGY);
-      run.hero.potionHeal = clamp(run.hero.potionHeal + 1, 1, MAX_HERO_POTION_HEAL);
+      run.hero.maxEnergy = clamp(run.hero.maxEnergy + 1, 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_ENERGY);
+      run.hero.potionHeal = clamp(run.hero.potionHeal + 1, 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_POTION_HEAL);
       return;
     }
 
