@@ -208,7 +208,7 @@
           run.activeZoneId = "";
           run.activeEncounterId = "";
           routeBuilder.recomputeZoneStatuses(run);
-          appEngine.setPhase(appState, appEngine.PHASES.WORLD_MAP);
+          appState.phase = appEngine.PHASES.WORLD_MAP;
           render();
         }
         return true;
