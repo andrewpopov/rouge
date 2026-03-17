@@ -60,6 +60,32 @@
       skillRef: "druid_poison_creeper",
       tier: 1,
     },
+    druid_bark_skin: {
+      id: "druid_bark_skin",
+      title: "Bark Skin",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "druid_bark_skin",
+      tier: 1,
+    },
+    druid_rejuvenation: {
+      id: "druid_rejuvenation",
+      title: "Rejuvenation",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "druid_rejuvenation",
+      tier: 1,
+    },
 
     // ── Tier 2 ──
     druid_molten_boulder: {
@@ -215,10 +241,10 @@
     "druid_raven", "druid_raven",
     "druid_poison_creeper",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
-    "shield_slam",
+    "druid_rejuvenation",
+    "druid_bark_skin",
+    "druid_bark_skin",
+    "druid_bark_skin",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

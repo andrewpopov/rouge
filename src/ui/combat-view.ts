@@ -88,6 +88,27 @@
     { title: "Advance", flavor: "The road stretches onward. Your party moves deeper into the unknown.", icon: "\u{1F6B6}" },
   ];
 
+  function getCardElement(card: CardDefinition): string {
+    const text = card.text.toLowerCase();
+    if (text.includes("fire") || text.includes("burn")) return "fire";
+    if (text.includes("cold") || text.includes("ice") || text.includes("frost") || text.includes("freeze")) return "ice";
+    if (text.includes("lightning")) return "lightning";
+    if (text.includes("poison")) return "poison";
+    if (text.includes("magic") || text.includes("arcane")) return "arcane";
+    if (card.effects?.some((e) => e.kind === "damage" || e.kind === "damage_all")) return "physical";
+    return "support";
+  }
+
+  const ELEMENT_LABELS: Record<string, string> = {
+    fire: "Fire",
+    ice: "Cold",
+    lightning: "Lightning",
+    poison: "Poison",
+    arcane: "Arcane",
+    physical: "Attack",
+    support: "Skill",
+  };
+
   function getExploreOptions(zoneKind: string, seed: number): ExploreOption[] {
     const pool = ZONE_EXPLORE_OPTIONS[zoneKind] || GENERIC_OPTIONS;
     const shuffled = [...pool].sort((a, b) => {
@@ -125,7 +146,7 @@
                 <div class="event-card-pick__current">
                   <span class="event-card-pick__cost">${card.cost}</span>
                   <span class="event-card-pick__name">${escapeHtml(card.title)}</span>
-                  <span class="event-card-pick__type">${card.target === "enemy" ? "Attack" : "Skill"}</span>
+                  <span class="event-card-pick__type">${ELEMENT_LABELS[getCardElement(card)] || "Skill"}</span>
                 </div>
                 <div class="event-card-pick__arrow">\u2192</div>
                 <div class="event-card-pick__upgraded">
@@ -383,6 +404,7 @@
           <div class="card-fan" style="--card-count:${cardCount}">
             ${combat.hand.map((instance, i) => {
               const card = appState.content.cardCatalog[instance.cardId];
+              const element = getCardElement(card);
               const requiresTarget = card.target === "enemy";
               const cantPlay =
                 combat.outcome ||
@@ -394,14 +416,14 @@
               const rotation = offset * 4;
               const translateY = Math.abs(offset) * 6;
               return `
-                <button class="fan-card ${cantPlay ? "fan-card--disabled" : ""} ${card.target === "enemy" ? "fan-card--attack" : "fan-card--skill"}"
+                <button class="fan-card ${cantPlay ? "fan-card--disabled" : ""} fan-card--${element}"
                         data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
                         style="--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${i}">
                   <div class="fan-card__cost">${card.cost}</div>
-                  <div class="fan-card__art">${(() => { const iconClass = card.target === "enemy" ? " fan-card__icon--attack" : " fan-card__icon--skill"; if (assets) { return svgIcon(assets.getCardIcon(instance.cardId, card.effects), `fan-card__icon${iconClass}`, card.title); } return card.target === "enemy" ? "\u2694" : "\u{1F6E1}"; })()}</div>
+                  <div class="fan-card__art">${(() => { if (assets) { return svgIcon(assets.getCardIcon(instance.cardId, card.effects), `fan-card__icon fan-card__icon--${element}`, card.title); } return card.target === "enemy" ? "\u2694" : "\u{1F6E1}"; })()}</div>
                   <div class="fan-card__name">${escapeHtml(card.title)}</div>
                   <div class="fan-card__desc">${escapeHtml(card.text)}</div>
-                  <div class="fan-card__type">${card.target === "enemy" ? "Attack" : "Skill"}</div>
+                  <div class="fan-card__type">${ELEMENT_LABELS[element] || "Skill"}</div>
                 </button>
               `;
             }).join("")}

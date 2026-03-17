@@ -57,6 +57,32 @@
       skillRef: "barbarian_find_potion",
       tier: 1,
     },
+    barbarian_iron_skin: {
+      id: "barbarian_iron_skin",
+      title: "Iron Skin",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "barbarian_iron_skin",
+      tier: 1,
+    },
+    barbarian_battle_recovery: {
+      id: "barbarian_battle_recovery",
+      title: "Battle Recovery",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "barbarian_battle_recovery",
+      tier: 1,
+    },
 
     // ── Tier 2 ──
     barbarian_double_swing: {
@@ -203,9 +229,9 @@
     "barbarian_howl", "barbarian_howl",
     "barbarian_find_potion", "barbarian_find_potion",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
+    "barbarian_battle_recovery",
+    "barbarian_iron_skin",
+    "barbarian_iron_skin",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {
