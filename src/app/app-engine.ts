@@ -70,6 +70,7 @@
         townFocus: "",
         exploring: false,
         explorationEvent: null,
+        scrollMapOpen: false,
       },
       profile,
       run: null,

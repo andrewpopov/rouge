@@ -51,24 +51,24 @@
     },
     2: {
       // Mainline (left→right across the middle)
-      "town":              [7, 46],
-      "Rocky Waste":       [20, 46],
-      "Dry Hills":         [32, 46],
-      "Far Oasis":         [44, 46],
-      "Lost City":         [58, 46],
-      "Valley of Snakes":  [74, 46],
+      "town":              [8, 46],
+      "Rocky Waste":       [22, 46],
+      "Dry Hills":         [34, 46],
+      "Far Oasis":         [47, 46],
+      "Lost City":         [63, 46],
+      "Valley of Snakes":  [79, 46],
       // Monastery-style wrap (left→right along bottom)
-      "Harem":             [15, 76],
-      "The Palace Cellar": [28, 76],
-      "Arcane Sanctuary":  [42, 76],
-      "Canyon of the Magi": [56, 76],
-      "Tal Rasha's Tomb":  [72, 76],
-      "Tal Rasha's Chamber": [72, 84],
+      "Harem":             [16, 76],
+      "The Palace Cellar": [30, 76],
+      "Arcane Sanctuary":  [44, 76],
+      "Canyon of the Magi": [59, 76],
+      "Tal Rasha's Tomb":  [76, 76],
+      "Tal Rasha's Chamber": [76, 84],
       // Side branches (upper row)
-      "Sewers":            [22, 16],
-      "Halls of the Dead": [42, 18],
+      "Sewers":            [16, 16],
+      "Halls of the Dead": [38, 18],
       "Maggot Lair":       [56, 22],
-      "Lost Reliquary":    [82, 22],
+      "Lost Reliquary":    [86, 22],
     },
     3: {
       // Upper mainline (left→right)
@@ -312,7 +312,7 @@
     const positions = computePositions(mapZones, run.actNumber);
 
     // Town waypoint (always shown, always cleared)
-    const townPos = positions.get("town") || [7, 44];
+    const townPos = positions.get("town") || [8, 44];
     const townWaypoint = `
       <div class="waypoint waypoint--town" style="left:${townPos[0]}%;top:${townPos[1]}%">
         <span class="waypoint__icon">\u{1F3E0}</span>
@@ -324,6 +324,9 @@
     const edges = buildSvgEdges(mapZones, positions);
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const zoneTitles = Object.fromEntries(currentZones.map((zone) => [zone.id, zone.title]));
+
+    const scrollOpen = appState.ui?.scrollMapOpen;
+    const progressPct = currentZones.length > 0 ? Math.round((clearedCount / currentZones.length) * 100) : 0;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -342,27 +345,36 @@
           </div>
         </div>
 
-        <div class="actmap__canvas">
+        <div class="actmap__canvas ${scrollOpen ? "actmap__canvas--scroll" : ""}">
           <img class="actmap__bg"
                src="./assets/curated/act-maps/${actMapFile}.png"
                alt="${escapeHtml(run.actTitle)}"
                draggable="false" />
 
-          <svg class="actmap__edges">
-            ${edges}
-          </svg>
+          <div class="actmap__main-map">
+            <svg class="actmap__edges">
+              ${edges}
+            </svg>
 
-          ${townWaypoint}
-          ${waypoints}
+            ${townWaypoint}
+            ${waypoints}
 
-          <div class="actmap__progress">
-            <div class="actmap__progress-fill" style="width:${currentZones.length > 0 ? Math.round((clearedCount / currentZones.length) * 100) : 0}%"></div>
+            <div class="actmap__progress">
+              <div class="actmap__progress-fill" style="width:${progressPct}%"></div>
+            </div>
+          </div>
+
+          <div class="actmap__scroll-overlay">
+            <div class="actmap__scroll-label">\u{1F4DC} Recovered Map Fragment</div>
           </div>
         </div>
 
         <div class="actmap__actions">
           <button class="actmap__retreat" data-action="return-safe-zone">
             \u2190 Return to ${escapeHtml(run.safeZoneName)}
+          </button>
+          <button class="actmap__scroll-toggle" data-action="toggle-scroll-map">
+            ${scrollOpen ? "\u2694 Waypoint Map" : "\u{1F4DC} View Scroll"}
           </button>
         </div>
       </div>

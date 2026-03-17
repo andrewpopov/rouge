@@ -513,6 +513,7 @@ interface AppState {
     townFocus: string;
     exploring: boolean;
     explorationEvent: ExplorationEvent | null;
+    scrollMapOpen: boolean;
   };
   profile: ProfileState;
   run: RunState | null;

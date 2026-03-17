@@ -33,6 +33,10 @@
         if (panel) { panel.classList.toggle("game-menu__panel--open"); }
         return true;
       }
+      case "toggle-scroll-map":
+        appState.ui.scrollMapOpen = !appState.ui.scrollMapOpen;
+        render();
+        return true;
       case "select-class":
         appEngine.setSelectedClass(appState, actionEl.dataset.classId || "");
         render();
