@@ -6,6 +6,7 @@ const ROOT = path.resolve(__dirname, "../../..");
 const GENERATED_ROOT = path.join(ROOT, "generated");
 
 const SHARED_RUNTIME_FILES = [
+  "src/core/utils.js",
   "src/app/constants.js",
   "src/content/game-content-mercenaries-late.js",
   "src/content/game-content-mercenaries.js",
@@ -14,6 +15,13 @@ const SHARED_RUNTIME_FILES = [
   "src/content/game-content-rewards-late-b.js",
   "src/content/game-content-rewards-late.js",
   "src/content/game-content-rewards.js",
+  "src/content/class-cards-amazon.js",
+  "src/content/class-cards-assassin.js",
+  "src/content/class-cards-barbarian.js",
+  "src/content/class-cards-druid.js",
+  "src/content/class-cards-necromancer.js",
+  "src/content/class-cards-paladin.js",
+  "src/content/class-cards-sorceress.js",
   "src/content/class-cards.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
@@ -74,6 +82,7 @@ const PERSISTENCE_RUNTIME_FILES = [
   "src/state/persistence-core-data.js",
   "src/state/persistence-core.js",
   "src/state/persistence-planning.js",
+  "src/state/persistence-summaries.js",
   "src/state/persistence.js",
 ];
 
@@ -119,6 +128,7 @@ const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/catalog-opp-covenant.js",
   "src/quests/catalog-opp-detour.js",
   "src/quests/catalog-opp-escalation.js",
+  "src/quests/catalog-opp-c.js",
   "src/quests/world-node-catalog-opportunities.js",
   "src/quests/world-node-catalog-quests.js",
   "src/quests/world-node-catalog-shrines-quests.js",

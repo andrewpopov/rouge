@@ -1,12 +1,9 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { deepClone, toNumber, clamp } = runtimeWindow.ROUGE_UTILS;
 
   const CURRENT_SCHEMA_VERSION = 5;
   const LEVEL_TRAINING_ORDER = ["vitality", "focus", "command"];
-
-  function deepClone(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
 
   function isObject(value) {
     return Boolean(value) && typeof value === "object";
@@ -63,14 +60,6 @@
       insertedRunes: runeId ? [runeId] : [],
       runewordId: "",
     };
-  }
-
-  function toNumber(value, fallback = 0) {
-    return Number.parseInt(String(value ?? fallback), 10) || fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
   }
 
   function createDefaultTraining() {

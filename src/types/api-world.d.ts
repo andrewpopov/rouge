@@ -121,10 +121,11 @@ interface WorldNodeVariantsApi {
   resolveEscalationOpportunityVariant(run: RunState, actNumber: number): EscalationVariantResult;
 }
 
+type WorldNodeCatalogValue<K extends keyof WorldNodeCatalog> = WorldNodeCatalog[K][number];
+
 interface WorldNodeZonesApi {
   buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition): RewardChoice;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getCatalogEntry(key: string, actNumber: number): any;
+  getCatalogEntry<K extends keyof WorldNodeCatalog>(key: K, actNumber: number): WorldNodeCatalogValue<K>;
   getQuestDefinition(actNumber: number): QuestNodeDefinition;
   getShrineDefinition(actNumber: number): ShrineNodeDefinition;
   getEventDefinition(actNumber: number): EventNodeDefinition;

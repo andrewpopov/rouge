@@ -8,6 +8,7 @@
 
     buildBoonChoice,
   } = runtimeWindow.__ROUGE_REWARD_ENGINE_PROGRESSION;
+  const { clamp } = runtimeWindow.ROUGE_UTILS;
 
   const MAX_BELT_SIZE = 5;
 
@@ -133,10 +134,6 @@
       },
     ],
   };
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
 
   function getDeckProfileId(content, classId) {
     return content.classDeckProfiles?.[classId] || "warrior";

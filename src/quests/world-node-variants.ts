@@ -399,9 +399,9 @@
     };
   }
 
-  // Expose helpers + first batch of resolvers; the second batch lives in world-node-variants-b.ts
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (runtimeWindow as any).ROUGE_WORLD_NODE_VARIANTS = {
+  // Stage first batch of resolvers; the second batch in world-node-variants-b.ts
+  // will merge these with its own resolvers and publish the complete API.
+  runtimeWindow.__ROUGE_WNV_PARTIAL = {
     resolveEventFollowUp,
     resolveOpportunityVariant,
     resolveCrossroadOpportunityVariant,

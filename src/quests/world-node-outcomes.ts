@@ -1,11 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-
-  function uniquePush(list: string[], value: string | undefined | null) {
-    if (value && !list.includes(value)) {
-      list.push(value);
-    }
-  }
+  const { uniquePush } = runtimeWindow.ROUGE_UTILS;
 
   function ensureWorldState(run: RunState): RunWorldState {
     if (!run.world || typeof run.world !== "object") {

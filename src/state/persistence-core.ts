@@ -6,26 +6,15 @@
     ACCOUNT_PROGRESSION_TREES,
     ACCOUNT_CONVERGENCES,
   } = runtimeWindow.__ROUGE_PERSISTENCE_CORE_DATA;
+  const { deepClone, toNumber, uniqueStrings } = runtimeWindow.ROUGE_UTILS;
 
   const SCHEMA_VERSION = runtimeWindow.ROUGE_SAVE_MIGRATIONS?.CURRENT_SCHEMA_VERSION || 4;
   const PROFILE_SCHEMA_VERSION = runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.CURRENT_PROFILE_SCHEMA_VERSION || 1;
   const STORAGE_KEY = "rouge.run.snapshot";
   const PROFILE_STORAGE_KEY = "rouge.profile";
 
-  function deepClone(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
-
   function getDefaultStorage() {
     return runtimeWindow.localStorage || null;
-  }
-
-  function uniqueStrings(values) {
-    return Array.from(new Set((Array.isArray(values) ? values : []).filter((entry) => typeof entry === "string" && entry)));
-  }
-
-  function toNumber(value, fallback = 0) {
-    return Number.parseInt(String(value ?? fallback), 10) || fallback;
   }
 
   function getMilestoneTierLabel(milestone) {

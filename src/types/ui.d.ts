@@ -344,6 +344,7 @@ interface RougeLimits {
 }
 
 interface Window {
+  ROUGE_UTILS: RougeUtilsApi;
   ROUGE_LIMITS: RougeLimits;
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_DEBUG: DebugModeConfig | null;
@@ -416,6 +417,11 @@ interface Window {
   __ROUGE_GC_REWARDS_LATE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_GC_REWARDS: Record<string, any>;
+  __ROUGE_CLASS_CARDS_STAGING: Record<string, {
+    cards: Record<string, CardDefinition>;
+    starterDeck: string[];
+    rewardPool: ClassRewardTiers;
+  }>;
   __ROUGE_CLASS_CARDS: {
     classCardCatalog: Record<string, CardDefinition>;
     classStarterDecks: Record<string, string[]>;
@@ -435,6 +441,7 @@ interface Window {
   __ROUGE_PERSISTENCE_CORE_DATA: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PERSISTENCE_PLANNING: Record<string, any>;
+  __ROUGE_PERSISTENCE_SUMMARIES: PersistenceSummariesApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PROFILE_MIGRATIONS_DATA: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -485,11 +492,21 @@ interface Window {
       }
     ): ReserveOpportunityVariantDefinition;
   };
-  __ROUGE_OPP_STAGING: Partial<WorldNodeCatalogOpportunitiesApi>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_WNC_SHRINES_QUESTS: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_WNV_HELPERS: Record<string, any>;
+  __ROUGE_OPP_STAGING: Partial<WorldNodeCatalogOpportunitiesApi> & {
+    cOpportunityDefinitions?: Record<number, OpportunityNodeDefinition>;
+  };
+  __ROUGE_WNC_SHRINES_QUESTS: { questsB: Record<number, QuestNodeDefinition> };
+  __ROUGE_WNV_PARTIAL: Pick<
+    WorldNodeVariantsApi,
+    | "resolveEventFollowUp"
+    | "resolveOpportunityVariant"
+    | "resolveCrossroadOpportunityVariant"
+    | "resolveShrineOpportunityVariant"
+    | "resolveReserveOpportunityVariant"
+    | "resolveRelayOpportunityVariant"
+    | "resolveCulminationOpportunityVariant"
+  >;
+  __ROUGE_WNV_HELPERS: WorldNodeVariantHelpersApi;
   ROUGE_WORLD_NODE_CATALOG_OPPORTUNITIES: WorldNodeCatalogOpportunitiesApi;
   ROUGE_WORLD_NODE_CATALOG: WorldNodeCatalogApi;
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
@@ -507,27 +524,19 @@ interface Window {
   ROUGE_PROFILE_MIGRATIONS: ProfileMigrationApi;
   ROUGE_PERSISTENCE: PersistenceApi;
   ROUGE_APP_ENGINE: AppEngineApi;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_APP_ENGINE_RUN: Record<string, any>;
+  __ROUGE_APP_ENGINE_RUN: AppEngineRunApi;
   ROUGE_UI_ACCOUNT_META: UiAccountMetaApi;
   ROUGE_UI_COMMON: UiCommonApi;
   ROUGE_FRONT_DOOR_EXPEDITION_VIEW: FrontDoorExpeditionViewApi;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_EXPEDITION_DECISION: Record<string, (...args: any[]) => any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_HALL_VIEW_SECTIONS: Record<string, (...args: any[]) => any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_HALL_VIEW_SECTIONS_VAULT: Record<string, (...args: any[]) => any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_HALL_VIEW_ARCHIVE: Record<string, (...args: any[]) => any>;
+  __ROUGE_EXPEDITION_DECISION: ExpeditionDecisionApi;
+  __ROUGE_HALL_VIEW_SECTIONS: HallViewSectionsApi;
+  __ROUGE_HALL_VIEW_SECTIONS_VAULT: HallViewSectionsVaultApi;
+  __ROUGE_HALL_VIEW_ARCHIVE: HallViewArchiveApi;
   ROUGE_FRONT_DOOR_HALL_VIEW: FrontDoorHallViewApi;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_SAFE_ZONE_OPS_MARKUP: Record<string, (...args: any[]) => any>;
+  __ROUGE_SAFE_ZONE_OPS_MARKUP: SafeZoneOpsMarkupApi;
   ROUGE_SAFE_ZONE_OPERATIONS_VIEW: SafeZoneOperationsViewApi;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_REWARD_VIEW_CONTINUITY: Record<string, (...args: any[]) => any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ACCOUNT_META_DRILLDOWN: Record<string, (...args: any[]) => any>;
+  __ROUGE_REWARD_VIEW_CONTINUITY: RewardViewContinuityApi;
+  __ROUGE_ACCOUNT_META_DRILLDOWN: AccountMetaDrilldownInternalApi;
   ROUGE_ASSET_MAP: AssetMapApi;
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
