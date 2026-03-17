@@ -376,7 +376,12 @@
                       <span class="sprite__hp-text">${enemy.life}/${enemy.maxLife}</span>
                     </div>
                     ${enemy.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${enemy.guard}</div>` : ""}
-                    ${enemy.burn > 0 ? `<div class="sprite__status sprite__status--burn">${assets ? svgIcon(assets.getUiIcon("burn") || "", "status-icon status-icon--burn", "Burn") : "\u{1F525}"} ${enemy.burn}</div>` : ""}
+                    ${enemy.burn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${enemy.burn}</div>` : ""}
+                    ${enemy.poison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${enemy.poison}</div>` : ""}
+                    ${enemy.slow > 0 ? `<div class="sprite__status sprite__status--slow">\u{1F422} ${enemy.slow}</div>` : ""}
+                    ${enemy.freeze > 0 ? `<div class="sprite__status sprite__status--freeze">\u2744 ${enemy.freeze}</div>` : ""}
+                    ${enemy.stun > 0 ? `<div class="sprite__status sprite__status--stun">\u26A1 ${enemy.stun}</div>` : ""}
+                    ${enemy.paralyze > 0 ? `<div class="sprite__status sprite__status--paralyze">\u{1F50C} ${enemy.paralyze}</div>` : ""}
                   </div>
                   <div class="sprite__label">${escapeHtml(enemy.name)}</div>
                 </button>

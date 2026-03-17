@@ -35,9 +35,12 @@
   function handleDefeat(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState) {
     entity.alive = false;
     entity.guard = 0;
-    if (entity.burn) {
-      entity.burn = 0;
-    }
+    if (entity.burn) { entity.burn = 0; }
+    if ((entity as CombatEnemyState).poison) { (entity as CombatEnemyState).poison = 0; }
+    if ((entity as CombatEnemyState).slow) { (entity as CombatEnemyState).slow = 0; }
+    if ((entity as CombatEnemyState).freeze) { (entity as CombatEnemyState).freeze = 0; }
+    if ((entity as CombatEnemyState).stun) { (entity as CombatEnemyState).stun = 0; }
+    if ((entity as CombatEnemyState).paralyze) { (entity as CombatEnemyState).paralyze = 0; }
     appendLog(state, `${entity.name} falls.`);
   }
 
@@ -206,13 +209,49 @@
       return;
     }
 
+    // ── DOT: Burn (fire) ──
     if (enemy.burn > 0) {
       const burnDamage = dealDamage(state, enemy, enemy.burn);
       appendLog(state, `${enemy.name} takes ${burnDamage} Burn damage.`);
       enemy.burn = Math.max(0, enemy.burn - 1);
-      if (!enemy.alive) {
+      if (!enemy.alive) { return; }
+    }
+
+    // ── DOT: Poison (bypasses guard) ──
+    if (enemy.poison > 0) {
+      const poisonDamage = Math.max(0, Math.floor(enemy.poison));
+      enemy.life = Math.max(0, enemy.life - poisonDamage);
+      appendLog(state, `${enemy.name} takes ${poisonDamage} Poison damage.`);
+      enemy.poison = Math.max(0, enemy.poison - 1);
+      if (enemy.life <= 0 && enemy.alive) {
+        handleDefeat(state, enemy);
         return;
       }
+    }
+
+    // ── CC: Freeze (skip turn) ──
+    if (enemy.freeze > 0) {
+      appendLog(state, `${enemy.name} is Frozen and cannot act.`);
+      enemy.freeze = Math.max(0, enemy.freeze - 1);
+      return;
+    }
+
+    // ── CC: Stun (skip turn, consumed) ──
+    if (enemy.stun > 0) {
+      appendLog(state, `${enemy.name} is Stunned and cannot act.`);
+      enemy.stun = 0;
+      return;
+    }
+
+    // ── Debuff: Paralyze (halve attack damage) ──
+    let intentValue = intent.value;
+    if (enemy.paralyze > 0) {
+      const isAttackIntent = ["attack", "attack_all", "attack_and_guard", "sunder_attack", "drain_attack"].includes(intent.kind);
+      if (isAttackIntent) {
+        intentValue = Math.max(1, Math.floor(intent.value / 2));
+        appendLog(state, `${enemy.name} is Paralyzed — attack weakened.`);
+      }
+      enemy.paralyze = Math.max(0, enemy.paralyze - 1);
     }
 
     if (intent.kind === "guard") {
@@ -278,7 +317,7 @@
     if (intent.kind === "attack_all") {
       const partyTargets = [state.hero, state.mercenary].filter((target: CombatHeroState | CombatMercenaryState) => target?.alive);
       const segments = partyTargets.map((target) => {
-        const dealt = dealDamage(state, target, intent.value);
+        const dealt = dealDamage(state, target, intentValue);
         return `${target.name} for ${dealt}`;
       });
       appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}.`);
@@ -290,8 +329,8 @@
       if (!target) {
         return;
       }
-      const dealt = dealDamage(state, target, intent.value);
-      const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 2)));
+      const dealt = dealDamage(state, target, intentValue);
+      const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intentValue / 2)));
       appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and gains ${guardGained} Guard.`);
       return;
     }
@@ -303,7 +342,7 @@
       }
       const removedGuard = target.guard;
       target.guard = 0;
-      const dealt = dealDamage(state, target, intent.value);
+      const dealt = dealDamage(state, target, intentValue);
       appendLog(state, `${enemy.name} uses ${intent.label}, shattering ${removedGuard} Guard and hitting ${target.name} for ${dealt}.`);
       return;
     }
@@ -313,7 +352,7 @@
       if (!target) {
         return;
       }
-      const dealt = dealDamage(state, target, intent.value);
+      const dealt = dealDamage(state, target, intentValue);
       const healed = healEntity(enemy, intent.secondaryValue || Math.max(1, Math.ceil(dealt / 2)));
       appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and heals ${healed}.`);
       return;
@@ -324,7 +363,7 @@
       if (!target) {
         return;
       }
-      const dealt = dealDamage(state, target, intent.value);
+      const dealt = dealDamage(state, target, intentValue);
       appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt}.`);
     }
   }
@@ -332,6 +371,11 @@
   function advanceEnemyIntents(state: CombatState) {
     state.enemies.forEach((enemy: CombatEnemyState) => {
       if (!enemy.alive) {
+        return;
+      }
+      // Slow: enemy repeats current intent instead of advancing
+      if (enemy.slow > 0) {
+        enemy.slow = Math.max(0, enemy.slow - 1);
         return;
       }
       enemy.intentIndex = (enemy.intentIndex + 1) % enemy.intents.length;

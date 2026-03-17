@@ -38,6 +38,11 @@ interface CombatEnemyState {
   life: number;
   guard: number;
   burn: number;
+  poison: number;
+  slow: number;
+  freeze: number;
+  stun: number;
+  paralyze: number;
   alive: boolean;
   intentIndex: number;
   currentIntent: EnemyIntent;

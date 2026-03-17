@@ -52,10 +52,10 @@
       title: "Poison Creeper",
       cost: 1,
       target: "enemy",
-      text: "Deal 3 poison damage. Apply 3 Burn.",
+      text: "Deal 3 poison damage. Apply 3 Poison.",
       effects: [
         { kind: "damage", value: 3 },
-        { kind: "apply_burn", value: 3 },
+        { kind: "apply_poison", value: 3 },
       ],
       skillRef: "druid_poison_creeper",
       tier: 1,
@@ -135,7 +135,7 @@
       text: "Deal 5 fire damage to all enemies. Apply 2 Burn to all.",
       effects: [
         { kind: "damage_all", value: 5 },
-        { kind: "apply_burn", value: 2 },
+        { kind: "apply_burn_all", value: 2 },
       ],
       skillRef: "druid_fissure",
       tier: 2,
@@ -150,7 +150,7 @@
       text: "Deal 7 fire damage to all enemies. Apply 3 Burn to all.",
       effects: [
         { kind: "damage_all", value: 7 },
-        { kind: "apply_burn", value: 3 },
+        { kind: "apply_burn_all", value: 3 },
       ],
       skillRef: "druid_volcano",
       tier: 3,
@@ -215,7 +215,7 @@
       text: "Deal 9 fire damage to all enemies. Apply 4 Burn to all.",
       effects: [
         { kind: "damage_all", value: 9 },
-        { kind: "apply_burn", value: 4 },
+        { kind: "apply_burn_all", value: 4 },
       ],
       skillRef: "druid_armageddon",
       tier: 4,

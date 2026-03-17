@@ -30,12 +30,35 @@ type AppPhase =
 type CombatPhase = "player" | "enemy" | "victory" | "defeat";
 type CombatOutcome = "victory" | "defeat";
 
-interface CardEffectBase {
-  kind: string;
+type CardEffectKind =
+  | "damage"
+  | "damage_all"
+  | "gain_guard_self"
+  | "gain_guard_party"
+  | "heal_hero"
+  | "heal_mercenary"
+  | "draw"
+  | "mark_enemy_for_mercenary"
+  | "buff_mercenary_next_attack"
+  | "apply_burn"
+  | "apply_burn_all"
+  | "apply_poison"
+  | "apply_poison_all"
+  | "apply_slow"
+  | "apply_slow_all"
+  | "apply_freeze"
+  | "apply_freeze_all"
+  | "apply_stun"
+  | "apply_stun_all"
+  | "apply_paralyze"
+  | "apply_paralyze_all";
+
+type StatusEffectKind = "burn" | "poison" | "slow" | "freeze" | "stun" | "paralyze";
+
+interface CardEffect {
+  kind: CardEffectKind;
   value: number;
 }
-
-type CardEffect = CardEffectBase;
 
 interface CardDefinition {
   id: string;
