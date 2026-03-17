@@ -57,6 +57,32 @@
       skillRef: "sorceress_warmth",
       tier: 1,
     },
+    sorceress_energy_shield: {
+      id: "sorceress_energy_shield",
+      title: "Energy Shield",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "sorceress_energy_shield",
+      tier: 1,
+    },
+    sorceress_mana_renewal: {
+      id: "sorceress_mana_renewal",
+      title: "Mana Renewal",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "sorceress_mana_renewal",
+      tier: 1,
+    },
 
     // ── Tier 2 ──
     sorceress_frost_nova: {
@@ -214,9 +240,9 @@
     "sorceress_charged_bolt", "sorceress_charged_bolt",
     "sorceress_warmth", "sorceress_warmth",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
+    "sorceress_mana_renewal",
+    "sorceress_energy_shield",
+    "sorceress_energy_shield",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

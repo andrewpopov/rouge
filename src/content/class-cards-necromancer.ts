@@ -55,6 +55,32 @@
       skillRef: "necromancer_raise_skeleton",
       tier: 1,
     },
+    necromancer_bone_wall: {
+      id: "necromancer_bone_wall",
+      title: "Bone Wall",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "necromancer_bone_wall",
+      tier: 1,
+    },
+    necromancer_life_tap: {
+      id: "necromancer_life_tap",
+      title: "Life Tap",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "necromancer_life_tap",
+      tier: 1,
+    },
 
     // ── Tier 2 ──
     necromancer_corpse_explosion: {
@@ -209,9 +235,9 @@
     "necromancer_bone_armor", "necromancer_bone_armor",
     "necromancer_raise_skeleton", "necromancer_raise_skeleton",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
+    "necromancer_life_tap",
+    "necromancer_bone_wall",
+    "necromancer_bone_wall",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

@@ -57,6 +57,32 @@
       skillRef: "assassin_psychic_hammer",
       tier: 1,
     },
+    assassin_blade_shield: {
+      id: "assassin_blade_shield",
+      title: "Blade Shield",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "assassin_blade_shield",
+      tier: 1,
+    },
+    assassin_shadow_mend: {
+      id: "assassin_shadow_mend",
+      title: "Shadow Mend",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "assassin_shadow_mend",
+      tier: 1,
+    },
 
     // ── Tier 2 ──
     assassin_fists_of_fire: {
@@ -196,9 +222,9 @@
     "assassin_claw_mastery", "assassin_claw_mastery",
     "assassin_psychic_hammer", "assassin_psychic_hammer",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
+    "assassin_shadow_mend",
+    "assassin_blade_shield",
+    "assassin_blade_shield",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

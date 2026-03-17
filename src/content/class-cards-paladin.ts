@@ -57,6 +57,32 @@
       skillRef: "paladin_smite",
       tier: 1,
     },
+    paladin_sacred_shield: {
+      id: "paladin_sacred_shield",
+      title: "Sacred Shield",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "paladin_sacred_shield",
+      tier: 1,
+    },
+    paladin_cleansing: {
+      id: "paladin_cleansing",
+      title: "Cleansing",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "paladin_cleansing",
+      tier: 1,
+    },
 
     // ── Tier 2 ──
     paladin_holy_bolt: {
@@ -209,9 +235,9 @@
     "paladin_might", "paladin_might",
     "paladin_prayer", "paladin_prayer",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
+    "paladin_cleansing",
+    "paladin_sacred_shield",
+    "paladin_sacred_shield",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

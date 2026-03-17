@@ -57,6 +57,32 @@
       skillRef: "amazon_fire_arrow",
       tier: 1,
     },
+    amazon_dodge: {
+      id: "amazon_dodge",
+      title: "Dodge",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 5 damage. Gain 4 Guard.",
+      effects: [
+        { kind: "damage", value: 5 },
+        { kind: "gain_guard_self", value: 4 },
+      ],
+      skillRef: "amazon_dodge",
+      tier: 1,
+    },
+    amazon_inner_strength: {
+      id: "amazon_inner_strength",
+      title: "Inner Strength",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 3 Guard.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 3 },
+      ],
+      skillRef: "amazon_inner_strength",
+      tier: 1,
+    },
 
     // ── Tier 2 (Lv 6-12) ── Early rewards
     amazon_cold_arrow: {
@@ -189,9 +215,9 @@
     "amazon_fire_arrow", "amazon_fire_arrow",
     "amazon_inner_sight", "amazon_inner_sight",
     "rally_mercenary",
-    "second_wind",
-    "shield_slam",
-    "shield_slam",
+    "amazon_inner_strength",
+    "amazon_dodge",
+    "amazon_dodge",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {
