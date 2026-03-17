@@ -322,5 +322,5 @@
     return overrides[env] ?? null;
   }
 
-  runtimeWindow.__ROUGE_ZONE_FLAVOR = { getZoneFlavor };
+  runtimeWindow.__ROUGE_ZONE_FLAVOR = { getZoneFlavor, resolveZoneEnv };
 })();

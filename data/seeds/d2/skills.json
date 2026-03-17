@@ -1,5 +1,5 @@
 {
-  "version": "d2-canon-2026-03-05",
+  "version": "d2-canon-2026-03-17",
   "source": "https://classic.battle.net/diablo2exp/skills/",
   "classes": [
     {
@@ -13,52 +13,127 @@
             {
               "id": "amazon_magic_arrow",
               "name": "Magic Arrow",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Creates a magical arrow or bolt that does extra damage and requires no ammunition",
+              "skillType": "attack",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "amazon_fire_arrow",
               "name": "Fire Arrow",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Imbues an arrow or bolt with fire damage",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "amazon_exploding_arrow", "bonus": "+12% Fire Damage per level" }
+              ]
             },
             {
               "id": "amazon_cold_arrow",
               "name": "Cold Arrow",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Adds cold damage to an arrow or bolt, slowing the target",
+              "skillType": "attack",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "amazon_ice_arrow", "bonus": "+12% Cold Damage per level" }
+              ]
             },
             {
               "id": "amazon_multiple_shot",
               "name": "Multiple Shot",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Splits one arrow into multiple projectiles that spread out",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["amazon_magic_arrow"],
+              "synergies": []
             },
             {
               "id": "amazon_exploding_arrow",
               "name": "Exploding Arrow",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Enchants an arrow or bolt that explodes on contact, dealing fire damage to nearby enemies",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["amazon_magic_arrow", "amazon_fire_arrow", "amazon_multiple_shot"],
+              "synergies": [
+                { "skillId": "amazon_fire_arrow", "bonus": "+12% Fire Damage per level" }
+              ]
             },
             {
               "id": "amazon_ice_arrow",
               "name": "Ice Arrow",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Magically enhances an arrow to freeze the target on impact",
+              "skillType": "attack",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["amazon_cold_arrow"],
+              "synergies": [
+                { "skillId": "amazon_cold_arrow", "bonus": "+8% Cold Damage per level" },
+                { "skillId": "amazon_freezing_arrow", "bonus": "+5% Cold Length per level" }
+              ]
             },
             {
               "id": "amazon_guided_arrow",
               "name": "Guided Arrow",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Enchants an arrow or bolt to track its target unerringly",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["amazon_magic_arrow", "amazon_cold_arrow", "amazon_multiple_shot"],
+              "synergies": []
             },
             {
               "id": "amazon_immolation_arrow",
               "name": "Immolation Arrow",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Enchants an arrow that creates a pyre upon impact, burning enemies in the area",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["amazon_magic_arrow", "amazon_fire_arrow", "amazon_multiple_shot", "amazon_exploding_arrow"],
+              "synergies": [
+                { "skillId": "amazon_fire_arrow", "bonus": "+5% Average Fire Damage per second per level" },
+                { "skillId": "amazon_exploding_arrow", "bonus": "+10% Fire Damage per level" }
+              ]
             },
             {
               "id": "amazon_strafe",
               "name": "Strafe",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Rapidly fires arrows at multiple nearby enemies",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["amazon_magic_arrow", "amazon_multiple_shot", "amazon_cold_arrow", "amazon_guided_arrow"],
+              "synergies": []
             },
             {
               "id": "amazon_freezing_arrow",
               "name": "Freezing Arrow",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Magically enhances an arrow or bolt to freeze entire groups of enemies on impact",
+              "skillType": "attack",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["amazon_cold_arrow", "amazon_ice_arrow"],
+              "synergies": [
+                { "skillId": "amazon_cold_arrow", "bonus": "+12% Cold Damage per level" },
+                { "skillId": "amazon_ice_arrow", "bonus": "+5% Freeze Length per level" }
+              ]
             }
           ]
         },
@@ -69,52 +144,141 @@
             {
               "id": "amazon_jab",
               "name": "Jab",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Attacks with a series of rapid thrusts using a javelin or spear class weapon",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "amazon_power_strike",
               "name": "Power Strike",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Adds lightning damage to a javelin or spear attack",
+              "skillType": "attack",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["amazon_jab"],
+              "synergies": [
+                { "skillId": "amazon_lightning_bolt", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "amazon_charged_strike", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_strike", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_fury", "bonus": "+10% Lightning Damage per level" }
+              ]
             },
             {
               "id": "amazon_poison_javelin",
               "name": "Poison Javelin",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Throws a javelin that leaves a trail of poison clouds",
+              "skillType": "attack",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "amazon_plague_javelin", "bonus": "+12% Poison Damage per level" }
+              ]
             },
             {
               "id": "amazon_impale",
               "name": "Impale",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "A powerful attack that greatly increases damage but has increased weapon durability loss",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["amazon_jab"],
+              "synergies": []
             },
             {
               "id": "amazon_lightning_bolt",
               "name": "Lightning Bolt",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Converts a thrown javelin into a bolt of lightning",
+              "skillType": "attack",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["amazon_poison_javelin"],
+              "synergies": [
+                { "skillId": "amazon_power_strike", "bonus": "+3% Lightning Damage per level" },
+                { "skillId": "amazon_charged_strike", "bonus": "+3% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_strike", "bonus": "+3% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_fury", "bonus": "+3% Lightning Damage per level" }
+              ]
             },
             {
               "id": "amazon_charged_strike",
               "name": "Charged Strike",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Adds lightning damage to a melee attack and releases charged bolts on impact",
+              "skillType": "attack",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["amazon_jab", "amazon_poison_javelin", "amazon_power_strike", "amazon_lightning_bolt"],
+              "synergies": [
+                { "skillId": "amazon_power_strike", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_bolt", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_strike", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_fury", "bonus": "+10% Lightning Damage per level" }
+              ]
             },
             {
               "id": "amazon_plague_javelin",
               "name": "Plague Javelin",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Throws a javelin that releases expanding clouds of poison at the point of impact",
+              "skillType": "attack",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": ["amazon_poison_javelin", "amazon_lightning_bolt"],
+              "synergies": [
+                { "skillId": "amazon_poison_javelin", "bonus": "+10% Poison Damage per level" }
+              ]
             },
             {
               "id": "amazon_fend",
               "name": "Fend",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Rapidly strikes several close targets with a spear or javelin",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["amazon_jab", "amazon_impale"],
+              "synergies": []
             },
             {
               "id": "amazon_lightning_strike",
               "name": "Lightning Strike",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Adds lightning damage to a melee attack and releases chain lightning to nearby enemies",
+              "skillType": "attack",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["amazon_jab", "amazon_poison_javelin", "amazon_power_strike", "amazon_lightning_bolt", "amazon_charged_strike"],
+              "synergies": [
+                { "skillId": "amazon_power_strike", "bonus": "+8% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_bolt", "bonus": "+8% Lightning Damage per level" },
+                { "skillId": "amazon_charged_strike", "bonus": "+8% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_fury", "bonus": "+8% Lightning Damage per level" }
+              ]
             },
             {
               "id": "amazon_lightning_fury",
               "name": "Lightning Fury",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Throws a javelin that releases multiple lightning bolts that split on striking enemies",
+              "skillType": "attack",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["amazon_poison_javelin", "amazon_lightning_bolt", "amazon_plague_javelin"],
+              "synergies": [
+                { "skillId": "amazon_power_strike", "bonus": "+1% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_bolt", "bonus": "+1% Lightning Damage per level" },
+                { "skillId": "amazon_charged_strike", "bonus": "+1% Lightning Damage per level" },
+                { "skillId": "amazon_lightning_strike", "bonus": "+1% Lightning Damage per level" }
+              ]
             }
           ]
         },
@@ -125,52 +289,119 @@
             {
               "id": "amazon_inner_sight",
               "name": "Inner Sight",
-              "requiredLevel": 1
-            },
-            {
-              "id": "amazon_dodge",
-              "name": "Dodge",
-              "requiredLevel": 6
+              "requiredLevel": 1,
+              "description": "Illuminates nearby enemies, reducing their defense rating",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "amazon_critical_strike",
               "name": "Critical Strike",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Grants a chance to do double physical damage with attacks",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
+            },
+            {
+              "id": "amazon_dodge",
+              "name": "Dodge",
+              "requiredLevel": 6,
+              "description": "Grants a chance to dodge melee attacks while standing still or attacking",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "amazon_slow_missiles",
               "name": "Slow Missiles",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Slows the speed of all enemy missiles and ranged projectiles in the area",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["amazon_inner_sight"],
+              "synergies": []
             },
             {
               "id": "amazon_avoid",
               "name": "Avoid",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Grants a chance to dodge missile attacks while standing still or attacking",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["amazon_dodge"],
+              "synergies": []
             },
             {
               "id": "amazon_penetrate",
               "name": "Penetrate",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Increases attack rating, providing additional chance to hit enemies",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["amazon_critical_strike"],
+              "synergies": []
             },
             {
               "id": "amazon_decoy",
               "name": "Decoy",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Creates a duplicate image of the Amazon to distract nearby enemies",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["amazon_inner_sight", "amazon_slow_missiles"],
+              "synergies": []
             },
             {
               "id": "amazon_evade",
               "name": "Evade",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Grants a chance to dodge any attack while walking or running",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["amazon_dodge", "amazon_avoid"],
+              "synergies": []
             },
             {
               "id": "amazon_valkyrie",
               "name": "Valkyrie",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Summons a powerful Valkyrie warrior to fight by your side",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["amazon_inner_sight", "amazon_dodge", "amazon_slow_missiles", "amazon_avoid", "amazon_decoy", "amazon_evade"],
+              "synergies": [
+                { "skillId": "amazon_critical_strike", "bonus": "improved Valkyrie equipment" },
+                { "skillId": "amazon_dodge", "bonus": "improved Valkyrie equipment" },
+                { "skillId": "amazon_avoid", "bonus": "improved Valkyrie equipment" },
+                { "skillId": "amazon_evade", "bonus": "improved Valkyrie equipment" },
+                { "skillId": "amazon_decoy", "bonus": "+2% Resist All per level" },
+                { "skillId": "amazon_penetrate", "bonus": "improved Valkyrie equipment" }
+              ]
             },
             {
               "id": "amazon_pierce",
               "name": "Pierce",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Grants a chance that missiles will pass through the target and continue onward",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["amazon_critical_strike", "amazon_penetrate"],
+              "synergies": []
             }
           ]
         }
@@ -187,52 +418,124 @@
             {
               "id": "assassin_tiger_strike",
               "name": "Tiger Strike",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Consecutive hits add substantial damage bonuses to finishing moves",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "assassin_dragon_talon",
               "name": "Dragon Talon",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "A powerful kick that releases charged-up bonuses and knocks back enemies",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "assassin_fists_of_fire",
               "name": "Fists of Fire",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Consecutive hits add fire damage to finishing moves. Requires claw-class weapons",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "assassin_phoenix_strike", "bonus": "+12% Fire Damage per level" }
+              ]
             },
             {
               "id": "assassin_dragon_claw",
               "name": "Dragon Claw",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "A dual claw attack that releases charged-up bonuses with both claws",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_dragon_talon"],
+              "synergies": [
+                { "skillId": "assassin_claw_mastery", "bonus": "+4% Damage per level" }
+              ]
             },
             {
               "id": "assassin_cobra_strike",
               "name": "Cobra Strike",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Consecutive hits add life and mana stealing to finishing moves",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_tiger_strike"],
+              "synergies": []
             },
             {
               "id": "assassin_claws_of_thunder",
               "name": "Claws of Thunder",
-              "requiredLevel": 18
-            },
-            {
-              "id": "assassin_blades_of_ice",
-              "name": "Blades of Ice",
-              "requiredLevel": 24
+              "requiredLevel": 18,
+              "description": "Consecutive hits add lightning damage to finishing moves. Requires claw-class weapons",
+              "skillType": "attack",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["assassin_fists_of_fire"],
+              "synergies": [
+                { "skillId": "assassin_phoenix_strike", "bonus": "+8% Lightning Damage per level" }
+              ]
             },
             {
               "id": "assassin_dragon_tail",
               "name": "Dragon Tail",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "An explosive kick that causes fire damage to the target and all nearby enemies",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["assassin_dragon_talon", "assassin_dragon_claw"],
+              "synergies": []
+            },
+            {
+              "id": "assassin_blades_of_ice",
+              "name": "Blades of Ice",
+              "requiredLevel": 24,
+              "description": "Consecutive hits add cold damage to finishing moves. Requires claw-class weapons",
+              "skillType": "attack",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["assassin_fists_of_fire", "assassin_claws_of_thunder"],
+              "synergies": [
+                { "skillId": "assassin_phoenix_strike", "bonus": "+8% Cold Damage per level" }
+              ]
             },
             {
               "id": "assassin_dragon_flight",
               "name": "Dragon Flight",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Teleport to a target enemy and deliver a devastating kick",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_dragon_talon", "assassin_dragon_claw", "assassin_dragon_tail"],
+              "synergies": []
             },
             {
               "id": "assassin_phoenix_strike",
               "name": "Phoenix Strike",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Consecutive hits charge up meteor, chain lightning, and chaos ice bolt for finishing moves",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["assassin_tiger_strike", "assassin_fists_of_fire", "assassin_cobra_strike", "assassin_claws_of_thunder", "assassin_blades_of_ice"],
+              "synergies": [
+                { "skillId": "assassin_fists_of_fire", "bonus": "+10% Fire Damage, +6% Fire DPS per level" },
+                { "skillId": "assassin_claws_of_thunder", "bonus": "+13% Lightning Damage per level" },
+                { "skillId": "assassin_blades_of_ice", "bonus": "+10% Cold Damage per level" }
+              ]
             }
           ]
         },
@@ -243,52 +546,112 @@
             {
               "id": "assassin_claw_mastery",
               "name": "Claw Mastery",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Improves damage, attack rating, and critical strike chance with claw-class weapons",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "assassin_psychic_hammer",
               "name": "Psychic Hammer",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Uses mental power to create a psychic blast that damages and knocks back enemies",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "assassin_burst_of_speed",
               "name": "Burst of Speed",
-              "requiredLevel": 6
-            },
-            {
-              "id": "assassin_cloak_of_shadows",
-              "name": "Cloak of Shadows",
-              "requiredLevel": 12
+              "requiredLevel": 6,
+              "description": "Temporarily increases attack speed and movement speed",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["assassin_claw_mastery"],
+              "synergies": []
             },
             {
               "id": "assassin_weapon_block",
               "name": "Weapon Block",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Grants a chance to block attacks when wielding two claw-class weapons",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["assassin_claw_mastery"],
+              "synergies": []
+            },
+            {
+              "id": "assassin_cloak_of_shadows",
+              "name": "Cloak of Shadows",
+              "requiredLevel": 12,
+              "description": "Casts a shadow cloak that blinds nearby enemies and reduces their defense",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["assassin_psychic_hammer"],
+              "synergies": []
             },
             {
               "id": "assassin_fade",
               "name": "Fade",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Temporarily raises all resistances and reduces curse duration",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["assassin_claw_mastery", "assassin_burst_of_speed"],
+              "synergies": []
             },
             {
               "id": "assassin_shadow_warrior",
               "name": "Shadow Warrior",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Summons a shadow of yourself that mimics your last-used skills",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_claw_mastery", "assassin_psychic_hammer", "assassin_weapon_block", "assassin_cloak_of_shadows"],
+              "synergies": []
             },
             {
               "id": "assassin_mind_blast",
               "name": "Mind Blast",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Stuns a group of enemies and has a chance to convert them to fight for you",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["assassin_psychic_hammer", "assassin_cloak_of_shadows"],
+              "synergies": []
             },
             {
               "id": "assassin_venom",
               "name": "Venom",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Temporarily adds poison damage to all weapon attacks",
+              "skillType": "buff",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": ["assassin_claw_mastery", "assassin_burst_of_speed", "assassin_fade"],
+              "synergies": []
             },
             {
               "id": "assassin_shadow_master",
               "name": "Shadow Master",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Summons a powerful shadow that independently chooses and uses skills",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_claw_mastery", "assassin_psychic_hammer", "assassin_weapon_block", "assassin_cloak_of_shadows", "assassin_shadow_warrior"],
+              "synergies": []
             }
           ]
         },
@@ -299,52 +662,144 @@
             {
               "id": "assassin_fire_blast",
               "name": "Fire Blast",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Throws an explosive fire bomb that damages nearby enemies",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "assassin_shock_web", "bonus": "+9% Fire Damage per level" },
+                { "skillId": "assassin_charged_bolt_sentry", "bonus": "+9% Fire Damage per level" },
+                { "skillId": "assassin_wake_of_fire", "bonus": "+9% Fire Damage per level" },
+                { "skillId": "assassin_lightning_sentry", "bonus": "+9% Fire Damage per level" },
+                { "skillId": "assassin_wake_of_inferno", "bonus": "+9% Fire Damage per level" },
+                { "skillId": "assassin_death_sentry", "bonus": "+9% Fire Damage per level" }
+              ]
             },
             {
               "id": "assassin_shock_web",
               "name": "Shock Web",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Throws a web of electrically charged bolts that shock enemies",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast"],
+              "synergies": [
+                { "skillId": "assassin_fire_blast", "bonus": "+1 missile per 3 levels" },
+                { "skillId": "assassin_charged_bolt_sentry", "bonus": "+11% Lightning Damage per level" },
+                { "skillId": "assassin_lightning_sentry", "bonus": "+11% Lightning Damage per level" },
+                { "skillId": "assassin_death_sentry", "bonus": "+11% Lightning Damage per level" }
+              ]
             },
             {
               "id": "assassin_blade_sentinel",
               "name": "Blade Sentinel",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Sets a spinning blade that patrols between you and a target point, cutting enemies",
+              "skillType": "spell",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "assassin_charged_bolt_sentry",
               "name": "Charged Bolt Sentry",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "A trap that emits charged bolts at nearby enemies",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast", "assassin_shock_web"],
+              "synergies": [
+                { "skillId": "assassin_shock_web", "bonus": "+1 bolt per 3 levels" },
+                { "skillId": "assassin_lightning_sentry", "bonus": "+1 shot per 4 levels" },
+                { "skillId": "assassin_fire_blast", "bonus": "+6% Lightning Damage per level" },
+                { "skillId": "assassin_death_sentry", "bonus": "+6% Lightning Damage per level" }
+              ]
             },
             {
               "id": "assassin_wake_of_fire",
               "name": "Wake of Fire",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "A trap that emits waves of fire across the ground",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast"],
+              "synergies": [
+                { "skillId": "assassin_fire_blast", "bonus": "+8% Fire Damage per level" },
+                { "skillId": "assassin_wake_of_inferno", "bonus": "+8% Fire Damage per level" }
+              ]
             },
             {
               "id": "assassin_blade_fury",
               "name": "Blade Fury",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Throws spinning blades that slice through enemies at range",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast", "assassin_blade_sentinel", "assassin_wake_of_fire"],
+              "synergies": []
             },
             {
               "id": "assassin_lightning_sentry",
               "name": "Lightning Sentry",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "A trap that shoots bolts of lightning at passing enemies",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast", "assassin_shock_web", "assassin_charged_bolt_sentry"],
+              "synergies": [
+                { "skillId": "assassin_shock_web", "bonus": "+12% Lightning Damage per level" },
+                { "skillId": "assassin_charged_bolt_sentry", "bonus": "+12% Lightning Damage per level" },
+                { "skillId": "assassin_death_sentry", "bonus": "+12% Lightning Damage per level" }
+              ]
             },
             {
               "id": "assassin_wake_of_inferno",
               "name": "Wake Of Inferno",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "A trap that sprays a jet of fire at passing enemies",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast", "assassin_wake_of_fire"],
+              "synergies": [
+                { "skillId": "assassin_wake_of_fire", "bonus": "+0.5 yards per level" },
+                { "skillId": "assassin_fire_blast", "bonus": "+10% Fire Damage per level" },
+                { "skillId": "assassin_death_sentry", "bonus": "+10% Fire Damage per level" },
+                { "skillId": "assassin_wake_of_fire", "bonus": "+7% Fire Damage per level" }
+              ]
             },
             {
               "id": "assassin_death_sentry",
               "name": "Death Sentry",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "A trap that shoots lightning bolts and can explode nearby corpses",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast", "assassin_shock_web", "assassin_charged_bolt_sentry", "assassin_lightning_sentry"],
+              "synergies": [
+                { "skillId": "assassin_fire_blast", "bonus": "+1 shot per 3 levels" },
+                { "skillId": "assassin_lightning_sentry", "bonus": "+12% Lightning Damage per level" }
+              ]
             },
             {
               "id": "assassin_blade_shield",
               "name": "Blade Shield",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Creates a spinning shield of blades that damages any enemy who gets too close",
+              "skillType": "buff",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["assassin_fire_blast", "assassin_blade_sentinel", "assassin_wake_of_fire", "assassin_blade_fury"],
+              "synergies": []
             }
           ]
         }
@@ -361,52 +816,136 @@
             {
               "id": "barbarian_bash",
               "name": "Bash",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "A powerful blow that increases damage and knocks back the target",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "barbarian_stun", "bonus": "+5% Damage per level" },
+                { "skillId": "barbarian_concentrate", "bonus": "+5% Attack Rating per level" }
+              ]
             },
             {
               "id": "barbarian_double_swing",
               "name": "Double Swing",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Swings both equipped weapons at the same time at nearby targets",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_bash"],
+              "synergies": [
+                { "skillId": "barbarian_bash", "bonus": "+10% Damage per level" }
+              ]
             },
             {
               "id": "barbarian_leap",
               "name": "Leap",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Leaps away from danger or into the fray, knocking back nearby enemies on landing",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_double_throw",
               "name": "Double Throw",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Throws both equipped weapons at the same time at different targets",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_bash", "barbarian_double_swing"],
+              "synergies": [
+                { "skillId": "barbarian_double_swing", "bonus": "+8% Damage per level" }
+              ]
             },
             {
               "id": "barbarian_stun",
               "name": "Stun",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "A melee attack that stuns the target for a short duration",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_bash"],
+              "synergies": [
+                { "skillId": "barbarian_bash", "bonus": "+8% Damage per level" },
+                { "skillId": "barbarian_concentrate", "bonus": "+5% Attack Rating per level" },
+                { "skillId": "barbarian_war_cry", "bonus": "+5% Stun Duration per level" }
+              ]
             },
             {
               "id": "barbarian_leap_attack",
               "name": "Leap Attack",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Leaps to and attacks a target enemy in one swift assault",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_leap"],
+              "synergies": [
+                { "skillId": "barbarian_leap", "bonus": "+10% Damage per level" }
+              ]
             },
             {
               "id": "barbarian_concentrate",
               "name": "Concentrate",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "An uninterruptible melee strike that boosts attack rating and defense",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_bash", "barbarian_stun"],
+              "synergies": [
+                { "skillId": "barbarian_bash", "bonus": "+5% Damage per level" },
+                { "skillId": "barbarian_battle_orders", "bonus": "+10% Damage per level" },
+                { "skillId": "barbarian_berserk", "bonus": "+1% Magic Damage per level" }
+              ]
             },
             {
               "id": "barbarian_frenzy",
               "name": "Frenzy",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Attacks with both weapons and increases attack and movement speed with each successive hit",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_bash", "barbarian_double_swing", "barbarian_double_throw"],
+              "synergies": [
+                { "skillId": "barbarian_double_swing", "bonus": "+8% Damage per level" },
+                { "skillId": "barbarian_taunt", "bonus": "+8% Damage per level" },
+                { "skillId": "barbarian_berserk", "bonus": "+1% Magic Damage per level" }
+              ]
             },
             {
               "id": "barbarian_whirlwind",
               "name": "Whirlwind",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "A whirling dance of death that deals damage to all enemies along the path",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_bash", "barbarian_leap", "barbarian_stun", "barbarian_concentrate", "barbarian_leap_attack"],
+              "synergies": []
             },
             {
               "id": "barbarian_berserk",
               "name": "Berserk",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "A powerful magical attack that converts all damage to magic but reduces defense to zero",
+              "skillType": "attack",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["barbarian_bash", "barbarian_stun", "barbarian_concentrate"],
+              "synergies": [
+                { "skillId": "barbarian_howl", "bonus": "+10% Magic Damage per level" },
+                { "skillId": "barbarian_shout", "bonus": "+10% Magic Damage per level" }
+              ]
             }
           ]
         },
@@ -417,52 +956,112 @@
             {
               "id": "barbarian_sword_mastery",
               "name": "Sword Mastery",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Improves damage, attack rating, and critical strike chance with swords",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_axe_mastery",
               "name": "Axe Mastery",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Improves damage, attack rating, and critical strike chance with axes",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_mace_mastery",
               "name": "Mace Mastery",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Improves damage, attack rating, and critical strike chance with maces, staves, and wands",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_polearm_mastery",
               "name": "Polearm Mastery",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Improves damage, attack rating, and critical strike chance with polearms",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_throwing_mastery",
               "name": "Throwing Mastery",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Improves damage, attack rating, and critical strike chance with thrown weapons",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_spear_mastery",
               "name": "Spear Mastery",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Improves damage, attack rating, and critical strike chance with spears",
+              "skillType": "passive",
+              "damageType": "physical",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_increased_stamina",
               "name": "Increased Stamina",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Passively increases maximum stamina and stamina recovery rate",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_iron_skin",
               "name": "Iron Skin",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Passively increases the Barbarian's defense rating",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_increased_speed",
               "name": "Increased Speed",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Passively increases walk and run speed",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["barbarian_increased_stamina"],
+              "synergies": []
             },
             {
               "id": "barbarian_natural_resistance",
               "name": "Natural Resistance",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Passively increases resistance to fire, cold, lightning, and poison damage",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["barbarian_iron_skin"],
+              "synergies": []
             }
           ]
         },
@@ -473,52 +1072,125 @@
             {
               "id": "barbarian_howl",
               "name": "Howl",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Sends nearby monsters fleeing in fear",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_find_potion",
               "name": "Find Potion",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Use on a corpse for a chance to find a healing, mana, or rejuvenation potion",
+              "skillType": "spell",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "barbarian_shout",
               "name": "Shout",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Increases the defense rating of you and your party for a duration",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_howl"],
+              "synergies": [
+                { "skillId": "barbarian_battle_orders", "bonus": "+5 seconds duration per level" },
+                { "skillId": "barbarian_battle_command", "bonus": "+5 seconds duration per level" }
+              ]
             },
             {
               "id": "barbarian_taunt",
               "name": "Taunt",
-              "requiredLevel": 6
-            },
-            {
-              "id": "barbarian_battle_cry",
-              "name": "Battle Cry",
-              "requiredLevel": 18
+              "requiredLevel": 6,
+              "description": "Enrages a monster into attacking you at melee range, reducing its damage and improving your attack rating against it",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_howl"],
+              "synergies": []
             },
             {
               "id": "barbarian_find_item",
               "name": "Find Item",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Use on a corpse for a chance to find additional items",
+              "skillType": "spell",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_find_potion"],
+              "synergies": []
+            },
+            {
+              "id": "barbarian_battle_cry",
+              "name": "Battle Cry",
+              "requiredLevel": 18,
+              "description": "Reduces the defense and damage of all nearby enemies",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_howl", "barbarian_taunt"],
+              "synergies": []
             },
             {
               "id": "barbarian_battle_orders",
               "name": "Battle Orders",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Increases maximum life, mana, and stamina for you and your party",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_howl", "barbarian_shout"],
+              "synergies": [
+                { "skillId": "barbarian_shout", "bonus": "+5 seconds duration per level" },
+                { "skillId": "barbarian_battle_command", "bonus": "+5 seconds duration per level" }
+              ]
             },
             {
               "id": "barbarian_grim_ward",
               "name": "Grim Ward",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Creates a frightening totem from a slain monster corpse that causes nearby enemies to flee",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_find_potion", "barbarian_find_item"],
+              "synergies": []
             },
             {
               "id": "barbarian_war_cry",
               "name": "War Cry",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Damages and stuns all nearby enemies with a mighty shout",
+              "skillType": "spell",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["barbarian_howl", "barbarian_taunt", "barbarian_shout", "barbarian_battle_cry", "barbarian_battle_orders"],
+              "synergies": [
+                { "skillId": "barbarian_howl", "bonus": "+6% Damage per level" },
+                { "skillId": "barbarian_taunt", "bonus": "+6% Damage per level" },
+                { "skillId": "barbarian_battle_cry", "bonus": "+6% Damage per level" }
+              ]
             },
             {
               "id": "barbarian_battle_command",
               "name": "Battle Command",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Temporarily increases all skill levels by 1 for you and your party",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["barbarian_howl", "barbarian_shout", "barbarian_battle_orders"],
+              "synergies": [
+                { "skillId": "barbarian_shout", "bonus": "+5 seconds duration per level" },
+                { "skillId": "barbarian_battle_orders", "bonus": "+5 seconds duration per level" }
+              ]
             }
           ]
         }
@@ -535,52 +1207,148 @@
             {
               "id": "druid_firestorm",
               "name": "Firestorm",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Unleashes multiple waves of fire that scorch enemies in a line",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "druid_molten_boulder", "bonus": "+23% Fire Damage per level" },
+                { "skillId": "druid_fissure", "bonus": "+23% Fire Damage per level" }
+              ]
             },
             {
               "id": "druid_molten_boulder",
               "name": "Molten Boulder",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Launches a boulder of flaming magma that knocks back and damages enemies",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["druid_firestorm"],
+              "synergies": [
+                { "skillId": "druid_volcano", "bonus": "+10% Damage per level" },
+                { "skillId": "druid_firestorm", "bonus": "+8% Fire Damage per level" }
+              ]
             },
             {
               "id": "druid_arctic_blast",
               "name": "Arctic Blast",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Blasts a continuous jet of ice that damages enemies with frost",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "druid_hurricane", "bonus": "+15% Cold Damage per level" },
+                { "skillId": "druid_cyclone_armor", "bonus": "+15% Cold Damage per level" }
+              ]
             },
             {
               "id": "druid_cyclone_armor",
               "name": "Cyclone Armor",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Creates a shield that absorbs fire, cold, and lightning damage",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["druid_arctic_blast"],
+              "synergies": [
+                { "skillId": "druid_twister", "bonus": "+7% Absorb per level" },
+                { "skillId": "druid_tornado", "bonus": "+7% Absorb per level" },
+                { "skillId": "druid_hurricane", "bonus": "+7% Absorb per level" }
+              ]
             },
             {
               "id": "druid_fissure",
               "name": "Fissure",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Opens volcanic vents beneath enemies, burning them with pillars of flame",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["druid_firestorm", "druid_molten_boulder"],
+              "synergies": [
+                { "skillId": "druid_firestorm", "bonus": "+12% Fire Damage per level" },
+                { "skillId": "druid_volcano", "bonus": "+12% Fire Damage per level" }
+              ]
             },
             {
               "id": "druid_twister",
               "name": "Twister",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Releases several small whirlwinds that stun and damage enemies",
+              "skillType": "spell",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_arctic_blast", "druid_cyclone_armor"],
+              "synergies": [
+                { "skillId": "druid_tornado", "bonus": "+10% Damage per level" },
+                { "skillId": "druid_hurricane", "bonus": "+10% Damage per level" }
+              ]
             },
             {
               "id": "druid_volcano",
               "name": "Volcano",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Summons a volcano that rains fiery destruction on nearby enemies",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["druid_firestorm", "druid_molten_boulder", "druid_fissure"],
+              "synergies": [
+                { "skillId": "druid_molten_boulder", "bonus": "+12% Damage per level" },
+                { "skillId": "druid_fissure", "bonus": "+12% Damage per level" },
+                { "skillId": "druid_armageddon", "bonus": "+12% Damage per level" }
+              ]
             },
             {
               "id": "druid_tornado",
               "name": "Tornado",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Creates a powerful tunnel of wind and debris that deals massive damage",
+              "skillType": "spell",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_arctic_blast", "druid_cyclone_armor", "druid_twister"],
+              "synergies": [
+                { "skillId": "druid_cyclone_armor", "bonus": "+9% Damage per level" },
+                { "skillId": "druid_twister", "bonus": "+9% Damage per level" },
+                { "skillId": "druid_hurricane", "bonus": "+9% Damage per level" }
+              ]
             },
             {
               "id": "druid_hurricane",
               "name": "Hurricane",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Creates a massive storm of cold wind and debris around the Druid",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["druid_arctic_blast", "druid_cyclone_armor", "druid_twister", "druid_tornado"],
+              "synergies": [
+                { "skillId": "druid_cyclone_armor", "bonus": "+2 seconds duration per level" },
+                { "skillId": "druid_twister", "bonus": "+9% Damage per level" },
+                { "skillId": "druid_tornado", "bonus": "+9% Damage per level" }
+              ]
             },
             {
               "id": "druid_armageddon",
               "name": "Armageddon",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Summons a meteor shower that rains fiery destruction on nearby enemies",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["druid_firestorm", "druid_molten_boulder", "druid_fissure", "druid_volcano", "druid_arctic_blast", "druid_cyclone_armor", "druid_twister", "druid_tornado", "druid_hurricane"],
+              "synergies": [
+                { "skillId": "druid_firestorm", "bonus": "+14% Fire Damage per level" },
+                { "skillId": "druid_molten_boulder", "bonus": "+14% Fire Damage per level" },
+                { "skillId": "druid_volcano", "bonus": "+14% Fire Damage per level" },
+                { "skillId": "druid_fissure", "bonus": "+2 seconds duration per level" }
+              ]
             }
           ]
         },
@@ -591,52 +1359,123 @@
             {
               "id": "druid_werewolf",
               "name": "Werewolf",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Transforms into a werewolf with increased attack speed, attack rating, and stamina",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "druid_lycanthropy",
               "name": "Lycanthropy",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Passively increases the duration and maximum life bonus of werewolf and werebear forms",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["druid_werewolf"],
+              "synergies": []
             },
             {
               "id": "druid_werebear",
               "name": "Werebear",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Transforms into a werebear with greatly increased damage, defense, and life",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "druid_maul",
               "name": "Maul",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "In werebear form, maul enemies for increasing extra damage with successive hits",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_werebear"],
+              "synergies": []
             },
             {
               "id": "druid_feral_rage",
               "name": "Feral Rage",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "In werewolf form, attacks steal increasing amounts of life and boost movement speed",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_werewolf"],
+              "synergies": []
             },
             {
               "id": "druid_fire_claws",
               "name": "Fire Claws",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "In werewolf or werebear form, adds fire damage to claw attacks",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["druid_werewolf", "druid_werebear", "druid_feral_rage", "druid_maul"],
+              "synergies": [
+                { "skillId": "druid_firestorm", "bonus": "+22% Fire Damage per level" },
+                { "skillId": "druid_molten_boulder", "bonus": "+22% Fire Damage per level" },
+                { "skillId": "druid_fissure", "bonus": "+22% Fire Damage per level" },
+                { "skillId": "druid_volcano", "bonus": "+22% Fire Damage per level" }
+              ]
             },
             {
               "id": "druid_rabies",
               "name": "Rabies",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "In werewolf form, bites enemies to inflict spreading poison that jumps to nearby monsters",
+              "skillType": "attack",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": ["druid_werewolf", "druid_feral_rage"],
+              "synergies": [
+                { "skillId": "druid_poison_creeper", "bonus": "+20% Poison Damage per level" }
+              ]
             },
             {
               "id": "druid_shock_wave",
               "name": "Shock Wave",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "In werebear form, stomps the ground to create a shock wave that stuns enemies",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_werebear", "druid_maul"],
+              "synergies": [
+                { "skillId": "druid_maul", "bonus": "+10% Damage per level" }
+              ]
             },
             {
               "id": "druid_hunger",
               "name": "Hunger",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "In werewolf or werebear form, bites an enemy to steal life and mana at reduced damage",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_werewolf", "druid_werebear", "druid_feral_rage", "druid_maul", "druid_fire_claws"],
+              "synergies": []
             },
             {
               "id": "druid_fury",
               "name": "Fury",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "In werewolf form, rapidly strikes up to five targets or one target multiple times",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_werewolf", "druid_feral_rage", "druid_rabies"],
+              "synergies": [
+                { "skillId": "druid_feral_rage", "bonus": "+6% Damage per level" }
+              ]
             }
           ]
         },
@@ -647,52 +1486,112 @@
             {
               "id": "druid_raven",
               "name": "Raven",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Summons ravens to peck out the eyes of your enemies, blinding them",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "druid_poison_creeper",
               "name": "Poison Creeper",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Summons a vine that spreads poison to all enemies it contacts",
+              "skillType": "summon",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "druid_oak_sage",
               "name": "Oak Sage",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Summons a spirit pet that increases maximum life for you and your party",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "druid_summon_spirit_wolf",
               "name": "Summon Spirit Wolf",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Summons spirit wolves that teleport and fight by your side",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_raven"],
+              "synergies": []
             },
             {
               "id": "druid_carrion_vine",
               "name": "Carrion Vine",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Summons a vine that consumes corpses to replenish your life",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["druid_poison_creeper"],
+              "synergies": []
             },
             {
               "id": "druid_heart_of_wolverine",
               "name": "Heart of Wolverine",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Summons a spirit pet that increases damage and attack rating for you and your party",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["druid_oak_sage"],
+              "synergies": []
             },
             {
               "id": "druid_summon_dire_wolf",
               "name": "Summon Dire Wolf",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Summons dire wolves that consume corpses to increase their damage",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_raven", "druid_oak_sage", "druid_summon_spirit_wolf"],
+              "synergies": []
             },
             {
               "id": "druid_solar_creeper",
               "name": "Solar Creeper",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Summons a vine that consumes corpses to replenish your mana",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["druid_poison_creeper", "druid_carrion_vine"],
+              "synergies": []
             },
             {
               "id": "druid_spirit_of_barbs",
               "name": "Spirit of Barbs",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Summons a spirit pet that reflects damage taken by you and your party back at attackers",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["druid_oak_sage", "druid_heart_of_wolverine"],
+              "synergies": []
             },
             {
               "id": "druid_summon_grizzly",
               "name": "Summon Grizzly",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Summons a ferocious grizzly bear with enormous strength to fight for you",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["druid_raven", "druid_oak_sage", "druid_summon_spirit_wolf", "druid_summon_dire_wolf"],
+              "synergies": []
             }
           ]
         }
@@ -709,52 +1608,112 @@
             {
               "id": "necromancer_amplify_damage",
               "name": "Amplify Damage",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Curses a group of enemies, reducing their physical resistance by 100% so they take double physical damage",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "necromancer_dim_vision",
               "name": "Dim Vision",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Curses enemies to reduce their vision radius, preventing them from attacking at range",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "necromancer_weaken",
               "name": "Weaken",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Curses enemies to reduce the amount of damage they inflict",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_amplify_damage"],
+              "synergies": []
             },
             {
               "id": "necromancer_iron_maiden",
               "name": "Iron Maiden",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Curses enemies so they take damage equal to a percentage of melee damage they deal",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_amplify_damage"],
+              "synergies": []
             },
             {
               "id": "necromancer_terror",
               "name": "Terror",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Curses enemies, causing them to flee in fear",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_amplify_damage", "necromancer_weaken"],
+              "synergies": []
             },
             {
               "id": "necromancer_confuse",
               "name": "Confuse",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Curses an enemy to force it to attack random nearby targets including allies",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_dim_vision"],
+              "synergies": []
             },
             {
               "id": "necromancer_life_tap",
               "name": "Life Tap",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Curses enemies so that attacking them restores life to the attacker",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_amplify_damage", "necromancer_iron_maiden"],
+              "synergies": []
             },
             {
               "id": "necromancer_attract",
               "name": "Attract",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Curses an enemy to become the target of all nearby monsters",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_dim_vision", "necromancer_confuse"],
+              "synergies": []
             },
             {
               "id": "necromancer_decrepify",
               "name": "Decrepify",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Curses enemies to move slowly, deal less damage, and take 50% more physical damage",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_amplify_damage", "necromancer_weaken", "necromancer_terror"],
+              "synergies": []
             },
             {
               "id": "necromancer_lower_resist",
               "name": "Lower Resist",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Curses enemies to reduce all their elemental resistances, making them vulnerable to magic damage",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_amplify_damage", "necromancer_weaken", "necromancer_iron_maiden", "necromancer_terror", "necromancer_life_tap", "necromancer_decrepify"],
+              "synergies": []
             }
           ]
         },
@@ -765,52 +1724,145 @@
             {
               "id": "necromancer_teeth",
               "name": "Teeth",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Fires a barrage of summoned bone teeth that damage enemies",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "necromancer_bone_wall", "bonus": "+15% Magic Damage per level" },
+                { "skillId": "necromancer_bone_spear", "bonus": "+15% Magic Damage per level" },
+                { "skillId": "necromancer_bone_prison", "bonus": "+15% Magic Damage per level" },
+                { "skillId": "necromancer_bone_spirit", "bonus": "+15% Magic Damage per level" }
+              ]
             },
             {
               "id": "necromancer_bone_armor",
               "name": "Bone Armor",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Creates an orbiting shield of bone that absorbs melee damage",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "necromancer_bone_wall", "bonus": "+15 Damage Absorbed per level" },
+                { "skillId": "necromancer_bone_prison", "bonus": "+15 Damage Absorbed per level" }
+              ]
             },
             {
               "id": "necromancer_poison_dagger",
               "name": "Poison Dagger",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Adds poison damage to dagger attacks over a duration",
+              "skillType": "attack",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "necromancer_poison_explosion", "bonus": "+20% Poison Damage per level" },
+                { "skillId": "necromancer_poison_nova", "bonus": "+20% Poison Damage per level" }
+              ]
             },
             {
               "id": "necromancer_corpse_explosion",
               "name": "Corpse Explosion",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Explodes a targeted corpse, dealing fire and physical damage to all nearby enemies",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["necromancer_teeth"],
+              "synergies": []
             },
             {
               "id": "necromancer_bone_wall",
               "name": "Bone Wall",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Creates an impassable barrier of bone that blocks enemy movement",
+              "skillType": "spell",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_bone_armor"],
+              "synergies": [
+                { "skillId": "necromancer_bone_armor", "bonus": "+10% Life per level" },
+                { "skillId": "necromancer_bone_prison", "bonus": "+10% Life per level" }
+              ]
             },
             {
               "id": "necromancer_poison_explosion",
               "name": "Poison Explosion",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Causes a corpse to release toxic gas that poisons nearby monsters",
+              "skillType": "spell",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": ["necromancer_teeth", "necromancer_corpse_explosion", "necromancer_poison_dagger"],
+              "synergies": [
+                { "skillId": "necromancer_poison_dagger", "bonus": "+15% Poison Damage per level" },
+                { "skillId": "necromancer_poison_nova", "bonus": "+15% Poison Damage per level" }
+              ]
             },
             {
               "id": "necromancer_bone_spear",
               "name": "Bone Spear",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Summons a deadly spike of bone that passes through multiple enemies",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["necromancer_teeth", "necromancer_corpse_explosion"],
+              "synergies": [
+                { "skillId": "necromancer_teeth", "bonus": "+7% Magic Damage per level" },
+                { "skillId": "necromancer_bone_wall", "bonus": "+7% Magic Damage per level" },
+                { "skillId": "necromancer_bone_prison", "bonus": "+7% Magic Damage per level" },
+                { "skillId": "necromancer_bone_spirit", "bonus": "+7% Magic Damage per level" }
+              ]
             },
             {
               "id": "necromancer_bone_prison",
               "name": "Bone Prison",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Creates a ring of bone around a target, trapping it inside",
+              "skillType": "spell",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["necromancer_teeth", "necromancer_bone_armor", "necromancer_corpse_explosion", "necromancer_bone_wall", "necromancer_bone_spear"],
+              "synergies": [
+                { "skillId": "necromancer_bone_armor", "bonus": "+8% Life per level" },
+                { "skillId": "necromancer_bone_wall", "bonus": "+8% Life per level" }
+              ]
             },
             {
               "id": "necromancer_poison_nova",
               "name": "Poison Nova",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Emits an expanding ring of concentrated poison that damages all nearby enemies",
+              "skillType": "spell",
+              "damageType": "poison",
+              "active": true,
+              "prerequisites": ["necromancer_poison_dagger", "necromancer_teeth", "necromancer_corpse_explosion", "necromancer_poison_explosion"],
+              "synergies": [
+                { "skillId": "necromancer_poison_dagger", "bonus": "+10% Poison Damage per level" },
+                { "skillId": "necromancer_poison_explosion", "bonus": "+10% Poison Damage per level" }
+              ]
             },
             {
               "id": "necromancer_bone_spirit",
               "name": "Bone Spirit",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Releases a guided spirit of bone that tracks and homes in on a target",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["necromancer_teeth", "necromancer_corpse_explosion", "necromancer_bone_spear"],
+              "synergies": [
+                { "skillId": "necromancer_teeth", "bonus": "+6% Magic Damage per level" },
+                { "skillId": "necromancer_bone_wall", "bonus": "+6% Magic Damage per level" },
+                { "skillId": "necromancer_bone_spear", "bonus": "+6% Magic Damage per level" },
+                { "skillId": "necromancer_bone_prison", "bonus": "+6% Magic Damage per level" }
+              ]
             }
           ]
         },
@@ -821,52 +1873,126 @@
             {
               "id": "necromancer_raise_skeleton",
               "name": "Raise Skeleton",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Raises a skeleton warrior from a corpse to fight by your side",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "necromancer_skeleton_mastery", "bonus": "improved skeleton stats" }
+              ]
             },
             {
               "id": "necromancer_skeleton_mastery",
               "name": "Skeleton Mastery",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Passively increases the life and damage of raised skeletons, skeletal mages, and revived creatures",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["necromancer_raise_skeleton"],
+              "synergies": []
             },
             {
               "id": "necromancer_clay_golem",
               "name": "Clay Golem",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Creates a golem from the earth that slows enemies it strikes",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+              ]
             },
             {
               "id": "necromancer_golem_mastery",
               "name": "Golem Mastery",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Passively enhances the speed and life of all golems",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["necromancer_clay_golem"],
+              "synergies": []
             },
             {
               "id": "necromancer_skeletal_mage",
               "name": "Skeletal Mage",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Raises a skeletal mage from a corpse that attacks with random elemental damage",
+              "skillType": "summon",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["necromancer_raise_skeleton"],
+              "synergies": [
+                { "skillId": "necromancer_skeleton_mastery", "bonus": "improved skeletal mage stats" }
+              ]
             },
             {
               "id": "necromancer_blood_golem",
               "name": "Blood Golem",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Creates a golem that shares life it steals from enemies and damage it receives with the Necromancer",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["necromancer_clay_golem"],
+              "synergies": [
+                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+              ]
             },
             {
               "id": "necromancer_summon_resist",
               "name": "Summon Resist",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Passively increases the elemental resistances of all summoned creatures",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": ["necromancer_clay_golem", "necromancer_golem_mastery"],
+              "synergies": []
             },
             {
               "id": "necromancer_iron_golem",
               "name": "Iron Golem",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Creates a golem from a metallic item, gaining the item's properties and bonuses",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["necromancer_clay_golem", "necromancer_blood_golem"],
+              "synergies": [
+                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+              ]
             },
             {
               "id": "necromancer_fire_golem",
               "name": "Fire Golem",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Creates a golem of fire that absorbs fire damage to heal itself and deals fire damage",
+              "skillType": "summon",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["necromancer_clay_golem", "necromancer_blood_golem", "necromancer_iron_golem"],
+              "synergies": [
+                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+              ]
             },
             {
               "id": "necromancer_revive",
               "name": "Revive",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Resurrects a slain monster to fight as an ally, retaining its original abilities",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["necromancer_raise_skeleton", "necromancer_clay_golem", "necromancer_skeletal_mage", "necromancer_blood_golem", "necromancer_iron_golem"],
+              "synergies": [
+                { "skillId": "necromancer_skeleton_mastery", "bonus": "improved revive stats" }
+              ]
             }
           ]
         }
@@ -883,52 +2009,137 @@
             {
               "id": "paladin_sacrifice",
               "name": "Sacrifice",
-              "requiredLevel": 1
-            },
-            {
-              "id": "paladin_holy_bolt",
-              "name": "Holy Bolt",
-              "requiredLevel": 6
+              "requiredLevel": 1,
+              "description": "A powerful melee attack that greatly increases damage at the cost of your own health",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "paladin_redemption", "bonus": "+15% Damage per level" },
+                { "skillId": "paladin_fanaticism", "bonus": "+5% Damage per level" }
+              ]
             },
             {
               "id": "paladin_smite",
               "name": "Smite",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "A shield bash that always hits, dealing damage and knocking back with a stun",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
+            },
+            {
+              "id": "paladin_holy_bolt",
+              "name": "Holy Bolt",
+              "requiredLevel": 6,
+              "description": "Fires a bolt of divine energy that damages undead or heals friendly units",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "paladin_blessed_aim", "bonus": "+50% Magic Damage per level" },
+                { "skillId": "paladin_fist_of_the_heavens", "bonus": "+50% Magic Damage per level" },
+                { "skillId": "paladin_prayer", "bonus": "+20% Healing per level" }
+              ]
             },
             {
               "id": "paladin_zeal",
               "name": "Zeal",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Rapidly attacks multiple adjacent enemies with up to five quick strikes",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["paladin_sacrifice"],
+              "synergies": [
+                { "skillId": "paladin_sacrifice", "bonus": "+12% Damage per level" }
+              ]
             },
             {
               "id": "paladin_charge",
               "name": "Charge",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Rushes an enemy at high speed, delivering a powerful bash on contact",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["paladin_smite"],
+              "synergies": [
+                { "skillId": "paladin_vigor", "bonus": "+20% Damage per level" },
+                { "skillId": "paladin_might", "bonus": "+20% Damage per level" }
+              ]
             },
             {
               "id": "paladin_vengeance",
               "name": "Vengeance",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Adds fire, cold, and lightning damage to a melee attack",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["paladin_sacrifice", "paladin_zeal"],
+              "synergies": [
+                { "skillId": "paladin_resist_fire", "bonus": "+10% Fire Damage per level" },
+                { "skillId": "paladin_resist_cold", "bonus": "+10% Cold Damage per level" },
+                { "skillId": "paladin_resist_lightning", "bonus": "+10% Lightning Damage per level" },
+                { "skillId": "paladin_salvation", "bonus": "+2% each element per level" }
+              ]
             },
             {
               "id": "paladin_blessed_hammer",
               "name": "Blessed Hammer",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Summons a magical hammer that spirals outward, dealing massive magic damage especially to undead",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["paladin_holy_bolt"],
+              "synergies": [
+                { "skillId": "paladin_blessed_aim", "bonus": "+14% Magic Damage per level" },
+                { "skillId": "paladin_vigor", "bonus": "+14% Magic Damage per level" }
+              ]
             },
             {
               "id": "paladin_conversion",
               "name": "Conversion",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "A melee attack with a chance to convert the target to fight as an ally temporarily",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["paladin_sacrifice", "paladin_zeal", "paladin_vengeance"],
+              "synergies": []
             },
             {
               "id": "paladin_holy_shield",
               "name": "Holy Shield",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Magically enhances a shield to greatly increase defense, block chance, and smite damage",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_smite", "paladin_holy_bolt", "paladin_charge", "paladin_blessed_hammer"],
+              "synergies": [
+                { "skillId": "paladin_defiance", "bonus": "+15% Defense per level" }
+              ]
             },
             {
               "id": "paladin_fist_of_the_heavens",
               "name": "Fist of the Heavens",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Calls down a bolt of lightning from the heavens that releases holy bolts on impact",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["paladin_sacrifice", "paladin_holy_bolt", "paladin_zeal", "paladin_vengeance", "paladin_blessed_hammer", "paladin_conversion"],
+              "synergies": [
+                { "skillId": "paladin_holy_bolt", "bonus": "+15% Holy Bolt Damage per level" },
+                { "skillId": "paladin_holy_shock", "bonus": "+7% Lightning Damage per level" }
+              ]
             }
           ]
         },
@@ -939,52 +2150,112 @@
             {
               "id": "paladin_prayer",
               "name": "Prayer",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "An aura that periodically heals the Paladin and all party members at the cost of mana",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "paladin_resist_fire",
               "name": "Resist Fire",
-              "requiredLevel": 1
-            },
-            {
-              "id": "paladin_resist_cold",
-              "name": "Resist Cold",
-              "requiredLevel": 6
-            },
-            {
-              "id": "paladin_resist_lightning",
-              "name": "Resist Lightning",
-              "requiredLevel": 12
+              "requiredLevel": 1,
+              "description": "An aura that increases fire resistance and maximum fire resistance for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "paladin_defiance",
               "name": "Defiance",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "An aura that greatly boosts the defense of you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
+            },
+            {
+              "id": "paladin_resist_cold",
+              "name": "Resist Cold",
+              "requiredLevel": 6,
+              "description": "An aura that increases cold resistance and maximum cold resistance for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "paladin_cleansing",
               "name": "Cleansing",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "An aura that reduces poison and curse duration for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_prayer"],
+              "synergies": []
+            },
+            {
+              "id": "paladin_resist_lightning",
+              "name": "Resist Lightning",
+              "requiredLevel": 12,
+              "description": "An aura that increases lightning resistance and maximum lightning resistance for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "paladin_vigor",
               "name": "Vigor",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "An aura that increases movement speed, stamina, and stamina recovery for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_prayer", "paladin_cleansing", "paladin_defiance"],
+              "synergies": []
             },
             {
               "id": "paladin_meditation",
               "name": "Meditation",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "An aura that greatly boosts mana recovery rate for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_prayer", "paladin_cleansing"],
+              "synergies": []
             },
             {
               "id": "paladin_redemption",
               "name": "Redemption",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "An aura that periodically consumes nearby corpses to restore health and mana",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_prayer", "paladin_cleansing", "paladin_defiance", "paladin_vigor"],
+              "synergies": []
             },
             {
               "id": "paladin_salvation",
               "name": "Salvation",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "An aura that increases all elemental resistances for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             }
           ]
         },
@@ -995,52 +2266,123 @@
             {
               "id": "paladin_might",
               "name": "Might",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "An aura that increases physical damage dealt by you and your party",
+              "skillType": "aura",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "paladin_holy_fire",
               "name": "Holy Fire",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "An aura that adds fire damage to attacks and periodically scorches nearby enemies",
+              "skillType": "aura",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["paladin_might"],
+              "synergies": [
+                { "skillId": "paladin_resist_fire", "bonus": "+18% Fire Damage per level" },
+                { "skillId": "paladin_salvation", "bonus": "+6% Fire Damage per level" }
+              ]
             },
             {
               "id": "paladin_thorns",
               "name": "Thorns",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "An aura that reflects damage back at melee attackers who strike you or your party",
+              "skillType": "aura",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "paladin_blessed_aim",
               "name": "Blessed Aim",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "An aura that increases attack rating for you and your party",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_might"],
+              "synergies": []
             },
             {
               "id": "paladin_concentration",
               "name": "Concentration",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "An aura that increases damage and reduces the chance attacks will be interrupted",
+              "skillType": "aura",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["paladin_might", "paladin_blessed_aim"],
+              "synergies": []
             },
             {
               "id": "paladin_holy_freeze",
               "name": "Holy Freeze",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "An aura that periodically damages and slows all nearby enemies with cold",
+              "skillType": "aura",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["paladin_might", "paladin_holy_fire"],
+              "synergies": [
+                { "skillId": "paladin_resist_cold", "bonus": "+15% Cold Damage per level" },
+                { "skillId": "paladin_salvation", "bonus": "+7% Cold Damage per level" }
+              ]
             },
             {
               "id": "paladin_holy_shock",
               "name": "Holy Shock",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "An aura that adds lightning damage to attacks and periodically shocks nearby enemies",
+              "skillType": "aura",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["paladin_might", "paladin_holy_fire", "paladin_holy_freeze"],
+              "synergies": [
+                { "skillId": "paladin_resist_lightning", "bonus": "+12% Lightning Damage per level" },
+                { "skillId": "paladin_salvation", "bonus": "+4% Lightning Damage per level" }
+              ]
             },
             {
               "id": "paladin_sanctuary",
               "name": "Sanctuary",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "An aura that damages and knocks back undead, ignoring their physical resistances and immunities",
+              "skillType": "aura",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": ["paladin_might", "paladin_thorns", "paladin_holy_fire", "paladin_holy_freeze"],
+              "synergies": [
+                { "skillId": "paladin_cleansing", "bonus": "+7% Magic Damage per level" }
+              ]
             },
             {
               "id": "paladin_fanaticism",
               "name": "Fanaticism",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "An aura that increases damage, attack speed, and attack rating for you and your party",
+              "skillType": "aura",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": ["paladin_might", "paladin_blessed_aim", "paladin_concentration"],
+              "synergies": []
             },
             {
               "id": "paladin_conviction",
               "name": "Conviction",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "An aura that reduces enemy defense and all elemental resistances",
+              "skillType": "aura",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["paladin_might", "paladin_thorns", "paladin_holy_fire", "paladin_holy_freeze", "paladin_sanctuary"],
+              "synergies": []
             }
           ]
         }
@@ -1057,52 +2399,146 @@
             {
               "id": "sorceress_ice_bolt",
               "name": "Ice Bolt",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Creates a bolt of ice that damages and slows a single enemy",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "sorceress_frost_nova", "bonus": "+15% Cold Damage per level" },
+                { "skillId": "sorceress_ice_blast", "bonus": "+15% Cold Damage per level" },
+                { "skillId": "sorceress_glacial_spike", "bonus": "+15% Cold Damage per level" },
+                { "skillId": "sorceress_blizzard", "bonus": "+15% Cold Damage per level" },
+                { "skillId": "sorceress_frozen_orb", "bonus": "+15% Cold Damage per level" }
+              ]
             },
             {
               "id": "sorceress_frozen_armor",
               "name": "Frozen Armor",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Increases defense and freezes melee attackers who strike you",
+              "skillType": "buff",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "sorceress_shiver_armor", "bonus": "+10 seconds duration per level" },
+                { "skillId": "sorceress_chilling_armor", "bonus": "+5% Freeze Length per level" }
+              ]
             },
             {
               "id": "sorceress_frost_nova",
               "name": "Frost Nova",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Creates an expanding ring of ice that damages and slows all nearby enemies",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "sorceress_blizzard", "bonus": "+10% Cold Damage per level" },
+                { "skillId": "sorceress_frozen_orb", "bonus": "+10% Cold Damage per level" }
+              ]
             },
             {
               "id": "sorceress_ice_blast",
               "name": "Ice Blast",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Creates a sphere of ice that damages and freezes a single target solid",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["sorceress_ice_bolt"],
+              "synergies": [
+                { "skillId": "sorceress_ice_bolt", "bonus": "+8% Cold Damage per level" },
+                { "skillId": "sorceress_blizzard", "bonus": "+8% Cold Damage per level" },
+                { "skillId": "sorceress_frozen_orb", "bonus": "+8% Cold Damage per level" },
+                { "skillId": "sorceress_glacial_spike", "bonus": "+10% Freeze Length per level" }
+              ]
             },
             {
               "id": "sorceress_shiver_armor",
               "name": "Shiver Armor",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Increases defense and deals cold damage to melee attackers who strike you",
+              "skillType": "buff",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["sorceress_frozen_armor", "sorceress_ice_bolt", "sorceress_ice_blast"],
+              "synergies": [
+                { "skillId": "sorceress_frozen_armor", "bonus": "+10 seconds duration per level" },
+                { "skillId": "sorceress_chilling_armor", "bonus": "+9% Cold Damage per level" }
+              ]
             },
             {
               "id": "sorceress_glacial_spike",
               "name": "Glacial Spike",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Creates an ice comet that explodes on impact, freezing nearby enemies",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["sorceress_ice_bolt", "sorceress_ice_blast"],
+              "synergies": [
+                { "skillId": "sorceress_ice_bolt", "bonus": "+5% Cold Damage per level" },
+                { "skillId": "sorceress_ice_blast", "bonus": "+5% Cold Damage per level" },
+                { "skillId": "sorceress_frozen_orb", "bonus": "+5% Cold Damage per level" },
+                { "skillId": "sorceress_blizzard", "bonus": "+3% Freeze Length per level" }
+              ]
             },
             {
               "id": "sorceress_blizzard",
               "name": "Blizzard",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Summons massive shards of ice to rain down and destroy enemies in an area",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["sorceress_ice_bolt", "sorceress_ice_blast", "sorceress_frost_nova", "sorceress_glacial_spike"],
+              "synergies": [
+                { "skillId": "sorceress_ice_bolt", "bonus": "+5% Cold Damage per level" },
+                { "skillId": "sorceress_ice_blast", "bonus": "+5% Cold Damage per level" },
+                { "skillId": "sorceress_glacial_spike", "bonus": "+5% Cold Damage per level" }
+              ]
             },
             {
               "id": "sorceress_chilling_armor",
               "name": "Chilling Armor",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Increases defense and retaliates against ranged attackers with ice bolts",
+              "skillType": "buff",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["sorceress_frozen_armor", "sorceress_ice_bolt", "sorceress_ice_blast", "sorceress_shiver_armor"],
+              "synergies": [
+                { "skillId": "sorceress_frozen_armor", "bonus": "+10 seconds duration per level" },
+                { "skillId": "sorceress_shiver_armor", "bonus": "+7% Cold Damage per level" }
+              ]
             },
             {
               "id": "sorceress_frozen_orb",
               "name": "Frozen Orb",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Creates a magical orb that sprays a torrent of ice bolts in all directions as it travels",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": ["sorceress_ice_bolt", "sorceress_ice_blast", "sorceress_frost_nova", "sorceress_glacial_spike", "sorceress_blizzard"],
+              "synergies": [
+                { "skillId": "sorceress_ice_bolt", "bonus": "+2% Cold Damage per level" }
+              ]
             },
             {
               "id": "sorceress_cold_mastery",
               "name": "Cold Mastery",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Passively pierces enemy cold resistance, making cold spells more effective",
+              "skillType": "passive",
+              "damageType": "cold",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             }
           ]
         },
@@ -1113,52 +2549,135 @@
             {
               "id": "sorceress_fire_bolt",
               "name": "Fire Bolt",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Creates a flaming missile that damages a single target",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "sorceress_fireball", "bonus": "+16% Fire Damage per level" },
+                { "skillId": "sorceress_meteor", "bonus": "+16% Fire Damage per level" }
+              ]
             },
             {
               "id": "sorceress_warmth",
               "name": "Warmth",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Passively increases mana regeneration rate",
+              "skillType": "passive",
+              "damageType": null,
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "sorceress_inferno",
               "name": "Inferno",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Creates a continuous jet of flame that scorches enemies in a line",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "sorceress_warmth", "bonus": "+13% Fire Damage per level" }
+              ]
             },
             {
               "id": "sorceress_blaze",
               "name": "Blaze",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Leaves a wall of fire in your wake as you move, burning enemies who walk through it",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["sorceress_inferno"],
+              "synergies": [
+                { "skillId": "sorceress_warmth", "bonus": "+4% Fire Damage per level" },
+                { "skillId": "sorceress_fire_wall", "bonus": "+1% Fire Damage per level" }
+              ]
             },
             {
               "id": "sorceress_fireball",
               "name": "Fireball",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Creates an explosive sphere of fire that damages all enemies near the point of impact",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["sorceress_fire_bolt"],
+              "synergies": [
+                { "skillId": "sorceress_fire_bolt", "bonus": "+14% Fire Damage per level" },
+                { "skillId": "sorceress_meteor", "bonus": "+14% Fire Damage per level" }
+              ]
             },
             {
               "id": "sorceress_fire_wall",
               "name": "Fire Wall",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Creates a stationary wall of flame that burns enemies who pass through it",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["sorceress_inferno", "sorceress_blaze"],
+              "synergies": [
+                { "skillId": "sorceress_warmth", "bonus": "+4% Fire Damage per level" },
+                { "skillId": "sorceress_inferno", "bonus": "+1% Fire Damage per level" }
+              ]
             },
             {
               "id": "sorceress_enchant",
               "name": "Enchant",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Adds fire damage and attack rating to the weapon attacks of you or an ally",
+              "skillType": "buff",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["sorceress_fire_bolt", "sorceress_warmth", "sorceress_fireball"],
+              "synergies": [
+                { "skillId": "sorceress_warmth", "bonus": "+9% Fire Damage per level" }
+              ]
             },
             {
               "id": "sorceress_meteor",
               "name": "Meteor",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Calls down a massive meteor from the sky that deals fire damage on impact and leaves burning ground",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["sorceress_fire_bolt", "sorceress_inferno", "sorceress_blaze", "sorceress_fire_wall", "sorceress_fireball"],
+              "synergies": [
+                { "skillId": "sorceress_fire_bolt", "bonus": "+5% Fire Damage per level" },
+                { "skillId": "sorceress_fireball", "bonus": "+5% Fire Damage per level" },
+                { "skillId": "sorceress_inferno", "bonus": "+3% Fire Damage per second per level" }
+              ]
             },
             {
               "id": "sorceress_fire_mastery",
               "name": "Fire Mastery",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Passively increases the damage of all fire spells",
+              "skillType": "passive",
+              "damageType": "fire",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "sorceress_hydra",
               "name": "Hydra",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Summons a multi-headed fire beast that shoots fireballs at nearby enemies",
+              "skillType": "summon",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": ["sorceress_fire_bolt", "sorceress_warmth", "sorceress_fireball", "sorceress_enchant"],
+              "synergies": [
+                { "skillId": "sorceress_fire_bolt", "bonus": "+3% Fire Damage per level" },
+                { "skillId": "sorceress_fireball", "bonus": "+3% Fire Damage per level" }
+              ]
             }
           ]
         },
@@ -1169,52 +2688,124 @@
             {
               "id": "sorceress_charged_bolt",
               "name": "Charged Bolt",
-              "requiredLevel": 1
+              "requiredLevel": 1,
+              "description": "Fires multiple bolts of electricity that seek nearby targets",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [
+                { "skillId": "sorceress_lightning", "bonus": "+6% Lightning Damage per level" }
+              ]
             },
             {
               "id": "sorceress_telekinesis",
               "name": "Telekinesis",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Manipulates objects at a distance and knocks back enemies with a psychic force",
+              "skillType": "spell",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "sorceress_static_field",
               "name": "Static Field",
-              "requiredLevel": 6
+              "requiredLevel": 6,
+              "description": "Creates an electrical field that removes 25% of current life from all nearby enemies",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": [],
+              "synergies": []
             },
             {
               "id": "sorceress_lightning",
               "name": "Lightning",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Casts a powerful bolt of lightning that deals heavy damage to a single target",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["sorceress_charged_bolt"],
+              "synergies": [
+                { "skillId": "sorceress_charged_bolt", "bonus": "+8% Lightning Damage per level" },
+                { "skillId": "sorceress_nova", "bonus": "+8% Lightning Damage per level" },
+                { "skillId": "sorceress_chain_lightning", "bonus": "+8% Lightning Damage per level" }
+              ]
             },
             {
               "id": "sorceress_nova",
               "name": "Nova",
-              "requiredLevel": 12
+              "requiredLevel": 12,
+              "description": "Creates an expanding ring of lightning that shocks all nearby enemies",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["sorceress_static_field"],
+              "synergies": []
             },
             {
               "id": "sorceress_chain_lightning",
               "name": "Chain Lightning",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Casts a bolt of lightning that arcs through up to five targets",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["sorceress_charged_bolt", "sorceress_lightning"],
+              "synergies": [
+                { "skillId": "sorceress_charged_bolt", "bonus": "+4% Lightning Damage per level" },
+                { "skillId": "sorceress_nova", "bonus": "+4% Lightning Damage per level" },
+                { "skillId": "sorceress_lightning", "bonus": "+4% Lightning Damage per level" }
+              ]
             },
             {
               "id": "sorceress_teleport",
               "name": "Teleport",
-              "requiredLevel": 18
+              "requiredLevel": 18,
+              "description": "Instantly transports you to a destination within your line of sight",
+              "skillType": "spell",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["sorceress_telekinesis"],
+              "synergies": []
             },
             {
               "id": "sorceress_thunder_storm",
               "name": "Thunder Storm",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Summons a thunderstorm that periodically strikes a nearby enemy with lightning",
+              "skillType": "buff",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": ["sorceress_charged_bolt", "sorceress_static_field", "sorceress_lightning", "sorceress_nova", "sorceress_chain_lightning"],
+              "synergies": []
             },
             {
               "id": "sorceress_energy_shield",
               "name": "Energy Shield",
-              "requiredLevel": 24
+              "requiredLevel": 24,
+              "description": "Redirects damage from health to mana, absorbing a percentage of incoming damage",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": ["sorceress_charged_bolt", "sorceress_telekinesis", "sorceress_lightning", "sorceress_teleport", "sorceress_chain_lightning"],
+              "synergies": [
+                { "skillId": "sorceress_telekinesis", "bonus": "improved damage absorption efficiency" }
+              ]
             },
             {
               "id": "sorceress_lightning_mastery",
               "name": "Lightning Mastery",
-              "requiredLevel": 30
+              "requiredLevel": 30,
+              "description": "Passively increases the damage of all lightning spells",
+              "skillType": "passive",
+              "damageType": "lightning",
+              "active": false,
+              "prerequisites": [],
+              "synergies": []
             }
           ]
         }

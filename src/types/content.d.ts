@@ -184,6 +184,12 @@ interface RuntimeRunewordDefinition {
   bonuses: ItemBonusSet;
 }
 
+interface ClassRewardTiers {
+  early: string[];
+  mid: string[];
+  late: string[];
+}
+
 interface GameContent {
   hero: HeroDefinition;
   mercenaryCatalog: Record<string, MercenaryDefinition>;
@@ -191,6 +197,8 @@ interface GameContent {
   starterDeck: string[];
   starterDeckProfiles: Record<string, string[]>;
   classDeckProfiles: Record<string, string>;
+  classStarterDecks?: Record<string, string[]>;
+  classRewardPools?: Record<string, ClassRewardTiers>;
   classProgressionCatalog?: Record<string, RuntimeClassProgressionDefinition>;
   rewardPools?: RewardCardPools;
   itemCatalog?: Record<string, RuntimeItemDefinition>;

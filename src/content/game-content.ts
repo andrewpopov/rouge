@@ -4,6 +4,7 @@
   const { hero, mercenaryCatalog } = runtimeWindow.__ROUGE_GC_MERCENARIES;
   const { consequenceEncounterPackages } = runtimeWindow.__ROUGE_GC_ENCOUNTERS;
   const { consequenceRewardPackages } = runtimeWindow.__ROUGE_GC_REWARDS;
+  const { classCardCatalog, classStarterDecks, classRewardPools } = runtimeWindow.__ROUGE_CLASS_CARDS;
 
   const cardCatalog = {
     quick_slash: {
@@ -262,6 +263,9 @@
     },
   };
 
+  // Merge class-specific skill cards into the card catalog
+  Object.assign(cardCatalog, classCardCatalog);
+
   const starterDeck = [
     "quick_slash",
     "quick_slash",
@@ -480,6 +484,8 @@
     starterDeck,
     starterDeckProfiles,
     classDeckProfiles,
+    classStarterDecks,
+    classRewardPools,
     rewardPools,
     consequenceEncounterPackages,
     consequenceRewardPackages,

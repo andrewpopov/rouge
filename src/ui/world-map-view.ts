@@ -28,26 +28,94 @@
   const ACT_POSITIONS: Record<number, Record<string, [number, number]>> = {
     1: {
       // Mainline (left→right across the middle)
-      "town":              [5, 48],
-      "Blood Moor":        [17, 48],
-      "Cold Plains":       [33, 48],
-      "Stony Field":       [45, 48],
-      "The Underground Passage": [55, 48],
-      "Dark Wood":         [68, 48],
-      "Black Marsh":       [80, 48],
+      "town":              [7, 44],
+      "Blood Moor":        [19, 44],
+      "Cold Plains":       [33, 44],
+      "Stony Field":       [46, 44],
+      "The Underground Passage": [58, 44],
+      "Dark Wood":         [72, 44],
+      "Black Marsh":       [86, 44],
       // Monastery wrap (right→left along bottom)
-      "Tamoe Highland":    [85, 62],
-      "Outer Cloister":    [85, 82],
-      "Barracks":          [74, 82],
-      "Jail":              [60, 82],
-      "Inner Cloister":    [46, 82],
-      "Cathedral":         [32, 82],
-      "Catacombs":         [14, 82],
+      "Tamoe Highland":    [93, 68],
+      "Outer Cloister":    [80, 82],
+      "Barracks":          [64, 80],
+      "Jail":              [50, 80],
+      "Inner Cloister":    [37, 80],
+      "Cathedral":         [25, 80],
+      "Catacombs":         [10, 80],
       // Side branches (upper row, spaced well apart)
-      "Den of Evil":       [17, 18],
-      "Burial Grounds":    [35, 14],
-      "Tristram":          [52, 18],
-      "Forgotten Tower":   [80, 18],
+      "Den of Evil":       [18, 25],
+      "Burial Grounds":    [34, 20],
+      "Tristram":          [51, 24],
+      "Forgotten Tower":   [80, 24],
+    },
+    2: {
+      // Mainline (left→right across the middle)
+      "town":              [6, 46],
+      "Rocky Waste":       [19, 46],
+      "Dry Hills":         [32, 46],
+      "Far Oasis":         [47, 46],
+      "Lost City":         [62, 46],
+      "Valley of Snakes":  [78, 46],
+      // Monastery-style wrap (left→right along bottom)
+      "Harem":             [14, 78],
+      "The Palace Cellar": [28, 78],
+      "Arcane Sanctuary":  [42, 78],
+      "Canyon of the Magi": [56, 78],
+      "Tal Rasha's Tomb":  [72, 78],
+      "Tal Rasha's Chamber": [72, 86],
+      // Side branches (upper row)
+      "Sewers":            [16, 18],
+      "Halls of the Dead": [38, 17],
+      "Maggot Lair":       [56, 24],
+      "Lost Reliquary":    [82, 22],
+    },
+    3: {
+      // Upper mainline (left→right)
+      "town":              [7, 38],
+      "Spider Forest":     [24, 38],
+      "Great Marsh":       [42, 28],
+      "Flayer Jungle":     [60, 38],
+      "Lower Kurast":      [78, 38],
+      // Lower mainline (right→left)
+      "Kurast Bazaar":     [72, 72],
+      "Upper Kurast":      [52, 72],
+      "Kurast Causeway":   [35, 72],
+      "Travincal":         [20, 72],
+      "Durance of Hate":   [7, 74],
+      // Side branches
+      "Spider Cavern":     [24, 14],
+      "Flayer Dungeon":    [62, 13],
+      "Kurast Sewers":     [55, 82],
+    },
+    4: {
+      // Single row (left→right)
+      "town":              [8, 65],
+      "Outer Steppes":     [24, 65],
+      "Plains of Despair": [40, 65],
+      "City of the Damned": [56, 65],
+      "River of Flame":    [74, 65],
+      "Chaos Sanctuary":   [92, 65],
+    },
+    5: {
+      // Top row (left→right)
+      "town":              [6, 26],
+      "Bloody Foothills":  [22, 26],
+      "Frigid Highlands":  [42, 26],
+      "Arreat Plateau":    [62, 26],
+      "Crystalline Passage": [84, 26],
+      // Bottom row (right→left)
+      "Glacial Trail":     [90, 66],
+      "Frozen Tundra":     [58, 72],
+      "The Ancients' Way": [32, 72],
+      "Arreat Summit":     [10, 72],
+      // Lowest row (left→right)
+      "Worldstone Keep":   [24, 90],
+      "Throne of Destruction": [48, 90],
+      "The Worldstone Chamber": [72, 88],
+      // Side branches
+      "Nihlathak's Temple": [16, 48],
+      "Frozen River":      [84, 16],
     },
   };
 
@@ -244,7 +312,7 @@
     const positions = computePositions(mapZones, run.actNumber);
 
     // Town waypoint (always shown, always cleared)
-    const townPos = positions.get("town") || [6.4, 53];
+    const townPos = positions.get("town") || [7, 44];
     const townWaypoint = `
       <div class="waypoint waypoint--town" style="left:${townPos[0]}%;top:${townPos[1]}%">
         <span class="waypoint__icon">\u{1F3E0}</span>

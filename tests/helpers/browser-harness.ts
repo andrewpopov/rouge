@@ -14,6 +14,7 @@ const SHARED_RUNTIME_FILES = [
   "src/content/game-content-rewards-late-b.js",
   "src/content/game-content-rewards-late.js",
   "src/content/game-content-rewards.js",
+  "src/content/class-cards.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
   "src/combat/combat-engine-turns.js",

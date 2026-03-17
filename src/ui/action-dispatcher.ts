@@ -198,6 +198,21 @@
           return true;
         }
         return false;
+      case "debug-set-act": {
+        const run = appState.run;
+        const targetIndex = Number.parseInt(actionEl.dataset.actIndex || "0", 10);
+        if (run?.acts && targetIndex >= 0 && targetIndex < run.acts.length && targetIndex !== run.currentActIndex) {
+          const routeBuilder = runtimeWindow.ROUGE_RUN_ROUTE_BUILDER;
+          run.currentActIndex = targetIndex;
+          routeBuilder.syncCurrentActFields(run);
+          run.activeZoneId = "";
+          run.activeEncounterId = "";
+          routeBuilder.recomputeZoneStatuses(run);
+          appEngine.setPhase(appState, appEngine.PHASES.WORLD_MAP);
+          render();
+        }
+        return true;
+      }
       case "set-preferred-class":
         appEngine.setPreferredClass(appState, actionEl.dataset.classId || "");
         render();

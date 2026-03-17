@@ -189,6 +189,10 @@
   }
 
   function getStarterDeckForClass(content, classId) {
+    const classDeck = content.classStarterDecks?.[classId];
+    if (Array.isArray(classDeck) && classDeck.length > 0) {
+      return [...classDeck];
+    }
     const profileId = getDeckProfileId(content, classId);
     const profileDeck = content.starterDeckProfiles?.[profileId];
     return Array.isArray(profileDeck) && profileDeck.length > 0 ? [...profileDeck] : [...content.starterDeck];

@@ -1,12 +1,22 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function buildDebugBar(debug: DebugModeConfig): string {
+  function buildDebugBar(debug: DebugModeConfig, appState: AppState): string {
     const flag = (key: string, label: string, active: boolean) =>
       `<button class="debug-flag ${active ? "debug-flag--on" : ""}"
         data-action="toggle-profile-setting"
         data-setting-key="debugMode.${key}"
         data-setting-value="${String(!active)}">${label}</button>`;
+
+    const run = appState.run;
+    const actPicker = run?.acts?.length > 1
+      ? `<span class="debug-bar__sep">|</span>
+         <span class="debug-bar__label">Act</span>
+         ${run.acts.map((act: ActState, i: number) =>
+           `<button class="debug-flag ${i === run.currentActIndex ? "debug-flag--on" : ""}"
+              data-action="debug-set-act" data-act-index="${i}">${act.actNumber}</button>`
+         ).join("")}`
+      : "";
 
     return `<div class="debug-bar">
       <span class="debug-bar__label">\u{1F41E} DEBUG</span>
@@ -14,6 +24,7 @@
       ${flag("invulnerable", "Invulnerable", debug.invulnerable)}
       ${flag("oneHitKill", "1-Hit Kill", debug.oneHitKill)}
       ${flag("infiniteGold", "\u221E Gold", debug.infiniteGold)}
+      ${actPicker}
     </div>`;
   }
 
@@ -93,7 +104,7 @@
 
     const debug = appState.profile?.meta?.settings?.debugMode;
     if (debug?.enabled) {
-      root.innerHTML = buildDebugBar(debug) + root.innerHTML;
+      root.innerHTML = buildDebugBar(debug, appState) + root.innerHTML;
     }
 
     if (RUN_PHASES.has(appState.phase)) {

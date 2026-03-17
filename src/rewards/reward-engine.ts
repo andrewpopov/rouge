@@ -253,13 +253,28 @@
     return choices.slice(0, runtimeWindow.ROUGE_LIMITS.REWARD_CHOICES);
   }
 
+  function getClassPoolForZone(content, classId, zoneRole, actNumber) {
+    const classPools = content.classRewardPools?.[classId];
+    if (!classPools) {
+      return [];
+    }
+    if (actNumber >= 4 || zoneRole === "boss") {
+      return [...classPools.late, ...classPools.mid];
+    }
+    if (actNumber >= 2 || zoneRole === "branchMiniboss" || zoneRole === "branchBattle") {
+      return [...classPools.mid, ...classPools.early];
+    }
+    return [...classPools.early];
+  }
+
   function buildRewardChoices({ content, run, zone, actNumber, encounterNumber, profile = null }) {
     const seed = getChoiceSeed(run, zone, actNumber, encounterNumber);
     const itemSystem = runtimeWindow.ROUGE_ITEM_SYSTEM;
     const usedCardIds = new Set();
     const choices = [];
     const profileId = getDeckProfileId(content, run.classId);
-    const profilePool = content.rewardPools?.profileCards?.[profileId] || [];
+    const classPool = getClassPoolForZone(content, run.classId, zone.zoneRole, actNumber);
+    const profilePool = classPool.length > 0 ? classPool : (content.rewardPools?.profileCards?.[profileId] || []);
     const zonePool = content.rewardPools?.zoneRoleCards?.[zone.zoneRole] || [];
     const bossPool = content.rewardPools?.bossCards || [];
     const upgradableCardIds = getUpgradableCardIds(run, content);

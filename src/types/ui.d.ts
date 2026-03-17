@@ -416,6 +416,11 @@ interface Window {
   __ROUGE_GC_REWARDS_LATE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_GC_REWARDS: Record<string, any>;
+  __ROUGE_CLASS_CARDS: {
+    classCardCatalog: Record<string, CardDefinition>;
+    classStarterDecks: Record<string, string[]>;
+    classRewardPools: Record<string, ClassRewardTiers>;
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_WNC_QUESTS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -462,7 +467,7 @@ interface Window {
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
-  __ROUGE_ZONE_FLAVOR: { getZoneFlavor(eventId: string, zoneTitle: string): string | null };
+  __ROUGE_ZONE_FLAVOR: { getZoneFlavor(eventId: string, zoneTitle: string): string | null; resolveZoneEnv(zoneTitle: string): string | null };
   __ROUGE_OPP_HELPERS: {
     nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds?: string[]): RewardChoiceEffect;
     questConsequenceEffect(questId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds?: string[]): RewardChoiceEffect;

@@ -272,6 +272,8 @@
     }
 
     const zoneName = zone?.title || combat.encounter.name;
+    const zoneFlavor = runtimeWindow.__ROUGE_ZONE_FLAVOR;
+    const zoneEnv = zoneFlavor?.resolveZoneEnv?.(zoneName) || "moor";
     const encounterNum = (zone?.encountersCleared || 0) + 1;
     const encounterTotal = zone?.encounterTotal || 1;
     const hpPercent = Math.round((combat.hero.life / combat.hero.maxLife) * 100);
@@ -305,7 +307,7 @@
           </div>
         </div>
 
-        <div class="stage">
+        <div class="stage" data-env="${zoneEnv}">
           <div class="stage__backdrop"></div>
           <div class="stage__floor"></div>
 

@@ -1,12 +1,87 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const ARCHETYPE_LABELS = {
+    martial: { label: "Martial", tone: "danger" },
+    arcane: { label: "Arcane", tone: "arcane" },
+    support: { label: "Support", tone: "support" },
+    command: { label: "Command", tone: "command" },
+  };
+
+  const CLASS_FLAVORS = {
+    amazon: "Versatile ranged warrior who commands javelin and bow with deadly precision.",
+    assassin: "Shadow operative blending martial arts, traps, and psychic discipline.",
+    barbarian: "Relentless frontline fighter who overwhelms with raw strength and war shouts.",
+    druid: "Shape-shifting guardian who channels elemental fury and summons nature's allies.",
+    necromancer: "Master of death who curses foes, shatters bone, and raises undead armies.",
+    paladin: "Holy warrior who radiates auras of might and protection in combat.",
+    sorceress: "Elemental prodigy who unleashes devastating cold, fire, and lightning spells.",
+  };
+
   function humanize(id: string): string {
     return String(id || "")
       .split("_")
       .filter(Boolean)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+  }
+
+  function buildStatBar(label: string, value: number, max: number, escapeHtml: (s: unknown) => string): string {
+    const pct = Math.round((value / max) * 100);
+    return `
+      <div class="class-stat-bar">
+        <span class="class-stat-bar__label">${escapeHtml(label)}</span>
+        <div class="class-stat-bar__track">
+          <div class="class-stat-bar__fill" style="width: ${pct}%"></div>
+        </div>
+        <span class="class-stat-bar__value">${escapeHtml(value)}</span>
+      </div>
+    `;
+  }
+
+  function buildTreeCard(
+    treeName: string,
+    archetypeId: string,
+    skills: { id: string; name: string; requiredLevel: number }[],
+    escapeHtml: (s: unknown) => string,
+    buildBadge: (label: string, tone: string) => string
+  ): string {
+    const archInfo = ARCHETYPE_LABELS[archetypeId] || ARCHETYPE_LABELS.martial;
+    const tierGroups: { tier: string; names: string[] }[] = [];
+    const tiers = [
+      { label: "Lv 1", min: 1, max: 5 },
+      { label: "Lv 6-12", min: 6, max: 17 },
+      { label: "Lv 18-24", min: 18, max: 29 },
+      { label: "Lv 30", min: 30, max: 99 },
+    ];
+    for (const tier of tiers) {
+      const names = skills.filter((s) => s.requiredLevel >= tier.min && s.requiredLevel <= tier.max).map((s) => s.name);
+      if (names.length > 0) {
+        tierGroups.push({ tier: tier.label, names });
+      }
+    }
+
+    return `
+      <div class="class-tree-card class-tree-card--${escapeHtml(archetypeId)}">
+        <div class="class-tree-card__header">
+          <strong class="class-tree-card__name">${escapeHtml(treeName)}</strong>
+          ${buildBadge(archInfo.label, archInfo.tone)}
+        </div>
+        <div class="class-tree-card__tiers">
+          ${tierGroups
+            .map(
+              (group) => `
+            <div class="class-tree-tier">
+              <span class="class-tree-tier__label">${escapeHtml(group.tier)}</span>
+              <span class="class-tree-tier__skills">${group.names.map((n) => escapeHtml(n)).join(", ")}</span>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+        <div class="class-tree-card__depth">${escapeHtml(skills.length)} skills</div>
+      </div>
+    `;
   }
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
@@ -38,19 +113,70 @@
             appState.content,
             appState.registries.classes.find((c) => c.id === appState.ui.selectedClassId)!
           );
-          const trees = selectedClass.skillTrees.map(humanize).join(" \u00b7 ");
+          const baseStats = selectedClass.baseStats || {};
+          const str = Number.parseInt(String(baseStats.strength ?? 0), 10) || 0;
+          const dex = Number.parseInt(String(baseStats.dexterity ?? 0), 10) || 0;
+          const vit = Number.parseInt(String(baseStats.vitality ?? 0), 10) || 0;
+          const ene = Number.parseInt(String(baseStats.energy ?? 0), 10) || 0;
+          const statMax = 35;
+
+          const progression = services.classRegistry.getClassProgression(appState.content, selectedClass.id);
+          const trees = progression?.trees || [];
+
+          const preferredWeapons = services.classRegistry.getPreferredWeaponFamilies(selectedClass.id);
+          const weaponBadges = preferredWeapons.length > 0
+            ? preferredWeapons.map((w) => buildBadge(w, "cleared")).join("")
+            : buildBadge("General", "locked");
+
+          const flavor = CLASS_FLAVORS[selectedClass.id] || "";
+
           return `
-            <div class="campfire-detail">
+            <div class="campfire-detail campfire-detail--expanded">
               <div class="campfire-detail__header">
                 <h2 class="campfire-detail__name">${escapeHtml(selectedClass.name)}</h2>
                 ${buildBadge(humanize(deckProfileId), "cleared")}
               </div>
-              <p class="campfire-detail__trees">${escapeHtml(trees)}</p>
-              <div class="campfire-detail__stats">
-                ${buildStat("Life", previewHero.maxLife)}
-                ${buildStat("Energy", previewHero.maxEnergy)}
-                ${buildStat("Hand", previewHero.handSize)}
-                ${buildStat("Potion", previewHero.potionHeal)}
+              <p class="campfire-detail__flavor">${escapeHtml(flavor)}</p>
+
+              <div class="campfire-detail__columns">
+                <div class="campfire-detail__left">
+                  <div class="campfire-detail__section">
+                    <h3 class="campfire-detail__section-title">Base Attributes</h3>
+                    <div class="class-stat-bars">
+                      ${buildStatBar("STR", str, statMax, escapeHtml)}
+                      ${buildStatBar("DEX", dex, statMax, escapeHtml)}
+                      ${buildStatBar("VIT", vit, statMax, escapeHtml)}
+                      ${buildStatBar("ENE", ene, statMax, escapeHtml)}
+                    </div>
+                  </div>
+                  <div class="campfire-detail__section">
+                    <h3 class="campfire-detail__section-title">Starting Resources</h3>
+                    <div class="campfire-detail__resources">
+                      ${buildStat("Life", previewHero.maxLife)}
+                      ${buildStat("Energy", previewHero.maxEnergy)}
+                      ${buildStat("Hand", previewHero.handSize)}
+                      ${buildStat("Potion", previewHero.potionHeal)}
+                    </div>
+                  </div>
+                  <div class="campfire-detail__section">
+                    <h3 class="campfire-detail__section-title">Preferred Weapons</h3>
+                    <div class="campfire-detail__weapons">${weaponBadges}</div>
+                  </div>
+                </div>
+
+                <div class="campfire-detail__right">
+                  <h3 class="campfire-detail__section-title">Skill Trees</h3>
+                  <div class="class-tree-list">
+                    ${trees
+                      .map((tree) => buildTreeCard(tree.name, tree.archetypeId, tree.skills, escapeHtml, buildBadge))
+                      .join("")}
+                    ${trees.length === 0
+                      ? selectedClass.skillTrees
+                          .map((treeId) => `<div class="class-tree-card"><strong class="class-tree-card__name">${escapeHtml(humanize(treeId))}</strong></div>`)
+                          .join("")
+                      : ""}
+                  </div>
+                </div>
               </div>
             </div>
           `;

@@ -1293,6 +1293,227 @@ button.entity-card:disabled {
   }
 }
 
+/* ── Class Detail Card (expanded) ── */
+
+.campfire-detail--expanded {
+  max-width: 720px;
+  text-align: left;
+  padding: 20px 24px 24px;
+}
+
+.campfire-detail__flavor {
+  font-style: italic;
+  color: var(--muted);
+  margin: 2px 0 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.campfire-detail__columns {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.campfire-detail__section {
+  margin-bottom: 16px;
+}
+
+.campfire-detail__section:last-child {
+  margin-bottom: 0;
+}
+
+.campfire-detail__section-title {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+
+.campfire-detail__resources {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.campfire-detail__weapons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── Stat Bars ── */
+
+.class-stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.class-stat-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.class-stat-bar__label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  width: 30px;
+  flex-shrink: 0;
+}
+
+.class-stat-bar__track {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.class-stat-bar__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transition: width 0.4s ease;
+}
+
+.class-stat-bar__value {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: var(--text);
+  width: 20px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Skill Tree Cards ── */
+
+.class-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.class-tree-card {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 12px 14px;
+  transition: border-color 0.2s ease;
+}
+
+.class-tree-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.class-tree-card--martial {
+  border-left: 3px solid rgba(207, 123, 111, 0.5);
+}
+
+.class-tree-card--arcane {
+  border-left: 3px solid rgba(147, 130, 210, 0.5);
+}
+
+.class-tree-card--support {
+  border-left: 3px solid rgba(134, 185, 147, 0.5);
+}
+
+.class-tree-card--command {
+  border-left: 3px solid rgba(245, 193, 118, 0.5);
+}
+
+.class-tree-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.class-tree-card__name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.class-tree-card__depth {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: right;
+  margin-top: 6px;
+}
+
+.class-tree-card__tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.class-tree-tier {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.class-tree-tier__label {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  min-width: 48px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.class-tree-tier__skills {
+  color: var(--muted);
+}
+
+/* Archetype badge tones */
+
+.badge-danger {
+  background: rgba(207, 123, 111, 0.2);
+  color: #f0c0b8;
+}
+
+.badge-arcane {
+  background: rgba(147, 130, 210, 0.2);
+  color: #d4c8f0;
+}
+
+.badge-support {
+  background: rgba(134, 185, 147, 0.2);
+  color: #d6f2dc;
+}
+
+.badge-command {
+  background: rgba(245, 193, 118, 0.2);
+  color: #ffe4b5;
+}
+
+@media (max-width: 600px) {
+  .campfire-detail--expanded {
+    max-width: 100%;
+    padding: 16px;
+  }
+  .campfire-detail__columns {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .campfire-detail__resources {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 /* ── Town Map Screen ── */
 
 .town-screen {
@@ -2620,6 +2841,348 @@ button.waypoint:hover {
     radial-gradient(ellipse at 75% 0%, rgba(200, 100, 30, 0.1), transparent 35%);
 }
 
+/* ── Environment-themed combat backgrounds ── */
+
+/* Moor: crimson fog, blood-stained earth */
+.stage[data-env="moor"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(180, 40, 30, 0.25), transparent 50%),
+    radial-gradient(ellipse at 70% 30%, rgba(140, 30, 20, 0.2), transparent 45%),
+    radial-gradient(ellipse at 50% 80%, rgba(120, 50, 30, 0.35), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(80, 20, 15, 0.4), transparent 70%),
+    linear-gradient(180deg, #0a0204 0%, #1a0808 20%, #2a100c 45%, #301510 70%, #281008 100%);
+}
+.stage[data-env="moor"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 20% 40%, rgba(200, 60, 30, 0.12), transparent 40%),
+    radial-gradient(ellipse at 80% 50%, rgba(180, 50, 30, 0.1), transparent 35%),
+    radial-gradient(ellipse at 50% 90%, rgba(160, 60, 40, 0.18), transparent 45%),
+    radial-gradient(ellipse at 50% 0%, rgba(60, 10, 10, 0.3), transparent 60%);
+}
+.stage[data-env="moor"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(140, 50, 30, 0.35), transparent 60%),
+    linear-gradient(180deg, #2a0e08 0%, #1c0806 40%, #0e0404 100%);
+  border-top-color: rgba(160, 50, 30, 0.25);
+}
+
+/* Cave: dark blue-grey, flickering torchlight */
+.stage[data-env="cave"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(200, 130, 50, 0.15), transparent 30%),
+    radial-gradient(ellipse at 70% 50%, rgba(180, 110, 40, 0.1), transparent 25%),
+    radial-gradient(ellipse at 50% 30%, rgba(40, 50, 70, 0.3), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(20, 25, 40, 0.5), transparent 80%),
+    linear-gradient(180deg, #020206 0%, #0a0c14 20%, #121620 45%, #181c28 70%, #10141e 100%);
+}
+.stage[data-env="cave"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 25% 70%, rgba(220, 140, 50, 0.14), transparent 30%),
+    radial-gradient(ellipse at 75% 65%, rgba(200, 120, 40, 0.1), transparent 28%),
+    radial-gradient(ellipse at 50% 10%, rgba(30, 40, 60, 0.25), transparent 50%),
+    radial-gradient(ellipse at 15% 30%, rgba(60, 80, 110, 0.08), transparent 35%);
+}
+.stage[data-env="cave"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(80, 90, 110, 0.25), transparent 60%),
+    linear-gradient(180deg, #181c28 0%, #0e1018 40%, #060810 100%);
+  border-top-color: rgba(80, 100, 140, 0.2);
+}
+
+/* Plains: open sky, wind-swept grass */
+.stage[data-env="plains"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(80, 100, 60, 0.15), transparent 50%),
+    radial-gradient(ellipse at 30% 40%, rgba(60, 80, 40, 0.12), transparent 40%),
+    radial-gradient(ellipse at 70% 35%, rgba(70, 90, 50, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(50, 60, 30, 0.3), transparent 50%),
+    linear-gradient(180deg, #0a0e08 0%, #141a10 20%, #1e2618 45%, #263020 70%, #1e2818 100%);
+}
+.stage[data-env="plains"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 50% 5%, rgba(120, 140, 80, 0.08), transparent 40%),
+    radial-gradient(ellipse at 50% 85%, rgba(100, 120, 60, 0.15), transparent 45%),
+    radial-gradient(ellipse at 20% 60%, rgba(80, 100, 50, 0.06), transparent 30%),
+    radial-gradient(ellipse at 80% 55%, rgba(80, 100, 50, 0.06), transparent 30%);
+}
+.stage[data-env="plains"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(80, 100, 40, 0.3), transparent 60%),
+    linear-gradient(180deg, #1e2814 0%, #141c0e 40%, #0a0e06 100%);
+  border-top-color: rgba(100, 130, 50, 0.2);
+}
+
+/* Forest: deep green canopy, dappled shadow */
+.stage[data-env="forest"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 40% 20%, rgba(30, 80, 30, 0.2), transparent 45%),
+    radial-gradient(ellipse at 60% 15%, rgba(40, 70, 25, 0.15), transparent 40%),
+    radial-gradient(ellipse at 50% 70%, rgba(20, 50, 20, 0.35), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(10, 30, 10, 0.5), transparent 80%),
+    linear-gradient(180deg, #020604 0%, #061008 20%, #0c1a0e 45%, #122414 70%, #0e1e10 100%);
+}
+.stage[data-env="forest"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 35% 30%, rgba(120, 180, 60, 0.06), transparent 25%),
+    radial-gradient(ellipse at 65% 25%, rgba(100, 160, 50, 0.05), transparent 22%),
+    radial-gradient(ellipse at 50% 80%, rgba(40, 80, 30, 0.15), transparent 45%),
+    radial-gradient(ellipse at 50% 5%, rgba(10, 20, 8, 0.4), transparent 50%);
+}
+.stage[data-env="forest"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(50, 80, 30, 0.3), transparent 60%),
+    linear-gradient(180deg, #142010 0%, #0e180a 40%, #060e04 100%);
+  border-top-color: rgba(60, 100, 30, 0.2);
+}
+
+/* Marsh: sickly green, bubbling fog */
+.stage[data-env="marsh"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 40% 70%, rgba(80, 120, 50, 0.2), transparent 40%),
+    radial-gradient(ellipse at 60% 60%, rgba(60, 100, 40, 0.15), transparent 35%),
+    radial-gradient(ellipse at 50% 30%, rgba(40, 60, 30, 0.25), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(20, 40, 15, 0.45), transparent 80%),
+    linear-gradient(180deg, #040804 0%, #0a1208 20%, #141e10 45%, #1a2816 70%, #142012 100%);
+}
+.stage[data-env="marsh"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 30% 80%, rgba(100, 150, 60, 0.1), transparent 35%),
+    radial-gradient(ellipse at 70% 75%, rgba(90, 140, 50, 0.08), transparent 30%),
+    radial-gradient(ellipse at 50% 90%, rgba(80, 130, 50, 0.15), transparent 40%),
+    radial-gradient(ellipse at 50% 10%, rgba(30, 50, 20, 0.3), transparent 50%);
+}
+.stage[data-env="marsh"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(70, 110, 40, 0.3), transparent 60%),
+    linear-gradient(180deg, #162010 0%, #101a0a 40%, #080e04 100%);
+  border-top-color: rgba(80, 130, 40, 0.25);
+}
+
+/* Ruins: dusty stone, faded grandeur */
+.stage[data-env="ruins"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(100, 90, 70, 0.2), transparent 50%),
+    radial-gradient(ellipse at 30% 50%, rgba(80, 70, 50, 0.15), transparent 40%),
+    radial-gradient(ellipse at 70% 45%, rgba(90, 80, 60, 0.12), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(60, 50, 35, 0.35), transparent 50%),
+    linear-gradient(180deg, #080604 0%, #141008 20%, #201a10 45%, #282018 70%, #201a12 100%);
+}
+.stage[data-env="ruins"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(140, 120, 80, 0.08), transparent 40%),
+    radial-gradient(ellipse at 50% 70%, rgba(120, 100, 60, 0.12), transparent 40%),
+    radial-gradient(ellipse at 20% 40%, rgba(100, 80, 50, 0.06), transparent 30%),
+    radial-gradient(ellipse at 80% 40%, rgba(100, 80, 50, 0.06), transparent 30%);
+}
+.stage[data-env="ruins"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(100, 80, 50, 0.3), transparent 60%),
+    linear-gradient(180deg, #221a10 0%, #181208 40%, #0c0a04 100%);
+  border-top-color: rgba(120, 100, 60, 0.2);
+}
+
+/* Monastery: cold stone, stained glass light */
+.stage[data-env="monastery"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(100, 70, 120, 0.15), transparent 45%),
+    radial-gradient(ellipse at 30% 50%, rgba(80, 60, 90, 0.12), transparent 40%),
+    radial-gradient(ellipse at 70% 40%, rgba(90, 65, 100, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(50, 40, 60, 0.35), transparent 50%),
+    linear-gradient(180deg, #060408 0%, #100c14 20%, #1a141e 45%, #221a28 70%, #1a1420 100%);
+}
+.stage[data-env="monastery"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 40% 25%, rgba(180, 120, 200, 0.06), transparent 30%),
+    radial-gradient(ellipse at 60% 20%, rgba(200, 160, 100, 0.05), transparent 25%),
+    radial-gradient(ellipse at 50% 75%, rgba(80, 60, 100, 0.15), transparent 45%),
+    radial-gradient(ellipse at 50% 5%, rgba(40, 30, 50, 0.3), transparent 50%);
+}
+.stage[data-env="monastery"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(80, 60, 90, 0.3), transparent 60%),
+    linear-gradient(180deg, #1c1420 0%, #140e18 40%, #0a060e 100%);
+  border-top-color: rgba(100, 70, 120, 0.2);
+}
+
+/* Desert: scorching heat, sand haze */
+.stage[data-env="desert"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(200, 160, 80, 0.2), transparent 50%),
+    radial-gradient(ellipse at 30% 40%, rgba(180, 140, 60, 0.12), transparent 45%),
+    radial-gradient(ellipse at 70% 35%, rgba(190, 150, 70, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(120, 90, 40, 0.3), transparent 50%),
+    linear-gradient(180deg, #0e0a04 0%, #1e1608 20%, #302410 45%, #3a2c14 70%, #2e2210 100%);
+}
+.stage[data-env="desert"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 50% 5%, rgba(255, 200, 100, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 85%, rgba(200, 150, 60, 0.15), transparent 45%),
+    radial-gradient(ellipse at 20% 50%, rgba(180, 130, 50, 0.06), transparent 30%),
+    radial-gradient(ellipse at 80% 50%, rgba(180, 130, 50, 0.06), transparent 30%);
+}
+.stage[data-env="desert"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(180, 140, 60, 0.3), transparent 60%),
+    linear-gradient(180deg, #302410 0%, #241a0a 40%, #140e04 100%);
+  border-top-color: rgba(200, 160, 70, 0.25);
+}
+
+/* Oasis: teal water glow amid sand */
+.stage[data-env="oasis"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 60%, rgba(40, 140, 120, 0.18), transparent 40%),
+    radial-gradient(ellipse at 30% 30%, rgba(160, 130, 60, 0.12), transparent 40%),
+    radial-gradient(ellipse at 70% 25%, rgba(150, 120, 50, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(30, 80, 70, 0.25), transparent 50%),
+    linear-gradient(180deg, #0a0806 0%, #181408 20%, #24200e 45%, #2a2412 70%, #201c0e 100%);
+}
+.stage[data-env="oasis"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(60, 120, 100, 0.25), transparent 60%),
+    linear-gradient(180deg, #1e1c0e 0%, #161208 40%, #0a0804 100%);
+  border-top-color: rgba(60, 140, 120, 0.2);
+}
+
+/* Canyon: narrow red-orange rock walls */
+.stage[data-env="canyon"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(160, 80, 40, 0.25), transparent 40%),
+    radial-gradient(ellipse at 80% 50%, rgba(160, 80, 40, 0.25), transparent 40%),
+    radial-gradient(ellipse at 50% 20%, rgba(100, 50, 25, 0.15), transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(120, 60, 30, 0.3), transparent 50%),
+    linear-gradient(180deg, #0a0404 0%, #1e0e06 20%, #30180c 45%, #3c2010 70%, #2e1a0c 100%);
+}
+.stage[data-env="canyon"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(150, 80, 40, 0.3), transparent 60%),
+    linear-gradient(180deg, #30180c 0%, #221008 40%, #120804 100%);
+  border-top-color: rgba(160, 90, 40, 0.25);
+}
+
+/* Tomb: ancient gold and shadow */
+.stage[data-env="tomb"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(160, 130, 60, 0.12), transparent 45%),
+    radial-gradient(ellipse at 30% 30%, rgba(120, 100, 40, 0.1), transparent 35%),
+    radial-gradient(ellipse at 70% 40%, rgba(100, 80, 30, 0.08), transparent 35%),
+    radial-gradient(ellipse at 50% 80%, rgba(40, 30, 15, 0.4), transparent 50%),
+    linear-gradient(180deg, #040302 0%, #0e0a04 20%, #18120a 45%, #201810 70%, #181208 100%);
+}
+.stage[data-env="tomb"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(140, 110, 50, 0.2), transparent 60%),
+    linear-gradient(180deg, #1c1408 0%, #140e06 40%, #080604 100%);
+  border-top-color: rgba(160, 130, 60, 0.2);
+}
+
+/* Jungle: dense green, humid haze */
+.stage[data-env="jungle"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(20, 80, 30, 0.25), transparent 40%),
+    radial-gradient(ellipse at 70% 15%, rgba(30, 70, 20, 0.2), transparent 35%),
+    radial-gradient(ellipse at 50% 60%, rgba(40, 100, 30, 0.2), transparent 45%),
+    radial-gradient(ellipse at 50% 80%, rgba(15, 50, 15, 0.4), transparent 50%),
+    linear-gradient(180deg, #020802 0%, #081406 20%, #0e200c 45%, #142a12 70%, #10220e 100%);
+}
+.stage[data-env="jungle"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(60, 160, 40, 0.06), transparent 25%),
+    radial-gradient(ellipse at 80% 25%, rgba(50, 140, 30, 0.05), transparent 22%),
+    radial-gradient(ellipse at 50% 85%, rgba(30, 90, 25, 0.18), transparent 45%),
+    radial-gradient(ellipse at 50% 5%, rgba(5, 15, 5, 0.4), transparent 50%);
+}
+.stage[data-env="jungle"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(40, 90, 30, 0.3), transparent 60%),
+    linear-gradient(180deg, #122210 0%, #0c1a08 40%, #060e04 100%);
+  border-top-color: rgba(50, 110, 30, 0.2);
+}
+
+/* Temple: ornate stone, brazier light */
+.stage[data-env="temple"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(200, 150, 50, 0.15), transparent 35%),
+    radial-gradient(ellipse at 70% 55%, rgba(180, 130, 40, 0.12), transparent 30%),
+    radial-gradient(ellipse at 50% 20%, rgba(80, 60, 40, 0.2), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(40, 30, 20, 0.45), transparent 80%),
+    linear-gradient(180deg, #060404 0%, #120e08 20%, #1e1610 45%, #261e14 70%, #1e1610 100%);
+}
+.stage[data-env="temple"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(160, 120, 50, 0.25), transparent 60%),
+    linear-gradient(180deg, #221a10 0%, #18120a 40%, #0c0a04 100%);
+  border-top-color: rgba(180, 140, 50, 0.2);
+}
+
+/* Hell: infernal red-orange, lava glow */
+.stage[data-env="hell"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 90%, rgba(255, 80, 20, 0.3), transparent 50%),
+    radial-gradient(ellipse at 30% 30%, rgba(200, 40, 10, 0.2), transparent 40%),
+    radial-gradient(ellipse at 70% 25%, rgba(220, 50, 15, 0.18), transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(100, 20, 5, 0.4), transparent 70%),
+    linear-gradient(180deg, #0a0200 0%, #1e0804 20%, #30100a 45%, #441810 70%, #381208 100%);
+}
+.stage[data-env="hell"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 50% 95%, rgba(255, 120, 30, 0.2), transparent 40%),
+    radial-gradient(ellipse at 20% 70%, rgba(255, 60, 10, 0.1), transparent 30%),
+    radial-gradient(ellipse at 80% 65%, rgba(255, 60, 10, 0.1), transparent 30%),
+    radial-gradient(ellipse at 50% 5%, rgba(60, 10, 5, 0.3), transparent 50%);
+}
+.stage[data-env="hell"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 80, 20, 0.35), transparent 60%),
+    linear-gradient(180deg, #3a1208 0%, #280c04 40%, #140602 100%);
+  border-top-color: rgba(255, 100, 30, 0.3);
+}
+
+/* Ice: cold blue, frost shimmer */
+.stage[data-env="ice"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(80, 140, 200, 0.18), transparent 50%),
+    radial-gradient(ellipse at 30% 50%, rgba(60, 120, 180, 0.12), transparent 40%),
+    radial-gradient(ellipse at 70% 40%, rgba(70, 130, 190, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(30, 60, 100, 0.35), transparent 50%),
+    linear-gradient(180deg, #040810 0%, #0a1020 20%, #101a30 45%, #142238 70%, #101c30 100%);
+}
+.stage[data-env="ice"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(140, 200, 255, 0.08), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(100, 160, 220, 0.12), transparent 40%),
+    radial-gradient(ellipse at 25% 40%, rgba(80, 140, 200, 0.06), transparent 30%),
+    radial-gradient(ellipse at 75% 35%, rgba(80, 140, 200, 0.06), transparent 30%);
+}
+.stage[data-env="ice"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(80, 140, 200, 0.25), transparent 60%),
+    linear-gradient(180deg, #141e30 0%, #0e1420 40%, #060a14 100%);
+  border-top-color: rgba(100, 170, 230, 0.2);
+}
+
+/* Mountain: rugged brown-grey, cold air */
+.stage[data-env="mountain"] .stage__backdrop {
+  background:
+    radial-gradient(ellipse at 50% 15%, rgba(100, 110, 120, 0.15), transparent 50%),
+    radial-gradient(ellipse at 30% 45%, rgba(80, 85, 95, 0.12), transparent 40%),
+    radial-gradient(ellipse at 70% 40%, rgba(90, 95, 105, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(50, 55, 60, 0.35), transparent 50%),
+    linear-gradient(180deg, #060608 0%, #101214 20%, #1a1c20 45%, #222428 70%, #1a1c22 100%);
+}
+.stage[data-env="mountain"] .stage__backdrop::before {
+  background:
+    radial-gradient(ellipse at 50% 5%, rgba(140, 150, 170, 0.06), transparent 40%),
+    radial-gradient(ellipse at 50% 70%, rgba(100, 110, 130, 0.1), transparent 40%),
+    radial-gradient(ellipse at 20% 50%, rgba(80, 90, 100, 0.06), transparent 30%),
+    radial-gradient(ellipse at 80% 50%, rgba(80, 90, 100, 0.06), transparent 30%);
+}
+.stage[data-env="mountain"] .stage__floor {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(90, 100, 110, 0.25), transparent 60%),
+    linear-gradient(180deg, #1c1e22 0%, #141618 40%, #0a0a0e 100%);
+  border-top-color: rgba(100, 110, 130, 0.2);
+}
+
 .stage__allies,
 .stage__enemies {
   position: relative;
@@ -3405,6 +3968,11 @@ button.waypoint:hover {
   border-color: rgba(255, 220, 100, 0.6);
   color: #ffe680;
   font-weight: 600;
+}
+
+.debug-bar__sep {
+  opacity: 0.3;
+  margin: 0 4px;
 }
 
 /* ── Game Menu (always visible during run) ── */
