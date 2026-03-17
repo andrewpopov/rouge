@@ -15,9 +15,9 @@
     zoneMonsters: "zone-monsters.json",
   };
 
-  let cachedPromise = null;
+  let cachedPromise: Promise<SeedBundle> | null = null;
 
-  async function loadJson(relativePath) {
+  async function loadJson(relativePath: string) {
     const response = await fetch(relativePath);
     if (!response.ok) {
       throw new Error(`Failed to load ${relativePath}: ${response.status}`);

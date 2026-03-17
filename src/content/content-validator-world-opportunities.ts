@@ -26,7 +26,7 @@
     validateEscalationOpportunityFamily,
   } = runtimeWindow.__ROUGE_CVWO_FAMILIES_B;
 
-  function validateLateRouteOpportunityFamilies(options) {
+  function validateLateRouteOpportunityFamilies(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     validateReserveOpportunityFamily(options);
     validateRelayOpportunityFamily(options);
     validateCulminationOpportunityFamily(options);

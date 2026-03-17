@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
-function clearAllMainlineZones(runFactory, run) {
+function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
   const zones = runFactory.getCurrentZones(run);
   const mainlineZones = zones.filter(
-    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+    (z: ZoneState) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
   );
   for (const z of mainlineZones) {
     z.encountersCleared = z.encounterTotal;
@@ -23,14 +23,14 @@ type ResolveActOneToCovenantOptions = {
   covenantChoiceIndex?: number;
 };
 
-function getRequiredZone(state, runFactory, label, predicate) {
+function getRequiredZone(state: AppState, runFactory: RunFactoryApi, label: string, predicate: (z: ZoneState) => boolean) {
   const zones = runFactory.getCurrentZones(state.run);
   const zone = zones.find(predicate);
-  assert.ok(zone, `Missing ${label} zone. Current zones: ${zones.map((candidate) => candidate.id).join(", ")}`);
+  assert.ok(zone, `Missing ${label} zone. Current zones: ${zones.map((candidate: ZoneState) => candidate.id).join(", ")}`);
   return zone;
 }
 
-function selectZoneAndClaimByIndex(state, appEngine, runFactory, label, predicate, choiceIndex = 0) {
+function selectZoneAndClaimByIndex(state: AppState, appEngine: AppEngineApi, runFactory: RunFactoryApi, label: string, predicate: (z: ZoneState) => boolean, choiceIndex = 0) {
   const zone = getRequiredZone(state, runFactory, label, predicate);
   const result = appEngine.selectZone(state, zone.id);
   assert.equal(result.ok, true, `Expected ${label} zone ${zone.id} to be selectable.`);
@@ -47,7 +47,7 @@ function selectZoneAndClaimByIndex(state, appEngine, runFactory, label, predicat
  * act 1's shrine and shrine-opportunity, copy the outcome records under the keys
  * that the downstream definitions actually reference.
  */
-function aliasShrineOutcomeForCrossroad(run) {
+function aliasShrineOutcomeForCrossroad(run: RunState) {
   const world = run.world;
   if (!world) { return; }
   const existingShrineKey = Object.keys(world.shrineOutcomes || {})[0];
@@ -56,7 +56,7 @@ function aliasShrineOutcomeForCrossroad(run) {
   }
 }
 
-function aliasShrineOpportunityOutcomeForReserve(run) {
+function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
   const world = run.world;
   if (!world) { return; }
   if (world.opportunityOutcomes["rogue_vigil_route_opportunity"] && !world.opportunityOutcomes["sunwell_shrine_opportunity"]) {
@@ -65,9 +65,9 @@ function aliasShrineOpportunityOutcomeForReserve(run) {
 }
 
 function resolveActOneToCovenant(
-  state,
-  appEngine,
-  runFactory,
+  state: AppState,
+  appEngine: AppEngineApi,
+  runFactory: RunFactoryApi,
   options: ResolveActOneToCovenantOptions | number = 0
 ) {
   const normalizedOptions: ResolveActOneToCovenantOptions =

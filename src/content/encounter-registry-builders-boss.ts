@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function buildCovenantBossConfig(actNumber, templateIds) {
+  function buildCovenantBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const bossScreenValue = Math.max(2, Math.min(4, actNumber));
     if (actNumber === 2) {
       return {
@@ -53,7 +53,7 @@
     };
   }
 
-  function buildAftermathBossConfig(actNumber, templateIds) {
+  function buildAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
     if (actNumber === 2) {
       return {
@@ -107,7 +107,7 @@
     };
   }
 
-  function buildDrilledAftermathBossConfig(actNumber, templateIds) {
+  function buildDrilledAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
     const escortBulwarkValue = Math.max(4, actNumber + 1);
     const escortRotationValue = Math.max(2, Math.min(4, actNumber + 1));
@@ -176,7 +176,7 @@
     };
   }
 
-  function buildMobilizedAftermathBossConfig(actNumber, templateIds) {
+  function buildMobilizedAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const drilledConfig = buildDrilledAftermathBossConfig(actNumber, templateIds);
     return {
       enemyTemplateIds: [...drilledConfig.enemyTemplateIds],
@@ -188,7 +188,7 @@
     };
   }
 
-  function buildPostedAftermathBossConfig(actNumber, templateIds) {
+  function buildPostedAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
     const escortRotationValue = Math.max(2, Math.min(4, actNumber + 1));
     const bossOnslaughtValue = Math.max(2, Math.min(4, actNumber + 1));

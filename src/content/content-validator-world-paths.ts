@@ -1,9 +1,9 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function collectEffectFlagIds(effects) {
-    return (Array.isArray(effects) ? effects : []).reduce((flagIds, effect) => {
-      (Array.isArray(effect?.flagIds) ? effect.flagIds : []).forEach((flagId) => {
+  function collectEffectFlagIds(effects: RewardChoiceEffect[] | null | undefined) {
+    return (Array.isArray(effects) ? effects : []).reduce((flagIds: Set<string>, effect: RewardChoiceEffect) => {
+      (Array.isArray(effect?.flagIds) ? effect.flagIds : []).forEach((flagId: string) => {
         if (typeof flagId === "string" && flagId) {
           flagIds.add(flagId);
         }
@@ -12,20 +12,20 @@
     }, new Set<string>());
   }
 
-  function getQuestOutcomeEffect(choiceDefinition) {
-    return (Array.isArray(choiceDefinition?.effects) ? choiceDefinition.effects : []).find((effect) => {
+  function getQuestOutcomeEffect(choiceDefinition: WorldNodeChoiceDefinition | null | undefined) {
+    return (Array.isArray(choiceDefinition?.effects) ? choiceDefinition.effects : []).find((effect: RewardChoiceEffect) => {
       return effect.kind === "record_quest_outcome";
     });
   }
 
-  function getQuestFollowUpEffect(choiceDefinition) {
-    return (Array.isArray(choiceDefinition?.effects) ? choiceDefinition.effects : []).find((effect) => {
+  function getQuestFollowUpEffect(choiceDefinition: WorldNodeChoiceDefinition | null | undefined) {
+    return (Array.isArray(choiceDefinition?.effects) ? choiceDefinition.effects : []).find((effect: RewardChoiceEffect) => {
       return effect.kind === "record_quest_follow_up";
     });
   }
 
-  function getNodeOutcomeEffect(choiceDefinition, nodeType) {
-    return (Array.isArray(choiceDefinition?.effects) ? choiceDefinition.effects : []).find((effect) => {
+  function getNodeOutcomeEffect(choiceDefinition: WorldNodeChoiceDefinition | null | undefined, nodeType: string) {
+    return (Array.isArray(choiceDefinition?.effects) ? choiceDefinition.effects : []).find((effect: RewardChoiceEffect) => {
       return effect.kind === "record_node_outcome" && effect.nodeType === nodeType;
     });
   }
@@ -33,7 +33,7 @@
   function getMercenaryStates() {
     const mercenaryIds = Object.keys(runtimeWindow.ROUGE_GAME_CONTENT?.mercenaryCatalog || {});
     return mercenaryIds.length > 0
-      ? mercenaryIds.map((mercenaryId) => ({
+      ? mercenaryIds.map((mercenaryId: string) => ({
           labelSuffix: ` + merc:${mercenaryId}`,
           mercenaryId,
         }))
@@ -45,21 +45,21 @@
         ];
   }
 
-  function collectActReferenceState(questDefinition, shrineDefinition) {
+  function collectActReferenceState(questDefinition: QuestNodeDefinition | null | undefined, shrineDefinition: ShrineNodeDefinition | null | undefined) {
     const primaryOutcomeIds = new Set<string>();
     const followUpOutcomeIds = new Set<string>();
     const consequenceIds = new Set<string>();
     const shrineOutcomeIds = new Set<string>();
     const flagIds = new Set<string>();
 
-    (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).forEach((choiceDefinition) => {
+    (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).forEach((choiceDefinition: WorldNodeChoiceDefinition) => {
       const questEffect = getQuestOutcomeEffect(choiceDefinition);
       if (questEffect?.outcomeId) {
         primaryOutcomeIds.add(questEffect.outcomeId);
       }
-      collectEffectFlagIds(choiceDefinition?.effects).forEach((flagId) => flagIds.add(flagId));
+      collectEffectFlagIds(choiceDefinition?.effects).forEach((flagId: string) => flagIds.add(flagId));
 
-      (Array.isArray(choiceDefinition?.followUp?.choices) ? choiceDefinition.followUp.choices : []).forEach((followUpChoiceDefinition) => {
+      (Array.isArray(choiceDefinition?.followUp?.choices) ? choiceDefinition.followUp.choices : []).forEach((followUpChoiceDefinition: WorldNodeChoiceDefinition) => {
         const followUpEffect = getQuestFollowUpEffect(followUpChoiceDefinition);
         if (followUpEffect?.outcomeId) {
           followUpOutcomeIds.add(followUpEffect.outcomeId);
@@ -67,16 +67,16 @@
         if (followUpEffect?.consequenceId) {
           consequenceIds.add(followUpEffect.consequenceId);
         }
-        collectEffectFlagIds(followUpChoiceDefinition?.effects).forEach((flagId) => flagIds.add(flagId));
+        collectEffectFlagIds(followUpChoiceDefinition?.effects).forEach((flagId: string) => flagIds.add(flagId));
       });
     });
 
-    (Array.isArray(shrineDefinition?.choices) ? shrineDefinition.choices : []).forEach((choiceDefinition) => {
+    (Array.isArray(shrineDefinition?.choices) ? shrineDefinition.choices : []).forEach((choiceDefinition: WorldNodeChoiceDefinition) => {
       const shrineEffect = getNodeOutcomeEffect(choiceDefinition, "shrine");
       if (shrineEffect?.outcomeId) {
         shrineOutcomeIds.add(shrineEffect.outcomeId);
       }
-      collectEffectFlagIds(choiceDefinition?.effects).forEach((flagId) => flagIds.add(flagId));
+      collectEffectFlagIds(choiceDefinition?.effects).forEach((flagId: string) => flagIds.add(flagId));
     });
 
     return {
@@ -88,7 +88,7 @@
     };
   }
 
-  function collectActPathStates(questDefinition, shrineDefinition, options: { includeEmptyShrineState?: boolean } = {}) {
+  function collectActPathStates(questDefinition: QuestNodeDefinition | null | undefined, shrineDefinition: ShrineNodeDefinition | null | undefined, options: { includeEmptyShrineState?: boolean } = {}) {
     const shrineChoices = Array.isArray(shrineDefinition?.choices) ? shrineDefinition.choices : [];
     const shrineFlagSets = [
       ...(options.includeEmptyShrineState === false
@@ -96,32 +96,32 @@
         : [
             {
               labelSuffix: "",
-              flagIds: [],
+              flagIds: [] as string[],
             },
           ]),
-      ...shrineChoices.map((choiceDefinition) => ({
+      ...shrineChoices.map((choiceDefinition: WorldNodeChoiceDefinition) => ({
         labelSuffix: ` + shrine:${choiceDefinition?.id || "unknown"}`,
         flagIds: Array.from(collectEffectFlagIds(choiceDefinition?.effects)),
       })),
     ];
     const mercenaryStates = getMercenaryStates();
 
-    return (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).reduce((states, choiceDefinition) => {
+    return (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).reduce((states: ContentValidatorActPathState[], choiceDefinition: WorldNodeChoiceDefinition) => {
       const questEffect = getQuestOutcomeEffect(choiceDefinition);
       if (!questEffect?.outcomeId) {
         return states;
       }
 
       const primaryFlags = Array.from(collectEffectFlagIds(choiceDefinition?.effects));
-      (Array.isArray(choiceDefinition?.followUp?.choices) ? choiceDefinition.followUp.choices : []).forEach((followUpChoiceDefinition) => {
+      (Array.isArray(choiceDefinition?.followUp?.choices) ? choiceDefinition.followUp.choices : []).forEach((followUpChoiceDefinition: WorldNodeChoiceDefinition) => {
         const followUpEffect = getQuestFollowUpEffect(followUpChoiceDefinition);
         if (!followUpEffect?.outcomeId || !followUpEffect?.consequenceId) {
           return;
         }
 
         const followUpFlags = Array.from(collectEffectFlagIds(followUpChoiceDefinition?.effects));
-        shrineFlagSets.forEach((shrineState) => {
-          mercenaryStates.forEach((mercenaryState) => {
+        shrineFlagSets.forEach((shrineState: { labelSuffix: string; flagIds: string[] }) => {
+          mercenaryStates.forEach((mercenaryState: { labelSuffix: string; mercenaryId: string }) => {
             states.push({
               label: `${questEffect.outcomeId} -> ${followUpEffect.outcomeId}${shrineState.labelSuffix}${mercenaryState.labelSuffix}`,
               primaryOutcomeId: questEffect.outcomeId,
@@ -138,17 +138,17 @@
     }, []);
   }
 
-  function collectShrinePathStates(shrineDefinition) {
+  function collectShrinePathStates(shrineDefinition: ShrineNodeDefinition | null | undefined) {
     const mercenaryStates = getMercenaryStates();
 
-    return (Array.isArray(shrineDefinition?.choices) ? shrineDefinition.choices : []).reduce((states, choiceDefinition) => {
+    return (Array.isArray(shrineDefinition?.choices) ? shrineDefinition.choices : []).reduce((states: ContentValidatorShrinePathState[], choiceDefinition: WorldNodeChoiceDefinition) => {
       const shrineEffect = getNodeOutcomeEffect(choiceDefinition, "shrine");
       if (!shrineEffect?.outcomeId) {
         return states;
       }
 
       const flagIds = Array.from(collectEffectFlagIds(choiceDefinition?.effects));
-      mercenaryStates.forEach((mercenaryState) => {
+      mercenaryStates.forEach((mercenaryState: { labelSuffix: string; mercenaryId: string }) => {
         states.push({
           label: `${shrineEffect.outcomeId}${mercenaryState.labelSuffix}`,
           shrineOutcomeId: shrineEffect.outcomeId,
@@ -160,9 +160,9 @@
     }, []);
   }
 
-  function collectOpportunityChoiceStates(opportunityDefinition) {
-    return (Array.isArray(opportunityDefinition?.variants) ? opportunityDefinition.variants : []).reduce((states, variantDefinition) => {
-      (Array.isArray(variantDefinition?.choices) ? variantDefinition.choices : []).forEach((choiceDefinition) => {
+  function collectOpportunityChoiceStates(opportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
+    return (Array.isArray(opportunityDefinition?.variants) ? opportunityDefinition.variants : []).reduce((states: ContentValidatorFlagPathState[], variantDefinition: { choices?: WorldNodeChoiceDefinition[] }) => {
+      (Array.isArray(variantDefinition?.choices) ? variantDefinition.choices : []).forEach((choiceDefinition: WorldNodeChoiceDefinition) => {
         const nodeEffect = getNodeOutcomeEffect(choiceDefinition, "opportunity");
         if (!nodeEffect?.outcomeId) {
           return;
@@ -177,14 +177,14 @@
     }, []);
   }
 
-  function collectReservePathStates(opportunityDefinition, shrineOpportunityDefinition, crossroadOpportunityDefinition) {
+  function collectReservePathStates(opportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, shrineOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, crossroadOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const routeStates = collectOpportunityChoiceStates(opportunityDefinition);
     const shrineStates = collectOpportunityChoiceStates(shrineOpportunityDefinition);
     const crossroadStates = collectOpportunityChoiceStates(crossroadOpportunityDefinition);
 
-    return routeStates.reduce((states, routeState) => {
-      shrineStates.forEach((shrineState) => {
-        crossroadStates.forEach((crossroadState) => {
+    return routeStates.reduce((states: ContentValidatorFlagPathState[], routeState: ContentValidatorFlagPathState) => {
+      shrineStates.forEach((shrineState: ContentValidatorFlagPathState) => {
+        crossroadStates.forEach((crossroadState: ContentValidatorFlagPathState) => {
           states.push({
             label: `${routeState.label} + ${shrineState.label} + ${crossroadState.label}`,
             flagIds: Array.from(new Set([...routeState.flagIds, ...shrineState.flagIds, ...crossroadState.flagIds])),
@@ -195,18 +195,18 @@
     }, []);
   }
 
-  function collectRelayPathStates(reserveOpportunityDefinition) {
+  function collectRelayPathStates(reserveOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     return collectOpportunityChoiceStates(reserveOpportunityDefinition);
   }
 
-  function collectCulminationPathStates(questDefinition, shrineDefinition, relayOpportunityDefinition) {
+  function collectCulminationPathStates(questDefinition: QuestNodeDefinition | null | undefined, shrineDefinition: ShrineNodeDefinition | null | undefined, relayOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const actPathStates = collectActPathStates(questDefinition, shrineDefinition, {
       includeEmptyShrineState: false,
     });
     const relayStates = collectOpportunityChoiceStates(relayOpportunityDefinition);
 
-    return actPathStates.reduce((states, actPathState) => {
-      relayStates.forEach((relayState) => {
+    return actPathStates.reduce((states: ContentValidatorActPathState[], actPathState: ContentValidatorActPathState) => {
+      relayStates.forEach((relayState: ContentValidatorFlagPathState) => {
         states.push({
           label: `${actPathState.label} + relay:${relayState.label}`,
           primaryOutcomeId: actPathState.primaryOutcomeId,
@@ -220,16 +220,16 @@
     }, []);
   }
 
-  function collectLegacyPathStates(culminationOpportunityDefinition) {
+  function collectLegacyPathStates(culminationOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     return collectOpportunityChoiceStates(culminationOpportunityDefinition);
   }
 
-  function collectReckoningPathStates(culminationOpportunityDefinition, reserveOpportunityDefinition) {
+  function collectReckoningPathStates(culminationOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, reserveOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const culminationStates = collectOpportunityChoiceStates(culminationOpportunityDefinition);
     const reserveStates = collectOpportunityChoiceStates(reserveOpportunityDefinition);
 
-    return culminationStates.reduce((states, culminationState) => {
-      reserveStates.forEach((reserveState) => {
+    return culminationStates.reduce((states: ContentValidatorFlagPathState[], culminationState: ContentValidatorFlagPathState) => {
+      reserveStates.forEach((reserveState: ContentValidatorFlagPathState) => {
         states.push({
           label: `${reserveState.label} + culmination:${culminationState.label}`,
           flagIds: Array.from(new Set([...reserveState.flagIds, ...culminationState.flagIds])),
@@ -239,12 +239,12 @@
     }, []);
   }
 
-  function collectRecoveryPathStates(culminationOpportunityDefinition, shrineOpportunityDefinition) {
+  function collectRecoveryPathStates(culminationOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, shrineOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const culminationStates = collectOpportunityChoiceStates(culminationOpportunityDefinition);
     const shrineStates = collectOpportunityChoiceStates(shrineOpportunityDefinition);
 
-    return culminationStates.reduce((states, culminationState) => {
-      shrineStates.forEach((shrineState) => {
+    return culminationStates.reduce((states: ContentValidatorFlagPathState[], culminationState: ContentValidatorFlagPathState) => {
+      shrineStates.forEach((shrineState: ContentValidatorFlagPathState) => {
         states.push({
           label: `${shrineState.label} + culmination:${culminationState.label}`,
           flagIds: Array.from(new Set([...shrineState.flagIds, ...culminationState.flagIds])),
@@ -254,14 +254,14 @@
     }, []);
   }
 
-  function collectAccordPathStates(culminationOpportunityDefinition, shrineOpportunityDefinition, crossroadOpportunityDefinition) {
+  function collectAccordPathStates(culminationOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, shrineOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, crossroadOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const culminationStates = collectOpportunityChoiceStates(culminationOpportunityDefinition);
     const shrineStates = collectOpportunityChoiceStates(shrineOpportunityDefinition);
     const crossroadStates = collectOpportunityChoiceStates(crossroadOpportunityDefinition);
 
-    return culminationStates.reduce((states, culminationState) => {
-      shrineStates.forEach((shrineState) => {
-        crossroadStates.forEach((crossroadState) => {
+    return culminationStates.reduce((states: ContentValidatorFlagPathState[], culminationState: ContentValidatorFlagPathState) => {
+      shrineStates.forEach((shrineState: ContentValidatorFlagPathState) => {
+        crossroadStates.forEach((crossroadState: ContentValidatorFlagPathState) => {
           states.push({
             label: `${shrineState.label} + ${crossroadState.label} + culmination:${culminationState.label}`,
             flagIds: Array.from(new Set([...shrineState.flagIds, ...crossroadState.flagIds, ...culminationState.flagIds])),
@@ -273,20 +273,20 @@
   }
 
   function collectCovenantPathStates(
-    legacyOpportunityDefinition,
-    reckoningOpportunityDefinition,
-    recoveryOpportunityDefinition,
-    accordOpportunityDefinition
+    legacyOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    reckoningOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    recoveryOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined,
+    accordOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined
   ) {
     const legacyStates = collectOpportunityChoiceStates(legacyOpportunityDefinition);
     const reckoningStates = collectOpportunityChoiceStates(reckoningOpportunityDefinition);
     const recoveryStates = collectOpportunityChoiceStates(recoveryOpportunityDefinition);
     const accordStates = collectOpportunityChoiceStates(accordOpportunityDefinition);
 
-    return legacyStates.reduce((states, legacyState) => {
-      reckoningStates.forEach((reckoningState) => {
-        recoveryStates.forEach((recoveryState) => {
-          accordStates.forEach((accordState) => {
+    return legacyStates.reduce((states: ContentValidatorFlagPathState[], legacyState: ContentValidatorFlagPathState) => {
+      reckoningStates.forEach((reckoningState: ContentValidatorFlagPathState) => {
+        recoveryStates.forEach((recoveryState: ContentValidatorFlagPathState) => {
+          accordStates.forEach((accordState: ContentValidatorFlagPathState) => {
             states.push({
               label: `${legacyState.label} + ${reckoningState.label} + ${recoveryState.label} + ${accordState.label}`,
               flagIds: Array.from(new Set([...legacyState.flagIds, ...reckoningState.flagIds, ...recoveryState.flagIds, ...accordState.flagIds])),
@@ -298,14 +298,14 @@
     }, []);
   }
 
-  function collectDetourPathStates(covenantOpportunityDefinition, recoveryOpportunityDefinition, accordOpportunityDefinition) {
+  function collectDetourPathStates(covenantOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, recoveryOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, accordOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const covenantStates = collectOpportunityChoiceStates(covenantOpportunityDefinition);
     const recoveryStates = collectOpportunityChoiceStates(recoveryOpportunityDefinition);
     const accordStates = collectOpportunityChoiceStates(accordOpportunityDefinition);
 
-    return covenantStates.reduce((states, covenantState) => {
-      recoveryStates.forEach((recoveryState) => {
-        accordStates.forEach((accordState) => {
+    return covenantStates.reduce((states: ContentValidatorFlagPathState[], covenantState: ContentValidatorFlagPathState) => {
+      recoveryStates.forEach((recoveryState: ContentValidatorFlagPathState) => {
+        accordStates.forEach((accordState: ContentValidatorFlagPathState) => {
           states.push({
             label: `${recoveryState.label} + ${accordState.label} + covenant:${covenantState.label}`,
             flagIds: Array.from(new Set([...recoveryState.flagIds, ...accordState.flagIds, ...covenantState.flagIds])),
@@ -316,14 +316,14 @@
     }, []);
   }
 
-  function collectEscalationPathStates(covenantOpportunityDefinition, legacyOpportunityDefinition, reckoningOpportunityDefinition) {
+  function collectEscalationPathStates(covenantOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, legacyOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined, reckoningOpportunityDefinition: ContentValidatorVariantChoiceSource | null | undefined) {
     const covenantStates = collectOpportunityChoiceStates(covenantOpportunityDefinition);
     const legacyStates = collectOpportunityChoiceStates(legacyOpportunityDefinition);
     const reckoningStates = collectOpportunityChoiceStates(reckoningOpportunityDefinition);
 
-    return covenantStates.reduce((states, covenantState) => {
-      legacyStates.forEach((legacyState) => {
-        reckoningStates.forEach((reckoningState) => {
+    return covenantStates.reduce((states: ContentValidatorFlagPathState[], covenantState: ContentValidatorFlagPathState) => {
+      legacyStates.forEach((legacyState: ContentValidatorFlagPathState) => {
+        reckoningStates.forEach((reckoningState: ContentValidatorFlagPathState) => {
           states.push({
             label: `${legacyState.label} + ${reckoningState.label} + covenant:${covenantState.label}`,
             flagIds: Array.from(new Set([...legacyState.flagIds, ...reckoningState.flagIds, ...covenantState.flagIds])),
@@ -334,19 +334,19 @@
     }, []);
   }
 
-  function normalizeRequirementIds(values) {
+  function normalizeRequirementIds(values: string[] | null | undefined) {
     if (!Array.isArray(values) || values.length === 0) {
       return "-";
     }
 
-    return Array.from(new Set(values.filter((value) => typeof value === "string" && value))).sort().join(",");
+    return Array.from(new Set(values.filter((value: string) => typeof value === "string" && value))).sort().join(",");
   }
 
-  function countRequiredValues(values) {
-    return Array.isArray(values) ? new Set(values.filter((value) => typeof value === "string" && value)).size : 0;
+  function countRequiredValues(values: string[] | null | undefined) {
+    return Array.isArray(values) ? new Set(values.filter((value: string) => typeof value === "string" && value)).size : 0;
   }
 
-  function getOpportunityVariantRequirementSignature(variantDefinition) {
+  function getOpportunityVariantRequirementSignature(variantDefinition: OpportunityNodeVariantDefinition | null | undefined) {
     return [
       `primary:${normalizeRequirementIds(variantDefinition?.requiresPrimaryOutcomeIds)}`,
       `followUp:${normalizeRequirementIds(variantDefinition?.requiresFollowUpOutcomeIds)}`,
@@ -356,7 +356,7 @@
     ].join("|");
   }
 
-  function getShrineOpportunityVariantRequirementSignature(variantDefinition) {
+  function getShrineOpportunityVariantRequirementSignature(variantDefinition: ShrineOpportunityVariantDefinition | null | undefined) {
     return [
       `shrine:${normalizeRequirementIds(variantDefinition?.requiresShrineOutcomeIds)}`,
       `flags:${normalizeRequirementIds(variantDefinition?.requiresFlagIds)}`,
@@ -364,11 +364,11 @@
     ].join("|");
   }
 
-  function getReserveOpportunityVariantRequirementSignature(variantDefinition) {
+  function getReserveOpportunityVariantRequirementSignature(variantDefinition: ReserveOpportunityVariantDefinition | null | undefined) {
     return [`flags:${normalizeRequirementIds(variantDefinition?.requiresFlagIds)}`].join("|");
   }
 
-  function getOpportunityVariantSpecificity(variantDefinition) {
+  function getOpportunityVariantSpecificity(variantDefinition: OpportunityNodeVariantDefinition | null | undefined) {
     return (
       countRequiredValues(variantDefinition?.requiresPrimaryOutcomeIds) +
       countRequiredValues(variantDefinition?.requiresFollowUpOutcomeIds) +
@@ -378,7 +378,7 @@
     );
   }
 
-  function getShrineOpportunityVariantSpecificity(variantDefinition) {
+  function getShrineOpportunityVariantSpecificity(variantDefinition: ShrineOpportunityVariantDefinition | null | undefined) {
     return (
       countRequiredValues(variantDefinition?.requiresShrineOutcomeIds) +
       countRequiredValues(variantDefinition?.requiresFlagIds) +
@@ -386,23 +386,23 @@
     );
   }
 
-  function getReserveOpportunityVariantSpecificity(variantDefinition) {
+  function getReserveOpportunityVariantSpecificity(variantDefinition: ReserveOpportunityVariantDefinition | null | undefined) {
     return countRequiredValues(variantDefinition?.requiresFlagIds);
   }
 
-  function matchesRequiredValue(requiredIds, value) {
+  function matchesRequiredValue(requiredIds: string[] | null | undefined, value: string) {
     return !Array.isArray(requiredIds) || requiredIds.length === 0 || requiredIds.includes(value);
   }
 
-  function includesRequiredValues(requiredIds, availableIds) {
+  function includesRequiredValues(requiredIds: string[] | null | undefined, availableIds: string[]) {
     if (!Array.isArray(requiredIds) || requiredIds.length === 0) {
       return true;
     }
 
-    return requiredIds.every((requiredId) => availableIds.includes(requiredId));
+    return requiredIds.every((requiredId: string) => availableIds.includes(requiredId));
   }
 
-  function doesVariantMatchPath(variantDefinition, pathState) {
+  function doesVariantMatchPath(variantDefinition: OpportunityNodeVariantDefinition | null | undefined, pathState: ContentValidatorActPathState) {
     return (
       matchesRequiredValue(variantDefinition?.requiresPrimaryOutcomeIds, pathState.primaryOutcomeId) &&
       matchesRequiredValue(variantDefinition?.requiresFollowUpOutcomeIds, pathState.followUpOutcomeId) &&
@@ -412,7 +412,7 @@
     );
   }
 
-  function doesShrineOpportunityVariantMatchPath(variantDefinition, pathState) {
+  function doesShrineOpportunityVariantMatchPath(variantDefinition: ShrineOpportunityVariantDefinition | null | undefined, pathState: ContentValidatorShrinePathState) {
     return (
       matchesRequiredValue(variantDefinition?.requiresShrineOutcomeIds, pathState.shrineOutcomeId) &&
       includesRequiredValues(variantDefinition?.requiresFlagIds, pathState.flagIds) &&
@@ -420,7 +420,7 @@
     );
   }
 
-  function doesReserveOpportunityVariantMatchPath(variantDefinition, pathState) {
+  function doesReserveOpportunityVariantMatchPath(variantDefinition: ReserveOpportunityVariantDefinition | null | undefined, pathState: ContentValidatorFlagPathState) {
     return includesRequiredValues(variantDefinition?.requiresFlagIds, pathState.flagIds);
   }
 

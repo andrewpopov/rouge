@@ -2,20 +2,20 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { clamp } = runtimeWindow.ROUGE_UTILS;
 
-  function appendLog(state, message) {
+  function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
     state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
   }
 
-  function getLivingEnemies(state) {
-    return state.enemies.filter((enemy) => enemy.alive);
+  function getLivingEnemies(state: CombatState) {
+    return state.enemies.filter((enemy: CombatEnemyState) => enemy.alive);
   }
 
-  function getFirstLivingEnemyId(state) {
+  function getFirstLivingEnemyId(state: CombatState) {
     return getLivingEnemies(state)[0]?.id || "";
   }
 
-  function healEntity(entity, amount) {
+  function healEntity(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
     if (!entity || !entity.alive) {
       return 0;
     }
@@ -24,7 +24,7 @@
     return entity.life - before;
   }
 
-  function applyGuard(entity, amount) {
+  function applyGuard(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
     if (!entity || !entity.alive) {
       return 0;
     }
@@ -32,7 +32,7 @@
     return amount;
   }
 
-  function handleDefeat(state, entity) {
+  function handleDefeat(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState) {
     entity.alive = false;
     entity.guard = 0;
     if (entity.burn) {
@@ -41,7 +41,7 @@
     appendLog(state, `${entity.name} falls.`);
   }
 
-  function dealDamage(state, entity, amount) {
+  function dealDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
     if (!entity || !entity.alive) {
       return 0;
     }
@@ -67,7 +67,7 @@
     return lifeLoss;
   }
 
-  function checkOutcome(state) {
+  function checkOutcome(state: CombatState) {
     if (!state.hero.alive || state.hero.life <= 0) {
       state.phase = "defeat";
       state.outcome = "defeat";
@@ -83,17 +83,17 @@
     return false;
   }
 
-  function chooseMercenaryTarget(state) {
+  function chooseMercenaryTarget(state: CombatState) {
     const livingEnemies = getLivingEnemies(state);
-    const marked = livingEnemies.find((enemy) => enemy.id === state.mercenary.markedEnemyId);
+    const marked = livingEnemies.find((enemy: CombatEnemyState) => enemy.id === state.mercenary.markedEnemyId);
     if (marked) {
       return marked;
     }
 
     if (state.mercenary.behavior === "backline_hunter") {
       const backlineTarget =
-        livingEnemies.find((enemy) => enemy.role === "support") ||
-        livingEnemies.find((enemy) => enemy.role === "ranged") ||
+        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === "support") ||
+        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === "ranged") ||
         null;
       if (backlineTarget) {
         return backlineTarget;
@@ -104,7 +104,7 @@
       const guardedTarget =
         livingEnemies
           .slice()
-          .sort((left, right) => right.guard - left.guard)[0] || null;
+          .sort((left: CombatEnemyState, right: CombatEnemyState) => right.guard - left.guard)[0] || null;
       if (guardedTarget?.guard > 0) {
         return guardedTarget;
       }
@@ -112,8 +112,8 @@
 
     if (state.mercenary.behavior === "boss_hunter") {
       const priorityTarget =
-        livingEnemies.find((enemy) => enemy.templateId.endsWith("_boss")) ||
-        livingEnemies.find((enemy) => enemy.templateId.includes("_elite")) ||
+        livingEnemies.find((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss")) ||
+        livingEnemies.find((enemy: CombatEnemyState) => enemy.templateId.includes("_elite")) ||
         null;
       if (priorityTarget) {
         return priorityTarget;
@@ -124,7 +124,7 @@
       const woundedTarget =
         livingEnemies
           .slice()
-          .sort((left, right) => {
+          .sort((left: CombatEnemyState, right: CombatEnemyState) => {
             const leftRatio = left.maxLife > 0 ? left.life / left.maxLife : 1;
             const rightRatio = right.maxLife > 0 ? right.life / right.maxLife : 1;
             if (leftRatio !== rightRatio) {
@@ -137,15 +137,15 @@
       }
     }
 
-    const selected = livingEnemies.find((enemy) => enemy.id === state.selectedEnemyId);
+    const selected = livingEnemies.find((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId);
     if (selected) {
       return selected;
     }
 
-    return livingEnemies.slice().sort((left, right) => left.life - right.life)[0] || null;
+    return livingEnemies.slice().sort((left: CombatEnemyState, right: CombatEnemyState) => left.life - right.life)[0] || null;
   }
 
-  function resolveMercenaryAction(state) {
+  function resolveMercenaryAction(state: CombatState) {
     if (!state.mercenary.alive) {
       return;
     }
@@ -193,14 +193,14 @@
     state.selectedEnemyId = getFirstLivingEnemyId(state);
   }
 
-  function chooseEnemyTarget(state, rule) {
+  function chooseEnemyTarget(state: CombatState, rule: EnemyIntentTarget | undefined) {
     if (rule === "lowest_life" && state.mercenary.alive && state.mercenary.life < state.hero.life) {
       return state.mercenary;
     }
     return state.hero.alive ? state.hero : state.mercenary;
   }
 
-  function resolveEnemyAction(state, enemy) {
+  function resolveEnemyAction(state: CombatState, enemy: CombatEnemyState) {
     const intent = enemy.currentIntent;
     if (!intent || !enemy.alive) {
       return;
@@ -223,7 +223,7 @@
 
     if (intent.kind === "guard_allies") {
       const livingEnemies = getLivingEnemies(state);
-      livingEnemies.forEach((livingEnemy) => {
+      livingEnemies.forEach((livingEnemy: CombatEnemyState) => {
         applyGuard(livingEnemy, intent.value);
       });
       appendLog(state, `${enemy.name} uses ${intent.label} and fortifies the enemy line.`);
@@ -234,7 +234,7 @@
       const target =
         getLivingEnemies(state)
           .slice()
-          .sort((left, right) => left.life - right.life)[0] || null;
+          .sort((left: CombatEnemyState, right: CombatEnemyState) => left.life - right.life)[0] || null;
       if (target) {
         const healed = healEntity(target, intent.value);
         appendLog(state, `${enemy.name} uses ${intent.label} and heals ${target.name} for ${healed}.`);
@@ -245,7 +245,7 @@
     if (intent.kind === "heal_allies") {
       const livingEnemies = getLivingEnemies(state);
       const healedTargets = livingEnemies
-        .map((target) => {
+        .map((target: CombatEnemyState) => {
           const healed = healEntity(target, intent.value);
           return healed > 0 ? `${target.name} for ${healed}` : "";
         })
@@ -263,7 +263,7 @@
       const target =
         getLivingEnemies(state)
           .slice()
-          .sort((left, right) => left.life - right.life)[0] || null;
+          .sort((left: CombatEnemyState, right: CombatEnemyState) => left.life - right.life)[0] || null;
       const healed = target ? healEntity(target, intent.value) : 0;
       const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 2)));
       appendLog(
@@ -276,7 +276,7 @@
     }
 
     if (intent.kind === "attack_all") {
-      const partyTargets = [state.hero, state.mercenary].filter((target) => target?.alive);
+      const partyTargets = [state.hero, state.mercenary].filter((target: CombatHeroState | CombatMercenaryState) => target?.alive);
       const segments = partyTargets.map((target) => {
         const dealt = dealDamage(state, target, intent.value);
         return `${target.name} for ${dealt}`;
@@ -329,8 +329,8 @@
     }
   }
 
-  function advanceEnemyIntents(state) {
-    state.enemies.forEach((enemy) => {
+  function advanceEnemyIntents(state: CombatState) {
+    state.enemies.forEach((enemy: CombatEnemyState) => {
       if (!enemy.alive) {
         return;
       }
@@ -339,7 +339,7 @@
     });
   }
 
-  function drawCards(state, amount) {
+  function drawCards(state: CombatState, amount: number) {
     const shuffleCards = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS._shuffleInPlace;
     let drawn = 0;
     for (let index = 0; index < amount; index += 1) {
@@ -356,7 +356,7 @@
     return drawn;
   }
 
-  function discardHand(state) {
+  function discardHand(state: CombatState) {
     if (state.hand.length === 0) {
       return;
     }
@@ -364,7 +364,7 @@
     state.hand = [];
   }
 
-  function shuffleInPlace(items, randomFn) {
+  function shuffleInPlace<T>(items: T[], randomFn: RandomFn) {
     for (let index = items.length - 1; index > 0; index -= 1) {
       const swapIndex = Math.floor(randomFn() * (index + 1));
       const temp = items[index];
@@ -374,7 +374,7 @@
     return items;
   }
 
-  function meleeStrike(state, _content) {
+  function meleeStrike(state: CombatState, _content: GameContent) {
     if (state.phase !== "player" || state.outcome) {
       return { ok: false, message: "Cannot melee right now." };
     }
@@ -385,7 +385,7 @@
     const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
     const familyMatch = preferred.includes(state.weaponFamily || "");
     const damage = familyMatch ? baseDamage + 2 : baseDamage;
-    const target = state.enemies.find((e) => e.id === state.selectedEnemyId && e.alive) || getLivingEnemies(state)[0];
+    const target = state.enemies.find((e: CombatEnemyState) => e.id === state.selectedEnemyId && e.alive) || getLivingEnemies(state)[0];
     if (!target) {
       return { ok: false, message: "No living enemy." };
     }
@@ -396,7 +396,7 @@
     return { ok: true, message: "Melee strike landed." };
   }
 
-  function startPlayerTurn(state) {
+  function startPlayerTurn(state: CombatState) {
     if (state.outcome) {
       return;
     }
@@ -409,13 +409,13 @@
     }
     state.hero.energy = state.hero.maxEnergy;
     drawCards(state, Math.max(0, state.hero.handSize - state.hand.length));
-    if (!getLivingEnemies(state).some((enemy) => enemy.id === state.selectedEnemyId)) {
+    if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
       state.selectedEnemyId = getFirstLivingEnemyId(state);
     }
     appendLog(state, `Turn ${state.turn} begins.`);
   }
 
-  function endTurn(state) {
+  function endTurn(state: CombatState) {
     if (state.phase !== "player" || state.outcome) {
       return { ok: false, message: "The turn cannot end right now." };
     }
@@ -443,7 +443,7 @@
     return { ok: true, message: "Enemy phase complete." };
   }
 
-  function usePotion(state, targetId) {
+  function usePotion(state: CombatState, targetId: "hero" | "mercenary") {
     if (state.outcome) {
       return { ok: false, message: "The encounter is already over." };
     }

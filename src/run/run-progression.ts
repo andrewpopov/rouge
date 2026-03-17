@@ -11,22 +11,22 @@
     toBonusValue,
   } = runtimeWindow.ROUGE_RUN_STATE;
 
-  function getClassProgression(content, classId) {
+  function getClassProgression(content: GameContent, classId: string) {
     return runtimeWindow.ROUGE_CLASS_REGISTRY?.getClassProgression?.(content, classId) || null;
   }
 
-  function getTreeRank(run, treeId) {
+  function getTreeRank(run: RunState, treeId: string) {
     return Math.max(0, toBonusValue(run?.progression?.classProgression?.treeRanks?.[treeId]));
   }
 
-  function getTreeUnlockedCount(run, tree) {
-    return (run?.progression?.classProgression?.unlockedSkillIds || []).filter((skillId) => {
-      return tree.skills.some((skill) => skill.id === skillId);
+  function getTreeUnlockedCount(run: RunState, tree: RuntimeClassTreeDefinition) {
+    return (run?.progression?.classProgression?.unlockedSkillIds || []).filter((skillId: string) => {
+      return tree.skills.some((skill: RuntimeClassSkillDefinition) => skill.id === skillId);
     }).length;
   }
 
-  function getTreeContributionBonuses(run, tree) {
-    const total = {};
+  function getTreeContributionBonuses(run: RunState, tree: RuntimeClassTreeDefinition) {
+    const total: Record<string, number> = {};
     const rankCount = getTreeRank(run, tree.id);
     const isFavored = run?.progression?.classProgression?.favoredTreeId === tree.id && rankCount > 0;
     const unlockedCount = getTreeUnlockedCount(run, tree);
@@ -46,16 +46,16 @@
     return total;
   }
 
-  function getTreeNextUnlockLabel(run, tree) {
+  function getTreeNextUnlockLabel(run: RunState, tree: RuntimeClassTreeDefinition) {
     const treeRank = getTreeRank(run, tree.id);
-    const nextSkill = tree.skills.find((skill, index) => {
+    const nextSkill = tree.skills.find((skill: RuntimeClassSkillDefinition, index: number) => {
       return index >= treeRank && toBonusValue(skill.requiredLevel, 1) <= run.level;
     });
     if (nextSkill) {
       return `Next unlock: ${nextSkill.name} (Lv ${nextSkill.requiredLevel}).`;
     }
 
-    const futureSkill = tree.skills.find((skill, index) => index >= treeRank) || null;
+    const futureSkill = tree.skills.find((skill: RuntimeClassSkillDefinition, index: number) => index >= treeRank) || null;
     if (futureSkill) {
       return `Next unlock waits for Lv ${futureSkill.requiredLevel}: ${futureSkill.name}.`;
     }
@@ -63,7 +63,7 @@
     return "All current skills in this tree are unlocked.";
   }
 
-  function syncUnlockedClassSkills(run, content) {
+  function syncUnlockedClassSkills(run: RunState, content: GameContent) {
     const definition = getClassProgression(content, run.classId);
     if (!definition) {
       run.progression.classProgression.unlockedSkillIds = [];
@@ -72,9 +72,9 @@
       return;
     }
 
-    const unlocked = [];
-    const normalizedTreeRanks = {};
-    definition.trees.forEach((tree) => {
+    const unlocked: string[] = [];
+    const normalizedTreeRanks: Record<string, number> = {};
+    definition.trees.forEach((tree: RuntimeClassTreeDefinition) => {
       const maxRank = Math.max(1, toBonusValue(tree.maxRank, tree.skills.length));
       const treeRank = clamp(Math.max(0, toBonusValue(run.progression.classProgression.treeRanks?.[tree.id])), 0, maxRank);
       if (treeRank <= 0) {
@@ -82,8 +82,8 @@
       }
       normalizedTreeRanks[tree.id] = treeRank;
 
-      const eligibleSkills = tree.skills.filter((skill) => toBonusValue(skill.requiredLevel, 1) <= run.level).slice(0, treeRank);
-      eligibleSkills.forEach((skill) => {
+      const eligibleSkills = tree.skills.filter((skill: RuntimeClassSkillDefinition) => toBonusValue(skill.requiredLevel, 1) <= run.level).slice(0, treeRank);
+      eligibleSkills.forEach((skill: RuntimeClassSkillDefinition) => {
         if (!unlocked.includes(skill.id)) {
           unlocked.push(skill.id);
         }
@@ -94,7 +94,7 @@
     run.progression.classProgression.unlockedSkillIds = unlocked;
     if (
       run.progression.classProgression.favoredTreeId &&
-      !definition.trees.some((tree) => tree.id === run.progression.classProgression.favoredTreeId)
+      !definition.trees.some((tree: RuntimeClassTreeDefinition) => tree.id === run.progression.classProgression.favoredTreeId)
     ) {
       run.progression.classProgression.favoredTreeId = "";
     }
@@ -103,7 +103,7 @@
     }
   }
 
-  function buildProgressionBonuses(run, content): ItemBonusSet {
+  function buildProgressionBonuses(run: RunState, content: GameContent): ItemBonusSet {
     const total: ItemBonusSet = {};
     const attributes = run.progression?.attributes || createDefaultAttributes();
     const definition = getClassProgression(content, run.classId);
@@ -116,25 +116,25 @@
       heroBurnBonus: Math.floor(toBonusValue(attributes.energy) / 2),
     });
 
-    (definition?.trees || []).forEach((tree) => {
+    (definition?.trees || []).forEach((tree: RuntimeClassTreeDefinition) => {
       addBonusSet(total, getTreeContributionBonuses(run, tree));
     });
 
     return total;
   }
 
-  function getProgressionSummary(run, content): RunProgressionSummary {
+  function getProgressionSummary(run: RunState, content: GameContent): RunProgressionSummary {
     syncUnlockedClassSkills(run, content);
 
     const attributes = run.progression?.attributes || createDefaultAttributes();
     const training = run.progression?.training || createDefaultTraining();
     const definition = getClassProgression(content, run.classId);
     const favoredTreeId = run.progression?.classProgression?.favoredTreeId || "";
-    const favoredTree = (definition?.trees || []).find((tree) => tree.id === favoredTreeId) || null;
-    const treeSummaries = (definition?.trees || []).map((tree) => {
+    const favoredTree = (definition?.trees || []).find((tree: RuntimeClassTreeDefinition) => tree.id === favoredTreeId) || null;
+    const treeSummaries = (definition?.trees || []).map((tree: RuntimeClassTreeDefinition) => {
       const rank = getTreeRank(run, tree.id);
       const unlockedSkills = getTreeUnlockedCount(run, tree);
-      const availableSkills = tree.skills.filter((skill) => toBonusValue(skill.requiredLevel, 1) <= run.level).length;
+      const availableSkills = tree.skills.filter((skill: RuntimeClassSkillDefinition) => toBonusValue(skill.requiredLevel, 1) <= run.level).length;
       const isFavored = favoredTreeId === tree.id && rank > 0;
       const bonusLines = describeBonusSet(getTreeContributionBonuses(run, tree));
 
@@ -153,8 +153,8 @@
     });
 
     const nextClassUnlock =
-      treeSummaries.find((treeSummary) => treeSummary.isFavored && !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock ||
-      treeSummaries.find((treeSummary) => !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock ||
+      treeSummaries.find((treeSummary: RunClassTreeSummary) => treeSummary.isFavored && !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock ||
+      treeSummaries.find((treeSummary: RunClassTreeSummary) => !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock ||
       "All current class skills are unlocked.";
     const totalBonuses = buildProgressionBonuses(run, content);
     const bonusSummaryLines = describeBonusSet(totalBonuses);
@@ -188,7 +188,7 @@
     };
   }
 
-  function applyTrainingRank(run, track) {
+  function applyTrainingRank(run: RunState, track: string) {
     if (track === "vitality") {
       run.hero.maxLife += 4;
       run.hero.currentLife = Math.min(run.hero.maxLife, run.hero.currentLife + 4);
@@ -206,14 +206,14 @@
     run.mercenary.currentLife = Math.min(run.mercenary.maxLife, run.mercenary.currentLife + 3);
   }
 
-  function syncLevelProgression(run) {
+  function syncLevelProgression(run: RunState) {
     const targetRanks = Math.max(0, toBonusValue(run.level) - 1);
     const currentRanks = getTrainingRankCount(run.progression?.training);
 
     for (let rankIndex = currentRanks; rankIndex < targetRanks; rankIndex += 1) {
       const nextLevel = rankIndex + 2;
       const track = getTrainingTrackForLevel(nextLevel);
-      run.progression.training[track] += 1;
+      (run.progression.training as Record<string, number>)[track] += 1;
       run.progression.skillPointsAvailable += 1;
       run.summary.skillPointsEarned += 1;
       run.summary.trainingRanksGained += 1;
@@ -252,7 +252,7 @@
     run.summary.trainingRanksGained = Math.max(toBonusValue(run.summary.trainingRanksGained), targetRanks);
   }
 
-  function buildProgressionAction(run, track, title, description, previewLines) {
+  function buildProgressionAction(run: RunState, track: string, title: string, description: string, previewLines: string[]) {
     const canSpend = run.progression.skillPointsAvailable > 0;
     return {
       id: `progression_spend_${track}`,
@@ -272,7 +272,7 @@
     };
   }
 
-  function buildAttributeAction(run, attribute, title, description, previewLines) {
+  function buildAttributeAction(run: RunState, attribute: string, title: string, description: string, previewLines: string[]) {
     const canSpend = run.progression.attributePointsAvailable > 0;
     return {
       id: `progression_attribute_${attribute}`,
@@ -282,7 +282,7 @@
       description,
       previewLines: [
         ...previewLines,
-        `${title} rank ${toBonusValue(run.progression.attributes?.[attribute])}.`,
+        `${title} rank ${toBonusValue((run.progression.attributes as unknown as Record<string, number>)?.[attribute])}.`,
         canSpend
           ? `${run.progression.attributePointsAvailable} attribute point${run.progression.attributePointsAvailable === 1 ? "" : "s"} ready.`
           : "Level up to unlock another attribute point.",
@@ -293,7 +293,7 @@
     };
   }
 
-  function buildClassTreeAction(run, tree, treeSummary) {
+  function buildClassTreeAction(run: RunState, tree: RuntimeClassTreeDefinition, treeSummary: RunClassTreeSummary) {
     const treeRank = treeSummary?.rank || 0;
     const maxRank = treeSummary?.maxRank || Math.max(1, toBonusValue(tree.maxRank, tree.skills.length));
     const canSpend = run.progression.classPointsAvailable > 0 && treeRank < maxRank;
@@ -325,13 +325,13 @@
     };
   }
 
-  function listProgressionActions(run, content) {
+  function listProgressionActions(run: RunState, content: GameContent) {
     if (!run?.progression) {
       return [];
     }
 
     const progressionSummary = getProgressionSummary(run, content);
-    const treeSummaries = new Map(progressionSummary.treeSummaries.map((entry) => [entry.treeId, entry]));
+    const treeSummaries = new Map(progressionSummary.treeSummaries.map((entry: RunClassTreeSummary) => [entry.treeId, entry]));
 
     const actions = [
       buildProgressionAction(
@@ -386,14 +386,14 @@
     ];
 
     const classProgression = getClassProgression(content, run.classId);
-    (classProgression?.trees || []).forEach((tree) => {
+    (classProgression?.trees || []).forEach((tree: RuntimeClassTreeDefinition) => {
       actions.push(buildClassTreeAction(run, tree, treeSummaries.get(tree.id) || null));
     });
 
     return actions;
   }
 
-  function applyProgressionAction(run, actionId, content) {
+  function applyProgressionAction(run: RunState, actionId: string, content: GameContent) {
     if (!actionId.startsWith("progression_spend_")) {
       if (!actionId.startsWith("progression_attribute_") && !actionId.startsWith("progression_tree_")) {
         return { ok: false, message: "Unknown progression action." };
@@ -412,7 +412,7 @@
 
       run.progression.trainingPointsSpent += 1;
       run.progression.skillPointsAvailable = Math.max(0, run.progression.skillPointsAvailable - 1);
-      run.progression.training[track] += 1;
+      (run.progression.training as Record<string, number>)[track] += 1;
       applyTrainingRank(run, track);
       return { ok: true, message: "Training updated." };
     }
@@ -429,7 +429,7 @@
 
       run.progression.attributePointsSpent += 1;
       run.progression.attributePointsAvailable = Math.max(0, run.progression.attributePointsAvailable - 1);
-      run.progression.attributes[attribute] += 1;
+      (run.progression.attributes as unknown as Record<string, number>)[attribute] += 1;
       return { ok: true, message: "Attributes updated." };
     }
 
@@ -439,7 +439,7 @@
 
     const treeId = actionId.replace("progression_tree_", "");
     const classProgression = getClassProgression(content, run.classId);
-    const tree = classProgression?.trees?.find((entry) => entry.id === treeId) || null;
+    const tree = classProgression?.trees?.find((entry: RuntimeClassTreeDefinition) => entry.id === treeId) || null;
     if (!tree) {
       return { ok: false, message: "Unknown class progression tree." };
     }

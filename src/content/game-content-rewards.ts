@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function consequenceRewardPackage(id, title, zoneRole, requiredFlagIds, grants, bonusLines = []) {
+  function consequenceRewardPackage(id: string, title: string, zoneRole: string, requiredFlagIds: string[], grants: RewardGrants, bonusLines: string[] = []) {
     return {
       id,
       title,

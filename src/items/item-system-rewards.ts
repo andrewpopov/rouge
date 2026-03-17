@@ -16,7 +16,7 @@
   } = itemCatalog;
   const { getAccountEconomyFeatures, getPlannedRunewordArchiveState, getPlannedRunewordId } = itemTown;
 
-  function describeBonuses(bonuses) {
+  function describeBonuses(bonuses: ItemBonusSet) {
     const lines = [];
     if (bonuses.heroDamageBonus) {
       lines.push(`Hero card damage +${bonuses.heroDamageBonus}.`);
@@ -45,7 +45,7 @@
     return lines;
   }
 
-  function getEquipmentProgressScore(equipment, content) {
+  function getEquipmentProgressScore(equipment: RunEquipmentState | null, content: GameContent) {
     if (!equipment) {
       return 0;
     }
@@ -53,11 +53,11 @@
     return (item?.progressionTier || 0) * 10 + equipment.socketsUnlocked * 2 + equipment.insertedRunes.length + (equipment.runewordId ? 5 : 0);
   }
 
-  function getFocusSlots(run, actNumber, encounterNumber, content) {
+  function getFocusSlots(run: RunState, actNumber: number, encounterNumber: number, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
     const baseOrder = (actNumber + encounterNumber + run.summary.encountersCleared) % 2 === 0 ? ["weapon", "armor"] : ["armor", "weapon"];
-    return [...baseOrder].sort((left, right) => {
-      const scoreDelta = getEquipmentProgressScore(loadout[left], content) - getEquipmentProgressScore(loadout[right], content);
+    return [...baseOrder].sort((left: string, right: string) => {
+      const scoreDelta = getEquipmentProgressScore((loadout as unknown as Record<string, RunEquipmentState | null>)[left], content) - getEquipmentProgressScore((loadout as unknown as Record<string, RunEquipmentState | null>)[right], content);
       if (scoreDelta !== 0) {
         return scoreDelta;
       }
@@ -65,7 +65,7 @@
     });
   }
 
-  function isLateActPivotZone(zone, actNumber) {
+  function isLateActPivotZone(zone: ZoneState | null, actNumber: number) {
     return (
       actNumber >= 4 &&
       (zone?.kind === "boss" ||
@@ -75,26 +75,26 @@
     );
   }
 
-  function getProgressionTierAllowance(run, zone) {
+  function getProgressionTierAllowance(run: RunState, zone: ZoneState) {
     const levelAllowance = Math.min(2, Math.floor(Math.max(0, toNumber(run?.level, 1) - 1) / 2));
     const trophyAllowance = zone.kind === "boss" ? 1 : Math.min(1, toNumber(run?.progression?.bossTrophies?.length, 0));
     return levelAllowance + trophyAllowance;
   }
 
-  function getAvailableItemsForSlot(slot, actNumber, zone, run, content) {
+  function getAvailableItemsForSlot(slot: string, actNumber: number, zone: ZoneState, run: RunState, content: GameContent) {
     const tierAllowance = zone.kind === "boss" ? 1 : 0;
     const progressionAllowance = getProgressionTierAllowance(run, zone);
     return (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
-      .filter((item) => item.slot === slot && item.progressionTier <= actNumber + tierAllowance + progressionAllowance)
-      .sort((left, right) => left.progressionTier - right.progressionTier);
+      .filter((item: RuntimeItemDefinition) => item.slot === slot && item.progressionTier <= actNumber + tierAllowance + progressionAllowance)
+      .sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => left.progressionTier - right.progressionTier);
   }
 
-  function getPlannedRuneword(slot, profile, content) {
-    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot, content));
+  function getPlannedRuneword(slot: string, profile: ProfileState | null, content: GameContent) {
+    const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot as "weapon" | "armor", content));
     return runeword?.slot === slot ? runeword : null;
   }
 
-  function getPlanningSummary(profile, content = null) {
+  function getPlanningSummary(profile: ProfileState | null, content: GameContent | null = null) {
     return (
       runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
         weaponRunewordId: "",
@@ -135,20 +135,20 @@
     );
   }
 
-  function getPlanningCharterSummary(profile, slot, content = null) {
+  function getPlanningCharterSummary(profile: ProfileState | null, slot: string, content: GameContent | null = null) {
     const planning = getPlanningSummary(profile, content);
     return slot === "weapon" ? planning.weaponCharter || null : planning.armorCharter || null;
   }
 
   function sortRewardUpgradeItems(
-    upgradeItems,
-    currentEquipment,
-    actNumber,
-    zone,
-    profile = null,
-    plannedRuneword = null,
-    planningUnfulfilled = false,
-    planningCharter = null
+    upgradeItems: RuntimeItemDefinition[],
+    currentEquipment: RunEquipmentState | null,
+    actNumber: number,
+    zone: ZoneState,
+    profile: ProfileState | null = null,
+    plannedRuneword: RuntimeRunewordDefinition | null = null,
+    planningUnfulfilled: boolean = false,
+    planningCharter: ProfilePlanningCharterSummary | null = null
   ) {
     const features = getAccountEconomyFeatures(profile);
     const preservedSockets = Math.max(
@@ -178,7 +178,7 @@
     );
     const charterBaseTier = toNumber(planningCharter?.bestBaseTier, 0);
 
-    return [...upgradeItems].sort((left, right) => {
+    return [...upgradeItems].sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => {
       const rightBeatsParkedBase = Number(toNumber(right?.progressionTier, 0) > charterBaseTier);
       const leftBeatsParkedBase = Number(toNumber(left?.progressionTier, 0) > charterBaseTier);
       if (rightBeatsParkedBase !== leftBeatsParkedBase) {
@@ -222,11 +222,11 @@
     });
   }
 
-  function getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile = null) {
+  function getUpgradeItemForSlot(slot: string, equipment: RunEquipmentState | null, actNumber: number, zone: ZoneState, run: RunState, content: GameContent, profile: ProfileState | null = null) {
     const availableItems = getAvailableItemsForSlot(slot, actNumber, zone, run, content);
     const features = getAccountEconomyFeatures(profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
-    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot as "weapon" | "armor", content);
     const planningCharter = getPlanningCharterSummary(profile, slot, content);
     if (!equipment) {
       const sortedItems = sortRewardUpgradeItems(availableItems, null, actNumber, zone, profile, plannedRuneword, planningArchiveState.unfulfilled, planningCharter);
@@ -244,7 +244,7 @@
           features.economyFocus
         )
       ) {
-        const plannedItems = sortedItems.filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword));
+        const plannedItems = sortedItems.filter((item: RuntimeItemDefinition) => isRunewordCompatibleWithItem(item, plannedRuneword));
         return plannedItems[0] || sortedItems[0] || null;
       }
       return sortedItems[0] || null;
@@ -252,7 +252,7 @@
 
     const currentItem = getItemDefinition(content, equipment.itemId);
     const currentTier = currentItem?.progressionTier || 0;
-    const upgradeItems = availableItems.filter((item) => item.progressionTier > currentTier);
+    const upgradeItems = availableItems.filter((item: RuntimeItemDefinition) => item.progressionTier > currentTier);
     const shouldForcePlanningReplacement =
       plannedRuneword &&
       (
@@ -269,7 +269,7 @@
         (isLateActPivotZone(zone, actNumber) && toNumber(planningCharter?.bestBaseTier, 0) < Math.max(actNumber, currentTier + 1)));
     const planningItems =
       shouldForcePlanningReplacement
-        ? availableItems.filter((item) => item.id !== currentItem?.id && item.progressionTier >= currentTier && isRunewordCompatibleWithItem(item, plannedRuneword))
+        ? availableItems.filter((item: RuntimeItemDefinition) => item.id !== currentItem?.id && item.progressionTier >= currentTier && isRunewordCompatibleWithItem(item, plannedRuneword))
         : [];
     const candidateItems = planningItems.length > 0 ? planningItems : upgradeItems;
     if (candidateItems.length === 0) {
@@ -291,7 +291,7 @@
     return sortedUpgradeItems[sortedUpgradeItems.length - 1] || null;
   }
 
-  function buildReplacementText(currentEquipment, nextItem, content) {
+  function buildReplacementText(currentEquipment: RunEquipmentState | null, nextItem: RuntimeItemDefinition | null, content: GameContent) {
     if (!currentEquipment) {
       return "Slot is empty.";
     }
@@ -302,12 +302,12 @@
     return `Upgrades ${currentItem?.name || currentEquipment.itemId} by ${tierDelta} tier${tierDelta === 1 ? "" : "s"} and preserves ${preservedRunes} socketed rune${preservedRunes === 1 ? "" : "s"}.`;
   }
 
-  function pickFallbackRuneId(slot, actNumber, encounterNumber, run, zone, content) {
-    const pool = getRuneRewardPool(slot);
+  function pickFallbackRuneId(slot: string, actNumber: number, encounterNumber: number, run: RunState, zone: ZoneState, content: GameContent) {
+    const pool = getRuneRewardPool(slot as "weapon" | "armor");
     const progressionAllowance = getProgressionTierAllowance(run, zone);
-    const available = pool.filter((runeId) => {
+    const available = pool.filter((runeId: string) => {
       const rune = getRuneDefinition(content, runeId);
-      return rune && rune.progressionTier <= actNumber + 1 + progressionAllowance && isRuneAllowedInSlot(rune, slot);
+      return rune && rune.progressionTier <= actNumber + 1 + progressionAllowance && isRuneAllowedInSlot(rune, slot as "weapon" | "armor");
     });
     if (available.length === 0) {
       return "";
@@ -315,7 +315,7 @@
     return available[(actNumber + encounterNumber + run.summary.encountersCleared) % available.length];
   }
 
-  function shouldPrioritizeLateActReplacement(equipment, upgradeItem, actNumber, zone, run, content, profile = null) {
+  function shouldPrioritizeLateActReplacement(equipment: RunEquipmentState | null, upgradeItem: RuntimeItemDefinition | null, actNumber: number, zone: ZoneState, run: RunState, content: GameContent, profile: ProfileState | null = null) {
     if (!equipment || !upgradeItem || !isLateActPivotZone(zone, actNumber)) {
       return false;
     }

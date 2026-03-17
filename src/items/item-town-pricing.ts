@@ -19,7 +19,7 @@
   const RUNE_TIER_SCALE = 12;
   const RUNE_RANK_SCALE = 4;
 
-  function getEquipmentValue(equipment, content) {
+  function getEquipmentValue(equipment: RunEquipmentState | null, content: GameContent) {
     const item = getItemDefinition(content, equipment?.itemId || "");
     return (
       Math.max(MIN_EQUIPMENT_VALUE, toNumber(item?.progressionTier, 1) * EQUIPMENT_TIER_SCALE) +
@@ -29,16 +29,16 @@
     );
   }
 
-  function getRuneValue(runeId, content) {
+  function getRuneValue(runeId: string, content: GameContent) {
     const rune = getRuneDefinition(content, runeId);
     return Math.max(MIN_RUNE_VALUE, toNumber(rune?.progressionTier, 1) * RUNE_TIER_SCALE + toNumber(rune?.rank, 1) * RUNE_RANK_SCALE);
   }
 
-  function hasTownFeature(profile, featureId) {
+  function hasTownFeature(profile: ProfileState | null, featureId: string) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
   }
 
-  function getFocusedAccountTreeId(profile) {
+  function getFocusedAccountTreeId(profile: ProfileState | null) {
     return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
   }
 
@@ -60,13 +60,13 @@
     ["mythicExchange", "mythic_exchange"],
   ];
 
-  function getAccountEconomyFeatures(profile): AccountEconomyFeatures {
+  function getAccountEconomyFeatures(profile: ProfileState | null): AccountEconomyFeatures {
     const focusedTreeId = getFocusedAccountTreeId(profile);
     const features = {} as AccountEconomyFeatures;
     let economyUnlocked = false;
     for (const [key, featureId] of ECONOMY_FEATURE_MAP) {
       const unlocked = hasTownFeature(profile, featureId);
-      features[key] = unlocked;
+      (features as unknown as Record<string, boolean>)[key] = unlocked;
       if (unlocked) {
         economyUnlocked = true;
       }
@@ -75,7 +75,7 @@
     return features;
   }
 
-  function getPlannedRunewordId(profile, slot, content = null) {
+  function getPlannedRunewordId(profile: ProfileState | null, slot: string, content: GameContent | null = null) {
     if (slot !== "weapon" && slot !== "armor") {
       return "";
     }
@@ -88,18 +88,18 @@
     return runeword?.slot === slot ? runeword.id : "";
   }
 
-  function getPlannedRuneword(profile, slot, content) {
+  function getPlannedRuneword(profile: ProfileState | null, slot: string, content: GameContent) {
     const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot, content));
     return runeword?.slot === slot ? runeword : null;
   }
 
-  function getPlannedRunewordTargets(profile, content) {
+  function getPlannedRunewordTargets(profile: ProfileState | null, content: GameContent) {
     return ["weapon", "armor"]
-      .map((slot) => getPlannedRuneword(profile, slot, content))
+      .map((slot: string) => getPlannedRuneword(profile, slot, content))
       .filter(Boolean);
   }
 
-  function getPlanningSummary(profile, content = null): ProfilePlanningSummary {
+  function getPlanningSummary(profile: ProfileState | null, content: GameContent | null = null): ProfilePlanningSummary {
     const fallbackPlanning: ProfilePlanningSummary = {
       weaponRunewordId: "",
       armorRunewordId: "",
@@ -141,11 +141,11 @@
     );
   }
 
-  function hasOpenPlanningCharter(profile, content = null) {
+  function hasOpenPlanningCharter(profile: ProfileState | null, content: GameContent | null = null) {
     return toNumber(getPlanningSummary(profile, content)?.unfulfilledPlanCount, 0) > 0;
   }
 
-  function getPlannedRunewordArchiveState(profile, slot, content = null) {
+  function getPlannedRunewordArchiveState(profile: ProfileState | null, slot: string, content: GameContent | null = null) {
     const planning = getPlanningSummary(profile, content);
     return {
       runewordId: slot === "weapon" ? planning.weaponRunewordId : planning.armorRunewordId,
@@ -157,7 +157,7 @@
     };
   }
 
-  function getPlanningStageLine(slot, planning, content) {
+  function getPlanningStageLine(slot: string, planning: ProfilePlanningSummary | null, content: GameContent) {
     const charter = slot === "weapon" ? planning?.weaponCharter : planning?.armorCharter;
     const runewordId = slot === "weapon" ? planning?.weaponRunewordId : planning?.armorRunewordId;
     const slotLabel = slot === "weapon" ? "Weapon" : "Armor";
@@ -182,8 +182,8 @@
     return stageLine;
   }
 
-  function getPlanningRunewordListLabel(runewordIds, content) {
-    const labels = [...new Set((Array.isArray(runewordIds) ? runewordIds : []).map((runewordId) => getRunewordDefinition(content, runewordId)?.name || runewordId).filter(Boolean))];
+  function getPlanningRunewordListLabel(runewordIds: string[], content: GameContent) {
+    const labels = [...new Set((Array.isArray(runewordIds) ? runewordIds : []).map((runewordId: string) => getRunewordDefinition(content, runewordId)?.name || runewordId).filter(Boolean))];
     if (labels.length === 0) {
       return "no charter targets";
     }
@@ -196,7 +196,7 @@
     return `${labels.slice(0, runtimeWindow.ROUGE_LIMITS.LABEL_PREVIEW).join(", ")}, +${labels.length - 2} more`;
   }
 
-  function getTargetRunewordForEquipment(equipment, run, content, profile = null) {
+  function getTargetRunewordForEquipment(equipment: RunEquipmentState | null, run: RunState, content: GameContent, profile: ProfileState | null = null) {
     if (!equipment) {
       return null;
     }
@@ -204,21 +204,21 @@
     return equipment.runewordId ? null : getPreferredRunewordForEquipment(equipment, run, content, plannedRuneword?.id || "");
   }
 
-  function getEntryPlanningMatch(entry, content, profile = null) {
+  function getEntryPlanningMatch(entry: InventoryEntry | null, content: GameContent, profile: ProfileState | null = null) {
     const plannedRunewords = getPlannedRunewordTargets(profile, content);
     if (plannedRunewords.length === 0 || !entry) {
       return null;
     }
     if (entry.kind === "rune") {
-      const matchedRuneword = plannedRunewords.find((runeword) => runeword.requiredRunes.includes(entry.runeId)) || null;
+      const matchedRuneword = plannedRunewords.find((runeword: RuntimeRunewordDefinition) => runeword.requiredRunes.includes((entry as InventoryRuneEntry).runeId)) || null;
       return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
     }
     const item = getItemDefinition(content, entry?.equipment?.itemId || "");
-    const matchedRuneword = plannedRunewords.find((runeword) => isRunewordCompatibleWithItem(item, runeword)) || null;
+    const matchedRuneword = plannedRunewords.find((runeword: RuntimeRunewordDefinition) => isRunewordCompatibleWithItem(item, runeword)) || null;
     return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
   }
 
-  function getEquipmentPlanningMatch(equipment, content, profile = null) {
+  function getEquipmentPlanningMatch(equipment: RunEquipmentState | null, content: GameContent, profile: ProfileState | null = null) {
     if (!equipment) {
       return null;
     }
@@ -233,7 +233,7 @@
     );
   }
 
-  function canCommissionSocket(equipment, content) {
+  function canCommissionSocket(equipment: RunEquipmentState | null, content: GameContent) {
     if (!equipment || equipment.runewordId) {
       return false;
     }
@@ -241,13 +241,13 @@
     return Boolean(item) && toNumber(equipment.socketsUnlocked, 0) < toNumber(item?.maxSockets, 0);
   }
 
-  function getStashPlanningPressure(profile) {
+  function getStashPlanningPressure(profile: ProfileState | null) {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
-    const equipmentEntries = entries.filter((entry) => entry?.kind === "equipment");
+    const equipmentEntries = entries.filter((entry: InventoryEntry) => entry?.kind === "equipment");
     return {
       stashEntries: entries.length,
-      socketReadyEntries: equipmentEntries.filter((entry) => toNumber(entry?.equipment?.socketsUnlocked, 0) > 0).length,
-      runewordEntries: equipmentEntries.filter((entry) => entry?.equipment?.runewordId).length,
+      socketReadyEntries: equipmentEntries.filter((entry: InventoryEntry) => toNumber((entry as InventoryEquipmentEntry)?.equipment?.socketsUnlocked, 0) > 0).length,
+      runewordEntries: equipmentEntries.filter((entry: InventoryEntry) => (entry as InventoryEquipmentEntry)?.equipment?.runewordId).length,
     };
   }
 

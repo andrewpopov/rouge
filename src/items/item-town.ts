@@ -41,25 +41,25 @@
     getInventorySummary,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_ACTIONS;
 
-  function hydrateRunInventory(run, content, profile = null) {
-    const inventorySource = run.inventory || {};
+  function hydrateRunInventory(run: RunState, content: GameContent, profile: ProfileState | null = null) {
+    const inventorySource = (run.inventory || {}) as Record<string, unknown>;
     run.inventory = {
       ...createDefaultInventory(),
-      ...inventorySource,
+      ...(inventorySource as Partial<RunInventoryState>),
       nextEntryId: Math.max(1, toNumber(inventorySource?.nextEntryId, 1)),
       carried: [],
     };
 
-    ["weapon", "armor"].forEach((slot) => {
+    (["weapon", "armor"] as const).forEach((slot) => {
       if (run.loadout?.[slot]) {
         ensureEquipmentEntryId(run, run.loadout[slot]);
       }
     });
 
-    const normalizedCarried = (Array.isArray(inventorySource?.carried) ? inventorySource.carried : [])
-      .map((entry) => normalizeInventoryEntry(entry, run, content))
+    const normalizedCarried = (Array.isArray(inventorySource?.carried) ? inventorySource.carried as unknown[] : [])
+      .map((entry: unknown) => normalizeInventoryEntry(entry, run, content))
       .filter(Boolean)
-      .filter((entry) => {
+      .filter((entry: InventoryEntry) => {
         if (entry.kind !== "equipment") {
           return true;
         }
@@ -70,7 +70,7 @@
     normalizeVendorStock(run, content, profile);
   }
 
-  function applyTownAction(run, profile, content, actionId) {
+  function applyTownAction(run: RunState, profile: ProfileState, content: GameContent, actionId: string) {
     hydrateRunLoadout(run, content);
     hydrateProfileStash(profile, content);
     hydrateRunInventory(run, content, profile);
@@ -135,17 +135,17 @@
     }
 
     if (actionId.startsWith("inventory_unequip_")) {
-      return unequipSlot(run, actionId.replace("inventory_unequip_", ""), content);
+      return unequipSlot(run, actionId.replace("inventory_unequip_", "") as "weapon" | "armor", content);
     }
 
     if (actionId.startsWith("inventory_socket_")) {
       const payload = actionId.replace("inventory_socket_", "");
       const [slot, entryId] = payload.split("__");
-      return socketInventoryRune(run, entryId, slot, content);
+      return socketInventoryRune(run, entryId, slot as "weapon" | "armor", content);
     }
 
     if (actionId.startsWith("inventory_commission_loadout_")) {
-      const slot = actionId.replace("inventory_commission_loadout_", "");
+      const slot = actionId.replace("inventory_commission_loadout_", "") as "weapon" | "armor";
       const equipment = run.loadout?.[slot] || null;
       if (!equipment) {
         return { ok: false, message: "No equipped item is available for commission." };

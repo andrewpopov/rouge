@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- migration code transforms arbitrary legacy data */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -14,40 +15,40 @@
     {
       id: "archives",
       nodes: [
-        { id: "archive_ledger", rewardFeatureId: "archive_ledger", prerequisiteIds: [], target: 1, getProgress: (metrics) => metrics.runHistoryCount },
-        { id: "chronicle_vault", rewardFeatureId: "chronicle_vault", prerequisiteIds: ["archive_ledger"], target: 4, getProgress: (metrics) => metrics.runHistoryCount },
-        { id: "heroic_annals", rewardFeatureId: "heroic_annals", prerequisiteIds: ["archive_ledger"], target: 2, getProgress: (metrics) => metrics.completedRuns },
-        { id: "mythic_annals", rewardFeatureId: "mythic_annals", prerequisiteIds: ["chronicle_vault"], target: 6, getProgress: (metrics) => metrics.runHistoryCount },
-        { id: "eternal_annals", rewardFeatureId: "eternal_annals", prerequisiteIds: ["heroic_annals", "mythic_annals"], target: 4, getProgress: (metrics) => metrics.completedRuns },
-        { id: "sovereign_annals", rewardFeatureId: "sovereign_annals", prerequisiteIds: ["eternal_annals"], target: 8, getProgress: (metrics) => metrics.runHistoryCount },
-        { id: "imperial_annals", rewardFeatureId: "imperial_annals", prerequisiteIds: ["sovereign_annals"], target: 10, getProgress: (metrics) => metrics.runHistoryCount },
+        { id: "archive_ledger", rewardFeatureId: "archive_ledger", prerequisiteIds: [], target: 1, getProgress: (metrics: Record<string, number>) => metrics.runHistoryCount },
+        { id: "chronicle_vault", rewardFeatureId: "chronicle_vault", prerequisiteIds: ["archive_ledger"], target: 4, getProgress: (metrics: Record<string, number>) => metrics.runHistoryCount },
+        { id: "heroic_annals", rewardFeatureId: "heroic_annals", prerequisiteIds: ["archive_ledger"], target: 2, getProgress: (metrics: Record<string, number>) => metrics.completedRuns },
+        { id: "mythic_annals", rewardFeatureId: "mythic_annals", prerequisiteIds: ["chronicle_vault"], target: 6, getProgress: (metrics: Record<string, number>) => metrics.runHistoryCount },
+        { id: "eternal_annals", rewardFeatureId: "eternal_annals", prerequisiteIds: ["heroic_annals", "mythic_annals"], target: 4, getProgress: (metrics: Record<string, number>) => metrics.completedRuns },
+        { id: "sovereign_annals", rewardFeatureId: "sovereign_annals", prerequisiteIds: ["eternal_annals"], target: 8, getProgress: (metrics: Record<string, number>) => metrics.runHistoryCount },
+        { id: "imperial_annals", rewardFeatureId: "imperial_annals", prerequisiteIds: ["sovereign_annals"], target: 10, getProgress: (metrics: Record<string, number>) => metrics.runHistoryCount },
       ],
     },
     {
       id: "economy",
       nodes: [
-        { id: "advanced_vendor_stock", rewardFeatureId: "advanced_vendor_stock", prerequisiteIds: [], target: 3, getProgress: (metrics) => metrics.highestActCleared },
-        { id: "runeword_codex", rewardFeatureId: "runeword_codex", prerequisiteIds: [], target: 1, getProgress: (metrics) => metrics.unlockedRunewordCount },
-        { id: "economy_ledger", rewardFeatureId: "economy_ledger", prerequisiteIds: ["advanced_vendor_stock"], target: 500, getProgress: (metrics) => metrics.totalGoldCollected },
-        { id: "salvage_tithes", rewardFeatureId: "salvage_tithes", prerequisiteIds: ["economy_ledger"], target: 1200, getProgress: (metrics) => metrics.totalGoldCollected },
-        { id: "artisan_stock", rewardFeatureId: "artisan_stock", prerequisiteIds: ["advanced_vendor_stock"], target: 5, getProgress: (metrics) => metrics.highestActCleared },
-        { id: "brokerage_charter", rewardFeatureId: "brokerage_charter", prerequisiteIds: ["salvage_tithes"], target: 2500, getProgress: (metrics) => metrics.totalGoldCollected },
-        { id: "treasury_exchange", rewardFeatureId: "treasury_exchange", prerequisiteIds: ["artisan_stock", "brokerage_charter"], target: 4000, getProgress: (metrics) => metrics.totalGoldCollected },
-        { id: "merchant_principate", rewardFeatureId: "merchant_principate", prerequisiteIds: ["treasury_exchange"], target: 6500, getProgress: (metrics) => metrics.totalGoldCollected },
-        { id: "trade_hegemony", rewardFeatureId: "trade_hegemony", prerequisiteIds: ["merchant_principate"], target: 9000, getProgress: (metrics) => metrics.totalGoldCollected },
+        { id: "advanced_vendor_stock", rewardFeatureId: "advanced_vendor_stock", prerequisiteIds: [], target: 3, getProgress: (metrics: Record<string, number>) => metrics.highestActCleared },
+        { id: "runeword_codex", rewardFeatureId: "runeword_codex", prerequisiteIds: [], target: 1, getProgress: (metrics: Record<string, number>) => metrics.unlockedRunewordCount },
+        { id: "economy_ledger", rewardFeatureId: "economy_ledger", prerequisiteIds: ["advanced_vendor_stock"], target: 500, getProgress: (metrics: Record<string, number>) => metrics.totalGoldCollected },
+        { id: "salvage_tithes", rewardFeatureId: "salvage_tithes", prerequisiteIds: ["economy_ledger"], target: 1200, getProgress: (metrics: Record<string, number>) => metrics.totalGoldCollected },
+        { id: "artisan_stock", rewardFeatureId: "artisan_stock", prerequisiteIds: ["advanced_vendor_stock"], target: 5, getProgress: (metrics: Record<string, number>) => metrics.highestActCleared },
+        { id: "brokerage_charter", rewardFeatureId: "brokerage_charter", prerequisiteIds: ["salvage_tithes"], target: 2500, getProgress: (metrics: Record<string, number>) => metrics.totalGoldCollected },
+        { id: "treasury_exchange", rewardFeatureId: "treasury_exchange", prerequisiteIds: ["artisan_stock", "brokerage_charter"], target: 4000, getProgress: (metrics: Record<string, number>) => metrics.totalGoldCollected },
+        { id: "merchant_principate", rewardFeatureId: "merchant_principate", prerequisiteIds: ["treasury_exchange"], target: 6500, getProgress: (metrics: Record<string, number>) => metrics.totalGoldCollected },
+        { id: "trade_hegemony", rewardFeatureId: "trade_hegemony", prerequisiteIds: ["merchant_principate"], target: 9000, getProgress: (metrics: Record<string, number>) => metrics.totalGoldCollected },
       ],
     },
     {
       id: "mastery",
       nodes: [
-        { id: "boss_trophy_gallery", rewardFeatureId: "boss_trophy_gallery", prerequisiteIds: [], target: 1, getProgress: (metrics) => metrics.unlockedBossCount },
-        { id: "class_roster_archive", rewardFeatureId: "class_roster_archive", prerequisiteIds: [], target: 3, getProgress: (metrics) => metrics.classesPlayedCount },
-        { id: "training_grounds", rewardFeatureId: "training_grounds", prerequisiteIds: ["class_roster_archive"], target: 10, getProgress: (metrics) => metrics.highestLevel },
-        { id: "war_college", rewardFeatureId: "war_college", prerequisiteIds: ["boss_trophy_gallery", "training_grounds"], target: 5, getProgress: (metrics) => metrics.totalBossesDefeated },
-        { id: "paragon_doctrine", rewardFeatureId: "paragon_doctrine", prerequisiteIds: ["war_college"], target: 8, getProgress: (metrics) => metrics.totalBossesDefeated },
-        { id: "apex_doctrine", rewardFeatureId: "apex_doctrine", prerequisiteIds: ["war_college", "paragon_doctrine"], target: 12, getProgress: (metrics) => metrics.totalBossesDefeated },
-        { id: "legend_doctrine", rewardFeatureId: "legend_doctrine", prerequisiteIds: ["apex_doctrine"], target: 16, getProgress: (metrics) => metrics.totalBossesDefeated },
-        { id: "mythic_doctrine", rewardFeatureId: "mythic_doctrine", prerequisiteIds: ["legend_doctrine"], target: 20, getProgress: (metrics) => metrics.totalBossesDefeated },
+        { id: "boss_trophy_gallery", rewardFeatureId: "boss_trophy_gallery", prerequisiteIds: [], target: 1, getProgress: (metrics: Record<string, number>) => metrics.unlockedBossCount },
+        { id: "class_roster_archive", rewardFeatureId: "class_roster_archive", prerequisiteIds: [], target: 3, getProgress: (metrics: Record<string, number>) => metrics.classesPlayedCount },
+        { id: "training_grounds", rewardFeatureId: "training_grounds", prerequisiteIds: ["class_roster_archive"], target: 10, getProgress: (metrics: Record<string, number>) => metrics.highestLevel },
+        { id: "war_college", rewardFeatureId: "war_college", prerequisiteIds: ["boss_trophy_gallery", "training_grounds"], target: 5, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
+        { id: "paragon_doctrine", rewardFeatureId: "paragon_doctrine", prerequisiteIds: ["war_college"], target: 8, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
+        { id: "apex_doctrine", rewardFeatureId: "apex_doctrine", prerequisiteIds: ["war_college", "paragon_doctrine"], target: 12, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
+        { id: "legend_doctrine", rewardFeatureId: "legend_doctrine", prerequisiteIds: ["apex_doctrine"], target: 16, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
+        { id: "mythic_doctrine", rewardFeatureId: "mythic_doctrine", prerequisiteIds: ["legend_doctrine"], target: 20, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
       ],
     },
   ];
@@ -65,11 +66,11 @@
 
   const { deepClone, toNumber, uniqueStrings } = runtimeWindow.ROUGE_UTILS;
 
-  function isObject(value) {
+  function isObject(value: unknown) {
     return Boolean(value) && typeof value === "object";
   }
 
-  function sanitizePlannedRunewordId(runewordId, slot, content = null) {
+  function sanitizePlannedRunewordId(runewordId: unknown, slot: string, content: GameContent | null = null) {
     if (typeof runewordId !== "string" || !runewordId) {
       return "";
     }
@@ -80,7 +81,7 @@
     return runeword?.slot === slot ? runeword.id : "";
   }
 
-  function sanitizeHistoryPlanningEntry(entry, content = null) {
+  function sanitizeHistoryPlanningEntry(entry: RunHistoryEntry, content: GameContent | null = null) {
     if (!entry || !content?.runewordCatalog) {
       return entry;
     }
@@ -90,45 +91,46 @@
     const allowedRunewordIds = new Set([plannedWeaponRunewordId, plannedArmorRunewordId].filter(Boolean));
     entry.plannedWeaponRunewordId = plannedWeaponRunewordId;
     entry.plannedArmorRunewordId = plannedArmorRunewordId;
-    entry.completedPlannedRunewordIds = uniqueStrings((entry.completedPlannedRunewordIds || []).filter((runewordId) => allowedRunewordIds.has(runewordId)));
+    entry.completedPlannedRunewordIds = uniqueStrings((entry.completedPlannedRunewordIds || []).filter((runewordId: string) => allowedRunewordIds.has(runewordId)));
     return entry;
   }
 
-  function ensureHistoryEntry(entry, content = null) {
+  function ensureHistoryEntry(entry: unknown, content: GameContent | null = null) {
     if (!isObject(entry)) {
       return null;
     }
 
-    const outcome = typeof entry.outcome === "string" ? entry.outcome : "abandoned";
+    const source = entry as Record<string, any>;
+    const outcome = typeof source.outcome === "string" ? source.outcome : "abandoned";
     return sanitizeHistoryPlanningEntry({
-      runId: typeof entry.runId === "string" ? entry.runId : "",
-      classId: typeof entry.classId === "string" ? entry.classId : "",
-      className: typeof entry.className === "string" ? entry.className : "",
-      level: Number.parseInt(String(entry.level || 1), 10) || 1,
-      actsCleared: Number.parseInt(String(entry.actsCleared || 0), 10) || 0,
-      bossesDefeated: Number.parseInt(String(entry.bossesDefeated || 0), 10) || 0,
-      goldGained: Number.parseInt(String(entry.goldGained || 0), 10) || 0,
-      runewordsForged: Number.parseInt(String(entry.runewordsForged || 0), 10) || 0,
-      skillPointsEarned: Number.parseInt(String(entry.skillPointsEarned || 0), 10) || 0,
-      classPointsEarned: Number.parseInt(String(entry.classPointsEarned || 0), 10) || 0,
-      attributePointsEarned: Number.parseInt(String(entry.attributePointsEarned || 0), 10) || 0,
-      trainingRanksGained: Number.parseInt(String(entry.trainingRanksGained || 0), 10) || 0,
-      favoredTreeId: typeof entry.favoredTreeId === "string" ? entry.favoredTreeId : "",
-      favoredTreeName: typeof entry.favoredTreeName === "string" ? entry.favoredTreeName : "",
-      unlockedClassSkills: Number.parseInt(String(entry.unlockedClassSkills || 0), 10) || 0,
-      loadoutTier: Number.parseInt(String(entry.loadoutTier || 0), 10) || 0,
-      loadoutSockets: Number.parseInt(String(entry.loadoutSockets || 0), 10) || 0,
-      carriedEquipmentCount: Number.parseInt(String(entry.carriedEquipmentCount || 0), 10) || 0,
-      carriedRuneCount: Number.parseInt(String(entry.carriedRuneCount || 0), 10) || 0,
-      stashEntryCount: Number.parseInt(String(entry.stashEntryCount || 0), 10) || 0,
-      stashEquipmentCount: Number.parseInt(String(entry.stashEquipmentCount || 0), 10) || 0,
-      stashRuneCount: Number.parseInt(String(entry.stashRuneCount || 0), 10) || 0,
-      plannedWeaponRunewordId: typeof entry.plannedWeaponRunewordId === "string" ? entry.plannedWeaponRunewordId : "",
-      plannedArmorRunewordId: typeof entry.plannedArmorRunewordId === "string" ? entry.plannedArmorRunewordId : "",
-      completedPlannedRunewordIds: uniqueStrings(entry.completedPlannedRunewordIds),
-      activeRunewordIds: uniqueStrings(entry.activeRunewordIds),
-      newFeatureIds: uniqueStrings(entry.newFeatureIds),
-      completedAt: typeof entry.completedAt === "string" ? entry.completedAt : new Date(0).toISOString(),
+      runId: typeof source.runId === "string" ? source.runId : "",
+      classId: typeof source.classId === "string" ? source.classId : "",
+      className: typeof source.className === "string" ? source.className : "",
+      level: Number.parseInt(String(source.level || 1), 10) || 1,
+      actsCleared: Number.parseInt(String(source.actsCleared || 0), 10) || 0,
+      bossesDefeated: Number.parseInt(String(source.bossesDefeated || 0), 10) || 0,
+      goldGained: Number.parseInt(String(source.goldGained || 0), 10) || 0,
+      runewordsForged: Number.parseInt(String(source.runewordsForged || 0), 10) || 0,
+      skillPointsEarned: Number.parseInt(String(source.skillPointsEarned || 0), 10) || 0,
+      classPointsEarned: Number.parseInt(String(source.classPointsEarned || 0), 10) || 0,
+      attributePointsEarned: Number.parseInt(String(source.attributePointsEarned || 0), 10) || 0,
+      trainingRanksGained: Number.parseInt(String(source.trainingRanksGained || 0), 10) || 0,
+      favoredTreeId: typeof source.favoredTreeId === "string" ? source.favoredTreeId : "",
+      favoredTreeName: typeof source.favoredTreeName === "string" ? source.favoredTreeName : "",
+      unlockedClassSkills: Number.parseInt(String(source.unlockedClassSkills || 0), 10) || 0,
+      loadoutTier: Number.parseInt(String(source.loadoutTier || 0), 10) || 0,
+      loadoutSockets: Number.parseInt(String(source.loadoutSockets || 0), 10) || 0,
+      carriedEquipmentCount: Number.parseInt(String(source.carriedEquipmentCount || 0), 10) || 0,
+      carriedRuneCount: Number.parseInt(String(source.carriedRuneCount || 0), 10) || 0,
+      stashEntryCount: Number.parseInt(String(source.stashEntryCount || 0), 10) || 0,
+      stashEquipmentCount: Number.parseInt(String(source.stashEquipmentCount || 0), 10) || 0,
+      stashRuneCount: Number.parseInt(String(source.stashRuneCount || 0), 10) || 0,
+      plannedWeaponRunewordId: typeof source.plannedWeaponRunewordId === "string" ? source.plannedWeaponRunewordId : "",
+      plannedArmorRunewordId: typeof source.plannedArmorRunewordId === "string" ? source.plannedArmorRunewordId : "",
+      completedPlannedRunewordIds: uniqueStrings(source.completedPlannedRunewordIds),
+      activeRunewordIds: uniqueStrings(source.activeRunewordIds),
+      newFeatureIds: uniqueStrings(source.newFeatureIds),
+      completedAt: typeof source.completedAt === "string" ? source.completedAt : new Date(0).toISOString(),
       outcome: outcome === "completed" || outcome === "failed" || outcome === "abandoned" ? outcome : "abandoned",
     }, content);
   }

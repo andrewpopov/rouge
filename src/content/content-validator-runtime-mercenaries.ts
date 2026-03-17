@@ -26,39 +26,39 @@
   const MIN_COVENANT_LINKED_ROUTE_PERKS_PER_MERCENARY = 1;
   const MIN_MERCENARY_ROUTE_PERK_BONUS_FAMILIES = 5;
 
-  function pushError(errors, message) { errors.push(message); }
+  function pushError(errors: string[], message: string) { errors.push(message); }
 
-  function validateStringIdList(values, label, errors) {
+  function validateStringIdList(values: unknown, label: string, errors: string[]) {
     if (!Array.isArray(values)) {
       return;
     }
 
-    values.forEach((value, index) => {
+    values.forEach((value: unknown, index: number) => {
       if (typeof value !== "string" || !value) {
         pushError(errors, `${label}[${index}] must be a non-empty string.`);
       }
     });
   }
 
-  function validateKnownStringIds(values, knownValues, label, errors, referenceType) {
+  function validateKnownStringIds(values: unknown, knownValues: Set<string>, label: string, errors: string[], referenceType: string) {
     if (!Array.isArray(values)) {
       return;
     }
 
-    values.forEach((value, index) => {
+    values.forEach((value: unknown, index: number) => {
       if (typeof value === "string" && value && !knownValues.has(value)) {
         pushError(errors, `${label}[${index}] references unknown ${referenceType} "${value}".`);
       }
     });
   }
 
-  function collectRouteFlagIds(worldNodeCatalog, opportunityKey) {
+  function collectRouteFlagIds(worldNodeCatalog: WorldNodeCatalog | null | undefined, opportunityKey: keyof WorldNodeCatalog) {
     return new Set([
       ...(Object.values(worldNodeCatalog?.[opportunityKey] || {}) as OpportunityNodeDefinition[]).flatMap((opportunityDefinition) => (Array.isArray(opportunityDefinition?.variants) ? opportunityDefinition.variants : []).flatMap((variantDefinition) => (Array.isArray(variantDefinition?.choices) ? variantDefinition.choices : []).flatMap((choiceDefinition) => [...collectEffectFlagIds(choiceDefinition?.effects)]))),
     ]);
   }
 
-  function validateMercenaryCatalog(mercenaryCatalog, knownWorldFlagIds, worldNodeCatalog, errors) {
+  function validateMercenaryCatalog(mercenaryCatalog: Record<string, MercenaryDefinition>, knownWorldFlagIds: Set<string>, worldNodeCatalog: WorldNodeCatalog | null | undefined, errors: string[]) {
     const reserveRouteFlagIds = collectRouteFlagIds(worldNodeCatalog, "reserveOpportunities");
     const relayRouteFlagIds = collectRouteFlagIds(worldNodeCatalog, "relayOpportunities");
     const culminationRouteFlagIds = collectRouteFlagIds(worldNodeCatalog, "culminationOpportunities");
@@ -73,7 +73,7 @@
     }
 
     const routePerkBonusFamilies = new Set();
-    (Object.values(mercenaryCatalog) as MercenaryDefinition[]).forEach((mercenary, index) => {
+    (Object.values(mercenaryCatalog) as MercenaryDefinition[]).forEach((mercenary: MercenaryDefinition, index: number) => {
       const label = `mercenaryCatalog.${mercenary?.id || index}`;
       if (!mercenary?.id) {
         pushError(errors, `${label} is missing an id.`);
@@ -113,7 +113,7 @@
       let recoveryLinkedRoutePerkCount = 0;
       let accordLinkedRoutePerkCount = 0;
       let covenantLinkedRoutePerkCount = 0;
-      mercenary.routePerks.forEach((routePerk, routePerkIndex) => {
+      mercenary.routePerks.forEach((routePerk: MercenaryRoutePerkDefinition, routePerkIndex: number) => {
         const routePerkLabel = `${label}.routePerks[${routePerkIndex}]`;
         if (!routePerk?.id) {
           pushError(errors, `${routePerkLabel} is missing an id.`);
@@ -131,28 +131,28 @@
         } else if (routePerk.requiredFlagIds.length > 1) {
           compoundRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => reserveRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => reserveRouteFlagIds.has(flagId))) {
           reserveLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => relayRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => relayRouteFlagIds.has(flagId))) {
           relayLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => culminationRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => culminationRouteFlagIds.has(flagId))) {
           culminationLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => legacyRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => legacyRouteFlagIds.has(flagId))) {
           legacyLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => reckoningRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => reckoningRouteFlagIds.has(flagId))) {
           reckoningLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => recoveryRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => recoveryRouteFlagIds.has(flagId))) {
           recoveryLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => accordRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => accordRouteFlagIds.has(flagId))) {
           accordLinkedRoutePerkCount += 1;
         }
-        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId) => covenantRouteFlagIds.has(flagId))) {
+        if (Array.isArray(routePerk?.requiredFlagIds) && routePerk.requiredFlagIds.some((flagId: string) => covenantRouteFlagIds.has(flagId))) {
           covenantLinkedRoutePerkCount += 1;
         }
         if (knownWorldFlagIds.size > 0) {
@@ -172,8 +172,8 @@
           "heroStartGuardPerAct",
           "openingDraw",
           "openingDrawPerAct",
-        ].forEach((field) => {
-          const routePerkValue = routePerk?.[field];
+        ].forEach((field: string) => {
+          const routePerkValue = routePerk?.[field as keyof MercenaryRoutePerkDefinition];
           if ((routePerkValue ?? null) !== null && !Number.isFinite(Number(routePerkValue))) {
             pushError(errors, `${routePerkLabel}.${field} must be numeric when present.`);
           }

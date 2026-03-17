@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function routePerk(id, title, requiredFlagIds, bonuses = {}) {
+  function routePerk(id: string, title: string, requiredFlagIds: string[], bonuses: Record<string, number> = {}) {
     return {
       id,
       title,

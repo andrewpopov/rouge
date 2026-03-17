@@ -31,17 +31,17 @@
     buildRunHistoryEntry,
   } = runtimeWindow.__ROUGE_PERSISTENCE_SUMMARIES;
 
-  function unlockProfileEntries(profile, category, ids) {
+  function unlockProfileEntries(profile: ProfileState, category: ProfileUnlockCategory, ids: string[]) {
     ensureMeta(profile);
     const existing = Array.isArray(profile.meta.unlocks?.[category]) ? profile.meta.unlocks[category] : [];
     profile.meta.unlocks[category] = uniqueStrings([...existing, ...(Array.isArray(ids) ? ids : [])]);
     applyDerivedAccountUnlocks(profile);
   }
 
-  function updateProfileSettings(profile, patch) {
+  function updateProfileSettings(profile: ProfileState, patch: ProfileSettingsPatch) {
     ensureMeta(profile);
     const nextSettings = patch && typeof patch === "object" ? patch : {};
-    ["showHints", "reduceMotion", "compactMode"].forEach((settingKey) => {
+    (["showHints", "reduceMotion", "compactMode"] as const).forEach((settingKey) => {
       if (typeof nextSettings[settingKey] === "boolean") {
         profile.meta.settings[settingKey] = nextSettings[settingKey];
       }
@@ -50,15 +50,15 @@
       if (!profile.meta.settings.debugMode || typeof profile.meta.settings.debugMode !== "object") {
         profile.meta.settings.debugMode = { enabled: false, skipBattles: false, invulnerable: false, oneHitKill: false, infiniteGold: false };
       }
-      for (const key of ["enabled", "skipBattles", "invulnerable", "oneHitKill", "infiniteGold"]) {
+      for (const key of ["enabled", "skipBattles", "invulnerable", "oneHitKill", "infiniteGold"] as (keyof DebugModeConfig)[]) {
         if (typeof nextSettings.debugMode[key] === "boolean") {
-          profile.meta.settings.debugMode[key] = nextSettings.debugMode[key];
+          profile.meta.settings.debugMode[key] = nextSettings.debugMode[key] as boolean;
         }
       }
     }
   }
 
-  function setPreferredClass(profile, classId) {
+  function setPreferredClass(profile: ProfileState, classId: string) {
     ensureMeta(profile);
     if (typeof classId !== "string") {
       return;
@@ -66,7 +66,7 @@
     profile.meta.progression.preferredClassId = classId;
   }
 
-  function setPlannedRuneword(profile, slot, runewordId, content = null) {
+  function setPlannedRuneword(profile: ProfileState, slot: string, runewordId: string, content: GameContent | null = null) {
     ensureMeta(profile, content);
     if (slot !== "weapon" && slot !== "armor") {
       return;
@@ -75,57 +75,57 @@
     profile.meta.planning[key] = sanitizePlannedRunewordId(runewordId, slot, content);
   }
 
-  function setAccountProgressionFocus(profile, treeId) {
+  function setAccountProgressionFocus(profile: ProfileState, treeId: string) {
     ensureMeta(profile);
-    if (!ACCOUNT_PROGRESSION_TREES.some((tree) => tree.id === treeId)) {
+    if (!ACCOUNT_PROGRESSION_TREES.some((tree: { id: string }) => tree.id === treeId)) {
       profile.meta.accountProgression.focusedTreeId = getDefaultFocusedTreeId(profile);
       return;
     }
     profile.meta.accountProgression.focusedTreeId = treeId;
   }
 
-  function markTutorialSeen(profile, tutorialId) {
+  function markTutorialSeen(profile: ProfileState, tutorialId: string) {
     ensureMeta(profile);
     if (!tutorialId) {
       return;
     }
     profile.meta.tutorials.seenIds = uniqueStrings([...(profile.meta.tutorials.seenIds || []), tutorialId]);
-    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry: string) => entry !== tutorialId));
   }
 
-  function markTutorialCompleted(profile, tutorialId) {
+  function markTutorialCompleted(profile: ProfileState, tutorialId: string) {
     ensureMeta(profile);
     if (!tutorialId) {
       return;
     }
     markTutorialSeen(profile, tutorialId);
     profile.meta.tutorials.completedIds = uniqueStrings([...(profile.meta.tutorials.completedIds || []), tutorialId]);
-    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry: string) => entry !== tutorialId));
   }
 
-  function dismissTutorial(profile, tutorialId) {
+  function dismissTutorial(profile: ProfileState, tutorialId: string) {
     ensureMeta(profile);
     if (!tutorialId) {
       return;
     }
     markTutorialSeen(profile, tutorialId);
     if ((profile.meta.tutorials?.completedIds || []).includes(tutorialId)) {
-      profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+      profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry: string) => entry !== tutorialId));
       return;
     }
     profile.meta.tutorials.dismissedIds = uniqueStrings([...(profile.meta.tutorials.dismissedIds || []), tutorialId]);
   }
 
-  function restoreTutorial(profile, tutorialId) {
+  function restoreTutorial(profile: ProfileState, tutorialId: string) {
     ensureMeta(profile);
     if (!tutorialId) {
       return;
     }
     markTutorialSeen(profile, tutorialId);
-    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry) => entry !== tutorialId));
+    profile.meta.tutorials.dismissedIds = uniqueStrings((profile.meta.tutorials.dismissedIds || []).filter((entry: string) => entry !== tutorialId));
   }
 
-  function getWorldOutcomeCount(run) {
+  function getWorldOutcomeCount(run: RunState) {
     return (
       Object.keys(run?.world?.questOutcomes || {}).length +
       Object.keys(run?.world?.shrineOutcomes || {}).length +
@@ -134,7 +134,7 @@
     );
   }
 
-  function syncProfileMetaFromRun(profile, run) {
+  function syncProfileMetaFromRun(profile: ProfileState, run: RunState) {
     ensureMeta(profile);
     if (!run) {
       return;
@@ -189,7 +189,7 @@
     applyDerivedAccountUnlocks(profile);
   }
 
-  function recordRunHistory(profile, run, outcome, content = null) {
+  function recordRunHistory(profile: ProfileState, run: RunState, outcome: string, content: GameContent | null = null) {
     ensureMeta(profile);
     profile.runHistory = Array.isArray(profile.runHistory) ? profile.runHistory : [];
     const previousFeatureIds = uniqueStrings(profile.meta.unlocks?.townFeatureIds || []);
@@ -205,10 +205,10 @@
     profile.runHistory.unshift(entry);
     applyDerivedAccountUnlocks(profile);
     profile.runHistory = profile.runHistory.slice(0, getRunHistoryCapacity(profile));
-    entry.newFeatureIds = uniqueStrings((profile.meta.unlocks?.townFeatureIds || []).filter((featureId) => !previousFeatureIds.includes(featureId)));
+    entry.newFeatureIds = uniqueStrings((profile.meta.unlocks?.townFeatureIds || []).filter((featureId: string) => !previousFeatureIds.includes(featureId)));
   }
 
-  function saveToStorage(snapshot, storage = getDefaultStorage()) {
+  function saveToStorage(snapshot: RunSnapshotEnvelope | string, storage: StorageLike | null = getDefaultStorage()) {
     const restoredSnapshot = typeof snapshot === "string" ? restoreSnapshot(snapshot) : restoreSnapshot(snapshot);
     if (!restoredSnapshot) {
       return { ok: false, message: "Run snapshot could not be restored." };
@@ -219,15 +219,15 @@
     return saveProfileToStorage(profile, storage);
   }
 
-  function loadFromStorage(storage = getDefaultStorage()) {
+  function loadFromStorage(storage: StorageLike | null = getDefaultStorage()) {
     return loadProfileFromStorage(storage)?.activeRunSnapshot || null;
   }
 
-  function hasSavedSnapshot(storage = getDefaultStorage()) {
+  function hasSavedSnapshot(storage: StorageLike | null = getDefaultStorage()) {
     return Boolean(loadFromStorage(storage));
   }
 
-  function clearStorage(storage = getDefaultStorage()) {
+  function clearStorage(storage: StorageLike | null = getDefaultStorage()) {
     const profile = loadProfileFromStorage(storage);
     if (profile) {
       profile.activeRunSnapshot = null;

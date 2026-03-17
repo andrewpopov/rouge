@@ -1,15 +1,15 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getBonusValue(value) {
+  function getBonusValue(value: unknown) {
     return Number.parseInt(String(value ?? 0), 10) || 0;
   }
 
-  function getCombatBonuses(run, content) {
+  function getCombatBonuses(run: RunState, content: GameContent) {
     return runtimeWindow.ROUGE_RUN_FACTORY?.buildCombatBonuses?.(run, content) || {};
   }
 
-  function getEffectivePartyState(run, content) {
+  function getEffectivePartyState(run: RunState, content: GameContent) {
     const bonuses = getCombatBonuses(run, content);
     const heroMaxLife = run.hero.maxLife + getBonusValue(bonuses.heroMaxLife);
     const mercenaryMaxLife = run.mercenary.maxLife + getBonusValue(bonuses.mercenaryMaxLife);
@@ -26,7 +26,7 @@
     };
   }
 
-  function getHealerCost(run, content) {
+  function getHealerCost(run: RunState, content: GameContent) {
     const effectiveParty = getEffectivePartyState(run, content);
     const missingHeroLife = Math.max(0, effectiveParty.hero.maxLife - effectiveParty.hero.currentLife);
     const missingMercenaryLife =
@@ -39,7 +39,7 @@
     return Math.max(6, Math.ceil(totalMissingLife / 4) + run.actNumber * 2);
   }
 
-  function buildHealerAction(run, content) {
+  function buildHealerAction(run: RunState, content: GameContent) {
     const cost = getHealerCost(run, content);
     const affordable = run.gold >= cost;
     const disabled = cost <= 0 || !affordable;
@@ -57,7 +57,7 @@
     };
   }
 
-  function getQuartermasterCost(run) {
+  function getQuartermasterCost(run: RunState) {
     const missingCharges = Math.max(0, run.belt.max - run.belt.current);
     if (missingCharges <= 0) {
       return 0;
@@ -65,7 +65,7 @@
     return missingCharges * (3 + run.actNumber);
   }
 
-  function buildQuartermasterAction(run) {
+  function buildQuartermasterAction(run: RunState) {
     const cost = getQuartermasterCost(run);
     const affordable = run.gold >= cost;
     const disabled = cost <= 0 || !affordable;
@@ -86,7 +86,7 @@
     };
   }
 
-  function getMercenaryActionCost(run, mercenaryId) {
+  function getMercenaryActionCost(run: RunState, mercenaryId: string) {
     const isCurrentMercenary = mercenaryId === run.mercenary.id;
     if (isCurrentMercenary) {
       if (run.mercenary.currentLife > 0) {
@@ -97,7 +97,7 @@
     return 18 + run.actNumber * 5;
   }
 
-  function buildMercenaryAction(run, mercenaryDefinition) {
+  function buildMercenaryAction(run: RunState, mercenaryDefinition: MercenaryDefinition) {
     const isCurrentMercenary = mercenaryDefinition.id === run.mercenary.id;
     const cost = getMercenaryActionCost(run, mercenaryDefinition.id);
     const affordable = run.gold >= cost;
@@ -137,7 +137,7 @@
     };
   }
 
-  function listActions(content, run, profile) {
+  function listActions(content: GameContent, run: RunState, profile: ProfileState) {
     const mercenaryActions = Object.values(content.mercenaryCatalog).map((mercenaryDefinition) => {
       return buildMercenaryAction(run, mercenaryDefinition);
     });
@@ -153,7 +153,7 @@
     ];
   }
 
-  function applyAction(run, profile, content, actionId) {
+  function applyAction(run: RunState, profile: ProfileState, content: GameContent, actionId: string) {
     const availableActions = listActions(content, run, profile);
     const action = availableActions.find((candidate) => candidate.id === actionId) || null;
     if (!action) {

@@ -90,12 +90,12 @@
 
   function getCardElement(card: CardDefinition): string {
     const text = card.text.toLowerCase();
-    if (text.includes("fire") || text.includes("burn")) return "fire";
-    if (text.includes("cold") || text.includes("ice") || text.includes("frost") || text.includes("freeze")) return "ice";
-    if (text.includes("lightning")) return "lightning";
-    if (text.includes("poison")) return "poison";
-    if (text.includes("magic") || text.includes("arcane")) return "arcane";
-    if (card.effects?.some((e) => e.kind === "damage" || e.kind === "damage_all")) return "physical";
+    if (text.includes("fire") || text.includes("burn")) {return "fire";}
+    if (text.includes("cold") || text.includes("ice") || text.includes("frost") || text.includes("freeze")) {return "ice";}
+    if (text.includes("lightning")) {return "lightning";}
+    if (text.includes("poison")) {return "poison";}
+    if (text.includes("magic") || text.includes("arcane")) {return "arcane";}
+    if (card.effects?.some((e) => e.kind === "damage" || e.kind === "damage_all")) {return "physical";}
     return "support";
   }
 

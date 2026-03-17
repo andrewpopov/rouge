@@ -54,15 +54,15 @@
     },
   };
 
-  function getClassList(seedBundle) {
+  function getClassList(seedBundle: SeedBundle) {
     return Array.isArray(seedBundle?.classes?.classes) ? seedBundle.classes.classes : [];
   }
 
-  function getSkillClassList(seedBundle) {
+  function getSkillClassList(seedBundle: SeedBundle) {
     return Array.isArray(seedBundle?.skills?.classes) ? seedBundle.skills.classes : [];
   }
 
-  function normalizeSkillDefinition(skill) {
+  function normalizeSkillDefinition(skill: SkillSeedDefinition) {
     if (!skill?.id || !skill?.name) {
       return null;
     }
@@ -74,7 +74,7 @@
     };
   }
 
-  function normalizeTreeSkills(skills) {
+  function normalizeTreeSkills(skills: SkillSeedDefinition[]) {
     const seenSkillIds = new Set();
     return (Array.isArray(skills) ? skills : [])
       .map(normalizeSkillDefinition)
@@ -94,7 +94,7 @@
       });
   }
 
-  function getTreeArchetype(treeName, index) {
+  function getTreeArchetype(treeName: string, index: number) {
     const normalized = String(treeName || "").toLowerCase();
 
     if (
@@ -122,15 +122,15 @@
     return [TREE_ARCHETYPES.martial, TREE_ARCHETYPES.arcane, TREE_ARCHETYPES.support][index] || TREE_ARCHETYPES.command;
   }
 
-  function createRuntimeContent(baseContent, seedBundle) {
-    const classesById = Object.fromEntries(getClassList(seedBundle).map((entry) => [entry.id, entry]));
+  function createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle) {
+    const classesById = Object.fromEntries(getClassList(seedBundle).map((entry: ClassDefinition) => [entry.id, entry]));
     const classProgressionCatalog = Object.fromEntries(
       getSkillClassList(seedBundle)
-        .filter((entry) => entry?.classId)
-        .map((entry) => {
+        .filter((entry: ClassSkillsSeedEntry) => entry?.classId)
+        .map((entry: ClassSkillsSeedEntry) => {
           const classDefinition = classesById[entry.classId] || null;
           const trees = (Array.isArray(entry.trees) ? entry.trees : [])
-            .map((tree, index) => {
+            .map((tree: SkillTreeSeedDefinition, index: number) => {
               const archetype = getTreeArchetype(tree?.name, index);
               const skills = normalizeTreeSkills(tree?.skills);
               if (!tree?.id || !tree?.name || skills.length === 0) {
@@ -160,7 +160,7 @@
             },
           ];
         })
-        .filter(([, entry]) => entry.trees.length > 0)
+        .filter(([, entry]) => (entry as { trees: unknown[] }).trees.length > 0)
     );
 
     return {
@@ -169,19 +169,19 @@
     };
   }
 
-  function listPlayableClasses(seedBundle) {
-    return getClassList(seedBundle).map((entry) => ({ ...entry }));
+  function listPlayableClasses(seedBundle: SeedBundle) {
+    return getClassList(seedBundle).map((entry: ClassDefinition) => ({ ...entry }));
   }
 
-  function getClassDefinition(seedBundle, classId) {
-    return getClassList(seedBundle).find((entry) => entry.id === classId) || null;
+  function getClassDefinition(seedBundle: SeedBundle, classId: string) {
+    return getClassList(seedBundle).find((entry: ClassDefinition) => entry.id === classId) || null;
   }
 
-  function getDeckProfileId(content, classId) {
+  function getDeckProfileId(content: GameContent, classId: string) {
     return content.classDeckProfiles?.[classId] || "warrior";
   }
 
-  function getStarterDeckForClass(content, classId) {
+  function getStarterDeckForClass(content: GameContent, classId: string) {
     const classDeck = content.classStarterDecks?.[classId];
     if (Array.isArray(classDeck) && classDeck.length > 0) {
       return [...classDeck];
@@ -191,8 +191,8 @@
     return Array.isArray(profileDeck) && profileDeck.length > 0 ? [...profileDeck] : [...content.starterDeck];
   }
 
-  function createHeroFromClass(content, classDefinition) {
-    const baseHero = content.hero || {};
+  function createHeroFromClass(content: GameContent, classDefinition: ClassDefinition) {
+    const baseHero = content.hero || ({} as Partial<HeroDefinition>);
     const maxLife = Math.max(
       1,
       Number.parseInt(classDefinition?.startingResources?.hitPoints, 10) || baseHero.maxLife || 1
@@ -216,7 +216,7 @@
     };
   }
 
-  function getClassProgression(content, classId) {
+  function getClassProgression(content: GameContent, classId: string) {
     return content?.classProgressionCatalog?.[classId] || null;
   }
 
@@ -230,8 +230,8 @@
     necromancer: ["Wands"],
   };
 
-  function getPreferredWeaponFamilies(classId) {
-    return CLASS_PREFERRED_FAMILIES[classId] || [];
+  function getPreferredWeaponFamilies(classId: string) {
+    return (CLASS_PREFERRED_FAMILIES as Record<string, string[]>)[classId] || [];
   }
 
   runtimeWindow.ROUGE_CLASS_REGISTRY = {

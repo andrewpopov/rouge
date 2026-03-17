@@ -16,7 +16,7 @@
   const MIN_DETOUR_OPPORTUNITY_VARIANTS = 3;
   const MIN_ESCALATION_OPPORTUNITY_VARIANTS = 3;
 
-  function validateDetourOpportunityFamily(options) {
+  function validateDetourOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       accordOpportunityDefinition,
       actKey,
@@ -65,15 +65,15 @@
       recoveryOpportunityDefinition,
       accordOpportunityDefinition
     );
-    const detourFlagIds = new Set(detourPathStates.flatMap((pathState) => pathState.flagIds));
+    const detourFlagIds = new Set(detourPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
     const recoveryFlagIds = new Set(
-      collectOpportunityChoiceStates(recoveryOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(recoveryOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const accordFlagIds = new Set(
-      collectOpportunityChoiceStates(accordOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(accordOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const covenantFlagIds = new Set(
-      collectOpportunityChoiceStates(covenantOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(covenantOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
 
     validateReserveStyleOpportunityVariants({
@@ -94,10 +94,10 @@
       minVariants: MIN_DETOUR_OPPORTUNITY_VARIANTS,
       pathKindLabel: "detour",
       pathStates: detourPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
-        const hasRecoveryFlag = requiredFlagIds.some((flagId) => recoveryFlagIds.has(flagId));
-        const hasAccordFlag = requiredFlagIds.some((flagId) => accordFlagIds.has(flagId));
-        const hasCovenantFlag = requiredFlagIds.some((flagId) => covenantFlagIds.has(flagId));
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
+        const hasRecoveryFlag = requiredFlagIds.some((flagId: string) => recoveryFlagIds.has(flagId));
+        const hasAccordFlag = requiredFlagIds.some((flagId: string) => accordFlagIds.has(flagId));
+        const hasCovenantFlag = requiredFlagIds.some((flagId: string) => covenantFlagIds.has(flagId));
 
         if (hasRecoveryFlag) {
           influenceCounts.recoveryInfluencedVariantCount += 1;
@@ -115,7 +115,7 @@
           influenceCounts.fullDetourVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.recoveryInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one recovery-influenced variant.`);
         }
@@ -135,7 +135,7 @@
     });
   }
 
-  function validateEscalationOpportunityFamily(options) {
+  function validateEscalationOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       actKey,
       covenantOpportunityDefinition,
@@ -184,15 +184,15 @@
       legacyOpportunityDefinition,
       reckoningOpportunityDefinition
     );
-    const escalationFlagIds = new Set(escalationPathStates.flatMap((pathState) => pathState.flagIds));
+    const escalationFlagIds = new Set(escalationPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
     const legacyFlagIds = new Set(
-      collectOpportunityChoiceStates(legacyOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(legacyOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const reckoningFlagIds = new Set(
-      collectOpportunityChoiceStates(reckoningOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(reckoningOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const covenantFlagIds = new Set(
-      collectOpportunityChoiceStates(covenantOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(covenantOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
 
     validateReserveStyleOpportunityVariants({
@@ -213,10 +213,10 @@
       minVariants: MIN_ESCALATION_OPPORTUNITY_VARIANTS,
       pathKindLabel: "escalation",
       pathStates: escalationPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
-        const hasLegacyFlag = requiredFlagIds.some((flagId) => legacyFlagIds.has(flagId));
-        const hasReckoningFlag = requiredFlagIds.some((flagId) => reckoningFlagIds.has(flagId));
-        const hasCovenantFlag = requiredFlagIds.some((flagId) => covenantFlagIds.has(flagId));
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
+        const hasLegacyFlag = requiredFlagIds.some((flagId: string) => legacyFlagIds.has(flagId));
+        const hasReckoningFlag = requiredFlagIds.some((flagId: string) => reckoningFlagIds.has(flagId));
+        const hasCovenantFlag = requiredFlagIds.some((flagId: string) => covenantFlagIds.has(flagId));
 
         if (hasLegacyFlag) {
           influenceCounts.legacyInfluencedVariantCount += 1;
@@ -234,7 +234,7 @@
           influenceCounts.fullEscalationVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.legacyInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one legacy-influenced variant.`);
         }

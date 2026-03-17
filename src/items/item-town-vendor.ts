@@ -27,11 +27,11 @@
     fillDefinitionSelection,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_VENDOR_OFFERS;
 
-  function buildVendorEntryId(run, index) {
+  function buildVendorEntryId(run: RunState, index: number) {
     return `vendor_${run.actNumber}_${toNumber(run.town?.vendor?.refreshCount, 0)}_${index}`;
   }
 
-  function getVendorTierAllowance(run, profile = null) {
+  function getVendorTierAllowance(run: RunState, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
     const chroniclePressure = features.chronicleExchange;
     return (
@@ -53,15 +53,15 @@
     );
   }
 
-  function pickVendorRuneOffers(run, runeOptions, desiredCount, seed, content, profile = null) {
+  function pickVendorRuneOffers(run: RunState, runeOptions: RuntimeRuneDefinition[], desiredCount: number, seed: number, content: GameContent, profile: ProfileState | null = null) {
     if (runeOptions.length === 0 || desiredCount <= 0) {
       return [];
     }
 
     const features = getAccountEconomyFeatures(profile);
     const loadout = buildHydratedLoadout(run, content);
-    const targetRuneIds = [];
-    ["weapon", "armor"].forEach((slot) => {
+    const targetRuneIds: string[] = [];
+    (["weapon", "armor"] as const).forEach((slot) => {
       const equipment = loadout[slot];
       const runeword = getTargetRunewordForEquipment(equipment, run, content, profile);
       if (!equipment || !runeword || equipment.insertedRunes.length >= runeword.requiredRunes.length) {
@@ -70,26 +70,26 @@
       const codexTargets = features.runewordCodex
         ? runeword.requiredRunes.slice(equipment.insertedRunes.length, equipment.insertedRunes.length + 2)
         : [runeword.requiredRunes[equipment.insertedRunes.length]];
-      codexTargets.forEach((runeId) => uniquePush(targetRuneIds, runeId));
+      codexTargets.forEach((runeId: string) => uniquePush(targetRuneIds, runeId));
     });
     if (features.treasuryExchange) {
       const stashEquipment = (Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [])
-        .filter((entry) => entry?.kind === "equipment")
-        .map((entry) => entry.equipment)
+        .filter((entry: InventoryEntry) => entry?.kind === "equipment")
+        .map((entry: InventoryEntry) => (entry as InventoryEquipmentEntry).equipment)
         .filter(Boolean);
-      stashEquipment.forEach((equipment) => {
+      stashEquipment.forEach((equipment: RunEquipmentState) => {
         const runeword = getTargetRunewordForEquipment(equipment, run, content, profile);
         if (!equipment || !runeword || equipment.insertedRunes.length >= runeword.requiredRunes.length) {
           return;
         }
         runeword.requiredRunes
           .slice(equipment.insertedRunes.length, equipment.insertedRunes.length + 2)
-          .forEach((runeId) => uniquePush(targetRuneIds, runeId));
+          .forEach((runeId: string) => uniquePush(targetRuneIds, runeId));
       });
     }
     if (features.runewordCodex || features.treasuryExchange) {
       const planning = getPlanningSummary(profile, content);
-      getPlannedRunewordTargets(profile, content).forEach((runeword) => {
+      getPlannedRunewordTargets(profile, content).forEach((runeword: RuntimeRunewordDefinition) => {
         const archiveState = getPlannedRunewordArchiveState(profile, runeword.slot, content);
         const planningCharter = runeword.slot === "weapon" ? planning.weaponCharter : planning.armorCharter;
         const planningTargetCount =
@@ -104,12 +104,12 @@
           Number(run.actNumber >= 5 && features.ascendantExchange) +
           Number(archiveState.unfulfilled && features.imperialExchange) +
           Number(run.actNumber >= 5 && features.mythicExchange);
-        runeword.requiredRunes.slice(0, planningTargetCount).forEach((runeId) => uniquePush(targetRuneIds, runeId));
+        runeword.requiredRunes.slice(0, planningTargetCount).forEach((runeId: string) => uniquePush(targetRuneIds, runeId));
       });
     }
 
     const targetRunes = targetRuneIds
-      .map((runeId) => runeOptions.find((rune) => rune.id === runeId) || null)
+      .map((runeId: string) => runeOptions.find((rune: RuntimeRuneDefinition) => rune.id === runeId) || null)
       .filter(Boolean);
     const premiumRune = runeOptions[Math.max(0, runeOptions.length - 1)] || null;
     const supportRune = runeOptions[Math.max(0, runeOptions.length - 2)] || null;
@@ -133,7 +133,7 @@
     );
   }
 
-  function generateVendorStock(run, content, profile = null) {
+  function generateVendorStock(run: RunState, content: GameContent, profile: ProfileState | null = null) {
     if (profile) {
       hydrateProfileStash(profile, content);
     }
@@ -143,16 +143,16 @@
     const itemSeed = run.actNumber * 13 + toNumber(run.town?.vendor?.refreshCount, 0) * 7 + run.level * 3 + run.summary.zonesCleared;
     const runeSeed = run.actNumber * 11 + toNumber(run.town?.vendor?.refreshCount, 0) * 5 + run.summary.encountersCleared;
     const weaponOptions = (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
-      .filter((item) => item.slot === "weapon" && item.progressionTier <= maxTier)
-      .sort((left, right) => left.progressionTier - right.progressionTier);
+      .filter((item: RuntimeItemDefinition) => item.slot === "weapon" && item.progressionTier <= maxTier)
+      .sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => left.progressionTier - right.progressionTier);
     const armorOptions = (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
-      .filter((item) => item.slot === "armor" && item.progressionTier <= maxTier)
-      .sort((left, right) => left.progressionTier - right.progressionTier);
+      .filter((item: RuntimeItemDefinition) => item.slot === "armor" && item.progressionTier <= maxTier)
+      .sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => left.progressionTier - right.progressionTier);
     const runeOptions = (Object.values(content.runeCatalog || {}) as RuntimeRuneDefinition[])
-      .filter((rune) => rune.progressionTier <= maxTier + 1 + Number(features.runewordCodex))
-      .sort((left, right) => left.progressionTier - right.progressionTier);
+      .filter((rune: RuntimeRuneDefinition) => rune.progressionTier <= maxTier + 1 + Number(features.runewordCodex))
+      .sort((left: RuntimeRuneDefinition, right: RuntimeRuneDefinition) => left.progressionTier - right.progressionTier);
 
-    const stock = [];
+    const stock: InventoryEntry[] = [];
     const loadout = buildHydratedLoadout(run, content);
     const focusOfferBonus = Number(features.economyFocus && (features.advancedVendorStock || features.salvageTithes));
     const artisanOfferBonus = Number(features.artisanStock && run.actNumber >= 5);
@@ -252,7 +252,7 @@
       runeOfferCount
     );
 
-    [...selectedWeapons, ...selectedArmor].filter(Boolean).forEach((item, index) => {
+    [...selectedWeapons, ...selectedArmor].filter(Boolean).forEach((item: RuntimeItemDefinition, index: number) => {
       stock.push({
         entryId: buildVendorEntryId(run, index),
         kind: "equipment",
@@ -267,7 +267,7 @@
       });
     });
 
-    selectedRunes.filter(Boolean).forEach((rune, index) => {
+    selectedRunes.filter(Boolean).forEach((rune: RuntimeRuneDefinition, index: number) => {
       stock.push({
         entryId: buildVendorEntryId(run, index + selectedWeapons.length + selectedArmor.length),
         kind: "rune",
@@ -278,7 +278,7 @@
     return stock;
   }
 
-  function normalizeVendorStock(run, content, profile = null) {
+  function normalizeVendorStock(run: RunState, content: GameContent, profile: ProfileState | null = null) {
     run.town = {
       ...createDefaultTownState(),
       ...(run.town || {}),
@@ -290,7 +290,7 @@
 
     const stock = Array.isArray(run.town.vendor.stock) ? run.town.vendor.stock : [];
     const normalized = stock
-      .map((entry, index) => normalizeInventoryEntry(entry, run, content, buildVendorEntryId(run, index)))
+      .map((entry: unknown, index: number) => normalizeInventoryEntry(entry, run, content, buildVendorEntryId(run, index)))
       .filter(Boolean);
 
     run.town.vendor.stock = normalized.length > 0 ? normalized : generateVendorStock(run, content, profile);

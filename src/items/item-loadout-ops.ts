@@ -26,7 +26,7 @@
     syncRunewordTracking,
   } = loadoutApi;
 
-  function equipInventoryEntry(run, entryId, content) {
+  function equipInventoryEntry(run: RunState, entryId: string, content: GameContent) {
     const entry = findCarriedEntry(run, entryId);
     if (!entry || entry.kind !== "equipment") {
       return { ok: false, message: "That equipment entry is not available." };
@@ -57,7 +57,7 @@
     return { ok: true, message: `${getEntryLabel(entry, content)} equipped.` };
   }
 
-  function unequipSlot(run, slot, content) {
+  function unequipSlot(run: RunState, slot: "weapon" | "armor", content: GameContent) {
     const equipment = run.loadout?.[slot] || null;
     if (!equipment) {
       return { ok: false, message: "No equipment is equipped in that slot." };
@@ -73,7 +73,7 @@
     return { ok: true, message: "Equipment moved to inventory." };
   }
 
-  function socketInventoryRune(run, entryId, slot, content) {
+  function socketInventoryRune(run: RunState, entryId: string, slot: "weapon" | "armor", content: GameContent) {
     const entry = findCarriedEntry(run, entryId);
     const equipment = run.loadout?.[slot] || null;
     const rune = getRuneDefinition(content, (entry as InventoryRuneEntry)?.runeId || "");
@@ -91,7 +91,7 @@
     return { ok: true, message: `${rune.name} socketed.` };
   }
 
-  function stashCarriedEntry(run, profile, entryId) {
+  function stashCarriedEntry(run: RunState, profile: ProfileState, entryId: string) {
     const entry = removeCarriedEntry(run, entryId);
     if (!entry) {
       return { ok: false, message: "That inventory entry is no longer available." };
@@ -100,7 +100,7 @@
     return { ok: true, message: "Moved to stash." };
   }
 
-  function withdrawStashEntry(run, profile, entryId) {
+  function withdrawStashEntry(run: RunState, profile: ProfileState, entryId: string) {
     const entry = removeStashEntry(profile, entryId);
     if (!entry) {
       return { ok: false, message: "That stash entry is no longer available." };
@@ -110,16 +110,16 @@
     return { ok: true, message: "Moved to inventory." };
   }
 
-  function describeRunes(equipment, content) {
+  function describeRunes(equipment: RunEquipmentState | null, content: GameContent) {
     if (!equipment || equipment.insertedRunes.length === 0) {
       return "No runes socketed.";
     }
     return equipment.insertedRunes
-      .map((runeId) => getRuneDefinition(content, runeId)?.name || runeId)
+      .map((runeId: string) => getRuneDefinition(content, runeId)?.name || runeId)
       .join(" + ");
   }
 
-  function describeEquipmentState(label, equipment, content) {
+  function describeEquipmentState(label: string, equipment: RunEquipmentState | null, content: GameContent) {
     if (!equipment) {
       return `${label}: None`;
     }
@@ -131,15 +131,15 @@
     return `${label}: ${item?.name || equipment.itemId} (${equipment.insertedRunes.length}/${equipment.socketsUnlocked}/${item?.maxSockets || 0} sockets) ${runeSummary}${activeRuneword ? ` [${activeRuneword.name}]` : ""}`;
   }
 
-  function getActiveRunewords(run, content) {
+  function getActiveRunewords(run: RunState, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
     return [loadout.weapon, loadout.armor]
       .filter(Boolean)
-      .map((equipment) => getRunewordDefinition(content, resolveRunewordId(equipment, content))?.name || "")
+      .map((equipment: RunEquipmentState) => getRunewordDefinition(content, resolveRunewordId(equipment, content))?.name || "")
       .filter(Boolean);
   }
 
-  function getLoadoutSummary(run, content) {
+  function getLoadoutSummary(run: RunState, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
     const lines = [
       describeEquipmentState("Weapon", loadout.weapon, content),
@@ -152,7 +152,7 @@
     return lines;
   }
 
-  function applyChoice(run, choice, content) {
+  function applyChoice(run: RunState, choice: RewardChoice | null, content: GameContent) {
     const effects = Array.isArray(choice?.effects) ? choice.effects : [];
 
     hydrateRunLoadout(run, content);
@@ -213,25 +213,25 @@
     return { ok: true };
   }
 
-  function addBonuses(total, bonuses) {
-    Object.entries(bonuses || {}).forEach(([key, value]) => {
+  function addBonuses(total: Record<string, number>, bonuses: ItemBonusSet | null) {
+    Object.entries(bonuses || {}).forEach(([key, value]: [string, number]) => {
       total[key] = (total[key] || 0) + toNumber(value, 0);
     });
     return total;
   }
 
-  function buildCombatBonuses(run, content) {
+  function buildCombatBonuses(run: RunState, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
     const total = {};
 
     [loadout.weapon, loadout.armor]
       .filter(Boolean)
-      .forEach((equipment) => {
+      .forEach((equipment: RunEquipmentState) => {
         const item = getItemDefinition(content, equipment.itemId);
         const activeRuneword = getRunewordDefinition(content, resolveRunewordId(equipment, content));
         addBonuses(total, item?.bonuses || {});
         addBonuses(total, equipment.rarityBonuses || {});
-        equipment.insertedRunes.forEach((runeId) => addBonuses(total, getRuneDefinition(content, runeId)?.bonuses || {}));
+        equipment.insertedRunes.forEach((runeId: string) => addBonuses(total, getRuneDefinition(content, runeId)?.bonuses || {}));
         addBonuses(total, activeRuneword?.bonuses || {});
       });
 

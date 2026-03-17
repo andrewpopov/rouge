@@ -135,16 +135,16 @@
     ],
   };
 
-  function getDeckProfileId(content, classId) {
+  function getDeckProfileId(content: GameContent, classId: string) {
     return content.classDeckProfiles?.[classId] || "warrior";
   }
 
-  function getChoiceSeed(run, zone, actNumber, encounterNumber) {
+  function getChoiceSeed(run: RunState, zone: ZoneState, actNumber: number, encounterNumber: number) {
     return actNumber * 41 + encounterNumber * 17 + run.deck.length * 7 + zone.title.length;
   }
 
-  function pickUniqueCardId(pool, seed, usedCardIds, content) {
-    const candidates = (Array.isArray(pool) ? pool : []).filter((cardId) => {
+  function pickUniqueCardId(pool: string[], seed: number, usedCardIds: Set<string>, content: GameContent) {
+    const candidates = (Array.isArray(pool) ? pool : []).filter((cardId: string) => {
       return Boolean(content.cardCatalog[cardId]) && !usedCardIds.has(cardId);
     });
     if (candidates.length === 0) {
@@ -153,9 +153,9 @@
     return candidates[seed % candidates.length];
   }
 
-  function getUpgradableCardIds(run, content) {
+  function getUpgradableCardIds(run: RunState, content: GameContent) {
     const seen = new Set();
-    return run.deck.filter((cardId) => {
+    return run.deck.filter((cardId: string) => {
       const upgradedCardId = `${cardId}_plus`;
       if (seen.has(cardId) || !content.cardCatalog[upgradedCardId]) {
         return false;
@@ -165,7 +165,7 @@
     });
   }
 
-  function buildCardChoice(cardId, content, subtitle) {
+  function buildCardChoice(cardId: string, content: GameContent, subtitle: string) {
     const card = content.cardCatalog[cardId];
     return {
       id: `reward_card_${cardId}`,
@@ -181,7 +181,7 @@
     };
   }
 
-  function buildUpgradeChoice(fromCardId, content) {
+  function buildUpgradeChoice(fromCardId: string, content: GameContent) {
     const upgradedCardId = `${fromCardId}_plus`;
     const baseCard = content.cardCatalog[fromCardId];
     const upgradedCard = content.cardCatalog[upgradedCardId];
@@ -203,10 +203,10 @@
     };
   }
 
-  function pickBoonChoice(zoneRole, seed, profile = null, actNumber = 1) {
-    const pool = BOON_POOLS[zoneRole] || BOON_POOLS.opening;
+  function pickBoonChoice(zoneRole: string, seed: number, profile: ProfileState | null = null, actNumber: number = 1) {
+    const pool = (BOON_POOLS as Record<string, typeof BOON_POOLS.opening>)[zoneRole] || BOON_POOLS.opening;
     const definition = pool[seed % pool.length];
-    const scaledEffects = definition.effects.map((effect) => {
+    const scaledEffects = definition.effects.map((effect: RewardChoiceEffect) => {
       if (effect.kind === "gold_bonus") {
         return {
           ...effect,
@@ -219,13 +219,13 @@
       ...definition,
       effects: scaledEffects,
     });
-    if (getRewardAccountFeatures(profile).economyLedger && scaledEffects.some((effect) => effect.kind === "gold_bonus")) {
+    if (getRewardAccountFeatures(profile).economyLedger && scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "gold_bonus")) {
       choice.previewLines.push("Economy Ledger dividend is active on this payout.");
     }
     return choice;
   }
 
-  function ensureThreeChoices(choices, run, zone, content, seed, usedCardIds, profile = null, actNumber = 1) {
+  function ensureThreeChoices(choices: RewardChoice[], run: RunState, zone: ZoneState, content: GameContent, seed: number, usedCardIds: Set<string>, profile: ProfileState | null = null, actNumber: number = 1) {
     const profileId = getDeckProfileId(content, run.classId);
     const fallbackPools = [
       content.rewardPools?.profileCards?.[profileId] || [],
@@ -250,7 +250,7 @@
     return choices.slice(0, runtimeWindow.ROUGE_LIMITS.REWARD_CHOICES);
   }
 
-  function getClassPoolForZone(content, classId, zoneRole, actNumber) {
+  function getClassPoolForZone(content: GameContent, classId: string, zoneRole: string, actNumber: number) {
     const classPools = content.classRewardPools?.[classId];
     if (!classPools) {
       return [];
@@ -264,11 +264,11 @@
     return [...classPools.early];
   }
 
-  function buildRewardChoices({ content, run, zone, actNumber, encounterNumber, profile = null }) {
+  function buildRewardChoices({ content, run, zone, actNumber, encounterNumber, profile = null }: { content: GameContent; run: RunState; zone: ZoneState; actNumber: number; encounterNumber: number; profile?: ProfileState | null }) {
     const seed = getChoiceSeed(run, zone, actNumber, encounterNumber);
     const itemSystem = runtimeWindow.ROUGE_ITEM_SYSTEM;
-    const usedCardIds = new Set();
-    const choices = [];
+    const usedCardIds = new Set<string>();
+    const choices: RewardChoice[] = [];
     const profileId = getDeckProfileId(content, run.classId);
     const classPool = getClassPoolForZone(content, run.classId, zone.zoneRole, actNumber);
     const profilePool = classPool.length > 0 ? classPool : (content.rewardPools?.profileCards?.[profileId] || []);
@@ -334,7 +334,7 @@
     return ensureThreeChoices(choices, run, zone, content, seed + 13, usedCardIds, profile, actNumber);
   }
 
-  function addCardToDeck(run, cardId, content) {
+  function addCardToDeck(run: RunState, cardId: string, content: GameContent) {
     if (!content.cardCatalog[cardId]) {
       return { ok: false, message: `Unknown reward card: ${cardId}` };
     }
@@ -342,11 +342,11 @@
     return { ok: true };
   }
 
-  function upgradeCardInDeck(run, fromCardId, toCardId, content) {
+  function upgradeCardInDeck(run: RunState, fromCardId: string, toCardId: string, content: GameContent) {
     if (!fromCardId || !toCardId || !content.cardCatalog[toCardId]) {
       return { ok: false, message: "Reward upgrade is invalid." };
     }
-    const deckIndex = run.deck.findIndex((cardId) => cardId === fromCardId);
+    const deckIndex = run.deck.findIndex((cardId: string) => cardId === fromCardId);
     if (deckIndex < 0) {
       return { ok: false, message: `No ${fromCardId} copy remains in the deck.` };
     }
@@ -354,10 +354,10 @@
     return { ok: true };
   }
 
-  function applyChoice(run, choice, content) {
+  function applyChoice(run: RunState, choice: RewardChoice, content: GameContent) {
     const effects = Array.isArray(choice?.effects) ? choice.effects : [];
     const itemSystem = runtimeWindow.ROUGE_ITEM_SYSTEM;
-    const equipmentEffects = effects.filter((effect) => {
+    const equipmentEffects = effects.filter((effect: RewardChoiceEffect) => {
       return effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket";
     });
 

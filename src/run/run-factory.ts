@@ -42,18 +42,18 @@
   const CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
   const CONSEQUENCE_REWARD_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
-  function getCombatBonuses(run, content): ItemBonusSet {
+  function getCombatBonuses(run: RunState, content: GameContent): ItemBonusSet {
     const total: ItemBonusSet = {};
     addBonusSet(total, buildProgressionBonuses(run, content));
     addBonusSet(total, runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatBonuses(run, content) || {});
     return total;
   }
 
-  function buildCombatBonuses(run, content): ItemBonusSet {
+  function buildCombatBonuses(run: RunState, content: GameContent): ItemBonusSet {
     return getCombatBonuses(run, content);
   }
 
-  function hydrateRun(run, content) {
+  function hydrateRun(run: RunState, content: GameContent) {
     run.world = {
       ...createDefaultWorldState(),
       ...(run.world || {}),
@@ -131,12 +131,12 @@
     return run;
   }
 
-  function createRun({ content, seedBundle, classDefinition, heroDefinition, mercenaryId, starterDeck }) {
+  function createRun({ content, seedBundle, classDefinition, heroDefinition, mercenaryId, starterDeck }: { content: GameContent; seedBundle: SeedBundle; classDefinition: ClassDefinition; heroDefinition: HeroDefinition; mercenaryId: string; starterDeck: string[] }) {
     const mercenaryDefinition = content.mercenaryCatalog[mercenaryId];
     const actSeeds = Array.isArray(seedBundle?.zones?.acts) ? seedBundle.zones.acts : [];
     const bossEntries = Array.isArray(seedBundle?.bosses?.entries) ? seedBundle.bosses.entries : [];
-    const acts = actSeeds.map((actSeed) =>
-      createActState(actSeed, bossEntries.find((entry) => entry.id === actSeed.boss.id) || null, content)
+    const acts = actSeeds.map((actSeed: ActSeed) =>
+      createActState(actSeed, bossEntries.find((entry: BossEntry) => entry.id === actSeed.boss.id) || null, content)
     );
 
     const run = {
@@ -167,14 +167,14 @@
       },
       inventory: createDefaultInventory(),
       loadout: {
-        weapon: null,
-        armor: null,
+        weapon: null as RunEquipmentState | null,
+        armor: null as RunEquipmentState | null,
       },
       town: createDefaultTownState(),
       progression: createDefaultProgression(),
       activeZoneId: "",
       activeEncounterId: "",
-      pendingReward: null,
+      pendingReward: null as RunReward | null,
       world: createDefaultWorldState(),
       summary: createDefaultSummary(),
     };
@@ -311,7 +311,7 @@
     return reward;
   }
 
-  function beginZone(run, zoneId, content = null) {
+  function beginZone(run: RunState, zoneId: string, content: GameContent | null = null) {
     const zone = getZoneById(run, zoneId);
     if (!zone) {
       return { ok: false, message: "Unknown zone." };
@@ -378,7 +378,7 @@
     };
   }
 
-  function snapshotPartyFromCombat(run, combatState, content) {
+  function snapshotPartyFromCombat(run: RunState, combatState: CombatState, content: GameContent) {
     const bonuses = getCombatBonuses(run, content);
     run.hero.currentLife = Math.max(0, combatState.hero.life);
     run.hero.maxLife = Math.max(1, combatState.hero.maxLife - toBonusValue(bonuses.heroMaxLife));
@@ -390,7 +390,7 @@
     run.belt.current = combatState.potions;
   }
 
-  function createCombatOverrides(run, content) {
+  function createCombatOverrides(run: RunState, content: GameContent) {
     const bonuses = getCombatBonuses(run, content);
     const heroMaxLife = run.hero.maxLife + toBonusValue(bonuses.heroMaxLife);
     const heroMaxEnergy = run.hero.maxEnergy + toBonusValue(bonuses.heroMaxEnergy);

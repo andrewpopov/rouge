@@ -8,9 +8,9 @@
     buildEliteIntentSet,
   } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
 
-  function uniqueById(entries) {
+  function uniqueById(entries: EnemyPoolEntryRef[]) {
     const seen = new Set();
-    return entries.filter((entry) => {
+    return entries.filter((entry: EnemyPoolEntryRef) => {
       if (!entry?.id || seen.has(entry.id)) {
         return false;
       }
@@ -19,10 +19,10 @@
     });
   }
 
-  function normalizeActPool(seedBundle, actNumber) {
+  function normalizeActPool(seedBundle: SeedBundle, actNumber: number) {
     const poolEntry =
       (Array.isArray(seedBundle?.enemyPools?.enemyPools)
-        ? seedBundle.enemyPools.enemyPools.find((entry) => entry.act === actNumber)
+        ? seedBundle.enemyPools.enemyPools.find((entry: EnemyPoolEntry) => entry.act === actNumber)
         : null) || null;
 
     const merged = [];
@@ -38,42 +38,42 @@
     return uniqueById(merged);
   }
 
-  function classifyRole(entry) {
+  function classifyRole(entry: EnemyPoolEntryRef) {
     const haystack = `${entry.id} ${entry.name}`.toLowerCase();
-    if (ROLE_KEYWORDS.support.some((keyword) => haystack.includes(keyword))) {
+    if (ROLE_KEYWORDS.support.some((keyword: string) => haystack.includes(keyword))) {
       return "support";
     }
-    if (ROLE_KEYWORDS.ranged.some((keyword) => haystack.includes(keyword))) {
+    if (ROLE_KEYWORDS.ranged.some((keyword: string) => haystack.includes(keyword))) {
       return "ranged";
     }
-    if (ROLE_KEYWORDS.brute.some((keyword) => haystack.includes(keyword))) {
+    if (ROLE_KEYWORDS.brute.some((keyword: string) => haystack.includes(keyword))) {
       return "brute";
     }
     return "raider";
   }
 
-  function groupByRole(entries) {
-    const grouped = {
+  function groupByRole(entries: EnemyPoolEntryRef[]) {
+    const grouped: EncounterRegistryGroupedEntries = {
       raider: [],
       ranged: [],
       support: [],
       brute: [],
     };
 
-    entries.forEach((entry) => {
-      grouped[classifyRole(entry)].push(entry);
+    entries.forEach((entry: EnemyPoolEntryRef) => {
+      (grouped as unknown as Record<string, EnemyPoolEntryRef[]>)[classifyRole(entry)].push(entry);
     });
 
     const fallback = entries[0] || { id: "fallen", name: "Fallen" };
     Object.keys(grouped).forEach((role) => {
-      if (grouped[role].length === 0) {
-        grouped[role].push(fallback);
+      if ((grouped as unknown as Record<string, EnemyPoolEntryRef[]>)[role].length === 0) {
+        (grouped as unknown as Record<string, EnemyPoolEntryRef[]>)[role].push(fallback);
       }
     });
     return grouped;
   }
 
-  function buildScale(actNumber, role, { elite = false, boss = false } = {}) {
+  function buildScale(actNumber: number, role: string, { elite = false, boss = false } = {}) {
     const base = ROLE_STATS[role];
     let lifeStep = 6;
     let attackStep = 1;
@@ -98,7 +98,7 @@
     };
   }
 
-  function buildIntentSet(actNumber, role, scale, name): EnemyIntent[] {
+  function buildIntentSet(actNumber: number, role: string, scale: EncounterRegistryEnemyScale, name: string): EnemyIntent[] {
     if (role === "support") {
       if (actNumber === 2) {
         return [
@@ -237,7 +237,7 @@
     ];
   }
 
-  function buildBossIntentSet(actNumber, scale, bossName): EnemyIntent[] {
+  function buildBossIntentSet(actNumber: number, scale: EncounterRegistryEnemyScale, bossName: string): EnemyIntent[] {
     if (actNumber === 1) {
       return [
         { kind: "guard_allies", label: `${bossName} Brood Screen`, value: Math.max(4, scale.guard + 1) },
@@ -315,11 +315,11 @@
     ];
   }
 
-  function getElitePackages(actNumber) {
+  function getElitePackages(actNumber: number) {
     return ACT_ELITE_PACKAGES[actNumber] || ACT_ELITE_PACKAGES[1];
   }
 
-  function getEliteAffixProfile(profileId) {
+  function getEliteAffixProfile(profileId: string) {
     return ELITE_AFFIX_PROFILES[profileId] || ELITE_AFFIX_PROFILES.warded;
   }
 
@@ -333,6 +333,16 @@
     scaleOverride = null,
     affixes = [],
     intents = null,
+  }: {
+    actNumber: number;
+    entry: EnemyPoolEntryRef;
+    role: string;
+    variant?: string;
+    templateIdSuffix?: string;
+    labelPrefix?: string;
+    scaleOverride?: EncounterRegistryEnemyScale | null;
+    affixes?: string[];
+    intents?: EnemyIntent[] | null;
   }) {
     const isElite = variant === "elite";
     const scale = scaleOverride || buildScale(actNumber, role, { elite: isElite });
@@ -352,7 +362,7 @@
     };
   }
 
-  function buildEliteTemplate({ actNumber, entry, role, profile, templateIdSuffix }) {
+  function buildEliteTemplate({ actNumber, entry, role, profile, templateIdSuffix }: { actNumber: number; entry: EnemyPoolEntryRef; role: string; profile: EncounterRegistryEliteAffixProfile; templateIdSuffix: string }) {
     const baseScale = buildScale(actNumber, role, { elite: true });
     const eliteScale = {
       life: baseScale.life + profile.lifeBonus,
@@ -374,7 +384,7 @@
     });
   }
 
-  function buildBossTemplate({ actNumber, actSeed, bossEntry }) {
+  function buildBossTemplate({ actNumber, actSeed, bossEntry }: { actNumber: number; actSeed: ActSeed; bossEntry: BossEntry }) {
     const scale = buildScale(actNumber, "boss", { boss: true });
     const bossName = bossEntry?.name || actSeed.boss.name;
     return {

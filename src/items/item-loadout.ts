@@ -19,12 +19,12 @@
     };
   }
 
-  function hydrateRunLoadout(run, content) {
+  function hydrateRunLoadout(run: RunState, content: GameContent) {
     run.loadout = buildHydratedLoadout(run, content);
     syncRunewordTracking(run, content);
   }
 
-  function syncRunewordTracking(run, content) {
+  function syncRunewordTracking(run: RunState, content: GameContent) {
     run.progression = run.progression || {
       bossTrophies: [],
       activatedRunewords: [],
@@ -88,8 +88,8 @@
       ...(run.summary || {}),
     };
 
-    const activeIds = [];
-    ["weapon", "armor"].forEach((slot) => {
+    const activeIds: string[] = [];
+    (["weapon", "armor"] as const).forEach((slot) => {
       const equipment = run.loadout?.[slot] || null;
       if (!equipment) {
         return;
@@ -108,7 +108,7 @@
   function createDefaultInventory() {
     return {
       nextEntryId: 1,
-      carried: [],
+      carried: [] as InventoryEntry[],
     };
   }
 
@@ -116,12 +116,12 @@
     return {
       vendor: {
         refreshCount: 0,
-        stock: [],
+        stock: [] as InventoryEntry[],
       },
     };
   }
 
-  function cloneEquipmentState(equipment) {
+  function cloneEquipmentState(equipment: RunEquipmentState | null) {
     if (!equipment) {
       return null;
     }
@@ -137,7 +137,7 @@
     };
   }
 
-  function cloneInventoryEntry(entry): InventoryEntry | null {
+  function cloneInventoryEntry(entry: InventoryEntry | null): InventoryEntry | null {
     if (!entry || typeof entry !== "object") {
       return null;
     }
@@ -151,18 +151,18 @@
     return {
       entryId: entry.entryId || "",
       kind: "equipment",
-      equipment: cloneEquipmentState(entry.equipment || entry),
+      equipment: cloneEquipmentState(entry.equipment || (entry as unknown as RunEquipmentState)),
     };
   }
 
-  function allocateInventoryEntryId(run) {
+  function allocateInventoryEntryId(run: RunState) {
     run.inventory = run.inventory || createDefaultInventory();
     const nextId = Math.max(1, toNumber(run.inventory.nextEntryId, 1));
     run.inventory.nextEntryId = nextId + 1;
     return `inv_${run.id}_${nextId}`;
   }
 
-  function ensureEquipmentEntryId(run, equipment) {
+  function ensureEquipmentEntryId(run: RunState, equipment: RunEquipmentState | null) {
     if (!equipment) {
       return "";
     }
@@ -172,30 +172,31 @@
     return equipment.entryId;
   }
 
-  function normalizeInventoryEntry(entry, run, content, fallbackId = ""): InventoryEntry | null {
+  function normalizeInventoryEntry(entry: unknown, run: RunState, content: GameContent, fallbackId: string = ""): InventoryEntry | null {
     if (!entry || typeof entry !== "object") {
       return null;
     }
 
-    if (entry.kind === "rune" || entry.runeId) {
-      const rune = getRuneDefinition(content, entry.runeId);
+    const rec = entry as Record<string, unknown>;
+    if (rec.kind === "rune" || rec.runeId) {
+      const rune = getRuneDefinition(content, rec.runeId as string);
       if (!rune) {
         return null;
       }
       return {
-        entryId: entry.entryId || fallbackId || allocateInventoryEntryId(run),
+        entryId: (rec.entryId as string) || fallbackId || allocateInventoryEntryId(run),
         kind: "rune",
         runeId: rune.id,
       };
     }
 
-    const rawEquipment = entry.equipment || entry;
-    const slot = rawEquipment.slot || getItemDefinition(content, rawEquipment.itemId)?.slot || "weapon";
+    const rawEquipment = (rec.equipment || rec) as Record<string, unknown>;
+    const slot = ((rawEquipment.slot as string) || getItemDefinition(content, rawEquipment.itemId as string)?.slot || "weapon") as "weapon" | "armor";
     const equipment = normalizeEquipmentState(rawEquipment, slot, content);
     if (!equipment) {
       return null;
     }
-    equipment.entryId = entry.entryId || equipment.entryId || fallbackId || allocateInventoryEntryId(run);
+    equipment.entryId = (rec.entryId as string) || equipment.entryId || fallbackId || allocateInventoryEntryId(run);
     return {
       entryId: equipment.entryId,
       kind: "equipment",
@@ -203,31 +204,32 @@
     };
   }
 
-  function normalizeProfileStashEntry(entry, content, fallbackId = "") {
+  function normalizeProfileStashEntry(entry: unknown, content: GameContent, fallbackId: string = "") {
     if (!entry || typeof entry !== "object") {
       return null;
     }
 
-    if (entry.kind === "rune" || entry.runeId) {
-      const rune = getRuneDefinition(content, entry.runeId);
+    const rec = entry as Record<string, unknown>;
+    if (rec.kind === "rune" || rec.runeId) {
+      const rune = getRuneDefinition(content, rec.runeId as string);
       if (!rune) {
         return null;
       }
       return {
-        entryId: entry.entryId || fallbackId || "",
+        entryId: (rec.entryId as string) || fallbackId || "",
         kind: "rune",
         runeId: rune.id,
       };
     }
 
-    const rawEquipment = entry.equipment || entry;
-    const slot = rawEquipment.slot || getItemDefinition(content, rawEquipment.itemId)?.slot || "weapon";
+    const rawEquipment = (rec.equipment || rec) as Record<string, unknown>;
+    const slot = ((rawEquipment.slot as string) || getItemDefinition(content, rawEquipment.itemId as string)?.slot || "weapon") as "weapon" | "armor";
     const equipment = normalizeEquipmentState(rawEquipment, slot, content);
     if (!equipment) {
       return null;
     }
 
-    equipment.entryId = entry.entryId || equipment.entryId || fallbackId || "";
+    equipment.entryId = (rec.entryId as string) || equipment.entryId || fallbackId || "";
     return {
       entryId: equipment.entryId,
       kind: "equipment",
@@ -235,19 +237,19 @@
     };
   }
 
-  function hydrateProfileStash(profile, content) {
+  function hydrateProfileStash(profile: ProfileState, content: GameContent) {
     profile.stash = profile.stash || { entries: [] };
 
     const seenEntryIds = new Set();
     let fallbackIndex = 0;
     const normalized = (Array.isArray(profile.stash.entries) ? profile.stash.entries : [])
-      .map((entry) => {
+      .map((entry: unknown) => {
         fallbackIndex += 1;
         return normalizeProfileStashEntry(entry, content, `stash_${fallbackIndex}`);
       })
       .filter(Boolean);
 
-    profile.stash.entries = normalized.map((entry, index) => {
+    profile.stash.entries = normalized.map((entry: InventoryEntry, index: number) => {
       const baseId = entry.entryId || `stash_${index + 1}`;
       let nextId = baseId;
       let suffix = 1;
@@ -276,7 +278,7 @@
     });
   }
 
-  function getEntryLabel(entry, content) {
+  function getEntryLabel(entry: InventoryEntry | null, content: GameContent) {
     if (!entry) {
       return "Unknown";
     }
@@ -286,7 +288,7 @@
     return getItemDefinition(content, entry.equipment?.itemId || "")?.name || entry.equipment?.itemId || entry.entryId;
   }
 
-  function buildBareEquipment(equipment, content) {
+  function buildBareEquipment(equipment: RunEquipmentState, content: GameContent) {
     const normalized = normalizeEquipmentState(
       {
         entryId: equipment.entryId,
@@ -306,7 +308,7 @@
     return normalized;
   }
 
-  function getPreservedSlotProgression(currentEquipment, nextItemId, content) {
+  function getPreservedSlotProgression(currentEquipment: RunEquipmentState | null, nextItemId: string, content: GameContent) {
     if (!currentEquipment) {
       return {
         socketsUnlocked: 0,
@@ -318,10 +320,10 @@
     const preservedSockets = clamp(toNumber(currentEquipment.socketsUnlocked, 0), 0, nextItem?.maxSockets || 0);
     const preservedRunes = Array.isArray(currentEquipment.insertedRunes)
       ? currentEquipment.insertedRunes
-          .map((runeId) => getRuneDefinition(content, runeId))
-          .filter((rune) => rune && isRuneAllowedInSlot(rune, nextItem?.slot || currentEquipment.slot))
+          .map((runeId: string) => getRuneDefinition(content, runeId))
+          .filter((rune: RuntimeRuneDefinition | null) => rune && isRuneAllowedInSlot(rune, nextItem?.slot || currentEquipment.slot))
           .slice(0, preservedSockets)
-          .map((rune) => rune.id)
+          .map((rune: RuntimeRuneDefinition) => rune.id)
       : [];
 
     return {
@@ -330,7 +332,7 @@
     };
   }
 
-  function addEquipmentToInventory(run, itemId, content, rarity = "white", rarityBonuses = {}): InventoryEquipmentEntry | null {
+  function addEquipmentToInventory(run: RunState, itemId: string, content: GameContent, rarity: string = "white", rarityBonuses: ItemBonusSet = {}): InventoryEquipmentEntry | null {
     const item = getItemDefinition(content, itemId);
     if (!item) { return null; }
     const entryId = allocateInventoryEntryId(run);
@@ -352,7 +354,7 @@
     return entry;
   }
 
-  function addRuneToInventory(run, runeId, content): InventoryRuneEntry | null {
+  function addRuneToInventory(run: RunState, runeId: string, content: GameContent): InventoryRuneEntry | null {
     const rune = getRuneDefinition(content, runeId);
     if (!rune) {
       return null;
@@ -366,20 +368,20 @@
     return entry;
   }
 
-  function findCarriedEntry(run, entryId) {
-    return run.inventory?.carried?.find((entry) => entry.entryId === entryId) || null;
+  function findCarriedEntry(run: RunState, entryId: string) {
+    return run.inventory?.carried?.find((entry: InventoryEntry) => entry.entryId === entryId) || null;
   }
 
-  function removeCarriedEntry(run, entryId) {
-    const index = run.inventory?.carried?.findIndex((entry) => entry.entryId === entryId) ?? -1;
+  function removeCarriedEntry(run: RunState, entryId: string) {
+    const index = run.inventory?.carried?.findIndex((entry: InventoryEntry) => entry.entryId === entryId) ?? -1;
     if (index < 0) {
       return null;
     }
     return run.inventory.carried.splice(index, 1)[0] || null;
   }
 
-  function removeStashEntry(profile, entryId) {
-    const index = profile?.stash?.entries?.findIndex((entry) => entry.entryId === entryId) ?? -1;
+  function removeStashEntry(profile: ProfileState, entryId: string) {
+    const index = profile?.stash?.entries?.findIndex((entry: InventoryEntry) => entry.entryId === entryId) ?? -1;
     if (index < 0) {
       return null;
     }

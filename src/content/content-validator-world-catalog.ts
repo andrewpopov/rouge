@@ -22,10 +22,10 @@
   const MIN_SHRINE_CHOICES = 3;
   const MIN_OPPORTUNITY_VARIANTS = 6;
 
-  function pushError(errors, message) { errors.push(message); }
+  function pushError(errors: string[], message: string) { errors.push(message); }
 
-  function validateWorldNodeCatalog(worldNodeCatalog) {
-    const errors = [];
+  function validateWorldNodeCatalog(worldNodeCatalog: WorldNodeCatalog) {
+    const errors: string[] = [];
     const quests = worldNodeCatalog?.quests || {};
     const shrines = worldNodeCatalog?.shrines || {};
     const events = worldNodeCatalog?.events || {};
@@ -66,7 +66,7 @@
       pushError(errors, "World-node catalog is empty.");
     }
 
-    actNumbers.forEach((actKey) => {
+    actNumbers.forEach((actKey: string) => {
       const actNumber = Number(actKey);
       const questDefinition = quests[actNumber];
       const shrineDefinition = shrines[actNumber];
@@ -102,7 +102,7 @@
         { definition: covenantOpportunityDefinition, label: `worldNodes.covenantOpportunities.${actKey}` },
         { definition: detourOpportunityDefinition, label: `worldNodes.detourOpportunities.${actKey}` },
         { definition: escalationOpportunityDefinition, label: `worldNodes.escalationOpportunities.${actKey}` },
-      ].forEach(({ definition, label }) => {
+      ].forEach(({ definition, label }: { definition: { id?: string } | null | undefined; label: string }) => {
         if (!definition?.id) {
           return;
         }
@@ -194,7 +194,7 @@
           const seenRequirementSignatures = new Map();
           const knownMercenaryIds = new Set(Object.keys(runtimeWindow.ROUGE_GAME_CONTENT?.mercenaryCatalog || {}));
           let consequenceGatedVariantCount = 0;
-          const unconditionalVariantCount = opportunityDefinition.variants.filter((variantDefinition) => {
+          const unconditionalVariantCount = opportunityDefinition.variants.filter((variantDefinition: OpportunityNodeVariantDefinition) => {
             return (
               (!Array.isArray(variantDefinition.requiresPrimaryOutcomeIds) || variantDefinition.requiresPrimaryOutcomeIds.length === 0) &&
               (!Array.isArray(variantDefinition.requiresFollowUpOutcomeIds) || variantDefinition.requiresFollowUpOutcomeIds.length === 0) &&
@@ -208,7 +208,7 @@
             pushError(errors, `worldNodes.opportunities.${actKey} has multiple unconditional variants.`);
           }
 
-          opportunityDefinition.variants.forEach((variantDefinition, index) => {
+          opportunityDefinition.variants.forEach((variantDefinition: OpportunityNodeVariantDefinition, index: number) => {
             if (Array.isArray(variantDefinition?.requiresConsequenceIds) && variantDefinition.requiresConsequenceIds.length > 0) {
               consequenceGatedVariantCount += 1;
             }
@@ -307,8 +307,8 @@
           }
 
           const authoredStates = collectActPathStates(questDefinition, shrineDefinition);
-          authoredStates.forEach((pathState) => {
-            const hasMatchingVariant = opportunityDefinition.variants.some((variantDefinition) => {
+          authoredStates.forEach((pathState: ContentValidatorActPathState) => {
+            const hasMatchingVariant = opportunityDefinition.variants.some((variantDefinition: OpportunityNodeVariantDefinition) => {
               return doesVariantMatchPath(variantDefinition, pathState);
             });
             if (!hasMatchingVariant) {
@@ -319,8 +319,8 @@
             }
           });
 
-          opportunityDefinition.variants.forEach((variantDefinition, index) => {
-            const hasReachablePath = authoredStates.some((pathState) => {
+          opportunityDefinition.variants.forEach((variantDefinition: OpportunityNodeVariantDefinition, index: number) => {
+            const hasReachablePath = authoredStates.some((pathState: ContentValidatorActPathState) => {
               return doesVariantMatchPath(variantDefinition, pathState);
             });
             if (!hasReachablePath) {
@@ -331,21 +331,21 @@
             }
           });
 
-          authoredStates.forEach((pathState) => {
+          authoredStates.forEach((pathState: ContentValidatorActPathState) => {
             const matchingVariants = opportunityDefinition.variants
-              .map((variantDefinition, index) => ({
+              .map((variantDefinition: OpportunityNodeVariantDefinition, index: number) => ({
                 index,
                 specificity: getOpportunityVariantSpecificity(variantDefinition),
                 matches: doesVariantMatchPath(variantDefinition, pathState),
               }))
-              .filter((entry) => entry.matches);
-            const maxSpecificity = matchingVariants.reduce((maxValue, entry) => Math.max(maxValue, entry.specificity), 0);
-            const mostSpecificMatches = matchingVariants.filter((entry) => entry.specificity === maxSpecificity);
+              .filter((entry: { index: number; specificity: number; matches: boolean }) => entry.matches);
+            const maxSpecificity = matchingVariants.reduce((maxValue: number, entry: { index: number; specificity: number; matches: boolean }) => Math.max(maxValue, entry.specificity), 0);
+            const mostSpecificMatches = matchingVariants.filter((entry: { index: number; specificity: number; matches: boolean }) => entry.specificity === maxSpecificity);
             if (mostSpecificMatches.length > 1) {
               pushError(
                 errors,
                 `worldNodes.opportunities.${actKey} has ambiguous variants for authored path "${pathState.label}": ${mostSpecificMatches
-                  .map((entry) => `variants[${entry.index}]`)
+                  .map((entry: { index: number; specificity: number; matches: boolean }) => `variants[${entry.index}]`)
                   .join(", ")}.`
               );
             }
@@ -397,7 +397,7 @@
         shrineOpportunityDefinition,
       });
 
-      (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).forEach((choiceDefinition, index) => {
+      (Array.isArray(questDefinition?.choices) ? questDefinition.choices : []).forEach((choiceDefinition: WorldNodeChoiceDefinition, index: number) => {
         if (!choiceDefinition?.followUp) {
           return;
         }

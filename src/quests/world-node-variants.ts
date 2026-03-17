@@ -12,22 +12,23 @@
     return getWorldNodeCatalogApi().getCatalog();
   }
 
-  function getCatalogEntry(key, actNumber) {
-    const entries = getCatalog()[key];
+  function getCatalogEntry<K extends keyof WorldNodeCatalog>(key: K, actNumber: number): WorldNodeCatalog[K][number] {
+    const catalog = getCatalog();
+    const entries = catalog[key];
     if (entries[actNumber]) {
       return entries[actNumber];
     }
-    const keys = Object.keys(entries).map(Number).sort((a, b) => a - b);
+    const keys = Object.keys(entries).map(Number).sort((a: number, b: number) => a - b);
     return entries[keys[0]];
   }
 
-  function findChoiceByOutcomeId(definition, outcomeId) {
-    return definition.choices.find((choiceDefinition) => {
-      return choiceDefinition.effects.some((effect) => effect.kind === "record_quest_outcome" && effect.outcomeId === outcomeId);
+  function findChoiceByOutcomeId(definition: WorldNodeRewardDefinition, outcomeId: string) {
+    return definition.choices.find((choiceDefinition: WorldNodeChoiceDefinition) => {
+      return choiceDefinition.effects.some((effect: RewardChoiceEffect) => effect.kind === "record_quest_outcome" && effect.outcomeId === outcomeId);
     });
   }
 
-  function resolveEventFollowUp(run, actNumber) {
+  function resolveEventFollowUp(run: RunState, actNumber: number) {
     const eventDefinition = getCatalogEntry("events", actNumber);
     const questDefinition = getCatalogEntry("quests", actNumber);
     const questRecord = run?.world?.questOutcomes?.[eventDefinition.requiresQuestId] || null;
@@ -48,22 +49,22 @@
     };
   }
 
-  function matchesRequiredValue(requiredIds, value) {
+  function matchesRequiredValue(requiredIds: string[] | undefined, value: string) {
     return !Array.isArray(requiredIds) || requiredIds.length === 0 || requiredIds.includes(value);
   }
 
-  function includesRequiredValues(requiredIds, availableIds) {
+  function includesRequiredValues(requiredIds: string[] | undefined, availableIds: string[]) {
     if (!Array.isArray(requiredIds) || requiredIds.length === 0) {
       return true;
     }
     return requiredIds.every((requiredId) => availableIds.includes(requiredId));
   }
 
-  function countRequiredValues(requiredIds) {
-    return Array.isArray(requiredIds) ? new Set(requiredIds.filter((requiredId) => typeof requiredId === "string" && requiredId)).size : 0;
+  function countRequiredValues(requiredIds: string[] | undefined) {
+    return Array.isArray(requiredIds) ? new Set(requiredIds.filter((requiredId: string) => typeof requiredId === "string" && requiredId)).size : 0;
   }
 
-  function getOpportunityVariantSpecificity(variantDefinition) {
+  function getOpportunityVariantSpecificity(variantDefinition: OpportunityNodeVariantDefinition) {
     return (
       countRequiredValues(variantDefinition?.requiresPrimaryOutcomeIds) +
       countRequiredValues(variantDefinition?.requiresFollowUpOutcomeIds) +
@@ -73,7 +74,7 @@
     );
   }
 
-  function getShrineOpportunityVariantSpecificity(variantDefinition) {
+  function getShrineOpportunityVariantSpecificity(variantDefinition: ShrineOpportunityVariantDefinition) {
     return (
       countRequiredValues(variantDefinition?.requiresShrineOutcomeIds) +
       countRequiredValues(variantDefinition?.requiresFlagIds) +
@@ -81,11 +82,11 @@
     );
   }
 
-  function getReserveOpportunityVariantSpecificity(variantDefinition) {
+  function getReserveOpportunityVariantSpecificity(variantDefinition: ReserveOpportunityVariantDefinition) {
     return countRequiredValues(variantDefinition?.requiresFlagIds);
   }
 
-  function resolveOpportunityVariant(run, actNumber) {
+  function resolveOpportunityVariant(run: RunState, actNumber: number) {
     const opportunityDefinition = getCatalogEntry("opportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[opportunityDefinition.requiresQuestId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
@@ -104,7 +105,7 @@
     }
 
     const variant =
-      opportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      opportunityDefinition.variants.reduce((bestMatch: OpportunityNodeVariantDefinition | null, variantDefinition: OpportunityNodeVariantDefinition) => {
         const matches =
           matchesRequiredValue(variantDefinition.requiresPrimaryOutcomeIds, questRecord.outcomeId) &&
           matchesRequiredValue(variantDefinition.requiresFollowUpOutcomeIds, questRecord.followUpOutcomeId) &&
@@ -138,7 +139,7 @@
     };
   }
 
-  function resolveCrossroadOpportunityVariant(run, actNumber) {
+  function resolveCrossroadOpportunityVariant(run: RunState, actNumber: number) {
     const crossroadOpportunityDefinition = getCatalogEntry("crossroadOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[crossroadOpportunityDefinition.requiresQuestId] || null;
     const shrineRecord = run?.world?.shrineOutcomes?.[crossroadOpportunityDefinition.requiresShrineId] || null;
@@ -164,7 +165,7 @@
     }
 
     const variant =
-      crossroadOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      crossroadOpportunityDefinition.variants.reduce((bestMatch: OpportunityNodeVariantDefinition | null, variantDefinition: OpportunityNodeVariantDefinition) => {
         const matches =
           matchesRequiredValue(variantDefinition.requiresPrimaryOutcomeIds, questRecord.outcomeId) &&
           matchesRequiredValue(variantDefinition.requiresFollowUpOutcomeIds, questRecord.followUpOutcomeId) &&
@@ -199,7 +200,7 @@
     };
   }
 
-  function resolveShrineOpportunityVariant(run, actNumber) {
+  function resolveShrineOpportunityVariant(run: RunState, actNumber: number) {
     const shrineOpportunityDefinition = getCatalogEntry("shrineOpportunities", actNumber);
     const shrineRecord = run?.world?.shrineOutcomes?.[shrineOpportunityDefinition.requiresShrineId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
@@ -212,7 +213,7 @@
     }
 
     const variant =
-      shrineOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      shrineOpportunityDefinition.variants.reduce((bestMatch: ShrineOpportunityVariantDefinition | null, variantDefinition: ShrineOpportunityVariantDefinition) => {
         const matches =
           matchesRequiredValue(variantDefinition.requiresShrineOutcomeIds, shrineRecord.outcomeId) &&
           includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags) &&
@@ -244,7 +245,7 @@
     };
   }
 
-  function resolveReserveOpportunityVariant(run, actNumber) {
+  function resolveReserveOpportunityVariant(run: RunState, actNumber: number) {
     const reserveOpportunityDefinition = getCatalogEntry("reserveOpportunities", actNumber);
     const opportunityRecord = run?.world?.opportunityOutcomes?.[reserveOpportunityDefinition.requiresOpportunityId] || null;
     const shrineOpportunityRecord = run?.world?.opportunityOutcomes?.[reserveOpportunityDefinition.requiresShrineOpportunityId] || null;
@@ -270,7 +271,7 @@
     }
 
     const variant =
-      reserveOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      reserveOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -299,7 +300,7 @@
     };
   }
 
-  function resolveRelayOpportunityVariant(run, actNumber) {
+  function resolveRelayOpportunityVariant(run: RunState, actNumber: number) {
     const relayOpportunityDefinition = getCatalogEntry("relayOpportunities", actNumber);
     const reserveOpportunityRecord = run?.world?.opportunityOutcomes?.[relayOpportunityDefinition.requiresReserveOpportunityId] || null;
     const worldFlags = Array.isArray(run?.world?.worldFlags) ? run.world.worldFlags : [];
@@ -311,7 +312,7 @@
     }
 
     const variant =
-      relayOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      relayOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -338,7 +339,7 @@
     };
   }
 
-  function resolveCulminationOpportunityVariant(run, actNumber) {
+  function resolveCulminationOpportunityVariant(run: RunState, actNumber: number) {
     const culminationOpportunityDefinition = getCatalogEntry("culminationOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[culminationOpportunityDefinition.requiresQuestId] || null;
     const relayOpportunityRecord = run?.world?.opportunityOutcomes?.[culminationOpportunityDefinition.requiresRelayOpportunityId] || null;
@@ -364,7 +365,7 @@
     }
 
     const variant =
-      culminationOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      culminationOpportunityDefinition.variants.reduce((bestMatch: OpportunityNodeVariantDefinition | null, variantDefinition: OpportunityNodeVariantDefinition) => {
         const matches =
           matchesRequiredValue(variantDefinition.requiresPrimaryOutcomeIds, questRecord.outcomeId) &&
           matchesRequiredValue(variantDefinition.requiresFollowUpOutcomeIds, questRecord.followUpOutcomeId) &&

@@ -2,15 +2,15 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { clamp } = runtimeWindow.ROUGE_UTILS;
 
-  function hasTownFeature(profile, featureId) {
+  function hasTownFeature(profile: ProfileState | null | undefined, featureId: string) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
   }
 
-  function getFocusedAccountTreeId(profile) {
+  function getFocusedAccountTreeId(profile: ProfileState | null | undefined) {
     return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
   }
 
-  function getRewardAccountFeatures(profile) {
+  function getRewardAccountFeatures(profile: ProfileState | null | undefined) {
     const focusedTreeId = getFocusedAccountTreeId(profile);
     const masteryUnlocked =
       hasTownFeature(profile, "boss_trophy_gallery") ||
@@ -37,7 +37,7 @@
     };
   }
 
-  function getArchiveRewardSignals(profile) {
+  function getArchiveRewardSignals(profile: ProfileState | null | undefined) {
     const accountSummary = runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile) || null;
     return {
       completedCount: clamp(accountSummary?.archive?.completedCount || 0, 0, 999),
@@ -46,7 +46,7 @@
     };
   }
 
-  function scaleGoldValue(value, profile) {
+  function scaleGoldValue(value: number, profile: ProfileState | null | undefined) {
     const features = getRewardAccountFeatures(profile);
     if (!features.economyLedger) {
       return value;
@@ -54,7 +54,7 @@
     return Math.max(0, Math.ceil(value * 1.25));
   }
 
-  function describeEffectPreview(effect) {
+  function describeEffectPreview(effect: RewardChoiceEffect) {
     if (effect.kind === "hero_max_life") {return `Hero max Life +${effect.value}.`;}
     if (effect.kind === "hero_max_energy") {return `Hero max Energy +${effect.value}.`;}
     if (effect.kind === "hero_potion_heal") {return `Potion healing +${effect.value}.`;}
@@ -68,7 +68,7 @@
     return "Run improves.";
   }
 
-  function buildBoonChoice(boonDefinition) {
+  function buildBoonChoice(boonDefinition: { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }) {
     return {
       id: `reward_boon_${boonDefinition.id}`,
       kind: "boon",
@@ -76,7 +76,7 @@
       subtitle: boonDefinition.subtitle,
       description: boonDefinition.description,
       previewLines: boonDefinition.effects.map(describeEffectPreview),
-      effects: boonDefinition.effects.map((effect) => ({ ...effect })),
+      effects: boonDefinition.effects.map((effect: RewardChoiceEffect) => ({ ...effect })),
     };
   }
 
@@ -116,8 +116,8 @@
     ],
   };
 
-  function pickProgressionChoice(zone, seed, run, actNumber, content, profile = null) {
-    const pool = PROGRESSION_BOON_POOLS[zone.kind] || PROGRESSION_BOON_POOLS[zone.zoneRole] || [];
+  function pickProgressionChoice(zone: ZoneState, seed: number, run: RunState, actNumber: number, content: GameContent, profile: ProfileState | null = null) {
+    const pool = (PROGRESSION_BOON_POOLS as Record<string, typeof PROGRESSION_BOON_POOLS.boss>)[zone.kind] || (PROGRESSION_BOON_POOLS as Record<string, typeof PROGRESSION_BOON_POOLS.boss>)[zone.zoneRole] || [];
     if (pool.length === 0) {
       return null;
     }
@@ -174,7 +174,7 @@
       features.immortalAnnals && zone.kind === "boss" && actNumber >= 5
         ? 1 + Number(archiveSignals.featureUnlockCount >= 6)
         : 0;
-    const scaledEffects = definition.effects.map((effect) => {
+    const scaledEffects = definition.effects.map((effect: RewardChoiceEffect) => {
       if (effect.kind === "class_point") {
         return {
           ...effect,
@@ -215,10 +215,10 @@
     } else if (zone.zoneRole === "branchBattle" && actNumber >= 4) {
       scaledEffects.unshift({ kind: "class_point", value: 1 });
     }
-    if (features.trainingGrounds && !scaledEffects.some((effect) => effect.kind === "class_point") && (zone.kind === "miniboss" || zone.kind === "boss")) {
+    if (features.trainingGrounds && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "class_point") && (zone.kind === "miniboss" || zone.kind === "boss")) {
       scaledEffects.unshift({ kind: "class_point", value: 1 });
     }
-    if (features.trainingGrounds && zone.kind === "boss" && !scaledEffects.some((effect) => effect.kind === "attribute_point")) {
+    if (features.trainingGrounds && zone.kind === "boss" && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "attribute_point")) {
       scaledEffects.push({ kind: "attribute_point", value: 1 + Number(actNumber >= 4) + Number(features.masteryFocus && actNumber >= 5) });
     }
     if (features.warCollege && (zone.kind === "miniboss" || zone.zoneRole === "branchMiniboss")) {
@@ -252,22 +252,22 @@
       scaledEffects.unshift({ kind: "class_point", value: 2 });
       scaledEffects.push({ kind: "attribute_point", value: 2 });
     }
-    if (features.warAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect) => effect.kind === "class_point")) {
+    if (features.warAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "class_point")) {
       scaledEffects.unshift({ kind: "class_point", value: 1 + Number(zone.kind === "boss" && actNumber >= 5) });
     }
-    if (features.warAnnals && zone.kind === "boss" && actNumber >= 4 && !scaledEffects.some((effect) => effect.kind === "attribute_point")) {
+    if (features.warAnnals && zone.kind === "boss" && actNumber >= 4 && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "attribute_point")) {
       scaledEffects.push({ kind: "attribute_point", value: 1 + Number(actNumber >= 5 && archiveSignals.completedCount >= 4) });
     }
-    if (features.legendaryAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect) => effect.kind === "class_point")) {
+    if (features.legendaryAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "class_point")) {
       scaledEffects.unshift({ kind: "class_point", value: 1 + Number(zone.kind === "boss" && archiveSignals.completedCount >= 6) });
     }
-    if (features.legendaryAnnals && zone.kind === "boss" && !scaledEffects.some((effect) => effect.kind === "attribute_point")) {
+    if (features.legendaryAnnals && zone.kind === "boss" && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "attribute_point")) {
       scaledEffects.push({ kind: "attribute_point", value: 1 + Number(archiveSignals.featureUnlockCount >= 4) });
     }
-    if (features.immortalAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect) => effect.kind === "class_point")) {
+    if (features.immortalAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "class_point")) {
       scaledEffects.unshift({ kind: "class_point", value: 1 + Number(zone.kind === "boss" && archiveSignals.completedCount >= 8) });
     }
-    if (features.immortalAnnals && zone.kind === "boss" && !scaledEffects.some((effect) => effect.kind === "attribute_point")) {
+    if (features.immortalAnnals && zone.kind === "boss" && !scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "attribute_point")) {
       scaledEffects.push({ kind: "attribute_point", value: 1 + Number(archiveSignals.featureUnlockCount >= 6) });
     }
 
@@ -319,7 +319,7 @@
     if (features.immortalAnnals && (zone.kind === "miniboss" || zone.kind === "boss") && actNumber >= 5) {
       choice.previewLines.push("Immortal Annals is translating the imperial archive into another mythic mastery dividend.");
     }
-    if (features.economyLedger && scaledEffects.some((effect) => effect.kind === "gold_bonus")) {
+    if (features.economyLedger && scaledEffects.some((effect: RewardChoiceEffect) => effect.kind === "gold_bonus")) {
       choice.previewLines.push("Economy Ledger dividend is active on this build payout.");
     }
 

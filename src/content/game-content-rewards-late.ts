@@ -2,7 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { consequenceRewardPackagesLateB } = runtimeWindow.__ROUGE_GC_REWARDS_LATE_B;
 
-  function consequenceRewardPackage(id, title, zoneRole, requiredFlagIds, grants, bonusLines = []) {
+  function consequenceRewardPackage(id: string, title: string, zoneRole: string, requiredFlagIds: string[], grants: RewardGrants, bonusLines: string[] = []) {
     return {
       id,
       title,
