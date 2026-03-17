@@ -25,6 +25,10 @@
       ${flag("oneHitKill", "1-Hit Kill", debug.oneHitKill)}
       ${flag("infiniteGold", "\u221E Gold", debug.infiniteGold)}
       ${actPicker}
+      ${debug.skipBattles && appState.phase === "encounter"
+        ? `<span class="debug-bar__sep">|</span>
+           <button class="debug-flag debug-flag--on" data-action="debug-skip-encounter">Skip \u25B6</button>`
+        : ""}
     </div>`;
   }
 
