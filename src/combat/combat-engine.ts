@@ -118,34 +118,34 @@
       return "No action";
     }
     if (intent.kind === "attack") {
-      return `${intent.label}: ${intent.value} damage`;
+      return `${intent.value} dmg`;
     }
     if (intent.kind === "attack_all") {
-      return `${intent.label}: ${intent.value} damage to both allies`;
+      return `${intent.value} dmg all`;
     }
     if (intent.kind === "attack_and_guard") {
-      return `${intent.label}: ${intent.value} damage, then gain Guard`;
+      return `${intent.value} dmg + Guard`;
     }
     if (intent.kind === "drain_attack") {
-      return `${intent.label}: ${intent.value} damage and self-heal`;
+      return `${intent.value} dmg + heal`;
     }
     if (intent.kind === "guard") {
-      return `${intent.label}: +${intent.value} Guard`;
+      return `+${intent.value} Guard`;
     }
     if (intent.kind === "guard_allies") {
-      return `${intent.label}: +${intent.value} Guard to all enemies`;
+      return `+${intent.value} Guard all`;
     }
     if (intent.kind === "heal_ally") {
-      return `${intent.label}: heal ally ${intent.value}`;
+      return `Heal ${intent.value}`;
     }
     if (intent.kind === "heal_allies") {
-      return `${intent.label}: heal all enemies ${intent.value}`;
+      return `Heal all ${intent.value}`;
     }
     if (intent.kind === "heal_and_guard") {
-      return `${intent.label}: heal an ally and gain Guard`;
+      return "Heal + Guard";
     }
     if (intent.kind === "sunder_attack") {
-      return `${intent.label}: break Guard, then hit for ${intent.value}`;
+      return `Sunder ${intent.value}`;
     }
     return intent.label || "Unknown";
   }

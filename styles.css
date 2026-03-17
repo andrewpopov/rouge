@@ -3254,6 +3254,8 @@ button.waypoint:hover {
   border-radius: 4px;
   padding: 3px 8px 3px 5px;
   white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
 }
 
 .sprite__intent-icon {
@@ -3275,6 +3277,8 @@ button.waypoint:hover {
   letter-spacing: 0.03em;
   white-space: nowrap;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @keyframes intent-bob {
