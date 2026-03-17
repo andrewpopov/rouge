@@ -1,9 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
+  const { clamp } = runtimeWindow.ROUGE_UTILS;
 
   function hasTownFeature(profile, featureId) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);

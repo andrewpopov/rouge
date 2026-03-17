@@ -98,7 +98,7 @@
     };
   }
 
-  function buildIntentSet(actNumber, role, scale, name) {
+  function buildIntentSet(actNumber, role, scale, name): EnemyIntent[] {
     if (role === "support") {
       if (actNumber === 2) {
         return [
@@ -237,7 +237,7 @@
     ];
   }
 
-  function buildBossIntentSet(actNumber, scale, bossName) {
+  function buildBossIntentSet(actNumber, scale, bossName): EnemyIntent[] {
     if (actNumber === 1) {
       return [
         { kind: "guard_allies", label: `${bossName} Brood Screen`, value: Math.max(4, scale.guard + 1) },

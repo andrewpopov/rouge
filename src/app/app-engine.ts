@@ -297,6 +297,32 @@
     return result;
   }
 
+  function buildAndStartCombat(state: AppState, encounterId: string): void {
+    const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
+    const overrides = runFactory.createCombatOverrides(state.run, state.content);
+    const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
+    const combatBonuses = runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatBonuses?.(state.run, state.content) || {};
+    const weaponItemId = state.run.loadout?.weapon?.itemId || "";
+    const weaponFamily = runtimeWindow.ROUGE_ITEM_CATALOG?.getWeaponFamily?.(weaponItemId, state.content) || "";
+    const classPreferred = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(state.run.classId) || [];
+    state.combat = state.combatEngine.createCombatState({
+      content: { ...state.content, hero: overrides.heroState },
+      encounterId,
+      mercenaryId: state.run.mercenary.id,
+      heroState: overrides.heroState,
+      mercenaryState: { ...overrides.mercenaryState, ...mercenaryRouteBonuses },
+      starterDeck: overrides.starterDeck,
+      initialPotions: overrides.initialPotions,
+      randomFn: state.randomFn,
+      weaponFamily,
+      weaponDamageBonus: combatBonuses.heroDamageBonus || 0,
+      classPreferredFamilies: classPreferred,
+    });
+    state.phase = PHASES.ENCOUNTER;
+    state.ui.exploring = true;
+    runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
+  }
+
   function selectZone(state: AppState, zoneId: string): ActionResult {
     if (state.phase !== PHASES.WORLD_MAP || !state.run) {
       return { ok: false, message: "You cannot enter a zone right now." };
@@ -318,35 +344,7 @@
       return { ok: true };
     }
 
-    const overrides = runFactory.createCombatOverrides(state.run, state.content);
-    const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
-    const itemSystem = runtimeWindow.ROUGE_ITEM_SYSTEM;
-    const combatBonuses = itemSystem?.buildCombatBonuses?.(state.run, state.content) || {};
-    const weaponItemId = state.run.loadout?.weapon?.itemId || "";
-    const weaponFamily = runtimeWindow.ROUGE_ITEM_CATALOG?.getWeaponFamily?.(weaponItemId, state.content) || "";
-    const classPreferred = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(state.run.classId) || [];
-    state.combat = state.combatEngine.createCombatState({
-      content: {
-        ...state.content,
-        hero: overrides.heroState,
-      },
-      encounterId: result.encounterId,
-      mercenaryId: state.run.mercenary.id,
-      heroState: overrides.heroState,
-      mercenaryState: {
-        ...overrides.mercenaryState,
-        ...mercenaryRouteBonuses,
-      },
-      starterDeck: overrides.starterDeck,
-      initialPotions: overrides.initialPotions,
-      randomFn: state.randomFn,
-      weaponFamily,
-      weaponDamageBonus: combatBonuses.heroDamageBonus || 0,
-      classPreferredFamilies: classPreferred,
-    });
-    state.phase = PHASES.ENCOUNTER;
-    state.ui.exploring = true;
-    runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
+    buildAndStartCombat(state, result.encounterId);
     return { ok: true };
   }
 
@@ -436,29 +434,7 @@
     if (!reward.clearsZone && reward.zoneId) {
       const beginResult = runFactory.beginZone(state.run, reward.zoneId, state.content);
       if (beginResult.ok && beginResult.type === "encounter") {
-        const overrides = runFactory.createCombatOverrides(state.run, state.content);
-        const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
-        const itemSystem2 = runtimeWindow.ROUGE_ITEM_SYSTEM;
-        const combatBonuses2 = itemSystem2?.buildCombatBonuses?.(state.run, state.content) || {};
-        const weaponItemId2 = state.run.loadout?.weapon?.itemId || "";
-        const weaponFamily2 = runtimeWindow.ROUGE_ITEM_CATALOG?.getWeaponFamily?.(weaponItemId2, state.content) || "";
-        const classPreferred2 = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(state.run.classId) || [];
-        state.combat = state.combatEngine.createCombatState({
-          content: { ...state.content, hero: overrides.heroState },
-          encounterId: beginResult.encounterId,
-          mercenaryId: state.run.mercenary.id,
-          heroState: overrides.heroState,
-          mercenaryState: { ...overrides.mercenaryState, ...mercenaryRouteBonuses },
-          starterDeck: overrides.starterDeck,
-          initialPotions: overrides.initialPotions,
-          randomFn: state.randomFn,
-          weaponFamily: weaponFamily2,
-          weaponDamageBonus: combatBonuses2.heroDamageBonus || 0,
-          classPreferredFamilies: classPreferred2,
-        });
-        state.phase = PHASES.ENCOUNTER;
-        state.ui.exploring = true;
-        runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
+        buildAndStartCombat(state, beginResult.encounterId);
         persistRunIfPossible(state);
         return { ok: true };
       }

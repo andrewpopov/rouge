@@ -460,8 +460,10 @@
     };
   }
 
-  // Merge the late resolvers into the existing ROUGE_WORLD_NODE_VARIANTS object
-  Object.assign(runtimeWindow.ROUGE_WORLD_NODE_VARIANTS, {
+  // Combine the first batch from the staging partial with the late resolvers
+  // and publish the complete WorldNodeVariantsApi.
+  runtimeWindow.ROUGE_WORLD_NODE_VARIANTS = {
+    ...runtimeWindow.__ROUGE_WNV_PARTIAL,
     resolveLegacyOpportunityVariant,
     resolveReckoningOpportunityVariant,
     resolveRecoveryOpportunityVariant,
@@ -469,5 +471,5 @@
     resolveCovenantOpportunityVariant,
     resolveDetourOpportunityVariant,
     resolveEscalationOpportunityVariant,
-  });
+  };
 })();

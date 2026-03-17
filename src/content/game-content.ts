@@ -6,7 +6,7 @@
   const { consequenceRewardPackages } = runtimeWindow.__ROUGE_GC_REWARDS;
   const { classCardCatalog, classStarterDecks, classRewardPools } = runtimeWindow.__ROUGE_CLASS_CARDS;
 
-  const cardCatalog = {
+  const cardCatalog: Record<string, CardDefinition> = {
     quick_slash: {
       id: "quick_slash",
       title: "Quick Slash",
@@ -395,7 +395,7 @@
     ],
   };
 
-  const enemyCatalog = {
+  const enemyCatalog: Record<string, EnemyTemplate> = {
     fallen_cutthroat: {
       templateId: "fallen_cutthroat",
       name: "Fallen Cutthroat",

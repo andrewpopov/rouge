@@ -1,13 +1,34 @@
 type RandomFn = () => number;
 
-type CardTarget = string;
-type EnemyIntentKind = string;
-type EnemyIntentTarget = string;
-type ZoneKind = string;
-type ZoneRole = string;
-type AppPhase = string;
-type CombatPhase = string;
-type CombatOutcome = string;
+type CardTarget = "enemy" | "none";
+type EnemyIntentKind =
+  | "attack"
+  | "attack_all"
+  | "attack_and_guard"
+  | "drain_attack"
+  | "sunder_attack"
+  | "guard"
+  | "guard_allies"
+  | "heal_ally"
+  | "heal_allies"
+  | "heal_and_guard";
+type EnemyIntentTarget = "hero" | "lowest_life";
+type ZoneKind = "battle" | "boss" | "miniboss" | "quest" | "shrine" | "event" | "opportunity";
+// ZoneRole values include fixed roles and dynamic mainline/side slugs (e.g. "mainline_1", "side_dark_wood")
+type ZoneRole = "opening" | "boss" | "branchBattle" | "branchMiniboss" | (string & {});
+type AppPhase =
+  | "boot"
+  | "front_door"
+  | "character_select"
+  | "safe_zone"
+  | "world_map"
+  | "encounter"
+  | "reward"
+  | "act_transition"
+  | "run_complete"
+  | "run_failed";
+type CombatPhase = "player" | "enemy" | "victory" | "defeat";
+type CombatOutcome = "victory" | "defeat";
 
 interface CardEffectBase {
   kind: string;
@@ -23,6 +44,13 @@ interface CardDefinition {
   target: CardTarget;
   text: string;
   effects: CardEffect[];
+  skillRef?: string;
+  tier?: number;
+}
+
+interface ClassCardDefinition extends CardDefinition {
+  skillRef: string;
+  tier: number;
 }
 
 interface HeroDefinition {

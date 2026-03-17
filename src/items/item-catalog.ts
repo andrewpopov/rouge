@@ -1,20 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { ITEM_TEMPLATES, RUNE_TEMPLATES, RUNEWORD_TEMPLATES, RUNE_REWARD_POOLS } = runtimeWindow.ROUGE_ITEM_DATA;
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
-
-  function uniquePush(list, value) {
-    if (value && !list.includes(value)) {
-      list.push(value);
-    }
-  }
-
-  function toNumber(value, fallback = 0) {
-    return Number.parseInt(String(value ?? fallback), 10) || fallback;
-  }
+  const { clamp, toNumber, uniquePush } = runtimeWindow.ROUGE_UTILS;
 
   function toItemDefinition(seedEntry, templateId, template) {
     return {

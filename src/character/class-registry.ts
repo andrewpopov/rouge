@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { clamp, toNumber } = runtimeWindow.ROUGE_UTILS;
 
   const TREE_ARCHETYPES = {
     martial: {
@@ -52,14 +53,6 @@
       },
     },
   };
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
-
-  function toNumber(value, fallback = 0) {
-    return Number.parseInt(String(value ?? fallback), 10) || fallback;
-  }
 
   function getClassList(seedBundle) {
     return Array.isArray(seedBundle?.classes?.classes) ? seedBundle.classes.classes : [];

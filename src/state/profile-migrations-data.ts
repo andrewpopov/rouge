@@ -63,20 +63,10 @@
     { id: "mythic_exchange", rewardFeatureId: "mythic_exchange", requiredFeatureIds: ["trade_hegemony", "mythic_doctrine"] },
   ];
 
-  function deepClone(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
+  const { deepClone, toNumber, uniqueStrings } = runtimeWindow.ROUGE_UTILS;
 
   function isObject(value) {
     return Boolean(value) && typeof value === "object";
-  }
-
-  function toNumber(value, fallback = 0) {
-    return Number.parseInt(String(value ?? fallback), 10) || fallback;
-  }
-
-  function uniqueStrings(values) {
-    return Array.from(new Set((Array.isArray(values) ? values : []).filter((entry) => typeof entry === "string" && entry)));
   }
 
   function sanitizePlannedRunewordId(runewordId, slot, content = null) {

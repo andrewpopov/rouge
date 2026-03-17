@@ -1,15 +1,8 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { clamp, deepClone, uniquePush } = runtimeWindow.ROUGE_UTILS;
 
   const LEVEL_TRAINING_ORDER: Array<keyof RunProgressionState["training"]> = ["vitality", "focus", "command"];
-
-  function deepClone<T>(value: T): T {
-    return JSON.parse(JSON.stringify(value)) as T;
-  }
-
-  function clamp(value: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, value));
-  }
 
   function toBonusValue(value: unknown, fallback = 0): number {
     const parsed = Number.parseInt(String(value ?? fallback), 10);
@@ -21,12 +14,6 @@
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "_")
       .replace(/^_+|_+$/g, "");
-  }
-
-  function uniquePush(list: string[], value: string): void {
-    if (value && !list.includes(value)) {
-      list.push(value);
-    }
   }
 
   function createDefaultTraining(): RunProgressionState["training"] {

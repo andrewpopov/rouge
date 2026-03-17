@@ -16,10 +16,7 @@
     meleeStrike,
     _shuffleInPlace: shuffleInPlace,
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
+  const { clamp } = runtimeWindow.ROUGE_UTILS;
 
   function parseInteger(value, fallback) {
     const parsed = Number.parseInt(value, 10);
@@ -321,7 +318,7 @@
       randomFn,
       nextCardInstanceId: 1,
       turn: 0,
-      phase: "player",
+      phase: "player" as CombatPhase,
       outcome: null,
       potions: Math.max(0, parseInteger(initialPotions, 0)),
       hero: createHero(content, heroState),
