@@ -28,7 +28,7 @@
   const MIN_LEGACY_OPPORTUNITY_VARIANTS = 3;
   const MIN_RECKONING_OPPORTUNITY_VARIANTS = 3;
 
-  function validateReserveOpportunityFamily(options) {
+  function validateReserveOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       actKey,
       crossroadOpportunityDefinition,
@@ -70,7 +70,7 @@
       shrineOpportunityDefinition,
       crossroadOpportunityDefinition
     );
-    const reserveFlagIds = new Set(reservePathStates.flatMap((pathState) => pathState.flagIds));
+    const reserveFlagIds = new Set(reservePathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
 
     validateReserveStyleOpportunityVariants({
       definition: reserveOpportunityDefinition,
@@ -84,12 +84,12 @@
       minVariants: MIN_RESERVE_OPPORTUNITY_VARIANTS,
       pathKindLabel: "reserve",
       pathStates: reservePathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
         if (requiredFlagIds.length > 0) {
           influenceCounts.crossroadInfluencedVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.crossroadInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one late-route variant.`);
         }
@@ -97,7 +97,7 @@
     });
   }
 
-  function validateRelayOpportunityFamily(options) {
+  function validateRelayOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const { actKey, errors, relayOpportunityDefinition, reserveOpportunityDefinition, questDefinition } = options;
     const label = `worldNodes.relayOpportunities.${actKey}`;
 
@@ -118,7 +118,7 @@
     );
 
     const relayPathStates = collectRelayPathStates(reserveOpportunityDefinition);
-    const relayFlagIds = new Set(relayPathStates.flatMap((pathState) => pathState.flagIds));
+    const relayFlagIds = new Set(relayPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
 
     validateReserveStyleOpportunityVariants({
       definition: relayOpportunityDefinition,
@@ -132,12 +132,12 @@
       minVariants: MIN_RELAY_OPPORTUNITY_VARIANTS,
       pathKindLabel: "relay",
       pathStates: relayPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
         if (requiredFlagIds.length > 0) {
           influenceCounts.reserveInfluencedVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.reserveInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one reserve-influenced variant.`);
         }
@@ -145,7 +145,7 @@
     });
   }
 
-  function validateCulminationOpportunityFamily(options) {
+  function validateCulminationOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       actKey,
       culminationOpportunityDefinition,
@@ -191,8 +191,8 @@
     let relayInfluencedVariantCount = 0;
     let earlyChainVariantCount = 0;
     const culminationPathStates = collectCulminationPathStates(questDefinition, shrineDefinition, relayOpportunityDefinition);
-    const culminationFlagIds = new Set(culminationPathStates.flatMap((pathState) => pathState.flagIds));
-    const unconditionalVariantCount = culminationOpportunityDefinition.variants.filter((variantDefinition) => {
+    const culminationFlagIds = new Set(culminationPathStates.flatMap((pathState: ContentValidatorActPathState) => pathState.flagIds));
+    const unconditionalVariantCount = culminationOpportunityDefinition.variants.filter((variantDefinition: OpportunityNodeVariantDefinition) => {
       return (
         (!Array.isArray(variantDefinition?.requiresPrimaryOutcomeIds) || variantDefinition.requiresPrimaryOutcomeIds.length === 0) &&
         (!Array.isArray(variantDefinition?.requiresFollowUpOutcomeIds) || variantDefinition.requiresFollowUpOutcomeIds.length === 0) &&
@@ -206,7 +206,7 @@
       pushError(errors, `${label} has multiple unconditional variants.`);
     }
 
-    culminationOpportunityDefinition.variants.forEach((variantDefinition, index) => {
+    culminationOpportunityDefinition.variants.forEach((variantDefinition: OpportunityNodeVariantDefinition, index: number) => {
       if (Array.isArray(variantDefinition?.requiresFlagIds) && variantDefinition.requiresFlagIds.length > 0) {
         relayInfluencedVariantCount += 1;
       }
@@ -307,8 +307,8 @@
       pushError(errors, `${label} must include at least one earlier-chain variant.`);
     }
 
-    culminationPathStates.forEach((pathState) => {
-      const hasMatchingVariant = culminationOpportunityDefinition.variants.some((variantDefinition) => {
+    culminationPathStates.forEach((pathState: ContentValidatorActPathState) => {
+      const hasMatchingVariant = culminationOpportunityDefinition.variants.some((variantDefinition: OpportunityNodeVariantDefinition) => {
         return doesVariantMatchPath(variantDefinition, pathState);
       });
       if (!hasMatchingVariant) {
@@ -316,8 +316,8 @@
       }
     });
 
-    culminationOpportunityDefinition.variants.forEach((variantDefinition, index) => {
-      const hasReachablePath = culminationPathStates.some((pathState) => {
+    culminationOpportunityDefinition.variants.forEach((variantDefinition: OpportunityNodeVariantDefinition, index: number) => {
+      const hasReachablePath = culminationPathStates.some((pathState: ContentValidatorActPathState) => {
         return doesVariantMatchPath(variantDefinition, pathState);
       });
       if (!hasReachablePath) {
@@ -325,28 +325,28 @@
       }
     });
 
-    culminationPathStates.forEach((pathState) => {
+    culminationPathStates.forEach((pathState: ContentValidatorActPathState) => {
       const matchingVariants = culminationOpportunityDefinition.variants
-        .map((variantDefinition, index) => ({
+        .map((variantDefinition: OpportunityNodeVariantDefinition, index: number) => ({
           index,
           specificity: getOpportunityVariantSpecificity(variantDefinition),
           matches: doesVariantMatchPath(variantDefinition, pathState),
         }))
-        .filter((entry) => entry.matches);
-      const maxSpecificity = matchingVariants.reduce((maxValue, entry) => Math.max(maxValue, entry.specificity), 0);
-      const mostSpecificMatches = matchingVariants.filter((entry) => entry.specificity === maxSpecificity);
+        .filter((entry: { index: number; specificity: number; matches: boolean }) => entry.matches);
+      const maxSpecificity = matchingVariants.reduce((maxValue: number, entry: { index: number; specificity: number; matches: boolean }) => Math.max(maxValue, entry.specificity), 0);
+      const mostSpecificMatches = matchingVariants.filter((entry: { index: number; specificity: number; matches: boolean }) => entry.specificity === maxSpecificity);
       if (mostSpecificMatches.length > 1) {
         pushError(
           errors,
           `${label} has ambiguous variants for authored culmination path "${pathState.label}": ${mostSpecificMatches
-            .map((entry) => `variants[${entry.index}]`)
+            .map((entry: { index: number; specificity: number; matches: boolean }) => `variants[${entry.index}]`)
             .join(", ")}.`
         );
       }
     });
   }
 
-  function validateLegacyOpportunityFamily(options) {
+  function validateLegacyOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const { actKey, culminationOpportunityDefinition, errors, legacyOpportunityDefinition, questDefinition } = options;
     const label = `worldNodes.legacyOpportunities.${actKey}`;
 
@@ -367,7 +367,7 @@
     );
 
     const legacyPathStates = collectLegacyPathStates(culminationOpportunityDefinition);
-    const legacyFlagIds = new Set(legacyPathStates.flatMap((pathState) => pathState.flagIds));
+    const legacyFlagIds = new Set(legacyPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
 
     validateReserveStyleOpportunityVariants({
       definition: legacyOpportunityDefinition,
@@ -381,12 +381,12 @@
       minVariants: MIN_LEGACY_OPPORTUNITY_VARIANTS,
       pathKindLabel: "legacy",
       pathStates: legacyPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
         if (requiredFlagIds.length > 0) {
           influenceCounts.culminationInfluencedVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.culminationInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one culmination-influenced variant.`);
         }
@@ -394,7 +394,7 @@
     });
   }
 
-  function validateReckoningOpportunityFamily(options) {
+  function validateReckoningOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       actKey,
       culminationOpportunityDefinition,
@@ -430,12 +430,12 @@
     );
 
     const reckoningPathStates = collectReckoningPathStates(culminationOpportunityDefinition, reserveOpportunityDefinition);
-    const reckoningFlagIds = new Set(reckoningPathStates.flatMap((pathState) => pathState.flagIds));
+    const reckoningFlagIds = new Set(reckoningPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
     const reserveFlagIds = new Set(
-      collectOpportunityChoiceStates(reserveOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(reserveOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const culminationFlagIds = new Set(
-      collectOpportunityChoiceStates(culminationOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(culminationOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
 
     validateReserveStyleOpportunityVariants({
@@ -454,9 +454,9 @@
       minVariants: MIN_RECKONING_OPPORTUNITY_VARIANTS,
       pathKindLabel: "reckoning",
       pathStates: reckoningPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
-        const hasReserveFlag = requiredFlagIds.some((flagId) => reserveFlagIds.has(flagId));
-        const hasCulminationFlag = requiredFlagIds.some((flagId) => culminationFlagIds.has(flagId));
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
+        const hasReserveFlag = requiredFlagIds.some((flagId: string) => reserveFlagIds.has(flagId));
+        const hasCulminationFlag = requiredFlagIds.some((flagId: string) => culminationFlagIds.has(flagId));
 
         if (hasReserveFlag) {
           influenceCounts.reserveInfluencedVariantCount += 1;
@@ -468,7 +468,7 @@
           influenceCounts.combinedLateVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.reserveInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one reserve-influenced variant.`);
         }

@@ -20,15 +20,15 @@
   const MIN_CROSSROAD_OPPORTUNITY_VARIANTS = 3;
   const MIN_SHRINE_OPPORTUNITY_VARIANTS = 3;
 
-  function pushError(errors, message) { errors.push(message); }
+  function pushError(errors: string[], message: string) { errors.push(message); }
 
   function validateCrossroadOpportunitySection(
-    actKey,
-    crossroadOpportunityDefinition,
-    questDefinition,
-    shrineDefinition,
-    referenceState,
-    errors
+    actKey: string,
+    crossroadOpportunityDefinition: CrossroadOpportunityDefinition | null | undefined,
+    questDefinition: QuestNodeDefinition | null | undefined,
+    shrineDefinition: ShrineNodeDefinition | null | undefined,
+    referenceState: ContentValidatorActReferenceState,
+    errors: string[]
   ) {
     if (!crossroadOpportunityDefinition) {
       pushError(errors, `World-node catalog is missing a crossroad opportunity definition for act ${actKey}.`);
@@ -77,7 +77,7 @@
       const seenRequirementSignatures = new Map();
       const knownMercenaryIds = new Set(Object.keys(runtimeWindow.ROUGE_GAME_CONTENT?.mercenaryCatalog || {}));
       let shrineInfluencedVariantCount = 0;
-      const unconditionalVariantCount = crossroadOpportunityDefinition.variants.filter((variantDefinition) => {
+      const unconditionalVariantCount = crossroadOpportunityDefinition.variants.filter((variantDefinition: OpportunityNodeVariantDefinition) => {
         return (
           (!Array.isArray(variantDefinition.requiresPrimaryOutcomeIds) || variantDefinition.requiresPrimaryOutcomeIds.length === 0) &&
           (!Array.isArray(variantDefinition.requiresFollowUpOutcomeIds) || variantDefinition.requiresFollowUpOutcomeIds.length === 0) &&
@@ -91,7 +91,7 @@
         pushError(errors, `worldNodes.crossroadOpportunities.${actKey} has multiple unconditional variants.`);
       }
 
-      crossroadOpportunityDefinition.variants.forEach((variantDefinition, index) => {
+      crossroadOpportunityDefinition.variants.forEach((variantDefinition: OpportunityNodeVariantDefinition, index: number) => {
         if (
           (Array.isArray(variantDefinition?.requiresFlagIds) && variantDefinition.requiresFlagIds.length > 0) ||
           (Array.isArray(variantDefinition?.requiresMercenaryIds) && variantDefinition.requiresMercenaryIds.length > 0)
@@ -198,8 +198,8 @@
       const authoredStates = collectActPathStates(questDefinition, shrineDefinition, {
         includeEmptyShrineState: false,
       });
-      authoredStates.forEach((pathState) => {
-        const hasMatchingVariant = crossroadOpportunityDefinition.variants.some((variantDefinition) => {
+      authoredStates.forEach((pathState: ContentValidatorActPathState) => {
+        const hasMatchingVariant = crossroadOpportunityDefinition.variants.some((variantDefinition: OpportunityNodeVariantDefinition) => {
           return doesVariantMatchPath(variantDefinition, pathState);
         });
         if (!hasMatchingVariant) {
@@ -210,8 +210,8 @@
         }
       });
 
-      crossroadOpportunityDefinition.variants.forEach((variantDefinition, index) => {
-        const hasReachablePath = authoredStates.some((pathState) => {
+      crossroadOpportunityDefinition.variants.forEach((variantDefinition: OpportunityNodeVariantDefinition, index: number) => {
+        const hasReachablePath = authoredStates.some((pathState: ContentValidatorActPathState) => {
           return doesVariantMatchPath(variantDefinition, pathState);
         });
         if (!hasReachablePath) {
@@ -222,21 +222,21 @@
         }
       });
 
-      authoredStates.forEach((pathState) => {
+      authoredStates.forEach((pathState: ContentValidatorActPathState) => {
         const matchingVariants = crossroadOpportunityDefinition.variants
-          .map((variantDefinition, index) => ({
+          .map((variantDefinition: OpportunityNodeVariantDefinition, index: number) => ({
             index,
             specificity: getOpportunityVariantSpecificity(variantDefinition),
             matches: doesVariantMatchPath(variantDefinition, pathState),
           }))
-          .filter((entry) => entry.matches);
-        const maxSpecificity = matchingVariants.reduce((maxValue, entry) => Math.max(maxValue, entry.specificity), 0);
-        const mostSpecificMatches = matchingVariants.filter((entry) => entry.specificity === maxSpecificity);
+          .filter((entry: { index: number; specificity: number; matches: boolean }) => entry.matches);
+        const maxSpecificity = matchingVariants.reduce((maxValue: number, entry: { index: number; specificity: number; matches: boolean }) => Math.max(maxValue, entry.specificity), 0);
+        const mostSpecificMatches = matchingVariants.filter((entry: { index: number; specificity: number; matches: boolean }) => entry.specificity === maxSpecificity);
         if (mostSpecificMatches.length > 1) {
           pushError(
             errors,
             `worldNodes.crossroadOpportunities.${actKey} has ambiguous variants for authored crossroad path "${pathState.label}": ${mostSpecificMatches
-              .map((entry) => `variants[${entry.index}]`)
+              .map((entry: { index: number; specificity: number; matches: boolean }) => `variants[${entry.index}]`)
               .join(", ")}.`
           );
         }
@@ -245,11 +245,11 @@
   }
 
   function validateShrineOpportunitySection(
-    actKey,
-    shrineOpportunityDefinition,
-    shrineDefinition,
-    referenceState,
-    errors
+    actKey: string,
+    shrineOpportunityDefinition: ShrineOpportunityDefinition | null | undefined,
+    shrineDefinition: ShrineNodeDefinition | null | undefined,
+    referenceState: ContentValidatorActReferenceState,
+    errors: string[]
   ) {
     if (!shrineOpportunityDefinition) {
       pushError(errors, `World-node catalog is missing a shrine opportunity definition for act ${actKey}.`);
@@ -290,7 +290,7 @@
       const seenRequirementSignatures = new Map();
       const knownMercenaryIds = new Set(Object.keys(runtimeWindow.ROUGE_GAME_CONTENT?.mercenaryCatalog || {}));
       let mercenaryGatedVariantCount = 0;
-      const unconditionalVariantCount = shrineOpportunityDefinition.variants.filter((variantDefinition) => {
+      const unconditionalVariantCount = shrineOpportunityDefinition.variants.filter((variantDefinition: ShrineOpportunityVariantDefinition) => {
         return (
           (!Array.isArray(variantDefinition.requiresShrineOutcomeIds) || variantDefinition.requiresShrineOutcomeIds.length === 0) &&
           (!Array.isArray(variantDefinition.requiresFlagIds) || variantDefinition.requiresFlagIds.length === 0) &&
@@ -302,7 +302,7 @@
         pushError(errors, `worldNodes.shrineOpportunities.${actKey} has multiple unconditional variants.`);
       }
 
-      shrineOpportunityDefinition.variants.forEach((variantDefinition, index) => {
+      shrineOpportunityDefinition.variants.forEach((variantDefinition: ShrineOpportunityVariantDefinition, index: number) => {
         if (Array.isArray(variantDefinition?.requiresMercenaryIds) && variantDefinition.requiresMercenaryIds.length > 0) {
           mercenaryGatedVariantCount += 1;
         }
@@ -376,8 +376,8 @@
       }
 
       const authoredStates = collectShrinePathStates(shrineDefinition);
-      authoredStates.forEach((pathState) => {
-        const hasMatchingVariant = shrineOpportunityDefinition.variants.some((variantDefinition) => {
+      authoredStates.forEach((pathState: ContentValidatorShrinePathState) => {
+        const hasMatchingVariant = shrineOpportunityDefinition.variants.some((variantDefinition: ShrineOpportunityVariantDefinition) => {
           return doesShrineOpportunityVariantMatchPath(variantDefinition, pathState);
         });
         if (!hasMatchingVariant) {
@@ -388,8 +388,8 @@
         }
       });
 
-      shrineOpportunityDefinition.variants.forEach((variantDefinition, index) => {
-        const hasReachablePath = authoredStates.some((pathState) => {
+      shrineOpportunityDefinition.variants.forEach((variantDefinition: ShrineOpportunityVariantDefinition, index: number) => {
+        const hasReachablePath = authoredStates.some((pathState: ContentValidatorShrinePathState) => {
           return doesShrineOpportunityVariantMatchPath(variantDefinition, pathState);
         });
         if (!hasReachablePath) {
@@ -400,21 +400,21 @@
         }
       });
 
-      authoredStates.forEach((pathState) => {
+      authoredStates.forEach((pathState: ContentValidatorShrinePathState) => {
         const matchingVariants = shrineOpportunityDefinition.variants
-          .map((variantDefinition, index) => ({
+          .map((variantDefinition: ShrineOpportunityVariantDefinition, index: number) => ({
             index,
             specificity: getShrineOpportunityVariantSpecificity(variantDefinition),
             matches: doesShrineOpportunityVariantMatchPath(variantDefinition, pathState),
           }))
-          .filter((entry) => entry.matches);
-        const maxSpecificity = matchingVariants.reduce((maxValue, entry) => Math.max(maxValue, entry.specificity), 0);
-        const mostSpecificMatches = matchingVariants.filter((entry) => entry.specificity === maxSpecificity);
+          .filter((entry: { index: number; specificity: number; matches: boolean }) => entry.matches);
+        const maxSpecificity = matchingVariants.reduce((maxValue: number, entry: { index: number; specificity: number; matches: boolean }) => Math.max(maxValue, entry.specificity), 0);
+        const mostSpecificMatches = matchingVariants.filter((entry: { index: number; specificity: number; matches: boolean }) => entry.specificity === maxSpecificity);
         if (mostSpecificMatches.length > 1) {
           pushError(
             errors,
             `worldNodes.shrineOpportunities.${actKey} has ambiguous variants for authored shrine path "${pathState.label}": ${mostSpecificMatches
-              .map((entry) => `variants[${entry.index}]`)
+              .map((entry: { index: number; specificity: number; matches: boolean }) => `variants[${entry.index}]`)
               .join(", ")}.`
           );
         }

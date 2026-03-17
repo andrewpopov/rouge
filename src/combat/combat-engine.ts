@@ -18,18 +18,18 @@
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
   const { clamp } = runtimeWindow.ROUGE_UTILS;
 
-  function parseInteger(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
+  function parseInteger(value: unknown, fallback: number) {
+    const parsed = Number.parseInt(value as string, 10);
     return Number.isInteger(parsed) ? parsed : fallback;
   }
 
-  function makeCardInstance(state, cardId) {
+  function makeCardInstance(state: CombatState, cardId: string) {
     const instanceId = `card_${state.nextCardInstanceId}`;
     state.nextCardInstanceId += 1;
     return { instanceId, cardId };
   }
 
-  function createHero(content, heroState = null) {
+  function createHero(content: GameContent, heroState: Record<string, unknown> | null = null) {
     const definition = {
       ...content.hero,
       ...(heroState && typeof heroState === "object" ? heroState : {}),
@@ -55,7 +55,7 @@
     };
   }
 
-  function createMercenary(content, mercenaryId, mercenaryState = null) {
+  function createMercenary(content: GameContent, mercenaryId: string, mercenaryState: Record<string, unknown> | null = null) {
     const definition = content.mercenaryCatalog[mercenaryId];
     const merged = {
       ...definition,
@@ -82,7 +82,7 @@
     };
   }
 
-  function createEnemy(content, enemyEntry) {
+  function createEnemy(content: GameContent, enemyEntry: EncounterEnemyEntry) {
     const template = content.enemyCatalog[enemyEntry.templateId];
     return {
       id: enemyEntry.id,
@@ -96,21 +96,21 @@
       alive: true,
       intentIndex: 0,
       currentIntent: { ...template.intents[0] },
-      intents: template.intents.map((intent) => ({ ...intent })),
+      intents: template.intents.map((intent: EnemyIntent) => ({ ...intent })),
     };
   }
 
-  function createDeck(state, content, starterDeck = null) {
+  function createDeck(state: CombatState, content: GameContent, starterDeck: string[] | null = null) {
     const deckSource = Array.isArray(starterDeck) && starterDeck.length > 0 ? starterDeck : content.starterDeck;
-    const deck = deckSource.map((cardId) => makeCardInstance(state, cardId));
+    const deck = deckSource.map((cardId: string) => makeCardInstance(state, cardId));
     return shuffleInPlace(deck, state.randomFn);
   }
 
-  function getCardDefinition(content, cardId) {
+  function getCardDefinition(content: GameContent, cardId: string) {
     return content.cardCatalog[cardId] || null;
   }
 
-  function describeIntent(intent) {
+  function describeIntent(intent: EnemyIntent | null) {
     if (!intent) {
       return "No action";
     }
@@ -147,14 +147,14 @@
     return intent.label || "Unknown";
   }
 
-  function summarizeCardEffect(card, segments) {
+  function summarizeCardEffect(card: CardDefinition, segments: string[]) {
     if (segments.length === 0) {
       return `${card.title} resolved.`;
     }
     return `${card.title}: ${segments.join(" ")}`;
   }
 
-  function resolveCardEffect(state, effect, targetEnemy) {
+  function resolveCardEffect(state: CombatState, effect: CardEffect, targetEnemy: CombatEnemyState | null) {
     if (effect.kind === "damage") {
       const damage = Math.max(0, effect.value + state.hero.damageBonus);
       const dealt = dealDamage(state, targetEnemy, damage);
@@ -190,7 +190,7 @@
     }
     if (effect.kind === "damage_all") {
       const damage = Math.max(0, effect.value + state.hero.damageBonus);
-      const total = getLivingEnemies(state).reduce((sum, enemy) => sum + dealDamage(state, enemy, damage), 0);
+      const total = getLivingEnemies(state).reduce((sum: number, enemy: CombatEnemyState) => sum + dealDamage(state, enemy, damage), 0);
       return `dealt ${total} total damage.`;
     }
     if (effect.kind === "heal_mercenary") {
@@ -208,12 +208,12 @@
     return "";
   }
 
-  function playCard(state, content, instanceId, targetId = "") {
+  function playCard(state: CombatState, content: GameContent, instanceId: string, targetId: string = "") {
     if (state.phase !== "player" || state.outcome) {
       return { ok: false, message: "Cards can only be played during the player turn." };
     }
 
-    const handIndex = state.hand.findIndex((entry) => entry.instanceId === instanceId);
+    const handIndex = state.hand.findIndex((entry: CardInstance) => entry.instanceId === instanceId);
     if (handIndex < 0) {
       return { ok: false, message: "Card is not in hand." };
     }
@@ -229,7 +229,7 @@
 
     const targetEnemy =
       card.target === "enemy"
-        ? state.enemies.find((enemy) => enemy.id === targetId && enemy.alive) || null
+        ? state.enemies.find((enemy: CombatEnemyState) => enemy.id === targetId && enemy.alive) || null
         : null;
     if (card.target === "enemy" && !targetEnemy) {
       return { ok: false, message: "Select a living enemy." };
@@ -238,8 +238,8 @@
     state.hero.energy -= card.cost;
     state.hand.splice(handIndex, 1);
 
-    const segments = [];
-    card.effects.forEach((effect) => {
+    const segments: string[] = [];
+    card.effects.forEach((effect: CardEffect) => {
       const segment = resolveCardEffect(state, effect, targetEnemy);
       if (segment) {
         segments.push(segment);
@@ -252,7 +252,7 @@
     if (targetEnemy?.id) {
       state.selectedEnemyId = targetEnemy.id;
     }
-    if (!getLivingEnemies(state).some((enemy) => enemy.id === state.selectedEnemyId)) {
+    if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
       state.selectedEnemyId = getFirstLivingEnemyId(state);
     }
 
@@ -260,14 +260,14 @@
     return { ok: true, message: "Card played." };
   }
 
-  function applyEncounterModifiers(state) {
+  function applyEncounterModifiers(state: CombatState) {
     if (!runtimeWindow.ROUGE_COMBAT_MODIFIERS) {
       throw new Error("Combat modifiers helper is unavailable.");
     }
     runtimeWindow.ROUGE_COMBAT_MODIFIERS.applyEncounterModifiers(state);
   }
 
-  function applyMercenaryContractBonuses(state) {
+  function applyMercenaryContractBonuses(state: CombatState) {
     if (!state?.mercenary?.alive) {
       return;
     }
@@ -311,6 +311,18 @@
     weaponFamily = "",
     weaponDamageBonus = 0,
     classPreferredFamilies = [],
+  }: {
+    content: GameContent;
+    encounterId: string;
+    mercenaryId: string;
+    randomFn?: RandomFn;
+    heroState?: Record<string, unknown> | null;
+    mercenaryState?: Record<string, unknown> | null;
+    starterDeck?: string[] | null;
+    initialPotions?: number;
+    weaponFamily?: string;
+    weaponDamageBonus?: number;
+    classPreferredFamilies?: string[];
   }) {
     const encounter = content.encounterCatalog[encounterId];
     const state = {
@@ -319,15 +331,15 @@
       nextCardInstanceId: 1,
       turn: 0,
       phase: "player" as CombatPhase,
-      outcome: null,
+      outcome: null as CombatOutcome | null,
       potions: Math.max(0, parseInteger(initialPotions, 0)),
       hero: createHero(content, heroState),
       mercenary: createMercenary(content, mercenaryId, mercenaryState),
-      enemies: encounter.enemies.map((enemyEntry) => createEnemy(content, enemyEntry)),
-      drawPile: [],
-      discardPile: [],
-      hand: [],
-      log: [],
+      enemies: encounter.enemies.map((enemyEntry: EncounterEnemyEntry) => createEnemy(content, enemyEntry)),
+      drawPile: [] as CardInstance[],
+      discardPile: [] as CardInstance[],
+      hand: [] as CardInstance[],
+      log: [] as string[],
       selectedEnemyId: "",
       meleeUsed: false,
       weaponFamily,

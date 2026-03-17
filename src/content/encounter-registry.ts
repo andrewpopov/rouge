@@ -3,25 +3,25 @@
   const { normalizeActPool, groupByRole, buildActEncounterSet, buildZoneEncounterSet } =
     runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS;
 
-  function slugifyZone(name) {
+  function slugifyZone(name: string) {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   }
 
-  function createRuntimeContent(baseContent, seedBundle) {
+  function createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle) {
     runtimeWindow.ROUGE_CONTENT_VALIDATOR?.assertValidSeedBundle(seedBundle);
 
     const acts = Array.isArray(seedBundle?.zones?.acts) ? seedBundle.zones.acts : [];
     const bossEntries = Array.isArray(seedBundle?.bosses?.entries) ? seedBundle.bosses.entries : [];
     const zoneMonsterMap = seedBundle?.zoneMonsters || {};
-    const generatedEnemyCatalog = {};
-    const generatedEncounterCatalog = {};
-    const generatedActEncounterIds = {};
-    const generatedZoneEncounterIds = {};
+    const generatedEnemyCatalog: Record<string, EnemyTemplate> = {};
+    const generatedEncounterCatalog: Record<string, EncounterDefinition> = {};
+    const generatedActEncounterIds: Record<number, GeneratedActEncounterIds> = {};
+    const generatedZoneEncounterIds: Record<string, string[]> = {};
 
-    acts.forEach((actSeed) => {
+    acts.forEach((actSeed: ActSeed) => {
       const poolEntries = normalizeActPool(seedBundle, actSeed.act);
       const groupedEntries = groupByRole(poolEntries);
-      const bossEntry = bossEntries.find((entry) => entry.id === actSeed.boss.id) || null;
+      const bossEntry = bossEntries.find((entry: BossEntry) => entry.id === actSeed.boss.id) || null;
       const actContent = buildActEncounterSet({
         actSeed,
         bossEntry,

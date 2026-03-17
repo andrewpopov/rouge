@@ -148,7 +148,7 @@
   }
 
   function getTrainingRankCount(training: RunProgressionState["training"] | undefined): number {
-    return ["vitality", "focus", "command"].reduce((total, track) => {
+    return (["vitality", "focus", "command"] as const).reduce((total, track) => {
       return total + (Number.parseInt(String(training?.[track] ?? 0), 10) || 0);
     }, 0);
   }
@@ -271,7 +271,7 @@
     persistProfile(state);
   }
 
-  function normalizeLoadedPhase(phase) {
+  function normalizeLoadedPhase(phase: string): AppPhase {
     const allowedPhases = new Set([
       PHASES.SAFE_ZONE,
       PHASES.WORLD_MAP,
@@ -280,7 +280,7 @@
       PHASES.RUN_COMPLETE,
       PHASES.RUN_FAILED,
     ]);
-    return allowedPhases.has(phase) ? phase : PHASES.SAFE_ZONE;
+    return (allowedPhases.has(phase) ? phase : PHASES.SAFE_ZONE) as AppPhase;
   }
 
   function restoreSnapshotIntoState(state: AppState, snapshot: RunSnapshotEnvelope): ActionResult {

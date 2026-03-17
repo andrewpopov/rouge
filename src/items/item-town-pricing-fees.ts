@@ -94,14 +94,14 @@
   function applyFeatureRates(baseValue: number, features: AccountEconomyFeatures, rates: [string, number][]): number {
     let result = baseValue;
     for (const [key, rate] of rates) {
-      if (features[key]) {
+      if ((features as unknown as Record<string, boolean>)[key]) {
         result *= rate;
       }
     }
     return result;
   }
 
-  function getEntryBuyPrice(entry, content, profile = null) {
+  function getEntryBuyPrice(entry: InventoryEntry, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
     if (entry.kind === "rune") {
       return Math.max(MIN_RUNE_BUY_PRICE, Math.floor(applyFeatureRates(getRuneValue(entry.runeId, content) * RUNE_BUY_MARKUP, features, BUY_DISCOUNT_RATES)));
@@ -109,7 +109,7 @@
     return Math.max(MIN_EQUIPMENT_BUY_PRICE, Math.floor(applyFeatureRates(getEquipmentValue(entry.equipment, content) * EQUIPMENT_BUY_MARKUP, features, BUY_DISCOUNT_RATES)));
   }
 
-  function getEntrySellPrice(entry, content, profile = null) {
+  function getEntrySellPrice(entry: InventoryEntry, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
     if (entry.kind === "rune") {
       return Math.max(MIN_RUNE_SELL_PRICE, Math.floor(applyFeatureRates(getRuneValue(entry.runeId, content) * RUNE_SELL_RATE, features, SELL_BONUS_RATES)));
@@ -117,7 +117,7 @@
     return Math.max(MIN_EQUIPMENT_SELL_PRICE, Math.floor(applyFeatureRates(getEquipmentValue(entry.equipment, content) * EQUIPMENT_SELL_RATE, features, SELL_BONUS_RATES)));
   }
 
-  function sellCarriedEntry(run, entryId, content, profile = null) {
+  function sellCarriedEntry(run: RunState, entryId: string, content: GameContent, profile: ProfileState | null = null) {
     const entry = removeCarriedEntry(run, entryId);
     if (!entry) {
       return { ok: false, message: "That inventory entry is no longer available." };
@@ -128,7 +128,7 @@
     return { ok: true, message: `Sold for ${sellPrice} gold.` };
   }
 
-  function getVendorRefreshCost(run, profile = null, content = null) {
+  function getVendorRefreshCost(run: RunState, profile: ProfileState | null = null, content: GameContent | null = null) {
     const features = getAccountEconomyFeatures(profile);
     const planningPressure = getStashPlanningPressure(profile);
     const chronicleDiscount =
@@ -152,7 +152,7 @@
     return Math.max(MIN_REFRESH_COST, BASE_REFRESH_COST + run.actNumber * REFRESH_ACT_SCALE + toNumber(run.town?.vendor?.refreshCount, 0) * REFRESH_COUNT_SCALE - discount);
   }
 
-  function getVendorConsignmentFee(entry, content, profile = null) {
+  function getVendorConsignmentFee(entry: InventoryEntry, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
     if (!features.treasuryExchange) {
       return 0;
@@ -199,7 +199,7 @@
     return Math.max(entry.kind === "rune" ? RUNE_CONSIGNMENT_BASE_FEE : EQUIPMENT_CONSIGNMENT_BASE_FEE, fee);
   }
 
-  function getSocketCommissionCost(run, equipment, content, profile = null, location = "inventory") {
+  function getSocketCommissionCost(run: RunState, equipment: RunEquipmentState | null, content: GameContent, profile: ProfileState | null = null, location: string = "inventory") {
     if (!canCommissionSocket(equipment, content)) {
       return 0;
     }
@@ -239,7 +239,7 @@
     return Math.max(location === "stash" ? MIN_COMMISSION_COST_STASH : MIN_COMMISSION_COST_DEFAULT, baseCost + locationFee + planningLoadFee - planningDiscount - repeatForgeDiscount - featureDiscount);
   }
 
-  function buildSocketCommissionPreviewLines(run, equipment, content, profile = null, location = "inventory") {
+  function buildSocketCommissionPreviewLines(run: RunState, equipment: RunEquipmentState | null, content: GameContent, profile: ProfileState | null = null, location: string = "inventory") {
     const item = getItemDefinition(content, equipment?.itemId || "");
     const features = getAccountEconomyFeatures(profile);
     const planningMatch = getEquipmentPlanningMatch(equipment, content, profile);
@@ -274,7 +274,7 @@
     return lines;
   }
 
-  function buildInventoryAction(entry, content, kind, subtitle, description, previewLines, action: { label: string; cost?: number; disabled?: boolean }) {
+  function buildInventoryAction(entry: InventoryEntry, content: GameContent, kind: string, subtitle: string, description: string, previewLines: string[], action: { label: string; cost?: number; disabled?: boolean }) {
     let category = "inventory";
     if (kind.startsWith("stash_")) {
       category = "stash";
@@ -295,17 +295,17 @@
     };
   }
 
-  function buildSocketCommissionAction(run, equipment, content, profile, location, actionId, subtitle, description) {
+  function buildSocketCommissionAction(run: RunState, equipment: RunEquipmentState | null, content: GameContent, profile: ProfileState | null, location: string, actionId: string, subtitle: string, description: string) {
     if (!canCommissionSocket(equipment, content)) {
       return null;
     }
     if (location === "stash" && !getAccountEconomyFeatures(profile).treasuryExchange) {
       return null;
     }
-    const entry = {
+    const entry: InventoryEquipmentEntry = {
       entryId: actionId.replace(/^.*?_commission_/, ""),
       kind: "equipment",
-      equipment,
+      equipment: equipment!,
     };
     const cost = getSocketCommissionCost(run, equipment, content, profile, location);
     return buildInventoryAction(
@@ -319,7 +319,7 @@
     );
   }
 
-  function commissionEquipmentSocket(equipment, content) {
+  function commissionEquipmentSocket(equipment: RunEquipmentState, content: GameContent) {
     if (!canCommissionSocket(equipment, content)) {
       return false;
     }
@@ -328,7 +328,7 @@
     return true;
   }
 
-  function addVendorEntryToProfileStash(profile, entry, content) {
+  function addVendorEntryToProfileStash(profile: ProfileState, entry: InventoryEntry, content: GameContent) {
     const cloned = cloneInventoryEntry(entry);
     if (!cloned) {
       return null;

@@ -21,14 +21,14 @@
     }
   }
 
-  function slugify(value) {
+  function slugify(value: unknown) {
     return String(value || "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "_")
       .replace(/^_+|_+$/g, "");
   }
 
-  function describeEffect(effect) {
+  function describeEffect(effect: RewardChoiceEffect) {
     if (effect.kind === "hero_max_life") {
       return `Hero max Life +${effect.value}.`;
     }
@@ -56,8 +56,8 @@
     return "";
   }
 
-  function buildChoice(kind, choiceDefinition) {
-    const previewLines = choiceDefinition.effects.map((effect) => describeEffect(effect)).filter(Boolean);
+  function buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition) {
+    const previewLines = choiceDefinition.effects.map((effect: RewardChoiceEffect) => describeEffect(effect)).filter(Boolean);
 
     return {
       id: `world_node_${kind}_${choiceDefinition.id}`,
@@ -66,11 +66,11 @@
       subtitle: choiceDefinition.subtitle,
       description: choiceDefinition.description,
       previewLines,
-      effects: choiceDefinition.effects.map((effect) => ({ ...effect })),
+      effects: choiceDefinition.effects.map((effect: RewardChoiceEffect) => ({ ...effect })),
     };
   }
 
-  function buildNodeZone(kind, nodeDefinition, actSeed, prerequisites, nodeType = kind) {
+  function buildNodeZone(kind: ZoneKind, nodeDefinition: { zoneTitle: string; description: string; id: string }, actSeed: ActSeed, prerequisites: string[], nodeType: string = kind): ZoneState {
     const status: ZoneState["status"] = Array.isArray(prerequisites) && prerequisites.length === 0 ? "available" : "locked";
     return {
       id: `act_${actSeed.act}_${slugify(nodeDefinition.zoneTitle)}`,
@@ -79,7 +79,7 @@
       kind,
       zoneRole: kind,
       description: nodeDefinition.description,
-      encounterIds: [],
+      encounterIds: [] as string[],
       encounterTotal: 1,
       encountersCleared: 0,
       visited: false,
@@ -91,17 +91,18 @@
     };
   }
 
-  function getCatalogEntry(key, actNumber) {
-    const entries = getCatalog()[key];
+  function getCatalogEntry<K extends keyof WorldNodeCatalog>(key: K, actNumber: number): WorldNodeCatalog[K][number] {
+    const catalog = getCatalog();
+    const entries = catalog[key];
     if (entries[actNumber]) {
       return entries[actNumber];
     }
-    const keys = Object.keys(entries).map(Number).sort((a, b) => a - b);
+    const keys = Object.keys(entries).map(Number).sort((a: number, b: number) => a - b);
     return entries[keys[0]];
   }
 
-  function isShrineOpportunityNodeId(nodeId) {
-    return Object.values(getCatalog().shrineOpportunities).some((definition) => definition.id === nodeId);
+  function isShrineOpportunityNodeId(nodeId: string) {
+    return Object.values(getCatalog().shrineOpportunities).some((definition: ShrineOpportunityDefinition) => definition.id === nodeId);
   }
 
   function createQuestZone({
@@ -372,29 +373,29 @@
     ];
   }
 
-  function isWorldNodeZone(zone) {
+  function isWorldNodeZone(zone: ZoneState) {
     return zone?.kind === "quest" || zone?.kind === "shrine" || zone?.kind === "event" || zone?.kind === "opportunity";
   }
 
   runtimeWindow.ROUGE_WORLD_NODE_ZONES = {
     buildChoice,
     getCatalogEntry,
-    getQuestDefinition: (actNumber) => getCatalogEntry("quests", actNumber),
-    getShrineDefinition: (actNumber) => getCatalogEntry("shrines", actNumber),
-    getEventDefinition: (actNumber) => getCatalogEntry("events", actNumber),
-    getOpportunityDefinition: (actNumber) => getCatalogEntry("opportunities", actNumber),
-    getCrossroadOpportunityDefinition: (actNumber) => getCatalogEntry("crossroadOpportunities", actNumber),
-    getShrineOpportunityDefinition: (actNumber) => getCatalogEntry("shrineOpportunities", actNumber),
-    getReserveOpportunityDefinition: (actNumber) => getCatalogEntry("reserveOpportunities", actNumber),
-    getRelayOpportunityDefinition: (actNumber) => getCatalogEntry("relayOpportunities", actNumber),
-    getCulminationOpportunityDefinition: (actNumber) => getCatalogEntry("culminationOpportunities", actNumber),
-    getLegacyOpportunityDefinition: (actNumber) => getCatalogEntry("legacyOpportunities", actNumber),
-    getReckoningOpportunityDefinition: (actNumber) => getCatalogEntry("reckoningOpportunities", actNumber),
-    getRecoveryOpportunityDefinition: (actNumber) => getCatalogEntry("recoveryOpportunities", actNumber),
-    getAccordOpportunityDefinition: (actNumber) => getCatalogEntry("accordOpportunities", actNumber),
-    getCovenantOpportunityDefinition: (actNumber) => getCatalogEntry("covenantOpportunities", actNumber),
-    getDetourOpportunityDefinition: (actNumber) => getCatalogEntry("detourOpportunities", actNumber),
-    getEscalationOpportunityDefinition: (actNumber) => getCatalogEntry("escalationOpportunities", actNumber),
+    getQuestDefinition: (actNumber: number) => getCatalogEntry("quests", actNumber),
+    getShrineDefinition: (actNumber: number) => getCatalogEntry("shrines", actNumber),
+    getEventDefinition: (actNumber: number) => getCatalogEntry("events", actNumber),
+    getOpportunityDefinition: (actNumber: number) => getCatalogEntry("opportunities", actNumber),
+    getCrossroadOpportunityDefinition: (actNumber: number) => getCatalogEntry("crossroadOpportunities", actNumber),
+    getShrineOpportunityDefinition: (actNumber: number) => getCatalogEntry("shrineOpportunities", actNumber),
+    getReserveOpportunityDefinition: (actNumber: number) => getCatalogEntry("reserveOpportunities", actNumber),
+    getRelayOpportunityDefinition: (actNumber: number) => getCatalogEntry("relayOpportunities", actNumber),
+    getCulminationOpportunityDefinition: (actNumber: number) => getCatalogEntry("culminationOpportunities", actNumber),
+    getLegacyOpportunityDefinition: (actNumber: number) => getCatalogEntry("legacyOpportunities", actNumber),
+    getReckoningOpportunityDefinition: (actNumber: number) => getCatalogEntry("reckoningOpportunities", actNumber),
+    getRecoveryOpportunityDefinition: (actNumber: number) => getCatalogEntry("recoveryOpportunities", actNumber),
+    getAccordOpportunityDefinition: (actNumber: number) => getCatalogEntry("accordOpportunities", actNumber),
+    getCovenantOpportunityDefinition: (actNumber: number) => getCatalogEntry("covenantOpportunities", actNumber),
+    getDetourOpportunityDefinition: (actNumber: number) => getCatalogEntry("detourOpportunities", actNumber),
+    getEscalationOpportunityDefinition: (actNumber: number) => getCatalogEntry("escalationOpportunities", actNumber),
     isShrineOpportunityNodeId,
     createQuestZone,
     createShrineZone,

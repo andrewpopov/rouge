@@ -46,7 +46,7 @@
     escapeHtml: (s: unknown) => string,
     buildBadge: (label: string, tone: string) => string
   ): string {
-    const archInfo = ARCHETYPE_LABELS[archetypeId] || ARCHETYPE_LABELS.martial;
+    const archInfo = (ARCHETYPE_LABELS as Record<string, { label: string; tone: string }>)[archetypeId] || ARCHETYPE_LABELS.martial;
     const tierGroups: { tier: string; names: string[] }[] = [];
     const tiers = [
       { label: "Lv 1", min: 1, max: 5 },
@@ -128,7 +128,7 @@
             ? preferredWeapons.map((w) => buildBadge(w, "cleared")).join("")
             : buildBadge("General", "locked");
 
-          const flavor = CLASS_FLAVORS[selectedClass.id] || "";
+          const flavor = (CLASS_FLAVORS as Record<string, string>)[selectedClass.id] || "";
 
           return `
             <div class="campfire-detail campfire-detail--expanded">

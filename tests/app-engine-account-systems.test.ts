@@ -410,9 +410,9 @@ test("account progress summary unlocks second-wave milestones and convergences f
     stashRuneCount: 1,
     plannedWeaponRunewordId: "",
     plannedArmorRunewordId: "",
-    completedPlannedRunewordIds: [],
+    completedPlannedRunewordIds: [] as string[],
     activeRunewordIds: ["steel"],
-    newFeatureIds: [],
+    newFeatureIds: [] as string[],
     completedAt: new Date(`2026-03-0${(index % 8) + 1}T00:00:00.000Z`).toISOString(),
     outcome: "completed",
   }));
@@ -479,9 +479,9 @@ test("account progress summary unlocks third-wave milestones and convergences fr
     stashRuneCount: 1,
     plannedWeaponRunewordId: "",
     plannedArmorRunewordId: "",
-    completedPlannedRunewordIds: [],
+    completedPlannedRunewordIds: [] as string[],
     activeRunewordIds: ["steel"],
-    newFeatureIds: [],
+    newFeatureIds: [] as string[],
     completedAt: new Date(`2026-03-${String((index % 9) + 1).padStart(2, "0")}T00:00:00.000Z`).toISOString(),
     outcome: "completed",
   }));
@@ -570,7 +570,7 @@ test("profile migrations backfill richer archived run-history fields for older e
 
 test("economy ledger changes vendor prices and refresh cost in town", () => {
   const { browserWindow, content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
-  const buildState = (featureIds = []) => {
+  const buildState = (featureIds: string[] = []) => {
     const state = appEngine.createAppState({
       content,
       seedBundle,
@@ -623,7 +623,7 @@ test("economy ledger changes vendor prices and refresh cost in town", () => {
 
     return state;
   };
-  const getTownAction = (state, actionId) => {
+  const getTownAction = (state: AppState, actionId: string) => {
     return browserWindow.ROUGE_TOWN_SERVICES.listActions(content, state.run, state.profile).find((action) => action.id === actionId) || null;
   };
 
@@ -665,7 +665,7 @@ test("economy ledger changes vendor prices and refresh cost in town", () => {
 
 test("advanced vendor stock improves opening-town offer depth on a progressed account", () => {
   const { content, combatEngine, appEngine, seedBundle } = createHarness();
-  const buildState = (featureIds = []) => {
+  const buildState = (featureIds: string[] = []) => {
     const state = appEngine.createAppState({
       content,
       seedBundle,
@@ -684,7 +684,7 @@ test("advanced vendor stock improves opening-town offer depth on a progressed ac
     state.run.town.vendor.refreshCount = 1;
     return state;
   };
-  const getMaxTier = (state) => {
+  const getMaxTier = (state: AppState) => {
     return state.run.town.vendor.stock
       .filter((entry) => entry.kind === "equipment")
       .reduce((highestTier, entry) => {
@@ -701,7 +701,7 @@ test("advanced vendor stock improves opening-town offer depth on a progressed ac
 
 test("runeword codex widens vendor rune routing for unfinished recipes", () => {
   const { content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
-  const buildState = (featureIds = []) => {
+  const buildState = (featureIds: string[] = []) => {
     const state = appEngine.createAppState({
       content,
       seedBundle,
@@ -755,7 +755,7 @@ test("runeword codex widens vendor rune routing for unfinished recipes", () => {
     itemSystem.hydrateRunInventory(state.run, content, state.profile);
     return state;
   };
-  const getVendorRunes = (state) => {
+  const getVendorRunes = (state: AppState) => {
     return state.run.town.vendor.stock.filter((entry) => entry.kind === "rune").map((entry) => entry.runeId);
   };
 
@@ -773,7 +773,7 @@ test("runeword codex widens vendor rune routing for unfinished recipes", () => {
 
 test("treasury exchange adds direct vendor-to-stash consignment and stash-aware rune routing", () => {
   const { browserWindow, content, combatEngine, appEngine, itemSystem, seedBundle } = createHarness();
-  const buildState = (featureIds = []) => {
+  const buildState = (featureIds: string[] = []) => {
     const state = appEngine.createAppState({
       content,
       seedBundle,
@@ -809,7 +809,7 @@ test("treasury exchange adds direct vendor-to-stash consignment and stash-aware 
     itemSystem.hydrateRunInventory(state.run, content, state.profile);
     return state;
   };
-  const getVendorRunes = (state) => {
+  const getVendorRunes = (state: AppState) => {
     return state.run.town.vendor.stock.filter((entry) => entry.kind === "rune").map((entry) => entry.runeId);
   };
 
@@ -1150,7 +1150,7 @@ test("archived run history captures progression, economy, and account feature ca
 
 test("reward generation consumes account milestones for payout and boss pivots", () => {
   const { browserWindow, content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
-  const buildState = (featureIds = []) => {
+  const buildState = (featureIds: string[] = []) => {
     const state = appEngine.createAppState({
       content,
       seedBundle,
@@ -1168,7 +1168,7 @@ test("reward generation consumes account milestones for payout and boss pivots",
     appEngine.startRun(state);
     return state;
   };
-  const fakeCombatState = (state) =>
+  const fakeCombatState = (state: AppState) =>
     ({
       hero: { life: state.run.hero.currentLife },
       mercenary: { life: state.run.mercenary.currentLife },
@@ -1239,7 +1239,7 @@ test("reward generation consumes account milestones for payout and boss pivots",
 
 test("account progression trees drive archive retention, economy focus, and mastery focus behavior", () => {
   const { browserWindow, content, combatEngine, appEngine, itemSystem, persistence, runFactory, seedBundle } = createHarness();
-  const buildState = (featureIds = [], focusedTreeId = "") => {
+  const buildState = (featureIds: string[] = [], focusedTreeId = "") => {
     persistence.clearStorage();
     const state = appEngine.createAppState({
       content,

@@ -18,7 +18,7 @@
   const MIN_ACCORD_OPPORTUNITY_VARIANTS = 3;
   const MIN_COVENANT_OPPORTUNITY_VARIANTS = 3;
 
-  function validateRecoveryOpportunityFamily(options) {
+  function validateRecoveryOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       actKey,
       culminationOpportunityDefinition,
@@ -54,12 +54,12 @@
     );
 
     const recoveryPathStates = collectRecoveryPathStates(culminationOpportunityDefinition, shrineOpportunityDefinition);
-    const recoveryFlagIds = new Set(recoveryPathStates.flatMap((pathState) => pathState.flagIds));
+    const recoveryFlagIds = new Set(recoveryPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
     const shrineFlagIds = new Set(
-      collectOpportunityChoiceStates(shrineOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(shrineOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const culminationFlagIds = new Set(
-      collectOpportunityChoiceStates(culminationOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(culminationOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
 
     validateReserveStyleOpportunityVariants({
@@ -78,9 +78,9 @@
       minVariants: MIN_RECOVERY_OPPORTUNITY_VARIANTS,
       pathKindLabel: "recovery",
       pathStates: recoveryPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
-        const hasShrineFlag = requiredFlagIds.some((flagId) => shrineFlagIds.has(flagId));
-        const hasCulminationFlag = requiredFlagIds.some((flagId) => culminationFlagIds.has(flagId));
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
+        const hasShrineFlag = requiredFlagIds.some((flagId: string) => shrineFlagIds.has(flagId));
+        const hasCulminationFlag = requiredFlagIds.some((flagId: string) => culminationFlagIds.has(flagId));
 
         if (hasShrineFlag) {
           influenceCounts.shrineInfluencedVariantCount += 1;
@@ -92,7 +92,7 @@
           influenceCounts.combinedLateVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.shrineInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one shrine-influenced variant.`);
         }
@@ -106,7 +106,7 @@
     });
   }
 
-  function validateAccordOpportunityFamily(options) {
+  function validateAccordOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       actKey,
       accordOpportunityDefinition,
@@ -155,15 +155,15 @@
       shrineOpportunityDefinition,
       crossroadOpportunityDefinition
     );
-    const accordFlagIds = new Set(accordPathStates.flatMap((pathState) => pathState.flagIds));
+    const accordFlagIds = new Set(accordPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
     const shrineFlagIds = new Set(
-      collectOpportunityChoiceStates(shrineOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(shrineOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const crossroadFlagIds = new Set(
-      collectOpportunityChoiceStates(crossroadOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(crossroadOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const culminationFlagIds = new Set(
-      collectOpportunityChoiceStates(culminationOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(culminationOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
 
     validateReserveStyleOpportunityVariants({
@@ -184,10 +184,10 @@
       minVariants: MIN_ACCORD_OPPORTUNITY_VARIANTS,
       pathKindLabel: "accord",
       pathStates: accordPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
-        const hasShrineFlag = requiredFlagIds.some((flagId) => shrineFlagIds.has(flagId));
-        const hasCrossroadFlag = requiredFlagIds.some((flagId) => crossroadFlagIds.has(flagId));
-        const hasCulminationFlag = requiredFlagIds.some((flagId) => culminationFlagIds.has(flagId));
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
+        const hasShrineFlag = requiredFlagIds.some((flagId: string) => shrineFlagIds.has(flagId));
+        const hasCrossroadFlag = requiredFlagIds.some((flagId: string) => crossroadFlagIds.has(flagId));
+        const hasCulminationFlag = requiredFlagIds.some((flagId: string) => culminationFlagIds.has(flagId));
 
         if (hasShrineFlag) {
           influenceCounts.shrineInfluencedVariantCount += 1;
@@ -205,7 +205,7 @@
           influenceCounts.combinedLateVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.shrineInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one shrine-influenced variant.`);
         }
@@ -225,7 +225,7 @@
     });
   }
 
-  function validateCovenantOpportunityFamily(options) {
+  function validateCovenantOpportunityFamily(options: ContentValidatorLateRouteOpportunityValidationArgs) {
     const {
       accordOpportunityDefinition,
       actKey,
@@ -284,18 +284,18 @@
       recoveryOpportunityDefinition,
       accordOpportunityDefinition
     );
-    const covenantFlagIds = new Set(covenantPathStates.flatMap((pathState) => pathState.flagIds));
+    const covenantFlagIds = new Set(covenantPathStates.flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds));
     const legacyFlagIds = new Set(
-      collectOpportunityChoiceStates(legacyOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(legacyOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const reckoningFlagIds = new Set(
-      collectOpportunityChoiceStates(reckoningOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(reckoningOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const recoveryFlagIds = new Set(
-      collectOpportunityChoiceStates(recoveryOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(recoveryOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
     const accordFlagIds = new Set(
-      collectOpportunityChoiceStates(accordOpportunityDefinition).flatMap((pathState) => pathState.flagIds)
+      collectOpportunityChoiceStates(accordOpportunityDefinition).flatMap((pathState: ContentValidatorFlagPathState) => pathState.flagIds)
     );
 
     validateReserveStyleOpportunityVariants({
@@ -317,11 +317,11 @@
       minVariants: MIN_COVENANT_OPPORTUNITY_VARIANTS,
       pathKindLabel: "covenant",
       pathStates: covenantPathStates,
-      recordInfluenceCounts(influenceCounts, requiredFlagIds) {
-        const hasLegacyFlag = requiredFlagIds.some((flagId) => legacyFlagIds.has(flagId));
-        const hasReckoningFlag = requiredFlagIds.some((flagId) => reckoningFlagIds.has(flagId));
-        const hasRecoveryFlag = requiredFlagIds.some((flagId) => recoveryFlagIds.has(flagId));
-        const hasAccordFlag = requiredFlagIds.some((flagId) => accordFlagIds.has(flagId));
+      recordInfluenceCounts(influenceCounts: Record<string, number>, requiredFlagIds: string[]) {
+        const hasLegacyFlag = requiredFlagIds.some((flagId: string) => legacyFlagIds.has(flagId));
+        const hasReckoningFlag = requiredFlagIds.some((flagId: string) => reckoningFlagIds.has(flagId));
+        const hasRecoveryFlag = requiredFlagIds.some((flagId: string) => recoveryFlagIds.has(flagId));
+        const hasAccordFlag = requiredFlagIds.some((flagId: string) => accordFlagIds.has(flagId));
 
         if (hasLegacyFlag) {
           influenceCounts.legacyInfluencedVariantCount += 1;
@@ -342,7 +342,7 @@
           influenceCounts.allLateRoutesVariantCount += 1;
         }
       },
-      validateInfluenceCounts(influenceCounts, validationErrors) {
+      validateInfluenceCounts(influenceCounts: Record<string, number>, validationErrors: string[]) {
         if (influenceCounts.legacyInfluencedVariantCount === 0) {
           pushError(validationErrors, `${label} must include at least one legacy-influenced variant.`);
         }

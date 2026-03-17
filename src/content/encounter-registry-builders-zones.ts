@@ -63,18 +63,18 @@
     },
   };
 
-  function getFlavor(actNumber) {
-    return ACT_FLAVOR[actNumber] || ACT_FLAVOR[1];
+  function getFlavor(actNumber: number) {
+    return (ACT_FLAVOR as Record<number, typeof ACT_FLAVOR[1]>)[actNumber] || ACT_FLAVOR[1];
   }
 
-  function pickEntry(entries, index, fallback) {
+  function pickEntry(entries: EnemyPoolEntryRef[], index: number, fallback: EnemyPoolEntryRef) {
     if (Array.isArray(entries) && entries.length > 0) {
       return entries[index % entries.length];
     }
     return fallback;
   }
 
-  function pickEscortTemplate(role, rangedTemplateId, supportTemplateId, bruteTemplateId) {
+  function pickEscortTemplate(role: string, rangedTemplateId: string, supportTemplateId: string, bruteTemplateId: string) {
     if (role === "ranged") {
       return rangedTemplateId;
     }
@@ -84,12 +84,12 @@
     return bruteTemplateId;
   }
 
-  function makeEncounter(id, name, description, enemyTemplateIds, modifiers = []) {
+  function makeEncounter(id: string, name: string, description: string, enemyTemplateIds: string[], modifiers: EncounterModifier[] = []) {
     return {
       id,
       name,
       description,
-      enemies: enemyTemplateIds.map((templateId, index) => ({
+      enemies: enemyTemplateIds.map((templateId: string, index: number) => ({
         id: `${id}_enemy_${index + 1}`,
         templateId,
       })),
@@ -97,45 +97,45 @@
     };
   }
 
-  function slugifyZone(name) {
+  function slugifyZone(name: string) {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   }
 
-  function monsterNameToEntry(name, zoneSlug) {
+  function monsterNameToEntry(name: string, zoneSlug: string) {
     const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
     return { id: `z_${zoneSlug}_${baseId}`, name };
   }
 
-  function spreadAcrossRoles(entries) {
+  function spreadAcrossRoles(entries: EnemyPoolEntryRef[]) {
     const grouped = groupByRole(entries);
     const usedIds = new Set();
-    const result = { raider: null, ranged: null, support: null, brute: null };
+    const result: Record<string, EnemyPoolEntryRef | null> = { raider: null, ranged: null, support: null, brute: null };
     const roles = ["support", "ranged", "brute", "raider"];
 
     roles.forEach((role) => {
-      const candidate = grouped[role].find((e) => !usedIds.has(e.id));
+      const candidate = (grouped as unknown as Record<string, EnemyPoolEntryRef[]>)[role].find((e: EnemyPoolEntryRef) => !usedIds.has(e.id));
       if (candidate) {
         result[role] = candidate;
         usedIds.add(candidate.id);
       }
     });
 
-    const unused = entries.filter((e) => !usedIds.has(e.id));
+    const unused = entries.filter((e: EnemyPoolEntryRef) => !usedIds.has(e.id));
     roles.forEach((role) => {
       if (!result[role]) {
-        result[role] = unused.shift() || grouped[role][0] || entries[0];
+        result[role] = unused.shift() || (grouped as unknown as Record<string, EnemyPoolEntryRef[]>)[role][0] || entries[0];
       }
     });
     return result;
   }
 
-  function buildZoneEncounterSet({ actNumber, zoneName, monsterNames }) {
+  function buildZoneEncounterSet({ actNumber, zoneName, monsterNames }: { actNumber: number; zoneName: string; monsterNames: string[] }) {
     if (!Array.isArray(monsterNames) || monsterNames.length === 0) {
       return null;
     }
 
     const zoneSlug = slugifyZone(zoneName);
-    const entries = monsterNames.map((n) => monsterNameToEntry(n, zoneSlug));
+    const entries = monsterNames.map((n: string) => monsterNameToEntry(n, zoneSlug));
     const spread = spreadAcrossRoles(entries);
 
     const raiderA = buildEnemyTemplate({ actNumber, entry: spread.raider, role: "raider" });

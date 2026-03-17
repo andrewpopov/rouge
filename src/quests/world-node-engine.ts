@@ -23,19 +23,19 @@
     return runtimeWindow.ROUGE_WORLD_NODE_ZONES;
   }
 
-  function buildChoice(kind, choiceDefinition) {
+  function buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition) {
     return getWorldNodeZonesApi().buildChoice(kind, choiceDefinition);
   }
 
-  function getQuestDefinition(actNumber) {
+  function getQuestDefinition(actNumber: number) {
     return getWorldNodeZonesApi().getQuestDefinition(actNumber);
   }
 
-  function getShrineDefinition(actNumber) {
+  function getShrineDefinition(actNumber: number) {
     return getWorldNodeZonesApi().getShrineDefinition(actNumber);
   }
 
-  function isShrineOpportunityNodeId(nodeId) {
+  function isShrineOpportunityNodeId(nodeId: string) {
     return getWorldNodeZonesApi().isShrineOpportunityNodeId(nodeId);
   }
 
@@ -46,7 +46,7 @@
     return runtimeWindow.ROUGE_WORLD_NODE_VARIANTS;
   }
 
-  function buildNodeReward(run, zone, definition, variant, choiceKind, contextLines) {
+  function buildNodeReward(run: RunState, zone: ZoneState, definition: { title: string; summary: string; grants: RewardGrants }, variant: WorldNodeRewardDefinition, choiceKind: string, contextLines: string[]) {
     return {
       zoneId: zone.id,
       zoneTitle: zone.title,
@@ -59,7 +59,7 @@
         `${zone.title} is now clear.`,
       ],
       grants: { ...definition.grants, ...(variant.grants || {}) },
-      choices: variant.choices.map((choiceDefinition) => buildChoice(choiceKind, choiceDefinition)),
+      choices: variant.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => buildChoice(choiceKind, choiceDefinition)),
       encounterNumber: 1,
       clearsZone: true,
       endsAct: false,
@@ -70,7 +70,7 @@
   }
 
   const opportunityResolvers = {
-    shrine_opportunity(run, actNumber) {
+    shrine_opportunity(run: RunState, actNumber: number) {
       const { shrineOpportunityDefinition, shrineRecord, variant } =
         getWorldNodeVariantsApi().resolveShrineOpportunityVariant(run, actNumber);
       return {
@@ -79,7 +79,7 @@
         contextLines: [`Earlier shrine result: ${shrineRecord.outcomeTitle}.`],
       };
     },
-    crossroad_opportunity(run, actNumber) {
+    crossroad_opportunity(run: RunState, actNumber: number) {
       const { crossroadOpportunityDefinition, questRecord, shrineRecord, variant } =
         getWorldNodeVariantsApi().resolveCrossroadOpportunityVariant(run, actNumber);
       return {
@@ -91,7 +91,7 @@
         ],
       };
     },
-    reserve_opportunity(run, actNumber) {
+    reserve_opportunity(run: RunState, actNumber: number) {
       const { reserveOpportunityDefinition, opportunityRecord, shrineOpportunityRecord, crossroadOpportunityRecord, variant } =
         getWorldNodeVariantsApi().resolveReserveOpportunityVariant(run, actNumber);
       return {
@@ -104,7 +104,7 @@
         ],
       };
     },
-    relay_opportunity(run, actNumber) {
+    relay_opportunity(run: RunState, actNumber: number) {
       const { relayOpportunityDefinition, reserveOpportunityRecord, variant } =
         getWorldNodeVariantsApi().resolveRelayOpportunityVariant(run, actNumber);
       return {
@@ -113,7 +113,7 @@
         contextLines: [`Earlier reserve lane: ${reserveOpportunityRecord.outcomeTitle}.`],
       };
     },
-    culmination_opportunity(run, actNumber) {
+    culmination_opportunity(run: RunState, actNumber: number) {
       const { culminationOpportunityDefinition, questRecord, relayOpportunityRecord, variant } =
         getWorldNodeVariantsApi().resolveCulminationOpportunityVariant(run, actNumber);
       return {
@@ -125,7 +125,7 @@
         ],
       };
     },
-    legacy_opportunity(run, actNumber) {
+    legacy_opportunity(run: RunState, actNumber: number) {
       const { legacyOpportunityDefinition, questRecord, culminationOpportunityRecord, variant } =
         getWorldNodeVariantsApi().resolveLegacyOpportunityVariant(run, actNumber);
       return {
@@ -137,7 +137,7 @@
         ],
       };
     },
-    reckoning_opportunity(run, actNumber) {
+    reckoning_opportunity(run: RunState, actNumber: number) {
       const { reckoningOpportunityDefinition, questRecord, reserveOpportunityRecord, culminationOpportunityRecord, variant } =
         getWorldNodeVariantsApi().resolveReckoningOpportunityVariant(run, actNumber);
       return {
@@ -150,7 +150,7 @@
         ],
       };
     },
-    recovery_opportunity(run, actNumber) {
+    recovery_opportunity(run: RunState, actNumber: number) {
       const { recoveryOpportunityDefinition, questRecord, shrineOpportunityRecord, culminationOpportunityRecord, variant } =
         getWorldNodeVariantsApi().resolveRecoveryOpportunityVariant(run, actNumber);
       return {
@@ -163,7 +163,7 @@
         ],
       };
     },
-    accord_opportunity(run, actNumber) {
+    accord_opportunity(run: RunState, actNumber: number) {
       const {
         accordOpportunityDefinition,
         questRecord,
@@ -183,7 +183,7 @@
         ],
       };
     },
-    covenant_opportunity(run, actNumber) {
+    covenant_opportunity(run: RunState, actNumber: number) {
       const {
         covenantOpportunityDefinition,
         questRecord,
@@ -205,7 +205,7 @@
         ],
       };
     },
-    detour_opportunity(run, actNumber) {
+    detour_opportunity(run: RunState, actNumber: number) {
       const {
         accordOpportunityRecord,
         covenantOpportunityRecord,
@@ -225,7 +225,7 @@
         ],
       };
     },
-    escalation_opportunity(run, actNumber) {
+    escalation_opportunity(run: RunState, actNumber: number) {
       const {
         covenantOpportunityRecord,
         escalationOpportunityDefinition,
@@ -247,7 +247,7 @@
     },
   };
 
-  function buildZoneReward({ run, zone }) {
+  function buildZoneReward({ run, zone }: { run: RunState; zone: ZoneState }) {
     const actNumber = zone?.actNumber || run?.actNumber || 1;
 
     if (zone.kind === "quest") {
@@ -263,7 +263,7 @@
           `${zone.title} is now clear.`,
         ],
         grants: { ...definition.grants },
-        choices: definition.choices.map((choiceDefinition) => buildChoice("quest", choiceDefinition)),
+        choices: definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => buildChoice("quest", choiceDefinition)),
         encounterNumber: 1,
         clearsZone: true,
         endsAct: false,
@@ -286,7 +286,7 @@
           `${zone.title} is now clear.`,
         ],
         grants: { ...definition.grants },
-        choices: definition.choices.map((choiceDefinition) => buildChoice("shrine", choiceDefinition)),
+        choices: definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => buildChoice("shrine", choiceDefinition)),
         encounterNumber: 1,
         clearsZone: true,
         endsAct: false,
@@ -304,7 +304,7 @@
     }
 
     if (zone.kind === "opportunity") {
-      const resolver = opportunityResolvers[zone.nodeType];
+      const resolver = (opportunityResolvers as Record<string, (typeof opportunityResolvers)[keyof typeof opportunityResolvers]>)[zone.nodeType as string];
       if (resolver) {
         const { definition, variant, contextLines } = resolver(run, actNumber);
         return buildNodeReward(run, zone, definition, variant, "opportunity", contextLines);
@@ -318,7 +318,7 @@
     ]);
   }
 
-  function applyChoice(run, reward, choice) {
+  function applyChoice(run: RunState, reward: RunReward, choice: RewardChoice) {
     if (!runtimeWindow.ROUGE_WORLD_NODE_OUTCOMES) {
       return { ok: false, message: "World-node outcome helper is unavailable." };
     }

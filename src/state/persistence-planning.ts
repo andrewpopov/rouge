@@ -32,12 +32,12 @@
     return overview;
   }
 
-  function getPlanningRunewordLabel(runewordId, content = null) {
+  function getPlanningRunewordLabel(runewordId: string, content: GameContent | null = null) {
     return (content?.runewordCatalog?.[runewordId]?.name || runewordId || "").trim();
   }
 
-  function getPlanningRunewordListLabel(runewordIds, content = null) {
-    const labels = uniqueStrings((Array.isArray(runewordIds) ? runewordIds : []).map((runewordId) => getPlanningRunewordLabel(runewordId, content)));
+  function getPlanningRunewordListLabel(runewordIds: string[], content: GameContent | null = null) {
+    const labels = uniqueStrings((Array.isArray(runewordIds) ? runewordIds : []).map((runewordId: string) => getPlanningRunewordLabel(runewordId, content)));
     if (labels.length === 0) {
       return "no charter targets";
     }
@@ -51,11 +51,11 @@
   }
 
   function buildPlanningCharterSummary(
-    profile,
-    runewordId,
-    slot,
-    historySummary,
-    content = null
+    profile: ProfileState | null,
+    runewordId: string,
+    slot: string,
+    historySummary: { archivedRunCount: number; completedRunCount: number; bestActsCleared: number; completedEntries: RunHistoryEntry[] },
+    content: GameContent | null = null
   ): ProfilePlanningCharterSummary | null {
     if (!runewordId) {
       return null;
@@ -71,9 +71,9 @@
 
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
     const compatibleBases = entries
-      .filter((entry) => entry?.kind === "equipment" && entry?.equipment && !entry.equipment.runewordId)
-      .map((entry) => {
-        const equipment = entry.equipment;
+      .filter((entry: InventoryEntry) => entry?.kind === "equipment" && (entry as InventoryEquipmentEntry)?.equipment && !(entry as InventoryEquipmentEntry).equipment.runewordId)
+      .map((entry: InventoryEntry) => {
+        const equipment = (entry as InventoryEquipmentEntry).equipment;
         const item =
           itemCatalog?.getItemDefinition?.(content, equipment?.itemId || "") ||
           (content?.itemCatalog ? content.itemCatalog[equipment?.itemId || ""] || null : null);
@@ -101,7 +101,7 @@
     const bestCompletedEntry =
       historySummary.completedEntries
         .slice()
-        .sort((left, right) => {
+        .sort((left: RunHistoryEntry, right: RunHistoryEntry) => {
           if (toNumber(left?.actsCleared, 0) !== toNumber(right?.actsCleared, 0)) {
             return toNumber(right?.actsCleared, 0) - toNumber(left?.actsCleared, 0);
           }
@@ -168,25 +168,25 @@
     };
   }
 
-  function buildPlanningOverviewSummary(charters, content = null): ProfilePlanningOverviewSummary {
-    const activeCharters = (Array.isArray(charters) ? charters : []).filter(Boolean);
+  function buildPlanningOverviewSummary(charters: (ProfilePlanningCharterSummary | null)[], content: GameContent | null = null): ProfilePlanningOverviewSummary {
+    const activeCharters = (Array.isArray(charters) ? charters : []).filter(Boolean) as ProfilePlanningCharterSummary[];
     if (activeCharters.length === 0) {
       return createDefaultPlanningOverview();
     }
 
-    const compatibleCharters = activeCharters.filter((charter) => charter.compatibleBaseCount > 0);
-    const preparedCharters = activeCharters.filter((charter) => charter.preparedBaseCount > 0 && !charter.hasReadyBase);
-    const readyCharters = activeCharters.filter((charter) => charter.hasReadyBase);
-    const missingBaseCharters = activeCharters.filter((charter) => charter.compatibleBaseCount === 0);
-    const fulfilledCharters = activeCharters.filter((charter) => toNumber(charter.completedRunCount, 0) > 0);
-    const socketCommissionCharters = activeCharters.filter((charter) => charter.compatibleBaseCount > 0 && toNumber(charter.bestBaseSocketGap, 0) > 0);
-    const repeatForgeReadyCharters = activeCharters.filter((charter) => charter.repeatForgeReady);
-    const compatibleRunewordIds = compatibleCharters.map((charter) => charter.runewordId);
-    const preparedRunewordIds = preparedCharters.map((charter) => charter.runewordId);
-    const readyRunewordIds = readyCharters.map((charter) => charter.runewordId);
-    const missingBaseRunewordIds = missingBaseCharters.map((charter) => charter.runewordId);
-    const fulfilledRunewordIds = fulfilledCharters.map((charter) => charter.runewordId);
-    const readyFulfilledRunewordIds = readyCharters.filter((charter) => toNumber(charter.completedRunCount, 0) > 0).map((charter) => charter.runewordId);
+    const compatibleCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => charter.compatibleBaseCount > 0);
+    const preparedCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => charter.preparedBaseCount > 0 && !charter.hasReadyBase);
+    const readyCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => charter.hasReadyBase);
+    const missingBaseCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => charter.compatibleBaseCount === 0);
+    const fulfilledCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => toNumber(charter.completedRunCount, 0) > 0);
+    const socketCommissionCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => charter.compatibleBaseCount > 0 && toNumber(charter.bestBaseSocketGap, 0) > 0);
+    const repeatForgeReadyCharters = activeCharters.filter((charter: ProfilePlanningCharterSummary) => charter.repeatForgeReady);
+    const compatibleRunewordIds = compatibleCharters.map((charter: ProfilePlanningCharterSummary) => charter.runewordId);
+    const preparedRunewordIds = preparedCharters.map((charter: ProfilePlanningCharterSummary) => charter.runewordId);
+    const readyRunewordIds = readyCharters.map((charter: ProfilePlanningCharterSummary) => charter.runewordId);
+    const missingBaseRunewordIds = missingBaseCharters.map((charter: ProfilePlanningCharterSummary) => charter.runewordId);
+    const fulfilledRunewordIds = fulfilledCharters.map((charter: ProfilePlanningCharterSummary) => charter.runewordId);
+    const readyFulfilledRunewordIds = readyCharters.filter((charter: ProfilePlanningCharterSummary) => toNumber(charter.completedRunCount, 0) > 0).map((charter: ProfilePlanningCharterSummary) => charter.runewordId);
 
     const overview: ProfilePlanningOverviewSummary = {
       compatibleCharterCount: compatibleCharters.length,
@@ -195,16 +195,16 @@
       missingBaseCharterCount: missingBaseCharters.length,
       socketCommissionCharterCount: socketCommissionCharters.length,
       repeatForgeReadyCharterCount: repeatForgeReadyCharters.length,
-      trackedBaseCount: compatibleCharters.reduce((total, charter) => total + toNumber(charter.compatibleBaseCount, 0), 0),
-      highestTrackedBaseTier: compatibleCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestBaseTier, 0)), 0),
-      totalSocketStepsRemaining: socketCommissionCharters.reduce((total, charter) => total + toNumber(charter.bestBaseSocketGap, 0), 0),
+      trackedBaseCount: compatibleCharters.reduce((total: number, charter: ProfilePlanningCharterSummary) => total + toNumber(charter.compatibleBaseCount, 0), 0),
+      highestTrackedBaseTier: compatibleCharters.reduce((highest: number, charter: ProfilePlanningCharterSummary) => Math.max(highest, toNumber(charter.bestBaseTier, 0)), 0),
+      totalSocketStepsRemaining: socketCommissionCharters.reduce((total: number, charter: ProfilePlanningCharterSummary) => total + toNumber(charter.bestBaseSocketGap, 0), 0),
       compatibleRunewordIds,
       preparedRunewordIds,
       readyRunewordIds,
       missingBaseRunewordIds,
       fulfilledRunewordIds,
-      bestFulfilledActsCleared: fulfilledCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestActsCleared, 0)), 0),
-      bestFulfilledLoadoutTier: fulfilledCharters.reduce((highest, charter) => Math.max(highest, toNumber(charter.bestCompletedLoadoutTier, 0)), 0),
+      bestFulfilledActsCleared: fulfilledCharters.reduce((highest: number, charter: ProfilePlanningCharterSummary) => Math.max(highest, toNumber(charter.bestActsCleared, 0)), 0),
+      bestFulfilledLoadoutTier: fulfilledCharters.reduce((highest: number, charter: ProfilePlanningCharterSummary) => Math.max(highest, toNumber(charter.bestCompletedLoadoutTier, 0)), 0),
       nextAction: "hunt_bases",
       nextActionLabel: "Hunt Bases",
       nextActionSummary: `Pinned charters still lack a compatible parked base: ${getPlanningRunewordListLabel(missingBaseRunewordIds, content)}.`,
@@ -246,12 +246,12 @@
     return overview;
   }
 
-  function buildPlanningSummary(profile, content = null): ProfilePlanningSummary {
+  function buildPlanningSummary(profile: ProfileState | null, content: GameContent | null = null): ProfilePlanningSummary {
     sanitizePlanningState(profile, content);
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
     const weaponRunewordId = typeof profile?.meta?.planning?.weaponRunewordId === "string" ? profile.meta.planning.weaponRunewordId : "";
     const armorRunewordId = typeof profile?.meta?.planning?.armorRunewordId === "string" ? profile.meta.planning.armorRunewordId : "";
-    const summarizeRuneword = (runewordId, slotKey) => {
+    const summarizeRuneword = (runewordId: string, slotKey: string) => {
       if (!runewordId) {
         return {
           archivedRunCount: 0,
@@ -261,14 +261,14 @@
         };
       }
 
-      const archivedEntries = history.filter((entry) => entry?.[slotKey] === runewordId);
-      const completedEntries = archivedEntries.filter((entry) => {
+      const archivedEntries = history.filter((entry: RunHistoryEntry) => (entry as unknown as Record<string, unknown>)?.[slotKey] === runewordId);
+      const completedEntries = archivedEntries.filter((entry: RunHistoryEntry) => {
         return Array.isArray(entry?.completedPlannedRunewordIds) && entry.completedPlannedRunewordIds.includes(runewordId);
       });
       return {
         archivedRunCount: archivedEntries.length,
         completedRunCount: completedEntries.length,
-        bestActsCleared: completedEntries.reduce((highest, entry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
+        bestActsCleared: completedEntries.reduce((highest: number, entry: RunHistoryEntry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
         completedEntries,
       };
     };

@@ -203,7 +203,7 @@
       favoredTreeId: "",
       favoredTreeName: "",
       planningArchiveCount: 0,
-      recentFeatureIds: [],
+      recentFeatureIds: [] as string[],
     };
     const stashEntries = stashSummary.entryCount;
     const runHistoryCount = archiveSummary.entryCount;
@@ -218,7 +218,7 @@
       totalBossesDefeated: 0,
       totalGoldCollected: 0,
       totalRunewordsForged: 0,
-      classesPlayed: [],
+      classesPlayed: [] as string[],
       preferredClassId: "",
     };
     const unlocks = appState.profile?.meta?.unlocks || {
@@ -393,7 +393,7 @@
       latestClassName: "",
       latestOutcome: "",
     };
-    const unlocks = appState.profile?.meta?.unlocks || { classIds: [], bossIds: [], runewordIds: [] };
+    const unlocks = appState.profile?.meta?.unlocks || { classIds: [] as string[], bossIds: [] as string[], runewordIds: [] as string[] };
     const unlockTotal = (unlocks.classIds?.length || 0) + (unlocks.bossIds?.length || 0) + (unlocks.runewordIds?.length || 0);
     const stashEntries = accountSummary.stash?.entryCount || 0;
 

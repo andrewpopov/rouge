@@ -24,11 +24,11 @@
 
   const ECONOMY_LEDGER_GOLD_MULTIPLIER = 1.25;
 
-  function hasTownFeature(profile, featureId) {
+  function hasTownFeature(profile: ProfileState | null | undefined, featureId: string) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
   }
 
-  function scaleEncounterRewardGrants(grants, profile) {
+  function scaleEncounterRewardGrants(grants: RewardGrants, profile: ProfileState | null | undefined) {
     if (!hasTownFeature(profile, "economy_ledger")) {
       return { ...grants };
     }
@@ -39,7 +39,7 @@
     };
   }
 
-  function buildEncounterReward({ run, zone, combatState, content, profile = null }) {
+  function buildEncounterReward({ run, zone, combatState, content, profile = null }: { run: RunState; zone: ZoneState; combatState: CombatState; content: GameContent; profile?: ProfileState | null }) {
     const currentAct = getCurrentAct(run);
     const nextEncounterNumber = zone.encountersCleared + 1;
     const clearsZone = nextEncounterNumber >= zone.encounterTotal;
@@ -52,7 +52,7 @@
       boss: { gold: BOSS_BASE_GOLD + actScale * BOSS_GOLD_PER_ACT, xp: BOSS_BASE_XP + actScale * BOSS_XP_PER_ACT, potions: BOSS_POTION_CHARGES },
     };
 
-    const grants = scaleEncounterRewardGrants(rewardByKind[zone.kind] || rewardByKind.battle, profile);
+    const grants = scaleEncounterRewardGrants((rewardByKind as Record<string, RewardGrants>)[zone.kind] || rewardByKind.battle, profile);
     const lines = [`+${grants.gold} gold`, `+${grants.xp} experience`];
 
     if (grants.potions > 0) {
@@ -101,14 +101,14 @@
     };
   }
 
-  function applyReward(run, reward, choiceId, content) {
+  function applyReward(run: RunState, reward: RunReward, choiceId: string, content: GameContent) {
     const zone = getZoneById(run, reward.zoneId);
     if (!zone) {
       return { ok: false, message: "Reward zone no longer exists." };
     }
 
     const rewardEngine = runtimeWindow.ROUGE_REWARD_ENGINE;
-    const choice = reward.choices.find((entry) => entry.id === choiceId) || reward.choices[0] || null;
+    const choice = reward.choices.find((entry: RewardChoice) => entry.id === choiceId) || reward.choices[0] || null;
     if (!choice) {
       return { ok: false, message: "Reward choice is missing." };
     }
@@ -125,9 +125,9 @@
       return choiceResult;
     }
 
-    const goldGain = Number.parseInt(reward.grants?.gold, 10) || 0;
-    const xpGain = Number.parseInt(reward.grants?.xp, 10) || 0;
-    const potionGain = Number.parseInt(reward.grants?.potions, 10) || 0;
+    const goldGain = Number.parseInt(String(reward.grants?.gold), 10) || 0;
+    const xpGain = Number.parseInt(String(reward.grants?.xp), 10) || 0;
+    const potionGain = Number.parseInt(String(reward.grants?.potions), 10) || 0;
     const previousLevel = run.level;
     run.gold += goldGain;
     run.xp += xpGain;
@@ -165,15 +165,15 @@
     return { ok: true };
   }
 
-  function actIsComplete(run) {
+  function actIsComplete(run: RunState) {
     return Boolean(getCurrentAct(run)?.complete);
   }
 
-  function runIsComplete(run) {
+  function runIsComplete(run: RunState) {
     return actIsComplete(run) && run.currentActIndex >= run.acts.length - 1;
   }
 
-  function advanceToNextAct(run, content) {
+  function advanceToNextAct(run: RunState, content: GameContent) {
     if (!actIsComplete(run) || run.currentActIndex >= run.acts.length - 1) {
       return false;
     }

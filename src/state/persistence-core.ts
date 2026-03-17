@@ -17,14 +17,14 @@
     return runtimeWindow.localStorage || null;
   }
 
-  function getMilestoneTierLabel(milestone) {
+  function getMilestoneTierLabel(milestone: { isCapstone?: boolean; tier?: number } | null) {
     if (milestone?.isCapstone) {
       return "Capstone";
     }
     return `Tier ${Math.max(1, toNumber(milestone?.tier, 1))}`;
   }
 
-  function sanitizePlannedRunewordId(runewordId, slot, content = null) {
+  function sanitizePlannedRunewordId(runewordId: unknown, slot: string, content: GameContent | null = null) {
     if (typeof runewordId !== "string" || !runewordId) {
       return "";
     }
@@ -35,7 +35,7 @@
     return runeword?.slot === slot ? runeword.id : "";
   }
 
-  function sanitizeRunHistoryPlanningEntry(entry, content = null) {
+  function sanitizeRunHistoryPlanningEntry(entry: RunHistoryEntry, content: GameContent | null = null) {
     if (!entry || !content?.runewordCatalog) {
       return;
     }
@@ -45,27 +45,27 @@
     const allowedRunewordIds = new Set([plannedWeaponRunewordId, plannedArmorRunewordId].filter(Boolean));
     entry.plannedWeaponRunewordId = plannedWeaponRunewordId;
     entry.plannedArmorRunewordId = plannedArmorRunewordId;
-    entry.completedPlannedRunewordIds = uniqueStrings((entry.completedPlannedRunewordIds || []).filter((runewordId) => allowedRunewordIds.has(runewordId)));
+    entry.completedPlannedRunewordIds = uniqueStrings((entry.completedPlannedRunewordIds || []).filter((runewordId: string) => allowedRunewordIds.has(runewordId)));
   }
 
-  function sanitizePlanningState(profile, content = null) {
+  function sanitizePlanningState(profile: ProfileState, content: GameContent | null = null) {
     if (!profile?.meta?.planning || !content?.runewordCatalog) {
       return;
     }
 
     profile.meta.planning.weaponRunewordId = sanitizePlannedRunewordId(profile.meta.planning.weaponRunewordId, "weapon", content);
     profile.meta.planning.armorRunewordId = sanitizePlannedRunewordId(profile.meta.planning.armorRunewordId, "armor", content);
-    (Array.isArray(profile.runHistory) ? profile.runHistory : []).forEach((entry) => sanitizeRunHistoryPlanningEntry(entry, content));
+    (Array.isArray(profile.runHistory) ? profile.runHistory : []).forEach((entry: RunHistoryEntry) => sanitizeRunHistoryPlanningEntry(entry, content));
   }
 
-  function getAccountFeatureTitle(featureId) {
+  function getAccountFeatureTitle(featureId: string) {
     for (let treeIndex = 0; treeIndex < ACCOUNT_PROGRESSION_TREES.length; treeIndex += 1) {
-      const milestone = ACCOUNT_PROGRESSION_TREES[treeIndex].nodes.find((entry) => entry.id === featureId || entry.rewardFeatureId === featureId);
+      const milestone = ACCOUNT_PROGRESSION_TREES[treeIndex].nodes.find((entry: { id: string; rewardFeatureId: string }) => entry.id === featureId || entry.rewardFeatureId === featureId);
       if (milestone?.title) {
         return milestone.title;
       }
     }
-    const convergence = ACCOUNT_CONVERGENCES.find((entry) => entry.id === featureId || entry.rewardFeatureId === featureId);
+    const convergence = ACCOUNT_CONVERGENCES.find((entry: { id: string; rewardFeatureId: string }) => entry.id === featureId || entry.rewardFeatureId === featureId);
     return convergence?.title || featureId;
   }
 
@@ -83,20 +83,20 @@
         totalBossesDefeated: 0,
         totalGoldCollected: 0,
         totalRunewordsForged: 0,
-        classesPlayed: [],
+        classesPlayed: [] as string[],
         preferredClassId: "",
         lastPlayedClassId: "",
       },
       unlocks: {
-        classIds: [],
-        bossIds: [],
-        runewordIds: [],
+        classIds: [] as string[],
+        bossIds: [] as string[],
+        runewordIds: [] as string[],
         townFeatureIds: [...CORE_TOWN_FEATURE_IDS],
       },
       tutorials: {
-        seenIds: [],
-        completedIds: [],
-        dismissedIds: [],
+        seenIds: [] as string[],
+        completedIds: [] as string[],
+        dismissedIds: [] as string[],
       },
       planning: {
         weaponRunewordId: "",
@@ -108,7 +108,7 @@
     };
   }
 
-  function createSnapshot({ phase, selectedClassId, selectedMercenaryId, run }) {
+  function createSnapshot({ phase, selectedClassId, selectedMercenaryId, run }: { phase: string; selectedClassId: string; selectedMercenaryId: string; run: RunState }) {
     return {
       schemaVersion: SCHEMA_VERSION,
       savedAt: new Date().toISOString(),
@@ -121,22 +121,22 @@
 
   function createEmptyProfile() {
     return {
-      activeRunSnapshot: null,
+      activeRunSnapshot: null as RunSnapshotEnvelope | null,
       stash: {
-        entries: [],
+        entries: [] as InventoryEntry[],
       },
-      runHistory: [],
+      runHistory: [] as RunHistoryEntry[],
       meta: createDefaultMeta(),
     };
   }
 
-  function buildProfileMetrics(profile) {
+  function buildProfileMetrics(profile: ProfileState | null) {
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
     const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
     return {
       runHistoryCount: history.length,
-      completedRuns: history.filter((entry) => entry?.outcome === "completed").length,
-      failedRuns: history.filter((entry) => entry?.outcome === "failed").length,
+      completedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === "completed").length,
+      failedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === "failed").length,
       highestLevel: toNumber(profile?.meta?.progression?.highestLevel, 1),
       highestActCleared: toNumber(profile?.meta?.progression?.highestActCleared, 0),
       totalBossesDefeated: toNumber(profile?.meta?.progression?.totalBossesDefeated, 0),
@@ -146,21 +146,21 @@
       unlockedBossCount: Array.isArray(profile?.meta?.unlocks?.bossIds) ? profile.meta.unlocks.bossIds.length : 0,
       unlockedRunewordCount: Array.isArray(profile?.meta?.unlocks?.runewordIds) ? profile.meta.unlocks.runewordIds.length : 0,
       stashEntryCount: stashEntries.length,
-      stashEquipmentCount: stashEntries.filter((entry) => entry?.kind === "equipment").length,
-      stashRuneCount: stashEntries.filter((entry) => entry?.kind === "rune").length,
+      stashEquipmentCount: stashEntries.filter((entry: InventoryEntry) => entry?.kind === "equipment").length,
+      stashRuneCount: stashEntries.filter((entry: InventoryEntry) => entry?.kind === "rune").length,
     };
   }
 
-  function listAccountMilestoneSummaries(profile) {
+  function listAccountMilestoneSummaries(profile: ProfileState | null) {
     const metrics = buildProfileMetrics(profile);
-    return ACCOUNT_PROGRESSION_TREES.flatMap((tree) => {
-      const unlockedMilestoneIds = new Set();
-      return tree.nodes.map((milestone) => {
+    return ACCOUNT_PROGRESSION_TREES.flatMap((tree: { id: string; title: string; description: string; nodes: { id: string; title: string; description: string; rewardFeatureId: string; tier: number; isCapstone?: boolean; prerequisiteIds: string[]; target: number; getProgress: (metrics: Record<string, number>) => number }[] }) => {
+      const unlockedMilestoneIds = new Set<string>();
+      return tree.nodes.map((milestone: { id: string; title: string; description: string; rewardFeatureId: string; tier: number; isCapstone?: boolean; prerequisiteIds: string[]; target: number; getProgress: (metrics: Record<string, number>) => number }) => {
         const progress = Math.max(0, toNumber(milestone.getProgress(metrics), 0));
         const prerequisiteIds = uniqueStrings(milestone.prerequisiteIds || []);
-        const blockedByIds = prerequisiteIds.filter((milestoneId) => !unlockedMilestoneIds.has(milestoneId));
-        const blockedByTitles = blockedByIds.map((milestoneId) => {
-          return tree.nodes.find((treeMilestone) => treeMilestone.id === milestoneId)?.title || milestoneId;
+        const blockedByIds = prerequisiteIds.filter((milestoneId: string) => !unlockedMilestoneIds.has(milestoneId));
+        const blockedByTitles = blockedByIds.map((milestoneId: string) => {
+          return tree.nodes.find((treeMilestone: { id: string; title?: string }) => treeMilestone.id === milestoneId)?.title || milestoneId;
         });
         const unlocked = blockedByIds.length === 0 && progress >= milestone.target;
         if (unlocked) {
@@ -195,25 +195,25 @@
     });
   }
 
-  function getDefaultFocusedTreeId(profile) {
+  function getDefaultFocusedTreeId(profile: ProfileState | null) {
     const milestones = listAccountMilestoneSummaries(profile);
-    const firstIncompleteTree = ACCOUNT_PROGRESSION_TREES.find((tree) => {
-      return milestones.some((milestone) => milestone.treeId === tree.id && !milestone.unlocked);
+    const firstIncompleteTree = ACCOUNT_PROGRESSION_TREES.find((tree: { id: string }) => {
+      return milestones.some((milestone: ProfileAccountMilestoneSummary) => milestone.treeId === tree.id && !milestone.unlocked);
     });
     return firstIncompleteTree?.id || ACCOUNT_PROGRESSION_TREES[0].id;
   }
 
-  function getFocusedTreeId(profile) {
+  function getFocusedTreeId(profile: ProfileState | null) {
     const focusedTreeId = typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
-    return ACCOUNT_PROGRESSION_TREES.some((tree) => tree.id === focusedTreeId) ? focusedTreeId : getDefaultFocusedTreeId(profile);
+    return ACCOUNT_PROGRESSION_TREES.some((tree: { id: string }) => tree.id === focusedTreeId) ? focusedTreeId : getDefaultFocusedTreeId(profile);
   }
 
-  function getAccountTreeSummaries(profile) {
+  function getAccountTreeSummaries(profile: ProfileState | null) {
     const milestones = listAccountMilestoneSummaries(profile);
     const focusedTreeId = getFocusedTreeId(profile);
-    return ACCOUNT_PROGRESSION_TREES.map((tree) => {
-      const treeMilestones = milestones.filter((milestone) => milestone.treeId === tree.id);
-      const nextMilestone = treeMilestones.find((milestone) => milestone.status === "available") || treeMilestones.find((milestone) => !milestone.unlocked) || null;
+    return ACCOUNT_PROGRESSION_TREES.map((tree: { id: string; title: string; description: string }) => {
+      const treeMilestones = milestones.filter((milestone: ProfileAccountMilestoneSummary) => milestone.treeId === tree.id);
+      const nextMilestone = treeMilestones.find((milestone: ProfileAccountMilestoneSummary) => milestone.status === "available") || treeMilestones.find((milestone: ProfileAccountMilestoneSummary) => !milestone.unlocked) || null;
       const capstone = [...treeMilestones].reverse().find((milestone) => milestone.isCapstone) || null;
       const capstoneStatus: ProfileAccountTreeSummary["capstoneStatus"] = capstone?.status || "locked";
       return {
@@ -221,37 +221,37 @@
         title: tree.title,
         description: tree.description,
         isFocused: tree.id === focusedTreeId,
-        currentRank: treeMilestones.filter((milestone) => milestone.unlocked).length,
+        currentRank: treeMilestones.filter((milestone: ProfileAccountMilestoneSummary) => milestone.unlocked).length,
         maxRank: treeMilestones.length,
-        eligibleMilestoneCount: treeMilestones.filter((milestone) => milestone.isEligible && !milestone.unlocked).length,
-        blockedMilestoneCount: treeMilestones.filter((milestone) => !milestone.isEligible && !milestone.unlocked).length,
+        eligibleMilestoneCount: treeMilestones.filter((milestone: ProfileAccountMilestoneSummary) => milestone.isEligible && !milestone.unlocked).length,
+        blockedMilestoneCount: treeMilestones.filter((milestone: ProfileAccountMilestoneSummary) => !milestone.isEligible && !milestone.unlocked).length,
         nextMilestoneId: nextMilestone?.id || "",
         nextMilestoneTitle: nextMilestone?.title || "",
         capstoneId: capstone?.id || "",
         capstoneTitle: capstone?.title || "",
         capstoneUnlocked: Boolean(capstone?.unlocked),
         capstoneStatus,
-        unlockedFeatureIds: treeMilestones.filter((milestone) => milestone.unlocked).map((milestone) => milestone.rewardFeatureId),
+        unlockedFeatureIds: treeMilestones.filter((milestone: ProfileAccountMilestoneSummary) => milestone.unlocked).map((milestone: ProfileAccountMilestoneSummary) => milestone.rewardFeatureId),
         milestones: treeMilestones,
       };
     });
   }
 
-  function listUnlockedMilestoneFeatureIds(profile) {
+  function listUnlockedMilestoneFeatureIds(profile: ProfileState | null) {
     return uniqueStrings(
       listAccountMilestoneSummaries(profile)
-        .filter((milestone) => milestone.unlocked)
-        .map((milestone) => milestone.rewardFeatureId)
+        .filter((milestone: ProfileAccountMilestoneSummary) => milestone.unlocked)
+        .map((milestone: ProfileAccountMilestoneSummary) => milestone.rewardFeatureId)
     );
   }
 
-  function getAccountConvergenceSummaries(profile) {
+  function getAccountConvergenceSummaries(profile: ProfileState | null) {
     const unlockedMilestoneFeatureIds = listUnlockedMilestoneFeatureIds(profile);
     const availableFeatureIds = new Set(uniqueStrings([...(profile?.meta?.unlocks?.townFeatureIds || []), ...unlockedMilestoneFeatureIds]));
-    return ACCOUNT_CONVERGENCES.map((convergence) => {
+    return ACCOUNT_CONVERGENCES.map((convergence: { id: string; title: string; description: string; rewardFeatureId: string; effectSummary: string; requiredFeatureIds: string[] }) => {
       const requiredFeatureIds = uniqueStrings(convergence.requiredFeatureIds || []);
-      const unlockedRequirementCount = requiredFeatureIds.filter((featureId) => availableFeatureIds.has(featureId)).length;
-      const missingFeatureIds = requiredFeatureIds.filter((featureId) => !availableFeatureIds.has(featureId));
+      const unlockedRequirementCount = requiredFeatureIds.filter((featureId: string) => availableFeatureIds.has(featureId)).length;
+      const missingFeatureIds = requiredFeatureIds.filter((featureId: string) => !availableFeatureIds.has(featureId));
       const unlocked = availableFeatureIds.has(convergence.rewardFeatureId) || missingFeatureIds.length === 0;
       let status: ProfileAccountConvergenceSummary["status"] = "locked";
       if (unlocked) {
@@ -271,18 +271,18 @@
         unlockedRequirementCount,
         requiredFeatureCount: requiredFeatureIds.length,
         requiredFeatureIds,
-        requiredFeatureTitles: requiredFeatureIds.map((featureId) => getAccountFeatureTitle(featureId)),
+        requiredFeatureTitles: requiredFeatureIds.map((featureId: string) => getAccountFeatureTitle(featureId)),
         missingFeatureIds,
-        missingFeatureTitles: missingFeatureIds.map((featureId) => getAccountFeatureTitle(featureId)),
+        missingFeatureTitles: missingFeatureIds.map((featureId: string) => getAccountFeatureTitle(featureId)),
       };
     });
   }
 
-  function hasAccountFeature(profile, featureId) {
+  function hasAccountFeature(profile: ProfileState | null, featureId: string) {
     return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
   }
 
-  function getRunHistoryCapacity(profile) {
+  function getRunHistoryCapacity(profile: ProfileState | null) {
     const archiveFocusActive = getFocusedTreeId(profile) === "archives" && hasAccountFeature(profile, "archive_ledger");
     return (
       20 +
@@ -301,17 +301,17 @@
     );
   }
 
-  function applyDerivedAccountUnlocks(profile) {
+  function applyDerivedAccountUnlocks(profile: ProfileState) {
     const unlockedMilestoneFeatureIds = listUnlockedMilestoneFeatureIds(profile);
     const unlockedFeatureIds = uniqueStrings([...(profile.meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS, ...unlockedMilestoneFeatureIds]);
     const unlockedFeatureIdSet = new Set(unlockedFeatureIds);
-    const unlockedConvergenceFeatureIds = ACCOUNT_CONVERGENCES.filter((convergence) => {
-      return uniqueStrings(convergence.requiredFeatureIds || []).every((featureId) => unlockedFeatureIdSet.has(featureId));
-    }).map((convergence) => convergence.rewardFeatureId);
+    const unlockedConvergenceFeatureIds = ACCOUNT_CONVERGENCES.filter((convergence: { requiredFeatureIds: string[]; rewardFeatureId: string }) => {
+      return uniqueStrings(convergence.requiredFeatureIds || []).every((featureId: string) => unlockedFeatureIdSet.has(featureId));
+    }).map((convergence: { rewardFeatureId: string }) => convergence.rewardFeatureId);
     profile.meta.unlocks.townFeatureIds = uniqueStrings([...unlockedFeatureIds, ...unlockedConvergenceFeatureIds]);
   }
 
-  function ensureMeta(profile, content = null) {
+  function ensureMeta(profile: ProfileState, content: GameContent | null = null) {
     const defaultMeta = createDefaultMeta();
     profile.meta = profile.meta || defaultMeta;
     profile.meta.settings = {
@@ -332,7 +332,7 @@
       townFeatureIds: uniqueStrings([...(profile.meta.unlocks?.townFeatureIds || []), ...CORE_TOWN_FEATURE_IDS]),
     };
     const completedTutorialIds = uniqueStrings(profile.meta.tutorials?.completedIds);
-    const dismissedTutorialIds = uniqueStrings((profile.meta.tutorials?.dismissedIds || []).filter((tutorialId) => !completedTutorialIds.includes(tutorialId)));
+    const dismissedTutorialIds = uniqueStrings((profile.meta.tutorials?.dismissedIds || []).filter((tutorialId: string) => !completedTutorialIds.includes(tutorialId)));
     profile.meta.tutorials = {
       ...defaultMeta.tutorials,
       ...(profile.meta.tutorials || {}),
@@ -355,9 +355,9 @@
     applyDerivedAccountUnlocks(profile);
   }
 
-  function createProfileEnvelope(profile, content = null) {
-    if (profile?.profile) {
-      const clonedProfile = deepClone(profile.profile);
+  function createProfileEnvelope(profile: ProfileState | ProfileEnvelope, content: GameContent | null = null) {
+    if ((profile as ProfileEnvelope)?.profile) {
+      const clonedProfile = deepClone((profile as ProfileEnvelope).profile);
       ensureMeta(clonedProfile, content);
       return {
         schemaVersion: PROFILE_SCHEMA_VERSION,
@@ -366,7 +366,7 @@
       };
     }
 
-    const clonedProfile = deepClone(profile || createEmptyProfile());
+    const clonedProfile = deepClone((profile as ProfileState) || createEmptyProfile());
     ensureMeta(clonedProfile, content);
     return {
       schemaVersion: PROFILE_SCHEMA_VERSION,
@@ -375,11 +375,11 @@
     };
   }
 
-  function serializeSnapshot(snapshot) {
+  function serializeSnapshot(snapshot: RunSnapshotEnvelope) {
     return JSON.stringify(snapshot);
   }
 
-  function restoreSnapshot(snapshotOrSerialized) {
+  function restoreSnapshot(snapshotOrSerialized: unknown) {
     try {
       const parsed =
         typeof snapshotOrSerialized === "string" ? JSON.parse(snapshotOrSerialized) : deepClone(snapshotOrSerialized || null);
@@ -389,11 +389,11 @@
     }
   }
 
-  function serializeProfile(profileOrEnvelope, content = null) {
+  function serializeProfile(profileOrEnvelope: ProfileState | ProfileEnvelope, content: GameContent | null = null) {
     return JSON.stringify(createProfileEnvelope(profileOrEnvelope, content));
   }
 
-  function restoreProfile(profileOrSerialized, content = null) {
+  function restoreProfile(profileOrSerialized: unknown, content: GameContent | null = null) {
     try {
       const parsed =
         typeof profileOrSerialized === "string" ? JSON.parse(profileOrSerialized) : deepClone(profileOrSerialized || null);
@@ -403,7 +403,7 @@
     }
   }
 
-  function saveProfileToStorage(profile, storage = getDefaultStorage(), content = null) {
+  function saveProfileToStorage(profile: ProfileState | ProfileEnvelope | string, storage: StorageLike | null = getDefaultStorage(), content: GameContent | null = null) {
     if (!storage?.setItem) {
       return { ok: false, message: "No storage provider is available." };
     }
@@ -424,7 +424,7 @@
     }
   }
 
-  function loadProfileFromStorage(storage = getDefaultStorage(), content = null) {
+  function loadProfileFromStorage(storage: StorageLike | null = getDefaultStorage(), content: GameContent | null = null) {
     if (!storage?.getItem) {
       return null;
     }

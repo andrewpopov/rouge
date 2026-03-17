@@ -2,7 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   function getTrainingRanks(run: RunState): number {
-    return ["vitality", "focus", "command"].reduce((total, track) => {
+    return (["vitality", "focus", "command"] as const).reduce((total, track) => {
       return total + (Number.parseInt(String(run.progression?.training?.[track] ?? 0), 10) || 0);
     }, 0);
   }

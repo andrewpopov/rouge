@@ -28,9 +28,9 @@
   } = runtimeWindow.__ROUGE_ITEM_SYSTEM_REWARDS;
 
   function buildItemChoice(
-    itemId,
-    run,
-    content,
+    itemId: string,
+    run: RunState,
+    content: GameContent,
     options: {
       profile?: ProfileState | null;
       lateActPivot?: boolean;
@@ -49,7 +49,7 @@
     const rarity = options.rarity || "white";
     const rarityBonuses = options.rarityBonuses || {};
     const combinedBonuses = { ...item.bonuses };
-    Object.entries(rarityBonuses).forEach(([k, v]) => { combinedBonuses[k] = (combinedBonuses[k] || 0) + toNumber(v, 0); });
+    Object.entries(rarityBonuses).forEach(([k, v]: [string, number]) => { (combinedBonuses as unknown as Record<string, number>)[k] = ((combinedBonuses as unknown as Record<string, number>)[k] || 0) + toNumber(v, 0); });
     let rarityLabel = "";
     if (rarity === "brown") { rarityLabel = "Unique"; }
     else if (rarity === "yellow") { rarityLabel = "Magic"; }
@@ -141,9 +141,9 @@
     };
   }
 
-  function buildSocketChoice(slot, run, content) {
+  function buildSocketChoice(slot: string, run: RunState, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
-    const equipment = loadout[slot];
+    const equipment = (loadout as unknown as Record<string, RunEquipmentState | null>)[slot];
     if (!equipment) {
       return null;
     }
@@ -163,15 +163,15 @@
         `${item.name} sockets ${equipment.socketsUnlocked}/${item.maxSockets} -> ${equipment.socketsUnlocked + 1}/${item.maxSockets}.`,
         "Existing runes remain in place.",
       ],
-      effects: [{ kind: "add_socket", slot }],
+      effects: [{ kind: "add_socket", slot: slot as "weapon" | "armor" }],
     };
   }
 
-  function buildRuneChoice(runeId, slot, run, content, runeword = null) {
+  function buildRuneChoice(runeId: string, slot: string, run: RunState, content: GameContent, runeword: RuntimeRunewordDefinition | null = null) {
     const rune = getRuneDefinition(content, runeId);
     const loadout = buildHydratedLoadout(run, content);
-    const equipment = loadout[slot];
-    if (!rune || !equipment || !isRuneAllowedInSlot(rune, slot)) {
+    const equipment = (loadout as unknown as Record<string, RunEquipmentState | null>)[slot];
+    if (!rune || !equipment || !isRuneAllowedInSlot(rune, slot as "weapon" | "armor")) {
       return null;
     }
 
@@ -184,7 +184,7 @@
 
     if (runeword) {
       const nextSequence = [...equipment.insertedRunes, rune.id]
-        .map((entry) => getRuneDefinition(content, entry)?.name || entry)
+        .map((entry: string) => getRuneDefinition(content, entry)?.name || entry)
         .join(" + ");
       previewLines.push(`Route to ${runeword.name}: ${nextSequence}.`);
     }
@@ -196,16 +196,16 @@
       subtitle: slot === "weapon" ? "Socket Weapon Rune" : "Socket Armor Rune",
       description: rune.summary,
       previewLines,
-      effects: [{ kind: "socket_rune", runeId: rune.id, slot }],
+      effects: [{ kind: "socket_rune", runeId: rune.id, slot: slot as "weapon" | "armor" }],
     };
   }
 
-  function buildChoiceForSlot(slot, run, zone, actNumber, encounterNumber, content, profile = null, rarityOpts: { rarity?: string; rarityBonuses?: ItemBonusSet } = {}) {
+  function buildChoiceForSlot(slot: string, run: RunState, zone: ZoneState | null, actNumber: number, encounterNumber: number, content: GameContent, profile: ProfileState | null = null, rarityOpts: { rarity?: string; rarityBonuses?: ItemBonusSet } = {}): RewardChoice | null {
     const loadout = buildHydratedLoadout(run, content);
-    const equipment = loadout[slot];
+    const equipment = (loadout as unknown as Record<string, RunEquipmentState | null>)[slot];
     const upgradeItem = getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile);
     const plannedRuneword = getPlannedRuneword(slot, profile, content);
-    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
+    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot as "weapon" | "armor", content);
     const planningCharter = getPlanningCharterSummary(profile, slot, content);
 
     if (!equipment) {
@@ -224,7 +224,7 @@
     const item = getItemDefinition(content, equipment.itemId);
     const targetRuneword = equipment.runewordId
       ? null
-      : getPreferredRunewordForEquipment(equipment, run, content, getPlannedRunewordId(profile, slot, content));
+      : getPreferredRunewordForEquipment(equipment, run, content, getPlannedRunewordId(profile, slot as "weapon" | "armor", content));
 
     const planningPivot =
       upgradeItem &&
@@ -283,13 +283,13 @@
     return null;
   }
 
-  function buildEquipmentChoice({ content, run, zone, actNumber, encounterNumber, profile = null }) {
+  function buildEquipmentChoice({ content, run, zone, actNumber, encounterNumber, profile = null }: { content: GameContent; run: RunState; zone: ZoneState | null; actNumber: number; encounterNumber: number; profile?: ProfileState | null }): RewardChoice | null {
     const randomFn = Math.random;
     const rarity = rollItemRarity(zone?.kind || "battle", randomFn);
     const focusSlots = getFocusSlots(run, actNumber, encounterNumber, content);
     for (let index = 0; index < focusSlots.length; index += 1) {
       const slot = focusSlots[index];
-      const upgradeItem = getUpgradeItemForSlot(slot, buildHydratedLoadout(run, content)[slot], actNumber, zone, run, content, profile);
+      const upgradeItem = getUpgradeItemForSlot(slot, (buildHydratedLoadout(run, content) as unknown as Record<string, RunEquipmentState | null>)[slot], actNumber, zone, run, content, profile);
       const itemDef = upgradeItem ? getItemDefinition(content, upgradeItem.id) : null;
       const rarityBonuses = itemDef && rarity !== "white" ? generateRarityBonuses(itemDef, rarity, randomFn) : {};
       const rarityOpts = { rarity, rarityBonuses };

@@ -11,16 +11,16 @@
     hasOpenPlanningCharter,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_PRICING;
 
-  function getCurrentEquipmentTier(equipment, content) {
+  function getCurrentEquipmentTier(equipment: RunEquipmentState | null, content: GameContent) {
     const { getItemDefinition } = runtimeWindow.ROUGE_ITEM_CATALOG;
     return toNumber(getItemDefinition(content, equipment?.itemId || "")?.progressionTier, 0);
   }
 
-  function pickUniqueDefinitions(candidates, options, desiredCount, seed) {
-    const selected = [];
-    const seenIds = new Set();
+  function pickUniqueDefinitions(candidates: ({ id: string } | null)[], options: { id: string }[], desiredCount: number, seed: number) {
+    const selected: { id: string }[] = [];
+    const seenIds = new Set<string>();
 
-    const pushCandidate = (candidate) => {
+    const pushCandidate = (candidate: { id: string } | null) => {
       if (!candidate?.id || seenIds.has(candidate.id)) {
         return;
       }
@@ -37,14 +37,14 @@
     return selected.slice(0, desiredCount);
   }
 
-  function pickVendorEquipmentOffers(slot, run, currentEquipment, options, desiredCount, seed, content, profile = null) {
+  function pickVendorEquipmentOffers(slot: string, run: RunState, currentEquipment: RunEquipmentState | null, options: RuntimeItemDefinition[], desiredCount: number, seed: number, content: GameContent, profile: ProfileState | null = null) {
     if (options.length === 0 || desiredCount <= 0) {
       return [];
     }
 
     const features = getAccountEconomyFeatures(profile);
     const currentTier = getCurrentEquipmentTier(currentEquipment, content);
-    const upgradeOptions = options.filter((item) => item.progressionTier > currentTier);
+    const upgradeOptions = options.filter((item: RuntimeItemDefinition) => item.progressionTier > currentTier);
     const lateBias =
       features.advancedVendorStock ||
       features.merchantPrincipate ||
@@ -282,9 +282,9 @@
     );
   }
 
-  function fillDefinitionSelection(selection, options, desiredCount) {
+  function fillDefinitionSelection(selection: { id: string }[], options: { id: string }[], desiredCount: number) {
     const filled = [...selection];
-    const seenIds = new Set(filled.map((entry) => entry?.id).filter(Boolean));
+    const seenIds = new Set(filled.map((entry: { id: string }) => entry?.id).filter(Boolean));
 
     for (let index = options.length - 1; filled.length < desiredCount && index >= 0; index -= 1) {
       const candidate = options[index];

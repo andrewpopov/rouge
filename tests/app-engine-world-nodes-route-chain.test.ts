@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
-function clearAllMainlineZones(runFactory, run) {
+function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
   const zones = runFactory.getCurrentZones(run);
   const mainlineZones = zones.filter(
-    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+    (z: ZoneState) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
   );
   for (const z of mainlineZones) {
     z.encountersCleared = z.encounterTotal;
@@ -23,7 +23,7 @@ function clearAllMainlineZones(runFactory, run) {
  * that the downstream definitions actually reference so the route chain test
  * verifies mechanics end-to-end without hard-coding specific content strings.
  */
-function aliasShrineOutcomeForCrossroad(run) {
+function aliasShrineOutcomeForCrossroad(run: RunState) {
   const world = run.world;
   if (!world) { return; }
   // Find the existing shrine outcome (act 1 stores it under its own nodeId)
@@ -33,7 +33,7 @@ function aliasShrineOutcomeForCrossroad(run) {
   }
 }
 
-function aliasShrineOpportunityOutcomeForReserve(run) {
+function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
   const world = run.world;
   if (!world) { return; }
   // Find the shrine-opportunity outcome that doesn't match the reserve's expected ID

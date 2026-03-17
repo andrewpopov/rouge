@@ -16,7 +16,7 @@ test("world-node validation fails clearly when quest follow-up data is missing",
 test("world-node validation fails clearly when an opportunity choice is missing quest consequence data", () => {
   const { browserWindow } = createHarness();
   const catalog = JSON.parse(JSON.stringify(browserWindow.ROUGE_WORLD_NODES.getCatalog()));
-  catalog.opportunities[2].variants[0].choices[0].effects = catalog.opportunities[2].variants[0].choices[0].effects.filter((effect) => {
+  catalog.opportunities[2].variants[0].choices[0].effects = catalog.opportunities[2].variants[0].choices[0].effects.filter((effect: RewardChoiceEffect) => {
     return effect.kind !== "record_quest_consequence";
   });
 
@@ -182,7 +182,7 @@ test("runtime content validation fails clearly when a mercenary loses per-act ro
           heroDamageBonusPerAct: 0,
           heroStartGuardPerAct: 0,
           openingDrawPerAct: 0,
-          scalingStartAct: undefined,
+          scalingStartAct: undefined as number | undefined,
         })),
       },
     },

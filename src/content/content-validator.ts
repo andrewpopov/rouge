@@ -3,9 +3,9 @@
   const { validateRuntimeContent } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT;
   const { validateWorldNodeCatalog } = runtimeWindow.__ROUGE_CV_WORLD_CATALOG;
 
-  function pushError(errors, message) { errors.push(message); }
+  function pushError(errors: string[], message: string) { errors.push(message); }
 
-  function hasAtLeastOneEnemy(poolEntry) {
+  function hasAtLeastOneEnemy(poolEntry: EnemyPoolEntry | null) {
     return [
       ...(Array.isArray(poolEntry?.enemies) ? poolEntry.enemies : []),
       ...(Array.isArray(poolEntry?.nativeEnemies) ? poolEntry.nativeEnemies : []),
@@ -13,8 +13,8 @@
     ].length > 0;
   }
 
-  function validateSeedBundle(seedBundle) {
-    const errors = [];
+  function validateSeedBundle(seedBundle: SeedBundle) {
+    const errors: string[] = [];
     const classEntries = Array.isArray(seedBundle?.classes?.classes) ? seedBundle.classes.classes : [];
     const skillClasses = Array.isArray(seedBundle?.skills?.classes) ? seedBundle.skills.classes : [];
     const acts = Array.isArray(seedBundle?.zones?.acts) ? seedBundle.zones.acts : [];
@@ -29,9 +29,9 @@
       pushError(errors, "Seed bundle is missing skills.json class progression content.");
     }
 
-    const knownClassIds = new Set(classEntries.map((entry) => entry?.id).filter(Boolean));
+    const knownClassIds = new Set(classEntries.map((entry: Record<string, unknown>) => entry?.id).filter(Boolean));
     const seenSkillClassIds = new Set();
-    skillClasses.forEach((entry, index) => {
+    skillClasses.forEach((entry: ClassSkillsSeedEntry, index: number) => {
       if (!entry?.classId) {
         pushError(errors, `skills.classes[${index}] is missing a classId.`);
         return;
@@ -50,7 +50,7 @@
         return;
       }
 
-      trees.forEach((tree, treeIndex) => {
+      trees.forEach((tree: SkillTreeSeedDefinition, treeIndex: number) => {
         if (!tree?.id) {
           pushError(errors, `skills.classes[${index}].trees[${treeIndex}] is missing an id.`);
         }
@@ -62,7 +62,7 @@
           pushError(errors, `skills.classes[${index}].trees[${treeIndex}] is missing skills.`);
           return;
         }
-        skills.forEach((skill, skillIndex) => {
+        skills.forEach((skill: SkillSeedDefinition, skillIndex: number) => {
           if (!skill?.id || !skill?.name) {
             pushError(errors, `skills.classes[${index}].trees[${treeIndex}].skills[${skillIndex}] is missing identity fields.`);
           }
@@ -73,7 +73,7 @@
       });
     });
 
-    classEntries.forEach((entry) => {
+    classEntries.forEach((entry: Record<string, unknown>) => {
       if (entry?.id && !seenSkillClassIds.has(entry.id)) {
         pushError(errors, `Playable class "${entry.id}" is missing skills.json progression data.`);
       }
@@ -84,7 +84,7 @@
     }
 
     const seenActs = new Set();
-    acts.forEach((actSeed, index) => {
+    acts.forEach((actSeed: ActSeed, index: number) => {
       if (!Number.isInteger(actSeed?.act)) {
         pushError(errors, `zones.acts[${index}] is missing a valid act number.`);
         return;
@@ -96,11 +96,11 @@
 
       if (!actSeed?.boss?.id) {
         pushError(errors, `Act ${actSeed.act} is missing a boss id.`);
-      } else if (!bossEntries.some((entry) => entry.id === actSeed.boss.id)) {
+      } else if (!bossEntries.some((entry: BossEntry) => entry.id === actSeed.boss.id)) {
         pushError(errors, `Act ${actSeed.act} boss "${actSeed.boss.id}" has no matching bosses entry.`);
       }
 
-      const poolEntry = enemyPools.find((entry) => entry.act === actSeed.act) || null;
+      const poolEntry = enemyPools.find((entry: EnemyPoolEntry) => entry.act === actSeed.act) || null;
       if (!poolEntry) {
         pushError(errors, `Act ${actSeed.act} is missing an enemy pool entry.`);
       } else if (!hasAtLeastOneEnemy(poolEntry)) {
@@ -114,7 +114,7 @@
     };
   }
 
-  function assertValid(report) {
+  function assertValid(report: ContentValidationReport) {
     if (report.ok) {
       return;
     }
@@ -123,15 +123,15 @@
 
   runtimeWindow.ROUGE_CONTENT_VALIDATOR = {
     validateSeedBundle,
-    assertValidSeedBundle(seedBundle) {
+    assertValidSeedBundle(seedBundle: SeedBundle) {
       assertValid(validateSeedBundle(seedBundle));
     },
     validateRuntimeContent,
-    assertValidRuntimeContent(content) {
+    assertValidRuntimeContent(content: GameContent) {
       assertValid(validateRuntimeContent(content));
     },
     validateWorldNodeCatalog,
-    assertValidWorldNodeCatalog(worldNodeCatalog) {
+    assertValidWorldNodeCatalog(worldNodeCatalog: WorldNodeCatalog) {
       assertValid(validateWorldNodeCatalog(worldNodeCatalog));
     },
   };

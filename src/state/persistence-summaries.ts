@@ -17,7 +17,7 @@
     buildPlanningSummary,
   } = runtimeWindow.__ROUGE_PERSISTENCE_PLANNING;
 
-  function getProfileSummary(profile, content = null) {
+  function getProfileSummary(profile: ProfileState | null, content: GameContent | null = null) {
     const source = profile || createEmptyProfile();
     ensureMeta(source, content);
     const metrics = buildProfileMetrics(source);
@@ -45,30 +45,30 @@
     };
   }
 
-  function buildStashSummary(profile) {
+  function buildStashSummary(profile: ProfileState | null) {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
-    const equipmentEntries = entries.filter((entry) => entry?.kind === "equipment");
-    const runeEntries = entries.filter((entry) => entry?.kind === "rune");
+    const equipmentEntries = entries.filter((entry: InventoryEntry) => entry?.kind === "equipment");
+    const runeEntries = entries.filter((entry: InventoryEntry) => entry?.kind === "rune");
     return {
       entryCount: entries.length,
       equipmentCount: equipmentEntries.length,
       runeCount: runeEntries.length,
-      socketReadyEquipmentCount: equipmentEntries.filter((entry) => toNumber(entry?.equipment?.socketsUnlocked, 0) > 0).length,
-      socketedRuneCount: equipmentEntries.reduce((total, entry) => total + toNumber(entry?.equipment?.insertedRunes?.length, 0), 0),
-      runewordEquipmentCount: equipmentEntries.filter((entry) => entry?.equipment?.runewordId).length,
-      itemIds: uniqueStrings(equipmentEntries.map((entry) => entry?.equipment?.itemId)).slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_IDS),
-      runeIds: uniqueStrings(runeEntries.map((entry) => entry?.runeId)).slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_IDS),
+      socketReadyEquipmentCount: equipmentEntries.filter((entry: InventoryEntry) => toNumber((entry as InventoryEquipmentEntry)?.equipment?.socketsUnlocked, 0) > 0).length,
+      socketedRuneCount: equipmentEntries.reduce((total: number, entry: InventoryEntry) => total + toNumber((entry as InventoryEquipmentEntry)?.equipment?.insertedRunes?.length, 0), 0),
+      runewordEquipmentCount: equipmentEntries.filter((entry: InventoryEntry) => (entry as InventoryEquipmentEntry)?.equipment?.runewordId).length,
+      itemIds: uniqueStrings(equipmentEntries.map((entry: InventoryEntry) => (entry as InventoryEquipmentEntry)?.equipment?.itemId)).slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_IDS),
+      runeIds: uniqueStrings(runeEntries.map((entry: InventoryEntry) => (entry as InventoryRuneEntry)?.runeId)).slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_IDS),
     };
   }
 
-  function buildArchiveSummary(profile) {
+  function buildArchiveSummary(profile: ProfileState | null) {
     const history = Array.isArray(profile?.runHistory) ? profile.runHistory : [];
     const latestEntry = history[0] || null;
     const favoredTreeCounts = new Map();
-    const getPlannedRunewordIds = (entry) =>
+    const getPlannedRunewordIds = (entry: RunHistoryEntry) =>
       uniqueStrings([entry?.plannedWeaponRunewordId, entry?.plannedArmorRunewordId]);
-    const getCompletedPlannedRunewordIds = (entry) => uniqueStrings(entry?.completedPlannedRunewordIds);
-    history.forEach((entry) => {
+    const getCompletedPlannedRunewordIds = (entry: RunHistoryEntry) => uniqueStrings(entry?.completedPlannedRunewordIds);
+    history.forEach((entry: RunHistoryEntry) => {
       if (!entry?.favoredTreeId) {
         return;
       }
@@ -82,43 +82,43 @@
       }
       favoredTreeCounts.set(entry.favoredTreeId, existing);
     });
-    const topFavoredTree = [...favoredTreeCounts.entries()].sort((left, right) => right[1].count - left[1].count)[0] || null;
+    const topFavoredTree = [...favoredTreeCounts.entries()].sort((left: [string, { count: number; title: string }], right: [string, { count: number; title: string }]) => right[1].count - left[1].count)[0] || null;
 
     return {
       entryCount: history.length,
-      completedCount: history.filter((entry) => entry?.outcome === "completed").length,
-      failedCount: history.filter((entry) => entry?.outcome === "failed").length,
-      abandonedCount: history.filter((entry) => entry?.outcome === "abandoned").length,
+      completedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === "completed").length,
+      failedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === "failed").length,
+      abandonedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === "abandoned").length,
       latestClassId: latestEntry?.classId || "",
       latestClassName: latestEntry?.className || "",
-      latestOutcome: latestEntry?.outcome || "",
+      latestOutcome: (latestEntry?.outcome || "") as ProfileArchiveSummary["latestOutcome"],
       latestCompletedAt: latestEntry?.completedAt || "",
-      highestLevel: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.level, 0)), 0),
-      highestActsCleared: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
-      highestGoldGained: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.goldGained, 0)), 0),
-      highestLoadoutTier: history.reduce((highest, entry) => Math.max(highest, toNumber(entry?.loadoutTier, 0)), 0),
-      runewordArchiveCount: history.filter((entry) => Array.isArray(entry?.activeRunewordIds) && entry.activeRunewordIds.length > 0).length,
-      featureUnlockCount: uniqueStrings(history.flatMap((entry) => entry?.newFeatureIds || [])).length,
+      highestLevel: history.reduce((highest: number, entry: RunHistoryEntry) => Math.max(highest, toNumber(entry?.level, 0)), 0),
+      highestActsCleared: history.reduce((highest: number, entry: RunHistoryEntry) => Math.max(highest, toNumber(entry?.actsCleared, 0)), 0),
+      highestGoldGained: history.reduce((highest: number, entry: RunHistoryEntry) => Math.max(highest, toNumber(entry?.goldGained, 0)), 0),
+      highestLoadoutTier: history.reduce((highest: number, entry: RunHistoryEntry) => Math.max(highest, toNumber(entry?.loadoutTier, 0)), 0),
+      runewordArchiveCount: history.filter((entry: RunHistoryEntry) => Array.isArray(entry?.activeRunewordIds) && entry.activeRunewordIds.length > 0).length,
+      featureUnlockCount: uniqueStrings(history.flatMap((entry: RunHistoryEntry) => entry?.newFeatureIds || [])).length,
       favoredTreeId: topFavoredTree?.[0] || "",
       favoredTreeName: topFavoredTree?.[1]?.title || "",
-      planningArchiveCount: history.filter((entry) => {
+      planningArchiveCount: history.filter((entry: RunHistoryEntry) => {
         return toNumber(entry?.stashEntryCount, 0) > 0 || toNumber(entry?.carriedEquipmentCount, 0) > 0 || toNumber(entry?.carriedRuneCount, 0) > 0;
       }).length,
-      planningCompletionCount: history.filter((entry) => getCompletedPlannedRunewordIds(entry).length > 0).length,
-      planningMissCount: history.filter((entry) => {
+      planningCompletionCount: history.filter((entry: RunHistoryEntry) => getCompletedPlannedRunewordIds(entry).length > 0).length,
+      planningMissCount: history.filter((entry: RunHistoryEntry) => {
         const plannedRunewordIds = getPlannedRunewordIds(entry);
         if (plannedRunewordIds.length === 0) {
           return false;
         }
         const completedPlannedRunewordIds = getCompletedPlannedRunewordIds(entry);
-        return plannedRunewordIds.some((runewordId) => !completedPlannedRunewordIds.includes(runewordId));
+        return plannedRunewordIds.some((runewordId: string) => !completedPlannedRunewordIds.includes(runewordId));
       }).length,
-      recentFeatureIds: uniqueStrings(history.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SCAN).flatMap((entry) => entry?.newFeatureIds || [])).slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_FEATURE_IDS),
-      recentPlannedRunewordIds: uniqueStrings(history.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SCAN).flatMap((entry) => getPlannedRunewordIds(entry))).slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNEWORD_IDS),
+      recentFeatureIds: uniqueStrings(history.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SCAN).flatMap((entry: RunHistoryEntry) => entry?.newFeatureIds || [])).slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_FEATURE_IDS),
+      recentPlannedRunewordIds: uniqueStrings(history.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SCAN).flatMap((entry: RunHistoryEntry) => getPlannedRunewordIds(entry))).slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNEWORD_IDS),
     };
   }
 
-  function buildAccountReviewSummary(milestones, convergences = []) {
+  function buildAccountReviewSummary(milestones: ProfileAccountMilestoneSummary[], convergences: ProfileAccountConvergenceSummary[] = []) {
     const capstones = (Array.isArray(milestones) ? milestones : []).filter((milestone) => milestone?.isCapstone);
     const nextCapstone = capstones.find((milestone) => milestone.status === "available") || capstones.find((milestone) => !milestone.unlocked) || null;
     const convergenceEntries = Array.isArray(convergences) ? convergences : [];
@@ -142,20 +142,20 @@
     };
   }
 
-  function getAccountProgressSummary(profile, content = null): ProfileAccountSummary {
+  function getAccountProgressSummary(profile: ProfileState | null, content: GameContent | null = null): ProfileAccountSummary {
     const source = profile || createEmptyProfile();
     ensureMeta(source, content);
     const profileSummary = getProfileSummary(source, content);
     const completedTutorialIds = source.meta.tutorials?.completedIds || [];
     const dismissedTutorialIds = source.meta.tutorials?.dismissedIds || [];
-    const activeTutorialIds = (source.meta.tutorials?.seenIds || []).filter((tutorialId) => {
+    const activeTutorialIds = (source.meta.tutorials?.seenIds || []).filter((tutorialId: string) => {
       return !completedTutorialIds.includes(tutorialId) && !dismissedTutorialIds.includes(tutorialId);
     });
     const trees = getAccountTreeSummaries(source);
-    const milestones = trees.flatMap((tree) => tree.milestones);
+    const milestones = trees.flatMap((tree: ProfileAccountTreeSummary) => tree.milestones);
     const convergences = getAccountConvergenceSummaries(source);
-    const focusedTree = trees.find((tree) => tree.isFocused) || trees[0] || null;
-    const nextMilestone = focusedTree?.milestones.find((milestone) => milestone.status === "available") || focusedTree?.milestones.find((milestone) => !milestone.unlocked) || milestones.find((milestone) => milestone.status === "available") || milestones.find((milestone) => !milestone.unlocked) || null;
+    const focusedTree = trees.find((tree: ProfileAccountTreeSummary) => tree.isFocused) || trees[0] || null;
+    const nextMilestone = focusedTree?.milestones.find((milestone: ProfileAccountMilestoneSummary) => milestone.status === "available") || focusedTree?.milestones.find((milestone: ProfileAccountMilestoneSummary) => !milestone.unlocked) || milestones.find((milestone: ProfileAccountMilestoneSummary) => milestone.status === "available") || milestones.find((milestone: ProfileAccountMilestoneSummary) => !milestone.unlocked) || null;
     const stashSummary = buildStashSummary(source);
     const archiveSummary = buildArchiveSummary(source);
     const reviewSummary = buildAccountReviewSummary(milestones, convergences);
@@ -181,42 +181,42 @@
       runHistoryCapacity: getRunHistoryCapacity(source),
       nextMilestoneId: nextMilestone?.id || "",
       nextMilestoneTitle: nextMilestone?.title || "",
-      unlockedMilestoneCount: milestones.filter((milestone) => milestone.unlocked).length,
+      unlockedMilestoneCount: milestones.filter((milestone: ProfileAccountMilestoneSummary) => milestone.unlocked).length,
       milestoneCount: milestones.length,
       milestones,
     };
   }
 
-  function getRunHistoryLoadoutMetrics(run, content) {
+  function getRunHistoryLoadoutMetrics(run: RunState, content: GameContent) {
     const loadoutEntries = [run?.loadout?.weapon, run?.loadout?.armor].filter(Boolean);
     const carriedEntries = Array.isArray(run?.inventory?.carried) ? run.inventory.carried : [];
     return {
-      loadoutTier: loadoutEntries.reduce((total, entry) => {
+      loadoutTier: loadoutEntries.reduce((total: number, entry: RunEquipmentState) => {
         return total + toNumber(content?.itemCatalog?.[entry.itemId]?.progressionTier, 0);
       }, 0),
-      loadoutSockets: loadoutEntries.reduce((total, entry) => total + toNumber(entry?.socketsUnlocked, 0), 0),
-      carriedEquipmentCount: carriedEntries.filter((entry) => entry?.kind === "equipment").length,
-      carriedRuneCount: carriedEntries.filter((entry) => entry?.kind === "rune").length,
+      loadoutSockets: loadoutEntries.reduce((total: number, entry: RunEquipmentState) => total + toNumber(entry?.socketsUnlocked, 0), 0),
+      carriedEquipmentCount: carriedEntries.filter((entry: InventoryEntry) => entry?.kind === "equipment").length,
+      carriedRuneCount: carriedEntries.filter((entry: InventoryEntry) => entry?.kind === "rune").length,
     };
   }
 
-  function getProfileStashCounts(profile) {
+  function getProfileStashCounts(profile: ProfileState | null) {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
     return {
       stashEntryCount: entries.length,
-      stashEquipmentCount: entries.filter((entry) => entry?.kind === "equipment").length,
-      stashRuneCount: entries.filter((entry) => entry?.kind === "rune").length,
+      stashEquipmentCount: entries.filter((entry: InventoryEntry) => entry?.kind === "equipment").length,
+      stashRuneCount: entries.filter((entry: InventoryEntry) => entry?.kind === "rune").length,
     };
   }
 
-  function buildRunHistoryEntry(profile, run, outcome, content, newFeatureIds = []) {
+  function buildRunHistoryEntry(profile: ProfileState, run: RunState, outcome: string, content: GameContent, newFeatureIds: string[] = []) {
     const progressionSummary = content ? runtimeWindow.ROUGE_RUN_FACTORY?.getProgressionSummary?.(run, content) || null : null;
     const loadoutMetrics = getRunHistoryLoadoutMetrics(run, content);
     const stashCounts = getProfileStashCounts(profile);
     const plannedWeaponRunewordId = sanitizePlannedRunewordId(profile?.meta?.planning?.weaponRunewordId, "weapon", content);
     const plannedArmorRunewordId = sanitizePlannedRunewordId(profile?.meta?.planning?.armorRunewordId, "armor", content);
     const activeRunewordIds = uniqueStrings(run?.progression?.activatedRunewords || []);
-    const completedPlannedRunewordIds = uniqueStrings([plannedWeaponRunewordId, plannedArmorRunewordId].filter((runewordId) => activeRunewordIds.includes(runewordId)));
+    const completedPlannedRunewordIds = uniqueStrings([plannedWeaponRunewordId, plannedArmorRunewordId].filter((runewordId: string) => activeRunewordIds.includes(runewordId)));
     return {
       runId: run.id,
       classId: run.classId,
@@ -246,7 +246,7 @@
       activeRunewordIds,
       newFeatureIds: uniqueStrings(newFeatureIds),
       completedAt: new Date().toISOString(),
-      outcome,
+      outcome: outcome as RunHistoryEntry["outcome"],
     };
   }
 

@@ -71,7 +71,7 @@
     ],
   };
 
-  function buildEliteIntentSet(profile, scale, name): EnemyIntent[] {
+  function buildEliteIntentSet(profile: EncounterRegistryEliteAffixProfile, scale: EncounterRegistryEnemyScale, name: string): EnemyIntent[] {
     if (profile.id === "warded") {
       return [
         { kind: "guard_allies", label: `${name} Ward`, value: Math.max(4, scale.guard + 1) },

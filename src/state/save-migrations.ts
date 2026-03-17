@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- migration code transforms arbitrary legacy data */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { deepClone, toNumber, clamp } = runtimeWindow.ROUGE_UTILS;
@@ -5,50 +6,53 @@
   const CURRENT_SCHEMA_VERSION = 5;
   const LEVEL_TRAINING_ORDER = ["vitality", "focus", "command"];
 
-  function isObject(value) {
+  function isObject(value: unknown) {
     return Boolean(value) && typeof value === "object";
   }
 
-  function ensureStringArray(value) {
-    return Array.isArray(value) ? value.filter((entry) => typeof entry === "string") : [];
+  function ensureStringArray(value: unknown) {
+    return Array.isArray(value) ? value.filter((entry: unknown) => typeof entry === "string") : [];
   }
 
-  function ensureObjectRecord(value) {
-    return isObject(value) ? value : {};
+  function ensureObjectRecord(value: unknown): Record<string, any> {
+    return isObject(value) ? value as Record<string, any> : {};
   }
 
-  function looksLikeRunState(value) {
-    return isObject(value) && Array.isArray(value.acts) && Array.isArray(value.deck) && isObject(value.hero) && isObject(value.mercenary);
+  function looksLikeRunState(value: unknown) {
+    return isObject(value) && Array.isArray((value as Record<string, unknown>).acts) && Array.isArray((value as Record<string, unknown>).deck) && isObject((value as Record<string, unknown>).hero) && isObject((value as Record<string, unknown>).mercenary);
   }
 
-  function normalizeSnapshotEnvelope(snapshot) {
+  function normalizeSnapshotEnvelope(snapshot: unknown) {
     if (looksLikeRunState(snapshot)) {
+      const snap = snapshot as Record<string, unknown>;
       return {
         schemaVersion: 1,
         savedAt: new Date(0).toISOString(),
         phase: "safe_zone",
-        selectedClassId: snapshot.classId || "",
-        selectedMercenaryId: snapshot.mercenary?.id || "",
+        selectedClassId: (snap as Record<string, unknown>).classId || "",
+        selectedMercenaryId: ((snap as Record<string, unknown>).mercenary as Record<string, unknown>)?.id || "",
         run: snapshot,
       };
     }
 
-    if (!isObject(snapshot) || !looksLikeRunState(snapshot.run)) {
+    if (!isObject(snapshot) || !looksLikeRunState((snapshot as Record<string, unknown>).run)) {
       return null;
     }
 
+    const snap = snapshot as Record<string, unknown>;
+    const run = snap.run as Record<string, unknown>;
     return {
-      schemaVersion: Number.parseInt(String(snapshot.schemaVersion || 1), 10) || 1,
-      savedAt: typeof snapshot.savedAt === "string" ? snapshot.savedAt : new Date(0).toISOString(),
-      phase: typeof snapshot.phase === "string" ? snapshot.phase : "safe_zone",
-      selectedClassId: typeof snapshot.selectedClassId === "string" ? snapshot.selectedClassId : snapshot.run.classId || "",
+      schemaVersion: Number.parseInt(String(snap.schemaVersion || 1), 10) || 1,
+      savedAt: typeof snap.savedAt === "string" ? snap.savedAt : new Date(0).toISOString(),
+      phase: typeof snap.phase === "string" ? snap.phase : "safe_zone",
+      selectedClassId: typeof snap.selectedClassId === "string" ? snap.selectedClassId : run.classId || "",
       selectedMercenaryId:
-        typeof snapshot.selectedMercenaryId === "string" ? snapshot.selectedMercenaryId : snapshot.run.mercenary?.id || "",
-      run: snapshot.run,
+        typeof snap.selectedMercenaryId === "string" ? snap.selectedMercenaryId : (run.mercenary as Record<string, unknown>)?.id || "",
+      run: snap.run,
     };
   }
 
-  function buildLegacyEquipmentState(itemId, slot, runeId) {
+  function buildLegacyEquipmentState(itemId: string, slot: string, runeId: string) {
     if (!itemId) {
       return null;
     }
@@ -83,11 +87,11 @@
     return {
       favoredTreeId: "",
       treeRanks: {},
-      unlockedSkillIds: [],
+      unlockedSkillIds: [] as string[],
     };
   }
 
-  function ensureTraining(training) {
+  function ensureTraining(training: unknown) {
     const source = ensureObjectRecord(training);
     return {
       vitality: toNumber(source.vitality, 0),
@@ -96,7 +100,7 @@
     };
   }
 
-  function ensureAttributes(attributes) {
+  function ensureAttributes(attributes: unknown) {
     const source = ensureObjectRecord(attributes);
     return {
       strength: toNumber(source.strength, 0),
@@ -106,7 +110,7 @@
     };
   }
 
-  function ensureClassProgression(classProgression) {
+  function ensureClassProgression(classProgression: unknown) {
     const source = ensureObjectRecord(classProgression);
     const treeRanks = ensureObjectRecord(source.treeRanks);
     return {
@@ -120,19 +124,19 @@
     };
   }
 
-  function getTrainingTrackForLevel(level) {
+  function getTrainingTrackForLevel(level: number) {
     return LEVEL_TRAINING_ORDER[Math.max(0, toNumber(level, 2) - 2) % LEVEL_TRAINING_ORDER.length];
   }
 
-  function getLevelForXp(xp) {
+  function getLevelForXp(xp: number) {
     return Math.max(1, 1 + Math.floor(toNumber(xp, 0) / 50));
   }
 
-  function getTrainingRankCount(training) {
+  function getTrainingRankCount(training: Record<string, number> | null) {
     return toNumber(training?.vitality, 0) + toNumber(training?.focus, 0) + toNumber(training?.command, 0);
   }
 
-  function applyTrainingRank(run, track) {
+  function applyTrainingRank(run: Record<string, any>, track: string) {
     if (track === "vitality") {
       run.hero.maxLife = toNumber(run.hero?.maxLife, 1) + 4;
       run.hero.currentLife = Math.min(run.hero.maxLife, toNumber(run.hero?.currentLife, run.hero.maxLife) + 4);
@@ -150,7 +154,7 @@
     run.mercenary.currentLife = Math.min(run.mercenary.maxLife, toNumber(run.mercenary?.currentLife, run.mercenary.maxLife) + 3);
   }
 
-  function ensureSummary(summary) {
+  function ensureSummary(summary: unknown) {
     const source = ensureObjectRecord(summary);
     return {
       encountersCleared: toNumber(source.encountersCleared, 0),
@@ -168,7 +172,7 @@
     };
   }
 
-  function ensureQuestOutcomeRecord(record) {
+  function ensureQuestOutcomeRecord(record: unknown) {
     const source = ensureObjectRecord(record);
     let status = "primary_resolved";
     if (source.status === "chain_resolved") {
@@ -192,7 +196,7 @@
     };
   }
 
-  function ensureWorldNodeOutcomeRecord(record) {
+  function ensureWorldNodeOutcomeRecord(record: unknown) {
     const source = ensureObjectRecord(record);
     return {
       nodeId: typeof source.nodeId === "string" ? source.nodeId : "",
@@ -206,7 +210,7 @@
     };
   }
 
-  function ensureOutcomeRecordMap(value, recordBuilder) {
+  function ensureOutcomeRecordMap(value: unknown, recordBuilder: (record: unknown) => Record<string, unknown>) {
     const source = ensureObjectRecord(value);
     return Object.fromEntries(
       Object.entries(source)
@@ -215,7 +219,7 @@
     );
   }
 
-  function ensureWorld(world) {
+  function ensureWorld(world: unknown) {
     const source = ensureObjectRecord(world);
     return {
       resolvedNodeIds: ensureStringArray(source.resolvedNodeIds),
@@ -227,12 +231,12 @@
     };
   }
 
-  function ensureInventory(run, inventory) {
+  function ensureInventory(run: Record<string, any>, inventory: unknown) {
     const source = ensureObjectRecord(inventory);
     const carried = Array.isArray(source.carried)
       ? source.carried
-          .filter((entry) => isObject(entry))
-          .map((entry, index) => {
+          .filter((entry: unknown) => isObject(entry))
+          .map((entry: Record<string, unknown>, index: number) => {
             if (entry.kind === "rune" || typeof entry.runeId === "string") {
               return {
                 entryId: typeof entry.entryId === "string" && entry.entryId ? entry.entryId : `${run?.id || "run"}_inv_${index + 1}`,
@@ -270,20 +274,21 @@
     };
   }
 
-  function ensureTown(town) {
+  function ensureTown(town: unknown) {
     const source = ensureObjectRecord(town);
     const vendor = ensureObjectRecord(source.vendor);
     return {
       vendor: {
         refreshCount: toNumber(vendor.refreshCount, 0),
-        stock: Array.isArray(vendor.stock) ? vendor.stock.filter((entry) => isObject(entry)).map((entry) => deepClone(entry)) : [],
+        stock: Array.isArray(vendor.stock) ? vendor.stock.filter((entry: unknown) => isObject(entry)).map((entry: unknown) => deepClone(entry)) : [],
       },
     };
   }
 
-  function ensureLoadoutEntryIds(run) {
-    ["weapon", "armor"].forEach((slot) => {
-      const equipment = ensureObjectRecord(run.loadout?.[slot]);
+  function ensureLoadoutEntryIds(run: Record<string, any>) {
+    const loadout = run.loadout as Record<string, any> | undefined;
+    ["weapon", "armor"].forEach((slot: string) => {
+      const equipment = ensureObjectRecord(loadout?.[slot]);
       if (!equipment.itemId) {
         return;
       }
@@ -292,14 +297,14 @@
       equipment.socketsUnlocked = toNumber(equipment.socketsUnlocked, 0);
       equipment.insertedRunes = ensureStringArray(equipment.insertedRunes);
       equipment.runewordId = typeof equipment.runewordId === "string" ? equipment.runewordId : "";
-      run.loadout[slot] = equipment;
+      (run.loadout as Record<string, any>)[slot] = equipment;
     });
   }
 
-  function ensureProgression(run, progression) {
+  function ensureProgression(run: Record<string, any>, progression: unknown) {
     const source = ensureObjectRecord(progression);
     const derivedBossTrophies = Array.isArray(run?.acts)
-      ? run.acts.filter((act) => act?.complete && act?.boss?.id).map((act) => act.boss.id)
+      ? (run.acts as Record<string, unknown>[]).filter((act: Record<string, unknown>) => act?.complete && (act?.boss as Record<string, unknown>)?.id).map((act: Record<string, unknown>) => (act.boss as Record<string, unknown>).id)
       : [];
 
     return {
@@ -317,7 +322,7 @@
     };
   }
 
-  function syncLevelProgression(run) {
+  function syncLevelProgression(run: Record<string, any>) {
     run.level = Math.max(toNumber(run.level, 1), getLevelForXp(run.xp));
     const targetRanks = Math.max(0, toNumber(run.level, 1) - 1);
     const existingRanks = getTrainingRankCount(run.progression?.training);
@@ -365,8 +370,8 @@
     run.summary.trainingRanksGained = Math.max(toNumber(run.summary.trainingRanksGained, 0), targetRanks);
   }
 
-  function migrateV1ToV2(envelope) {
-    const run = deepClone(envelope.run);
+  function migrateV1ToV2(envelope: Record<string, any>) {
+    const run: Record<string, any> = deepClone(envelope.run);
     const legacyLoadout = ensureObjectRecord(run.loadout);
 
     run.loadout = {
@@ -387,8 +392,8 @@
     };
   }
 
-  function migrateV2ToV3(envelope) {
-    const run = deepClone(envelope.run);
+  function migrateV2ToV3(envelope: Record<string, any>) {
+    const run: Record<string, any> = deepClone(envelope.run);
     run.world = ensureWorld(run.world);
     run.progression = ensureProgression(run, run.progression);
     run.summary = ensureSummary(run.summary);
@@ -404,8 +409,8 @@
     };
   }
 
-  function migrateV3ToV4(envelope) {
-    const run = deepClone(envelope.run);
+  function migrateV3ToV4(envelope: Record<string, any>) {
+    const run: Record<string, any> = deepClone(envelope.run);
     run.world = ensureWorld(run.world);
     run.progression = ensureProgression(run, run.progression);
     run.summary = ensureSummary(run.summary);
@@ -425,8 +430,8 @@
     };
   }
 
-  function migrateV4ToV5(envelope) {
-    const run = deepClone(envelope.run);
+  function migrateV4ToV5(envelope: Record<string, any>) {
+    const run: Record<string, any> = deepClone(envelope.run);
     run.world = ensureWorld(run.world);
     run.progression = ensureProgression(run, run.progression);
     run.summary = ensureSummary(run.summary);
@@ -446,13 +451,13 @@
     };
   }
 
-  function migrateSnapshot(snapshot) {
-    let envelope = normalizeSnapshotEnvelope(snapshot);
-    if (!envelope) {
+  function migrateSnapshot(snapshot: unknown): RunSnapshotEnvelope | null {
+    const normalized = normalizeSnapshotEnvelope(snapshot);
+    if (!normalized) {
       return null;
     }
 
-    envelope = deepClone(envelope);
+    let envelope: Record<string, any> = deepClone(normalized);
 
     while (envelope.schemaVersion < CURRENT_SCHEMA_VERSION) {
       if (envelope.schemaVersion === 1) {
@@ -486,7 +491,7 @@
     envelope.run.loadout = ensureObjectRecord(envelope.run.loadout);
     ensureLoadoutEntryIds(envelope.run);
     syncLevelProgression(envelope.run);
-    return envelope;
+    return envelope as unknown as RunSnapshotEnvelope;
   }
 
   runtimeWindow.ROUGE_SAVE_MIGRATIONS = {

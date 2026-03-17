@@ -31,7 +31,7 @@
 
   } = runtimeWindow.__ROUGE_ITEM_TOWN_PRICING;
 
-  function buildVendorRefreshAction(run, content, profile = null) {
+  function buildVendorRefreshAction(run: RunState, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
     const planning = getPlanningSummary(profile, content);
     const planningOverview = planning.overview || getPlanningSummary(null, null).overview;
@@ -58,7 +58,7 @@
       }
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content)
-      .map((runeword) => runeword?.name)
+      .map((runeword: RuntimeRunewordDefinition) => runeword?.name)
       .filter(Boolean);
     if (plannedRunewords.length > 0) {
       previewLines.push(`Planning charters active for ${plannedRunewords.join(" and ")}.`);
@@ -108,7 +108,7 @@
     };
   }
 
-  function listTownActions(run, profile, content) {
+  function listTownActions(run: RunState, profile: ProfileState, content: GameContent) {
     const hydrateRunInventory = runtimeWindow.ROUGE_ITEM_TOWN.hydrateRunInventory;
     hydrateRunLoadout(run, content);
     hydrateProfileStash(profile, content);
@@ -117,7 +117,7 @@
 
     const actions = [buildVendorRefreshAction(run, content, profile)];
 
-    run.town.vendor.stock.forEach((entry) => {
+    run.town.vendor.stock.forEach((entry: InventoryEntry) => {
       const buyPrice = getEntryBuyPrice(entry, content, profile);
       actions.push(
         buildInventoryAction(
@@ -159,7 +159,7 @@
       }
     });
 
-    ["weapon", "armor"].forEach((slot) => {
+    (["weapon", "armor"] as const).forEach((slot) => {
       const equipment = run.loadout?.[slot];
       if (!equipment) {
         return;
@@ -192,7 +192,7 @@
       }
     });
 
-    run.inventory.carried.forEach((entry) => {
+    run.inventory.carried.forEach((entry: InventoryEntry) => {
       if (entry.kind === "equipment") {
         actions.push(
           buildInventoryAction(
@@ -263,7 +263,7 @@
       );
     });
 
-    profile.stash.entries.forEach((entry) => {
+    profile.stash.entries.forEach((entry: InventoryEntry) => {
       if (entry.kind === "equipment") {
         const commissionAction = buildSocketCommissionAction(
           run,
@@ -295,18 +295,18 @@
     return actions;
   }
 
-  function getInventorySummary(run, profile, content) {
+  function getInventorySummary(run: RunState, profile: ProfileState, content: GameContent) {
     const hydrateRunInventory = runtimeWindow.ROUGE_ITEM_TOWN.hydrateRunInventory;
     hydrateRunInventory(run, content, profile);
     hydrateProfileStash(profile, content);
-    const carriedEquipment = run.inventory.carried.filter((entry) => entry.kind === "equipment").length;
-    const carriedRunes = run.inventory.carried.filter((entry) => entry.kind === "rune").length;
+    const carriedEquipment = run.inventory.carried.filter((entry: InventoryEntry) => entry.kind === "equipment").length;
+    const carriedRunes = run.inventory.carried.filter((entry: InventoryEntry) => entry.kind === "rune").length;
     const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.length : 0;
     const vendorEntries = Array.isArray(run.town?.vendor?.stock) ? run.town.vendor.stock.length : 0;
     const features = getAccountEconomyFeatures(profile);
     const activeEconomyFeatures = ECONOMY_FEATURE_MAP
-      .filter(([key]) => features[key])
-      .map(([, featureId]) => featureId.replace(/_/g, " "));
+      .filter(([key]: [string, string]) => features[key])
+      .map(([, featureId]: [string, string]) => featureId.replace(/_/g, " "));
 
     const lines = [
       `Carried inventory: ${carriedEquipment} gear, ${carriedRunes} runes.`,
@@ -324,7 +324,7 @@
     }
     const plannedRunewords = getPlannedRunewordTargets(profile, content);
     if (plannedRunewords.length > 0) {
-      lines.push(`Planning charters: ${plannedRunewords.map((runeword) => runeword.name).join(" / ")}.`);
+      lines.push(`Planning charters: ${plannedRunewords.map((runeword: RuntimeRunewordDefinition) => runeword.name).join(" / ")}.`);
     }
     const planning = getPlanningSummary(profile, content);
     if (planning.plannedRunewordCount > 0) {

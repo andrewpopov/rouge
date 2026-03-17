@@ -79,56 +79,56 @@
   const MIN_ELITE_AFFIX_FAMILIES_PER_ACT = 4;
   const MIN_ENCOUNTER_MODIFIER_FAMILIES_PER_ACT = 20;
 
-  function pushError(errors, message) { errors.push(message); }
+  function pushError(errors: string[], message: string) { errors.push(message); }
 
-  function validateCardIdList(cardIds, cardCatalog, label, errors) {
-    (Array.isArray(cardIds) ? cardIds : []).forEach((cardId, index) => {
+  function validateCardIdList(cardIds: unknown, cardCatalog: Record<string, CardDefinition>, label: string, errors: string[]) {
+    (Array.isArray(cardIds) ? cardIds : []).forEach((cardId: string, index: number) => {
       if (!cardCatalog?.[cardId]) {
         pushError(errors, `${label}[${index}] references missing card "${cardId}".`);
       }
     });
   }
 
-  function validateStringIdList(values, label, errors) {
+  function validateStringIdList(values: unknown, label: string, errors: string[]) {
     if (!Array.isArray(values)) {
       return;
     }
 
-    values.forEach((value, index) => {
+    values.forEach((value: unknown, index: number) => {
       if (typeof value !== "string" || !value) {
         pushError(errors, `${label}[${index}] must be a non-empty string.`);
       }
     });
   }
 
-  function validateKnownStringIds(values, knownValues, label, errors, referenceType) {
+  function validateKnownStringIds(values: unknown, knownValues: Set<string>, label: string, errors: string[], referenceType: string) {
     if (!Array.isArray(values)) {
       return;
     }
 
-    values.forEach((value, index) => {
+    values.forEach((value: unknown, index: number) => {
       if (typeof value === "string" && value && !knownValues.has(value)) {
         pushError(errors, `${label}[${index}] references unknown ${referenceType} "${value}".`);
       }
     });
   }
 
-  function getConsequenceEncounterPackageRequirementSignature(encounterPackage) {
+  function getConsequenceEncounterPackageRequirementSignature(encounterPackage: ConsequenceEncounterPackageDefinition | null | undefined) {
     const requiredFlagIds = Array.isArray(encounterPackage?.requiredFlagIds)
-      ? Array.from(new Set(encounterPackage.requiredFlagIds.filter((value) => typeof value === "string" && value))).sort()
+      ? Array.from(new Set(encounterPackage.requiredFlagIds.filter((value: string) => typeof value === "string" && value))).sort()
       : [];
     return `${encounterPackage?.zoneRole || "-"}|${requiredFlagIds.join("&") || "-"}`;
   }
 
-  function getConsequenceRewardPackageRequirementSignature(rewardPackage) {
+  function getConsequenceRewardPackageRequirementSignature(rewardPackage: ConsequenceRewardPackageDefinition | null | undefined) {
     const requiredFlagIds = Array.isArray(rewardPackage?.requiredFlagIds)
-      ? Array.from(new Set(rewardPackage.requiredFlagIds.filter((value) => typeof value === "string" && value))).sort()
+      ? Array.from(new Set(rewardPackage.requiredFlagIds.filter((value: string) => typeof value === "string" && value))).sort()
       : [];
     return `${rewardPackage?.zoneRole || "-"}|${requiredFlagIds.join("&") || "-"}`;
   }
 
-  function collectKnownWorldFlagIds(worldNodeCatalog) {
-    const flagIds = new Set();
+  function collectKnownWorldFlagIds(worldNodeCatalog: WorldNodeCatalog | null | undefined) {
+    const flagIds = new Set<string>();
     const catalogKeys = [
       "quests", "shrines", "opportunities", "crossroadOpportunities", "shrineOpportunities",
       "reserveOpportunities", "relayOpportunities", "culminationOpportunities", "legacyOpportunities",
@@ -137,7 +137,7 @@
     ];
 
     for (const catalogKey of catalogKeys) {
-      for (const rawDef of Object.values(worldNodeCatalog?.[catalogKey] || {})) {
+      for (const rawDef of Object.values((worldNodeCatalog as unknown as Record<string, Record<string, unknown>>)?.[catalogKey] || {})) {
         const definition = rawDef as Record<string, unknown>;
         const choices = catalogKey === "quests" && Array.isArray(definition.choices) ? definition.choices : [];
         const variantChoices = Array.isArray(definition.variants)
@@ -145,10 +145,10 @@
           : [];
 
         for (const choice of [...choices, ...variantChoices]) {
-          collectEffectFlagIds(choice?.effects).forEach((flagId) => flagIds.add(flagId));
+          collectEffectFlagIds(choice?.effects).forEach((flagId: string) => flagIds.add(flagId));
           const followUpChoices = Array.isArray(choice?.followUp?.choices) ? choice.followUp.choices : [];
-          followUpChoices.forEach((followUp) => {
-            collectEffectFlagIds(followUp?.effects).forEach((flagId) => flagIds.add(flagId));
+          followUpChoices.forEach((followUp: Record<string, unknown>) => {
+            collectEffectFlagIds(followUp?.effects as RewardChoiceEffect[] | null | undefined).forEach((flagId: string) => flagIds.add(flagId));
           });
         }
       }
@@ -157,14 +157,14 @@
     return flagIds;
   }
 
-  function validateCardAndClassContent(content, cardCatalog, errors) {
+  function validateCardAndClassContent(content: GameContent, cardCatalog: Record<string, CardDefinition>, errors: string[]) {
     validateCardIdList(content?.starterDeck, cardCatalog, "starterDeck", errors);
 
-    Object.entries(content?.starterDeckProfiles || {}).forEach(([profileId, cardIds]) => {
+    Object.entries(content?.starterDeckProfiles || {}).forEach(([profileId, cardIds]: [string, string[]]) => {
       validateCardIdList(cardIds, cardCatalog, `starterDeckProfiles.${profileId}`, errors);
     });
 
-    Object.entries(content?.classDeckProfiles || {}).forEach(([classId, profileId]) => {
+    Object.entries(content?.classDeckProfiles || {}).forEach(([classId, profileId]: [string, string]) => {
       const profileKey = String(profileId || "");
       if (!content?.starterDeckProfiles?.[profileKey]) {
         pushError(errors, `classDeckProfiles.${classId} references missing starter deck profile "${profileKey}".`);
@@ -174,14 +174,14 @@
       }
     });
 
-    Object.entries(content?.classProgressionCatalog || {}).forEach(([classId, progressionEntry]) => {
+    Object.entries(content?.classProgressionCatalog || {}).forEach(([classId, progressionEntry]: [string, unknown]) => {
       const progression = progressionEntry as RuntimeClassProgressionDefinition | undefined;
       if (!Array.isArray(progression?.trees) || progression.trees.length === 0) {
         pushError(errors, `classProgressionCatalog.${classId} is missing trees.`);
         return;
       }
 
-      progression.trees.forEach((tree, index) => {
+      progression.trees.forEach((tree: RuntimeClassTreeDefinition, index: number) => {
         if (!tree?.id || !tree?.name) {
           pushError(errors, `classProgressionCatalog.${classId}.trees[${index}] is missing identity fields.`);
         }
@@ -200,16 +200,16 @@
       });
     });
 
-    Object.entries(content?.rewardPools?.profileCards || {}).forEach(([profileId, cardIds]) => {
+    Object.entries(content?.rewardPools?.profileCards || {}).forEach(([profileId, cardIds]: [string, string[]]) => {
       validateCardIdList(cardIds, cardCatalog, `rewardPools.profileCards.${profileId}`, errors);
     });
-    Object.entries(content?.rewardPools?.zoneRoleCards || {}).forEach(([zoneRole, cardIds]) => {
+    Object.entries(content?.rewardPools?.zoneRoleCards || {}).forEach(([zoneRole, cardIds]: [string, string[]]) => {
       validateCardIdList(cardIds, cardCatalog, `rewardPools.zoneRoleCards.${zoneRole}`, errors);
     });
     validateCardIdList(content?.rewardPools?.bossCards, cardCatalog, "rewardPools.bossCards", errors);
   }
 
-  function validateEnemyCatalog(enemyCatalog, eliteAffixesByAct, errors) {
+  function validateEnemyCatalog(enemyCatalog: Record<string, EnemyTemplate>, eliteAffixesByAct: Record<number, Set<string>>, errors: string[]) {
     (Object.values(enemyCatalog) as EnemyTemplate[]).forEach((template) => {
       if (!template?.templateId) {
         pushError(errors, "Enemy catalog contains a template without a templateId.");
@@ -219,14 +219,14 @@
         pushError(errors, `Enemy template "${template.templateId}" is missing intents.`);
         return;
       }
-      template.intents.forEach((intent, index) => {
+      template.intents.forEach((intent: EnemyIntent, index: number) => {
         if (!ALLOWED_INTENT_KINDS.has(intent?.kind)) {
           pushError(errors, `Enemy template "${template.templateId}" has unsupported intent "${intent?.kind}" at index ${index}.`);
         }
       });
 
       const affixes = Array.isArray(template.affixes) ? template.affixes : [];
-      affixes.forEach((affixId, index) => {
+      affixes.forEach((affixId: string, index: number) => {
         if (!ALLOWED_ELITE_AFFIXES.has(affixId)) {
           pushError(errors, `Enemy template "${template.templateId}" has unsupported affix "${affixId}" at index ${index}.`);
         }
@@ -243,18 +243,18 @@
       if (template.variant === "elite" && actMatch) {
         const actNumber = Number(actMatch[1]);
         eliteAffixesByAct[actNumber] = eliteAffixesByAct[actNumber] || new Set();
-        affixes.forEach((affixId) => eliteAffixesByAct[actNumber].add(affixId));
+        affixes.forEach((affixId: string) => eliteAffixesByAct[actNumber].add(affixId));
       }
     });
   }
 
-  function validateEncounterCatalog(encounterCatalog, enemyCatalog, errors) {
+  function validateEncounterCatalog(encounterCatalog: Record<string, EncounterDefinition>, enemyCatalog: Record<string, EnemyTemplate>, errors: string[]) {
     (Object.values(encounterCatalog) as EncounterDefinition[]).forEach((encounter) => {
       if (!Array.isArray(encounter?.enemies) || encounter.enemies.length === 0) {
         pushError(errors, `Encounter "${encounter?.id || "unknown"}" does not include any enemies.`);
         return;
       }
-      (Array.isArray(encounter?.modifiers) ? encounter.modifiers : []).forEach((modifier, index) => {
+      (Array.isArray(encounter?.modifiers) ? encounter.modifiers : []).forEach((modifier: EncounterModifier, index: number) => {
         if (!ALLOWED_ENCOUNTER_MODIFIERS.has(modifier?.kind)) {
           pushError(errors, `Encounter "${encounter.id}" has unsupported modifier "${modifier?.kind || ""}" at index ${index}.`);
         }
@@ -262,7 +262,7 @@
           pushError(errors, `Encounter "${encounter.id}" modifier[${index}] must define a numeric value.`);
         }
       });
-      encounter.enemies.forEach((enemyEntry, index) => {
+      encounter.enemies.forEach((enemyEntry: EncounterEnemyEntry, index: number) => {
         if (!enemyCatalog?.[enemyEntry?.templateId]) {
           pushError(
             errors,
@@ -273,18 +273,18 @@
     });
   }
 
-  function validateGeneratedActEncounters(content, encounterCatalog, eliteAffixesByAct, errors) {
-    Object.entries(content?.generatedActEncounterIds || {}).forEach(([actNumber, groups]) => {
-      Object.entries((groups || {}) as Record<string, string[]>).forEach(([groupName, encounterIds]) => {
+  function validateGeneratedActEncounters(content: GameContent, encounterCatalog: Record<string, EncounterDefinition>, eliteAffixesByAct: Record<number, Set<string>>, errors: string[]) {
+    Object.entries(content?.generatedActEncounterIds || {}).forEach(([actNumber, groups]: [string, unknown]) => {
+      Object.entries((groups || {}) as Record<string, string[]>).forEach(([groupName, encounterIds]: [string, string[]]) => {
         if (!Array.isArray(encounterIds) || encounterIds.length === 0) {
           pushError(errors, `generatedActEncounterIds.${actNumber}.${groupName} is empty.`);
           return;
         }
-        const minimumCount = MIN_GENERATED_GROUP_SIZES[groupName];
+        const minimumCount = (MIN_GENERATED_GROUP_SIZES as Record<string, number>)[groupName];
         if (minimumCount && encounterIds.length < minimumCount) {
           pushError(errors, `generatedActEncounterIds.${actNumber}.${groupName} must contain at least ${minimumCount} encounters.`);
         }
-        encounterIds.forEach((encounterId, index) => {
+        encounterIds.forEach((encounterId: string, index: number) => {
           if (!encounterCatalog?.[encounterId]) {
             pushError(
               errors,
@@ -297,9 +297,9 @@
       const modifierKinds = new Set(
         (Object.values(encounterCatalog) as EncounterDefinition[])
           .filter((encounter) => typeof encounter?.id === "string" && encounter.id.startsWith(`act_${actNumber}_`))
-          .flatMap((encounter) => (Array.isArray(encounter?.modifiers) ? encounter.modifiers : []))
-          .map((modifier) => modifier?.kind)
-          .filter((modifierKind) => typeof modifierKind === "string" && modifierKind)
+          .flatMap((encounter: EncounterDefinition) => (Array.isArray(encounter?.modifiers) ? encounter.modifiers : []))
+          .map((modifier: EncounterModifier) => modifier?.kind)
+          .filter((modifierKind: string) => typeof modifierKind === "string" && modifierKind)
       );
       const affixCount = eliteAffixesByAct[Number(actNumber)]?.size || 0;
       if (affixCount < MIN_ELITE_AFFIX_FAMILIES_PER_ACT) {
@@ -317,7 +317,7 @@
     });
   }
 
-  function validateConsequenceEncounterPackages(actNumber, content, encounterCatalog, knownWorldFlagIds, errors) {
+  function validateConsequenceEncounterPackages(actNumber: string, content: GameContent, encounterCatalog: Record<string, EncounterDefinition>, knownWorldFlagIds: Set<string>, errors: string[]) {
     const encounterPackages = Array.isArray(content?.consequenceEncounterPackages?.[Number(actNumber)])
       ? content.consequenceEncounterPackages[Number(actNumber)]
       : [];
@@ -332,7 +332,7 @@
     const seenRequirementSignatures = new Map();
     const roleCounts = { branchBattle: 0, branchMiniboss: 0, boss: 0 };
 
-    encounterPackages.forEach((encounterPackage, index) => {
+    encounterPackages.forEach((encounterPackage: ConsequenceEncounterPackageDefinition, index: number) => {
       const packageLabel = `consequenceEncounterPackages.${actNumber}[${index}]`;
       if (!encounterPackage?.id) {
         pushError(errors, `${packageLabel} is missing an id.`);
@@ -352,7 +352,7 @@
         encounterPackage.zoneRole === "branchMiniboss" ||
         encounterPackage.zoneRole === "boss"
       ) {
-        roleCounts[encounterPackage.zoneRole] += 1;
+        (roleCounts as Record<string, number>)[encounterPackage.zoneRole] += 1;
       }
 
       validateStringIdList(encounterPackage?.requiredFlagIds, `${packageLabel}.requiredFlagIds`, errors);
@@ -401,7 +401,7 @@
     }
   }
 
-  function validateConsequenceRewardPackages(actNumber, content, knownWorldFlagIds, errors) {
+  function validateConsequenceRewardPackages(actNumber: string, content: GameContent, knownWorldFlagIds: Set<string>, errors: string[]) {
     const rewardPackages = Array.isArray(content?.consequenceRewardPackages?.[Number(actNumber)])
       ? content.consequenceRewardPackages[Number(actNumber)]
       : [];
@@ -416,7 +416,7 @@
     const seenRewardSignatures = new Map();
     const rewardRoleCounts = { branchBattle: 0, branchMiniboss: 0, boss: 0 };
 
-    rewardPackages.forEach((rewardPackage, index) => {
+    rewardPackages.forEach((rewardPackage: ConsequenceRewardPackageDefinition, index: number) => {
       const packageLabel = `consequenceRewardPackages.${actNumber}[${index}]`;
       if (!rewardPackage?.id) {
         pushError(errors, `${packageLabel} is missing an id.`);
@@ -436,7 +436,7 @@
         rewardPackage.zoneRole === "branchMiniboss" ||
         rewardPackage.zoneRole === "boss"
       ) {
-        rewardRoleCounts[rewardPackage.zoneRole] += 1;
+        (rewardRoleCounts as Record<string, number>)[rewardPackage.zoneRole] += 1;
       }
 
       validateStringIdList(rewardPackage?.requiredFlagIds, `${packageLabel}.requiredFlagIds`, errors);
@@ -465,14 +465,14 @@
       if (!rewardPackage?.grants || typeof rewardPackage.grants !== "object") {
         pushError(errors, `${packageLabel}.grants must be an object.`);
       } else {
-        const grantValues = ["gold", "xp", "potions"].map((grantKey) => {
-          const grantValue = Number.parseInt(String(rewardPackage.grants?.[grantKey] || 0), 10);
+        const grantValues = ["gold", "xp", "potions"].map((grantKey: string) => {
+          const grantValue = Number.parseInt(String((rewardPackage.grants as unknown as Record<string, unknown>)?.[grantKey] || 0), 10);
           if (!Number.isFinite(grantValue) || grantValue < 0) {
             pushError(errors, `${packageLabel}.grants.${grantKey} must be a non-negative integer.`);
           }
           return Math.max(0, Number.isFinite(grantValue) ? grantValue : 0);
         });
-        if (grantValues.every((grantValue) => grantValue === 0)) {
+        if (grantValues.every((grantValue: number) => grantValue === 0)) {
           pushError(errors, `${packageLabel}.grants must define at least one positive reward bonus.`);
         }
       }
@@ -491,19 +491,19 @@
     }
   }
 
-  function validateRuntimeContent(content) {
-    const errors = [];
+  function validateRuntimeContent(content: GameContent) {
+    const errors: string[] = [];
     const cardCatalog = content?.cardCatalog || {};
     const mercenaryCatalog = content?.mercenaryCatalog || {};
     const enemyCatalog = content?.enemyCatalog || {};
     const encounterCatalog = content?.encounterCatalog || {};
-    const eliteAffixesByAct = {};
+    const eliteAffixesByAct: Record<number, Set<string>> = {};
     const worldNodeCatalog = runtimeWindow.ROUGE_WORLD_NODE_CATALOG?.getCatalog?.();
     const knownWorldFlagIds = collectKnownWorldFlagIds(worldNodeCatalog);
 
-    (Object.values(mercenaryCatalog) as MercenaryDefinition[]).forEach((mercenary) => {
-      (Array.isArray(mercenary?.routePerks) ? mercenary.routePerks : []).forEach((routePerk) => {
-        (Array.isArray(routePerk?.requiredFlagIds) ? routePerk.requiredFlagIds : []).forEach((flagId) => {
+    (Object.values(mercenaryCatalog) as MercenaryDefinition[]).forEach((mercenary: MercenaryDefinition) => {
+      (Array.isArray(mercenary?.routePerks) ? mercenary.routePerks : []).forEach((routePerk: MercenaryRoutePerkDefinition) => {
+        (Array.isArray(routePerk?.requiredFlagIds) ? routePerk.requiredFlagIds : []).forEach((flagId: string) => {
           if (typeof flagId === "string" && flagId) {
             knownWorldFlagIds.add(flagId);
           }
@@ -517,19 +517,19 @@
     validateEncounterCatalog(encounterCatalog, enemyCatalog, errors);
     validateGeneratedActEncounters(content, encounterCatalog, eliteAffixesByAct, errors);
 
-    Object.keys(content?.consequenceEncounterPackages || {}).forEach((actNumber) => {
+    Object.keys(content?.consequenceEncounterPackages || {}).forEach((actNumber: string) => {
       if (!content?.generatedActEncounterIds?.[Number(actNumber)]) {
         pushError(errors, `consequenceEncounterPackages.${actNumber} references unknown act ${actNumber}.`);
       }
     });
 
-    Object.keys(content?.consequenceRewardPackages || {}).forEach((actNumber) => {
+    Object.keys(content?.consequenceRewardPackages || {}).forEach((actNumber: string) => {
       if (!content?.generatedActEncounterIds?.[Number(actNumber)]) {
         pushError(errors, `consequenceRewardPackages.${actNumber} references unknown act ${actNumber}.`);
       }
     });
 
-    Object.keys(content?.generatedActEncounterIds || {}).forEach((actNumber) => {
+    Object.keys(content?.generatedActEncounterIds || {}).forEach((actNumber: string) => {
       const hasEncounterPackages = Array.isArray(content?.consequenceEncounterPackages?.[Number(actNumber)]);
       const hasRewardPackages = Array.isArray(content?.consequenceRewardPackages?.[Number(actNumber)]);
       if (!hasEncounterPackages && !hasRewardPackages) {

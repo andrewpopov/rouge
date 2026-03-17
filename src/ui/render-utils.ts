@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function escapeHtml(value) {
+  function escapeHtml(value: unknown) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
@@ -9,19 +9,19 @@
       .replaceAll('"', "&quot;");
   }
 
-  function buildStat(label, value) {
+  function buildStat(label: string, value: unknown) {
     return `<div class="entity-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
-  function buildStringList(lines, className = "log-list reward-list") {
-    return `<ol class="${escapeHtml(className)}">${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ol>`;
+  function buildStringList(lines: string[], className = "log-list reward-list") {
+    return `<ol class="${escapeHtml(className)}">${lines.map((line: string) => `<li>${escapeHtml(line)}</li>`).join("")}</ol>`;
   }
 
-  function buildBadge(label, tone = "locked") {
+  function buildBadge(label: string, tone = "locked") {
     return `<span class="badge badge-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
   }
 
-  function buildBadgeRow(labels, tone = "available") {
+  function buildBadgeRow(labels: string[], tone = "available") {
     const list = Array.isArray(labels) ? labels.filter(Boolean) : [];
     if (list.length === 0) {
       return "";
@@ -29,7 +29,7 @@
     return `<div class="badge-row">${list.map((label) => buildBadge(label, tone)).join("")}</div>`;
   }
 
-  function humanizeLabel(value) {
+  function humanizeLabel(value: unknown) {
     return String(value || "")
       .replaceAll("_", " ")
       .replaceAll("-", " ")
@@ -39,7 +39,7 @@
       .join(" ");
   }
 
-  function getActionBadgeTone(action) {
+  function getActionBadgeTone(action: TownAction) {
     if (action.cost <= 0) {
       return "cleared";
     }
@@ -49,7 +49,7 @@
     return "available";
   }
 
-  function buildShell(root, { eyebrow, title, copy, body, footer = "" }) {
+  function buildShell(root: HTMLElement, { eyebrow, title, copy, body, footer = "" }: { eyebrow: string; title: string; copy: string; body: string; footer?: string }) {
     root.innerHTML = `
       <section class="hero-banner panel">
         <p class="eyebrow">${escapeHtml(eyebrow)}</p>
@@ -63,7 +63,7 @@
     `;
   }
 
-  function buildNoticePanel(message, label = "Notice") {
+  function buildNoticePanel(message: string, label = "Notice") {
     if (!message) {
       return "";
     }
@@ -75,11 +75,11 @@
     `;
   }
 
-  function buildChoiceCard(choice, actionName = "claim-reward-choice") {
+  function buildChoiceCard(choice: RewardChoice, actionName = "claim-reward-choice") {
     const effectLabels = Array.from(
       new Set(
         (Array.isArray(choice?.effects) ? choice.effects : [])
-          .map((effect) => {
+          .map((effect: RewardChoiceEffect) => {
             switch (effect?.kind) {
               case "add_card":
                 return "Deck +1";
@@ -143,7 +143,7 @@
     `;
   }
 
-  function buildChoiceList(choices, actionName = "claim-reward-choice") {
+  function buildChoiceList(choices: RewardChoice[], actionName = "claim-reward-choice") {
     const list = Array.isArray(choices) ? choices : [];
     if (list.length === 0) {
       return '<p class="flow-copy">No reward choices are available.</p>';
@@ -151,7 +151,7 @@
     return `<div class="selection-grid choice-list">${list.map((choice) => buildChoiceCard(choice, actionName)).join("")}</div>`;
   }
 
-  function buildWorldMapNodeCard({ zone, reachable, actionLabel, prerequisiteLabel, hookLabel, summaryLine = "", detailLines = [] }) {
+  function buildWorldMapNodeCard({ zone, reachable, actionLabel, prerequisiteLabel, hookLabel, summaryLine = "", detailLines = [] }: { zone: ZoneState; reachable: boolean; actionLabel: string; prerequisiteLabel: string; hookLabel: string; summaryLine?: string; detailLines?: string[] }) {
     let tone = "locked";
     if (zone.status === "cleared") {
       tone = "cleared";
@@ -199,7 +199,7 @@
     `;
   }
 
-  function buildTownActionCard(action) {
+  function buildTownActionCard(action: TownAction) {
     const buttonLabel = action.cost > 0 ? `${action.actionLabel} (${action.cost}g)` : action.actionLabel;
     const badgeLabel = action.cost > 0 ? `${action.cost}g` : action.actionLabel;
     const badgeTone = getActionBadgeTone(action);
@@ -220,7 +220,7 @@
     `;
   }
 
-  function buildMercenaryActionCard(action) {
+  function buildMercenaryActionCard(action: TownAction) {
     const buttonLabel = action.cost > 0 ? `${action.actionLabel} (${action.cost}g)` : action.actionLabel;
     const badgeLabel = action.cost > 0 ? `${action.cost}g` : action.actionLabel;
     const badgeTone = getActionBadgeTone(action);

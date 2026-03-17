@@ -7,7 +7,7 @@
     getReserveOpportunityVariantSpecificity,
   } = runtimeWindow.__ROUGE_WNV_HELPERS;
 
-  function resolveLegacyOpportunityVariant(run, actNumber) {
+  function resolveLegacyOpportunityVariant(run: RunState, actNumber: number) {
     const legacyOpportunityDefinition = getCatalogEntry("legacyOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[legacyOpportunityDefinition.requiresQuestId] || null;
     const culminationOpportunityRecord = run?.world?.opportunityOutcomes?.[legacyOpportunityDefinition.requiresCulminationOpportunityId] || null;
@@ -32,7 +32,7 @@
     }
 
     const variant =
-      legacyOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      legacyOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -60,7 +60,7 @@
     };
   }
 
-  function resolveReckoningOpportunityVariant(run, actNumber) {
+  function resolveReckoningOpportunityVariant(run: RunState, actNumber: number) {
     const reckoningOpportunityDefinition = getCatalogEntry("reckoningOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[reckoningOpportunityDefinition.requiresQuestId] || null;
     const reserveOpportunityRecord = run?.world?.opportunityOutcomes?.[reckoningOpportunityDefinition.requiresReserveOpportunityId] || null;
@@ -92,7 +92,7 @@
     }
 
     const variant =
-      reckoningOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      reckoningOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -121,7 +121,7 @@
     };
   }
 
-  function resolveRecoveryOpportunityVariant(run, actNumber) {
+  function resolveRecoveryOpportunityVariant(run: RunState, actNumber: number) {
     const recoveryOpportunityDefinition = getCatalogEntry("recoveryOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[recoveryOpportunityDefinition.requiresQuestId] || null;
     const shrineOpportunityRecord = run?.world?.opportunityOutcomes?.[recoveryOpportunityDefinition.requiresShrineOpportunityId] || null;
@@ -153,7 +153,7 @@
     }
 
     const variant =
-      recoveryOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      recoveryOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -182,7 +182,7 @@
     };
   }
 
-  function resolveAccordOpportunityVariant(run, actNumber) {
+  function resolveAccordOpportunityVariant(run: RunState, actNumber: number) {
     const accordOpportunityDefinition = getCatalogEntry("accordOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[accordOpportunityDefinition.requiresQuestId] || null;
     const shrineOpportunityRecord = run?.world?.opportunityOutcomes?.[accordOpportunityDefinition.requiresShrineOpportunityId] || null;
@@ -219,7 +219,7 @@
     }
 
     const variant =
-      accordOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      accordOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -249,7 +249,7 @@
     };
   }
 
-  function resolveCovenantOpportunityVariant(run, actNumber) {
+  function resolveCovenantOpportunityVariant(run: RunState, actNumber: number) {
     const covenantOpportunityDefinition = getCatalogEntry("covenantOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[covenantOpportunityDefinition.requiresQuestId] || null;
     const legacyOpportunityRecord = run?.world?.opportunityOutcomes?.[covenantOpportunityDefinition.requiresLegacyOpportunityId] || null;
@@ -293,7 +293,7 @@
     }
 
     const variant =
-      covenantOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      covenantOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -324,7 +324,7 @@
     };
   }
 
-  function resolveDetourOpportunityVariant(run, actNumber) {
+  function resolveDetourOpportunityVariant(run: RunState, actNumber: number) {
     const detourOpportunityDefinition = getCatalogEntry("detourOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[detourOpportunityDefinition.requiresQuestId] || null;
     const recoveryOpportunityRecord = run?.world?.opportunityOutcomes?.[detourOpportunityDefinition.requiresRecoveryOpportunityId] || null;
@@ -361,7 +361,7 @@
     }
 
     const variant =
-      detourOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      detourOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }
@@ -391,7 +391,7 @@
     };
   }
 
-  function resolveEscalationOpportunityVariant(run, actNumber) {
+  function resolveEscalationOpportunityVariant(run: RunState, actNumber: number) {
     const escalationOpportunityDefinition = getCatalogEntry("escalationOpportunities", actNumber);
     const questRecord = run?.world?.questOutcomes?.[escalationOpportunityDefinition.requiresQuestId] || null;
     const legacyOpportunityRecord = run?.world?.opportunityOutcomes?.[escalationOpportunityDefinition.requiresLegacyOpportunityId] || null;
@@ -430,7 +430,7 @@
     }
 
     const variant =
-      escalationOpportunityDefinition.variants.reduce((bestMatch, variantDefinition) => {
+      escalationOpportunityDefinition.variants.reduce((bestMatch: ReserveOpportunityVariantDefinition | null, variantDefinition: ReserveOpportunityVariantDefinition) => {
         if (!includesRequiredValues(variantDefinition.requiresFlagIds, worldFlags)) {
           return bestMatch;
         }

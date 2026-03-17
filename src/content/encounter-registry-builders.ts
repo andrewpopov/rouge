@@ -24,7 +24,7 @@
     buildZoneEncounterSet,
   } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES;
 
-  function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }) {
+  function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }: { actSeed: ActSeed; bossEntry: BossEntry | null | undefined; groupedEntries: EncounterRegistryGroupedEntries }) {
     const actNumber = actSeed.act;
     const flavor = getFlavor(actNumber);
     const raiderA = buildEnemyTemplate({ actNumber, entry: pickEntry(groupedEntries.raider, 0, groupedEntries.raider[0]), role: "raider" });
@@ -56,30 +56,31 @@
       variant: "alt",
     });
     const [elitePackageA, elitePackageB, elitePackageC, elitePackageD] = getElitePackages(actNumber);
+    const groupedEntriesRecord = groupedEntries as unknown as Record<string, EnemyPoolEntryRef[]>;
     const eliteA = buildEliteTemplate({
       actNumber,
-      entry: pickEntry(groupedEntries[elitePackageA.role], elitePackageA.entryIndex, groupedEntries[elitePackageA.role][0]),
+      entry: pickEntry(groupedEntriesRecord[elitePackageA.role], elitePackageA.entryIndex, groupedEntriesRecord[elitePackageA.role][0]),
       role: elitePackageA.role,
       profile: getEliteAffixProfile(elitePackageA.profileId),
       templateIdSuffix: elitePackageA.templateIdSuffix,
     });
     const eliteB = buildEliteTemplate({
       actNumber,
-      entry: pickEntry(groupedEntries[elitePackageB.role], elitePackageB.entryIndex, groupedEntries[elitePackageB.role][0]),
+      entry: pickEntry(groupedEntriesRecord[elitePackageB.role], elitePackageB.entryIndex, groupedEntriesRecord[elitePackageB.role][0]),
       role: elitePackageB.role,
       profile: getEliteAffixProfile(elitePackageB.profileId),
       templateIdSuffix: elitePackageB.templateIdSuffix,
     });
     const eliteC = buildEliteTemplate({
       actNumber,
-      entry: pickEntry(groupedEntries[elitePackageC.role], elitePackageC.entryIndex, groupedEntries[elitePackageC.role][0]),
+      entry: pickEntry(groupedEntriesRecord[elitePackageC.role], elitePackageC.entryIndex, groupedEntriesRecord[elitePackageC.role][0]),
       role: elitePackageC.role,
       profile: getEliteAffixProfile(elitePackageC.profileId),
       templateIdSuffix: elitePackageC.templateIdSuffix,
     });
     const eliteD = buildEliteTemplate({
       actNumber,
-      entry: pickEntry(groupedEntries[elitePackageD.role], elitePackageD.entryIndex, groupedEntries[elitePackageD.role][0]),
+      entry: pickEntry(groupedEntriesRecord[elitePackageD.role], elitePackageD.entryIndex, groupedEntriesRecord[elitePackageD.role][0]),
       role: elitePackageD.role,
       profile: getEliteAffixProfile(elitePackageD.profileId),
       templateIdSuffix: elitePackageD.templateIdSuffix,

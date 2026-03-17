@@ -5,10 +5,10 @@ import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
 /** Clear all mainline battle zones (opening + mainline_*) so that world nodes and the boss become unlocked. */
-function clearAllMainlineZones(runFactory, run) {
+function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
   const zones = runFactory.getCurrentZones(run);
   const mainlineZones = zones.filter(
-    (z) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
+    (z: ZoneState) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
   );
   for (const z of mainlineZones) {
     z.encountersCleared = z.encounterTotal;
@@ -812,8 +812,8 @@ test("legacy run snapshots backfill shrine, event, and opportunity nodes during 
   appEngine.leaveSafeZone(state);
 
   const legacySnapshot = JSON.parse(appEngine.saveRunSnapshot(state));
-  legacySnapshot.run.acts.forEach((act) => {
-    act.zones = act.zones.filter((zone) => zone.kind !== "shrine" && zone.kind !== "event" && zone.kind !== "opportunity");
+  legacySnapshot.run.acts.forEach((act: { zones: ZoneState[] }) => {
+    act.zones = act.zones.filter((zone: ZoneState) => zone.kind !== "shrine" && zone.kind !== "event" && zone.kind !== "opportunity");
   });
 
   const importedState = appEngine.createAppState({
