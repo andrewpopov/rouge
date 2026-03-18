@@ -24,7 +24,7 @@
 
   const ECONOMY_LEDGER_GOLD_MULTIPLIER = 1.25;
 
-  const { hasTownFeature } = runtimeWindow.ROUGE_UTILS;
+  const { hasTownFeature, toNumber } = runtimeWindow.ROUGE_UTILS;
 
   function scaleEncounterRewardGrants(grants: RewardGrants, profile: ProfileState | null | undefined) {
     if (!hasTownFeature(profile, "economy_ledger")) {
@@ -33,7 +33,7 @@
 
     return {
       ...grants,
-      gold: Math.max(0, Math.ceil((Number.parseInt(String(grants?.gold || 0), 10) || 0) * ECONOMY_LEDGER_GOLD_MULTIPLIER)),
+      gold: Math.max(0, Math.ceil(toNumber(grants?.gold, 0) * ECONOMY_LEDGER_GOLD_MULTIPLIER)),
     };
   }
 
@@ -123,9 +123,9 @@
       return choiceResult;
     }
 
-    const goldGain = Number.parseInt(String(reward.grants?.gold), 10) || 0;
-    const xpGain = Number.parseInt(String(reward.grants?.xp), 10) || 0;
-    const potionGain = Number.parseInt(String(reward.grants?.potions), 10) || 0;
+    const goldGain = toNumber(reward.grants?.gold, 0);
+    const xpGain = toNumber(reward.grants?.xp, 0);
+    const potionGain = toNumber(reward.grants?.potions, 0);
     const previousLevel = run.level;
     run.gold += goldGain;
     run.xp += xpGain;

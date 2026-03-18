@@ -38,7 +38,7 @@
     const snap = snapshot as Record<string, unknown>;
     const run = snap.run as Record<string, unknown>;
     return {
-      schemaVersion: Number.parseInt(String(snap.schemaVersion || 1), 10) || 1,
+      schemaVersion: toNumber(snap.schemaVersion, 1),
       savedAt: typeof snap.savedAt === "string" ? snap.savedAt : new Date(0).toISOString(),
       phase: typeof snap.phase === "string" ? snap.phase : "safe_zone",
       selectedClassId: typeof snap.selectedClassId === "string" ? snap.selectedClassId : run.classId || "",

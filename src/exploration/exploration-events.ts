@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
   const {
     SHRINE_EVENTS,
@@ -179,37 +180,37 @@
 
     for (const effect of choice.effects) {
       if (effect.kind === "gold_bonus") {
-        const goldDelta = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const goldDelta = toNumber(effect.value, 0);
         run.gold = Math.max(0, run.gold + goldDelta);
       }
       if (effect.kind === "mercenary_attack") {
-        const attackGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const attackGain = toNumber(effect.value, 0);
         run.mercenary.attack += attackGain;
       }
       if (effect.kind === "mercenary_max_life") {
-        const gain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const gain = toNumber(effect.value, 0);
         run.mercenary.maxLife += gain;
         run.mercenary.currentLife = Math.min(run.mercenary.maxLife, run.mercenary.currentLife + gain);
       }
       if (effect.kind === "hero_damage") {
-        const damage = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const damage = toNumber(effect.value, 0);
         run.hero.currentLife = Math.max(1, run.hero.currentLife - damage);
       }
       if (effect.kind === "hero_heal") {
-        const heal = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const heal = toNumber(effect.value, 0);
         run.hero.currentLife = Math.min(run.hero.maxLife, run.hero.currentLife + heal);
       }
       if (effect.kind === "hero_max_life") {
-        const gain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const gain = toNumber(effect.value, 0);
         run.hero.maxLife += gain;
         run.hero.currentLife = Math.min(run.hero.maxLife, run.hero.currentLife + gain);
       }
       if (effect.kind === "belt_capacity") {
-        const gain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const gain = toNumber(effect.value, 0);
         run.belt.max += gain;
       }
       if (effect.kind === "refill_potions") {
-        const refill = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const refill = toNumber(effect.value, 0);
         run.belt.current = Math.min(run.belt.max, run.belt.current + refill);
       }
     }

@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
   function formatTimestamp(timestamp: string, includeYear = false): string {
     const parsed = new Date(timestamp);
@@ -71,7 +72,7 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const historyEntries = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory : [];
     const reviewedHistoryIndex = Math.min(
-      Math.max(0, Number.parseInt(String(appState.ui.reviewedHistoryIndex || 0), 10) || 0),
+      Math.max(0, toNumber(appState.ui.reviewedHistoryIndex, 0)),
       Math.max(0, historyEntries.length - 1)
     );
     const reviewedHistoryEntry = historyEntries[reviewedHistoryIndex] || null;

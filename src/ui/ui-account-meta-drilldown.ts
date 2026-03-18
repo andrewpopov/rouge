@@ -7,9 +7,7 @@
     getPlanningCharterStageLines,
   } = runtimeWindow.ROUGE_UI_ACCOUNT_META;
 
-  function getBonusValue(value: unknown): number {
-    return Number.parseInt(String(value ?? 0), 10) || 0;
-  }
+  const { toNumber: getBonusValue } = runtimeWindow.ROUGE_UTILS;
 
   function getConvergenceTone(convergence: ProfileAccountConvergenceSummary): string {
     if (convergence.unlocked) {
