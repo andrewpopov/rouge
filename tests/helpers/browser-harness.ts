@@ -25,6 +25,8 @@ const SHARED_RUNTIME_FILES = [
   "src/content/class-cards.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
+  "src/combat/combat-engine-monster-actions.js",
+  "src/combat/combat-engine-mercenary.js",
   "src/combat/combat-engine-turns.js",
   "src/combat/combat-engine.js",
 ];
@@ -44,6 +46,7 @@ const VALIDATOR_RUNTIME_FILES = [
 ];
 
 const ENCOUNTER_REGISTRY_HELPER_FILES = [
+  "src/content/encounter-registry-monster-families.js",
   "src/content/encounter-registry-enemy-builders-data.js",
   "src/content/encounter-registry-enemy-builders.js",
   "src/content/encounter-registry-builders-boss.js",

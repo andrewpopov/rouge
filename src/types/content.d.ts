@@ -11,7 +11,19 @@ type EnemyIntentKind =
   | "guard_allies"
   | "heal_ally"
   | "heal_allies"
-  | "heal_and_guard";
+  | "heal_and_guard"
+  | "resurrect_ally"
+  | "summon_minion"
+  | "attack_burn"
+  | "attack_burn_all"
+  | "attack_poison"
+  | "attack_chill"
+  | "curse_amplify"
+  | "curse_weaken"
+  | "drain_energy"
+  | "buff_allies_attack"
+  | "consume_corpse"
+  | "corpse_explosion";
 type EnemyIntentTarget = "hero" | "lowest_life";
 type ZoneKind = "battle" | "boss" | "miniboss" | "quest" | "shrine" | "event" | "opportunity";
 // ZoneRole values include fixed roles and dynamic mainline/side slugs (e.g. "mainline_1", "side_dark_wood")
@@ -54,6 +66,24 @@ type CardEffectKind =
   | "apply_paralyze_all";
 
 type StatusEffectKind = "burn" | "poison" | "slow" | "freeze" | "stun" | "paralyze";
+type HeroDebuffKind = "burn" | "poison" | "chill" | "amplify" | "weaken" | "energyDrain";
+type MonsterTraitKind =
+  | "swift"
+  | "flee_on_ally_death"
+  | "death_explosion"
+  | "death_poison"
+  | "death_spawn"
+  | "frenzy"
+  | "thorns"
+  | "regeneration"
+  | "extra_fast"
+  | "extra_strong"
+  | "cursed"
+  | "cold_enchanted"
+  | "fire_enchanted"
+  | "lightning_enchanted"
+  | "stone_skin"
+  | "mana_burn";
 
 interface CardEffect {
   kind: CardEffectKind;
@@ -127,6 +157,7 @@ interface EnemyIntent {
   value: number;
   target?: EnemyIntentTarget;
   secondaryValue?: number;
+  cooldown?: number;
 }
 
 interface EnemyTemplate {
@@ -137,6 +168,9 @@ interface EnemyTemplate {
   role?: string;
   variant?: string;
   affixes?: string[];
+  traits?: MonsterTraitKind[];
+  family?: string;
+  summonTemplateId?: string;
 }
 
 interface EncounterEnemyEntry {

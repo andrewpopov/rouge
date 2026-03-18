@@ -76,10 +76,13 @@
 
   function applyEncounterModifiers(state: CombatState) {
     const modifiers = Array.isArray(state?.encounter?.modifiers) ? state.encounter.modifiers : [];
-    const attackIntentKinds = new Set(["attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack"]);
-    const healingIntentKinds = new Set(["heal_ally", "heal_allies", "heal_and_guard"]);
+    const attackIntentKinds = new Set([
+      "attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack",
+      "attack_burn", "attack_burn_all", "attack_chill", "attack_poison", "drain_energy",
+    ]);
+    const healingIntentKinds = new Set(["heal_ally", "heal_allies", "heal_and_guard", "resurrect_ally"]);
     const linebreakerIntentKinds = new Set(["attack_and_guard", "sunder_attack"]);
-    const ritualIntentKinds = new Set(["guard", "guard_allies", "heal_ally", "heal_allies", "heal_and_guard"]);
+    const ritualIntentKinds = new Set(["guard", "guard_allies", "heal_ally", "heal_allies", "heal_and_guard", "resurrect_ally"]);
 
     modifiers.forEach((modifier: EncounterModifier) => {
       if (modifier.kind === "fortified_line") {

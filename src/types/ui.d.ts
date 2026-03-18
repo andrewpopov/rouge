@@ -352,6 +352,8 @@ interface Window {
   ROUGE_COMBAT_MODIFIERS: CombatModifiersApi;
   ROUGE_SEED_LOADER: SeedLoaderApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA: Record<string, any>;
   ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -444,6 +446,10 @@ interface Window {
   __ROUGE_PERSISTENCE_SUMMARIES: PersistenceSummariesApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PROFILE_MIGRATIONS_DATA: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_MONSTER_ACTIONS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_MERCENARY: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_ENGINE_TURNS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

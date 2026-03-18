@@ -1,6 +1,9 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { clamp } = runtimeWindow.ROUGE_UTILS;
+  const monsterActions = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
+  const { D2_MOD } = monsterActions;
+  const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
 
   function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
@@ -13,6 +16,10 @@
 
   function getFirstLivingEnemyId(state: CombatState) {
     return getLivingEnemies(state)[0]?.id || "";
+  }
+
+  function hasTrait(enemy: CombatEnemyState, trait: MonsterTraitKind) {
+    return Array.isArray(enemy.traits) && enemy.traits.includes(trait);
   }
 
   function healEntity(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
@@ -33,6 +40,7 @@
   }
 
   function handleDefeat(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState) {
+    const isEnemy = state.enemies.includes(entity as CombatEnemyState);
     entity.alive = false;
     entity.guard = 0;
     if (entity.burn) { entity.burn = 0; }
@@ -42,6 +50,20 @@
     if ((entity as CombatEnemyState).stun) { (entity as CombatEnemyState).stun = 0; }
     if ((entity as CombatEnemyState).paralyze) { (entity as CombatEnemyState).paralyze = 0; }
     appendLog(state, `${entity.name} falls.`);
+
+    // Process death traits for enemies
+    if (isEnemy) {
+      monsterActions.processDeathTraits(state, entity as CombatEnemyState);
+
+      // Flee on ally death: mark Fallen-type allies to skip their next action
+      const deadEnemy = entity as CombatEnemyState;
+      getLivingEnemies(state).forEach((ally: CombatEnemyState) => {
+        if (ally.id !== deadEnemy.id && hasTrait(ally, "flee_on_ally_death")) {
+          ally.stun = Math.max(ally.stun, 1);
+          appendLog(state, `${ally.name} panics and flees!`);
+        }
+      });
+    }
   }
 
   function dealDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
@@ -59,11 +81,38 @@
       handleDefeat(state, entity);
       return entity.maxLife;
     }
-    const damage = Math.max(0, Math.floor(amount));
+
+    let finalAmount = amount;
+    // Amplify: hero takes +50% damage
+    if (isAlly && entity === state.hero && state.hero.amplify > 0) {
+      finalAmount = Math.floor(finalAmount * 1.5);
+    }
+
+    const damage = Math.max(0, Math.floor(finalAmount));
     const blocked = Math.min(entity.guard, damage);
     entity.guard -= blocked;
     const lifeLoss = damage - blocked;
     entity.life = Math.max(0, entity.life - lifeLoss);
+
+    // Thorns / Lightning Enchanted: enemy deals damage back when hit
+    if (!isAlly && (entity as CombatEnemyState).alive) {
+      monsterActions.processModifierOnHit(state, entity as CombatEnemyState);
+      if (hasTrait(entity as CombatEnemyState, "thorns")) {
+        const thornsDamage = 2;
+        const heroBefore = state.hero.life;
+        state.hero.life = Math.max(0, state.hero.life - thornsDamage);
+        const thornsDealt = heroBefore - state.hero.life;
+        if (thornsDealt > 0) {
+          appendLog(state, `${entity.name}'s thorns deal ${thornsDealt} damage back!`);
+        }
+        if (state.hero.life <= 0 && state.hero.alive) {
+          state.hero.alive = false;
+          state.hero.guard = 0;
+          appendLog(state, "The Wanderer falls. Encounter lost.");
+        }
+      }
+    }
+
     if (entity.life <= 0 && entity.alive) {
       handleDefeat(state, entity);
     }
@@ -74,7 +123,9 @@
     if (!state.hero.alive || state.hero.life <= 0) {
       state.phase = "defeat";
       state.outcome = "defeat";
-      appendLog(state, "The Wanderer falls. Encounter lost.");
+      if (!state.log.some((l: string) => l.includes("Encounter lost"))) {
+        appendLog(state, "The Wanderer falls. Encounter lost.");
+      }
       return true;
     }
     if (getLivingEnemies(state).length === 0) {
@@ -86,114 +137,8 @@
     return false;
   }
 
-  function chooseMercenaryTarget(state: CombatState) {
-    const livingEnemies = getLivingEnemies(state);
-    const marked = livingEnemies.find((enemy: CombatEnemyState) => enemy.id === state.mercenary.markedEnemyId);
-    if (marked) {
-      return marked;
-    }
-
-    if (state.mercenary.behavior === "backline_hunter") {
-      const backlineTarget =
-        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === "support") ||
-        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === "ranged") ||
-        null;
-      if (backlineTarget) {
-        return backlineTarget;
-      }
-    }
-
-    if (state.mercenary.behavior === "guard_breaker") {
-      const guardedTarget =
-        livingEnemies
-          .slice()
-          .sort((left: CombatEnemyState, right: CombatEnemyState) => right.guard - left.guard)[0] || null;
-      if (guardedTarget?.guard > 0) {
-        return guardedTarget;
-      }
-    }
-
-    if (state.mercenary.behavior === "boss_hunter") {
-      const priorityTarget =
-        livingEnemies.find((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss")) ||
-        livingEnemies.find((enemy: CombatEnemyState) => enemy.templateId.includes("_elite")) ||
-        null;
-      if (priorityTarget) {
-        return priorityTarget;
-      }
-    }
-
-    if (state.mercenary.behavior === "wounded_hunter") {
-      const woundedTarget =
-        livingEnemies
-          .slice()
-          .sort((left: CombatEnemyState, right: CombatEnemyState) => {
-            const leftRatio = left.maxLife > 0 ? left.life / left.maxLife : 1;
-            const rightRatio = right.maxLife > 0 ? right.life / right.maxLife : 1;
-            if (leftRatio !== rightRatio) {
-              return leftRatio - rightRatio;
-            }
-            return left.life - right.life;
-          })[0] || null;
-      if (woundedTarget) {
-        return woundedTarget;
-      }
-    }
-
-    const selected = livingEnemies.find((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId);
-    if (selected) {
-      return selected;
-    }
-
-    return livingEnemies.slice().sort((left: CombatEnemyState, right: CombatEnemyState) => left.life - right.life)[0] || null;
-  }
-
   function resolveMercenaryAction(state: CombatState) {
-    if (!state.mercenary.alive) {
-      return;
-    }
-
-    const target = chooseMercenaryTarget(state);
-    if (!target) {
-      return;
-    }
-
-    let damage = state.mercenary.attack + state.mercenary.nextAttackBonus + state.mercenary.contractAttackBonus;
-    if (state.mercenary.behavior === "mark_hunter" && target.id === state.mercenary.markedEnemyId) {
-      damage += state.mercenary.markBonus + state.mercenary.contractBehaviorBonus;
-    }
-    if (state.mercenary.behavior === "burn_finisher" && target.burn > 0) {
-      damage += 2 + state.mercenary.contractBehaviorBonus;
-    }
-    if (state.mercenary.behavior === "guard_breaker" && target.guard > 0) {
-      const removedGuard = target.guard;
-      target.guard = 0;
-      damage += 2 + state.mercenary.contractBehaviorBonus;
-      appendLog(state, `${state.mercenary.name} shatters ${target.name}'s Guard (${removedGuard}).`);
-    }
-    if (state.mercenary.behavior === "boss_hunter" && (target.templateId.endsWith("_boss") || target.templateId.includes("_elite"))) {
-      damage += 3 + state.mercenary.contractBehaviorBonus;
-    }
-    if (state.mercenary.behavior === "backline_hunter" && (target.role === "support" || target.role === "ranged")) {
-      damage += 2 + state.mercenary.contractBehaviorBonus;
-    }
-    if (state.mercenary.behavior === "wounded_hunter" && target.life <= Math.ceil(target.maxLife / 2)) {
-      damage += 3 + state.mercenary.contractBehaviorBonus;
-    }
-
-    const dealt = dealDamage(state, target, damage);
-    appendLog(state, `${state.mercenary.name} hits ${target.name} for ${dealt}.`);
-
-    if (state.mercenary.behavior === "guard_after_attack") {
-      const guardGained = 2 + state.mercenary.contractBehaviorBonus;
-      applyGuard(state.mercenary, guardGained);
-      appendLog(state, `${state.mercenary.name} gains ${guardGained} Guard.`);
-    }
-
-    state.mercenary.nextAttackBonus = 0;
-    state.mercenary.markedEnemyId = "";
-    state.mercenary.markBonus = 0;
-    state.selectedEnemyId = getFirstLivingEnemyId(state);
+    mercenaryModule.resolveMercenaryAction(state, appendLog, dealDamage, applyGuard, getFirstLivingEnemyId);
   }
 
   function chooseEnemyTarget(state: CombatState, rule: EnemyIntentTarget | undefined) {
@@ -207,6 +152,26 @@
     const intent = enemy.currentIntent;
     if (!intent || !enemy.alive) {
       return;
+    }
+
+    // ── Cooldown check: if current intent is on cooldown, use fallback attack ──
+    if (monsterActions.isIntentOnCooldown(enemy)) {
+      const fallbackValue = Math.max(2, Math.floor(intent.value * 0.7));
+      const target = chooseEnemyTarget(state, "hero");
+      if (target) {
+        const dealt = dealDamage(state, target, fallbackValue);
+        appendLog(state, `${enemy.name} attacks ${target.name} for ${dealt}. (${intent.label} on cooldown)`);
+      }
+      return;
+    }
+
+    // ── Passive: Regeneration ──
+    if (hasTrait(enemy, "regeneration")) {
+      const regenAmount = 2;
+      const healed = healEntity(enemy, regenAmount);
+      if (healed > 0) {
+        appendLog(state, `${enemy.name} regenerates ${healed} HP.`);
+      }
     }
 
     // ── DOT: Burn (fire) ──
@@ -243,16 +208,43 @@
       return;
     }
 
+    // ── Passive: Frenzy (below 50% HP = +50% attack) ──
+    const isFrenzied = hasTrait(enemy, "frenzy") && enemy.life <= Math.ceil(enemy.maxLife / 2);
+
     // ── Debuff: Paralyze (halve attack damage) ──
+    const ATTACK_INTENTS = ["attack", "attack_all", "attack_and_guard", "sunder_attack", "drain_attack", "attack_burn", "attack_burn_all", "attack_poison", "attack_chill", "drain_energy"];
     let intentValue = intent.value;
+
+    // Apply buffed attack bonus from Overseer
+    if (enemy.buffedAttack && enemy.buffedAttack > 0 && ATTACK_INTENTS.includes(intent.kind)) {
+      intentValue += enemy.buffedAttack;
+      enemy.buffedAttack = 0;
+    }
+
+    if (isFrenzied && ATTACK_INTENTS.includes(intent.kind)) {
+      intentValue = Math.floor(intentValue * 1.5);
+      appendLog(state, `${enemy.name} is in a FRENZY!`);
+    }
+
+    if (hasTrait(enemy, D2_MOD.EXTRA_STRONG) && ATTACK_INTENTS.includes(intent.kind)) {
+      intentValue = Math.floor(intentValue * 1.5);
+      appendLog(state, `${enemy.name} hits with Extra Strong force!`);
+    }
+
     if (enemy.paralyze > 0) {
-      const isAttackIntent = ["attack", "attack_all", "attack_and_guard", "sunder_attack", "drain_attack"].includes(intent.kind);
-      if (isAttackIntent) {
-        intentValue = Math.max(1, Math.floor(intent.value / 2));
+      if (ATTACK_INTENTS.includes(intent.kind)) {
+        intentValue = Math.max(1, Math.floor(intentValue / 2));
         appendLog(state, `${enemy.name} is Paralyzed — attack weakened.`);
       }
       enemy.paralyze = Math.max(0, enemy.paralyze - 1);
     }
+
+    // ── D2 monster intent resolution (delegated to monster-actions module) ──
+    if (monsterActions.resolveMonsterIntent(state, enemy, intent, intentValue, chooseEnemyTarget, dealDamage, healEntity)) {
+      return;
+    }
+
+    // ── Base intent handlers ──
 
     if (intent.kind === "guard") {
       applyGuard(enemy, intent.value);
@@ -373,6 +365,9 @@
       if (!enemy.alive) {
         return;
       }
+      // Tick cooldowns each turn
+      monsterActions.tickCooldowns(enemy);
+
       // Slow: enemy repeats current intent instead of advancing
       if (enemy.slow > 0) {
         enemy.slow = Math.max(0, enemy.slow - 1);
@@ -428,7 +423,11 @@
     const baseDamage = Math.max(1, state.weaponDamageBonus || 0);
     const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
     const familyMatch = preferred.includes(state.weaponFamily || "");
-    const damage = familyMatch ? baseDamage + 2 : baseDamage;
+    let damage = familyMatch ? baseDamage + 2 : baseDamage;
+    // Weaken: hero deals -30% damage
+    if (state.hero.weaken > 0) {
+      damage = Math.max(1, Math.floor(damage * 0.7));
+    }
     const target = state.enemies.find((e: CombatEnemyState) => e.id === state.selectedEnemyId && e.alive) || getLivingEnemies(state)[0];
     if (!target) {
       return { ok: false, message: "No living enemy." };
@@ -451,8 +450,32 @@
     if (state.mercenary.alive) {
       state.mercenary.guard = 0;
     }
-    state.hero.energy = state.hero.maxEnergy;
-    drawCards(state, Math.max(0, state.hero.handSize - state.hand.length));
+
+    // Process hero debuffs at turn start (before drawing)
+    if (state.turn > 1) {
+      monsterActions.processHeroDebuffs(state);
+      if (!state.hero.alive) {
+        state.phase = "defeat";
+        state.outcome = "defeat";
+        appendLog(state, "The Wanderer falls. Encounter lost.");
+        return;
+      }
+    }
+
+    // Energy: apply energy drain
+    let energyThisTurn = state.hero.maxEnergy;
+    if (state.hero.energyDrain > 0 && state.turn > 1) {
+      energyThisTurn = Math.max(1, energyThisTurn - 1);
+    }
+    state.hero.energy = energyThisTurn;
+
+    // Card draw: apply chill (draw 1 fewer)
+    let drawCount = Math.max(0, state.hero.handSize - state.hand.length);
+    if (state.hero.chill > 0 && state.turn > 1) {
+      drawCount = Math.max(0, drawCount - 1);
+    }
+    drawCards(state, drawCount);
+
     if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
       state.selectedEnemyId = getFirstLivingEnemyId(state);
     }
@@ -475,8 +498,24 @@
     for (let index = 0; index < enemiesToAct.length; index += 1) {
       const enemy = enemiesToAct[index];
       resolveEnemyAction(state, enemy);
+      if (enemy.alive) {
+        monsterActions.processModifierOnAttack(state, enemy);
+      }
       if (checkOutcome(state)) {
         return { ok: true, message: "Encounter resolved." };
+      }
+
+      // Swift / Extra Fast trait: execute action a second time
+      if ((hasTrait(enemy, "swift") || hasTrait(enemy, D2_MOD.EXTRA_FAST)) && enemy.alive) {
+        const label = hasTrait(enemy, "swift") ? "Swift" : "Extra Fast";
+        appendLog(state, `${enemy.name} strikes again! (${label})`);
+        resolveEnemyAction(state, enemy);
+        if (enemy.alive) {
+          monsterActions.processModifierOnAttack(state, enemy);
+        }
+        if (checkOutcome(state)) {
+          return { ok: true, message: "Encounter resolved." };
+        }
       }
     }
 

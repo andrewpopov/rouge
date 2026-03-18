@@ -11,6 +11,13 @@ interface CombatHeroState extends HeroDefinition {
   damageBonus: number;
   guardBonus: number;
   burnBonus: number;
+  // Hero debuffs (applied by enemies)
+  heroBurn: number;
+  heroPoison: number;
+  chill: number;
+  amplify: number;
+  weaken: number;
+  energyDrain: number;
 }
 
 interface CombatMercenaryState extends MercenaryDefinition {
@@ -47,6 +54,12 @@ interface CombatEnemyState {
   intentIndex: number;
   currentIntent: EnemyIntent;
   intents: EnemyIntent[];
+  traits?: MonsterTraitKind[];
+  family?: string;
+  summonTemplateId?: string;
+  consumed?: boolean;
+  buffedAttack?: number;
+  cooldowns?: Record<number, number>;
 }
 
 interface CombatState {

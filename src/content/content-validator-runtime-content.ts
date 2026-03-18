@@ -6,16 +6,11 @@
   const { validateMercenaryCatalog } = runtimeWindow.__ROUGE_CV_RUNTIME_MERCENARIES;
 
   const ALLOWED_INTENT_KINDS = new Set([
-    "attack",
-    "attack_all",
-    "attack_and_guard",
-    "drain_attack",
-    "guard",
-    "guard_allies",
-    "heal_ally",
-    "heal_allies",
-    "heal_and_guard",
-    "sunder_attack",
+    "attack", "attack_all", "attack_and_guard", "attack_burn", "attack_burn_all",
+    "attack_chill", "attack_poison", "buff_allies_attack", "consume_corpse",
+    "corpse_explosion", "curse_amplify", "curse_weaken", "drain_attack", "drain_energy",
+    "guard", "guard_allies", "heal_ally", "heal_allies", "heal_and_guard",
+    "resurrect_ally", "summon_minion", "sunder_attack",
   ]);
 
   const ALLOWED_ELITE_AFFIXES = new Set([

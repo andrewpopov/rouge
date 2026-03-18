@@ -279,11 +279,40 @@
     ];
   }
 
+  const D2_ELITE_MODIFIER_MAP: Record<string, MonsterTraitKind> = {
+    warded: "stone_skin",
+    huntsman: "extra_fast",
+    gravebound: "cursed",
+    blackarrow: "extra_strong",
+    rampaging: "extra_fast",
+    dunebound: "stone_skin",
+    sunscorched: "fire_enchanted",
+    sandwarden: "stone_skin",
+    vampiric: "mana_burn",
+    hexbound: "cursed",
+    fetid: "cold_enchanted",
+    bloodpriest: "cursed",
+    hellforged: "fire_enchanted",
+    tormentor: "lightning_enchanted",
+    cinderlord: "fire_enchanted",
+    doomtide: "extra_strong",
+    warcaller: "extra_strong",
+    frostbound: "cold_enchanted",
+    stormbanner: "lightning_enchanted",
+    icevein: "cold_enchanted",
+  };
+
+  const monsterFamilies = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES;
+
   runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA = {
     ROLE_KEYWORDS,
     ROLE_STATS,
     ELITE_AFFIX_PROFILES,
     ACT_ELITE_PACKAGES,
     buildEliteIntentSet,
+    D2_ELITE_MODIFIER_MAP,
+    MONSTER_FAMILY_OVERRIDES: monsterFamilies.MONSTER_FAMILY_OVERRIDES,
+    findFamilyOverride: monsterFamilies.findFamilyOverride,
   };
 })();
+

@@ -6,7 +6,10 @@
     ELITE_AFFIX_PROFILES,
     ACT_ELITE_PACKAGES,
     buildEliteIntentSet,
+    D2_ELITE_MODIFIER_MAP,
+    findFamilyOverride,
   } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
+  const { D2_MOD } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
 
   function uniqueById(entries: EnemyPoolEntryRef[]) {
     const seen = new Set();
@@ -39,6 +42,12 @@
   }
 
   function classifyRole(entry: EnemyPoolEntryRef) {
+    // Check family overrides first for role override
+    const familyOverride = findFamilyOverride(entry.name);
+    if (familyOverride?.roleOverride) {
+      return familyOverride.roleOverride;
+    }
+
     const haystack = `${entry.id} ${entry.name}`.toLowerCase();
     if (ROLE_KEYWORDS.support.some((keyword: string) => haystack.includes(keyword))) {
       return "support";
@@ -345,33 +354,57 @@
     intents?: EnemyIntent[] | null;
   }) {
     const isElite = variant === "elite";
-    const scale = scaleOverride || buildScale(actNumber, role, { elite: isElite });
+    const familyOverride = findFamilyOverride(entry.name);
+    const effectiveRole = (familyOverride?.roleOverride) || role;
+    const scale = scaleOverride || buildScale(actNumber, effectiveRole, { elite: isElite });
+
+    // Apply family stat multipliers
+    if (familyOverride) {
+      if (familyOverride.lifeMultiplier) {
+        scale.life = Math.floor(scale.life * familyOverride.lifeMultiplier);
+      }
+      if (familyOverride.attackMultiplier) {
+        scale.attack = Math.floor(scale.attack * familyOverride.attackMultiplier);
+      }
+    }
+
     const name = labelPrefix ? `${labelPrefix} ${entry.name}` : entry.name;
     const suffix = templateIdSuffix || variant;
+
+    // Determine intents: explicit > family override > generic role-based
+    let resolvedIntents: EnemyIntent[];
+    if (Array.isArray(intents) && intents.length > 0) {
+      resolvedIntents = intents;
+    } else if (familyOverride?.buildIntents) {
+      resolvedIntents = familyOverride.buildIntents(scale, entry.name);
+    } else {
+      resolvedIntents = buildIntentSet(actNumber, effectiveRole, scale, entry.name);
+    }
+
     return {
       templateId: `act_${actNumber}_${entry.id}_${suffix}`,
       name,
       maxLife: scale.life,
-      intents:
-        (Array.isArray(intents) && intents.length > 0 ? intents : buildIntentSet(actNumber, role, scale, entry.name)).map((intent) => ({
-          ...intent,
-        })),
-      role,
+      intents: resolvedIntents.map((intent) => ({ ...intent })),
+      role: effectiveRole,
       variant,
       ...(affixes.length > 0 ? { affixes: [...affixes] } : {}),
+      ...(familyOverride?.traits && familyOverride.traits.length > 0 ? { traits: [...familyOverride.traits] } : {}),
+      ...(familyOverride?.family ? { family: familyOverride.family } : {}),
     };
   }
 
   function buildEliteTemplate({ actNumber, entry, role, profile, templateIdSuffix }: { actNumber: number; entry: EnemyPoolEntryRef; role: string; profile: EncounterRegistryEliteAffixProfile; templateIdSuffix: string }) {
     const baseScale = buildScale(actNumber, role, { elite: true });
+    const modifier: MonsterTraitKind | undefined = D2_ELITE_MODIFIER_MAP[profile.id];
     const eliteScale = {
-      life: baseScale.life + profile.lifeBonus,
+      life: baseScale.life + profile.lifeBonus + (modifier === D2_MOD.STONE_SKIN ? Math.floor((baseScale.life + profile.lifeBonus) * 0.5) : 0),
       attack: baseScale.attack + profile.attackBonus,
       guard: baseScale.guard + profile.guardBonus,
       heal: baseScale.heal,
     };
 
-    return buildEnemyTemplate({
+    const template = buildEnemyTemplate({
       actNumber,
       entry,
       role,
@@ -382,6 +415,13 @@
       affixes: [profile.id],
       intents: buildEliteIntentSet(profile, eliteScale, entry.name),
     });
+
+    if (modifier) {
+      const existingTraits: MonsterTraitKind[] = Array.isArray(template.traits) ? template.traits : [];
+      template.traits = [...existingTraits, modifier];
+    }
+
+    return template;
   }
 
   function buildBossTemplate({ actNumber, actSeed, bossEntry }: { actNumber: number; actSeed: ActSeed; bossEntry: BossEntry }) {

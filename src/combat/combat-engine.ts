@@ -52,6 +52,12 @@
       damageBonus: Math.max(0, parseInteger(definition.damageBonus, 0)),
       guardBonus: Math.max(0, parseInteger(definition.guardBonus, 0)),
       burnBonus: Math.max(0, parseInteger(definition.burnBonus, 0)),
+      heroBurn: 0,
+      heroPoison: 0,
+      chill: 0,
+      amplify: 0,
+      weaken: 0,
+      energyDrain: 0,
     };
   }
 
@@ -84,6 +90,8 @@
 
   function createEnemy(content: GameContent, enemyEntry: EncounterEnemyEntry) {
     const template = content.enemyCatalog[enemyEntry.templateId];
+    const { D2_MOD } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
+    const hasTraitStoneSkin = Array.isArray(template.traits) && template.traits.includes(D2_MOD.STONE_SKIN);
     return {
       id: enemyEntry.id,
       templateId: template.templateId,
@@ -91,7 +99,7 @@
       role: template.role || "",
       maxLife: template.maxLife,
       life: template.maxLife,
-      guard: 0,
+      guard: hasTraitStoneSkin ? Math.floor(template.maxLife * 0.3) : 0,
       burn: 0,
       poison: 0,
       slow: 0,
@@ -102,6 +110,12 @@
       intentIndex: 0,
       currentIntent: { ...template.intents[0] },
       intents: template.intents.map((intent: EnemyIntent) => ({ ...intent })),
+      traits: Array.isArray(template.traits) ? [...template.traits] : [],
+      family: template.family || "",
+      summonTemplateId: template.summonTemplateId || "",
+      consumed: false,
+      buffedAttack: 0,
+      cooldowns: {},
     };
   }
 
@@ -149,6 +163,42 @@
     if (intent.kind === "sunder_attack") {
       return `Sunder ${intent.value}`;
     }
+    if (intent.kind === "resurrect_ally") {
+      return "Resurrect";
+    }
+    if (intent.kind === "summon_minion") {
+      return "Summon";
+    }
+    if (intent.kind === "attack_burn") {
+      return `${intent.value} dmg + Burn`;
+    }
+    if (intent.kind === "attack_burn_all") {
+      return `${intent.value} dmg all + Burn`;
+    }
+    if (intent.kind === "attack_poison") {
+      return `${intent.value} dmg + Poison`;
+    }
+    if (intent.kind === "attack_chill") {
+      return `${intent.value} dmg + Chill`;
+    }
+    if (intent.kind === "curse_amplify") {
+      return "Amplify Damage";
+    }
+    if (intent.kind === "curse_weaken") {
+      return "Decrepify";
+    }
+    if (intent.kind === "drain_energy") {
+      return `${intent.value} dmg + Drain`;
+    }
+    if (intent.kind === "buff_allies_attack") {
+      return `Buff allies +${intent.value}`;
+    }
+    if (intent.kind === "consume_corpse") {
+      return "Consume corpse";
+    }
+    if (intent.kind === "corpse_explosion") {
+      return "Corpse Explosion";
+    }
     return intent.label || "Unknown";
   }
 
@@ -159,9 +209,16 @@
     return `${card.title}: ${segments.join(" ")}`;
   }
 
+  function applyWeaken(state: CombatState, amount: number) {
+    if (state.hero.weaken > 0) {
+      return Math.max(1, Math.floor(amount * 0.7));
+    }
+    return amount;
+  }
+
   function resolveCardEffect(state: CombatState, effect: CardEffect, targetEnemy: CombatEnemyState | null) {
     if (effect.kind === "damage") {
-      const damage = Math.max(0, effect.value + state.hero.damageBonus);
+      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus));
       const dealt = dealDamage(state, targetEnemy, damage);
       return `dealt ${dealt} to ${targetEnemy.name}.`;
     }
@@ -260,7 +317,7 @@
       return `buffed the mercenary's next attack by ${effect.value}.`;
     }
     if (effect.kind === "damage_all") {
-      const damage = Math.max(0, effect.value + state.hero.damageBonus);
+      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus));
       const total = getLivingEnemies(state).reduce((sum: number, enemy: CombatEnemyState) => sum + dealDamage(state, enemy, damage), 0);
       return `dealt ${total} total damage.`;
     }
