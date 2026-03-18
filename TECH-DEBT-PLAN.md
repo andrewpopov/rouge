@@ -1,7 +1,7 @@
 # Rouge Tech Debt & Code Quality Plan
 
 **Date:** 2026-03-18
-**Status:** Phases 1-5 complete, Phase 7 partial
+**Status:** Phases 1-7 substantially complete
 **Scope:** Full codebase review — 140 files, ~48K lines
 
 ## Current Health
@@ -10,7 +10,7 @@
 |-------|--------|
 | Build | PASS — clean compilation |
 | Tests | PASS — 258/258 |
-| Lint | 30 errors (all `no-unused-vars` in test files, down from 69) |
+| Lint | PASS — 0 errors |
 | TS Strictness | `strict: false` — `noImplicitAny` on, `strictNullChecks` **off** |
 
 ## Completed
@@ -18,10 +18,15 @@
 - **Phase 1** — Fixed dead ternary, stale version fallbacks, unsafe non-null assertion, drawCards self-reference and null guard
 - **Phase 2** — Added 4 missing exploration event action dispatchers
 - **Phase 3** — Deduplicated `slugify`, `parseInteger`, `isObject`, `hasTownFeature`, `getFocusedAccountTreeId` into `ROUGE_UTILS`. Consolidated `getUpgradableCardIds` (via `ROUGE_REWARD_ENGINE`), `getPreferredClassId` (via `__ROUGE_APP_ENGINE_RUN`), `CORE_TOWN_FEATURE_IDS` (via `__ROUGE_PROFILE_MIGRATIONS_DATA`). Net: -101 lines, 14 files touched.
+- **Phase 3 (cont.)** — Replaced `Number.parseInt(String(...))` with `toNumber` across 16 files (28 occurrences). Deduplicated `getTrainingRankCount`, `getLevelForXp`, `getTrainingTrackForLevel`, `createDefaultTraining`, `createDefaultAttributes`, `createDefaultClassProgression` in `save-migrations.ts` (import from `ROUGE_RUN_STATE`). Deduplicated `sanitizePlannedRunewordId` in `persistence-core.ts` (import from `__ROUGE_PROFILE_MIGRATIONS_DATA`). Deduplicated `getPlanningSummary` in `item-system-rewards.ts` (import from `__ROUGE_ITEM_TOWN_PRICING`). Net: -237 additional lines across 25 files.
 - **Phase 4.1** — Added `RewardChoiceEffectKind` union type (21 members) replacing `kind: string` on `RewardChoiceEffect`
+- **Phase 4.3** — Typed `choiceBuilder` parameter in `catalog-opp-helpers.ts` with concrete factory signature
 - **Phase 5.2** — Extracted `sharedOfferBonus` in vendor stock generation
 - **Phase 5.3** — Replaced 9 sequential feature-flag `if` blocks with `PIVOT_FEATURE_LABELS` table
-- **Phase 7.1** — Auto-fixed 39 lint errors (curly, template literals, prefer-const)
+- **Phase 5.6** — Merged near-identical `buildTownActionCard`/`buildMercenaryActionCard` into shared `buildActionCard` helper
+- **Phase 6.1** — Added card ID validation for `classStarterDecks` and `classRewardPools` tiers in content validator
+- **Phase 6.3** — Added `console.warn` when `getTreeArchetype` falls back to positional index
+- **Phase 7.1** — Auto-fixed 39 lint errors (curly, template literals, prefer-const); remaining lint errors resolved
 
 ---
 
