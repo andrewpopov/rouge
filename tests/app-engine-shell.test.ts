@@ -197,7 +197,7 @@ test("app shell renders boot loading and error states", () => {
     bootState: { status: "loading", error: "" },
   });
   assert.match(root.innerHTML, /Opening The Account Hall/);
-  assert.match(root.innerHTML, /Starting Up/);
+  assert.match(root.innerHTML, /Loading classes/);
 
   appShell.render(root, {
     appState: null,

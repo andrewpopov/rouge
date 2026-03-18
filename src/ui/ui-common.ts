@@ -70,14 +70,11 @@
     renderUtils.buildShell(root, {
       eyebrow: "Boot",
       title: "Opening The Account Hall",
-      copy: "Initializing the seed bundle, class registry, run factory, and the phase-driven shell that carries the run from front door to archive.",
+      copy: "Loading seed data, class registry, and the phase-driven shell.",
       body: `
-        <section class="panel flow-panel">
-          <div class="panel-head">
-            <h2>Starting Up</h2>
-            <p>The live shell will move through front door, character select, town, world map, encounter, reward, and run-end review once the registries are ready.</p>
-          </div>
-          <p class="flow-copy">Loading classes, zones, monsters, items, runes, runewords, bosses, and world-node hooks from the seed bundle.</p>
+        <section class="panel flow-panel" style="text-align:center;padding:32px">
+          <div class="boot-spinner"></div>
+          <p class="flow-copy" style="margin-top:16px">Loading classes, zones, monsters, items, runes, runewords, and bosses\u2026</p>
         </section>
       `,
     });

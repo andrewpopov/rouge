@@ -2828,11 +2828,19 @@ button.waypoint:hover {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--accent-bright);
+  animation: phase-flash 0.4s ease-out;
 }
 
-.combat-hud__phase--victory { color: var(--success); }
-.combat-hud__phase--defeat { color: var(--danger); }
+.combat-hud__phase--player { color: var(--accent-bright); text-shadow: 0 0 8px rgba(212, 143, 70, 0.3); }
+.combat-hud__phase--victory { color: var(--success); text-shadow: 0 0 8px rgba(60, 160, 80, 0.3); }
+.combat-hud__phase--defeat { color: var(--danger); text-shadow: 0 0 8px rgba(200, 60, 60, 0.3); }
 .combat-hud__phase--enemy { color: var(--danger); opacity: 0.7; }
+
+@keyframes phase-flash {
+  0% { opacity: 0; transform: scale(1.3); }
+  50% { opacity: 1; }
+  100% { transform: scale(1); }
+}
 
 .combat-hud__zone {
   font-size: 0.65rem;
@@ -2858,9 +2866,21 @@ button.waypoint:hover {
   overflow: hidden;
 }
 
-.stage__backdrop {
+/* Cinematic vignette overlay for depth */
+.stage::after {
+  content: "";
   position: absolute;
   inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.35) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.stage__backdrop {
+  position: absolute;
+  inset: -4px;
   background:
     radial-gradient(ellipse at 50% 100%, rgba(160, 70, 20, 0.35), transparent 50%),
     radial-gradient(ellipse at 25% 30%, rgba(120, 40, 10, 0.2), transparent 45%),
@@ -2868,6 +2888,7 @@ button.waypoint:hover {
     radial-gradient(ellipse at 50% 50%, rgba(60, 20, 8, 0.4), transparent 80%),
     linear-gradient(180deg, #040201 0%, #0e0604 20%, #1e0e08 45%, #2d160c 70%, #3a1e10 100%);
   z-index: 0;
+  transition: transform 0.15s ease-out;
 }
 
 .stage__backdrop::before {
@@ -3632,7 +3653,8 @@ button.waypoint:hover {
   position: relative;
   transform-origin: bottom center;
   transform: rotate(var(--fan-rotate, 0deg)) translateY(var(--fan-lift, 0px));
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.15s;
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.15s;
   margin: 0 -8px;
   z-index: calc(var(--fan-index, 0));
 }
@@ -3668,7 +3690,6 @@ button.waypoint:hover {
 }
 
 .fan-card:hover:not(.fan-card--disabled) {
-  transform: rotate(0deg) translateY(-40px) scale(1.12);
   z-index: 100;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
@@ -3710,11 +3731,23 @@ button.waypoint:hover {
 .fan-card__art {
   font-size: 1.6rem;
   margin: 4px 0 2px;
+  padding: 6px 0;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 3px;
+  position: relative;
 }
+
+/* Element-specific art area backgrounds */
+.fan-card--fire .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(255, 60, 10, 0.12), transparent 80%); }
+.fan-card--ice .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(100, 180, 255, 0.12), transparent 80%); }
+.fan-card--lightning .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(255, 220, 70, 0.12), transparent 80%); }
+.fan-card--poison .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(90, 200, 70, 0.12), transparent 80%); }
+.fan-card--arcane .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(165, 100, 255, 0.12), transparent 80%); }
+.fan-card--physical .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(200, 160, 100, 0.08), transparent 80%); }
+.fan-card--support .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(123, 170, 187, 0.08), transparent 80%); }
 
 .fan-card__name {
   font-family: var(--font-display);
@@ -4227,6 +4260,20 @@ button.waypoint:hover {
   pointer-events: none;
 }
 
+.cutscene__backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 160, 60, 0.4), transparent),
+    radial-gradient(1px 1px at 80% 40%, rgba(255, 140, 40, 0.3), transparent),
+    radial-gradient(1.5px 1.5px at 50% 70%, rgba(255, 180, 80, 0.35), transparent),
+    radial-gradient(1px 1px at 35% 55%, rgba(255, 120, 30, 0.3), transparent);
+  background-size: 200px 200px, 300px 250px, 250px 300px, 350px 280px;
+  animation: ember-drift 12s linear infinite;
+  opacity: 0.5;
+}
+
 .cutscene__content {
   position: relative;
   max-width: 640px;
@@ -4239,6 +4286,7 @@ button.waypoint:hover {
   margin: 0 0 16px;
   font-size: 0.72rem;
   letter-spacing: 0.28em;
+  animation: cutscene-eyebrow-in 0.6s ease-out 0.2s both;
   text-transform: uppercase;
   color: var(--accent-bright);
 }
@@ -4249,6 +4297,8 @@ button.waypoint:hover {
   line-height: 1.2;
   color: var(--text);
   font-family: var(--font-heading, var(--font-body));
+  animation: cutscene-title-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+  text-shadow: 0 0 30px rgba(212, 143, 70, 0.3);
 }
 
 .cutscene__narrative {
@@ -4291,6 +4341,49 @@ button.waypoint:hover {
 @keyframes cutscene-fade-in {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Shell banner entrance ── */
+
+.hero-banner {
+  animation: banner-enter 0.5s ease-out;
+}
+
+.hero-banner .eyebrow {
+  animation: banner-eyebrow-in 0.4s ease-out 0.15s both;
+}
+
+.hero-banner h1 {
+  animation: banner-title-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+.hero-banner .hero-copy {
+  animation: cutscene-line-in 0.4s ease-out 0.35s both;
+}
+
+@keyframes banner-enter {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes banner-eyebrow-in {
+  from { opacity: 0; letter-spacing: 0.5em; }
+  to { opacity: 1; }
+}
+
+@keyframes banner-title-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cutscene-eyebrow-in {
+  from { opacity: 0; letter-spacing: 0.6em; }
+  to { opacity: 1; letter-spacing: 0.28em; }
+}
+
+@keyframes cutscene-title-in {
+  from { opacity: 0; transform: scale(0.85); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
 @keyframes cutscene-line-in {
@@ -4822,12 +4915,424 @@ button.waypoint:hover {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ── Sprite idle breathing ── */
+
+.sprite:not(.sprite--dead) .sprite__figure {
+  animation: sprite-breathe 3s ease-in-out infinite;
+}
+
+.sprite--enemy:not(.sprite--dead) .sprite__figure {
+  animation: sprite-breathe-enemy 2.5s ease-in-out infinite;
+}
+
+@keyframes sprite-breathe {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(1.015) translateY(-1px); }
+}
+
+@keyframes sprite-breathe-enemy {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  40% { transform: scaleY(1.02) translateY(-1.5px); }
+}
+
+/* ── Character select polish ── */
+
+.campfire-hero {
+  animation: hero-lineup-in 0.4s ease-out both;
+}
+
+.campfire-hero:nth-child(1) { animation-delay: 0.1s; }
+.campfire-hero:nth-child(2) { animation-delay: 0.15s; }
+.campfire-hero:nth-child(3) { animation-delay: 0.2s; }
+.campfire-hero:nth-child(4) { animation-delay: 0.25s; }
+.campfire-hero:nth-child(5) { animation-delay: 0.3s; }
+.campfire-hero:nth-child(6) { animation-delay: 0.35s; }
+.campfire-hero:nth-child(7) { animation-delay: 0.4s; }
+
+@keyframes hero-lineup-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.8); filter: brightness(0.2); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.campfire-hero--selected {
+  animation: hero-selected-glow 2s ease-in-out infinite;
+}
+
+@keyframes hero-selected-glow {
+  0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 0 12px rgba(245, 193, 118, 0.5)); }
+  50% { filter: brightness(1.05) saturate(1.05) drop-shadow(0 0 20px rgba(245, 193, 118, 0.7)); }
+}
+
+.campfire-detail--expanded {
+  animation: detail-panel-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes detail-panel-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.campfire-sky .eyebrow {
+  animation: banner-eyebrow-in 0.5s ease-out 0.05s both;
+}
+
+.campfire-title {
+  animation: cutscene-title-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+/* ── Town / safe-zone atmosphere ── */
+
+.town-npc-icon--active .town-npc-icon__dot {
+  animation: npc-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes npc-dot-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(212, 143, 70, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(212, 143, 70, 0.7), 0 0 4px rgba(245, 193, 118, 0.3); }
+}
+
+.town-npc-overlay {
+  animation: npc-overlay-in 0.3s ease-out;
+}
+
+@keyframes npc-overlay-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.merchant-card {
+  animation: merchant-card-in 0.3s ease-out both;
+}
+
+.merchant-card:nth-child(1) { animation-delay: 0.05s; }
+.merchant-card:nth-child(2) { animation-delay: 0.1s; }
+.merchant-card:nth-child(3) { animation-delay: 0.15s; }
+.merchant-card:nth-child(4) { animation-delay: 0.2s; }
+.merchant-card:nth-child(5) { animation-delay: 0.25s; }
+.merchant-card:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes merchant-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.merchant-card--bought {
+  border-color: var(--success) !important;
+  box-shadow: 0 0 16px rgba(60, 160, 80, 0.3) !important;
+}
+
+/* ── Combat log styling ── */
+
+.combat-log-list {
+  counter-reset: log-entry;
+}
+
+.combat-log-list li {
+  counter-increment: log-entry;
+  padding: 3px 0;
+  font-size: 0.78rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  line-height: 1.5;
+}
+
+.combat-log-list li::marker {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.combat-log-list li:last-child {
+  color: var(--accent-bright);
+  border-bottom: none;
+}
+
+/* ── Loading screen ── */
+
+.boot-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 3px solid rgba(235, 200, 149, 0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: boot-spin 0.8s linear infinite;
+}
+
+@keyframes boot-spin {
+  to { transform: rotate(360deg); }
+}
+
+.hero-banner .eyebrow {
+  animation: banner-eyebrow-in 0.4s ease-out 0.15s both;
+}
+
+/* ── World map node entrance ── */
+
+.map-node {
+  animation: map-node-in 0.4s ease-out both;
+}
+
+.map-node:nth-child(1) { animation-delay: 0.05s; }
+.map-node:nth-child(2) { animation-delay: 0.1s; }
+.map-node:nth-child(3) { animation-delay: 0.15s; }
+.map-node:nth-child(4) { animation-delay: 0.2s; }
+.map-node:nth-child(5) { animation-delay: 0.25s; }
+.map-node:nth-child(6) { animation-delay: 0.3s; }
+.map-node:nth-child(7) { animation-delay: 0.35s; }
+.map-node:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes map-node-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.map-node.available {
+  animation: map-node-in 0.4s ease-out both, map-node-available-pulse 2.5s ease-in-out infinite 0.6s;
+}
+
+@keyframes map-node-available-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(134, 185, 147, 0); }
+  50% { box-shadow: 0 0 12px rgba(134, 185, 147, 0.15); }
+}
+
+/* ── Status effect animations ── */
+
+.sprite__status--burn {
+  animation: status-burn-flicker 0.8s ease-in-out infinite;
+}
+
+@keyframes status-burn-flicker {
+  0%, 100% { opacity: 1; text-shadow: 0 0 4px rgba(220, 70, 50, 0.4); }
+  50% { opacity: 0.7; text-shadow: 0 0 8px rgba(255, 100, 30, 0.6); }
+}
+
+.sprite__status--poison {
+  animation: status-poison-drip 1.2s ease-in-out infinite;
+}
+
+@keyframes status-poison-drip {
+  0%, 100% { opacity: 1; text-shadow: 0 0 4px rgba(90, 200, 70, 0.3); }
+  50% { opacity: 0.75; text-shadow: 0 0 6px rgba(90, 200, 70, 0.5); }
+}
+
+.sprite__status--freeze {
+  animation: status-freeze-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes status-freeze-shimmer {
+  0%, 100% { text-shadow: 0 0 4px rgba(136, 212, 255, 0.3); }
+  50% { text-shadow: 0 0 10px rgba(136, 212, 255, 0.6), 0 0 2px rgba(200, 240, 255, 0.4); }
+}
+
+.sprite__status--stun,
+.sprite__status--paralyze {
+  animation: status-stun-flash 0.6s ease-in-out infinite;
+}
+
+@keyframes status-stun-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Potion button feedback ── */
+
+.sprite__potion:active:not(:disabled) {
+  transform: scale(1.3);
+  filter: brightness(1.5) drop-shadow(0 0 8px rgba(100, 255, 120, 0.6));
+}
+
+.sprite__potion {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.sprite__potion:not(:disabled):hover {
+  filter: drop-shadow(0 0 4px rgba(100, 255, 120, 0.3));
+}
+
+/* ── Turn announcement banner ── */
+
+.turn-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
+  pointer-events: none;
+  animation: turn-banner-lifecycle 1.2s ease-out forwards;
+}
+
+.turn-banner__text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-bright);
+  text-shadow: 0 0 20px rgba(212, 143, 70, 0.6), 0 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+@keyframes turn-banner-lifecycle {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  60% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+/* ── Upgraded card glow ── */
+
+.fan-card--upgraded {
+  border-color: rgba(255, 215, 100, 0.45) !important;
+  box-shadow: 0 0 10px rgba(255, 215, 100, 0.15), inset 0 0 20px rgba(255, 215, 100, 0.04);
+}
+
+.fan-card--upgraded::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 215, 100, 0.3);
+  pointer-events: none;
+  animation: upgraded-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes upgraded-shimmer {
+  0%, 100% { opacity: 0.4; box-shadow: 0 0 8px rgba(255, 215, 100, 0.1); }
+  50% { opacity: 1; box-shadow: 0 0 16px rgba(255, 215, 100, 0.25), 0 0 4px rgba(255, 215, 100, 0.15); }
+}
+
+.fan-card--upgraded .fan-card__name {
+  color: #ffd764;
+}
+
+.fan-card--upgraded .fan-card__cost {
+  background: radial-gradient(circle, rgba(255, 215, 100, 0.25) 0%, transparent 70%);
+  color: #ffd764;
+}
+
+/* ── Reward choice card stagger entrance ── */
+
+.reward-choice-card {
+  animation: reward-choice-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reward-choice-card:nth-child(1) { animation-delay: 0.15s; }
+.reward-choice-card:nth-child(2) { animation-delay: 0.25s; }
+.reward-choice-card:nth-child(3) { animation-delay: 0.35s; }
+.reward-choice-card:nth-child(4) { animation-delay: 0.45s; }
+
+@keyframes reward-choice-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.88) rotateX(12deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
+}
+
+/* ── Reward rarity hover glow ── */
+
+.reward-choice-card[style*="border:2px solid #c59a46"]:hover {
+  box-shadow: 0 6px 24px rgba(197, 154, 70, 0.35), 0 0 12px rgba(197, 154, 70, 0.15);
+}
+
+.reward-choice-card[style*="border:2px solid #ddc63b"]:hover {
+  box-shadow: 0 6px 24px rgba(221, 198, 59, 0.35), 0 0 12px rgba(221, 198, 59, 0.15);
+}
+
+/* ── Reward grant counter animation ── */
+
+.reward-grant {
+  animation: grant-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.reward-grant:nth-child(1) { animation-delay: 0.3s; }
+.reward-grant:nth-child(2) { animation-delay: 0.4s; }
+.reward-grant:nth-child(3) { animation-delay: 0.5s; }
+.reward-grant:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes grant-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Reward header icon pulse ── */
+
+.reward-popup__icon {
+  animation: reward-icon-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes reward-icon-glow {
+  0%, 100% { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)); }
+  50% { filter: drop-shadow(0 2px 8px rgba(212, 143, 70, 0.5)) drop-shadow(0 0 12px rgba(212, 143, 70, 0.2)); }
+}
+
+/* ── Choose label shimmer ── */
+
+.reward-popup__choose-label {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--accent-bright) 45%,
+    var(--accent-bright) 55%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: choose-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes choose-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 /* ── Reduce motion support ── */
 
 @media (prefers-reduced-motion: reduce) {
   .stage__particles::before,
   .stage__particles::after,
   .fan-card,
+  .fan-card--upgraded::after,
+  .combat-hud__phase,
+  .turn-banner,
+  .sprite:not(.sprite--dead) .sprite__figure,
+  .sprite--enemy:not(.sprite--dead) .sprite__figure,
+  .campfire-hero,
+  .campfire-hero--selected,
+  .campfire-detail--expanded,
+  .campfire-sky .eyebrow,
+  .campfire-title,
+  .town-npc-icon--active .town-npc-icon__dot,
+  .town-npc-overlay,
+  .merchant-card,
+  .boot-spinner,
+  .hero-banner,
+  .hero-banner .eyebrow,
+  .hero-banner h1,
+  .hero-banner .hero-copy,
+  .cutscene__eyebrow,
+  .cutscene__title,
+  .cutscene__backdrop::before,
+  .map-node,
+  .map-node.available,
+  .sprite__status--burn,
+  .sprite__status--poison,
+  .sprite__status--freeze,
+  .sprite__status--stun,
+  .sprite__status--paralyze,
   .explore-card,
   .event-choice,
   .town-npc-card,
@@ -4839,10 +5344,19 @@ button.waypoint:hover {
   .stage__outcome-sub,
   .reward-overlay,
   .reward-popup,
+  .reward-choice-card,
+  .reward-grant,
+  .reward-popup__icon,
+  .reward-popup__choose-label,
   .energy-orb--active,
   .sprite--targeted .sprite__figure,
   .sprite__hp-fill--low {
     animation: none !important;
+  }
+
+  .reward-popup__choose-label {
+    background: none;
+    -webkit-text-fill-color: var(--muted);
   }
 
   .sprite--dead {
