@@ -17,9 +17,7 @@
     };
   }
 
-  function getBonusValue(value: unknown): number {
-    return Number.parseInt(String(value ?? 0), 10) || 0;
-  }
+  const { toNumber: getBonusValue } = runtimeWindow.ROUGE_UTILS;
 
   function getDerivedPartyState(run: RunState, content: GameContent, itemSystem: ItemSystemApi): DerivedPartyState {
     const bonuses = runtimeWindow.ROUGE_RUN_FACTORY?.buildCombatBonuses?.(run, content) || itemSystem?.buildCombatBonuses(run, content) || {};

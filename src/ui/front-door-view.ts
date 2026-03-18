@@ -207,7 +207,7 @@
     const recentRunMarkup = buildRecentRunMarkup(appState.profile, services.renderUtils);
     const expeditionSection = expeditionView.buildExpeditionSectionMarkup(appState, services, savedRunSummary);
     const section = appState.ui.hallSection || "overview";
-    const hide = (s: string) => s !== section ? "display:none" : "";
+    const tabClass = (s: string) => s !== section ? "hall-tab--hidden" : "";
 
     root.innerHTML = `
       <section class="hero-banner panel" style="padding:24px 32px 0">
@@ -221,10 +221,10 @@
       </section>
       <div class="shell-body">
         ${hallView.buildHallTabNav(section)}
-        <div data-hall-tab="overview" style="${hide("overview")}">
+        <div data-hall-tab="overview" class="${tabClass("overview")}">
           ${hallView.buildAccountDashboardMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         </div>
-        <div data-hall-tab="expedition" style="${hide("expedition")}">
+        <div data-hall-tab="expedition" class="${tabClass("expedition")}">
           ${expeditionSection}
           ${common.buildExpeditionLaunchFlowMarkup(appState, accountSummary, services.renderUtils, {
             currentStep: "hall",
@@ -240,7 +240,7 @@
           })}
           ${expeditionView.buildGuidedStartMarkup(appState, services, savedRunSummary)}
         </div>
-        <div data-hall-tab="progression" style="${hide("progression")}">
+        <div data-hall-tab="progression" class="${tabClass("progression")}">
           ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
             copy:
               "The hall now pins the same archive, charter, mastery, and convergence pressure that the rest of the shell carries forward, so your next draft starts from one stable account board.",
@@ -262,12 +262,12 @@
           </section>
           ${hallView.buildCapstoneWatchMarkup(services, accountSummary)}
         </div>
-        <div data-hall-tab="vault" style="${hide("vault")}">
+        <div data-hall-tab="vault" class="${tabClass("vault")}">
           ${hallView.buildVaultLogisticsMarkup(appState, services, accountSummary)}
           ${hallView.buildVaultChronicleMarkup(appState, services, accountSummary, stashPreviewLines, recentRunMarkup)}
           ${hallView.buildUnlockGalleryMarkup(appState, services, accountSummary)}
         </div>
-        <div data-hall-tab="settings" style="${hide("settings")}">
+        <div data-hall-tab="settings" class="${tabClass("settings")}">
           ${hallView.buildAccountControlsMarkup(appState, services, accountSummary)}
         </div>
       </div>

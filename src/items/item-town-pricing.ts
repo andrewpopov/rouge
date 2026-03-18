@@ -34,13 +34,7 @@
     return Math.max(MIN_RUNE_VALUE, toNumber(rune?.progressionTier, 1) * RUNE_TIER_SCALE + toNumber(rune?.rank, 1) * RUNE_RANK_SCALE);
   }
 
-  function hasTownFeature(profile: ProfileState | null, featureId: string) {
-    return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
-  }
-
-  function getFocusedAccountTreeId(profile: ProfileState | null) {
-    return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
-  }
+  const { hasTownFeature, getFocusedAccountTreeId } = runtimeWindow.ROUGE_UTILS;
 
   const ECONOMY_FEATURE_MAP: [string, string][] = [
     ["advancedVendorStock", "advanced_vendor_stock"],

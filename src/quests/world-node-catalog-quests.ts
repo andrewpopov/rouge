@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function questOutcomeEffect(questId: string, outcomeId: string, outcomeTitle: string, flagIds: string[] = []) {
+  function questOutcomeEffect(questId: string, outcomeId: string, outcomeTitle: string, flagIds: string[] = []): RewardChoiceEffect {
     return {
       kind: "record_quest_outcome",
       questId,
@@ -11,7 +11,7 @@
     };
   }
 
-  function nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds: string[] = []) {
+  function nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds: string[] = []): RewardChoiceEffect {
     return {
       kind: "record_node_outcome",
       nodeType,
@@ -22,7 +22,7 @@
     };
   }
 
-  function questFollowUpEffect(questId: string, nodeId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds: string[] = []) {
+  function questFollowUpEffect(questId: string, nodeId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds: string[] = []): RewardChoiceEffect {
     return {
       kind: "record_quest_follow_up",
       questId,
@@ -34,7 +34,7 @@
     };
   }
 
-  function questConsequenceEffect(questId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds: string[] = []) {
+  function questConsequenceEffect(questId: string, outcomeId: string, outcomeTitle: string, consequenceId: string, flagIds: string[] = []): RewardChoiceEffect {
     return {
       kind: "record_quest_consequence",
       questId,

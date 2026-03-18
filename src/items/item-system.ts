@@ -87,47 +87,29 @@
 
     if (options.lateActPivot) {
       previewLines.push("Late-act pivot: replace the old base before spending more sockets or runes on it.");
-    }
-    if (
-      options.lateActPivot &&
-      (
-        features.artisanStock ||
-        features.brokerageCharter ||
-        features.treasuryExchange ||
-        features.merchantPrincipate ||
-        features.tradeHegemony ||
-        features.sovereignExchange ||
-        features.ascendantExchange ||
-        features.imperialExchange ||
-        features.mythicExchange ||
-        features.economyFocus
-      )
-    ) {
-      previewLines.push("Trade Network is steering this reward toward a socket-ready late-game replacement base.");
-    }
-    if (options.lateActPivot && features.treasuryExchange) {
-      previewLines.push("Treasury Exchange is preserving this reward as a premium replacement instead of a short-term sidegrade.");
-    }
-    if (options.lateActPivot && features.merchantPrincipate) {
-      previewLines.push("Merchant Principate is widening this into a sovereign-tier late-market replacement offer.");
-    }
-    if (options.lateActPivot && features.sovereignExchange) {
-      previewLines.push("Sovereign Exchange is binding archive pressure to this premium staged replacement pivot.");
-    }
-    if (options.lateActPivot && features.paragonExchange) {
-      previewLines.push("Paragon Exchange is escalating this into a premium replacement pivot instead of another incremental upgrade.");
-    }
-    if (options.lateActPivot && features.ascendantExchange) {
-      previewLines.push("Ascendant Exchange is escalating this into the strongest staged late-act replacement on offer.");
-    }
-    if (options.lateActPivot && features.tradeHegemony) {
-      previewLines.push("Trade Hegemony is widening this into a third-wave market replacement instead of a late sidegrade.");
-    }
-    if (options.lateActPivot && features.imperialExchange) {
-      previewLines.push("Imperial Exchange is binding imperial archive pressure to this premium replacement pivot.");
-    }
-    if (options.lateActPivot && features.mythicExchange) {
-      previewLines.push("Mythic Exchange is escalating this into a mythic four-socket replacement pivot.");
+      const hasAnyTradeFeature =
+        features.artisanStock || features.brokerageCharter || features.treasuryExchange ||
+        features.merchantPrincipate || features.tradeHegemony || features.sovereignExchange ||
+        features.ascendantExchange || features.imperialExchange || features.mythicExchange ||
+        features.economyFocus;
+      if (hasAnyTradeFeature) {
+        previewLines.push("Trade Network is steering this reward toward a socket-ready late-game replacement base.");
+      }
+      const PIVOT_FEATURE_LABELS: [keyof AccountEconomyFeatures, string][] = [
+        ["treasuryExchange", "Treasury Exchange is preserving this reward as a premium replacement instead of a short-term sidegrade."],
+        ["merchantPrincipate", "Merchant Principate is widening this into a sovereign-tier late-market replacement offer."],
+        ["sovereignExchange", "Sovereign Exchange is binding archive pressure to this premium staged replacement pivot."],
+        ["paragonExchange", "Paragon Exchange is escalating this into a premium replacement pivot instead of another incremental upgrade."],
+        ["ascendantExchange", "Ascendant Exchange is escalating this into the strongest staged late-act replacement on offer."],
+        ["tradeHegemony", "Trade Hegemony is widening this into a third-wave market replacement instead of a late sidegrade."],
+        ["imperialExchange", "Imperial Exchange is binding imperial archive pressure to this premium replacement pivot."],
+        ["mythicExchange", "Mythic Exchange is escalating this into a mythic four-socket replacement pivot."],
+      ];
+      for (const [featureKey, label] of PIVOT_FEATURE_LABELS) {
+        if (features[featureKey]) {
+          previewLines.push(label);
+        }
+      }
     }
 
     return {
@@ -137,7 +119,7 @@
       subtitle: item.slot === "weapon" ? "Equip Weapon" : "Equip Armor",
       description: item.summary,
       previewLines,
-      effects: [{ kind: "equip_item", itemId: item.id, rarity, rarityBonuses }],
+      effects: [{ kind: "equip_item" as const, itemId: item.id, rarity, rarityBonuses }],
     };
   }
 
@@ -163,7 +145,7 @@
         `${item.name} sockets ${equipment.socketsUnlocked}/${item.maxSockets} -> ${equipment.socketsUnlocked + 1}/${item.maxSockets}.`,
         "Existing runes remain in place.",
       ],
-      effects: [{ kind: "add_socket", slot: slot as "weapon" | "armor" }],
+      effects: [{ kind: "add_socket" as const, slot: slot as "weapon" | "armor" }],
     };
   }
 
@@ -196,7 +178,7 @@
       subtitle: slot === "weapon" ? "Socket Weapon Rune" : "Socket Armor Rune",
       description: rune.summary,
       previewLines,
-      effects: [{ kind: "socket_rune", runeId: rune.id, slot: slot as "weapon" | "armor" }],
+      effects: [{ kind: "socket_rune" as const, runeId: rune.id, slot: slot as "weapon" | "armor" }],
     };
   }
 

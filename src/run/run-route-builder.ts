@@ -4,10 +4,6 @@
 
   const MAX_ZONE_ENCOUNTERS = 5;
 
-  function slugifyZone(name: string): string {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-  }
-
   function createEncounterSequence(
     kind: ZoneKind,
     count: number,
@@ -18,7 +14,7 @@
   ): string[] {
     // Try zone-specific encounters first for contiguous themed waves
     if (zoneTitle && kind !== "boss") {
-      const zoneKey = `act_${actNumber}_${slugifyZone(zoneTitle)}`;
+      const zoneKey = `act_${actNumber}_${slugify(zoneTitle)}`;
       const zonePool = content?.generatedZoneEncounterIds?.[zoneKey];
       if (Array.isArray(zonePool) && zonePool.length > 0) {
         return Array.from({ length: clamp(count, 1, MAX_ZONE_ENCOUNTERS) }, (_, index) => zonePool[index % zonePool.length]);

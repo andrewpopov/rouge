@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
   function humanizeId(id: string): string {
     return String(id || "")
@@ -189,11 +190,7 @@
     `;
   }
 
-  function getTrainingRanks(run: RunState): number {
-    return ["vitality", "focus", "command"].reduce((total, track) => {
-      return total + (Number.parseInt(String(run.progression?.training?.[track as keyof RunState["progression"]["training"]] ?? 0), 10) || 0);
-    }, 0);
-  }
+  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
   function getTownPrepActionBadgeTone(action: TownAction | null): string {
     if (!action) {
@@ -309,7 +306,7 @@
           { label: "Skill", value: formatTransition(run.progression.skillPointsAvailable, run.progression.skillPointsAvailable) },
           { label: "Class", value: formatTransition(run.progression.classPointsAvailable, run.progression.classPointsAvailable) },
           { label: "Attr", value: formatTransition(run.progression.attributePointsAvailable, run.progression.attributePointsAvailable) },
-          { label: "Training", value: formatTransition(getTrainingRanks(run), getTrainingRanks(run)) },
+          { label: "Training", value: formatTransition(getTrainingRankCount(run.progression?.training), getTrainingRankCount(run.progression?.training)) },
         ],
         ["Projected spend: town is build-stable right now, so no point allocation is queued before departure."],
         renderUtils
@@ -328,21 +325,21 @@
 
     if (progressionAction.id.startsWith("progression_spend_")) {
       const track = progressionAction.id.replace("progression_spend_", "") as keyof RunState["progression"]["training"];
-      const currentRank = Number.parseInt(String(run.progression.training?.[track] ?? 0), 10) || 0;
+      const currentRank = toNumber(run.progression.training?.[track], 0);
       focusLabel = `${progressionAction.title} Rank`;
       focusBefore = String(currentRank);
       focusAfter = String(currentRank + 1);
       projectedLine = `Projected spend: skill points ${run.progression.skillPointsAvailable} -> ${skillAfter}, ${progressionAction.title.toLowerCase()} rank ${currentRank} -> ${currentRank + 1}.`;
     } else if (progressionAction.id.startsWith("progression_attribute_")) {
       const attribute = progressionAction.id.replace("progression_attribute_", "") as keyof RunAttributeState;
-      const currentRank = Number.parseInt(String(run.progression.attributes?.[attribute] ?? 0), 10) || 0;
+      const currentRank = toNumber(run.progression.attributes?.[attribute], 0);
       focusLabel = `${progressionAction.title} Rank`;
       focusBefore = String(currentRank);
       focusAfter = String(currentRank + 1);
       projectedLine = `Projected spend: attribute points ${run.progression.attributePointsAvailable} -> ${attributeAfter}, ${progressionAction.title.toLowerCase()} rank ${currentRank} -> ${currentRank + 1}.`;
     } else if (progressionAction.id.startsWith("progression_tree_")) {
       const treeId = progressionAction.id.replace("progression_tree_", "");
-      const currentRank = Number.parseInt(String(run.progression.classProgression?.treeRanks?.[treeId] ?? 0), 10) || 0;
+      const currentRank = toNumber(run.progression.classProgression?.treeRanks?.[treeId], 0);
       focusLabel = `${progressionAction.title} Rank`;
       focusBefore = String(currentRank);
       focusAfter = String(currentRank + 1);

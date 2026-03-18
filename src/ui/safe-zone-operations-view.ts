@@ -1,11 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getTrainingRanks(run: RunState): number {
-    return (["vitality", "focus", "command"] as const).reduce((total, track) => {
-      return total + (Number.parseInt(String(run.progression?.training?.[track] ?? 0), 10) || 0);
-    }, 0);
-  }
+  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
   function buildServiceDrilldownCard(
     title: string,
@@ -45,7 +41,7 @@
     const stashActions = townActions.filter((action) => action.category === "stash");
     const mercenaryActions = townActions.filter((action) => action.category === "mercenary");
     const routeSnapshot = common.buildSafeZoneSnapshot(run, services.runFactory);
-    const trainingRanks = getTrainingRanks(run);
+    const trainingRanks = getTrainingRankCount(run.progression?.training);
     const carriedEntries = run.inventory?.carried?.length || 0;
     const vendorStock = run.town?.vendor?.stock?.length || 0;
     const vendorRefreshes = run.town?.vendor?.refreshCount || 0;

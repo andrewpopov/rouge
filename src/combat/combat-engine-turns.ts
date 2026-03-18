@@ -6,6 +6,9 @@
   const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
   const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
 
+  const THORNS_DAMAGE = 2;
+  const REGENERATION_AMOUNT = 2;
+
   function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
     state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
@@ -99,7 +102,7 @@
     if (!isAlly && (entity as CombatEnemyState).alive) {
       monsterActions.processModifierOnHit(state, entity as CombatEnemyState);
       if (hasTrait(entity as CombatEnemyState, "thorns")) {
-        const thornsDamage = 2;
+        const thornsDamage = THORNS_DAMAGE;
         const heroBefore = state.hero.life;
         state.hero.life = Math.max(0, state.hero.life - thornsDamage);
         const thornsDealt = heroBefore - state.hero.life;
@@ -168,7 +171,7 @@
 
     // ── Passive: Regeneration ──
     if (hasTrait(enemy, "regeneration")) {
-      const regenAmount = 2;
+      const regenAmount = REGENERATION_AMOUNT;
       const healed = healEntity(enemy, regenAmount);
       if (healed > 0) {
         appendLog(state, `${enemy.name} regenerates ${healed} HP.`);
@@ -379,17 +382,19 @@
   }
 
   function drawCards(state: CombatState, amount: number) {
-    const shuffleCards = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS._shuffleInPlace;
     let drawn = 0;
     for (let index = 0; index < amount; index += 1) {
       if (state.drawPile.length === 0 && state.discardPile.length > 0) {
-        state.drawPile = shuffleCards([...state.discardPile], state.randomFn);
+        state.drawPile = shuffleInPlace([...state.discardPile], state.randomFn);
         state.discardPile = [];
       }
       if (state.drawPile.length === 0) {
         break;
       }
-      state.hand.push(state.drawPile.pop());
+      const card = state.drawPile.pop();
+      if (card) {
+        state.hand.push(card);
+      }
       drawn += 1;
     }
     return drawn;

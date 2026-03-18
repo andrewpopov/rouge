@@ -37,6 +37,7 @@ interface RenderUtilsApi {
   buildStat(label: string, value: unknown): string;
   buildStringList(lines: string[], className?: string): string;
   buildBadge(label: string, tone?: string): string;
+  buildBadgeRow(labels: string[], tone?: string): string;
   buildNoticePanel(message: string, label?: string): string;
   buildChoiceList(choices: RewardChoice[], actionName?: string): string;
   buildWorldMapNodeCard(config: {

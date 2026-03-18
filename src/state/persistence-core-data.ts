@@ -1,14 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-
-  const CORE_TOWN_FEATURE_IDS = [
-    "front_door_profile_hall",
-    "safe_zone_services",
-    "vendor_economy",
-    "profile_stash",
-    "mercenary_contracts",
-    "class_progression",
-  ];
+  const { CORE_TOWN_FEATURE_IDS } = runtimeWindow.__ROUGE_PROFILE_MIGRATIONS_DATA;
 
   const ACCOUNT_PROGRESSION_TREES = [
     {

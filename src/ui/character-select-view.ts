@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
   const ARCHETYPE_LABELS = {
     martial: { label: "Martial", tone: "danger" },
@@ -111,13 +112,13 @@
       ? (() => {
           const previewHero = services.classRegistry.createHeroFromClass(
             appState.content,
-            appState.registries.classes.find((c) => c.id === appState.ui.selectedClassId)!
+            selectedClass
           );
           const baseStats = selectedClass.baseStats || {};
-          const str = Number.parseInt(String(baseStats.strength ?? 0), 10) || 0;
-          const dex = Number.parseInt(String(baseStats.dexterity ?? 0), 10) || 0;
-          const vit = Number.parseInt(String(baseStats.vitality ?? 0), 10) || 0;
-          const ene = Number.parseInt(String(baseStats.energy ?? 0), 10) || 0;
+          const str = toNumber(baseStats.strength, 0);
+          const dex = toNumber(baseStats.dexterity, 0);
+          const vit = toNumber(baseStats.vitality, 0);
+          const ene = toNumber(baseStats.energy, 0);
           const statMax = 35;
 
           const progression = services.classRegistry.getClassProgression(appState.content, selectedClass.id);

@@ -1,9 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getBonusValue(value: unknown): number {
-    return Number.parseInt(String(value ?? 0), 10) || 0;
-  }
+  const { toNumber: getBonusValue } = runtimeWindow.ROUGE_UTILS;
 
   function getTownFeatureLabel(featureId: string): string {
     switch (featureId) {

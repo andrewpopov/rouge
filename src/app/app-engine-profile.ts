@@ -167,10 +167,7 @@
     });
   }
 
-  function getPreferredClassId(classes: ClassDefinition[], profile: ProfileState): string {
-    const candidates = [profile?.meta?.progression?.preferredClassId, profile?.meta?.progression?.lastPlayedClassId];
-    return candidates.find((classId) => classes.some((entry) => entry.id === classId)) || classes[0]?.id || "";
-  }
+  const { getPreferredClassId } = runtimeWindow.__ROUGE_APP_ENGINE_RUN;
 
   function setPreferredClass(state: AppState, classId: string): ActionResult {
     const result = mutateProfileMeta(state, (persistence, profile) => {

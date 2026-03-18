@@ -278,6 +278,42 @@
         appState.ui.exploring = false;
         render();
         return true;
+      case "pick-event-card": {
+        const event = appState.ui.explorationEvent;
+        if (event?.pendingChoiceId) {
+          runtimeWindow.ROUGE_EXPLORATION_EVENTS.applyExplorationEventChoice(
+            appState.run, event, event.pendingChoiceId, appState.content, actionEl.dataset.cardId || ""
+          );
+          appState.ui.explorationEvent = null;
+        }
+        render();
+        return true;
+      }
+      case "skip-event-card-pick":
+        appState.ui.explorationEvent = null;
+        render();
+        return true;
+      case "pick-event-choice": {
+        const event = appState.ui.explorationEvent;
+        if (event) {
+          const choiceId = actionEl.dataset.choiceId || "";
+          const choice = event.choices.find((c) => c.id === choiceId);
+          if (choice?.requiresCardPick) {
+            event.pendingChoiceId = choiceId;
+          } else {
+            runtimeWindow.ROUGE_EXPLORATION_EVENTS.applyExplorationEventChoice(
+              appState.run, event, choiceId, appState.content
+            );
+            appState.ui.explorationEvent = null;
+          }
+        }
+        render();
+        return true;
+      }
+      case "skip-exploration-event":
+        appState.ui.explorationEvent = null;
+        render();
+        return true;
       case "debug-skip-encounter":
         appEngine.debugSkipEncounter(appState);
         render();

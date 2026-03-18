@@ -97,12 +97,10 @@
     };
   }
 
-  function slugifyZone(name: string) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-  }
+  const { slugify: slugifyZone } = runtimeWindow.ROUGE_UTILS;
 
   function monsterNameToEntry(name: string, zoneSlug: string) {
-    const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    const baseId = slugifyZone(name);
     return { id: `z_${zoneSlug}_${baseId}`, name };
   }
 

@@ -34,8 +34,31 @@ interface RewardGrants {
   potions: number;
 }
 
+type RewardChoiceEffectKind =
+  | "add_card"
+  | "upgrade_card"
+  | "hero_max_life"
+  | "hero_max_energy"
+  | "hero_potion_heal"
+  | "hero_damage"
+  | "hero_heal"
+  | "mercenary_attack"
+  | "mercenary_max_life"
+  | "belt_capacity"
+  | "refill_potions"
+  | "gold_bonus"
+  | "equip_item"
+  | "add_socket"
+  | "socket_rune"
+  | "record_quest_outcome"
+  | "record_quest_follow_up"
+  | "record_quest_consequence"
+  | "record_node_outcome"
+  | "class_point"
+  | "attribute_point";
+
 interface RewardChoiceEffect {
-  kind: string;
+  kind: RewardChoiceEffectKind;
   slot?: "weapon" | "armor";
   value?: number;
   cardId?: string;

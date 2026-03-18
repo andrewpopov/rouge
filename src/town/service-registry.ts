@@ -1,9 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getBonusValue(value: unknown) {
-    return Number.parseInt(String(value ?? 0), 10) || 0;
-  }
+  const { toNumber: getBonusValue } = runtimeWindow.ROUGE_UTILS;
 
   function getCombatBonuses(run: RunState, content: GameContent) {
     return runtimeWindow.ROUGE_RUN_FACTORY?.buildCombatBonuses?.(run, content) || {};

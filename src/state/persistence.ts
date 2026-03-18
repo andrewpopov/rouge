@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const { toNumber } = runtimeWindow.ROUGE_UTILS;
   const {
     SCHEMA_VERSION,
     STORAGE_KEY,
@@ -195,11 +196,11 @@
     const previousFeatureIds = uniqueStrings(profile.meta.unlocks?.townFeatureIds || []);
     syncProfileMetaFromRun(profile, run);
     profile.meta.progression.totalBossesDefeated =
-      (Number.parseInt(String(profile.meta.progression.totalBossesDefeated || 0), 10) || 0) + (run?.summary?.bossesDefeated || 0);
+      toNumber(profile.meta.progression.totalBossesDefeated, 0) + (run?.summary?.bossesDefeated || 0);
     profile.meta.progression.totalGoldCollected =
-      (Number.parseInt(String(profile.meta.progression.totalGoldCollected || 0), 10) || 0) + (run?.summary?.goldGained || 0);
+      toNumber(profile.meta.progression.totalGoldCollected, 0) + (run?.summary?.goldGained || 0);
     profile.meta.progression.totalRunewordsForged =
-      (Number.parseInt(String(profile.meta.progression.totalRunewordsForged || 0), 10) || 0) + (run?.summary?.runewordsForged || 0);
+      toNumber(profile.meta.progression.totalRunewordsForged, 0) + (run?.summary?.runewordsForged || 0);
     markTutorialCompleted(profile, "first_run_overview");
     const entry = buildRunHistoryEntry(profile, run, outcome, content);
     profile.runHistory.unshift(entry);
@@ -209,7 +210,7 @@
   }
 
   function saveToStorage(snapshot: RunSnapshotEnvelope | string, storage: StorageLike | null = getDefaultStorage()) {
-    const restoredSnapshot = typeof snapshot === "string" ? restoreSnapshot(snapshot) : restoreSnapshot(snapshot);
+    const restoredSnapshot = restoreSnapshot(snapshot);
     if (!restoredSnapshot) {
       return { ok: false, message: "Run snapshot could not be restored." };
     }

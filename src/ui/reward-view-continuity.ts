@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
   function buildRewardLedgerLines(run: RunState): string[] {
     const questLines = Object.values(run.world?.questOutcomes || {}).map((entry) => `Quest · ${entry.title}: ${entry.outcomeTitle}.`);
@@ -223,60 +224,60 @@
           break;
         }
         case "hero_max_life": {
-          heroLifeDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          heroLifeDelta += toNumber(effect.value, 0);
           lines.push(
             `Hero Life ${run.hero.currentLife}/${run.hero.maxLife} -> ${Math.min(run.hero.maxLife + heroLifeDelta, run.hero.currentLife + heroLifeDelta)}/${run.hero.maxLife + heroLifeDelta}.`
           );
           break;
         }
         case "hero_max_energy": {
-          heroEnergyDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          heroEnergyDelta += toNumber(effect.value, 0);
           lines.push(`Hero Energy ${run.hero.maxEnergy} -> ${run.hero.maxEnergy + heroEnergyDelta}.`);
           break;
         }
         case "hero_potion_heal": {
-          heroPotionDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          heroPotionDelta += toNumber(effect.value, 0);
           lines.push(`Potion strength ${run.hero.potionHeal} -> ${run.hero.potionHeal + heroPotionDelta}.`);
           break;
         }
         case "mercenary_attack": {
-          mercenaryAttackDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          mercenaryAttackDelta += toNumber(effect.value, 0);
           lines.push(`Mercenary attack ${run.mercenary.attack} -> ${run.mercenary.attack + mercenaryAttackDelta}.`);
           break;
         }
         case "mercenary_max_life": {
-          mercenaryLifeDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          mercenaryLifeDelta += toNumber(effect.value, 0);
           lines.push(
             `Mercenary Life ${run.mercenary.currentLife}/${run.mercenary.maxLife} -> ${Math.min(run.mercenary.maxLife + mercenaryLifeDelta, run.mercenary.currentLife + mercenaryLifeDelta)}/${run.mercenary.maxLife + mercenaryLifeDelta}.`
           );
           break;
         }
         case "belt_capacity": {
-          beltCapacityDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          beltCapacityDelta += toNumber(effect.value, 0);
           const afterBeltMax = run.belt.max + beltCapacityDelta;
           const afterBeltCurrent = Math.min(afterBeltMax, run.belt.current + reward.grants.potions + refillDelta);
           lines.push(`Belt ${run.belt.current}/${run.belt.max} -> ${afterBeltCurrent}/${afterBeltMax}.`);
           break;
         }
         case "refill_potions": {
-          refillDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          refillDelta += toNumber(effect.value, 0);
           const afterBeltMax = run.belt.max + beltCapacityDelta;
           const afterBeltCurrent = Math.min(afterBeltMax, run.belt.current + reward.grants.potions + refillDelta);
           lines.push(`Belt charges ${run.belt.current}/${run.belt.max} -> ${afterBeltCurrent}/${afterBeltMax}.`);
           break;
         }
         case "gold_bonus": {
-          goldBonus += Number.parseInt(String(effect.value || 0), 10) || 0;
+          goldBonus += toNumber(effect.value, 0);
           lines.push(`Gold ${run.gold} -> ${run.gold + reward.grants.gold + goldBonus}.`);
           break;
         }
         case "class_point": {
-          classPointDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          classPointDelta += toNumber(effect.value, 0);
           lines.push(`Class points ${run.progression.classPointsAvailable} -> ${run.progression.classPointsAvailable + classPointDelta}.`);
           break;
         }
         case "attribute_point": {
-          attributePointDelta += Number.parseInt(String(effect.value || 0), 10) || 0;
+          attributePointDelta += toNumber(effect.value, 0);
           lines.push(`Attribute points ${run.progression.attributePointsAvailable} -> ${run.progression.attributePointsAvailable + attributePointDelta}.`);
           break;
         }

@@ -2,10 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { normalizeActPool, groupByRole, buildActEncounterSet, buildZoneEncounterSet } =
     runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS;
-
-  function slugifyZone(name: string) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-  }
+  const { slugify: slugifyZone } = runtimeWindow.ROUGE_UTILS;
 
   function createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle) {
     runtimeWindow.ROUGE_CONTENT_VALIDATOR?.assertValidSeedBundle(seedBundle);

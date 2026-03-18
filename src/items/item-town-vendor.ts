@@ -172,52 +172,19 @@
       Number(features.imperialExchange && (hasOpenPlanningCharter(profile, content) || getStashPlanningPressure(profile).socketReadyEntries > 0));
     const mythicOfferBonus = Number(features.mythicExchange && run.actNumber >= 5);
     const treasuryOfferBonus = Number(features.treasuryExchange && run.actNumber >= 5);
+    const sharedOfferBonus =
+      focusOfferBonus + artisanOfferBonus + brokerageOfferBonus + merchantOfferBonus +
+      hegemonyOfferBonus + chronicleOfferBonus + sovereignOfferBonus + paragonOfferBonus +
+      ascendantOfferBonus + imperialOfferBonus + mythicOfferBonus + treasuryOfferBonus;
     const weaponOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 4)) +
-      Number(features.advancedVendorStock) +
-      focusOfferBonus +
-      artisanOfferBonus +
-      brokerageOfferBonus +
-      merchantOfferBonus +
-      hegemonyOfferBonus +
-      chronicleOfferBonus +
-      sovereignOfferBonus +
-      paragonOfferBonus +
-      ascendantOfferBonus +
-      imperialOfferBonus +
-      mythicOfferBonus +
-      treasuryOfferBonus;
+      Number(features.advancedVendorStock) + sharedOfferBonus;
     const armorOfferCount =
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 3)) +
-      Number(features.advancedVendorStock) +
-      focusOfferBonus +
-      artisanOfferBonus +
-      brokerageOfferBonus +
-      merchantOfferBonus +
-      hegemonyOfferBonus +
-      chronicleOfferBonus +
-      sovereignOfferBonus +
-      paragonOfferBonus +
-      ascendantOfferBonus +
-      imperialOfferBonus +
-      mythicOfferBonus +
-      treasuryOfferBonus;
+      Number(features.advancedVendorStock) + sharedOfferBonus;
     const runeOfferCount =
       (run.actNumber >= 5 ? 4 : 2 + Number(run.actNumber >= 3)) +
-      Number(features.advancedVendorStock) +
-      Number(features.runewordCodex) +
-      focusOfferBonus +
-      artisanOfferBonus +
-      brokerageOfferBonus +
-      merchantOfferBonus +
-      hegemonyOfferBonus +
-      chronicleOfferBonus +
-      sovereignOfferBonus +
-      paragonOfferBonus +
-      ascendantOfferBonus +
-      imperialOfferBonus +
-      mythicOfferBonus +
-      treasuryOfferBonus;
+      Number(features.advancedVendorStock) + Number(features.runewordCodex) + sharedOfferBonus;
     const selectedWeapons = fillDefinitionSelection(
       pickVendorEquipmentOffers(
       "weapon",

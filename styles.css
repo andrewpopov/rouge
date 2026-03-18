@@ -928,6 +928,10 @@ button.entity-card:disabled {
   font-weight: 600;
 }
 
+.hall-tab--hidden {
+  display: none;
+}
+
 .hall-header {
   display: flex;
   align-items: center;

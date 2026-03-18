@@ -1,11 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getTrainingRanks(run: RunState): number {
-    return (["vitality", "focus", "command"] as const).reduce((total, track) => {
-      return total + (Number.parseInt(String(run.progression?.training?.[track] ?? 0), 10) || 0);
-    }, 0);
-  }
+  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
   function getRewardContext(reward: RunReward, run: RunState) {
     const catalog = runtimeWindow.ROUGE_WORLD_NODES?.getCatalog?.() || null;
@@ -137,7 +133,7 @@
     const reward = run.pendingReward;
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
-    const trainingRanks = getTrainingRanks(run);
+    const trainingRanks = getTrainingRankCount(run.progression?.training);
     const questOutcomeCount = Object.keys(run.world?.questOutcomes || {}).length;
     const rewardContext = getRewardContext(reward, run);
     const advanceGuideLines = getAdvanceGuideLines(reward);

@@ -227,7 +227,7 @@
     const profileObj = profile as Record<string, any>;
     if (isObject(profile) && isObject(profileObj.profile)) {
       return {
-        schemaVersion: Number.parseInt(String(profileObj.schemaVersion || CURRENT_PROFILE_SCHEMA_VERSION), 10) || CURRENT_PROFILE_SCHEMA_VERSION,
+        schemaVersion: toNumber(profileObj.schemaVersion, CURRENT_PROFILE_SCHEMA_VERSION),
         savedAt: typeof profileObj.savedAt === "string" ? profileObj.savedAt : new Date(0).toISOString(),
         profile: ensureProfileState(profileObj.profile, content),
       };

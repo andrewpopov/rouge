@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- migration code transforms arbitrary legacy data */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { deepClone, toNumber, clamp } = runtimeWindow.ROUGE_UTILS;
+  const { deepClone, toNumber, clamp, isObject } = runtimeWindow.ROUGE_UTILS;
+  const {
+    createDefaultTraining,
+    createDefaultAttributes,
+    createDefaultClassProgression,
+    getLevelForXp,
+    getTrainingTrackForLevel,
+    getTrainingRankCount,
+  } = runtimeWindow.ROUGE_RUN_STATE;
 
   const CURRENT_SCHEMA_VERSION = 5;
-  const LEVEL_TRAINING_ORDER = ["vitality", "focus", "command"];
-
-  function isObject(value: unknown) {
-    return Boolean(value) && typeof value === "object";
-  }
 
   function ensureStringArray(value: unknown) {
     return Array.isArray(value) ? value.filter((entry: unknown) => typeof entry === "string") : [];
@@ -42,7 +45,7 @@
     const snap = snapshot as Record<string, unknown>;
     const run = snap.run as Record<string, unknown>;
     return {
-      schemaVersion: Number.parseInt(String(snap.schemaVersion || 1), 10) || 1,
+      schemaVersion: toNumber(snap.schemaVersion, 1),
       savedAt: typeof snap.savedAt === "string" ? snap.savedAt : new Date(0).toISOString(),
       phase: typeof snap.phase === "string" ? snap.phase : "safe_zone",
       selectedClassId: typeof snap.selectedClassId === "string" ? snap.selectedClassId : run.classId || "",
@@ -63,31 +66,6 @@
       socketsUnlocked: runeId ? 1 : 0,
       insertedRunes: runeId ? [runeId] : [],
       runewordId: "",
-    };
-  }
-
-  function createDefaultTraining() {
-    return {
-      vitality: 0,
-      focus: 0,
-      command: 0,
-    };
-  }
-
-  function createDefaultAttributes() {
-    return {
-      strength: 0,
-      dexterity: 0,
-      vitality: 0,
-      energy: 0,
-    };
-  }
-
-  function createDefaultClassProgression() {
-    return {
-      favoredTreeId: "",
-      treeRanks: {},
-      unlockedSkillIds: [] as string[],
     };
   }
 
@@ -124,17 +102,6 @@
     };
   }
 
-  function getTrainingTrackForLevel(level: number) {
-    return LEVEL_TRAINING_ORDER[Math.max(0, toNumber(level, 2) - 2) % LEVEL_TRAINING_ORDER.length];
-  }
-
-  function getLevelForXp(xp: number) {
-    return Math.max(1, 1 + Math.floor(toNumber(xp, 0) / 50));
-  }
-
-  function getTrainingRankCount(training: Record<string, number> | null) {
-    return toNumber(training?.vitality, 0) + toNumber(training?.focus, 0) + toNumber(training?.command, 0);
-  }
 
   function applyTrainingRank(run: Record<string, any>, track: string) {
     if (track === "vitality") {

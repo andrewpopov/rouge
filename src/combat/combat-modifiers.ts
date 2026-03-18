@@ -1,22 +1,13 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : {}) as Window;
+  const { parseInteger } = runtimeWindow.ROUGE_UTILS;
 
-  function parseInteger(value: unknown, fallback: number) {
-    const parsed = Number.parseInt(value as string, 10);
-    return Number.isInteger(parsed) ? parsed : fallback;
+  // Accessed lazily — combat-engine-turns loads after this module
+  function applyGuard(target: CombatEnemyState, value: number) {
+    runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS.applyGuard(target, value);
   }
-
   function appendLog(state: CombatState, message: string) {
-    state.log.unshift(message);
-    state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
-  }
-
-  function applyGuard(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
-    if (!entity || !entity.alive) {
-      return 0;
-    }
-    entity.guard = Math.max(0, entity.guard + amount);
-    return amount;
+    runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS.appendLog(state, message);
   }
 
   function advanceEnemyIntent(enemy: CombatEnemyState, steps: number) {

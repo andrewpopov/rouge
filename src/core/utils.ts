@@ -33,5 +33,32 @@
     return [...seen];
   }
 
-  runtimeWindow.ROUGE_UTILS = { clamp, deepClone, toNumber, uniquePush, uniqueStrings };
+  function slugify(value: unknown): string {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
+  function parseInteger(value: unknown, fallback: number): number {
+    const parsed = Number.parseInt(String(value ?? fallback), 10);
+    return Number.isInteger(parsed) ? parsed : fallback;
+  }
+
+  function isObject(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object";
+  }
+
+  function hasTownFeature(profile: ProfileState | null | undefined, featureId: string): boolean {
+    return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
+  }
+
+  function getFocusedAccountTreeId(profile: ProfileState | null | undefined): string {
+    return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
+  }
+
+  runtimeWindow.ROUGE_UTILS = {
+    clamp, deepClone, toNumber, uniquePush, uniqueStrings,
+    slugify, parseInteger, isObject, hasTownFeature, getFocusedAccountTreeId,
+  };
 })();

@@ -1,19 +1,12 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { clamp, deepClone, uniquePush } = runtimeWindow.ROUGE_UTILS;
+  const { clamp, deepClone, uniquePush, slugify } = runtimeWindow.ROUGE_UTILS;
 
   const LEVEL_TRAINING_ORDER: Array<keyof RunProgressionState["training"]> = ["vitality", "focus", "command"];
 
   function toBonusValue(value: unknown, fallback = 0): number {
     const parsed = Number.parseInt(String(value ?? fallback), 10);
     return Number.isNaN(parsed) ? fallback : parsed;
-  }
-
-  function slugify(value: unknown): string {
-    return String(value || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
   }
 
   function createDefaultTraining(): RunProgressionState["training"] {

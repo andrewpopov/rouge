@@ -8,11 +8,11 @@
 
     buildBoonChoice,
   } = runtimeWindow.__ROUGE_REWARD_ENGINE_PROGRESSION;
-  const { clamp } = runtimeWindow.ROUGE_UTILS;
+  const { clamp, toNumber } = runtimeWindow.ROUGE_UTILS;
 
   const MAX_BELT_SIZE = 5;
 
-  const BOON_POOLS = {
+  const BOON_POOLS: Record<string, { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }[]> = {
     opening: [
       {
         id: "field_training",
@@ -177,7 +177,7 @@
         `Add ${card.title} to your deck.`,
         `Deck size +1.`,
       ],
-      effects: [{ kind: "add_card", cardId }],
+      effects: [{ kind: "add_card" as const, cardId }],
     };
   }
 
@@ -199,7 +199,7 @@
         `Replace 1x ${baseCard.title} with ${upgradedCard.title}.`,
         `Keep deck size the same.`,
       ],
-      effects: [{ kind: "upgrade_card", fromCardId, toCardId: upgradedCardId }],
+      effects: [{ kind: "upgrade_card" as const, fromCardId, toCardId: upgradedCardId }],
     };
   }
 
@@ -398,65 +398,65 @@
       }
 
       if (effect.kind === "hero_max_life") {
-        const lifeGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const lifeGain = toNumber(effect.value, 0);
         run.hero.maxLife += lifeGain;
         run.hero.currentLife = Math.min(run.hero.maxLife, run.hero.currentLife + lifeGain);
         continue;
       }
 
       if (effect.kind === "hero_max_energy") {
-        const energyGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const energyGain = toNumber(effect.value, 0);
         run.hero.maxEnergy = clamp(run.hero.maxEnergy + energyGain, 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_ENERGY);
         continue;
       }
 
       if (effect.kind === "hero_potion_heal") {
-        const potionGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const potionGain = toNumber(effect.value, 0);
         run.hero.potionHeal = clamp(run.hero.potionHeal + potionGain, 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_POTION_HEAL);
         continue;
       }
 
       if (effect.kind === "mercenary_attack") {
-        const attackGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const attackGain = toNumber(effect.value, 0);
         run.mercenary.attack += attackGain;
         continue;
       }
 
       if (effect.kind === "mercenary_max_life") {
-        const lifeGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const lifeGain = toNumber(effect.value, 0);
         run.mercenary.maxLife += lifeGain;
         run.mercenary.currentLife = Math.min(run.mercenary.maxLife, run.mercenary.currentLife + lifeGain);
         continue;
       }
 
       if (effect.kind === "belt_capacity") {
-        const capacityGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const capacityGain = toNumber(effect.value, 0);
         run.belt.max = clamp(run.belt.max + capacityGain, 1, MAX_BELT_SIZE);
         continue;
       }
 
       if (effect.kind === "refill_potions") {
-        const refillAmount = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const refillAmount = toNumber(effect.value, 0);
         run.belt.current = Math.min(run.belt.max, run.belt.current + refillAmount);
         continue;
       }
 
       if (effect.kind === "gold_bonus") {
-        const goldGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const goldGain = toNumber(effect.value, 0);
         run.gold += goldGain;
         run.summary.goldGained += goldGain;
         continue;
       }
 
       if (effect.kind === "class_point") {
-        const pointGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const pointGain = toNumber(effect.value, 0);
         run.progression.classPointsAvailable += pointGain;
         run.summary.classPointsEarned += pointGain;
         continue;
       }
 
       if (effect.kind === "attribute_point") {
-        const pointGain = Number.parseInt(String(effect.value || 0), 10) || 0;
+        const pointGain = toNumber(effect.value, 0);
         run.progression.attributePointsAvailable += pointGain;
         run.summary.attributePointsEarned += pointGain;
       }
@@ -468,5 +468,6 @@
   runtimeWindow.ROUGE_REWARD_ENGINE = {
     buildRewardChoices,
     applyChoice,
+    getUpgradableCardIds,
   };
 })();

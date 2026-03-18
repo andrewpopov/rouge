@@ -283,6 +283,7 @@ interface RewardEngineApi {
     profile?: ProfileState | null;
   }): RewardChoice[];
   applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
+  getUpgradableCardIds(run: RunState, content: GameContent): string[];
 }
 
 interface TownServiceApi {
