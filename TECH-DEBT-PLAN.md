@@ -1,7 +1,7 @@
 # Rouge Tech Debt & Code Quality Plan
 
 **Date:** 2026-03-18
-**Status:** Phases 1-7 substantially complete
+**Status:** All actionable phases complete
 **Scope:** Full codebase review — 140 files, ~48K lines
 
 ## Current Health
@@ -25,8 +25,26 @@
 - **Phase 5.3** — Replaced 9 sequential feature-flag `if` blocks with `PIVOT_FEATURE_LABELS` table
 - **Phase 5.6** — Merged near-identical `buildTownActionCard`/`buildMercenaryActionCard` into shared `buildActionCard` helper
 - **Phase 6.1** — Added card ID validation for `classStarterDecks` and `classRewardPools` tiers in content validator
+- **Phase 5.5** — Extracted `renderAllySprite`, `renderEnemySprite`, `renderHandCard` from monolithic combat-view render function
+- **Phase 6.2** — Added `__ROUGE_OPP_STAGING` completeness check for opportunity catalog load order
 - **Phase 6.3** — Added `console.warn` when `getTreeArchetype` falls back to positional index
+- **Phase 6.4** — Verified `sweeping_strike`/`multishot_plus` are intentional thematic variants in different reward pools
 - **Phase 7.1** — Auto-fixed 39 lint errors (curly, template literals, prefer-const); remaining lint errors resolved
+- **Phase 7.2** — Extracted magic numbers: `EVENT_PROBABILITY`, `THORNS_DAMAGE`, `REGENERATION_AMOUNT`
+- **Phase 7.4** — Replaced inline `style="display:none"` tab visibility with CSS class `hall-tab--hidden`
+- **Phase 7.5** — Exported `buildBadgeRow` in render-utils API and type declaration
+- **Phase 7.6** — Added `aria-label` to non-interactive world map waypoints
+
+## Remaining (deferred — larger scope or low ROI)
+
+- **4.2** — Remove `[key: string]: unknown` index signatures on `HeroDefinition`/`MercenaryDefinition` — attempted and reverted, runtime properties are dynamically added
+- **4.4** — ~30 `Record<string, any>` window properties → `Record<string, unknown>` — mechanical but large scope
+- **4.5** — 19 `as unknown as Record<string, ...>` casts → `ItemBonusKey` union — requires type infrastructure
+- **4.6** — Enable `strictNullChecks` — very large lift across entire codebase
+- **5.1** — `pickProgressionChoice` 200+ lines complexity reduction — moderate risk for moderate gain
+- **5.4** — `getVendorTierAllowance`/`getVendorRefreshCost` feature tables — different values per function makes shared table awkward
+- **7.3** — Replace remaining static inline styles with CSS classes — scattered low-impact changes
+- **3.5** — Consolidate `ACCOUNT_PROGRESSION_TREES` data — two copies have different shapes (slim migration vs full UI)
 
 ---
 
