@@ -29,3 +29,14 @@ assets/source/
 # Preview/temp artifacts
 *.preview
 *.tmp
+
+# Debug screenshots
+screenshots/
+*.screenshot.png
+
+# Playwright MCP tooling
+.playwright-mcp/
+
+# Sprite backup dirs
+assets/curated/sprites/enemies/_originals/
+assets/curated/sprites/enemies/_replaced/

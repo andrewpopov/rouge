@@ -1,0 +1,958 @@
+{
+  "_meta": {
+    "description": "Diablo II monster family traits, abilities, and behaviors for Rouge card game adaptation",
+    "version": "1.0.0",
+    "source": "Diablo II: Lord of Destruction (v1.14d)"
+  },
+  "monsterFamilies": {
+    "fallen": {
+      "name": "Fallen",
+      "type": "demon",
+      "variants": ["Fallen", "Carver", "Devilkin", "Dark One", "Warped One"],
+      "acts": [1, 2, 3, 5],
+      "d2Traits": {
+        "flee_on_ally_death": "All nearby Fallen flee when any kill happens near them. They scatter briefly then return to fight.",
+        "resurrection_by_shaman": "Dead Fallen can be resurrected by their Shaman counterparts. Resurrected Fallen give no XP/loot.",
+        "pack_behavior": "Always appear in groups of 3-6. Individually weak but dangerous in numbers.",
+        "elemental_attacks": "Higher variants add fire, cold, lightning, or poison to their melee attacks."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "flee_scatter",
+        "traitDescription": "When a Fallen ally dies, remaining Fallen skip their next attack (flee). Low stats but appear in larger groups.",
+        "suggestedMechanic": "On ally death: Fallen enemies lose their next turn (flee). Compensate with larger pack sizes (4-5 instead of 3)."
+      }
+    },
+    "fallen_shaman": {
+      "name": "Fallen Shaman",
+      "type": "demon",
+      "variants": ["Fallen Shaman", "Carver Shaman", "Devilkin Shaman", "Dark Shaman", "Warped Shaman"],
+      "acts": [1, 2, 3, 5],
+      "d2Traits": {
+        "resurrect_fallen": "Can resurrect dead Fallen-type monsters. This is their primary ability and they will prioritize it over attacking.",
+        "fireball": "Ranged fire attack dealing moderate damage.",
+        "no_flee": "Unlike their Fallen minions, Shamans do NOT flee when allies die."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "resurrect_ally",
+        "traitDescription": "Priority: resurrect dead Fallen allies. Secondary: ranged fire attack. Kill the Shaman first or Fallen keep coming back.",
+        "suggestedMechanic": "New intent kind 'resurrect_ally': revive one dead non-shaman ally at 50% HP. Must be killed first to stop the cycle."
+      }
+    },
+    "zombie": {
+      "name": "Zombie",
+      "type": "undead",
+      "variants": ["Zombie", "Hungry Dead", "Ghoul", "Dried Corpse", "Plague Bearer", "Afflicted"],
+      "acts": [1, 2, 3],
+      "d2Traits": {
+        "slow_movement": "Extremely slow movement speed, among the slowest monsters in the game.",
+        "poison_on_death": "Some variants (Dried Corpse, Plague Bearer) release poison cloud on death.",
+        "high_hp": "Higher HP than most monsters at their level to compensate for low speed.",
+        "disease": "Higher variants can inflict poison damage on hit."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "poison_death_burst",
+        "traitDescription": "Slow but tanky. Some variants deal poison damage to the player when they die.",
+        "suggestedMechanic": "New trait 'death_burst_poison': On death, apply 2 poison to hero. Higher act variants apply more. Acts as a punishment for killing them."
+      }
+    },
+    "skeleton": {
+      "name": "Skeleton",
+      "type": "undead",
+      "variants": ["Skeleton", "Returned", "Bone Warrior", "Burning Dead", "Horror"],
+      "acts": [1, 2, 3, 4, 5],
+      "d2Traits": {
+        "fragile": "Lower HP than most monsters but decent damage.",
+        "shield_block": "Some variants carry shields and can block attacks.",
+        "weapon_variety": "Different variants use different weapons affecting damage type and speed."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": null,
+        "traitDescription": "Glass cannon raider. Low HP but solid attack. Shield variants get starting guard.",
+        "suggestedMechanic": "Some skeleton variants start combat with 2-3 guard (shield block). Lower life, higher attack than standard raiders."
+      }
+    },
+    "skeleton_archer": {
+      "name": "Skeleton Archer",
+      "type": "undead",
+      "variants": ["Skeleton Archer", "Returned Archer", "Bone Archer", "Burning Dead Archer", "Horror Archer"],
+      "acts": [1, 2, 3, 4, 5],
+      "d2Traits": {
+        "ranged_physical": "Fire arrows at range dealing physical damage.",
+        "fire_arrows": "Burning Dead Archer variants fire flaming arrows dealing fire+physical damage.",
+        "fragile": "Low HP for their level."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": null,
+        "traitDescription": "Standard ranged attacker. Fire variants apply burn on attack.",
+        "suggestedMechanic": "Burning Dead Archer intent includes apply_burn effect: 'attack' + 'apply 1 burn to target'."
+      }
+    },
+    "skeleton_mage": {
+      "name": "Skeleton Mage",
+      "type": "undead",
+      "variants": ["Bone Mage", "Returned Mage", "Burning Dead Mage", "Horror Mage"],
+      "acts": [1, 2, 3, 4, 5],
+      "d2Traits": {
+        "elemental_bolts": "Fire bolts of random element: fire, cold, lightning, or poison.",
+        "cold_slow": "Cold bolt variant slows player movement and attack speed.",
+        "poison_dot": "Poison bolt variant applies damage over time.",
+        "fire_burst": "Fire bolt variant deals burst fire damage.",
+        "lightning_spike": "Lightning bolt variant deals high but variable damage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "elemental_bolt",
+        "traitDescription": "Elemental ranged attacker. Each mage specializes in one element, applying its status effect.",
+        "suggestedMechanic": "Intent rotation includes status effect application: fire mage applies burn, cold mage applies slow, poison mage applies poison to hero. New mechanic: enemies can apply status effects TO the player."
+      }
+    },
+    "greater_mummy": {
+      "name": "Greater Mummy",
+      "type": "undead",
+      "variants": ["Hollow One", "Guardian", "Unraveler", "Horadrim Ancient"],
+      "acts": [2, 3, 5],
+      "d2Traits": {
+        "resurrect_undead": "Can resurrect any dead undead monster in range (except other Greater Mummies).",
+        "poison_breath": "Ranged poison cloud attack dealing damage over time (7-138 dmg over 4-16 seconds).",
+        "unholy_bolts": "Fire magic damage projectiles that bypass most resistances.",
+        "fast_regen": "Regenerate HP 50% faster than normal monsters.",
+        "magic_resistant": "50% magic resistance across all difficulties."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "resurrect_ally",
+        "traitDescription": "The undead version of Fallen Shaman but MORE dangerous. Resurrects ANY undead ally. Applies poison. High priority kill target.",
+        "suggestedMechanic": "Intent: 1) resurrect_ally (revive dead undead at 50% HP), 2) poison_breath (apply 3 poison to hero), 3) unholy_bolt (magic damage ignoring guard). Passive: regenerate 1 HP per turn."
+      }
+    },
+    "quill_rat": {
+      "name": "Quill Rat / Spike Fiend",
+      "type": "animal",
+      "variants": ["Quill Rat", "Spike Fiend", "Thorn Beast", "Razor Spine"],
+      "acts": [1, 2, 5],
+      "d2Traits": {
+        "ranged_quills": "Fire quill projectiles at range.",
+        "defensive_curl": "Curl into a ball when dying, becoming briefly harder to hit.",
+        "pack_behavior": "Appear in small groups of 2-4."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": null,
+        "traitDescription": "Basic ranged attacker. Fires quill volleys.",
+        "suggestedMechanic": "Standard ranged with attack_all (quill spray) as primary intent."
+      }
+    },
+    "goatman": {
+      "name": "Goatman / Moon Clan",
+      "type": "demon",
+      "variants": ["Moon Clan", "Night Clan", "Blood Clan", "Death Clan", "Hell Clan"],
+      "acts": [1, 2, 3, 5],
+      "d2Traits": {
+        "heavy_melee": "Strong melee attackers with high damage.",
+        "pack_leaders": "Often accompanied by shaman-type support.",
+        "durable": "Above-average HP and defense."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": null,
+        "traitDescription": "Durable melee fighters. High damage, high HP. The baseline brute enemy.",
+        "suggestedMechanic": "Standard brute with guard + heavy attack rotation."
+      }
+    },
+    "corrupt_rogue": {
+      "name": "Corrupt Rogue",
+      "type": "demon",
+      "variants": ["Dark Hunter", "Vile Hunter", "Dark Stalker", "Black Rogue", "Flesh Hunter"],
+      "acts": [1, 3],
+      "d2Traits": {
+        "fast_attack": "Quick attack speed, especially with dual-wielding variants.",
+        "bow_variants": "Some variants (Dark Archer, Vile Archer, Black Archer) use ranged attacks.",
+        "dodge": "Some variants can dodge incoming attacks."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "quick_strike",
+        "traitDescription": "Fast attackers that can hit twice. Bow variants serve as ranged.",
+        "suggestedMechanic": "Intent with two attacks in one turn at reduced damage (e.g., 'Dual Strike': two hits of attack/2 each)."
+      }
+    },
+    "sand_leaper": {
+      "name": "Sand Leaper",
+      "type": "animal",
+      "variants": ["Sand Leaper", "Cave Leaper", "Tomb Creeper", "Tree Lurker"],
+      "acts": [2, 3, 5],
+      "d2Traits": {
+        "leap_attack": "Jump onto targets from distance, closing gaps quickly.",
+        "evasive": "Leap away from danger, hard to pin down.",
+        "ambush": "Emerge from underground/hiding for surprise attacks."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "leap_attack",
+        "traitDescription": "Leaps past guard. First attack each combat ignores guard (ambush from underground).",
+        "suggestedMechanic": "First intent is always sunder_attack (leap bypasses guard). Then alternates normal attacks."
+      }
+    },
+    "scarab": {
+      "name": "Scarab Demon",
+      "type": "animal",
+      "variants": ["Dung Soldier", "Sand Warrior", "Scarab", "Steel Weevil"],
+      "acts": [2, 5],
+      "d2Traits": {
+        "lightning_charge": "Charged bolt attack on hit that deals lightning damage.",
+        "armored": "High defense, resistant to physical damage.",
+        "lightning_aura": "Some variants deal lightning damage to melee attackers (thorns-like effect)."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "lightning_thorns",
+        "traitDescription": "Armored beetles that shock attackers. Taking damage from them applies burn (re-flavored as lightning).",
+        "suggestedMechanic": "Passive trait 'thorns': when hit by melee/card damage, deal 1-2 damage back to hero. Guard + attack rotation with high guard values."
+      }
+    },
+    "sand_maggot": {
+      "name": "Sand Maggot",
+      "type": "animal",
+      "variants": ["Sand Maggot", "Rock Worm", "Devourer", "World Killer"],
+      "acts": [2, 4, 5],
+      "d2Traits": {
+        "lay_eggs": "Lay Sand Maggot Eggs that hatch into Sand Maggot Young.",
+        "poison_spit": "Ranged poison spit attack.",
+        "burrow": "Emerge from underground, briefly invulnerable during emergence.",
+        "young_swarm": "Young maggots are weak but numerous, swarming the player."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "spawn_young",
+        "traitDescription": "Lays eggs that hatch into weak raiders. Must kill the Maggot to stop the flood of minions.",
+        "suggestedMechanic": "New intent kind 'summon_minion': add a weak raider enemy (Sand Maggot Young) to the encounter. Young have ~40% HP of a normal raider. Maggot alternates between summoning and poison spit."
+      }
+    },
+    "claw_viper": {
+      "name": "Claw Viper",
+      "type": "animal",
+      "variants": ["Claw Viper", "Pit Viper", "Salamander", "Serpent Magus", "Tomb Viper"],
+      "acts": [2, 3, 5],
+      "d2Traits": {
+        "charge_attack": "Charge attack that deals heavy damage and knockback.",
+        "poison_melee": "Melee attacks deal poison damage (Pit Viper, Tomb Viper).",
+        "bone_magic": "Serpent Magus casts bone-type spells.",
+        "inferno": "Salamander breathes fire (inferno-like attack)."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "charge_attack",
+        "traitDescription": "Charge attack that sunders guard. Poison variants apply poison on hit.",
+        "suggestedMechanic": "Intent rotation: 1) sunder_attack (charge), 2) attack + apply_poison. Higher variants get both poison and sunder in rotation."
+      }
+    },
+    "vampire": {
+      "name": "Vampire",
+      "type": "undead",
+      "variants": ["Ghoul Lord", "Night Lord", "Dark Lord", "Blood Lord"],
+      "acts": [1, 2, 3, 4, 5],
+      "d2Traits": {
+        "fireball": "Cast Fireball for ranged fire damage.",
+        "fire_wall": "Cast Fire Wall creating a persistent fire zone.",
+        "meteor": "Dark Lord and Blood Lord cast Meteor for massive fire burst.",
+        "life_drain": "Melee attacks drain life from the player.",
+        "high_resistances": "High fire and cold resistance."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "drain_attack",
+        "traitDescription": "Ranged fire casters that also drain life on melee. Extremely dangerous in later acts with Meteor.",
+        "suggestedMechanic": "Intent rotation: 1) drain_attack (life steal melee), 2) attack_all (fireball AoE), 3) apply_burn_all (fire wall). Blood Lord gets a 4th: massive single-target fire hit (Meteor)."
+      }
+    },
+    "wraith": {
+      "name": "Wraith / Ghost",
+      "type": "undead",
+      "variants": ["Ghost", "Wraith", "Specter", "Apparition", "Dark Shape"],
+      "acts": [1, 2, 3, 5],
+      "d2Traits": {
+        "mana_drain": "Attacks drain player's mana instead of (or in addition to) HP.",
+        "physical_immune": "Partially resistant to physical damage.",
+        "pass_through_walls": "Can move through obstacles and walls.",
+        "cold_attack": "Some variants deal cold damage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "energy_drain",
+        "traitDescription": "Drains player energy instead of dealing damage. Forces suboptimal card plays.",
+        "suggestedMechanic": "New intent kind 'drain_energy': reduce hero energy by 1 next turn (hero draws one fewer card or starts with less energy). Also deals minor damage."
+      }
+    },
+    "fetish": {
+      "name": "Fetish",
+      "type": "demon",
+      "variants": ["Rat Man", "Fetish", "Flayer", "Soul Killer", "Stygian Doll"],
+      "acts": [1, 3, 5],
+      "d2Traits": {
+        "lightning_speed": "Extremely fast movement and attack speed. Swarm furiously.",
+        "double_attack": "Attack speed so fast they effectively hit twice in the time other monsters hit once.",
+        "stab_and_run": "Rush in, attack, retreat. Hard to pin down.",
+        "pack_swarm": "Always appear in large groups, overwhelming through numbers.",
+        "knife_attacks": "Melee with oversized knives."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "double_strike",
+        "traitDescription": "Super fast — attacks TWICE per enemy turn. Low HP and damage per hit but the double strike makes them lethal in groups.",
+        "suggestedMechanic": "New trait 'swift': this enemy executes its attack intent TWICE per turn. Low individual damage (60% of normal raider) but double hits. Appear in packs of 4-5."
+      }
+    },
+    "fetish_shaman": {
+      "name": "Fetish Shaman",
+      "type": "demon",
+      "variants": ["Fetish Shaman", "Flayer Shaman", "Soul Killer Shaman"],
+      "acts": [3, 5],
+      "d2Traits": {
+        "resurrect_fetish": "Can resurrect dead Fetish-type monsters.",
+        "inferno": "Breathe fire (Inferno skill) dealing continuous fire damage.",
+        "carried_by_fetish": "Lore: carried on shoulders of lesser Fetish for height advantage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "resurrect_ally",
+        "traitDescription": "Resurrects dead Fetish allies AND breathes fire for AoE burn damage.",
+        "suggestedMechanic": "Intent rotation: 1) resurrect_ally (revive dead Fetish at 50% HP), 2) apply_burn_all (inferno breath, apply 2 burn to all party). Priority target — kill before Fetish to prevent endless resurrection."
+      }
+    },
+    "bone_fetish": {
+      "name": "Bone Fetish / Stygian Doll",
+      "type": "undead",
+      "variants": ["Undead Flayer", "Undead Soul Killer", "Undead Stygian Doll"],
+      "acts": [3, 5],
+      "d2Traits": {
+        "death_explosion": "Explode on death dealing massive physical damage (10% of their max HP). Stygian Dolls are among the most dangerous non-boss monsters in the game.",
+        "fast_movement": "Nearly as fast as living Fetish variants.",
+        "suicidal_rush": "Tend to charge directly at the player."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "death_explosion",
+        "traitDescription": "EXPLODES on death dealing massive damage to the hero. The most dangerous trash mob in D2.",
+        "suggestedMechanic": "New trait 'death_explosion': on death, deal damage equal to 30-50% of their max HP to the hero (bypasses guard). Player must strategize: use ranged damage, or accept the burst. Killing with poison avoids explosion (already dead when poison ticks)."
+      }
+    },
+    "thorned_hulk": {
+      "name": "Thorned Hulk",
+      "type": "animal",
+      "variants": ["Thorned Hulk", "Bramble Hulk", "Thrasher", "Spike Giant"],
+      "acts": [1, 3, 5],
+      "d2Traits": {
+        "knockback": "Powerful melee attacks that knock back the player.",
+        "frenzy": "Attack speed increases as HP drops (some variants).",
+        "thorns_aura": "Reflect a portion of melee damage back at attacker."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "frenzy",
+        "traitDescription": "Gets more dangerous as HP drops. Below 50% HP, attack damage increases by 50%.",
+        "suggestedMechanic": "New trait 'frenzy': when below 50% max HP, all attack intent values increase by 50% (floored). High HP brute that becomes a ticking time bomb."
+      }
+    },
+    "willowisp": {
+      "name": "Willowisp / Gloam",
+      "type": "undead",
+      "variants": ["Gloam", "Burning Soul", "Black Soul", "Storm Caster"],
+      "acts": [3, 4, 5],
+      "d2Traits": {
+        "lightning_bolt": "Fire high-damage lightning bolts at extreme range. Known as the most dangerous regular monster in the game.",
+        "teleport": "Blink/teleport around the battlefield.",
+        "energy_drain": "Lightning attacks drain mana.",
+        "invisible_approach": "Hard to see, nearly invisible at distance."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "lightning_bolt",
+        "traitDescription": "Fires devastating lightning bolts. Very high damage ranged attack but fragile. The glass cannon of D2.",
+        "suggestedMechanic": "Extremely high attack for ranged role (+50% above normal ranged), very low HP (-30%). Intent: 1) lightning bolt (high single-target damage + drain 1 energy), 2) teleport (gain guard from repositioning)."
+      }
+    },
+    "succubus": {
+      "name": "Succubus",
+      "type": "demon",
+      "variants": ["Succubus", "Vile Temptress", "Stygian Harlot", "Hell Temptress", "Blood Temptress"],
+      "acts": [5],
+      "d2Traits": {
+        "blood_star": "Fire Blood Star projectiles that always hit (physical damage).",
+        "curse_defense": "Cast curse that lowers player defense.",
+        "blood_mana_curse": "Cast Blood Mana curse — spells cost HP as well as mana. Extremely dangerous for casters.",
+        "hover": "Flying creature, hovers above ground."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "curse_blood_mana",
+        "traitDescription": "Curses the player so card plays cost HP in addition to energy. Forces difficult resource decisions.",
+        "suggestedMechanic": "New intent kind 'curse_blood_mana': for 2 turns, each card the hero plays also costs 1 HP per energy cost. Alternates with blood_star (guaranteed hit ranged attack)."
+      }
+    },
+    "oblivion_knight": {
+      "name": "Oblivion Knight",
+      "type": "undead",
+      "variants": ["Doom Knight", "Abyss Knight", "Oblivion Knight"],
+      "acts": [4, 5],
+      "d2Traits": {
+        "curses": "Cast Decrepify, Lower Resist, Weaken, Life Tap, Amplify Damage on the player.",
+        "bone_spirit": "Fire homing Bone Spirit projectiles dealing magic damage (82-87 in Hell).",
+        "no_melee": "Pure spellcaster — no melee attack at all.",
+        "high_resistances": "60% fire/lightning resistance, up to 180% cold resistance."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "curse_decrepify",
+        "traitDescription": "The most dangerous support enemy. Curses that weaken the player AND fires bone spirits. No melee, pure caster.",
+        "suggestedMechanic": "Intent rotation: 1) 'curse_amplify_damage' — hero takes 50% more damage for 2 turns, 2) bone_spirit (high magic damage that ignores guard), 3) 'curse_decrepify' — hero deals 30% less damage for 2 turns. Three-phase rotation makes them extremely threatening."
+      }
+    },
+    "venom_lord": {
+      "name": "Balrog / Venom Lord",
+      "type": "demon",
+      "variants": ["Balrog", "Pit Lord", "Venom Lord"],
+      "acts": [4, 5],
+      "d2Traits": {
+        "inferno_breath": "Breathe fire (Inferno) dealing continuous fire damage.",
+        "high_damage": "Extremely high melee damage.",
+        "durable": "Very high HP and defense.",
+        "fire_resistant": "High fire resistance."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "inferno_breath",
+        "traitDescription": "The ultimate brute. Massive HP, massive damage, AND fire breath that burns the whole party.",
+        "suggestedMechanic": "Intent rotation: 1) guard + inferno (gain guard AND apply 2 burn to all party), 2) heavy attack (highest single-target damage of any non-boss). Stats: 130% of normal brute HP, 120% attack."
+      }
+    },
+    "megademon": {
+      "name": "Megademon / Balrog Variant",
+      "type": "demon",
+      "variants": ["Megademon", "Urdar"],
+      "acts": [4, 5],
+      "d2Traits": {
+        "smite": "Powerful melee attack with stun/knockback effect.",
+        "heavy_armor": "Very high defense.",
+        "slow": "Relatively slow movement."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "smite",
+        "traitDescription": "Slow but devastating. Attacks stun the target.",
+        "suggestedMechanic": "Intent includes stun effect: attack that also applies 1 stun to the hero (hero loses 1 energy or skips a card draw next turn)."
+      }
+    },
+    "blunderbore": {
+      "name": "Blunderbore",
+      "type": "demon",
+      "variants": ["Blunderbore", "Crusher", "Gorbelly"],
+      "acts": [2, 5],
+      "d2Traits": {
+        "stun_attack": "Heavy melee attack that stuns the player.",
+        "grab": "Can grab and squeeze the player for sustained damage.",
+        "slow_heavy": "Very slow but very powerful."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "grab",
+        "traitDescription": "Grabs the hero — deals damage over 2 turns while reducing hero actions.",
+        "suggestedMechanic": "Intent: 1) grab (deal moderate damage + apply 1 paralyze to hero), 2) squeeze (deal heavy damage to paralyzed target)."
+      }
+    },
+    "sabre_cat": {
+      "name": "Sabre Cat",
+      "type": "animal",
+      "variants": ["Huntress", "Saber Cat", "Night Tiger", "Hell Cat"],
+      "acts": [2, 5],
+      "d2Traits": {
+        "fast_attack": "Very fast attack speed.",
+        "whip_attack": "Use whip weapons for moderate range.",
+        "pack_hunting": "Appear in small groups, coordinate attacks."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "pounce",
+        "traitDescription": "Fast attackers. First attack is a pounce that deals bonus damage.",
+        "suggestedMechanic": "First intent in rotation does +2 bonus damage (pounce). Then standard attacks."
+      }
+    },
+    "overseer": {
+      "name": "Overseer",
+      "type": "demon",
+      "variants": ["Overseer", "Lasher", "Hell Whip"],
+      "acts": [5],
+      "d2Traits": {
+        "whip_minions": "Whip nearby Minion-type monsters to make them go into Frenzy mode (faster, stronger).",
+        "buff_allies": "Primary role is buffing nearby allies' attack speed and damage.",
+        "melee_whip": "Also attacks players with whip for moderate damage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "buff_allies_attack",
+        "traitDescription": "Whips allies into frenzy — buffs all allies' next attack damage. Kill the Overseer to stop the damage amplification.",
+        "suggestedMechanic": "New intent kind 'buff_allies_attack': all living allies deal +2 damage on their next attack. Alternates with moderate melee attack."
+      }
+    },
+    "council_member": {
+      "name": "Council Member",
+      "type": "demon",
+      "variants": ["Council Member"],
+      "acts": [3, 5],
+      "d2Traits": {
+        "hydra": "Summon Hydra turrets that fire fireballs.",
+        "blizzard": "Cast Blizzard for area cold damage.",
+        "glacial_spike": "Cast Glacial Spike for cold damage + freeze.",
+        "healing": "Can heal each other.",
+        "high_hp": "Very high HP for a non-boss monster."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "hydra_summon",
+        "traitDescription": "Mini-boss tier monster. Summons fire hydra (persistent burn), casts blizzard (AoE + freeze), and heals allies.",
+        "suggestedMechanic": "Intent rotation: 1) attack_all + apply_burn_all (hydra/blizzard), 2) heal_allies, 3) sunder_attack (glacial spike). Treat as mini-boss with elevated stats."
+      }
+    },
+    "zakarum": {
+      "name": "Zakarum Zealot / Priest",
+      "type": "animal",
+      "variants": ["Zakarumite", "Faithful", "Zealot", "Sexton", "Cantor", "Heirophant"],
+      "acts": [3, 5],
+      "d2Traits": {
+        "melee_zealots": "Zealots use fast melee attacks (Zeal-like multi-hit).",
+        "healing_priests": "Priests (Cantor, Heirophant, Sexton) heal and buff allies.",
+        "conviction_aura": "Some variants have Conviction aura lowering player resistances.",
+        "fanaticism_aura": "Some variants have Fanaticism aura boosting ally damage and speed."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "mixed",
+        "specialIntent": "aura",
+        "traitDescription": "Zealots multi-hit, Priests heal and provide aura buffs to all allies.",
+        "suggestedMechanic": "Heirophant/Cantor get new intent 'aura_fanaticism': all allies deal +2 damage this turn (persistent while alive). Zealots get multi-hit intent similar to Fetish double strike."
+      }
+    },
+    "tentacle_beast": {
+      "name": "Tentacle Beast",
+      "type": "animal",
+      "variants": ["Giant Lamprey", "Tentacle Beast"],
+      "acts": [3],
+      "d2Traits": {
+        "emerge_attack": "Emerge from water/swamp for surprise attack.",
+        "pull_in": "Grab and pull player toward them.",
+        "poison_attack": "Some variants deal poison damage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "grab_pull",
+        "traitDescription": "Emerges for a surprise first attack, then grabs and poisons.",
+        "suggestedMechanic": "First intent is sunder_attack (emerge). Second intent: attack + apply_poison."
+      }
+    },
+    "spider": {
+      "name": "Giant Spider",
+      "type": "animal",
+      "variants": ["Arach", "Poison Spinner", "Flame Spider", "Spider Magus"],
+      "acts": [1, 3, 5],
+      "d2Traits": {
+        "web_slow": "Spray web that slows player movement and attack speed.",
+        "poison_spit": "Ranged poison attack.",
+        "fire_spider": "Flame Spider variants deal fire damage.",
+        "swarm": "Appear in large numbers."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "web_slow",
+        "traitDescription": "Slows the player with webs and poisons from range.",
+        "suggestedMechanic": "Intent rotation: 1) apply_slow to hero (web), 2) attack + apply_poison (venom spit). Forces player to deal with movement debuffs."
+      }
+    },
+    "swarm": {
+      "name": "Swarm / Mosquito",
+      "type": "animal",
+      "variants": ["Sucker", "Itchies", "Black Locusts", "Hell Swarm"],
+      "acts": [2, 3],
+      "d2Traits": {
+        "drain_life": "Constantly drain player HP while engaged.",
+        "small_target": "Very hard to hit due to small size.",
+        "persistent_damage": "Deal continuous low damage that adds up."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "life_drain",
+        "traitDescription": "Tiny persistent damage. Low HP but drains life every turn.",
+        "suggestedMechanic": "Passive: deals 1 damage to hero at start of each player turn (unavoidable chip damage). Regular intent is also drain_attack."
+      }
+    },
+    "bat_demon": {
+      "name": "Bat Demon",
+      "type": "animal",
+      "variants": ["Gloombat", "Fiend", "Blood Wing", "Dark Familiar", "Feeder"],
+      "acts": [2, 3, 4, 5],
+      "d2Traits": {
+        "flight": "Flying creature, hard to hit.",
+        "drain_attack": "Life-draining melee attacks.",
+        "erratic_movement": "Unpredictable flight patterns make targeting difficult."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "drain_attack",
+        "traitDescription": "Flying drain attacker. Hard to target, drains life.",
+        "suggestedMechanic": "Standard ranged role but uses drain_attack instead of normal attack."
+      }
+    },
+    "vile_mother": {
+      "name": "Vile Mother / Flesh Spawner",
+      "type": "demon",
+      "variants": ["Flesh Spawner", "Stygian Hag", "Grotesque"],
+      "acts": [4, 5],
+      "d2Traits": {
+        "spawn_young": "Periodically spawn Vile Child monsters from their body.",
+        "death_spawn": "On death, release a burst of Vile Children.",
+        "melee_attack": "Standard melee attacks between spawning."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "spawn_minion",
+        "traitDescription": "Spawns weak Vile Child enemies AND spawns more on death. Flood the encounter with bodies.",
+        "suggestedMechanic": "Intent: 1) summon_minion (add Vile Child raider to encounter), 2) attack. On death: summon 2 Vile Children. Similar to Sand Maggot but with death burst spawning."
+      }
+    },
+    "finger_mage": {
+      "name": "Finger Mage",
+      "type": "undead",
+      "variants": ["Damned", "Strangler"],
+      "acts": [4, 5],
+      "d2Traits": {
+        "mana_drain": "Ranged attack that drains player mana rapidly.",
+        "curse": "Can cast curses on the player.",
+        "undead_magic": "Deal magic damage with ranged attacks."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "mana_drain",
+        "traitDescription": "Drains player energy from range. Forces resource scarcity.",
+        "suggestedMechanic": "Intent: drain_energy (reduce hero max energy by 1 for next turn) + moderate magic damage."
+      }
+    },
+    "reanimated_horde": {
+      "name": "Reanimated Horde",
+      "type": "undead",
+      "variants": ["Reanimated Horde", "Prowling Dead", "Unholy Corpse", "Defiled Warrior"],
+      "acts": [5],
+      "d2Traits": {
+        "undead_barbarian": "Fallen barbarian warriors reanimated as undead.",
+        "double_swing": "Use two-handed weapons for powerful double swing attacks.",
+        "durable": "High HP undead with good damage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "double_swing",
+        "traitDescription": "Undead barbarians with two-hit melee attacks.",
+        "suggestedMechanic": "Intent rotation includes attack_all (double swing cleave) as primary, single-target heavy hit as secondary."
+      }
+    },
+    "frozen_horror": {
+      "name": "Frozen Horror",
+      "type": "animal",
+      "variants": ["Frozen Horror", "Frozen Abyss", "Ice Spawn", "Frenzied Ice Spawn"],
+      "acts": [5],
+      "d2Traits": {
+        "cold_attack": "All attacks deal cold damage and can freeze the player.",
+        "arctic_blast": "Ranged cold attack that slows.",
+        "shatter": "Frozen targets take extra damage."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "freeze_attack",
+        "traitDescription": "Cold attackers that freeze/slow the player. Apply slow or freeze effects on hit.",
+        "suggestedMechanic": "Intent: attack + apply_slow to hero. Frenzied variant: attack + apply_freeze to hero (skips hero's next card draw or reduces hand size by 1)."
+      }
+    },
+    "death_mauler": {
+      "name": "Death Mauler",
+      "type": "animal",
+      "variants": ["Death Mauler"],
+      "acts": [5],
+      "d2Traits": {
+        "burrow": "Burrow underground and emerge at target's location.",
+        "corpse_explosion": "Use Corpse Explosion on nearby dead monsters.",
+        "melee_swipe": "Powerful melee swipe attacks."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "corpse_explosion",
+        "traitDescription": "Burrows to bypass guard and explodes corpses for AoE damage based on dead enemies.",
+        "suggestedMechanic": "New intent 'corpse_explosion': deal damage equal to 2 x number of dead enemies in encounter to all party. Burrow first attack is sunder_attack."
+      }
+    },
+    "imp": {
+      "name": "Demon Imp",
+      "type": "demon",
+      "variants": ["Imp", "Hell Spawn", "Greater Hell Spawn"],
+      "acts": [5],
+      "d2Traits": {
+        "inferno": "Breathe fire (Inferno) at close range.",
+        "teleport": "Can teleport short distances.",
+        "pack_behavior": "Appear in large groups.",
+        "fast": "Very fast movement."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "inferno",
+        "traitDescription": "Fast fire-breathing imps that teleport and burn.",
+        "suggestedMechanic": "Intent: attack + apply_burn. Fragile ranged with burn application."
+      }
+    },
+    "putrid_defiler": {
+      "name": "Putrid Defiler",
+      "type": "demon",
+      "variants": ["Putrid Defiler"],
+      "acts": [5],
+      "d2Traits": {
+        "spawn_worms": "Spawn Pain Worm minions.",
+        "poison_attack": "Poison-based ranged attack."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "support",
+        "specialIntent": "spawn_minion",
+        "traitDescription": "Another summoner type. Spawns Pain Worm minions and poisons.",
+        "suggestedMechanic": "Similar to Sand Maggot/Flesh Spawner: summon_minion + poison attack rotation."
+      }
+    },
+    "tainted": {
+      "name": "Tainted",
+      "type": "demon",
+      "variants": ["Tainted", "Afflicted", "Misshapen", "Disfigured"],
+      "acts": [1, 5],
+      "d2Traits": {
+        "multiple_attacks": "Fast multiple-hit melee attacks.",
+        "slow_between": "Slow movement but fast when attacking.",
+        "elemental_melee": "Some variants add elemental damage to melee."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "raider",
+        "specialIntent": "multi_strike",
+        "traitDescription": "Multi-hit melee attackers. Slow approach but fast burst.",
+        "suggestedMechanic": "Intent: attack intent with higher-than-normal value representing multiple fast hits."
+      }
+    },
+    "vulture_demon": {
+      "name": "Vulture Demon",
+      "type": "demon",
+      "variants": ["Carrion Bird", "Cloud Stalker", "Hell Buzzard", "Winged Nightmare"],
+      "acts": [2, 3, 5],
+      "d2Traits": {
+        "flight": "Flying creature.",
+        "divebomb": "Dive attack from the air.",
+        "ranged_while_flying": "Can attack while staying airborne."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "ranged",
+        "specialIntent": "divebomb",
+        "traitDescription": "Flying attacker with dive bomb (sunder attack) then ranged peck.",
+        "suggestedMechanic": "First intent: sunder_attack (divebomb bypasses guard). Then ranged attack."
+      }
+    },
+    "regurgitator": {
+      "name": "Corpse Spitter / Regurgitator",
+      "type": "demon",
+      "variants": ["Corpulent", "Corpse Spitter", "Maw Fiend"],
+      "acts": [4, 5],
+      "d2Traits": {
+        "corpse_spit": "Eat and regurgitate corpses as ranged attack.",
+        "deny_corpses": "Consuming corpses denies them to the Necromancer for summoning.",
+        "slow_heavy": "Very slow but very durable."
+      },
+      "gameAdaptation": {
+        "suggestedRole": "brute",
+        "specialIntent": "corpse_consume",
+        "traitDescription": "Eats dead allies to heal and spit their remains at the player.",
+        "suggestedMechanic": "New intent 'consume_corpse': remove one dead ally from the encounter (prevents resurrection by shamans) and heal self + deal ranged damage to hero. Counters resurrection mechanics."
+      }
+    }
+  },
+
+  "statusEffectsOnPlayer": {
+    "_note": "New status effects that monsters should be able to apply TO the player",
+    "slow": {
+      "name": "Chill / Slow",
+      "d2Source": "Cold damage from any source",
+      "effect": "Reduces hero hand size by 1 for the duration. Draw fewer cards.",
+      "appliedBy": ["Frozen Horror", "Skeleton Mage (cold)", "Spider (web)", "Council Member"]
+    },
+    "amplify_damage": {
+      "name": "Amplify Damage",
+      "d2Source": "Oblivion Knight curse, Cursed monster modifier",
+      "effect": "Hero takes 50% more damage from all sources for 2 turns.",
+      "appliedBy": ["Oblivion Knight", "Cursed elite modifier"]
+    },
+    "weaken": {
+      "name": "Weaken / Decrepify",
+      "d2Source": "Oblivion Knight curse",
+      "effect": "Hero deals 30% less damage for 2 turns.",
+      "appliedBy": ["Oblivion Knight"]
+    },
+    "energy_drain": {
+      "name": "Mana Burn",
+      "d2Source": "Wraith attacks, Mana Burn modifier, Finger Mage",
+      "effect": "Hero starts next turn with 1 less energy.",
+      "appliedBy": ["Wraith", "Ghost", "Specter", "Willowisp", "Finger Mage"]
+    },
+    "blood_mana": {
+      "name": "Blood Mana",
+      "d2Source": "Succubus curse",
+      "effect": "Each card played costs 1 HP per energy cost for 2 turns.",
+      "appliedBy": ["Succubus"]
+    },
+    "burn": {
+      "name": "Fire Damage",
+      "d2Source": "Fire Enchanted, Inferno, Fireball",
+      "effect": "Take burn damage each turn, decrement by 1.",
+      "appliedBy": ["Balrog", "Imp", "Fetish Shaman", "Skeleton Mage (fire)", "Vampire"]
+    },
+    "poison": {
+      "name": "Poison",
+      "d2Source": "Poison attacks from various monsters",
+      "effect": "Take poison damage each turn (bypasses guard), decrement by 1.",
+      "appliedBy": ["Zombie (death)", "Claw Viper", "Sand Maggot", "Spider", "Greater Mummy"]
+    }
+  },
+
+  "monsterTraits": {
+    "_note": "New passive traits that can be assigned to enemy templates",
+    "resurrect_ally": {
+      "name": "Resurrect Ally",
+      "description": "Can revive one dead ally at 50% HP instead of attacking.",
+      "usedBy": ["Fallen Shaman", "Greater Mummy", "Fetish Shaman"],
+      "priority": "Always attempts resurrection before other intents if a dead ally exists."
+    },
+    "swift": {
+      "name": "Swift / Double Strike",
+      "description": "Executes attack intent twice per enemy turn.",
+      "usedBy": ["Fetish", "Flayer", "Soul Killer"],
+      "balance": "Reduce individual hit damage by ~40% to compensate for double hit."
+    },
+    "flee_on_ally_death": {
+      "name": "Cowardice",
+      "description": "When an ally dies, this enemy skips its next action.",
+      "usedBy": ["Fallen", "Carver", "Devilkin", "Dark One"],
+      "balance": "Compensate with larger group sizes."
+    },
+    "death_explosion": {
+      "name": "Death Explosion",
+      "description": "On death, deal damage to the hero equal to a percentage of max HP.",
+      "usedBy": ["Bone Fetish", "Stygian Doll"],
+      "balance": "30-50% of max HP as damage. Bypasses guard. Poison kill avoids it."
+    },
+    "death_poison": {
+      "name": "Poison Corpse",
+      "description": "On death, apply poison to the hero.",
+      "usedBy": ["Zombie (Dried Corpse)", "Plague Bearer"],
+      "balance": "Apply 2-3 poison stacks on death."
+    },
+    "death_spawn": {
+      "name": "Death Spawn",
+      "description": "On death, add 1-2 weak minion enemies to the encounter.",
+      "usedBy": ["Grotesque", "Flesh Spawner", "Vile Mother"],
+      "balance": "Spawned minions have 30-40% normal HP."
+    },
+    "summon_minion": {
+      "name": "Summon Minion",
+      "description": "Can add a weak raider enemy to the encounter instead of attacking.",
+      "usedBy": ["Sand Maggot", "Vile Mother", "Putrid Defiler"],
+      "balance": "Cap at 5 enemies max in encounter. Summoned minions are weak."
+    },
+    "frenzy": {
+      "name": "Frenzy",
+      "description": "Attack damage increases by 50% when below 50% HP.",
+      "usedBy": ["Thorned Hulk", "Frenzied Ice Spawn"],
+      "balance": "Standard HP. The frenzy makes them dangerous to leave wounded."
+    },
+    "thorns": {
+      "name": "Thorns / Lightning Aura",
+      "description": "When damaged, deal 1-2 damage back to the attacker.",
+      "usedBy": ["Scarab Demon", "Thorned Hulk"],
+      "balance": "Only triggers on direct damage cards, not DOT."
+    },
+    "regeneration": {
+      "name": "Regeneration",
+      "description": "Regenerate HP each turn.",
+      "usedBy": ["Greater Mummy"],
+      "balance": "Regenerate 1-2 HP per turn. Use poison to counteract."
+    },
+    "consume_corpse": {
+      "name": "Consume Corpse",
+      "description": "Remove a dead enemy from the encounter and heal self.",
+      "usedBy": ["Corpse Spitter", "Regurgitator"],
+      "balance": "Counters resurrection strategies. Heals for ~25% max HP."
+    }
+  },
+
+  "monsterModifiers": {
+    "_note": "D2-style random modifiers that can be applied to elite/unique enemies",
+    "extra_fast": {
+      "name": "Extra Fast",
+      "effect": "Acts twice per turn (like Swift trait).",
+      "statsBonus": { "attack": 0 }
+    },
+    "extra_strong": {
+      "name": "Extra Strong",
+      "effect": "+50% attack damage.",
+      "statsBonus": { "attack_multiplier": 1.5 }
+    },
+    "cursed": {
+      "name": "Cursed",
+      "effect": "On hit, 50% chance to apply amplify_damage to hero for 2 turns.",
+      "statsBonus": {}
+    },
+    "cold_enchanted": {
+      "name": "Cold Enchanted",
+      "effect": "Attacks apply 1 slow to hero. On death, apply 2 freeze to hero (Frost Nova).",
+      "statsBonus": { "life": 4 }
+    },
+    "fire_enchanted": {
+      "name": "Fire Enchanted",
+      "effect": "Attacks apply 1 burn to hero. On death, deal 25% max HP as fire damage to hero.",
+      "statsBonus": { "life": 4 }
+    },
+    "lightning_enchanted": {
+      "name": "Lightning Enchanted",
+      "effect": "When hit by player, release charged bolts dealing 2 damage to hero.",
+      "statsBonus": { "life": 4 }
+    },
+    "stone_skin": {
+      "name": "Stone Skin",
+      "effect": "+50% max HP. Start with guard equal to 30% max HP.",
+      "statsBonus": { "life_multiplier": 1.5 }
+    },
+    "mana_burn": {
+      "name": "Mana Burn",
+      "effect": "On hit, drain 1 energy from hero.",
+      "statsBonus": {}
+    },
+    "teleportation": {
+      "name": "Teleportation",
+      "effect": "When below 33% HP, gain 5 guard (teleport escape).",
+      "statsBonus": {}
+    },
+    "spectral_hit": {
+      "name": "Spectral Hit",
+      "effect": "Attacks deal random elemental effect: burn, poison, slow, or paralyze (1 stack).",
+      "statsBonus": {}
+    },
+    "multishot": {
+      "name": "Multishot",
+      "effect": "All single-target attacks become attack_all.",
+      "statsBonus": {}
+    },
+    "aura_enchanted": {
+      "name": "Aura Enchanted",
+      "effect": "Provides a passive aura: might (+2 ally damage), fanaticism (+3 ally damage), or conviction (hero takes +2 damage).",
+      "statsBonus": {}
+    }
+  }
+}

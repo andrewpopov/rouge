@@ -1,0 +1,663 @@
+{
+  "Act 1": {
+    "Blood Moor": [
+      "Fallen",
+      "Quill Rat",
+      "Zombie"
+    ],
+    "Cold Plains": [
+      "Dark Hunter",
+      "Dark Spearwoman",
+      "Fallen Shaman",
+      "Gargantuan Beast"
+    ],
+    "Stony Field": [
+      "Dark Ranger",
+      "Foul Crow",
+      "Foul Crow Nest",
+      "Hungry Dead",
+      "Moon Clan",
+      "Skeleton"
+    ],
+    "Dark Wood": [
+      "Carver",
+      "Skeleton Archer",
+      "Spike Fiend",
+      "Vile Hunter",
+      "Vile Lancer"
+    ],
+    "Black Marsh": [
+      "Blood Hawk",
+      "Blood Hawk Nest",
+      "Brute",
+      "Carver Shaman",
+      "Night Clan",
+      "Returned",
+      "Vile Archer"
+    ],
+    "Tamoe Highland": [
+      "Dark Lancer",
+      "Dark Stalker",
+      "Returned Archer",
+      "Returned Mage",
+      "Thorn Beast"
+    ],
+    "Monastery Gate": [
+      "Dark Stalker",
+      "Disfigured",
+      "Returned Archer",
+      "Returned Mage"
+    ],
+    "Outer Cloister": [
+      "Black Rogue",
+      "Devilkin Shaman",
+      "Razor Spine",
+      "Yeti"
+    ],
+    "Barracks": [
+      "Black Rogue",
+      "Bone Archer",
+      "Bone Mage",
+      "Death Clan",
+      "Devilkin Shaman"
+    ],
+    "Jail": [
+      "Bone Archer",
+      "Bone Mage",
+      "Dark One",
+      "Death Clan",
+      "Wraith"
+    ],
+    "Inner Cloister": [
+      "Black Archer",
+      "Bone Mage",
+      "Dark One"
+    ],
+    "Cathedral": [
+      "Dark Shaman",
+      "Tainted",
+      "Wraith"
+    ],
+    "Catacombs": [
+      "Afflicted",
+      "Arach",
+      "Banished",
+      "Dark Shaman",
+      "Ghoul",
+      "Rat Man",
+      "Tainted"
+    ],
+    "Den of Evil": [
+      "Fallen Shaman",
+      "Gargantuan Beast",
+      "Zombie"
+    ],
+    "Burial Grounds": [
+      "Hungry Dead",
+      "Skeleton"
+    ],
+    "Forgotten Tower": [
+      "Blood Clan",
+      "Dark Archer",
+      "Devilkin",
+      "Ghost"
+    ],
+    "Pit": [
+      "Bone Warrior",
+      "Dark Archer",
+      "Dark Stalker",
+      "Devilkin"
+    ],
+    "Cave": [
+      "Dark Ranger",
+      "Hungry Dead",
+      "Skeleton"
+    ],
+    "Hole": [
+      "Brute",
+      "Carver",
+      "Misshapen",
+      "Vile Archer"
+    ],
+    "Tristram": [
+      "Carver Shaman",
+      "Night Clan",
+      "Returned",
+      "Skeleton Archer"
+    ],
+    "Moo Moo Farm": [
+      "Hell Bovine"
+    ]
+  },
+  "Act 2": {
+    "Rocky Waste": [
+      "Carrion Bird",
+      "Dung Soldier",
+      "Huntress",
+      "Sand Leaper",
+      "Slinger"
+    ],
+    "Dry Hills": [
+      "Cave Leaper",
+      "Saber Cat",
+      "Spear Cat",
+      "Undead Scavenger"
+    ],
+    "Far Oasis": [
+      "Black Raptor",
+      "Black Vulture Nest",
+      "Itchies",
+      "Sand Maggot",
+      "Sand Warrior",
+      "Undead Scavenger"
+    ],
+    "Lost City": [
+      "Marauder",
+      "Night Slinger",
+      "Night Tiger",
+      "Plague Bearer",
+      "Tomb Creeper"
+    ],
+    "Valley of Snakes": [
+      "Claw Viper",
+      "Embalmed",
+      "Guardian",
+      "Salamander"
+    ],
+    "Canyon of the Magi": [
+      "Crusher",
+      "Devourer",
+      "Hell Cat",
+      "Hell Slinger",
+      "Steel Weevil"
+    ],
+    "Arcane Sanctuary": [
+      "Ghoul Lord",
+      "Hell Clan",
+      "Specter"
+    ],
+    "Tal Rasha's Tomb": [
+      "Apparition",
+      "Ghoul Lord",
+      "Gorbelly",
+      "Preserved Dead",
+      "Steel Weevil",
+      "Unraveler"
+    ],
+    "Sewers": [
+      "Blood Wing",
+      "Burning Dead",
+      "Burning Dead Mage",
+      "Dried Corpse",
+      "Feeder",
+      "Gloombat",
+      "Horadrim Ancient",
+      "Huntress",
+      "Preserved Dead",
+      "Slime Prince",
+      "Undead Soul Killer"
+    ],
+    "Harem": [
+      "Blunderbore",
+      "Dune Beast",
+      "Horror Archer",
+      "Horror Mage",
+      "Invader"
+    ],
+    "Palace Cellar": [
+      "Blunderbore",
+      "Dune Beast",
+      "Horror Archer",
+      "Horror Mage",
+      "Invader"
+    ],
+    "Stony Tomb": [
+      "Burning Dead Mage",
+      "Dung Soldier",
+      "Horror"
+    ],
+    "Ancient Tunnels": [
+      "Embalmed",
+      "Horror Mage",
+      "Invader",
+      "Plague Bearer"
+    ],
+    "Maggot Lair": [
+      "Black Locusts",
+      "Rock Worm",
+      "Sand Maggot",
+      "Sand Warrior",
+      "Scarab"
+    ],
+    "Claw Viper Temple": [
+      "Claw Viper",
+      "Embalmed",
+      "Guardian",
+      "Salamander"
+    ]
+  },
+  "Act 3": {
+    "Spider Forest": [
+      "Cloud Stalker",
+      "Fetish",
+      "Jungle Hunter",
+      "Sucker",
+      "Thorned Hulk"
+    ],
+    "Great Marsh": [
+      "Bog Creature",
+      "Bramble Hulk",
+      "Drowned Carcass",
+      "Fetish Shaman",
+      "Gloam",
+      "Swamp Dweller"
+    ],
+    "Flayer Jungle": [
+      "Flayer",
+      "Flayer Shaman",
+      "Slime Prince",
+      "Soul Killer",
+      "Soul Killer Shaman",
+      "Winged Nightmare"
+    ],
+    "Lower Kurast": [
+      "Doom Ape",
+      "Hell Buzzard",
+      "Tree Lurker",
+      "Zakarumite"
+    ],
+    "Kurast Bazaar": [
+      "Faithful",
+      "Hell Swarm",
+      "Sexton",
+      "Thrasher"
+    ],
+    "Upper Kurast": [
+      "Cantor",
+      "Thrasher",
+      "Winged Nightmare",
+      "Zealot"
+    ],
+    "Travincal": [
+      "Heirophant",
+      "Night Lord"
+    ],
+    "Durance of Hate": [
+      "Blood Lord",
+      "Cadaver",
+      "Dark Lord",
+      "Mauler",
+      "Undead Stygian Doll"
+    ],
+    "Arachnid Lair": [
+      "Fiend",
+      "Flame Spider",
+      "Giant Lamprey",
+      "Poison Spinner"
+    ],
+    "Swampy Pit": [
+      "Drowned Carcass",
+      "Feeder",
+      "Fiend",
+      "Gloam",
+      "Preserved Dead",
+      "Undead Soul Killer",
+      "Undead Stygian Doll"
+    ],
+    "Flayer Dungeon": [
+      "Dark Shape",
+      "Flayer",
+      "Flayer Shaman",
+      "Gloombat",
+      "Soul Killer",
+      "Soul Killer Shaman",
+      "Undead Flayer"
+    ],
+    "Sewers": [
+      "Blood Wing",
+      "Burning Dead",
+      "Burning Dead Mage",
+      "Dried Corpse",
+      "Feeder",
+      "Gloombat",
+      "Horadrim Ancient",
+      "Huntress",
+      "Preserved Dead",
+      "Slime Prince",
+      "Undead Soul Killer"
+    ],
+    "Ruined Temple": [
+      "Flesh Hunter",
+      "Night Lord",
+      "Spider Magus",
+      "Wailing Beast"
+    ],
+    "Disused Fane": [
+      "Flesh Hunter",
+      "Night Lord",
+      "Spider Magus",
+      "Wailing Beast"
+    ],
+    "Forgotten Reliquary": [
+      "Flesh Hunter",
+      "Night Lord",
+      "Spider Magus",
+      "Wailing Beast"
+    ],
+    "Forgotten Temple": [
+      "Albino Roach",
+      "Blood Diver",
+      "Flesh Archer",
+      "Serpent Magus"
+    ]
+  },
+  "Act 4": {
+    "Outer Steppes": [
+      "Balrog",
+      "Corpulent",
+      "Doom Knight",
+      "Flesh Spawner",
+      "Groper",
+      "Razor Pit Demon",
+      "Venom Lord"
+    ],
+    "Plains of Despair": [
+      "Burning Soul",
+      "Corpulent",
+      "Doom Knight",
+      "Flesh Spawner",
+      "Groper",
+      "Pit Lord",
+      "Venom Lord"
+    ],
+    "City of the Damned": [
+      "Abyss Knight",
+      "Corpse Spitter",
+      "Damned",
+      "Dark Familiar",
+      "Pit Lord",
+      "Strangler",
+      "Stygian Hag"
+    ],
+    "River of Flame": [
+      "Abyss Knight",
+      "Grotesque",
+      "Maw Fiend",
+      "Pit Lord",
+      "Strangler",
+      "Urdar",
+      "Venom Lord",
+      "World Killer"
+    ],
+    "Chaos Sanctuary": [
+      "Oblivion Knight",
+      "Storm Caster",
+      "Venom Lord"
+    ]
+  },
+  "Act 5": {
+    "Bloody Foothills": [
+      "Afflicted",
+      "Burning Dead Archer",
+      "Carrion Bird",
+      "Death Mauler",
+      "Foul Crow",
+      "Imp",
+      "Minion",
+      "Overseer",
+      "Quill Rat",
+      "Slinger",
+      "Thorned Hulk"
+    ],
+    "Frigid Highlands": [
+      "Blunderbore",
+      "Burning Dead Archer",
+      "Crush Beast",
+      "Death Mauler",
+      "Imp",
+      "Lasher",
+      "Siege Beast",
+      "Slayer",
+      "Slinger",
+      "Vile Archer",
+      "Vile Lancer"
+    ],
+    "Arreat Plateau": [
+      "Blood Bringer",
+      "Carver Shaman",
+      "Death Mauler",
+      "Fire Boar",
+      "Hell Whip",
+      "Imp",
+      "Lasher",
+      "Night Clan",
+      "Returned Mage",
+      "Slayer",
+      "Slinger"
+    ],
+    "Crystalline Passage": [
+      "Blood Lord",
+      "Bone Mage",
+      "Cave Leaper",
+      "Claw Viper",
+      "Dark Archer",
+      "Frozen Horror",
+      "Ghost",
+      "Infidel",
+      "Snow Yeti",
+      "Stygian Harlot",
+      "Succubus"
+    ],
+    "Frozen River": [
+      "Blood Lord",
+      "Bone Mage",
+      "Bone Warrior",
+      "Death Mauler",
+      "Frozen Horror",
+      "Gloombat",
+      "Pit Viper",
+      "Reanimated Horde",
+      "Rot Walker",
+      "Snow Yeti",
+      "Wraith"
+    ],
+    "Glacial Trail": [
+      "Afflicted",
+      "Blood Lord",
+      "Bone Mage",
+      "Carver Shaman",
+      "Dark Lancer",
+      "Death Mauler",
+      "Frozen Horror",
+      "Reanimated Horde",
+      "Snow Yeti",
+      "Spike Fiend",
+      "Succubus"
+    ],
+    "Drifter Cavern": [
+      "Blood Lord",
+      "Blood Temptress",
+      "Death Mauler",
+      "Dominus",
+      "Frozen Horror",
+      "Ghost",
+      "Gloam",
+      "Gloombat",
+      "Hell Temptress",
+      "Pit Viper",
+      "Prowling Dead",
+      "Snow Yeti",
+      "Stygian Harlot",
+      "Undead Stygian Doll"
+    ],
+    "Frozen Tundra": [
+      "Blood Temptress",
+      "Bone Archer",
+      "Carrion Bird",
+      "Crush Beast",
+      "Death Clan",
+      "Death Mauler",
+      "Hell Spawn",
+      "Imp",
+      "Returned Mage",
+      "Saber Cat"
+    ],
+    "Ancients Way": [
+      "Ancient Barbarian 1",
+      "Ancient Barbarian 2",
+      "Ancient Barbarian 3"
+    ],
+    "Icy Cellar": [
+      "Blood Lord",
+      "Blood Temptress",
+      "Bone Mage",
+      "Claw Viper",
+      "Dark Lancer",
+      "Death Mauler",
+      "Dominus",
+      "Frozen Horror",
+      "Ghost",
+      "Gloam",
+      "Rot Walker",
+      "Snow Yeti",
+      "Succubus"
+    ],
+    "Worldstone Keep": [
+      "Black Lancer",
+      "Black Soul",
+      "Blood Boss",
+      "Blood Lord",
+      "Cadaver",
+      "Defiled Warrior",
+      "Fiend",
+      "Flesh Spawner",
+      "Frenzied Ice Spawn",
+      "Ghoul Lord",
+      "Greater Hell Spawn",
+      "Heirophant",
+      "Hell Temptress",
+      "Horadrim Ancient",
+      "Horror Mage",
+      "Imp",
+      "Invader",
+      "Oblivion Knight",
+      "Putrid Defiler",
+      "Serpent Magus",
+      "Soul Killer",
+      "Soul Killer Shaman",
+      "Specter",
+      "Steel Weevil",
+      "Storm Caster",
+      "Stygian Fury",
+      "Unholy Corpse",
+      "Vile Witch"
+    ],
+    "Throne of Destruction": [
+      "Assailant",
+      "Blood Lord",
+      "Burning Soul",
+      "Dark Lord",
+      "Hell Witch",
+      "Horadrim Ancient",
+      "Oblivion Knight",
+      "Pit Lord",
+      "Serpent Magus",
+      "Stygian Fury",
+      "Undead Soul Killer"
+    ],
+    "Nihlathak's Temple": [
+      "Afflicted",
+      "Blood Lord",
+      "Bone Mage",
+      "Dark Archer",
+      "Frozen Horror",
+      "Ghost",
+      "Infidel",
+      "Night Clan",
+      "Snow Yeti",
+      "Stygian Harlot",
+      "Succubus",
+      "Vile Temptress"
+    ],
+    "Halls of Anguish": [
+      "Blood Lord",
+      "Death Mauler",
+      "Devilkin Shaman",
+      "Flayer",
+      "Horror Mage",
+      "Prowling Dead",
+      "Reanimated Horde",
+      "Returned",
+      "Scarab",
+      "Temple Guard",
+      "Tomb Creeper"
+    ],
+    "Halls of Pain": [
+      "Baal Taunt",
+      "Blood Clan",
+      "Blood Lord",
+      "Death Mauler",
+      "Flayer",
+      "Grotesque",
+      "Guardian",
+      "Heirophant",
+      "Infidel",
+      "Prowling Dead",
+      "Putrid Defiler",
+      "Razor Spine",
+      "Temple Guard",
+      "Unholy Corpse",
+      "World Killer"
+    ],
+    "Halls of Vaught": [
+      "Arach",
+      "Flayer Shaman",
+      "Ghost",
+      "Hell Temptress",
+      "Ice Spawn",
+      "Night Marauder",
+      "Prowling Dead",
+      "Putrid Defiler",
+      "Returned Archer",
+      "Slayer",
+      "Tomb Viper"
+    ],
+    "Abaddon": [
+      "Balrog",
+      "Blood Lord",
+      "Dark Shaman",
+      "Hell Spawn",
+      "Hell Temptress",
+      "Hell Witch",
+      "Horror Archer",
+      "Imp",
+      "Lasher",
+      "Strangler",
+      "Undead Stygian Doll"
+    ],
+    "Pit of Acheron": [
+      "Balrog",
+      "Blood Lord",
+      "Burning Dead Mage",
+      "Hell Clan",
+      "Hell Temptress",
+      "Imp",
+      "Mauler",
+      "Maw Fiend",
+      "Overlord",
+      "Salamander",
+      "Unraveler"
+    ],
+    "Infernal Pit": [
+      "Balrog",
+      "Blood Boss",
+      "Blood Lord",
+      "Hell Witch",
+      "Imp",
+      "Oblivion Knight",
+      "Salamander",
+      "Stygian Doll",
+      "Unholy Corpse"
+    ]
+  }
+}
