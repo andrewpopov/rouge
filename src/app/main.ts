@@ -79,6 +79,16 @@
 
   root.addEventListener("mouseleave", clearTilt, true);
 
+  /* ── Parallax backdrop on mouse ── */
+
+  root.addEventListener("mousemove", (event) => {
+    const backdrop = root.querySelector(".stage__backdrop") as HTMLElement | null;
+    if (!backdrop) { return; }
+    const x = (event.clientX / window.innerWidth - 0.5) * 6;
+    const y = (event.clientY / window.innerHeight - 0.5) * 4;
+    backdrop.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
+  });
+
   render();
 
   seedLoader

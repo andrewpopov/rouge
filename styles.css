@@ -2880,7 +2880,7 @@ button.waypoint:hover {
 
 .stage__backdrop {
   position: absolute;
-  inset: 0;
+  inset: -4px;
   background:
     radial-gradient(ellipse at 50% 100%, rgba(160, 70, 20, 0.35), transparent 50%),
     radial-gradient(ellipse at 25% 30%, rgba(120, 40, 10, 0.2), transparent 45%),
@@ -2888,6 +2888,7 @@ button.waypoint:hover {
     radial-gradient(ellipse at 50% 50%, rgba(60, 20, 8, 0.4), transparent 80%),
     linear-gradient(180deg, #040201 0%, #0e0604 20%, #1e0e08 45%, #2d160c 70%, #3a1e10 100%);
   z-index: 0;
+  transition: transform 0.15s ease-out;
 }
 
 .stage__backdrop::before {
@@ -4914,6 +4915,156 @@ button.waypoint:hover {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ── Sprite idle breathing ── */
+
+.sprite:not(.sprite--dead) .sprite__figure {
+  animation: sprite-breathe 3s ease-in-out infinite;
+}
+
+.sprite--enemy:not(.sprite--dead) .sprite__figure {
+  animation: sprite-breathe-enemy 2.5s ease-in-out infinite;
+}
+
+@keyframes sprite-breathe {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(1.015) translateY(-1px); }
+}
+
+@keyframes sprite-breathe-enemy {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  40% { transform: scaleY(1.02) translateY(-1.5px); }
+}
+
+/* ── Character select polish ── */
+
+.campfire-hero {
+  animation: hero-lineup-in 0.4s ease-out both;
+}
+
+.campfire-hero:nth-child(1) { animation-delay: 0.1s; }
+.campfire-hero:nth-child(2) { animation-delay: 0.15s; }
+.campfire-hero:nth-child(3) { animation-delay: 0.2s; }
+.campfire-hero:nth-child(4) { animation-delay: 0.25s; }
+.campfire-hero:nth-child(5) { animation-delay: 0.3s; }
+.campfire-hero:nth-child(6) { animation-delay: 0.35s; }
+.campfire-hero:nth-child(7) { animation-delay: 0.4s; }
+
+@keyframes hero-lineup-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.8); filter: brightness(0.2); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.campfire-hero--selected {
+  animation: hero-selected-glow 2s ease-in-out infinite;
+}
+
+@keyframes hero-selected-glow {
+  0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 0 12px rgba(245, 193, 118, 0.5)); }
+  50% { filter: brightness(1.05) saturate(1.05) drop-shadow(0 0 20px rgba(245, 193, 118, 0.7)); }
+}
+
+.campfire-detail--expanded {
+  animation: detail-panel-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes detail-panel-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.campfire-sky .eyebrow {
+  animation: banner-eyebrow-in 0.5s ease-out 0.05s both;
+}
+
+.campfire-title {
+  animation: cutscene-title-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+/* ── Town / safe-zone atmosphere ── */
+
+.town-npc-icon--active .town-npc-icon__dot {
+  animation: npc-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes npc-dot-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(212, 143, 70, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(212, 143, 70, 0.7), 0 0 4px rgba(245, 193, 118, 0.3); }
+}
+
+.town-npc-overlay {
+  animation: npc-overlay-in 0.3s ease-out;
+}
+
+@keyframes npc-overlay-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.merchant-card {
+  animation: merchant-card-in 0.3s ease-out both;
+}
+
+.merchant-card:nth-child(1) { animation-delay: 0.05s; }
+.merchant-card:nth-child(2) { animation-delay: 0.1s; }
+.merchant-card:nth-child(3) { animation-delay: 0.15s; }
+.merchant-card:nth-child(4) { animation-delay: 0.2s; }
+.merchant-card:nth-child(5) { animation-delay: 0.25s; }
+.merchant-card:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes merchant-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.merchant-card--bought {
+  border-color: var(--success) !important;
+  box-shadow: 0 0 16px rgba(60, 160, 80, 0.3) !important;
+}
+
+/* ── Combat log styling ── */
+
+.combat-log-list {
+  counter-reset: log-entry;
+}
+
+.combat-log-list li {
+  counter-increment: log-entry;
+  padding: 3px 0;
+  font-size: 0.78rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  line-height: 1.5;
+}
+
+.combat-log-list li::marker {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.combat-log-list li:last-child {
+  color: var(--accent-bright);
+  border-bottom: none;
+}
+
+/* ── Loading screen ── */
+
+.boot-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 3px solid rgba(235, 200, 149, 0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: boot-spin 0.8s linear infinite;
+}
+
+@keyframes boot-spin {
+  to { transform: rotate(360deg); }
+}
+
+.hero-banner .eyebrow {
+  animation: banner-eyebrow-in 0.4s ease-out 0.15s both;
+}
+
 /* ── World map node entrance ── */
 
 .map-node {
@@ -5157,6 +5308,17 @@ button.waypoint:hover {
   .fan-card--upgraded::after,
   .combat-hud__phase,
   .turn-banner,
+  .sprite:not(.sprite--dead) .sprite__figure,
+  .sprite--enemy:not(.sprite--dead) .sprite__figure,
+  .campfire-hero,
+  .campfire-hero--selected,
+  .campfire-detail--expanded,
+  .campfire-sky .eyebrow,
+  .campfire-title,
+  .town-npc-icon--active .town-npc-icon__dot,
+  .town-npc-overlay,
+  .merchant-card,
+  .boot-spinner,
   .hero-banner,
   .hero-banner .eyebrow,
   .hero-banner h1,
