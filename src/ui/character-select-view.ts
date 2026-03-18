@@ -111,7 +111,7 @@
       ? (() => {
           const previewHero = services.classRegistry.createHeroFromClass(
             appState.content,
-            appState.registries.classes.find((c) => c.id === appState.ui.selectedClassId)!
+            selectedClass
           );
           const baseStats = selectedClass.baseStats || {};
           const str = Number.parseInt(String(baseStats.strength ?? 0), 10) || 0;

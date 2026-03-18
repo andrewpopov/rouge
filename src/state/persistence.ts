@@ -209,7 +209,7 @@
   }
 
   function saveToStorage(snapshot: RunSnapshotEnvelope | string, storage: StorageLike | null = getDefaultStorage()) {
-    const restoredSnapshot = typeof snapshot === "string" ? restoreSnapshot(snapshot) : restoreSnapshot(snapshot);
+    const restoredSnapshot = restoreSnapshot(snapshot);
     if (!restoredSnapshot) {
       return { ok: false, message: "Run snapshot could not be restored." };
     }

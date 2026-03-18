@@ -8,8 +8,8 @@
   } = runtimeWindow.__ROUGE_PERSISTENCE_CORE_DATA;
   const { deepClone, toNumber, uniqueStrings } = runtimeWindow.ROUGE_UTILS;
 
-  const SCHEMA_VERSION = runtimeWindow.ROUGE_SAVE_MIGRATIONS?.CURRENT_SCHEMA_VERSION || 4;
-  const PROFILE_SCHEMA_VERSION = runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.CURRENT_PROFILE_SCHEMA_VERSION || 1;
+  const SCHEMA_VERSION = runtimeWindow.ROUGE_SAVE_MIGRATIONS?.CURRENT_SCHEMA_VERSION || 5;
+  const PROFILE_SCHEMA_VERSION = runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.CURRENT_PROFILE_SCHEMA_VERSION || 8;
   const STORAGE_KEY = "rouge.run.snapshot";
   const PROFILE_STORAGE_KEY = "rouge.profile";
 

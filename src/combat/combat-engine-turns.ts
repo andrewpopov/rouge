@@ -379,17 +379,19 @@
   }
 
   function drawCards(state: CombatState, amount: number) {
-    const shuffleCards = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS._shuffleInPlace;
     let drawn = 0;
     for (let index = 0; index < amount; index += 1) {
       if (state.drawPile.length === 0 && state.discardPile.length > 0) {
-        state.drawPile = shuffleCards([...state.discardPile], state.randomFn);
+        state.drawPile = shuffleInPlace([...state.discardPile], state.randomFn);
         state.discardPile = [];
       }
       if (state.drawPile.length === 0) {
         break;
       }
-      state.hand.push(state.drawPile.pop());
+      const card = state.drawPile.pop();
+      if (card) {
+        state.hand.push(card);
+      }
       drawn += 1;
     }
     return drawn;
