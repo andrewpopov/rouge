@@ -62,7 +62,7 @@ test("world map zones loop encounter to reward and preserve multi-encounter prog
   appEngine.leaveSafeZone(state);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
-  let result = appEngine.selectZone(state, openingZoneId);
+  const result = appEngine.selectZone(state, openingZoneId);
   assert.equal(result.ok, true);
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
   assert.equal(state.run.activeZoneId, openingZoneId);

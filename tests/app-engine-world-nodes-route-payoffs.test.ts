@@ -172,7 +172,7 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -259,7 +259,7 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   assert.equal(result.ok, true);
   assert.equal(state.run.pendingReward.kind, "opportunity");
   assert.ok(state.run.pendingReward.title);
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(questChoice.title + " -> " + eventChoice.title)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`${questChoice.title  } -> ${  eventChoice.title}`)));
   assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
 
   const legacyChoice = state.run.pendingReward.choices[0];
@@ -288,7 +288,7 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -396,7 +396,7 @@ test("accord lane outcomes can retune the next branch miniboss encounter package
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "miniboss");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");

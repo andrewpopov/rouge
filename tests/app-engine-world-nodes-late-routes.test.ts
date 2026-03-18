@@ -47,7 +47,7 @@ test("legacy mercenary route perks feed the next combat after the full post-culm
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -160,7 +160,7 @@ test("reckoning opportunity lanes unlock alongside legacy and pay off reserve pl
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -277,7 +277,7 @@ test("recovery opportunity lanes unlock alongside legacy and reckoning and pay o
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -401,7 +401,7 @@ test("accord opportunity lanes unlock alongside the other late routes and pay of
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -524,7 +524,7 @@ test("covenant opportunity lanes unlock after the full late-route quartet resolv
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -670,7 +670,7 @@ test("accord mercenary route perks feed the next combat once the accord lane res
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -783,7 +783,7 @@ test("reckoning mercenary route perks stack with legacy after the parallel post-
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -904,7 +904,7 @@ test("recovery mercenary route perks stack with the parallel post-culmination la
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -1033,7 +1033,7 @@ test("covenant mercenary route perks feed the next combat once the covenant lane
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");

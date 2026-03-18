@@ -34,21 +34,21 @@ function tmpFile() { return path.join(TMP, `t${tmpN++}.png`); }
 function findRaw(id) {
   for (const ext of ["gif", "png", "jpg"]) {
     const p = path.join(RAW_DIR, `${id}.${ext}`);
-    if (fs.existsSync(p)) return p;
+    if (fs.existsSync(p)) {return p;}
   }
   return null;
 }
 
 function findExtractedIdle(assetId) {
   const base = path.join(EXTRACTED_DIR, String(assetId));
-  if (!fs.existsSync(base)) return null;
+  if (!fs.existsSync(base)) {return null;}
   const direct = path.join(base, "idle.png");
-  if (fs.existsSync(direct)) return direct;
+  if (fs.existsSync(direct)) {return direct;}
   try {
     for (const entry of fs.readdirSync(base, { withFileTypes: true })) {
       if (entry.isDirectory()) {
         const sub = path.join(base, entry.name, "idle.png");
-        if (fs.existsSync(sub)) return sub;
+        if (fs.existsSync(sub)) {return sub;}
       }
     }
   } catch { /* ignore */ }
@@ -67,19 +67,19 @@ function magick(args, timeout = 30000) {
 
 function getInfo(src) {
   const out = run(`magick identify -format "%w %h" "${src}[0]"`);
-  if (!out) return null;
+  if (!out) {return null;}
   const [w, h] = out.split(" ").map(Number);
   return (w && h) ? { w, h } : null;
 }
 
 function sampleColor(src, x, y) {
   const out = run(`magick "${src}" -crop 1x1+${x}+${y} +repage -depth 8 txt:-`);
-  if (!out) return null;
+  if (!out) {return null;}
   const m = out.match(/#([0-9A-Fa-f]{6,8})/);
-  if (!m) return null;
+  if (!m) {return null;}
   const hex = m[1];
   // Skip transparent pixels (alpha = 00)
-  if (hex.length === 8 && hex.slice(6) === "00") return null;
+  if (hex.length === 8 && hex.slice(6) === "00") {return null;}
   return `#${hex.slice(0, 6)}`;
 }
 
@@ -88,7 +88,7 @@ function sampleColor(src, x, y) {
  */
 function findInnerBg(src) {
   const info = getInfo(src);
-  if (!info) return null;
+  if (!info) {return null;}
   const positions = [
     [Math.floor(info.w * 0.25), Math.floor(info.h * 0.25)],
     [Math.floor(info.w * 0.5), Math.floor(info.h * 0.5)],
@@ -99,7 +99,7 @@ function findInnerBg(src) {
   ];
   const counts = {};
   for (const [x, y] of positions) {
-    if (x >= info.w || y >= info.h) continue;
+    if (x >= info.w || y >= info.h) {continue;}
     const c = sampleColor(src, x, y);
     if (c) {
       counts[c] = (counts[c] || 0) + 1;
@@ -114,15 +114,15 @@ function findInnerBg(src) {
 }
 
 function isUsable(f) {
-  if (!fs.existsSync(f)) return false;
-  if (fs.statSync(f).size < 300) return false;
+  if (!fs.existsSync(f)) {return false;}
+  if (fs.statSync(f).size < 300) {return false;}
   const out = run(`magick "${f}" -format "%k" info:`);
   return out ? parseInt(out, 10) >= 4 : false;
 }
 
 function rm(...files) {
   for (const f of files) {
-    try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch { /* */ }
+    try { if (fs.existsSync(f)) {fs.unlinkSync(f);} } catch { /* */ }
   }
 }
 
@@ -135,10 +135,10 @@ function extractSprite(src, dest) {
   try {
     // Detect and remove outer border color
     const outerColor = sampleColor(src, 0, 0);
-    if (!outerColor) return false;
+    if (!outerColor) {return false;}
 
-    if (!magick(`"${src}" -fuzz 15% -transparent "${outerColor}" -trim +repage "${t1}"`)) return false;
-    if (!fs.existsSync(t1)) return false;
+    if (!magick(`"${src}" -fuzz 15% -transparent "${outerColor}" -trim +repage "${t1}"`)) {return false;}
+    if (!fs.existsSync(t1)) {return false;}
 
     // Detect and remove inner background color (sample interior, not corner)
     const innerColor = findInnerBg(t1);
@@ -148,11 +148,11 @@ function extractSprite(src, dest) {
     const cleanSrc = (fs.existsSync(t2) && getInfo(t2)) ? t2 : t1;
 
     const cleanInfo = getInfo(cleanSrc);
-    if (!cleanInfo) return false;
+    if (!cleanInfo) {return false;}
 
     // If already small enough, just resize directly
     if (cleanInfo.w <= 256 && cleanInfo.h <= 256) {
-      if (!magick(`"${cleanSrc}" -trim +repage -resize "128x128>" -background none -gravity center -extent 128x128 "${dest}"`)) return false;
+      if (!magick(`"${cleanSrc}" -trim +repage -resize "128x128>" -background none -gravity center -extent 128x128 "${dest}"`)) {return false;}
       return isUsable(dest);
     }
 
@@ -160,8 +160,8 @@ function extractSprite(src, dest) {
     // Crop the top-left portion to analyze (avoid processing huge images)
     const cropW = Math.min(cleanInfo.w, 800);
     const cropH = Math.min(cleanInfo.h, 800);
-    if (!magick(`"${cleanSrc}" -crop "${cropW}x${cropH}+0+0" +repage "${t3}"`)) return false;
-    if (!fs.existsSync(t3)) return false;
+    if (!magick(`"${cleanSrc}" -crop "${cropW}x${cropH}+0+0" +repage "${t3}"`)) {return false;}
+    if (!fs.existsSync(t3)) {return false;}
 
     // Find connected components (sprite blobs)
     const ccOut = run(`magick "${t3}" -alpha extract -threshold 50% -morphology Close Diamond:3 -define connected-components:verbose=true -connected-components 8 null:`, 30000);
@@ -192,7 +192,7 @@ function extractSprite(src, dest) {
         const ch = best.h + pad * 2;
 
         if (magick(`"${t3}" -crop "${cw}x${ch}+${cx}+${cy}" +repage -trim +repage -resize "128x128>" -background none -gravity center -extent 128x128 "${dest}"`)) {
-          if (isUsable(dest)) return true;
+          if (isUsable(dest)) {return true;}
         }
       }
     }
@@ -200,7 +200,7 @@ function extractSprite(src, dest) {
     // Fallback: just crop top-left and resize
     const estFrame = Math.min(200, Math.floor(Math.min(cleanInfo.w, cleanInfo.h) / 3));
     if (magick(`"${cleanSrc}" -crop "${estFrame}x${estFrame}+0+0" +repage -trim +repage -resize "128x128>" -background none -gravity center -extent 128x128 "${dest}"`)) {
-      if (isUsable(dest)) return true;
+      if (isUsable(dest)) {return true;}
     }
 
     return false;
@@ -214,17 +214,17 @@ function extractSprite(src, dest) {
  */
 function tryExtractedIdle(assetId, dest) {
   const idleSrc = findExtractedIdle(assetId);
-  if (!idleSrc) return false;
+  if (!idleSrc) {return false;}
 
   const info = getInfo(idleSrc);
-  if (!info) return false;
+  if (!info) {return false;}
 
   const t = tmpFile();
   try {
     // Idle sheets have ~8 direction rows. Take first row.
     const rowH = Math.max(1, Math.floor(info.h / 8));
-    if (!magick(`"${idleSrc}" -crop "${info.w}x${rowH}+0+0" +repage "${t}"`)) return false;
-    if (!fs.existsSync(t)) return false;
+    if (!magick(`"${idleSrc}" -crop "${info.w}x${rowH}+0+0" +repage "${t}"`)) {return false;}
+    if (!fs.existsSync(t)) {return false;}
     return extractSprite(t, dest);
   } finally {
     rm(t);
@@ -237,8 +237,8 @@ function tryExtractedIdle(assetId, dest) {
 function tryGif(src, dest) {
   const t = tmpFile();
   try {
-    if (!magick(`"${src}[0]" "${t}"`)) return false;
-    if (!fs.existsSync(t)) return false;
+    if (!magick(`"${src}[0]" "${t}"`)) {return false;}
+    if (!fs.existsSync(t)) {return false;}
     return extractSprite(t, dest);
   } finally {
     rm(t);
@@ -250,7 +250,7 @@ function tryGif(src, dest) {
  */
 function trySheet(src, dest) {
   const info = getInfo(src);
-  if (!info) return false;
+  if (!info) {return false;}
 
   const t = tmpFile();
   try {
@@ -259,7 +259,7 @@ function trySheet(src, dest) {
     const cropH = Math.min(Math.floor(info.h / 3), 1200);
 
     if (magick(`"${src}" -crop "${info.w}x${cropH}+0+${ySkip}" +repage "${t}"`)) {
-      if (fs.existsSync(t) && extractSprite(t, dest)) return true;
+      if (fs.existsSync(t) && extractSprite(t, dest)) {return true;}
     }
 
     // Full image
