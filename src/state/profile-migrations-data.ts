@@ -64,11 +64,7 @@
     { id: "mythic_exchange", rewardFeatureId: "mythic_exchange", requiredFeatureIds: ["trade_hegemony", "mythic_doctrine"] },
   ];
 
-  const { deepClone, toNumber, uniqueStrings } = runtimeWindow.ROUGE_UTILS;
-
-  function isObject(value: unknown) {
-    return Boolean(value) && typeof value === "object";
-  }
+  const { deepClone, toNumber, uniqueStrings, isObject } = runtimeWindow.ROUGE_UTILS;
 
   function sanitizePlannedRunewordId(runewordId: unknown, slot: string, content: GameContent | null = null) {
     if (typeof runewordId !== "string" || !runewordId) {

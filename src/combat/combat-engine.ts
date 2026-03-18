@@ -16,12 +16,7 @@
     meleeStrike,
     _shuffleInPlace: shuffleInPlace,
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
-  const { clamp } = runtimeWindow.ROUGE_UTILS;
-
-  function parseInteger(value: unknown, fallback: number) {
-    const parsed = Number.parseInt(value as string, 10);
-    return Number.isInteger(parsed) ? parsed : fallback;
-  }
+  const { clamp, parseInteger } = runtimeWindow.ROUGE_UTILS;
 
   function makeCardInstance(state: CombatState, cardId: string) {
     const instanceId = `card_${state.nextCardInstanceId}`;

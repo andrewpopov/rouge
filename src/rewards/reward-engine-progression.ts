@@ -1,14 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { clamp } = runtimeWindow.ROUGE_UTILS;
-
-  function hasTownFeature(profile: ProfileState | null | undefined, featureId: string) {
-    return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
-  }
-
-  function getFocusedAccountTreeId(profile: ProfileState | null | undefined) {
-    return typeof profile?.meta?.accountProgression?.focusedTreeId === "string" ? profile.meta.accountProgression.focusedTreeId : "";
-  }
+  const { clamp, hasTownFeature, getFocusedAccountTreeId } = runtimeWindow.ROUGE_UTILS;
 
   function getRewardAccountFeatures(profile: ProfileState | null | undefined) {
     const focusedTreeId = getFocusedAccountTreeId(profile);

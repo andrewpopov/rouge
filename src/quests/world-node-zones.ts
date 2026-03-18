@@ -21,12 +21,7 @@
     }
   }
 
-  function slugify(value: unknown) {
-    return String(value || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
-  }
+  const { slugify } = runtimeWindow.ROUGE_UTILS;
 
   function describeEffect(effect: RewardChoiceEffect) {
     if (effect.kind === "hero_max_life") {

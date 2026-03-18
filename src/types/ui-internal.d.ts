@@ -93,6 +93,11 @@ interface RougeUtilsApi {
   toNumber(value: unknown, fallback?: number): number;
   uniquePush(list: string[], value: string | undefined | null): void;
   uniqueStrings(values: unknown): string[];
+  slugify(value: unknown): string;
+  parseInteger(value: unknown, fallback: number): number;
+  isObject(value: unknown): value is Record<string, unknown>;
+  hasTownFeature(profile: ProfileState | null | undefined, featureId: string): boolean;
+  getFocusedAccountTreeId(profile: ProfileState | null | undefined): string;
 }
 
 interface PersistenceSummariesApi {

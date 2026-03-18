@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- migration code transforms arbitrary legacy data */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { deepClone, toNumber, clamp } = runtimeWindow.ROUGE_UTILS;
+  const { deepClone, toNumber, clamp, isObject } = runtimeWindow.ROUGE_UTILS;
 
   const CURRENT_SCHEMA_VERSION = 5;
   const LEVEL_TRAINING_ORDER = ["vitality", "focus", "command"];
-
-  function isObject(value: unknown) {
-    return Boolean(value) && typeof value === "object";
-  }
 
   function ensureStringArray(value: unknown) {
     return Array.isArray(value) ? value.filter((entry: unknown) => typeof entry === "string") : [];

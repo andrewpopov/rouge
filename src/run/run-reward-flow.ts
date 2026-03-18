@@ -24,9 +24,7 @@
 
   const ECONOMY_LEDGER_GOLD_MULTIPLIER = 1.25;
 
-  function hasTownFeature(profile: ProfileState | null | undefined, featureId: string) {
-    return Array.isArray(profile?.meta?.unlocks?.townFeatureIds) && profile.meta.unlocks.townFeatureIds.includes(featureId);
-  }
+  const { hasTownFeature } = runtimeWindow.ROUGE_UTILS;
 
   function scaleEncounterRewardGrants(grants: RewardGrants, profile: ProfileState | null | undefined) {
     if (!hasTownFeature(profile, "economy_ledger")) {
