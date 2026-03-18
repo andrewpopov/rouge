@@ -292,7 +292,9 @@
     const encounterNum = (zone?.encountersCleared || 0) + 1;
     const encounterTotal = zone?.encounterTotal || 1;
     const hpPercent = Math.round((combat.hero.life / combat.hero.maxLife) * 100);
+    const heroLowHp = hpPercent > 0 && hpPercent <= 25;
     const mercHpPercent = Math.round((combat.mercenary.life / combat.mercenary.maxLife) * 100);
+    const mercLowHp = mercHpPercent > 0 && mercHpPercent <= 25;
     const cardCount = combat.hand.length;
     const weaponEquip = run.loadout?.weapon;
     const weaponItem = weaponEquip ? appState.content.itemCatalog?.[weaponEquip.itemId] : null;
@@ -324,6 +326,7 @@
 
         <div class="stage" data-env="${zoneEnv}">
           <div class="stage__backdrop"></div>
+          <div class="stage__particles"></div>
           <div class="stage__floor"></div>
 
           <div class="stage__allies">
@@ -331,7 +334,7 @@
               <div class="sprite__figure sprite__figure--hero">${assets ? svgIcon(assets.getClassSprite(run.classId) || assets.getClassPortrait(run.classId) || "", "sprite__portrait", run.className) : escapeHtml(run.className.charAt(0))}</div>
               <div class="sprite__bars">
                 <div class="sprite__hp-bar">
-                  <div class="sprite__hp-fill sprite__hp-fill--hero" style="width:${hpPercent}%"></div>
+                  <div class="sprite__hp-fill sprite__hp-fill--hero ${heroLowHp ? "sprite__hp-fill--low" : ""}" style="width:${hpPercent}%"></div>
                   <span class="sprite__hp-text">${combat.hero.life}/${combat.hero.maxLife}</span>
                 </div>
                 ${combat.hero.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${combat.hero.guard}</div>` : ""}
@@ -345,7 +348,7 @@
               <div class="sprite__figure sprite__figure--merc">${assets ? svgIcon(assets.getMercenarySprite(combat.mercenary.id) || "", "sprite__portrait", combat.mercenary.role) : escapeHtml(combat.mercenary.role.charAt(0))}</div>
               <div class="sprite__bars">
                 <div class="sprite__hp-bar">
-                  <div class="sprite__hp-fill sprite__hp-fill--merc" style="width:${mercHpPercent}%"></div>
+                  <div class="sprite__hp-fill sprite__hp-fill--merc ${mercLowHp ? "sprite__hp-fill--low" : ""}" style="width:${mercHpPercent}%"></div>
                   <span class="sprite__hp-text">${combat.mercenary.life}/${combat.mercenary.maxLife}</span>
                 </div>
                 ${combat.mercenary.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${combat.mercenary.guard}</div>` : ""}
@@ -400,7 +403,7 @@
         </div>
 
         <div class="combat-tray">
-          <div class="energy-orb" title="Energy: play cards that cost this much or less">
+          <div class="energy-orb ${combat.hero.energy > 0 ? "energy-orb--active" : "energy-orb--empty"}" title="Energy: play cards that cost this much or less">
             <div class="energy-orb__value">${combat.hero.energy}</div>
             <div class="energy-orb__max">/${combat.hero.maxEnergy}</div>
             <div class="energy-orb__label">Energy</div>
