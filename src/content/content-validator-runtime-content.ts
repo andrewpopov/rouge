@@ -195,6 +195,16 @@
       });
     });
 
+    Object.entries(content?.classStarterDecks || {}).forEach(([classId, cardIds]: [string, string[]]) => {
+      validateCardIdList(cardIds, cardCatalog, `classStarterDecks.${classId}`, errors);
+    });
+
+    Object.entries(content?.classRewardPools || {}).forEach(([classId, tiers]: [string, ClassRewardTiers]) => {
+      validateCardIdList(tiers.early, cardCatalog, `classRewardPools.${classId}.early`, errors);
+      validateCardIdList(tiers.mid, cardCatalog, `classRewardPools.${classId}.mid`, errors);
+      validateCardIdList(tiers.late, cardCatalog, `classRewardPools.${classId}.late`, errors);
+    });
+
     Object.entries(content?.rewardPools?.profileCards || {}).forEach(([profileId, cardIds]: [string, string[]]) => {
       validateCardIdList(cardIds, cardCatalog, `rewardPools.profileCards.${profileId}`, errors);
     });

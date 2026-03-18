@@ -119,6 +119,7 @@
       return TREE_ARCHETYPES.martial;
     }
 
+    console.warn(`getTreeArchetype: no token match for "${treeName}", falling back to positional index ${index}`);
     return [TREE_ARCHETYPES.martial, TREE_ARCHETYPES.arcane, TREE_ARCHETYPES.support][index] || TREE_ARCHETYPES.command;
   }
 

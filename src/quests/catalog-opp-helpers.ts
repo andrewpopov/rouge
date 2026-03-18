@@ -63,7 +63,11 @@
   }
 
   function buildLateRouteVariant(
-    choiceBuilder: (...args: unknown[]) => WorldNodeChoiceDefinition,
+    choiceBuilder: (
+      nodeId: string, questId: string, outcomeId: string,
+      title: string, description: string, consequenceId: string,
+      flagIds?: string[], extraEffects?: RewardChoiceEffect[]
+    ) => WorldNodeChoiceDefinition,
     nodeId: string, questId: string, variantDefinition: LateRouteVariantInput
   ): ReserveOpportunityVariantDefinition {
     return {
