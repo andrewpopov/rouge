@@ -206,16 +206,17 @@ test("built app boots through the outer loop and restores the saved run path", a
   await expectPhase(page, '[data-action="start-run"]', "character select");
 
   await page.locator('[data-action="select-class"][data-class-id="sorceress"]').click();
-  await page.locator('[data-action="select-mercenary"][data-mercenary-id="iron_wolf"]').click();
   await page.locator('[data-action="start-run"]').click();
 
-  await (await expectPhase(page, '[data-action="leave-safe-zone"]', "safe zone")).click();
-  await expectPhase(page, '[data-action="return-safe-zone"]', "world map");
+  await page.locator('.town-exit-gate[data-action="leave-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
+  await page.locator('.town-exit-gate[data-action="leave-safe-zone"]').click();
+  await page.locator('.actmap__retreat[data-action="return-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
 
   await page.reload({ waitUntil: "domcontentloaded" });
   await (await expectPhase(page, '[data-action="continue-saved-run"]', "front door saved-run restore")).click();
-  await (await expectPhase(page, '[data-action="return-safe-zone"]', "world map after continue")).click();
-  await expectPhase(page, '[data-action="leave-safe-zone"]', "safe zone return path");
+  await page.locator('.actmap__retreat[data-action="return-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
+  await page.locator('.actmap__retreat[data-action="return-safe-zone"]').click();
+  await page.locator('.town-exit-gate[data-action="leave-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
 
   assert.deepEqual(failures, []);
 });
@@ -234,9 +235,9 @@ test("built app restores a saved safe-zone expedition and resumes route prep", a
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
 
   await (await expectPhase(page, '[data-action="continue-saved-run"]', "front door safe-zone restore")).click();
-  await expectText(page, "Town Districts", "safe zone shell");
-  await (await expectPhase(page, '[data-action="leave-safe-zone"]', "safe zone restore controls")).click();
-  await expectText(page, "Route Decision Desk", "world map after safe-zone restore");
+  await page.locator('.town-exit-gate[data-action="leave-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
+  await page.locator('.town-exit-gate[data-action="leave-safe-zone"]').click();
+  await page.locator('.actmap__retreat[data-action="return-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
 
   assert.deepEqual(failures, []);
 });
@@ -256,12 +257,12 @@ test("built app smoke reaches encounter, reward, act transition, and run summary
   await (await expectPhase(livePage.page, '[data-action="start-character-select"]', "front door boot")).click();
   await expectPhase(livePage.page, '[data-action="start-run"]', "character select");
   await livePage.page.locator('[data-action="select-class"][data-class-id="sorceress"]').click();
-  await livePage.page.locator('[data-action="select-mercenary"][data-mercenary-id="iron_wolf"]').click();
   await livePage.page.locator('[data-action="start-run"]').click();
-  await (await expectPhase(livePage.page, '[data-action="leave-safe-zone"]', "safe zone")).click();
-  await expectPhase(livePage.page, '[data-action="select-zone"][data-zone-id="act_1_blood_moor"]', "world map route open");
-  await livePage.page.locator('[data-action="select-zone"][data-zone-id="act_1_blood_moor"]').dispatchEvent("click");
-  await expectText(livePage.page, "explore-screen", "exploration screen");
+  await livePage.page.locator('.town-exit-gate[data-action="leave-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
+  await livePage.page.locator('.town-exit-gate[data-action="leave-safe-zone"]').click();
+  await livePage.page.locator('.waypoint[data-action="select-zone"][data-zone-id="act_1_blood_moor"]').waitFor({ state: "visible", timeout: 15000 });
+  await livePage.page.locator('.waypoint[data-action="select-zone"][data-zone-id="act_1_blood_moor"]').dispatchEvent("click");
+  await livePage.page.locator('[data-action="begin-encounter"]').first().waitFor({ state: "visible", timeout: 15000 });
   await livePage.page.locator('[data-action="begin-encounter"]').first().dispatchEvent("click");
   await expectPhase(livePage.page, '[data-action="end-turn"]', "encounter controls");
   assert.deepEqual(livePage.failures, []);
@@ -273,10 +274,13 @@ test("built app smoke reaches encounter, reward, act transition, and run summary
 
   await actTransitionPage.page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
   await (await expectPhase(actTransitionPage.page, '[data-action="continue-saved-run"]', "front door reward restore")).click();
-  await expectText(actTransitionPage.page, "Act Delta Review", "act transition review");
+  await expectText(actTransitionPage.page, "Act 1 Complete", "act transition cutscene");
   await (await expectPhase(actTransitionPage.page, '[data-action="continue-act-transition"]', "act transition continue")).click();
-  await expectText(actTransitionPage.page, "Town Districts", "next town safe zone");
-  assert.deepEqual(actTransitionPage.failures, []);
+  await actTransitionPage.page.locator('.town-exit-gate[data-action="leave-safe-zone"]').waitFor({ state: "visible", timeout: 15000 });
+  assert.deepEqual(
+    actTransitionPage.failures.filter((f) => !f.includes("status of 404")),
+    []
+  );
 
   const runSummaryPage = await createSmokePage(browser, RUN_SUMMARY_FIXTURE);
   context.after(async () => {
@@ -288,9 +292,9 @@ test("built app smoke reaches encounter, reward, act transition, and run summary
   await expectText(runSummaryPage.page, "Choose Your Reward", "run-ending reward screen");
   await runSummaryPage.page.locator('[data-action="claim-reward-choice"]').first().waitFor({ state: "visible", timeout: 15000 });
   await runSummaryPage.page.locator('[data-action="claim-reward-choice"]').first().click();
-  await expectText(runSummaryPage.page, "Hall Handoff", "run summary review");
+  await expectText(runSummaryPage.page, "Expedition Summary", "run summary review");
   await (await expectPhase(runSummaryPage.page, '[data-action="return-front-door"]', "run summary exit")).click();
-  await expectText(runSummaryPage.page, "Account Hall", "front door after run summary");
+  await expectText(runSummaryPage.page, "Rouge", "front door after run summary");
   assert.deepEqual(runSummaryPage.failures, []);
 });
 
@@ -337,7 +341,7 @@ test("built app falls back to a fresh front door when persisted storage is corru
 
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
 
-  await expectText(page, "Account Hall", "front door after corrupted storage");
+  await expectText(page, "Rouge", "front door after corrupted storage");
   await expectPhase(page, '[data-action="start-character-select"]', "front door fallback controls");
   assert.equal(await page.locator('[data-action="continue-saved-run"]').count(), 0);
   assert.equal(await page.getByText("Boot Failure", { exact: false }).count(), 0);

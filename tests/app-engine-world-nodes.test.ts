@@ -33,7 +33,7 @@ test("zone roles map to distinct encounter themes within the same act", () => {
   const zones = runFactory.getCurrentZones(state.run);
   const openingZone = zones.find((z) => z.zoneRole === "opening");
   const minibossZone = zones.find((z) => z.kind === "miniboss");
-  const sideZone = zones.find((z) => (z.zoneRole || "").startsWith("side_") && z.kind === "battle");
+  const _sideZone = zones.find((z) => (z.zoneRole || "").startsWith("side_") && z.kind === "battle");
   assert.ok(openingZone);
   assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_")));
 
@@ -249,7 +249,7 @@ test("opportunity world nodes resolve through the reward flow and extend the que
   assert.equal(state.phase, appEngine.PHASES.REWARD);
   assert.equal(state.run.pendingReward.kind, "opportunity");
   assert.ok(state.run.pendingReward.title);
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(questChoiceTitle + " -> " + eventChoiceTitle)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`${questChoiceTitle  } -> ${  eventChoiceTitle}`)));
 
   const opportunityChoice = state.run.pendingReward.choices[0];
   assert.ok(opportunityChoice);
@@ -642,7 +642,7 @@ test("more specific shrine-gated opportunity variants beat generic follow-up mat
   result = appEngine.selectZone(state, opportunityZone.id);
   assert.equal(result.ok, true);
   assert.ok(state.run.pendingReward.title);
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(questChoiceTitle + " -> " + eventChoiceTitle)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`${questChoiceTitle  } -> ${  eventChoiceTitle}`)));
 
   const specialChoice = state.run.pendingReward.choices[0];
   assert.ok(specialChoice);
@@ -706,7 +706,7 @@ test("consequence-gated shrine variants can override the broader follow-up branc
   result = appEngine.selectZone(state, opportunityZone.id);
   assert.equal(result.ok, true);
   assert.ok(state.run.pendingReward.title);
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(questChoiceTitle + " -> " + eventChoiceTitle)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`${questChoiceTitle  } -> ${  eventChoiceTitle}`)));
 
   const specialChoice = state.run.pendingReward.choices[0];
   assert.ok(specialChoice);

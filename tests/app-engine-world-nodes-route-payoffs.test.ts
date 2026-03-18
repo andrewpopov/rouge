@@ -172,7 +172,7 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   const eventZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event");
@@ -259,7 +259,7 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   assert.equal(result.ok, true);
   assert.equal(state.run.pendingReward.kind, "opportunity");
   assert.ok(state.run.pendingReward.title);
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(questChoice.title + " -> " + eventChoice.title)));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`${questChoice.title  } -> ${  eventChoice.title}`)));
   assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`Earlier culmination lane: ${culminationChoice.title}.`)));
 
   const legacyChoice = state.run.pendingReward.choices[0];
@@ -288,7 +288,7 @@ test("recovery lane outcomes can retune the next branch battle encounter package
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "battle");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -396,7 +396,7 @@ test("accord lane outcomes can retune the next branch miniboss encounter package
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const [openingZone] = runFactory.getCurrentZones(state.run);
+  const [_openingZone] = runFactory.getCurrentZones(state.run);
   const branchZone = runFactory.getCurrentZones(state.run).find((zone) => (zone.zoneRole || "").startsWith("side_") && zone.kind === "miniboss");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -505,8 +505,8 @@ test("covenant lane outcomes can retune the act boss encounter package", () => {
   appEngine.leaveSafeZone(state);
 
   const allZones = runFactory.getCurrentZones(state.run);
-  const branchMinibossZone = allZones.find((z) => z.kind === "miniboss" && (z.zoneRole || "").startsWith("side_"));
-  const branchBattleZone = allZones.find((z) => z.kind === "battle" && (z.zoneRole || "").startsWith("side_"));
+  const _branchMinibossZone = allZones.find((z) => z.kind === "miniboss" && (z.zoneRole || "").startsWith("side_"));
+  const _branchBattleZone = allZones.find((z) => z.kind === "battle" && (z.zoneRole || "").startsWith("side_"));
   const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
   const shrineZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine");
   const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
@@ -946,7 +946,7 @@ test("detour and escalation outcomes can retune the act boss beyond the covenant
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const { bossZone, branchBattleZone, branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
+  const { bossZone, branchBattleZone: _branchBattleZone, branchMinibossZone: _branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
     state,
     appEngine,
     runFactory
@@ -999,7 +999,7 @@ test("alternate covenant bells plus sidepass and breach can retune the act boss 
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const { bossZone, branchBattleZone, branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
+  const { bossZone, branchBattleZone: _branchBattleZone, branchMinibossZone: _branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
     state,
     appEngine,
     runFactory,
@@ -1056,7 +1056,7 @@ test("alternate route arming can retune the act boss into the drilled aftermath 
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
-  const { bossZone, branchBattleZone, branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
+  const { bossZone, branchBattleZone: _branchBattleZone, branchMinibossZone: _branchMinibossZone, detourZone, escalationZone } = resolveActOneToCovenant(
     state,
     appEngine,
     runFactory,

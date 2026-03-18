@@ -474,7 +474,7 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   }
   runFactory.recomputeZoneStatuses(state.run);
 
-  let questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
   assert.ok(questZone);
   assert.equal(questZone.status, "available");
   const questResult = appEngine.selectZone(state, questZone.id);
