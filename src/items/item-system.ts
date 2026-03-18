@@ -137,7 +137,7 @@
       subtitle: item.slot === "weapon" ? "Equip Weapon" : "Equip Armor",
       description: item.summary,
       previewLines,
-      effects: [{ kind: "equip_item", itemId: item.id, rarity, rarityBonuses }],
+      effects: [{ kind: "equip_item" as const, itemId: item.id, rarity, rarityBonuses }],
     };
   }
 
@@ -163,7 +163,7 @@
         `${item.name} sockets ${equipment.socketsUnlocked}/${item.maxSockets} -> ${equipment.socketsUnlocked + 1}/${item.maxSockets}.`,
         "Existing runes remain in place.",
       ],
-      effects: [{ kind: "add_socket", slot: slot as "weapon" | "armor" }],
+      effects: [{ kind: "add_socket" as const, slot: slot as "weapon" | "armor" }],
     };
   }
 
@@ -196,7 +196,7 @@
       subtitle: slot === "weapon" ? "Socket Weapon Rune" : "Socket Armor Rune",
       description: rune.summary,
       previewLines,
-      effects: [{ kind: "socket_rune", runeId: rune.id, slot: slot as "weapon" | "armor" }],
+      effects: [{ kind: "socket_rune" as const, runeId: rune.id, slot: slot as "weapon" | "armor" }],
     };
   }
 

@@ -12,7 +12,7 @@
 
   const MAX_BELT_SIZE = 5;
 
-  const BOON_POOLS = {
+  const BOON_POOLS: Record<string, { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }[]> = {
     opening: [
       {
         id: "field_training",
@@ -177,7 +177,7 @@
         `Add ${card.title} to your deck.`,
         `Deck size +1.`,
       ],
-      effects: [{ kind: "add_card", cardId }],
+      effects: [{ kind: "add_card" as const, cardId }],
     };
   }
 
@@ -199,7 +199,7 @@
         `Replace 1x ${baseCard.title} with ${upgradedCard.title}.`,
         `Keep deck size the same.`,
       ],
-      effects: [{ kind: "upgrade_card", fromCardId, toCardId: upgradedCardId }],
+      effects: [{ kind: "upgrade_card" as const, fromCardId, toCardId: upgradedCardId }],
     };
   }
 

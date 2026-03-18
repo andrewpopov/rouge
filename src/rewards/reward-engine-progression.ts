@@ -72,7 +72,7 @@
     };
   }
 
-  const PROGRESSION_BOON_POOLS = {
+  const PROGRESSION_BOON_POOLS: Record<string, { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }[]> = {
     branchBattle: [
       {
         id: "battle_instinct",
