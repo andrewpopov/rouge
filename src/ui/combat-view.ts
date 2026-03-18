@@ -324,6 +324,8 @@
           </div>
         </div>
 
+        ${combat.phase === "player" && !combat.outcome && combat.turn > 1 ? `<div class="turn-banner"><span class="turn-banner__text">Your Turn</span></div>` : ""}
+
         <div class="stage" data-env="${zoneEnv}">
           <div class="stage__backdrop"></div>
           <div class="stage__particles"></div>

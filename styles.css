@@ -2866,6 +2866,18 @@ button.waypoint:hover {
   overflow: hidden;
 }
 
+/* Cinematic vignette overlay for depth */
+.stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.35) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, 0.2) 100%);
+}
+
 .stage__backdrop {
   position: absolute;
   inset: 0;
@@ -3640,7 +3652,8 @@ button.waypoint:hover {
   position: relative;
   transform-origin: bottom center;
   transform: rotate(var(--fan-rotate, 0deg)) translateY(var(--fan-lift, 0px));
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.15s;
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.15s;
   margin: 0 -8px;
   z-index: calc(var(--fan-index, 0));
 }
@@ -3676,7 +3689,6 @@ button.waypoint:hover {
 }
 
 .fan-card:hover:not(.fan-card--disabled) {
-  transform: rotate(0deg) translateY(-40px) scale(1.12);
   z-index: 100;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
@@ -4842,6 +4854,35 @@ button.waypoint:hover {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ── Turn announcement banner ── */
+
+.turn-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
+  pointer-events: none;
+  animation: turn-banner-lifecycle 1.2s ease-out forwards;
+}
+
+.turn-banner__text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-bright);
+  text-shadow: 0 0 20px rgba(212, 143, 70, 0.6), 0 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+@keyframes turn-banner-lifecycle {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  60% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
 /* ── Upgraded card glow ── */
 
 .fan-card--upgraded {
@@ -4972,6 +5013,7 @@ button.waypoint:hover {
   .fan-card,
   .fan-card--upgraded::after,
   .combat-hud__phase,
+  .turn-banner,
   .explore-card,
   .event-choice,
   .town-npc-card,

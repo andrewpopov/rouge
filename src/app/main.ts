@@ -48,6 +48,37 @@
     });
   });
 
+  /* ── Card 3D tilt on hover (event delegation) ── */
+
+  let currentTiltCard: HTMLElement | null = null;
+
+  function clearTilt(): void {
+    if (currentTiltCard) {
+      currentTiltCard.style.removeProperty("transform");
+      currentTiltCard = null;
+    }
+  }
+
+  root.addEventListener("mousemove", (event) => {
+    const card = (event.target as Element).closest?.(".fan-card") as HTMLElement | null;
+    if (!card || card.classList.contains("fan-card--disabled")) {
+      clearTilt();
+      return;
+    }
+    if (card !== currentTiltCard) {
+      clearTilt();
+      currentTiltCard = card;
+    }
+    const rect = card.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    const tiltX = (0.5 - y) * 14;
+    const tiltY = (x - 0.5) * 14;
+    card.style.transform = `perspective(400px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-10px) scale(1.08)`;
+  });
+
+  root.addEventListener("mouseleave", clearTilt, true);
+
   render();
 
   seedLoader
