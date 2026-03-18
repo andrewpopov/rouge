@@ -1,7 +1,7 @@
 # Rouge Tech Debt & Code Quality Plan
 
 **Date:** 2026-03-18
-**Status:** In progress
+**Status:** Phases 1-5 complete, Phase 7 partial
 **Scope:** Full codebase review — 140 files, ~48K lines
 
 ## Current Health
@@ -10,8 +10,18 @@
 |-------|--------|
 | Build | PASS — clean compilation |
 | Tests | PASS — 258/258 |
-| Lint | FAIL — 69 errors (all in `scripts/` and test files, none in `src/`) |
+| Lint | 30 errors (all `no-unused-vars` in test files, down from 69) |
 | TS Strictness | `strict: false` — `noImplicitAny` on, `strictNullChecks` **off** |
+
+## Completed
+
+- **Phase 1** — Fixed dead ternary, stale version fallbacks, unsafe non-null assertion, drawCards self-reference and null guard
+- **Phase 2** — Added 4 missing exploration event action dispatchers
+- **Phase 3** — Deduplicated `slugify`, `parseInteger`, `isObject`, `hasTownFeature`, `getFocusedAccountTreeId` into `ROUGE_UTILS`. Consolidated `getUpgradableCardIds` (via `ROUGE_REWARD_ENGINE`), `getPreferredClassId` (via `__ROUGE_APP_ENGINE_RUN`), `CORE_TOWN_FEATURE_IDS` (via `__ROUGE_PROFILE_MIGRATIONS_DATA`). Net: -101 lines, 14 files touched.
+- **Phase 4.1** — Added `RewardChoiceEffectKind` union type (21 members) replacing `kind: string` on `RewardChoiceEffect`
+- **Phase 5.2** — Extracted `sharedOfferBonus` in vendor stock generation
+- **Phase 5.3** — Replaced 9 sequential feature-flag `if` blocks with `PIVOT_FEATURE_LABELS` table
+- **Phase 7.1** — Auto-fixed 39 lint errors (curly, template literals, prefer-const)
 
 ---
 
