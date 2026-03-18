@@ -468,5 +468,6 @@
   runtimeWindow.ROUGE_REWARD_ENGINE = {
     buildRewardChoices,
     applyChoice,
+    getUpgradableCardIds,
   };
 })();

@@ -12,17 +12,7 @@
     minGold?: number;
   }
 
-  function getUpgradableCardIds(run: RunState, content: GameContent): string[] {
-    const seen = new Set<string>();
-    return run.deck.filter((cardId) => {
-      const upgradedCardId = `${cardId}_plus`;
-      if (seen.has(cardId) || !content.cardCatalog[upgradedCardId]) {
-        return false;
-      }
-      seen.add(cardId);
-      return true;
-    });
-  }
+  const { getUpgradableCardIds } = runtimeWindow.ROUGE_REWARD_ENGINE;
 
   const SHRINE_EVENTS: EventTemplate[] = [
     {
