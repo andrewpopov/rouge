@@ -279,7 +279,7 @@
     ];
   }
 
-  const D2_ELITE_MODIFIER_MAP: Record<string, MonsterTraitKind> = {
+  const ELITE_MODIFIER_MAP: Record<string, MonsterTraitKind> = {
     warded: "stone_skin",
     huntsman: "extra_fast",
     gravebound: "cursed",
@@ -310,7 +310,7 @@
     ELITE_AFFIX_PROFILES,
     ACT_ELITE_PACKAGES,
     buildEliteIntentSet,
-    D2_ELITE_MODIFIER_MAP,
+    ELITE_MODIFIER_MAP,
     MONSTER_FAMILY_OVERRIDES: monsterFamilies.MONSTER_FAMILY_OVERRIDES,
     findFamilyOverride: monsterFamilies.findFamilyOverride,
   };

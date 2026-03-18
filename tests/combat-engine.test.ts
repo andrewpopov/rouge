@@ -655,9 +655,19 @@ test("ritual cadence modifiers can retune covenant bosses into warding or recove
 
 test("elite onslaught modifiers push elite packs into their harder follow-up without advancing non-elites", () => {
   const { content, engine } = createHarness();
+  const customContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      elite_onslaught_probe: {
+        ...content.encounterCatalog.act_5_branch_warhost,
+        id: "elite_onslaught_probe",
+      },
+    },
+  };
   const state = engine.createCombatState({
-    content,
-    encounterId: "act_5_branch_warhost",
+    content: customContent,
+    encounterId: "elite_onslaught_probe",
     mercenaryId: "rogue_scout",
     randomFn: () => 0,
   });

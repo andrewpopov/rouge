@@ -6,10 +6,10 @@
     ELITE_AFFIX_PROFILES,
     ACT_ELITE_PACKAGES,
     buildEliteIntentSet,
-    D2_ELITE_MODIFIER_MAP,
+    ELITE_MODIFIER_MAP,
     findFamilyOverride,
   } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
-  const { D2_MOD } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
+  const { TRAIT } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
 
   function uniqueById(entries: EnemyPoolEntryRef[]) {
     const seen = new Set();
@@ -396,9 +396,9 @@
 
   function buildEliteTemplate({ actNumber, entry, role, profile, templateIdSuffix }: { actNumber: number; entry: EnemyPoolEntryRef; role: string; profile: EncounterRegistryEliteAffixProfile; templateIdSuffix: string }) {
     const baseScale = buildScale(actNumber, role, { elite: true });
-    const modifier: MonsterTraitKind | undefined = D2_ELITE_MODIFIER_MAP[profile.id];
+    const modifier: MonsterTraitKind | undefined = ELITE_MODIFIER_MAP[profile.id];
     const eliteScale = {
-      life: baseScale.life + profile.lifeBonus + (modifier === D2_MOD.STONE_SKIN ? Math.floor((baseScale.life + profile.lifeBonus) * 0.5) : 0),
+      life: baseScale.life + profile.lifeBonus + (modifier === TRAIT.STONE_SKIN ? Math.floor((baseScale.life + profile.lifeBonus) * 0.5) : 0),
       attack: baseScale.attack + profile.attackBonus,
       guard: baseScale.guard + profile.guardBonus,
       heal: baseScale.heal,

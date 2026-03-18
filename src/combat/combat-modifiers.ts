@@ -74,15 +74,50 @@
     return changed;
   }
 
+  const INTENT = {
+    ATTACK: "attack",
+    ATTACK_ALL: "attack_all",
+    ATTACK_AND_GUARD: "attack_and_guard",
+    DRAIN_ATTACK: "drain_attack",
+    SUNDER_ATTACK: "sunder_attack",
+    ATTACK_BURN: "attack_burn",
+    ATTACK_BURN_ALL: "attack_burn_all",
+    ATTACK_CHILL: "attack_chill",
+    ATTACK_POISON: "attack_poison",
+    DRAIN_ENERGY: "drain_energy",
+    GUARD: "guard",
+    GUARD_ALLIES: "guard_allies",
+    HEAL_ALLY: "heal_ally",
+    HEAL_ALLIES: "heal_allies",
+    HEAL_AND_GUARD: "heal_and_guard",
+    RESURRECT_ALLY: "resurrect_ally",
+    BUFF_ALLIES_ATTACK: "buff_allies_attack",
+    CONSUME_CORPSE: "consume_corpse",
+    CORPSE_EXPLOSION: "corpse_explosion",
+    CURSE_AMPLIFY: "curse_amplify",
+    CURSE_WEAKEN: "curse_weaken",
+    SUMMON_MINION: "summon_minion",
+  } as const;
+
+  const ATTACK_INTENT_KINDS = new Set([
+    INTENT.ATTACK, INTENT.ATTACK_ALL, INTENT.ATTACK_AND_GUARD,
+    INTENT.DRAIN_ATTACK, INTENT.SUNDER_ATTACK, INTENT.ATTACK_BURN,
+    INTENT.ATTACK_BURN_ALL, INTENT.ATTACK_CHILL, INTENT.ATTACK_POISON, INTENT.DRAIN_ENERGY,
+  ]);
+
+  const HEALING_INTENT_KINDS = new Set([
+    INTENT.HEAL_ALLY, INTENT.HEAL_ALLIES, INTENT.HEAL_AND_GUARD, INTENT.RESURRECT_ALLY,
+  ]);
+
+  const LINEBREAKER_INTENT_KINDS = new Set([INTENT.ATTACK_AND_GUARD, INTENT.SUNDER_ATTACK]);
+
+  const RITUAL_INTENT_KINDS = new Set([
+    INTENT.GUARD, INTENT.GUARD_ALLIES, INTENT.HEAL_ALLY,
+    INTENT.HEAL_ALLIES, INTENT.HEAL_AND_GUARD, INTENT.RESURRECT_ALLY,
+  ]);
+
   function applyEncounterModifiers(state: CombatState) {
     const modifiers = Array.isArray(state?.encounter?.modifiers) ? state.encounter.modifiers : [];
-    const attackIntentKinds = new Set([
-      "attack", "attack_all", "attack_and_guard", "drain_attack", "sunder_attack",
-      "attack_burn", "attack_burn_all", "attack_chill", "attack_poison", "drain_energy",
-    ]);
-    const healingIntentKinds = new Set(["heal_ally", "heal_allies", "heal_and_guard", "resurrect_ally"]);
-    const linebreakerIntentKinds = new Set(["attack_and_guard", "sunder_attack"]);
-    const ritualIntentKinds = new Set(["guard", "guard_allies", "heal_ally", "heal_allies", "heal_and_guard", "resurrect_ally"]);
 
     modifiers.forEach((modifier: EncounterModifier) => {
       if (modifier.kind === "fortified_line") {
@@ -176,7 +211,7 @@
           );
         });
         reserveTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
-        const reserveIntentKinds = new Set([...attackIntentKinds, ...healingIntentKinds]);
+        const reserveIntentKinds = new Set([...ATTACK_INTENT_KINDS, ...HEALING_INTENT_KINDS]);
         const boostedCount = reserveTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, reserveIntentKinds, value) ? 1 : 0);
         }, 0);
@@ -193,7 +228,7 @@
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
         const rangedTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "ranged");
         const boostedCount = rangedTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, damageBonus) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
         if (boostedCount > 0) {
           appendLog(state, `${state.encounter.name} establishes crossfire lanes. Ranged enemies hit ${damageBonus} harder.`);
@@ -205,7 +240,7 @@
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
         const vanguardTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "raider" || enemy.role === "brute");
         const boostedCount = vanguardTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, damageBonus) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
         if (boostedCount > 0) {
           appendLog(state, `${state.encounter.name} beats war drums. Raider and brute enemies hit ${damageBonus} harder.`);
@@ -217,7 +252,7 @@
         const healingBonus = Math.max(0, parseInteger(modifier.value, 0));
         const supportTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "support");
         const boostedCount = supportTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, healingIntentKinds, healingBonus) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, HEALING_INTENT_KINDS, healingBonus) ? 1 : 0);
         }, 0);
         if (boostedCount > 0) {
           appendLog(state, `${state.encounter.name} opens under triage command. Support enemies restore ${healingBonus} more life.`);
@@ -231,7 +266,7 @@
         const guardTargets = supportTargets.filter((enemy: CombatEnemyState) => enemy.alive);
         guardTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = supportTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, healingIntentKinds, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, HEALING_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (guardTargets.length > 0 || boostedCount > 0) {
           appendLog(state, `${state.encounter.name} forms a triage screen. Support enemies gain ${value} Guard and restore ${value} more life.`);
@@ -245,10 +280,10 @@
           return enemy.role === "brute" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
         });
         const retunedCount = linebreakerTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, linebreakerIntentKinds) ? 1 : 0);
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, LINEBREAKER_INTENT_KINDS) ? 1 : 0);
         }, 0);
         const boostedCount = linebreakerTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, linebreakerIntentKinds, damageBonus) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, LINEBREAKER_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(
@@ -263,11 +298,11 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const ritualTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "support" || enemy.templateId.endsWith("_boss"));
         const retunedCount = ritualTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, ritualIntentKinds) ? 1 : 0);
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, RITUAL_INTENT_KINDS) ? 1 : 0);
         }, 0);
         ritualTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = ritualTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, ritualIntentKinds, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, RITUAL_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (ritualTargets.length > 0 || retunedCount > 0 || boostedCount > 0) {
           appendLog(
@@ -283,7 +318,7 @@
         const eliteTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss"));
         eliteTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, 1));
         eliteTargets.forEach((enemy: CombatEnemyState) => {
-          boostEnemyIntentValues(enemy, attackIntentKinds, damageBonus);
+          boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus);
         });
         if (eliteTargets.length > 0) {
           appendLog(state, `${state.encounter.name} opens under elite onslaught. Elite enemies advance their script and hit ${damageBonus} harder.`);
@@ -296,7 +331,7 @@
         const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "ranged" || enemy.role === "support");
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = backlineTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (backlineTargets.length > 0 || boostedCount > 0) {
           appendLog(state, `${state.encounter.name} opens from a sniper nest. Backline enemies gain ${value} Guard and ranged attackers hit ${value} harder.`);
@@ -308,7 +343,7 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
         const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "ranged" || enemy.role === "support");
-        const bossIntentKinds = new Set([...attackIntentKinds, ...healingIntentKinds, "guard", "guard_allies"]);
+        const bossIntentKinds = new Set([...ATTACK_INTENT_KINDS, ...HEALING_INTENT_KINDS, "guard", "guard_allies"]);
 
         bossTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
@@ -328,10 +363,10 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
         const retunedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, attackIntentKinds) ? 1 : 0);
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, ATTACK_INTENT_KINDS) ? 1 : 0);
         }, 0);
         const boostedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(
@@ -346,10 +381,10 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const salvoTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss") || enemy.role === "ranged");
         const retunedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, attackIntentKinds) ? 1 : 0);
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, ATTACK_INTENT_KINDS) ? 1 : 0);
         }, 0);
         const boostedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, attackIntentKinds, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(
@@ -375,6 +410,11 @@
   }
 
   runtimeWindow.ROUGE_COMBAT_MODIFIERS = {
+    INTENT,
+    ATTACK_INTENT_KINDS,
+    HEALING_INTENT_KINDS,
+    LINEBREAKER_INTENT_KINDS,
+    RITUAL_INTENT_KINDS,
     applyEncounterModifiers,
   };
 })();

@@ -20,9 +20,9 @@
     return Array.isArray(enemy.traits) && enemy.traits.includes(trait);
   }
 
-  // ── D2 elite modifier trait constants ──
+  // ── Elite modifier trait constants ──
 
-  const D2_MOD: Record<string, MonsterTraitKind> = {
+  const TRAIT: Record<string, MonsterTraitKind> = {
     EXTRA_FAST: "extra_fast",
     EXTRA_STRONG: "extra_strong",
     CURSED: "cursed",
@@ -32,6 +32,73 @@
     STONE_SKIN: "stone_skin",
     MANA_BURN: "mana_burn",
   };
+
+  // ── Random affix scaling by act ──
+  // [normalMin, normalMax, eliteMin, eliteMax]
+  const AFFIX_COUNT_BY_ACT: Record<number, [number, number, number, number]> = {
+    0: [0, 0, 0, 0],
+    1: [0, 0, 1, 1],
+    2: [0, 0, 1, 1],
+    3: [0, 1, 1, 2],
+    4: [0, 1, 2, 3],
+    5: [1, 1, 2, 3],
+  };
+
+  function rollAffixCount(actNumber: number, isElite: boolean, randomFn: RandomFn): number {
+    const tier = AFFIX_COUNT_BY_ACT[actNumber] || AFFIX_COUNT_BY_ACT[0];
+    const min = isElite ? tier[2] : tier[0];
+    const max = isElite ? tier[3] : tier[1];
+    if (min >= max) { return min; }
+    return min + Math.floor(randomFn() * (max - min + 1));
+  }
+
+  function rollRandomAffixes(
+    actNumber: number,
+    variant: string,
+    existingTraits: MonsterTraitKind[],
+    randomFn: RandomFn,
+  ): { traits: MonsterTraitKind[]; lifeBonus: number; attackBonus: number; guardBonus: number } {
+    if (variant === "boss") {
+      return { traits: [], lifeBonus: 0, attackBonus: 0, guardBonus: 0 };
+    }
+    const builderData = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
+    const packages: { profileId: string }[] = builderData.ACT_ELITE_PACKAGES[actNumber] || [];
+    const profiles: Record<string, { lifeBonus: number; attackBonus: number; guardBonus: number }> = builderData.ELITE_AFFIX_PROFILES;
+    const modifierMap: Record<string, MonsterTraitKind> = builderData.ELITE_MODIFIER_MAP;
+
+    const pool = packages
+      .map((pkg: { profileId: string }) => ({
+        profileId: pkg.profileId,
+        modifier: modifierMap[pkg.profileId],
+        profile: profiles[pkg.profileId],
+      }))
+      .filter((entry) => entry.modifier && entry.profile && !existingTraits.includes(entry.modifier));
+
+    if (pool.length === 0) {
+      return { traits: [], lifeBonus: 0, attackBonus: 0, guardBonus: 0 };
+    }
+
+    const isElite = variant === "elite";
+    const count = Math.min(rollAffixCount(actNumber, isElite, randomFn), pool.length);
+    if (count === 0) {
+      return { traits: [], lifeBonus: 0, attackBonus: 0, guardBonus: 0 };
+    }
+
+    // Fisher-Yates shuffle of pool indices, pick first `count`
+    const indices = pool.map((_: unknown, i: number) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(randomFn() * (i + 1));
+      const tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
+    }
+
+    const picked = indices.slice(0, count).map((idx: number) => pool[idx]);
+    const traits = picked.map((p: { modifier: MonsterTraitKind }) => p.modifier);
+    const lifeBonus = picked.reduce((sum: number, p: { profile: { lifeBonus: number } }) => sum + p.profile.lifeBonus, 0);
+    const attackBonus = picked.reduce((sum: number, p: { profile: { attackBonus: number } }) => sum + p.profile.attackBonus, 0);
+    const guardBonus = picked.reduce((sum: number, p: { profile: { guardBonus: number } }) => sum + p.profile.guardBonus, 0);
+
+    return { traits, lifeBonus, attackBonus, guardBonus };
+  }
 
   // ── Hero debuff helpers ──
 
@@ -123,7 +190,7 @@
       }
     }
 
-    if (enemy.traits.includes(D2_MOD.FIRE_ENCHANTED)) {
+    if (enemy.traits.includes(TRAIT.FIRE_ENCHANTED)) {
       const fireDamage = Math.max(1, Math.floor(enemy.maxLife * 0.25));
       const before = state.hero.life;
       state.hero.life = Math.max(0, state.hero.life - fireDamage);
@@ -136,7 +203,7 @@
       }
     }
 
-    if (enemy.traits.includes(D2_MOD.COLD_ENCHANTED)) {
+    if (enemy.traits.includes(TRAIT.COLD_ENCHANTED)) {
       applyHeroChill(state, 2);
       _appendLog(state, `${enemy.name} releases a Frost Nova! (2 Chill on hero)`);
     }
@@ -148,17 +215,17 @@
     if (!Array.isArray(enemy.traits) || !state.hero.alive) {
       return;
     }
-    if (enemy.traits.includes(D2_MOD.CURSED)) {
+    if (enemy.traits.includes(TRAIT.CURSED)) {
       applyHeroAmplify(state, 2);
       _appendLog(state, `${enemy.name}'s Cursed aura amplifies damage on the Wanderer!`);
     }
-    if (enemy.traits.includes(D2_MOD.COLD_ENCHANTED)) {
+    if (enemy.traits.includes(TRAIT.COLD_ENCHANTED)) {
       applyHeroChill(state, 1);
     }
-    if (enemy.traits.includes(D2_MOD.FIRE_ENCHANTED)) {
+    if (enemy.traits.includes(TRAIT.FIRE_ENCHANTED)) {
       applyHeroBurn(state, 1);
     }
-    if (enemy.traits.includes(D2_MOD.MANA_BURN)) {
+    if (enemy.traits.includes(TRAIT.MANA_BURN)) {
       applyHeroEnergyDrain(state, 1);
       _appendLog(state, `${enemy.name}'s Mana Burn drains the Wanderer's energy!`);
     }
@@ -170,7 +237,7 @@
     if (!Array.isArray(enemy.traits) || !enemy.alive || !state.hero.alive) {
       return;
     }
-    if (enemy.traits.includes(D2_MOD.LIGHTNING_ENCHANTED)) {
+    if (enemy.traits.includes(TRAIT.LIGHTNING_ENCHANTED)) {
       const boltDamage = 2;
       const before = state.hero.life;
       state.hero.life = Math.max(0, state.hero.life - boltDamage);
@@ -484,7 +551,9 @@
   }
 
   runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS = {
-    D2_MOD,
+    TRAIT,
+    AFFIX_COUNT_BY_ACT,
+    rollRandomAffixes,
     applyHeroBurn,
     applyHeroPoison,
     applyHeroChill,

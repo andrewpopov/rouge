@@ -2,7 +2,8 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { clamp } = runtimeWindow.ROUGE_UTILS;
   const monsterActions = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
-  const { D2_MOD } = monsterActions;
+  const { TRAIT } = monsterActions;
+  const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
   const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
 
   function appendLog(state: CombatState, message: string) {
@@ -212,27 +213,26 @@
     const isFrenzied = hasTrait(enemy, "frenzy") && enemy.life <= Math.ceil(enemy.maxLife / 2);
 
     // ── Debuff: Paralyze (halve attack damage) ──
-    const ATTACK_INTENTS = ["attack", "attack_all", "attack_and_guard", "sunder_attack", "drain_attack", "attack_burn", "attack_burn_all", "attack_poison", "attack_chill", "drain_energy"];
     let intentValue = intent.value;
 
     // Apply buffed attack bonus from Overseer
-    if (enemy.buffedAttack && enemy.buffedAttack > 0 && ATTACK_INTENTS.includes(intent.kind)) {
+    if (enemy.buffedAttack && enemy.buffedAttack > 0 && ATTACK_INTENT_KINDS.has(intent.kind)) {
       intentValue += enemy.buffedAttack;
       enemy.buffedAttack = 0;
     }
 
-    if (isFrenzied && ATTACK_INTENTS.includes(intent.kind)) {
+    if (isFrenzied && ATTACK_INTENT_KINDS.has(intent.kind)) {
       intentValue = Math.floor(intentValue * 1.5);
       appendLog(state, `${enemy.name} is in a FRENZY!`);
     }
 
-    if (hasTrait(enemy, D2_MOD.EXTRA_STRONG) && ATTACK_INTENTS.includes(intent.kind)) {
+    if (hasTrait(enemy, TRAIT.EXTRA_STRONG) && ATTACK_INTENT_KINDS.has(intent.kind)) {
       intentValue = Math.floor(intentValue * 1.5);
       appendLog(state, `${enemy.name} hits with Extra Strong force!`);
     }
 
     if (enemy.paralyze > 0) {
-      if (ATTACK_INTENTS.includes(intent.kind)) {
+      if (ATTACK_INTENT_KINDS.has(intent.kind)) {
         intentValue = Math.max(1, Math.floor(intentValue / 2));
         appendLog(state, `${enemy.name} is Paralyzed — attack weakened.`);
       }
@@ -506,7 +506,7 @@
       }
 
       // Swift / Extra Fast trait: execute action a second time
-      if ((hasTrait(enemy, "swift") || hasTrait(enemy, D2_MOD.EXTRA_FAST)) && enemy.alive) {
+      if ((hasTrait(enemy, "swift") || hasTrait(enemy, TRAIT.EXTRA_FAST)) && enemy.alive) {
         const label = hasTrait(enemy, "swift") ? "Swift" : "Extra Fast";
         appendLog(state, `${enemy.name} strikes again! (${label})`);
         resolveEnemyAction(state, enemy);

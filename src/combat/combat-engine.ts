@@ -90,8 +90,8 @@
 
   function createEnemy(content: GameContent, enemyEntry: EncounterEnemyEntry) {
     const template = content.enemyCatalog[enemyEntry.templateId];
-    const { D2_MOD } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
-    const hasTraitStoneSkin = Array.isArray(template.traits) && template.traits.includes(D2_MOD.STONE_SKIN);
+    const { TRAIT } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
+    const hasTraitStoneSkin = Array.isArray(template.traits) && template.traits.includes(TRAIT.STONE_SKIN);
     return {
       id: enemyEntry.id,
       templateId: template.templateId,
@@ -117,6 +117,41 @@
       buffedAttack: 0,
       cooldowns: {},
     };
+  }
+
+  function parseActNumber(encounterId: string): number {
+    const match = encounterId.match(/^act_(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  function applyRandomAffixes(state: CombatState, randomFn: RandomFn, encounterId: string) {
+    const { TRAIT, rollRandomAffixes } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
+    const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
+    const actNumber = parseActNumber(encounterId);
+
+    state.enemies.forEach((enemy: CombatEnemyState) => {
+      let variant = "base";
+      if (enemy.templateId.includes("_elite")) { variant = "elite"; }
+      else if (enemy.templateId.endsWith("_boss")) { variant = "boss"; }
+      const result = rollRandomAffixes(actNumber, variant, enemy.traits, randomFn);
+      if (result.traits.length === 0) { return; }
+
+      enemy.traits.push(...result.traits);
+      enemy.maxLife += result.lifeBonus;
+      enemy.life += result.lifeBonus;
+
+      if (result.traits.includes(TRAIT.STONE_SKIN)) {
+        const stoneSkinGuard = Math.floor(enemy.maxLife * 0.3);
+        enemy.guard = Math.max(enemy.guard, stoneSkinGuard);
+      }
+
+      enemy.intents.forEach((intent: EnemyIntent) => {
+        if (ATTACK_INTENT_KINDS.has(intent.kind)) {
+          intent.value += result.attackBonus;
+        }
+      });
+      enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
+    });
   }
 
   function createDeck(state: CombatState, content: GameContent, starterDeck: string[] | null = null) {
@@ -475,6 +510,7 @@
       classPreferredFamilies,
     };
 
+    applyRandomAffixes(state, randomFn, encounterId);
     state.drawPile = createDeck(state, content, starterDeck);
     state.selectedEnemyId = getFirstLivingEnemyId(state);
     appendLog(state, `${encounter.name}: ${encounter.description}`);
