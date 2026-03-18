@@ -263,6 +263,34 @@
     return `<img src="${src}" class="${cls}" alt="${alt}" loading="lazy" onerror="this.style.display='none'" />`;
   }
 
+  const TRAIT_BADGE: Record<string, { icon: string; label: string; css: string }> = {
+    swift: { icon: "\u{1F4A8}", label: "Swift", css: "trait--swift" },
+    frenzy: { icon: "\u{1F4A2}", label: "Frenzy", css: "trait--frenzy" },
+    thorns: { icon: "\u{1FAB6}", label: "Thorns", css: "trait--thorns" },
+    regeneration: { icon: "\u{1F49A}", label: "Regen", css: "trait--regen" },
+    death_explosion: { icon: "\u{1F4A5}", label: "Volatile", css: "trait--death" },
+    death_poison: { icon: "\u2620", label: "Toxic Death", css: "trait--death" },
+    death_spawn: { icon: "\u{1F95A}", label: "Spawner", css: "trait--death" },
+    flee_on_ally_death: { icon: "\u{1F4A8}", label: "Cowardly", css: "trait--flee" },
+    extra_fast: { icon: "\u26A1", label: "Extra Fast", css: "trait--fast" },
+    extra_strong: { icon: "\u{1F4AA}", label: "Extra Strong", css: "trait--strong" },
+    cursed: { icon: "\u{1F480}", label: "Cursed", css: "trait--cursed" },
+    cold_enchanted: { icon: "\u2744", label: "Cold Enchanted", css: "trait--cold" },
+    fire_enchanted: { icon: "\u{1F525}", label: "Fire Enchanted", css: "trait--fire" },
+    lightning_enchanted: { icon: "\u26A1", label: "Lightning", css: "trait--lightning" },
+    stone_skin: { icon: "\u{1F6E1}", label: "Stone Skin", css: "trait--stone" },
+    mana_burn: { icon: "\u{1F50B}", label: "Mana Burn", css: "trait--mana" },
+  };
+
+  function renderTraitBadges(traits: MonsterTraitKind[] | undefined): string {
+    if (!traits || traits.length === 0) { return ""; }
+    return traits
+      .map((t) => TRAIT_BADGE[t])
+      .filter(Boolean)
+      .map((b) => `<span class="sprite__trait ${b.css}" title="${b.label}">${b.icon}</span>`)
+      .join("");
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     if (appState.ui.exploring) {
       renderExploration(root, appState, services);
@@ -340,6 +368,12 @@
                   <span class="sprite__hp-text">${combat.hero.life}/${combat.hero.maxLife}</span>
                 </div>
                 ${combat.hero.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${combat.hero.guard}</div>` : ""}
+                ${combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : ""}
+                ${combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : ""}
+                ${combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : ""}
+                ${combat.hero.amplify > 0 ? `<div class="sprite__status sprite__status--amplify">\u{1F53A} Amp ${combat.hero.amplify}t</div>` : ""}
+                ${combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : ""}
+                ${combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : ""}
               </div>
               <div class="sprite__label">${escapeHtml(combat.hero.name)}</div>
               <button class="sprite__potion" data-action="use-potion-hero"
@@ -388,6 +422,7 @@
                     ${enemy.stun > 0 ? `<div class="sprite__status sprite__status--stun">\u26A1 ${enemy.stun}</div>` : ""}
                     ${enemy.paralyze > 0 ? `<div class="sprite__status sprite__status--paralyze">\u{1F50C} ${enemy.paralyze}</div>` : ""}
                   </div>
+                  ${!isDead && enemy.traits?.length ? `<div class="sprite__traits">${renderTraitBadges(enemy.traits)}</div>` : ""}
                   <div class="sprite__label">${escapeHtml(enemy.name)}</div>
                 </button>
               `;
