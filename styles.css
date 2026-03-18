@@ -3506,6 +3506,55 @@ button.waypoint:hover {
   color: #ffdc46;
 }
 
+.sprite__status--chill {
+  color: #88d4ff;
+}
+
+.sprite__status--amplify {
+  color: #ff6644;
+}
+
+.sprite__status--weaken {
+  color: #bb88dd;
+}
+
+.sprite__status--drain {
+  color: #8888ff;
+}
+
+.sprite__traits {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 96px;
+  margin: 1px auto;
+}
+
+.sprite__trait {
+  font-size: 0.55rem;
+  line-height: 1;
+  padding: 1px 2px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+.trait--swift { color: #88d4ff; }
+.trait--frenzy { color: #ff4444; }
+.trait--thorns { color: #cc8844; }
+.trait--regen { color: #66cc66; }
+.trait--death { color: #ff8844; }
+.trait--flee { color: #aaaaaa; }
+.trait--fast { color: #ffee44; }
+.trait--strong { color: #ff6644; }
+.trait--cursed { color: #cc44cc; }
+.trait--cold { color: #88d4ff; }
+.trait--fire { color: #ff4422; }
+.trait--lightning { color: #ffee44; }
+.trait--stone { color: #aabb99; }
+.trait--mana { color: #6688ff; }
+
 .sprite__label {
   font-size: 0.7rem;
   color: var(--muted);
@@ -5133,6 +5182,22 @@ button.waypoint:hover {
   50% { opacity: 0.5; }
 }
 
+.sprite__status--chill {
+  animation: status-freeze-shimmer 1.5s ease-in-out infinite;
+}
+
+.sprite__status--amplify {
+  animation: status-burn-flicker 0.8s ease-in-out infinite;
+}
+
+.sprite__status--weaken {
+  animation: status-poison-drip 1.2s ease-in-out infinite;
+}
+
+.sprite__status--drain {
+  animation: status-stun-flash 0.6s ease-in-out infinite;
+}
+
 /* ── Potion button feedback ── */
 
 .sprite__potion:active:not(:disabled) {
@@ -5333,6 +5398,10 @@ button.waypoint:hover {
   .sprite__status--freeze,
   .sprite__status--stun,
   .sprite__status--paralyze,
+  .sprite__status--chill,
+  .sprite__status--amplify,
+  .sprite__status--weaken,
+  .sprite__status--drain,
   .explore-card,
   .event-choice,
   .town-npc-card,
