@@ -15,6 +15,7 @@
     toNumber,
   } = itemCatalog;
   const { getAccountEconomyFeatures, getPlannedRunewordArchiveState, getPlannedRunewordId } = itemTown;
+  const { getPlanningSummary } = runtimeWindow.__ROUGE_ITEM_TOWN_PRICING;
 
   function describeBonuses(bonuses: ItemBonusSet) {
     const lines = [];
@@ -92,47 +93,6 @@
   function getPlannedRuneword(slot: string, profile: ProfileState | null, content: GameContent) {
     const runeword = getRunewordDefinition(content, getPlannedRunewordId(profile, slot as "weapon" | "armor", content));
     return runeword?.slot === slot ? runeword : null;
-  }
-
-  function getPlanningSummary(profile: ProfileState | null, content: GameContent | null = null) {
-    return (
-      runtimeWindow.ROUGE_PERSISTENCE?.getAccountProgressSummary?.(profile, content)?.planning || {
-        weaponRunewordId: "",
-        armorRunewordId: "",
-        plannedRunewordCount: 0,
-        fulfilledPlanCount: 0,
-        unfulfilledPlanCount: 0,
-        weaponArchivedRunCount: 0,
-        weaponCompletedRunCount: 0,
-        weaponBestActsCleared: 0,
-        armorArchivedRunCount: 0,
-        armorCompletedRunCount: 0,
-        armorBestActsCleared: 0,
-        overview: {
-          compatibleCharterCount: 0,
-          preparedCharterCount: 0,
-          readyCharterCount: 0,
-          missingBaseCharterCount: 0,
-          socketCommissionCharterCount: 0,
-          repeatForgeReadyCharterCount: 0,
-          trackedBaseCount: 0,
-          highestTrackedBaseTier: 0,
-          totalSocketStepsRemaining: 0,
-          compatibleRunewordIds: [],
-          preparedRunewordIds: [],
-          readyRunewordIds: [],
-          missingBaseRunewordIds: [],
-          fulfilledRunewordIds: [],
-          bestFulfilledActsCleared: 0,
-          bestFulfilledLoadoutTier: 0,
-          nextAction: "idle",
-          nextActionLabel: "Quiet",
-          nextActionSummary: "No active runeword charter is pinned across the account.",
-        },
-        weaponCharter: undefined,
-        armorCharter: undefined,
-      }
-    );
   }
 
   function getPlanningCharterSummary(profile: ProfileState | null, slot: string, content: GameContent | null = null) {

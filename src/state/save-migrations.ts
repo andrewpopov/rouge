@@ -2,9 +2,16 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { deepClone, toNumber, clamp, isObject } = runtimeWindow.ROUGE_UTILS;
+  const {
+    createDefaultTraining,
+    createDefaultAttributes,
+    createDefaultClassProgression,
+    getLevelForXp,
+    getTrainingTrackForLevel,
+    getTrainingRankCount,
+  } = runtimeWindow.ROUGE_RUN_STATE;
 
   const CURRENT_SCHEMA_VERSION = 5;
-  const LEVEL_TRAINING_ORDER = ["vitality", "focus", "command"];
 
   function ensureStringArray(value: unknown) {
     return Array.isArray(value) ? value.filter((entry: unknown) => typeof entry === "string") : [];
@@ -62,31 +69,6 @@
     };
   }
 
-  function createDefaultTraining() {
-    return {
-      vitality: 0,
-      focus: 0,
-      command: 0,
-    };
-  }
-
-  function createDefaultAttributes() {
-    return {
-      strength: 0,
-      dexterity: 0,
-      vitality: 0,
-      energy: 0,
-    };
-  }
-
-  function createDefaultClassProgression() {
-    return {
-      favoredTreeId: "",
-      treeRanks: {},
-      unlockedSkillIds: [] as string[],
-    };
-  }
-
   function ensureTraining(training: unknown) {
     const source = ensureObjectRecord(training);
     return {
@@ -120,17 +102,6 @@
     };
   }
 
-  function getTrainingTrackForLevel(level: number) {
-    return LEVEL_TRAINING_ORDER[Math.max(0, toNumber(level, 2) - 2) % LEVEL_TRAINING_ORDER.length];
-  }
-
-  function getLevelForXp(xp: number) {
-    return Math.max(1, 1 + Math.floor(toNumber(xp, 0) / 50));
-  }
-
-  function getTrainingRankCount(training: Record<string, number> | null) {
-    return toNumber(training?.vitality, 0) + toNumber(training?.focus, 0) + toNumber(training?.command, 0);
-  }
 
   function applyTrainingRank(run: Record<string, any>, track: string) {
     if (track === "vitality") {

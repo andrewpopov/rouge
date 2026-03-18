@@ -6,6 +6,7 @@
     ACCOUNT_PROGRESSION_TREES,
     ACCOUNT_CONVERGENCES,
   } = runtimeWindow.__ROUGE_PERSISTENCE_CORE_DATA;
+  const { sanitizePlannedRunewordId } = runtimeWindow.__ROUGE_PROFILE_MIGRATIONS_DATA;
   const { deepClone, toNumber, uniqueStrings } = runtimeWindow.ROUGE_UTILS;
 
   const SCHEMA_VERSION = runtimeWindow.ROUGE_SAVE_MIGRATIONS?.CURRENT_SCHEMA_VERSION || 5;
@@ -22,17 +23,6 @@
       return "Capstone";
     }
     return `Tier ${Math.max(1, toNumber(milestone?.tier, 1))}`;
-  }
-
-  function sanitizePlannedRunewordId(runewordId: unknown, slot: string, content: GameContent | null = null) {
-    if (typeof runewordId !== "string" || !runewordId) {
-      return "";
-    }
-    if (!content?.runewordCatalog) {
-      return runewordId;
-    }
-    const runeword = content.runewordCatalog[runewordId] || null;
-    return runeword?.slot === slot ? runeword.id : "";
   }
 
   function sanitizeRunHistoryPlanningEntry(entry: RunHistoryEntry, content: GameContent | null = null) {

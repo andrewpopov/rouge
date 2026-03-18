@@ -199,19 +199,22 @@
     `;
   }
 
-  function buildTownActionCard(action: TownAction) {
+  function buildActionCard(
+    action: TownAction,
+    options: { cardClass: string; disabledClass: string; readyClass: string; nameClass: string; descClass: string }
+  ) {
     const buttonLabel = action.cost > 0 ? `${action.actionLabel} (${action.cost}g)` : action.actionLabel;
     const badgeLabel = action.cost > 0 ? `${action.cost}g` : action.actionLabel;
     const badgeTone = getActionBadgeTone(action);
 
     return `
-      <article class="feature-card service-card ${action.disabled ? "service-card-disabled" : "service-card-ready"}">
+      <article class="${options.cardClass} ${action.disabled ? options.disabledClass : options.readyClass}">
         <div class="entity-name-row">
-          <strong>${escapeHtml(action.title)}</strong>
+          <strong${options.nameClass ? ` class="${options.nameClass}"` : ""}>${escapeHtml(action.title)}</strong>
           ${buildBadge(badgeLabel, badgeTone)}
         </div>
         <p class="service-subtitle">${escapeHtml(action.subtitle)}</p>
-        <p>${escapeHtml(action.description)}</p>
+        <p${options.descClass ? ` class="${options.descClass}"` : ""}>${escapeHtml(action.description)}</p>
         ${buildStringList(action.previewLines, "log-list reward-list service-preview")}
         <div class="cta-row cta-row-tight">
           <button class="neutral-btn" data-action="use-town-action" data-town-action-id="${escapeHtml(action.id)}" ${action.disabled ? "disabled" : ""}>${escapeHtml(buttonLabel)}</button>
@@ -220,25 +223,24 @@
     `;
   }
 
-  function buildMercenaryActionCard(action: TownAction) {
-    const buttonLabel = action.cost > 0 ? `${action.actionLabel} (${action.cost}g)` : action.actionLabel;
-    const badgeLabel = action.cost > 0 ? `${action.cost}g` : action.actionLabel;
-    const badgeTone = getActionBadgeTone(action);
+  function buildTownActionCard(action: TownAction) {
+    return buildActionCard(action, {
+      cardClass: "feature-card service-card",
+      disabledClass: "service-card-disabled",
+      readyClass: "service-card-ready",
+      nameClass: "",
+      descClass: "",
+    });
+  }
 
-    return `
-      <article class="entity-card ally mercenary-card ${action.disabled ? "mercenary-card-disabled" : ""}">
-        <div class="entity-name-row">
-          <strong class="entity-name">${escapeHtml(action.title)}</strong>
-          ${buildBadge(badgeLabel, badgeTone)}
-        </div>
-        <p class="service-subtitle">${escapeHtml(action.subtitle)}</p>
-        <p class="entity-passive">${escapeHtml(action.description)}</p>
-        ${buildStringList(action.previewLines, "log-list reward-list service-preview")}
-        <div class="cta-row cta-row-tight">
-          <button class="neutral-btn" data-action="use-town-action" data-town-action-id="${escapeHtml(action.id)}" ${action.disabled ? "disabled" : ""}>${escapeHtml(buttonLabel)}</button>
-        </div>
-      </article>
-    `;
+  function buildMercenaryActionCard(action: TownAction) {
+    return buildActionCard(action, {
+      cardClass: "entity-card ally mercenary-card",
+      disabledClass: "mercenary-card-disabled",
+      readyClass: "",
+      nameClass: "entity-name",
+      descClass: "entity-passive",
+    });
   }
 
   runtimeWindow.ROUGE_RENDER_UTILS = {

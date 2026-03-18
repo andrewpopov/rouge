@@ -1,11 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  function getTrainingRanks(run: RunState): number {
-    return (["vitality", "focus", "command"] as const).reduce((total, track) => {
-      return total + (Number.parseInt(String(run.progression?.training?.[track] ?? 0), 10) || 0);
-    }, 0);
-  }
+  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
   function buildPrepComparisonMarkup(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string {
     const common = runtimeWindow.ROUGE_UI_COMMON;
@@ -94,7 +90,7 @@
       nextPrepCopy = "Unspent progression is still parked in town. Resolve that build pressure before you leave.";
       nextPrepLines = [
         `${run.progression.skillPointsAvailable} skill, ${run.progression.classPointsAvailable} class, and ${run.progression.attributePointsAvailable} attribute points remain.`,
-        `Training ranks already banked: ${getTrainingRanks(run)}.`,
+        `Training ranks already banked: ${getTrainingRankCount(run.progression?.training)}.`,
         `Focused tree momentum: ${accountSummary.focusedTreeTitle || "no focus"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
       ];
     } else if (tradeActionTitles.length > 0 || planning.plannedRunewordCount > 0) {

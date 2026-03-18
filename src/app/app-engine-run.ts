@@ -147,11 +147,7 @@
     clearActiveRunProfile(state);
   }
 
-  function getTrainingRankCount(training: RunProgressionState["training"] | undefined): number {
-    return (["vitality", "focus", "command"] as const).reduce((total, track) => {
-      return total + (Number.parseInt(String(training?.[track] ?? 0), 10) || 0);
-    }, 0);
-  }
+  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
   function parseInteger(value: unknown, fallback = 0): number {
     const parsed = Number.parseInt(String(value ?? fallback), 10);

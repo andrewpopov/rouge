@@ -190,11 +190,7 @@
     `;
   }
 
-  function getTrainingRanks(run: RunState): number {
-    return ["vitality", "focus", "command"].reduce((total, track) => {
-      return total + toNumber(run.progression?.training?.[track as keyof RunState["progression"]["training"]], 0);
-    }, 0);
-  }
+  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
   function getTownPrepActionBadgeTone(action: TownAction | null): string {
     if (!action) {
@@ -310,7 +306,7 @@
           { label: "Skill", value: formatTransition(run.progression.skillPointsAvailable, run.progression.skillPointsAvailable) },
           { label: "Class", value: formatTransition(run.progression.classPointsAvailable, run.progression.classPointsAvailable) },
           { label: "Attr", value: formatTransition(run.progression.attributePointsAvailable, run.progression.attributePointsAvailable) },
-          { label: "Training", value: formatTransition(getTrainingRanks(run), getTrainingRanks(run)) },
+          { label: "Training", value: formatTransition(getTrainingRankCount(run.progression?.training), getTrainingRankCount(run.progression?.training)) },
         ],
         ["Projected spend: town is build-stable right now, so no point allocation is queued before departure."],
         renderUtils
