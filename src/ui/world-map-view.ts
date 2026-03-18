@@ -270,9 +270,10 @@
     const canClick = zone.status === "available" && reachable;
     const tag = canClick ? "button" : "div";
     const action = canClick ? `data-action="select-zone" data-zone-id="${escapeHtml(zone.id)}"` : "";
+    const ariaLabel = !canClick ? `aria-label="${escapeHtml(zone.title)} — ${zone.status === "cleared" ? "cleared" : "locked"}"` : "";
 
     return `
-      <${tag} class="waypoint ${statusClass}" ${action}
+      <${tag} class="waypoint ${statusClass}" ${action} ${ariaLabel}
            style="left:${pos[0]}%;top:${pos[1]}%">
         <span class="waypoint__icon">${icon}</span>
         <span class="waypoint__label">${escapeHtml(zone.title)}</span>

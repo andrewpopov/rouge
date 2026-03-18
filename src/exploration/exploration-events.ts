@@ -13,6 +13,8 @@
     getUpgradableCardIds,
   } = runtimeWindow.__ROUGE_EXPLORATION_EVENT_TEMPLATES;
 
+  const EVENT_PROBABILITY = 0.20;
+
   interface EventTemplate {
     id: string;
     kind: ExplorationEvent["kind"];
@@ -131,7 +133,7 @@
     if (zone.kind === "boss") {return null;}
 
     const roll = ((seed * 7919 + 1301) % 1000) / 1000;
-    if (roll > 0.20) {return null;}
+    if (roll > EVENT_PROBABILITY) {return null;}
 
     const eligible = EVENT_TEMPLATES.filter((template) => {
       if (template.minEncountersCleared && totalCleared < template.minEncountersCleared) {return false;}

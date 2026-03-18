@@ -248,6 +248,7 @@
     buildStat,
     buildStringList,
     buildBadge,
+    buildBadgeRow,
     buildNoticePanel,
     buildChoiceList,
     buildWorldMapNodeCard,
