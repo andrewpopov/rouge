@@ -413,6 +413,7 @@
             ${combat.hand.map((instance, i) => {
               const card = appState.content.cardCatalog[instance.cardId];
               const element = getCardElement(card);
+              const isUpgraded = instance.cardId.endsWith("_plus");
               const requiresTarget = card.target === "enemy";
               const cantPlay =
                 combat.outcome ||
@@ -424,7 +425,7 @@
               const rotation = offset * 4;
               const translateY = Math.abs(offset) * 6;
               return `
-                <button class="fan-card ${cantPlay ? "fan-card--disabled" : ""} fan-card--${element}"
+                <button class="fan-card ${cantPlay ? "fan-card--disabled" : ""} fan-card--${element}${isUpgraded ? " fan-card--upgraded" : ""}"
                         data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
                         style="--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${i}">
                   <div class="fan-card__cost">${card.cost}</div>

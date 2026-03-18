@@ -2828,11 +2828,19 @@ button.waypoint:hover {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--accent-bright);
+  animation: phase-flash 0.4s ease-out;
 }
 
-.combat-hud__phase--victory { color: var(--success); }
-.combat-hud__phase--defeat { color: var(--danger); }
+.combat-hud__phase--player { color: var(--accent-bright); text-shadow: 0 0 8px rgba(212, 143, 70, 0.3); }
+.combat-hud__phase--victory { color: var(--success); text-shadow: 0 0 8px rgba(60, 160, 80, 0.3); }
+.combat-hud__phase--defeat { color: var(--danger); text-shadow: 0 0 8px rgba(200, 60, 60, 0.3); }
 .combat-hud__phase--enemy { color: var(--danger); opacity: 0.7; }
+
+@keyframes phase-flash {
+  0% { opacity: 0; transform: scale(1.3); }
+  50% { opacity: 1; }
+  100% { transform: scale(1); }
+}
 
 .combat-hud__zone {
   font-size: 0.65rem;
@@ -3710,11 +3718,23 @@ button.waypoint:hover {
 .fan-card__art {
   font-size: 1.6rem;
   margin: 4px 0 2px;
+  padding: 6px 0;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 3px;
+  position: relative;
 }
+
+/* Element-specific art area backgrounds */
+.fan-card--fire .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(255, 60, 10, 0.12), transparent 80%); }
+.fan-card--ice .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(100, 180, 255, 0.12), transparent 80%); }
+.fan-card--lightning .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(255, 220, 70, 0.12), transparent 80%); }
+.fan-card--poison .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(90, 200, 70, 0.12), transparent 80%); }
+.fan-card--arcane .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(165, 100, 255, 0.12), transparent 80%); }
+.fan-card--physical .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(200, 160, 100, 0.08), transparent 80%); }
+.fan-card--support .fan-card__art { background: radial-gradient(ellipse at 50% 60%, rgba(123, 170, 187, 0.08), transparent 80%); }
 
 .fan-card__name {
   font-family: var(--font-display);
@@ -4822,12 +4842,136 @@ button.waypoint:hover {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ── Upgraded card glow ── */
+
+.fan-card--upgraded {
+  border-color: rgba(255, 215, 100, 0.45) !important;
+  box-shadow: 0 0 10px rgba(255, 215, 100, 0.15), inset 0 0 20px rgba(255, 215, 100, 0.04);
+}
+
+.fan-card--upgraded::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 215, 100, 0.3);
+  pointer-events: none;
+  animation: upgraded-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes upgraded-shimmer {
+  0%, 100% { opacity: 0.4; box-shadow: 0 0 8px rgba(255, 215, 100, 0.1); }
+  50% { opacity: 1; box-shadow: 0 0 16px rgba(255, 215, 100, 0.25), 0 0 4px rgba(255, 215, 100, 0.15); }
+}
+
+.fan-card--upgraded .fan-card__name {
+  color: #ffd764;
+}
+
+.fan-card--upgraded .fan-card__cost {
+  background: radial-gradient(circle, rgba(255, 215, 100, 0.25) 0%, transparent 70%);
+  color: #ffd764;
+}
+
+/* ── Reward choice card stagger entrance ── */
+
+.reward-choice-card {
+  animation: reward-choice-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reward-choice-card:nth-child(1) { animation-delay: 0.15s; }
+.reward-choice-card:nth-child(2) { animation-delay: 0.25s; }
+.reward-choice-card:nth-child(3) { animation-delay: 0.35s; }
+.reward-choice-card:nth-child(4) { animation-delay: 0.45s; }
+
+@keyframes reward-choice-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.88) rotateX(12deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
+}
+
+/* ── Reward rarity hover glow ── */
+
+.reward-choice-card[style*="border:2px solid #c59a46"]:hover {
+  box-shadow: 0 6px 24px rgba(197, 154, 70, 0.35), 0 0 12px rgba(197, 154, 70, 0.15);
+}
+
+.reward-choice-card[style*="border:2px solid #ddc63b"]:hover {
+  box-shadow: 0 6px 24px rgba(221, 198, 59, 0.35), 0 0 12px rgba(221, 198, 59, 0.15);
+}
+
+/* ── Reward grant counter animation ── */
+
+.reward-grant {
+  animation: grant-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.reward-grant:nth-child(1) { animation-delay: 0.3s; }
+.reward-grant:nth-child(2) { animation-delay: 0.4s; }
+.reward-grant:nth-child(3) { animation-delay: 0.5s; }
+.reward-grant:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes grant-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Reward header icon pulse ── */
+
+.reward-popup__icon {
+  animation: reward-icon-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes reward-icon-glow {
+  0%, 100% { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)); }
+  50% { filter: drop-shadow(0 2px 8px rgba(212, 143, 70, 0.5)) drop-shadow(0 0 12px rgba(212, 143, 70, 0.2)); }
+}
+
+/* ── Choose label shimmer ── */
+
+.reward-popup__choose-label {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--accent-bright) 45%,
+    var(--accent-bright) 55%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: choose-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes choose-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 /* ── Reduce motion support ── */
 
 @media (prefers-reduced-motion: reduce) {
   .stage__particles::before,
   .stage__particles::after,
   .fan-card,
+  .fan-card--upgraded::after,
+  .combat-hud__phase,
   .explore-card,
   .event-choice,
   .town-npc-card,
@@ -4839,10 +4983,19 @@ button.waypoint:hover {
   .stage__outcome-sub,
   .reward-overlay,
   .reward-popup,
+  .reward-choice-card,
+  .reward-grant,
+  .reward-popup__icon,
+  .reward-popup__choose-label,
   .energy-orb--active,
   .sprite--targeted .sprite__figure,
   .sprite__hp-fill--low {
     animation: none !important;
+  }
+
+  .reward-popup__choose-label {
+    background: none;
+    -webkit-text-fill-color: var(--muted);
   }
 
   .sprite--dead {
