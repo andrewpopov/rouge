@@ -38,7 +38,7 @@ function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
   if (!world) { return; }
   // Find the shrine-opportunity outcome that doesn't match the reserve's expected ID
   const existingKeys = Object.keys(world.opportunityOutcomes || {});
-  const shrineOppKey = existingKeys.find(
+  const _shrineOppKey = existingKeys.find(
     (key) => key !== "sunwell_shrine_opportunity" && key.includes("vigil") || key.includes("shrine_opportunity")
   );
   // The act-1 shrine opportunity uses id "rogue_vigil_route_opportunity" — alias it

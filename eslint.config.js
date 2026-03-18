@@ -28,7 +28,7 @@ const tsRules = {
   "prefer-template": "error",
   "@typescript-eslint/no-explicit-any": "error",
   "@typescript-eslint/no-shadow": "error",
-  "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+  "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" }],
 };
 const sharedRules = {
   ...recommendedRules,

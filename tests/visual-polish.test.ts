@@ -106,7 +106,7 @@ test("safe-zone view renders NPC badge tooltips with action counts", () => {
 });
 
 test("safe-zone merchant overlay includes description text", () => {
-  const { state, appShell, browserWindow } = createTownFixture();
+  const { state, appShell, browserWindow: _browserWindow } = createTownFixture();
 
   // Focus on a vendor NPC to trigger the overlay
   state.ui.townFocus = "gheed";

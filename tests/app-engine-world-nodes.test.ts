@@ -33,7 +33,7 @@ test("zone roles map to distinct encounter themes within the same act", () => {
   const zones = runFactory.getCurrentZones(state.run);
   const openingZone = zones.find((z) => z.zoneRole === "opening");
   const minibossZone = zones.find((z) => z.kind === "miniboss");
-  const sideZone = zones.find((z) => (z.zoneRole || "").startsWith("side_") && z.kind === "battle");
+  const _sideZone = zones.find((z) => (z.zoneRole || "").startsWith("side_") && z.kind === "battle");
   assert.ok(openingZone);
   assert.ok(openingZone.encounterIds.every((encounterId) => encounterId.startsWith("act_1_")));
 
