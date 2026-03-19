@@ -70,9 +70,9 @@
       skillRef: "amazon_dodge",
       tier: 1,
     },
-    amazon_inner_strength: {
-      id: "amazon_inner_strength",
-      title: "Inner Strength",
+    amazon_critical_strike: {
+      id: "amazon_critical_strike",
+      title: "Critical Strike",
       cost: 1,
       target: "none",
       text: "Heal 6. Gain 3 Guard.",
@@ -80,7 +80,7 @@
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 3 },
       ],
-      skillRef: "amazon_inner_strength",
+      skillRef: "amazon_critical_strike",
       tier: 1,
     },
 
@@ -224,7 +224,7 @@
     "amazon_fire_arrow", "amazon_fire_arrow",
     "amazon_inner_sight", "amazon_inner_sight",
     "rally_mercenary",
-    "amazon_inner_strength",
+    "amazon_critical_strike",
     "amazon_dodge",
     "amazon_dodge",
   ];
