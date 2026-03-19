@@ -113,10 +113,13 @@ test("safe-zone services can heal, refill, and change mercenary contracts withou
   assert.equal(result.ok, true);
   assert.equal(state.run.belt.current, state.run.belt.max);
 
+  // Kill current mercenary, then revive via town service (act-filtered: only act mercs available)
+  state.run.mercenary.currentLife = 0;
+  const currentMercId = state.run.mercenary.id;
   const goldAfterRecovery = state.run.gold;
-  result = appEngine.useTownAction(state, "mercenary_contract_iron_wolf");
+  result = appEngine.useTownAction(state, `mercenary_contract_${currentMercId}`);
   assert.equal(result.ok, true);
-  assert.equal(state.run.mercenary.id, "iron_wolf");
+  assert.ok(state.run.mercenary.currentLife > 0);
   assert.ok(state.run.gold < goldAfterRecovery);
 
   appEngine.leaveSafeZone(state);

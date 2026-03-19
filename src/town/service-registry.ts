@@ -135,8 +135,21 @@
     };
   }
 
+  function getActMercenaries(content: GameContent, run: RunState): MercenaryDefinition[] {
+    const allMercs = Object.values(content.mercenaryCatalog);
+    const actMercs = allMercs.filter((merc) => merc.actOrigin === run.actNumber);
+    // Always include the current contracted mercenary for revive, even if from another act
+    if (run.mercenary?.id && !actMercs.some((merc) => merc.id === run.mercenary.id)) {
+      const currentMerc = content.mercenaryCatalog[run.mercenary.id];
+      if (currentMerc) {
+        actMercs.unshift(currentMerc);
+      }
+    }
+    return actMercs;
+  }
+
   function listActions(content: GameContent, run: RunState, profile: ProfileState) {
-    const mercenaryActions = Object.values(content.mercenaryCatalog).map((mercenaryDefinition) => {
+    const mercenaryActions = getActMercenaries(content, run).map((mercenaryDefinition) => {
       return buildMercenaryAction(run, mercenaryDefinition);
     });
     const progressionActions = runtimeWindow.ROUGE_RUN_FACTORY?.listProgressionActions(run, content) || [];

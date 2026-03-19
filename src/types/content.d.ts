@@ -124,6 +124,7 @@ interface MercenaryDefinition {
   id: string;
   name: string;
   role: string;
+  actOrigin: number;
   maxLife: number;
   attack: number;
   behavior: string;

@@ -1,6 +1,20 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  type VendorClass = "healer" | "quartermaster" | "blacksmith" | "vendor" | "gambler" | "mercenary" | "sage" | "stash" | "travel";
+
+  const VENDOR_CLASS = {
+    HEALER: "healer" as VendorClass,
+    QUARTERMASTER: "quartermaster" as VendorClass,
+    BLACKSMITH: "blacksmith" as VendorClass,
+    VENDOR: "vendor" as VendorClass,
+    GAMBLER: "gambler" as VendorClass,
+    MERCENARY: "mercenary" as VendorClass,
+    SAGE: "sage" as VendorClass,
+    STASH: "stash" as VendorClass,
+    TRAVEL: "travel" as VendorClass,
+  };
+
   interface TownNpc {
     id: string;
     name: string;
@@ -23,16 +37,16 @@
     stash: "\u26B0",
   };
 
-  interface ActNpcLayout {
-    healer: { name: string; posX: number; posY: number };
-    blacksmith: { name: string; posX: number; posY: number };
-    vendor: { name: string; posX: number; posY: number };
-    mercenary: { name: string; posX: number; posY: number };
-    stash: { posX: number; posY: number };
-    cain: { posX: number; posY: number };
-    travel?: { name: string; role: string; posX: number; posY: number };
-    exitGate?: { posX: number; posY: number };
-    extras?: Array<{ id: string; name: string; role: string; icon: string; posX: number; posY: number; actionSource: string }>;
+  interface NpcEntry {
+    id: string;
+    name: string;
+    role: string;
+    icon: string;
+    posX: number;
+    posY: number;
+    vendorClasses: VendorClass[];
+    emptyLabel?: string;
+    requiresCainRescue?: boolean;
   }
 
   function getTravelEmptyLabel(actNumber: number, npcName: string): string {
@@ -44,59 +58,57 @@
     return labels[actNumber] || `${npcName} stands ready for the journey ahead.`;
   }
 
-  const ACT_NPC_LAYOUTS: Record<number, ActNpcLayout> = {
-    1: {
+  const VC = VENDOR_CLASS;
+
+  const ACT_NPC_LAYOUTS: Record<number, NpcEntry[]> = {
+    1: [
       // Rogue Encampment — positions matched to act1.jpg NPC sprites
-      healer:     { name: "Akara",   posX: 65, posY: 32 },  // east side, in her tent
-      blacksmith: { name: "Charsi",  posX: 33, posY: 27 },  // NW, at the forge/anvil
-      vendor:     { name: "Gheed",   posX: 27, posY: 48 },  // west side, near wagon
-      mercenary:  { name: "Kashya",  posX: 55, posY: 20 },  // NE, near palisade gate
-      stash:      { posX: 50, posY: 42 },                    // center campfire
-      cain:       { posX: 48, posY: 45 },                    // near campfire
-      travel:     { name: "Warriv", role: "Caravan Leader", posX: 38, posY: 58 },
-    },
-    2: {
+      { id: "healer",     name: "Akara",   role: "Priestess",        icon: NPC_ICONS.healer,     posX: 65, posY: 32, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
+      { id: "blacksmith", name: "Charsi",  role: "Blacksmith",       icon: NPC_ICONS.blacksmith, posX: 33, posY: 27, vendorClasses: [VC.BLACKSMITH] },
+      { id: "vendor",     name: "Gheed",   role: "Vendor & Gambler", icon: NPC_ICONS.vendor,     posX: 27, posY: 48, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary",  name: "Kashya",  role: "Mercenary Captain",icon: NPC_ICONS.mercenary,  posX: 55, posY: 20, vendorClasses: [VC.MERCENARY] },
+      { id: "stash",      name: "Stash",   role: "Profile Vault",    icon: NPC_ICONS.stash,      posX: 50, posY: 42, vendorClasses: [VC.STASH] },
+      { id: "cain",       name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 48, posY: 45, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "travel",     name: "Warriv",  role: "Caravan Leader",   icon: NPC_ICONS.travel,     posX: 38, posY: 58, vendorClasses: [VC.TRAVEL] },
+    ],
+    2: [
       // Lut Gholein — positions matched to act2.jpg NPC labels
-      healer:     { name: "Fara",    posX: 50, posY: 30 },  // center, "Trade & Repair"
-      blacksmith: { name: "Fara",    posX: 50, posY: 30 },
-      vendor:     { name: "Elzix",   posX: 26, posY: 22 },  // upper-left, inn area
-      mercenary:  { name: "Greiz",   posX: 43, posY: 13 },  // top, "Mercenary Leader"
-      stash:      { posX: 56, posY: 30 },                    // right of Fara, chest icon
-      cain:       { posX: 54, posY: 42 },                    // below-right, "Identifier"
-      travel:     { name: "Meshif", role: "Ship Captain", posX: 82, posY: 52 },
-      extras: [
-        { id: "atma", name: "Atma", role: "Healer", icon: "\u2764", posX: 62, posY: 32, actionSource: "healer" },
-        { id: "lysander", name: "Lysander", role: "Trade", icon: "\u2696", posX: 42, posY: 38, actionSource: "vendor" },
-      ],
-    },
-    3: {
+      { id: "healer",     name: "Fara",    role: "Healer & Smith",   icon: NPC_ICONS.healer,     posX: 50, posY: 30, vendorClasses: [VC.HEALER, VC.QUARTERMASTER, VC.BLACKSMITH] },
+      { id: "vendor",     name: "Elzix",   role: "Vendor & Gambler", icon: NPC_ICONS.vendor,     posX: 26, posY: 22, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary",  name: "Greiz",   role: "Mercenary Captain",icon: NPC_ICONS.mercenary,  posX: 43, posY: 13, vendorClasses: [VC.MERCENARY] },
+      { id: "stash",      name: "Stash",   role: "Profile Vault",    icon: NPC_ICONS.stash,      posX: 56, posY: 30, vendorClasses: [VC.STASH] },
+      { id: "cain",       name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 54, posY: 42, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "travel",     name: "Meshif",  role: "Ship Captain",     icon: NPC_ICONS.travel,     posX: 82, posY: 52, vendorClasses: [VC.TRAVEL] },
+      { id: "atma",       name: "Atma",    role: "Healer",           icon: NPC_ICONS.healer,     posX: 62, posY: 32, vendorClasses: [VC.HEALER] },
+      { id: "lysander",   name: "Lysander",role: "Trade",            icon: NPC_ICONS.vendor,     posX: 42, posY: 38, vendorClasses: [VC.VENDOR] },
+    ],
+    3: [
       // Kurast Docks — positions matched to act3.jpg NPC labels
-      healer:     { name: "Ormus",   posX: 38, posY: 42 },  // center platform, "Healer & Trade"
-      blacksmith: { name: "Hratli",  posX: 82, posY: 48 },  // right dock, "Trade & Repair"
-      vendor:     { name: "Alkor",   posX: 48, posY: 17 },  // upper-center, "Gambler & Trade"
-      mercenary:  { name: "Asheara", posX: 14, posY: 18 },  // upper-left, Iron Wolves
-      stash:      { posX: 48, posY: 40 },                    // center, near waypoint
-      cain:       { posX: 50, posY: 44 },                    // below Cain label, right of center
-      travel:     { name: "Meshif", role: "Ship Captain", posX: 12, posY: 52 },
-    },
-    4: {
+      { id: "healer",     name: "Ormus",   role: "Healer",           icon: NPC_ICONS.healer,     posX: 38, posY: 42, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
+      { id: "blacksmith", name: "Hratli",  role: "Blacksmith",       icon: NPC_ICONS.blacksmith, posX: 82, posY: 48, vendorClasses: [VC.BLACKSMITH] },
+      { id: "vendor",     name: "Alkor",   role: "Gambler & Vendor", icon: NPC_ICONS.vendor,     posX: 48, posY: 17, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary",  name: "Asheara", role: "Mercenary Captain",icon: NPC_ICONS.mercenary,  posX: 14, posY: 18, vendorClasses: [VC.MERCENARY] },
+      { id: "stash",      name: "Stash",   role: "Profile Vault",    icon: NPC_ICONS.stash,      posX: 48, posY: 40, vendorClasses: [VC.STASH] },
+      { id: "cain",       name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 50, posY: 44, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "travel",     name: "Meshif",  role: "Ship Captain",     icon: NPC_ICONS.travel,     posX: 12, posY: 52, vendorClasses: [VC.TRAVEL] },
+    ],
+    4: [
       // Pandemonium Fortress — positions matched to act4.jpg NPC labels
-      healer:     { name: "Jamella", posX: 45, posY: 72 },  // bottom-center, "Healer & Gambler"
-      blacksmith: { name: "Halbu",   posX: 72, posY: 48 },  // right chamber, "Trade & Repair"
-      vendor:     { name: "Jamella", posX: 45, posY: 72 },
-      mercenary:  { name: "Tyrael",  posX: 45, posY: 8 },   // top-center, angelic figure
-      stash:      { posX: 24, posY: 36 },                    // left side, "Chest"
-      cain:       { posX: 33, posY: 28 },                    // upper-left, "Identifier"
-    },
-    5: {
+      { id: "healer",     name: "Jamella", role: "Healer & Vendor",  icon: NPC_ICONS.healer,     posX: 45, posY: 72, vendorClasses: [VC.HEALER, VC.QUARTERMASTER, VC.VENDOR, VC.GAMBLER] },
+      { id: "blacksmith", name: "Halbu",   role: "Blacksmith",       icon: NPC_ICONS.blacksmith, posX: 72, posY: 48, vendorClasses: [VC.BLACKSMITH] },
+      { id: "mercenary",  name: "Tyrael",  role: "Mercenary Captain",icon: NPC_ICONS.mercenary,  posX: 45, posY: 8,  vendorClasses: [VC.MERCENARY] },
+      { id: "stash",      name: "Stash",   role: "Profile Vault",    icon: NPC_ICONS.stash,      posX: 24, posY: 36, vendorClasses: [VC.STASH] },
+      { id: "cain",       name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 33, posY: 28, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+    ],
+    5: [
       // Harrogath — positions matched to act5.jpg NPC labels
-      healer:     { name: "Malah",      posX: 65, posY: 16 },  // upper-right, "Healer & Trade"
-      blacksmith: { name: "Larzuk",     posX: 78, posY: 38 },  // right side, "Trade & Repair"
-      vendor:     { name: "Anya",       posX: 35, posY: 55 },  // lower-left, "Gambler & Trade"
-      mercenary:  { name: "Qual-Kehk",  posX: 33, posY: 20 },  // upper-left, "Mercenary Leader"
-      stash:      { posX: 65, posY: 45 },                       // center-right, "Chest"
-      cain:       { posX: 48, posY: 33 },                       // center, "Identifier"
-    },
+      { id: "healer",     name: "Malah",     role: "Healer",           icon: NPC_ICONS.healer,     posX: 65, posY: 16, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
+      { id: "blacksmith", name: "Larzuk",    role: "Blacksmith",       icon: NPC_ICONS.blacksmith, posX: 78, posY: 38, vendorClasses: [VC.BLACKSMITH] },
+      { id: "vendor",     name: "Anya",      role: "Gambler & Vendor", icon: NPC_ICONS.vendor,     posX: 35, posY: 55, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary",  name: "Qual-Kehk", role: "Mercenary Captain",icon: NPC_ICONS.mercenary,  posX: 33, posY: 20, vendorClasses: [VC.MERCENARY] },
+      { id: "stash",      name: "Stash",     role: "Profile Vault",    icon: NPC_ICONS.stash,      posX: 65, posY: 45, vendorClasses: [VC.STASH] },
+      { id: "cain",       name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 48, posY: 33, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+    ],
   };
 
   const CATEGORY_ICONS: Record<string, string> = {
@@ -164,6 +176,42 @@
     `;
   }
 
+  /** Map vendor classes to their corresponding action categories. */
+  function getActionsForVendorClasses(
+    classes: VendorClass[],
+    actionsByCategory: Record<string, TownAction[]>,
+    actNumber: number,
+    npcName: string
+  ): { actions: TownAction[]; emptyLabel: string } {
+    const actions: TownAction[] = [];
+    const has = (vc: VendorClass) => classes.includes(vc);
+
+    if (has(VC.HEALER))        actions.push(...(actionsByCategory.healer || []));
+    if (has(VC.QUARTERMASTER)) actions.push(...(actionsByCategory.quartermaster || []));
+    if (has(VC.BLACKSMITH))    actions.push(...(actionsByCategory.blacksmith || []));
+    if (has(VC.VENDOR))        actions.push(...(actionsByCategory.vendor || []));
+    if (has(VC.MERCENARY))     actions.push(...(actionsByCategory.mercenary || []));
+    if (has(VC.SAGE))          actions.push(...(actionsByCategory.sage || []));
+    if (has(VC.STASH))         actions.push(...(actionsByCategory.stash || []));
+    // GAMBLER: no actions yet — class reserved for future gamble mechanic
+    // TRAVEL: flavor NPC with no gameplay actions
+
+    const emptyLabels: Partial<Record<VendorClass, string>> = {
+      [VC.HEALER]: "No recovery needed.",
+      [VC.BLACKSMITH]: "No inventory actions available.",
+      [VC.VENDOR]: "Vendor stock is empty.",
+      [VC.MERCENARY]: "No mercenary actions available.",
+      [VC.SAGE]: "No progression available.",
+      [VC.STASH]: "The stash is empty.",
+    };
+    const primaryClass = classes[0];
+    const emptyLabel = has(VC.TRAVEL)
+      ? getTravelEmptyLabel(actNumber, npcName)
+      : emptyLabels[primaryClass] || `${npcName} has nothing to offer.`;
+
+    return { actions, emptyLabel };
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const operationsApi = runtimeWindow.ROUGE_SAFE_ZONE_OPERATIONS_VIEW;
@@ -176,33 +224,35 @@
       (act.zones || []).some((z) => z.title === "Tristram" && z.cleared)
     );
 
-    const layout = ACT_NPC_LAYOUTS[run.actNumber] || ACT_NPC_LAYOUTS[1];
+    const npcEntries = ACT_NPC_LAYOUTS[run.actNumber] || ACT_NPC_LAYOUTS[1];
 
-    // Detect merged NPC roles across acts
-    const healerAndSmithSame = layout.healer.name === layout.blacksmith.name;  // Act 2: Fara
-    const healerAndVendorSame = !healerAndSmithSame && layout.healer.name === layout.vendor.name;  // Act 4: Jamella
+    // Map vendor classes to action categories for class-driven NPC action assignment
+    const actionsByCategory: Record<string, TownAction[]> = {
+      healer: healerActions,
+      quartermaster: quartermasterActions,
+      blacksmith: inventoryActions,
+      vendor: vendorActions,
+      mercenary: mercenaryActions,
+      sage: progressionActions,
+      stash: stashActions,
+    };
 
-    // Healer always handles belt refill (quartermaster merged into healer, matching D2 potion sellers)
-    const healerRole = healerAndSmithSame ? "Healer & Smith" : healerAndVendorSame ? "Healer & Vendor" : "Healer";
-    const healerMergedActions = healerAndSmithSame
-      ? [...healerActions, ...quartermasterActions, ...inventoryActions]
-      : healerAndVendorSame
-        ? [...healerActions, ...quartermasterActions, ...vendorActions]
-        : [...healerActions, ...quartermasterActions];
-
-    const npcs: TownNpc[] = [
-      { id: "healer", name: layout.healer.name, role: healerRole, icon: NPC_ICONS.healer, posX: layout.healer.posX, posY: layout.healer.posY, actions: healerMergedActions, emptyLabel: "No recovery needed." },
-      ...(!healerAndSmithSame ? [{ id: "blacksmith", name: layout.blacksmith.name, role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: layout.blacksmith.posX, posY: layout.blacksmith.posY, actions: inventoryActions, emptyLabel: "No inventory actions available." }] : []),
-      ...(!healerAndVendorSame ? [{ id: "vendor", name: layout.vendor.name, role: "Vendor", icon: NPC_ICONS.vendor, posX: layout.vendor.posX, posY: layout.vendor.posY, actions: vendorActions, emptyLabel: "Vendor stock is empty." }] : []),
-      { id: "mercenary", name: layout.mercenary.name, role: "Mercenary Captain", icon: NPC_ICONS.mercenary, posX: layout.mercenary.posX, posY: layout.mercenary.posY, actions: mercenaryActions, emptyLabel: "No mercenary actions available.", isMerc: true },
-      ...(cainRescued ? [{ id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: layout.cain.posX, posY: layout.cain.posY, actions: progressionActions, emptyLabel: "No progression available." }] : []),
-      ...(layout.travel ? [{ id: "travel", name: layout.travel.name, role: layout.travel.role, icon: NPC_ICONS.travel, posX: layout.travel.posX, posY: layout.travel.posY, actions: [] as TownAction[], emptyLabel: getTravelEmptyLabel(run.actNumber, layout.travel.name) }] : []),
-      { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: layout.stash.posX, posY: layout.stash.posY, actions: stashActions, emptyLabel: "The stash is empty." },
-      ...(layout.extras || []).map((extra) => {
-        const sourceActions: Record<string, TownAction[]> = { healer: healerActions, vendor: vendorActions, blacksmith: inventoryActions, mercenary: mercenaryActions, progression: progressionActions };
-        return { id: extra.id, name: extra.name, role: extra.role, icon: extra.icon, posX: extra.posX, posY: extra.posY, actions: sourceActions[extra.actionSource] || [], emptyLabel: `${extra.name} has nothing to offer.` };
-      }),
-    ];
+    const npcs: TownNpc[] = npcEntries
+      .filter((entry) => !entry.requiresCainRescue || cainRescued)
+      .map((entry) => {
+        const { actions, emptyLabel } = getActionsForVendorClasses(entry.vendorClasses, actionsByCategory, run.actNumber, entry.name);
+        return {
+          id: entry.id,
+          name: entry.name,
+          role: entry.role,
+          icon: entry.icon,
+          posX: entry.posX,
+          posY: entry.posY,
+          actions,
+          emptyLabel,
+          isMerc: entry.vendorClasses.includes(VC.MERCENARY),
+        };
+      });
 
     const focusedNpc = townFocus ? npcs.find((n) => n.id === townFocus) : null;
 
