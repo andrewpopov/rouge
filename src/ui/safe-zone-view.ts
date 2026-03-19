@@ -111,6 +111,10 @@
     ],
   };
 
+  const ACT_EXIT_GATES: Record<number, { posX: number; posY: number }> = {
+    3: { posX: 58, posY: 40 },
+  };
+
   const CATEGORY_ICONS: Record<string, string> = {
     service: "\u2764",
     vendor: "\u2696",
@@ -301,7 +305,7 @@
                onerror="this.style.display='none'" />
           <div class="town-npc-layer">
             ${npcIcons}
-            <button class="town-exit-gate" style="left:82%;top:78%"
+            <button class="town-exit-gate" style="left:${ACT_EXIT_GATES[run.actNumber]?.posX ?? 82}%;top:${ACT_EXIT_GATES[run.actNumber]?.posY ?? 78}%"
                     data-action="leave-safe-zone"
                     title="Exit to World Map">
               <span class="town-exit-gate__icon">\u{1F6AA}</span>

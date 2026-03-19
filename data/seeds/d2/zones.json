@@ -162,10 +162,12 @@
         "Throne of Destruction"
       ],
       "sideBranches": [
-        { "name": "Nihlathak's Temple", "from": "Frigid Highlands", "encounters": 5, "kind": "miniboss", "description": "Nihlathak's icy stronghold." },
         { "name": "Frozen River", "from": "Crystalline Passage", "encounters": 3, "kind": "battle", "description": "An icy cavern beneath the mountains." },
         { "name": "Drifter Cavern", "from": "Glacial Trail", "encounters": 3, "kind": "battle", "description": "A freezing cave of wandering undead." },
-        { "name": "Infernal Pit", "from": "Arreat Summit", "encounters": 4, "kind": "battle", "description": "A fiery pit of demonic forces." }
+        { "name": "Nihlathak's Temple", "from": "Harrogath", "gatedBy": "Frozen River", "encounters": 5, "kind": "miniboss", "description": "Nihlathak's icy stronghold, unlocked after clearing the Frozen River." },
+        { "name": "Halls of Anguish", "from": "Nihlathak's Temple", "encounters": 3, "kind": "battle", "description": "The first hall beneath Nihlathak's Temple." },
+        { "name": "Halls of Pain", "from": "Halls of Anguish", "encounters": 3, "kind": "battle", "description": "Deeper into the frozen halls of torment." },
+        { "name": "Halls of Vaught", "from": "Halls of Pain", "encounters": 1, "kind": "boss", "description": "Nihlathak awaits in the deepest hall." }
       ],
       "sideZones": [
         "Nihlathak's Temple",
@@ -176,7 +178,6 @@
         "Pit of Acheron",
         "Frozen River",
         "Drifter Cavern",
-        "Infernal Pit",
         "Icy Cellar"
       ]
     }

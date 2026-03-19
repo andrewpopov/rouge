@@ -113,8 +113,13 @@
       "Throne of Destruction": [48, 90],
       "The Worldstone Chamber": [72, 88],
       // Side branches
-      "Nihlathak's Temple": [16, 48],
-      "Frozen River":      [84, 16],
+      "Frozen River":        [84, 10],
+      "Drifter Cavern":      [90, 50],
+      // Nihlathak's Temple chain (from Harrogath, gated by Frozen River)
+      "Nihlathak's Temple":  [22, 48],
+      "Halls of Anguish":    [42, 48],
+      "Halls of Pain":       [62, 48],
+      "Halls of Vaught":     [82, 48],
     },
   };
 
@@ -124,6 +129,7 @@
    */
   const TOWN_EDGE_ZONES: Record<number, Set<string>> = {
     2: new Set(["Harem", "Sewers"]),
+    5: new Set(["Nihlathak's Temple"]),
   };
 
   /**
@@ -133,6 +139,7 @@
    */
   const HIDDEN_EDGES: Record<string, Set<string>> = {
     "Tristram": new Set(["Dark Wood"]),
+    "Nihlathak's Temple": new Set(["Frozen River"]),
   };
 
   /**

@@ -119,16 +119,18 @@
     const sideBranches = actSeed.sideBranches || [];
     const sideZones: ZoneState[] = [];
     const mainlineByName = new Map(mainlineZones.map((z) => [z.title, z]));
+    const sideByName = new Map<string, ZoneState>();
 
     for (const branch of sideBranches) {
-      const parentZone = mainlineByName.get(branch.from);
-      if (!parentZone) { continue; }
+      const isTownLink = branch.from === actSeed.town;
+      const parentZone = mainlineByName.get(branch.from) || sideByName.get(branch.from);
+      if (!parentZone && !isTownLink) { continue; }
 
-      const prerequisites = [parentZone.id];
+      const prerequisites: string[] = parentZone ? [parentZone.id] : [];
 
       // If a gate zone is specified, that zone must also be cleared
       if (branch.gatedBy) {
-        const gateZone = mainlineByName.get(branch.gatedBy);
+        const gateZone = mainlineByName.get(branch.gatedBy) || sideByName.get(branch.gatedBy);
         if (gateZone) { prerequisites.push(gateZone.id); }
       }
 
@@ -143,6 +145,7 @@
         content,
       });
       sideZones.push(zone);
+      sideByName.set(branch.name, zone);
     }
 
     // World nodes gate behind the last mainline zone before the boss
