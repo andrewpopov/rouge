@@ -43,11 +43,11 @@
       "Inner Cloister":    [37, 80],
       "Cathedral":         [25, 80],
       "Catacombs":         [10, 80],
-      // Side branches (upper row, spaced well apart)
-      "Den of Evil":       [18, 25],
-      "Burial Grounds":    [34, 20],
-      "Tristram":          [51, 24],
-      "Forgotten Tower":   [80, 24],
+      // Side branches (directly above their parent mainline zone)
+      "Den of Evil":       [19, 18],
+      "Burial Grounds":    [33, 18],
+      "Tristram":          [46, 18],
+      "Forgotten Tower":   [86, 18],
     },
     2: {
       // Mainline (left→right across the middle)
@@ -63,12 +63,11 @@
       "Arcane Sanctuary":  [44, 76],
       "Canyon of the Magi": [59, 76],
       "Tal Rasha's Tomb":  [76, 76],
-      "Tal Rasha's Chamber": [76, 84],
+      "Tal Rasha's Chamber": [90, 76],
       // Side branches (upper row)
-      "Sewers":            [16, 16],
+      "Sewers":            [8, 16],
       "Halls of the Dead": [38, 18],
       "Maggot Lair":       [56, 22],
-      "Lost Reliquary":    [86, 22],
     },
     3: {
       // Upper mainline (left→right)
@@ -86,7 +85,7 @@
       // Side branches
       "Spider Cavern":     [24, 14],
       "Flayer Dungeon":    [62, 13],
-      "Kurast Sewers":     [55, 82],
+      "Kurast Sewers":     [62, 86],
     },
     4: {
       // Single row (left→right)
@@ -117,6 +116,23 @@
       "Nihlathak's Temple": [16, 48],
       "Frozen River":      [84, 16],
     },
+  };
+
+  /**
+   * Zones whose map edge should originate from town rather than from
+   * their prerequisite (thematically the player returns to town first).
+   */
+  const TOWN_EDGE_ZONES: Record<number, Set<string>> = {
+    2: new Set(["Harem", "Sewers"]),
+  };
+
+  /**
+   * Gate-only prerequisite edges that should not be drawn visually.
+   * Key = zone title, value = set of prerequisite zone titles to skip drawing.
+   * The prerequisite still gates entry; we just don't draw the line.
+   */
+  const HIDDEN_EDGES: Record<string, Set<string>> = {
+    "Tristram": new Set(["Dark Wood"]),
   };
 
   /**
@@ -202,8 +218,9 @@
    * Build SVG edge paths connecting zones based on prerequisite chains.
    * Each zone draws an edge from each of its prerequisites.
    */
-  function buildSvgEdges(zones: ZoneState[], positions: Map<string, [number, number]>): string {
+  function buildSvgEdges(zones: ZoneState[], positions: Map<string, [number, number]>, actNumber: number): string {
     const zoneById = new Map(zones.map((z) => [z.id, z]));
+    const townEdgeSet = TOWN_EDGE_ZONES[actNumber];
     const lines: string[] = [];
 
     // Town → opening edge
@@ -228,10 +245,35 @@
     for (const zone of zones) {
       const tp = positions.get(zone.id);
       if (!tp) { continue; }
+
+      // Zones in TOWN_EDGE_ZONES draw their edge from town instead of prerequisite
+      if (townEdgeSet?.has(zone.title)) {
+        const fp = positions.get("town");
+        if (fp) {
+          const allPrereqsCleared = (zone.prerequisites || []).every((pid) => zoneById.get(pid)?.status === "cleared");
+          const active = allPrereqsCleared && zone.status === "available";
+          const bothCleared = allPrereqsCleared && zone.status === "cleared";
+          let cls: string;
+          if (bothCleared) {
+            cls = "edge--cleared";
+          } else if (active) {
+            cls = "edge--active";
+          } else {
+            cls = "edge--locked";
+          }
+          lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
+        }
+        continue;
+      }
+
+      const hiddenSet = HIDDEN_EDGES[zone.title];
       for (const prereqId of zone.prerequisites || []) {
         const prereq = zoneById.get(prereqId);
         const fp = positions.get(prereqId);
         if (!fp || !prereq) { continue; }
+
+        // Skip gate-only edges that shouldn't be drawn visually
+        if (hiddenSet?.has(prereq.title)) { continue; }
 
         const bothCleared = prereq.status === "cleared" && zone.status === "cleared";
         const active = prereq.status === "cleared" && zone.status === "available";
@@ -304,9 +346,9 @@
     const reachableZoneIds = new Set(services.runFactory.getReachableZones(run).map((z) => z.id));
     const clearedCount = currentZones.filter((z) => z.cleared).length;
 
-    // Filter out shrines, opportunities, events, and unmapped zones
+    // Filter out world-node zones (quests, shrines, opportunities, events)
     const mapZones = currentZones.filter(
-      (z) => z.kind !== "shrine" && z.kind !== "opportunity" && z.kind !== "event"
+      (z) => z.kind !== "quest" && z.kind !== "shrine" && z.kind !== "opportunity" && z.kind !== "event"
     );
 
     const actMapFile = getActMapFilename(run.actNumber);
@@ -322,7 +364,7 @@
     `;
 
     const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), escapeHtml, positions)).join("");
-    const edges = buildSvgEdges(mapZones, positions);
+    const edges = buildSvgEdges(mapZones, positions, run.actNumber);
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const zoneTitles = Object.fromEntries(currentZones.map((zone) => [zone.id, zone.title]));
 

@@ -109,7 +109,7 @@ test("safe-zone merchant overlay includes description text", () => {
   const { state, appShell, browserWindow: _browserWindow } = createTownFixture();
 
   // Focus on a vendor NPC to trigger the overlay
-  state.ui.townFocus = "gheed";
+  state.ui.townFocus = "vendor";
 
   const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
   appShell.render(root, {
