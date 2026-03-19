@@ -70,9 +70,9 @@
       skillRef: "barbarian_iron_skin",
       tier: 1,
     },
-    barbarian_battle_recovery: {
-      id: "barbarian_battle_recovery",
-      title: "Battle Recovery",
+    barbarian_natural_resistance: {
+      id: "barbarian_natural_resistance",
+      title: "Natural Resistance",
       cost: 1,
       target: "none",
       text: "Heal 6. Gain 3 Guard.",
@@ -80,7 +80,7 @@
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 3 },
       ],
-      skillRef: "barbarian_battle_recovery",
+      skillRef: "barbarian_natural_resistance",
       tier: 1,
     },
 
@@ -229,7 +229,7 @@
     "barbarian_howl", "barbarian_howl",
     "barbarian_find_potion", "barbarian_find_potion",
     "rally_mercenary",
-    "barbarian_battle_recovery",
+    "barbarian_natural_resistance",
     "barbarian_iron_skin",
     "barbarian_iron_skin",
   ];

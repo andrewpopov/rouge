@@ -60,9 +60,9 @@
       skillRef: "druid_poison_creeper",
       tier: 1,
     },
-    druid_bark_skin: {
-      id: "druid_bark_skin",
-      title: "Bark Skin",
+    druid_cyclone_armor: {
+      id: "druid_cyclone_armor",
+      title: "Cyclone Armor",
       cost: 1,
       target: "enemy",
       text: "Deal 5 damage. Gain 4 Guard.",
@@ -70,12 +70,12 @@
         { kind: "damage", value: 5 },
         { kind: "gain_guard_self", value: 4 },
       ],
-      skillRef: "druid_bark_skin",
+      skillRef: "druid_cyclone_armor",
       tier: 1,
     },
-    druid_rejuvenation: {
-      id: "druid_rejuvenation",
-      title: "Rejuvenation",
+    druid_lycanthropy: {
+      id: "druid_lycanthropy",
+      title: "Lycanthropy",
       cost: 1,
       target: "none",
       text: "Heal 6. Gain 3 Guard.",
@@ -83,7 +83,7 @@
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 3 },
       ],
-      skillRef: "druid_rejuvenation",
+      skillRef: "druid_lycanthropy",
       tier: 1,
     },
 
@@ -241,10 +241,10 @@
     "druid_raven", "druid_raven",
     "druid_poison_creeper",
     "rally_mercenary",
-    "druid_rejuvenation",
-    "druid_bark_skin",
-    "druid_bark_skin",
-    "druid_bark_skin",
+    "druid_lycanthropy",
+    "druid_cyclone_armor",
+    "druid_cyclone_armor",
+    "druid_cyclone_armor",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

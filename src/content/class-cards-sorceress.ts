@@ -73,9 +73,9 @@
       skillRef: "sorceress_energy_shield",
       tier: 1,
     },
-    sorceress_mana_renewal: {
-      id: "sorceress_mana_renewal",
-      title: "Mana Renewal",
+    sorceress_frozen_armor: {
+      id: "sorceress_frozen_armor",
+      title: "Frozen Armor",
       cost: 1,
       target: "none",
       text: "Heal 6. Gain 3 Guard.",
@@ -83,7 +83,7 @@
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 3 },
       ],
-      skillRef: "sorceress_mana_renewal",
+      skillRef: "sorceress_frozen_armor",
       tier: 1,
     },
 
@@ -243,7 +243,7 @@
     "sorceress_charged_bolt", "sorceress_charged_bolt",
     "sorceress_warmth", "sorceress_warmth",
     "rally_mercenary",
-    "sorceress_mana_renewal",
+    "sorceress_frozen_armor",
     "sorceress_energy_shield",
     "sorceress_energy_shield",
   ];

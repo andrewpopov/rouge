@@ -70,9 +70,9 @@
       skillRef: "assassin_blade_shield",
       tier: 1,
     },
-    assassin_shadow_mend: {
-      id: "assassin_shadow_mend",
-      title: "Shadow Mend",
+    assassin_cloak_of_shadows: {
+      id: "assassin_cloak_of_shadows",
+      title: "Cloak of Shadows",
       cost: 1,
       target: "none",
       text: "Heal 6. Gain 3 Guard.",
@@ -80,7 +80,7 @@
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 3 },
       ],
-      skillRef: "assassin_shadow_mend",
+      skillRef: "assassin_cloak_of_shadows",
       tier: 1,
     },
 
@@ -222,7 +222,7 @@
     "assassin_claw_mastery", "assassin_claw_mastery",
     "assassin_psychic_hammer", "assassin_psychic_hammer",
     "rally_mercenary",
-    "assassin_shadow_mend",
+    "assassin_cloak_of_shadows",
     "assassin_blade_shield",
     "assassin_blade_shield",
   ];
