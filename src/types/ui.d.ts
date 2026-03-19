@@ -545,6 +545,7 @@ interface Window {
   __ROUGE_REWARD_VIEW_CONTINUITY: RewardViewContinuityApi;
   __ROUGE_ACCOUNT_META_DRILLDOWN: AccountMetaDrilldownInternalApi;
   ROUGE_ASSET_MAP: AssetMapApi;
+  __ROUGE_COMBAT_BG: { getCombatBackground(zoneTitle: string): string };
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
