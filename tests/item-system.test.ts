@@ -367,8 +367,8 @@ test("getLoadoutSummary returns descriptive lines for the current loadout", () =
 
   assert.ok(Array.isArray(lines));
   assert.ok(lines.length >= 2, "should have at least weapon and armor lines");
-  assert.ok(lines[0].startsWith("Weapon:"));
-  assert.ok(lines[1].startsWith("Armor:"));
+  assert.ok(lines.some((line: string) => line.startsWith("Weapon:")), "should include a weapon line");
+  assert.ok(lines.some((line: string) => line.startsWith("Armor:")), "should include an armor line");
 });
 
 test("getLoadoutSummary shows None for empty slots", () => {
@@ -378,8 +378,7 @@ test("getLoadoutSummary shows None for empty slots", () => {
   run.loadout.armor = null;
 
   const lines = itemSystem.getLoadoutSummary(run, content);
-  assert.ok(lines[0].includes("None"));
-  assert.ok(lines[1].includes("None"));
+  assert.ok(lines[0].includes("No equipment equipped"));
 });
 
 // ---------------------------------------------------------------------------

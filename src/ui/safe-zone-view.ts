@@ -288,6 +288,12 @@
       ? buildNpcOverlay(focusedNpc, run.gold, escapeHtml)
       : "";
 
+    const inventoryOverlay = appState.ui.inventoryOpen
+      ? `<div class="inv-overlay" data-action="close-inventory">
+          <div data-action="noop">${runtimeWindow.ROUGE_INVENTORY_VIEW.buildInventoryMarkup(appState, services)}</div>
+        </div>`
+      : "";
+
     const statusBar = `
       <div class="town-status">
         <span class="town-status__zone">${escapeHtml(run.safeZoneName)}</span>
@@ -311,6 +317,9 @@
                onerror="this.style.display='none'" />
           <div class="town-npc-layer">
             ${npcIcons}
+            <button class="town-inv-btn" data-action="open-inventory" title="Open Inventory">
+              \u{1F392} Inventory
+            </button>
             <button class="town-exit-gate" style="left:${ACT_EXIT_GATES[run.actNumber]?.posX ?? 82}%;top:${ACT_EXIT_GATES[run.actNumber]?.posY ?? 78}%"
                     data-action="leave-safe-zone"
                     title="Exit to World Map">
@@ -321,6 +330,7 @@
         </div>
       </div>
       ${npcOverlay}
+      ${inventoryOverlay}
       <details class="town-operations-details">
         <summary class="town-operations-toggle">Town Details</summary>
         <section class="safe-zone-grid">

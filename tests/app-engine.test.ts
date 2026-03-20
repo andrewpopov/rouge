@@ -194,9 +194,10 @@ test("town actions can spend skill points and move inventory through vendor, loa
   assert.ok(carriedEquipment);
   result = appEngine.useTownAction(state, `inventory_equip_${carriedEquipment.entryId}`);
   assert.equal(result.ok, true);
-  assert.equal(state.run.loadout[carriedEquipment.equipment.slot]?.itemId, carriedEquipment.equipment.itemId);
+  const equipSlotKey = carriedEquipment.equipment.slot === "ring" ? "ring1" : carriedEquipment.equipment.slot;
+  assert.equal((state.run.loadout as Record<string, RunEquipmentState | null>)[equipSlotKey]?.itemId, carriedEquipment.equipment.itemId);
 
-  result = appEngine.useTownAction(state, `inventory_unequip_${carriedEquipment.equipment.slot}`);
+  result = appEngine.useTownAction(state, `inventory_unequip_${equipSlotKey}`);
   assert.equal(result.ok, true);
   const returnedEquipment = state.run.inventory.carried.find((entry) => entry.kind === "equipment");
   assert.ok(returnedEquipment);

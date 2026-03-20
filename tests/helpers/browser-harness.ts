@@ -23,6 +23,7 @@ const SHARED_RUNTIME_FILES = [
   "src/content/class-cards-paladin.js",
   "src/content/class-cards-sorceress.js",
   "src/content/class-cards.js",
+  "src/content/skill-evolution-trees.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
   "src/combat/combat-engine-monster-actions.js",
@@ -56,6 +57,7 @@ const ENCOUNTER_REGISTRY_HELPER_FILES = [
 
 const ITEM_RUNTIME_FILES = [
   "src/items/item-data-runes.js",
+  "src/items/item-data-accessories.js",
   "src/items/item-data.js",
   "src/items/item-catalog.js",
   "src/items/item-loadout.js",
@@ -65,6 +67,7 @@ const ITEM_RUNTIME_FILES = [
   "src/items/item-town-vendor-offers.js",
   "src/items/item-town-vendor.js",
   "src/items/item-town-actions.js",
+  "src/items/item-town-deck-services.js",
   "src/items/item-town.js",
   "src/items/item-system-rewards.js",
   "src/items/item-system.js",
@@ -104,6 +107,7 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/character-select-view.js",
   "src/ui/safe-zone-operations-view-markup.js",
   "src/ui/safe-zone-operations-view.js",
+  "src/ui/inventory-view.js",
   "src/ui/safe-zone-view.js",
   "src/ui/world-map-view.js",
   "src/ui/combat-view.js",

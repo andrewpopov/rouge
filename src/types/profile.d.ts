@@ -207,7 +207,7 @@ interface ProfileAccountConvergenceSummary {
 }
 
 interface ProfilePlanningCharterSummary {
-  slot: "weapon" | "armor";
+  slot: EquipmentSlot;
   runewordId: string;
   archivedRunCount: number;
   completedRunCount: number;

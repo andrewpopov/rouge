@@ -1,7 +1,10 @@
+type EquipmentSlot = "weapon" | "armor" | "helm" | "shield" | "gloves" | "boots" | "belt" | "ring" | "amulet";
+type LoadoutSlotKey = "weapon" | "armor" | "helm" | "shield" | "gloves" | "boots" | "belt" | "ring1" | "ring2" | "amulet";
+
 interface RunEquipmentState {
   entryId: string;
   itemId: string;
-  slot: "weapon" | "armor";
+  slot: EquipmentSlot;
   socketsUnlocked: number;
   insertedRunes: string[];
   runewordId: string;
@@ -35,6 +38,7 @@ interface RunVendorState {
 
 interface RunTownState {
   vendor: RunVendorState;
+  sagePurgeCount: number;
 }
 
 interface ItemTemplateDefinition {
@@ -64,6 +68,14 @@ interface RunewordTemplateDefinition {
 interface HydratedLoadout {
   weapon: RunEquipmentState | null;
   armor: RunEquipmentState | null;
+  helm: RunEquipmentState | null;
+  shield: RunEquipmentState | null;
+  gloves: RunEquipmentState | null;
+  boots: RunEquipmentState | null;
+  belt: RunEquipmentState | null;
+  ring1: RunEquipmentState | null;
+  ring2: RunEquipmentState | null;
+  amulet: RunEquipmentState | null;
 }
 
 interface AccountEconomyFeatures {

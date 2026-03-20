@@ -119,6 +119,14 @@
       run.loadout = {
         weapon: null,
         armor: null,
+        helm: null,
+        shield: null,
+        gloves: null,
+        boots: null,
+        belt: null,
+        ring1: null,
+        ring2: null,
+        amulet: null,
       };
     }
 
@@ -169,6 +177,14 @@
       loadout: {
         weapon: null as RunEquipmentState | null,
         armor: null as RunEquipmentState | null,
+        helm: null as RunEquipmentState | null,
+        shield: null as RunEquipmentState | null,
+        gloves: null as RunEquipmentState | null,
+        boots: null as RunEquipmentState | null,
+        belt: null as RunEquipmentState | null,
+        ring1: null as RunEquipmentState | null,
+        ring2: null as RunEquipmentState | null,
+        amulet: null as RunEquipmentState | null,
       },
       town: createDefaultTownState(),
       progression: createDefaultProgression(),

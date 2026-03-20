@@ -3,13 +3,18 @@
   const { ITEM_TEMPLATES, RUNE_TEMPLATES, RUNEWORD_TEMPLATES, RUNE_REWARD_POOLS } = runtimeWindow.ROUGE_ITEM_DATA;
   const { clamp, toNumber, uniquePush } = runtimeWindow.ROUGE_UTILS;
 
+  const SLOT_FAMILY_DEFAULTS: Record<EquipmentSlot, string> = {
+    weapon: "Weapons", armor: "Body Armor", helm: "Helms", shield: "Shields",
+    gloves: "Gloves", boots: "Boots", belt: "Belts", ring: "Rings", amulet: "Amulets",
+  };
+
   function toItemDefinition(seedEntry: Record<string, unknown> | null, templateId: string, template: ItemTemplateDefinition) {
     return {
       id: templateId,
       sourceId: template.sourceId,
       name: (seedEntry?.name as string) || template.sourceId,
-      slot: template.slot as "weapon" | "armor",
-      family: (seedEntry?.family as string) || template.family || (template.slot === "weapon" ? "Weapons" : "Body Armor"),
+      slot: template.slot as EquipmentSlot,
+      family: (seedEntry?.family as string) || template.family || (SLOT_FAMILY_DEFAULTS[template.slot as EquipmentSlot] || "Gear"),
       summary: (seedEntry?.summary as string) || "A salvaged piece of gear adapted for Rouge's persistent build growth.",
       actRequirement: template.actRequirement,
       progressionTier: template.progressionTier,
@@ -23,7 +28,7 @@
       id: templateId,
       sourceId: template.sourceId,
       name: (seedEntry?.name as string) || template.sourceId,
-      allowedSlots: [...template.allowedSlots] as Array<"weapon" | "armor">,
+      allowedSlots: [...template.allowedSlots] as Array<EquipmentSlot>,
       rank: (seedEntry?.rank as number) || 1,
       progressionTier: template.progressionTier,
       summary: (seedEntry?.summary as string) || "A socketable rune adapted for Rouge's runeword seam.",
@@ -40,7 +45,7 @@
       id: runewordId,
       sourceId: template.sourceId,
       name: (seedEntry?.name as string) || runewordId,
-      slot: template.slot as "weapon" | "armor",
+      slot: template.slot as EquipmentSlot,
       familyAllowList: [...(template.familyAllowList || [])],
       progressionTier,
       socketCount: template.requiredRunes.length,
@@ -114,7 +119,7 @@
   }
 
   function isRuneAllowedInSlot(rune: RuntimeRuneDefinition | null, slot: string) {
-    return Array.isArray(rune?.allowedSlots) && rune.allowedSlots.includes(slot as "weapon" | "armor");
+    return Array.isArray(rune?.allowedSlots) && rune.allowedSlots.includes(slot as EquipmentSlot);
   }
 
   function resolveRunewordId(equipment: RunEquipmentState | null, content: GameContent) {
@@ -196,11 +201,24 @@
     return equipment;
   }
 
+  function itemSlotForLoadoutKey(loadoutKey: string): string {
+    if (loadoutKey === "ring1" || loadoutKey === "ring2") { return "ring"; }
+    return loadoutKey;
+  }
+
   function buildHydratedLoadout(run: RunState, content: GameContent) {
     const source = (run?.loadout || {}) as Record<string, unknown>;
     return {
       weapon: normalizeEquipmentState(source.weapon, "weapon", content, (source.weaponRune as string) || ""),
       armor: normalizeEquipmentState(source.armor, "armor", content, (source.armorRune as string) || ""),
+      helm: normalizeEquipmentState(source.helm, "helm", content),
+      shield: normalizeEquipmentState(source.shield, "shield", content),
+      gloves: normalizeEquipmentState(source.gloves, "gloves", content),
+      boots: normalizeEquipmentState(source.boots, "boots", content),
+      belt: normalizeEquipmentState(source.belt, "belt", content),
+      ring1: normalizeEquipmentState(source.ring1, "ring", content),
+      ring2: normalizeEquipmentState(source.ring2, "ring", content),
+      amulet: normalizeEquipmentState(source.amulet, "amulet", content),
     };
   }
 
@@ -301,6 +319,7 @@
     uniquePush,
     toNumber,
     createRuntimeContent,
+    itemSlotForLoadoutKey,
     getItemDefinition,
     getRuneDefinition,
     getRunewordDefinition,

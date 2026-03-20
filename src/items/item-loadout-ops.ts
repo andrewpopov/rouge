@@ -11,6 +11,7 @@
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
   const loadoutApi = runtimeWindow.ROUGE_ITEM_LOADOUT;
   const {
+    ALL_LOADOUT_SLOTS,
     addEquipmentToInventory,
     addRuneToInventory,
     buildBareEquipment,
@@ -23,17 +24,19 @@
     hydrateRunLoadout,
     removeCarriedEntry,
     removeStashEntry,
+    resolveLoadoutKey,
     syncRunewordTracking,
   } = loadoutApi;
 
-  function equipInventoryEntry(run: RunState, entryId: string, content: GameContent) {
+  function equipInventoryEntry(run: RunState, entryId: string, content: GameContent, targetLoadoutSlot?: LoadoutSlotKey) {
     const entry = findCarriedEntry(run, entryId);
     if (!entry || entry.kind !== "equipment") {
       return { ok: false, message: "That equipment entry is not available." };
     }
 
     const nextEquipment = cloneEquipmentState(entry.equipment);
-    const currentEquipment = run.loadout[nextEquipment.slot];
+    const loadoutKey = targetLoadoutSlot || resolveLoadoutKey(nextEquipment.slot, run);
+    const currentEquipment = run.loadout[loadoutKey];
     const carriedProgress = getPreservedSlotProgression(currentEquipment, nextEquipment.itemId, content);
     nextEquipment.socketsUnlocked = carriedProgress.socketsUnlocked;
     nextEquipment.insertedRunes = carriedProgress.insertedRunes;
@@ -52,12 +55,12 @@
       }
     }
 
-    run.loadout[nextEquipment.slot] = nextEquipment;
+    run.loadout[loadoutKey] = nextEquipment;
     syncRunewordTracking(run, content);
     return { ok: true, message: `${getEntryLabel(entry, content)} equipped.` };
   }
 
-  function unequipSlot(run: RunState, slot: "weapon" | "armor", content: GameContent) {
+  function unequipSlot(run: RunState, slot: LoadoutSlotKey, content: GameContent) {
     const equipment = run.loadout?.[slot] || null;
     if (!equipment) {
       return { ok: false, message: "No equipment is equipped in that slot." };
@@ -73,7 +76,7 @@
     return { ok: true, message: "Equipment moved to inventory." };
   }
 
-  function socketInventoryRune(run: RunState, entryId: string, slot: "weapon" | "armor", content: GameContent) {
+  function socketInventoryRune(run: RunState, entryId: string, slot: LoadoutSlotKey, content: GameContent) {
     const entry = findCarriedEntry(run, entryId);
     const equipment = run.loadout?.[slot] || null;
     const rune = getRuneDefinition(content, (entry as InventoryRuneEntry)?.runeId || "");
@@ -92,6 +95,9 @@
   }
 
   function stashCarriedEntry(run: RunState, profile: ProfileState, entryId: string) {
+    if (loadoutApi.isStashFull(profile)) {
+      return { ok: false, message: "Stash is full." };
+    }
     const entry = removeCarriedEntry(run, entryId);
     if (!entry) {
       return { ok: false, message: "That inventory entry is no longer available." };
@@ -133,7 +139,8 @@
 
   function getActiveRunewords(run: RunState, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
-    return [loadout.weapon, loadout.armor]
+    return ALL_LOADOUT_SLOTS
+      .map((slot: LoadoutSlotKey) => loadout[slot])
       .filter(Boolean)
       .map((equipment: RunEquipmentState) => getRunewordDefinition(content, resolveRunewordId(equipment, content))?.name || "")
       .filter(Boolean);
@@ -141,10 +148,12 @@
 
   function getLoadoutSummary(run: RunState, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
-    const lines = [
-      describeEquipmentState("Weapon", loadout.weapon, content),
-      describeEquipmentState("Armor", loadout.armor, content),
-    ];
+    const lines = ALL_LOADOUT_SLOTS
+      .filter((slot: LoadoutSlotKey) => loadout[slot])
+      .map((slot: LoadoutSlotKey) => describeEquipmentState(loadoutApi.LOADOUT_SLOT_LABELS[slot] || slot, loadout[slot], content));
+    if (lines.length === 0) {
+      lines.push("No equipment equipped.");
+    }
     const activeRunewords = getActiveRunewords(run, content);
     if (activeRunewords.length > 0) {
       lines.push(`Runewords: ${activeRunewords.join(", ")}`);
@@ -179,7 +188,8 @@
 
       if (effect.kind === "add_socket") {
         const slot = effect.slot;
-        const equipment = run.loadout[slot];
+        const loadoutKey = slot === "ring" ? resolveLoadoutKey("ring", run) : (slot as LoadoutSlotKey);
+        const equipment = run.loadout[loadoutKey];
         const item = getItemDefinition(content, equipment?.itemId || "");
         if (!slot || !equipment || !item) {
           return { ok: false, message: "No equipment is available for socketing." };
@@ -193,7 +203,8 @@
 
       if (effect.kind === "socket_rune") {
         const slot = effect.slot;
-        const equipment = run.loadout[slot];
+        const loadoutKey = slot === "ring" ? resolveLoadoutKey("ring", run) : (slot as LoadoutSlotKey);
+        const equipment = run.loadout[loadoutKey];
         const rune = getRuneDefinition(content, effect.runeId);
         if (!slot || !equipment || !rune || !isRuneAllowedInSlot(rune, slot)) {
           return { ok: false, message: "Reward rune is invalid." };
@@ -202,7 +213,7 @@
         if (!entry) {
           return { ok: false, message: "Reward rune could not be created." };
         }
-        const socketResult = socketInventoryRune(run, entry.entryId, slot, content);
+        const socketResult = socketInventoryRune(run, entry.entryId, loadoutKey, content);
         if (!socketResult.ok) {
           return socketResult;
         }
@@ -224,16 +235,16 @@
     const loadout = buildHydratedLoadout(run, content);
     const total = {};
 
-    [loadout.weapon, loadout.armor]
-      .filter(Boolean)
-      .forEach((equipment: RunEquipmentState) => {
-        const item = getItemDefinition(content, equipment.itemId);
-        const activeRuneword = getRunewordDefinition(content, resolveRunewordId(equipment, content));
-        addBonuses(total, item?.bonuses || {});
-        addBonuses(total, equipment.rarityBonuses || {});
-        equipment.insertedRunes.forEach((runeId: string) => addBonuses(total, getRuneDefinition(content, runeId)?.bonuses || {}));
-        addBonuses(total, activeRuneword?.bonuses || {});
-      });
+    ALL_LOADOUT_SLOTS.forEach((slot: LoadoutSlotKey) => {
+      const equipment = loadout[slot];
+      if (!equipment) { return; }
+      const item = getItemDefinition(content, equipment.itemId);
+      const activeRuneword = getRunewordDefinition(content, resolveRunewordId(equipment, content));
+      addBonuses(total, item?.bonuses || {});
+      addBonuses(total, equipment.rarityBonuses || {});
+      equipment.insertedRunes.forEach((runeId: string) => addBonuses(total, getRuneDefinition(content, runeId)?.bonuses || {}));
+      addBonuses(total, activeRuneword?.bonuses || {});
+    });
 
     return total;
   }

@@ -50,9 +50,14 @@
       carried: [],
     };
 
-    (["weapon", "armor"] as const).forEach((slot) => {
+    const allLoadoutSlots: LoadoutSlotKey[] = ["weapon", "armor", "helm", "shield", "gloves", "boots", "belt", "ring1", "ring2", "amulet"];
+    const equippedEntryIds = new Set<string>();
+    allLoadoutSlots.forEach((slot) => {
       if (run.loadout?.[slot]) {
         ensureEquipmentEntryId(run, run.loadout[slot]);
+        if (run.loadout[slot]?.entryId) {
+          equippedEntryIds.add(run.loadout[slot].entryId);
+        }
       }
     });
 
@@ -63,7 +68,7 @@
         if (entry.kind !== "equipment") {
           return true;
         }
-        return entry.entryId !== run.loadout?.weapon?.entryId && entry.entryId !== run.loadout?.armor?.entryId;
+        return !equippedEntryIds.has(entry.entryId);
       });
 
     run.inventory.carried = normalizedCarried;
@@ -135,17 +140,17 @@
     }
 
     if (actionId.startsWith("inventory_unequip_")) {
-      return unequipSlot(run, actionId.replace("inventory_unequip_", "") as "weapon" | "armor", content);
+      return unequipSlot(run, actionId.replace("inventory_unequip_", "") as LoadoutSlotKey, content);
     }
 
     if (actionId.startsWith("inventory_socket_")) {
       const payload = actionId.replace("inventory_socket_", "");
       const [slot, entryId] = payload.split("__");
-      return socketInventoryRune(run, entryId, slot as "weapon" | "armor", content);
+      return socketInventoryRune(run, entryId, slot as LoadoutSlotKey, content);
     }
 
     if (actionId.startsWith("inventory_commission_loadout_")) {
-      const slot = actionId.replace("inventory_commission_loadout_", "") as "weapon" | "armor";
+      const slot = actionId.replace("inventory_commission_loadout_", "") as LoadoutSlotKey;
       const equipment = run.loadout?.[slot] || null;
       if (!equipment) {
         return { ok: false, message: "No equipped item is available for commission." };

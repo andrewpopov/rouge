@@ -256,6 +256,14 @@
         appState.ui.townFocus = "";
         render();
         return true;
+      case "open-inventory":
+        appState.ui.inventoryOpen = true;
+        render();
+        return true;
+      case "close-inventory":
+        appState.ui.inventoryOpen = false;
+        render();
+        return true;
       case "leave-safe-zone":
         appState.ui.townFocus = "";
         appEngine.leaveSafeZone(appState);

@@ -284,21 +284,26 @@
         case "equip_item": {
           const item = content.itemCatalog?.[effect.itemId || ""] || null;
           const slot = item?.slot || effect.slot || "weapon";
-          const currentItem = run.loadout?.[slot]?.itemId ? content.itemCatalog?.[run.loadout[slot].itemId]?.name || run.loadout[slot].itemId : "Empty";
-          lines.push(`${slot === "weapon" ? "Weapon" : "Armor"} ${currentItem} -> ${item?.name || effect.itemId || "Unknown item"}.`);
+          const SLOT_LABEL = runtimeWindow.ROUGE_ITEM_LOADOUT.EQUIPMENT_SLOT_LABELS;
+          const loadoutKey = slot === "ring" ? "ring1" : slot;
+          const currentItem = (run.loadout as Record<string, RunEquipmentState | null>)?.[loadoutKey]?.itemId ? content.itemCatalog?.[(run.loadout as Record<string, RunEquipmentState | null>)[loadoutKey].itemId]?.name || "Equipped" : "Empty";
+          lines.push(`${SLOT_LABEL[slot] || slot} ${currentItem} -> ${item?.name || effect.itemId || "Unknown item"}.`);
           break;
         }
         case "add_socket": {
           const slot = effect.slot || "weapon";
-          const equipment = run.loadout?.[slot] || null;
+          const loadoutKey2 = slot === "ring" ? "ring1" : slot;
+          const equipment = (run.loadout as Record<string, RunEquipmentState | null>)?.[loadoutKey2] || null;
           const currentSockets = equipment?.socketsUnlocked || 0;
-          lines.push(`${slot === "weapon" ? "Weapon" : "Armor"} sockets ${currentSockets} -> ${currentSockets + 1}.`);
+          const SLOT_LABEL2 = runtimeWindow.ROUGE_ITEM_LOADOUT.EQUIPMENT_SLOT_LABELS;
+          lines.push(`${SLOT_LABEL2[slot] || slot} sockets ${currentSockets} -> ${currentSockets + 1}.`);
           break;
         }
         case "socket_rune": {
           const slot = effect.slot || "weapon";
+          const loadoutKey3 = slot === "ring" ? "ring1" : slot;
           const runeLabel = content.runeCatalog?.[effect.runeId || ""]?.name || effect.runeId || "Unknown rune";
-          const equipment = run.loadout?.[slot] || null;
+          const equipment = (run.loadout as Record<string, RunEquipmentState | null>)?.[loadoutKey3] || null;
           const filledSockets = equipment?.insertedRunes?.length || 0;
           lines.push(`${runeLabel} enters the ${slot}, filling sockets ${filledSockets} -> ${filledSockets + 1}.`);
           break;

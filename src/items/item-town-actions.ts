@@ -159,7 +159,8 @@
       }
     });
 
-    (["weapon", "armor"] as const).forEach((slot) => {
+    const { ALL_LOADOUT_SLOTS: allLoadoutSlots, LOADOUT_SLOT_LABELS: SLOT_LABELS } = runtimeWindow.ROUGE_ITEM_LOADOUT;
+    allLoadoutSlots.forEach((slot) => {
       const equipment = run.loadout?.[slot];
       if (!equipment) {
         return;
@@ -169,7 +170,7 @@
           id: `inventory_unequip_${slot}`,
           category: "inventory",
           title: getItemDefinition(content, equipment.itemId)?.name || equipment.itemId,
-          subtitle: "Unequip",
+          subtitle: `Unequip ${SLOT_LABELS[slot] || slot}`,
           description: `Move ${getItemDefinition(content, equipment.itemId)?.name || equipment.itemId} back into carried inventory.`,
           previewLines: [`Sockets ${equipment.insertedRunes.length}/${equipment.socketsUnlocked}.`],
           cost: 0,
@@ -184,8 +185,8 @@
         profile,
         "loadout",
         `inventory_commission_loadout_${slot}`,
-        `Commission ${slot === "weapon" ? "Weapon" : "Armor"} Socket`,
-        `Pay the town artisan to open the next socket on your equipped ${slot}.`
+        `Commission ${SLOT_LABELS[slot] || slot} Socket`,
+        `Pay the town artisan to open the next socket on your equipped ${SLOT_LABELS[slot]?.toLowerCase() || slot}.`
       );
       if (commissionAction) {
         actions.push(commissionAction);
@@ -219,17 +220,17 @@
           actions.push(commissionAction);
         }
       } else {
-        (["weapon", "armor"] as const).forEach((slot) => {
+        allLoadoutSlots.forEach((slot) => {
           const equipment = run.loadout?.[slot];
           const rune = getRuneDefinition(content, entry.runeId);
-          if (!equipment || !rune || !isRuneAllowedInSlot(rune, slot)) {
+          if (!equipment || !rune || !isRuneAllowedInSlot(rune, equipment.slot)) {
             return;
           }
           actions.push({
             id: `inventory_socket_${slot}__${entry.entryId}`,
             category: "inventory",
             title: getEntryLabel(entry, content),
-            subtitle: `Socket ${slot === "weapon" ? "Weapon" : "Armor"} Rune`,
+            subtitle: `Socket ${SLOT_LABELS[slot] || slot} Rune`,
             description: `Socket ${rune.name} into ${getItemDefinition(content, equipment.itemId)?.name || equipment.itemId}.`,
             previewLines: [`${equipment.insertedRunes.length}/${equipment.socketsUnlocked} sockets filled.`],
             cost: 0,
@@ -250,15 +251,19 @@
           { label: "Sell" }
         )
       );
+      const { isStashFull } = runtimeWindow.ROUGE_ITEM_LOADOUT;
+      const stashFull = isStashFull(profile);
       actions.push(
         buildInventoryAction(
           entry,
           content,
           "inventory_stash",
           "Move To Stash",
-          `Move ${getEntryLabel(entry, content)} out of the active run inventory and into the profile stash.`,
-          ["Withdraw later from any safe zone."],
-          { label: "Stash" }
+          stashFull
+            ? "Stash is full. Sell or withdraw items first."
+            : `Move ${getEntryLabel(entry, content)} out of the active run inventory and into the profile stash.`,
+          stashFull ? ["Stash is full (5/5)."] : ["Withdraw later from any safe zone."],
+          { label: "Stash", disabled: stashFull }
         )
       );
     });

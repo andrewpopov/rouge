@@ -329,11 +329,15 @@
   }
 
   function addVendorEntryToProfileStash(profile: ProfileState, entry: InventoryEntry, content: GameContent) {
+    const { STASH_CAPACITY } = runtimeWindow.ROUGE_ITEM_LOADOUT;
+    profile.stash = profile.stash || { entries: [] };
+    if ((profile.stash.entries?.length || 0) >= STASH_CAPACITY) {
+      return null;
+    }
     const cloned = cloneInventoryEntry(entry);
     if (!cloned) {
       return null;
     }
-    profile.stash = profile.stash || { entries: [] };
     profile.stash.entries.push(cloned);
     hydrateProfileStash(profile, content);
     return cloned;

@@ -237,7 +237,7 @@ interface RuntimeItemDefinition {
   id: string;
   sourceId: string;
   name: string;
-  slot: "weapon" | "armor";
+  slot: EquipmentSlot;
   family: string;
   summary: string;
   actRequirement: number;
@@ -250,7 +250,7 @@ interface RuntimeRuneDefinition {
   id: string;
   sourceId: string;
   name: string;
-  allowedSlots: Array<"weapon" | "armor">;
+  allowedSlots: Array<EquipmentSlot>;
   rank: number;
   progressionTier: number;
   summary: string;
@@ -261,7 +261,7 @@ interface RuntimeRunewordDefinition {
   id: string;
   sourceId: string;
   name: string;
-  slot: "weapon" | "armor";
+  slot: EquipmentSlot;
   familyAllowList?: string[];
   progressionTier: number;
   socketCount: number;

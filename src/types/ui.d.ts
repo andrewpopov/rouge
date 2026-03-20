@@ -252,6 +252,9 @@ interface SafeZoneOperationsModel {
   quartermasterActions: TownAction[];
   progressionActions: TownAction[];
   vendorActions: TownAction[];
+  blacksmithActions: TownAction[];
+  sageActions: TownAction[];
+  gamblerActions: TownAction[];
   inventoryActions: TownAction[];
   stashActions: TownAction[];
   mercenaryActions: TownAction[];
@@ -279,6 +282,10 @@ interface SafeZoneOperationsModel {
   readinessIssues: string[];
   readinessTone: string;
   readinessBadgeLabel: string;
+}
+
+interface InventoryViewApi {
+  buildInventoryMarkup(appState: AppState, services: UiRenderServices): string;
 }
 
 interface SafeZoneOperationsViewApi {
@@ -462,6 +469,7 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_APP_ENGINE_PROFILE: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_DATA_ACCESSORIES: Record<string, ItemTemplateDefinition>;
   __ROUGE_ITEM_DATA_RUNES: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_LOADOUT_OPS: Record<string, any>;
@@ -475,6 +483,10 @@ interface Window {
   __ROUGE_ITEM_TOWN_VENDOR: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_TOWN_ACTIONS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ITEM_TOWN_DECK_SERVICES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_SKILL_EVOLUTION: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_SYSTEM_REWARDS: Record<string, any>;
   ROUGE_ITEM_TOWN: ItemTownApi;
@@ -548,6 +560,7 @@ interface Window {
   __ROUGE_COMBAT_BG: { getCombatBackground(zoneTitle: string): string };
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
+  ROUGE_INVENTORY_VIEW: InventoryViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
   ROUGE_WORLD_MAP_VIEW: UiPhaseViewApi;
   ROUGE_COMBAT_VIEW: UiPhaseViewApi;

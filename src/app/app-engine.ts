@@ -68,6 +68,7 @@
         hallExpanded: false,
         hallSection: "",
         townFocus: "",
+        inventoryOpen: false,
         exploring: false,
         explorationEvent: null,
         scrollMapOpen: false,

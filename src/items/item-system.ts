@@ -56,7 +56,8 @@
     const rarityTitle = rarityLabel ? `${rarityLabel} ${item.name}` : item.name;
 
     const loadout = buildHydratedLoadout(run, content);
-    const currentEquipment = loadout[item.slot];
+    const loadoutKey = itemLoadout.resolveLoadoutKey(item.slot, run);
+    const currentEquipment = loadout[loadoutKey];
     const features = getAccountEconomyFeatures(options.profile);
     const previewLines = [
       ...describeBonuses(combinedBonuses),
@@ -116,7 +117,7 @@
       id: `reward_item_${item.id}`,
       kind: "item",
       title: rarityTitle,
-      subtitle: item.slot === "weapon" ? "Equip Weapon" : "Equip Armor",
+      subtitle: `Equip ${itemLoadout.EQUIPMENT_SLOT_LABELS[item.slot] || item.slot}`,
       description: item.summary,
       previewLines,
       effects: [{ kind: "equip_item" as const, itemId: item.id, rarity, rarityBonuses }],
@@ -138,7 +139,7 @@
     return {
       id: `reward_socket_${slot}`,
       kind: "socket",
-      title: slot === "weapon" ? "Larzuk's Weapon Socket" : "Larzuk's Armor Socket",
+      title: `Larzuk's ${itemLoadout.EQUIPMENT_SLOT_LABELS[slot as EquipmentSlot] || "Gear"} Socket`,
       subtitle: "Open Socket",
       description: `Add one permanent socket to ${item.name}.`,
       previewLines: [
@@ -175,7 +176,7 @@
       id: `reward_rune_${slot}_${rune.id}`,
       kind: "rune",
       title: rune.name,
-      subtitle: slot === "weapon" ? "Socket Weapon Rune" : "Socket Armor Rune",
+      subtitle: `Socket ${itemLoadout.EQUIPMENT_SLOT_LABELS[slot as EquipmentSlot] || "Gear"} Rune`,
       description: rune.summary,
       previewLines,
       effects: [{ kind: "socket_rune" as const, runeId: rune.id, slot: slot as "weapon" | "armor" }],

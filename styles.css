@@ -5465,3 +5465,377 @@ button.waypoint:hover {
     transition: none;
   }
 }
+
+/* ── D2 Inventory Screen ── */
+
+.inv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  animation: town-overlay-in 0.15s ease-out;
+  cursor: pointer;
+}
+
+.inv-screen {
+  background:
+    repeating-linear-gradient(170deg, transparent, transparent 18px, rgba(212, 143, 70, 0.04) 18px, rgba(212, 143, 70, 0.04) 20px),
+    linear-gradient(135deg, rgba(24, 18, 12, 0.98) 0%, rgba(14, 10, 6, 0.99) 100%);
+  border: 2px solid var(--line-strong);
+  border-radius: 6px;
+  width: min(720px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  cursor: default;
+  animation: merchant-in 0.2s ease-out;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(245, 193, 118, 0.08);
+}
+
+.inv-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line-strong);
+  background: rgba(42, 25, 18, 0.5);
+}
+
+.inv-screen__title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--accent-bright);
+  margin: 0;
+}
+
+.inv-screen__stats {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.inv-screen__body {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.inv-screen__paperdoll {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inv-screen__backpack {
+  flex: 1;
+  min-width: 0;
+}
+
+.inv-screen__footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* ── Paperdoll ── */
+
+.inv-paperdoll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.inv-paperdoll__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inv-paperdoll__spacer {
+  width: 72px;
+  height: 72px;
+}
+
+/* ── Equipment Slot ── */
+
+.inv-slot {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  background: rgba(30, 22, 16, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.inv-slot:hover {
+  border-color: var(--gold);
+  background: rgba(42, 30, 20, 0.8);
+}
+
+.inv-slot--empty {
+  opacity: 0.6;
+}
+
+.inv-slot--empty:hover {
+  opacity: 0.8;
+}
+
+.inv-slot--magic {
+  border-color: #6688cc;
+  box-shadow: inset 0 0 8px rgba(102, 136, 204, 0.2);
+}
+
+.inv-slot--unique {
+  border-color: #c8a050;
+  box-shadow: inset 0 0 8px rgba(200, 160, 80, 0.25);
+}
+
+.inv-slot__icon {
+  font-size: 1.4rem;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.inv-slot__label {
+  font-size: 0.55rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  pointer-events: none;
+}
+
+.inv-slot__item-name {
+  font-size: 0.6rem;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+  padding: 0 4px;
+  max-height: 3.6em;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.inv-slot--magic .inv-slot__item-name { color: #88aaee; }
+.inv-slot--unique .inv-slot__item-name { color: #d4a850; }
+
+.inv-slot__unequip {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.inv-slot:hover .inv-slot__unequip { opacity: 1; }
+.inv-slot__unequip:hover { background: var(--danger); color: #fff; }
+
+/* ── Tooltip ── */
+
+.inv-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(12, 8, 4, 0.96);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 8px 10px;
+  min-width: 160px;
+  max-width: 220px;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.inv-slot:hover .inv-tooltip { display: block; }
+
+.inv-tooltip__name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.inv-tooltip--magic .inv-tooltip__name { color: #88aaee; }
+.inv-tooltip--unique .inv-tooltip__name { color: #d4a850; }
+
+.inv-tooltip__slot {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.inv-tooltip__bonus {
+  font-size: 0.65rem;
+  color: #88cc88;
+  line-height: 1.4;
+}
+
+.inv-tooltip__socket {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── Backpack ── */
+
+.inv-bp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.inv-bp-header__title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--accent-bright);
+}
+
+.inv-bp-header__count {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.inv-bp-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.inv-bp-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: rgba(30, 22, 16, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: border-color 0.15s;
+  min-height: 56px;
+}
+
+.inv-bp-cell:hover {
+  border-color: var(--gold);
+}
+
+.inv-bp-cell--empty {
+  opacity: 0.3;
+  border-style: dashed;
+}
+
+.inv-bp--magic {
+  border-color: #6688cc;
+}
+
+.inv-bp--unique {
+  border-color: #c8a050;
+}
+
+.inv-bp-cell__icon {
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.inv-bp-cell__name {
+  font-size: 0.5rem;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.inv-bp--magic .inv-bp-cell__name { color: #88aaee; }
+.inv-bp--unique .inv-bp-cell__name { color: #d4a850; }
+
+.inv-bp-cell__equip {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.5rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--gold);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.inv-bp-cell:hover .inv-bp-cell__equip { opacity: 1; }
+.inv-bp-cell__equip:hover { background: var(--accent); color: #000; }
+
+/* ── Inventory Toggle Button in Town ── */
+
+.town-inv-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 5;
+  background: rgba(24, 16, 10, 0.85);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 6px 12px;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background 0.15s;
+}
+
+.town-inv-btn:hover {
+  background: rgba(42, 30, 20, 0.9);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .inv-screen__body {
+    flex-direction: column;
+  }
+
+  .inv-paperdoll__spacer {
+    width: 56px;
+    height: 56px;
+  }
+
+  .inv-slot {
+    width: 56px;
+    height: 56px;
+  }
+
+  .inv-bp-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}

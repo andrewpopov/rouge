@@ -54,15 +54,32 @@
     return (item?.progressionTier || 0) * 10 + equipment.socketsUnlocked * 2 + equipment.insertedRunes.length + (equipment.runewordId ? 5 : 0);
   }
 
+  const { ALL_EQUIPMENT_SLOTS } = runtimeWindow.ROUGE_ITEM_LOADOUT;
+
+  function getLoadoutKeyForItemSlot(slot: EquipmentSlot, loadout: HydratedLoadout): LoadoutSlotKey {
+    if (slot === "ring") {
+      if (!loadout.ring1) { return "ring1"; }
+      if (!loadout.ring2) { return "ring2"; }
+      return "ring1";
+    }
+    return slot as LoadoutSlotKey;
+  }
+
   function getFocusSlots(run: RunState, actNumber: number, encounterNumber: number, content: GameContent) {
     const loadout = buildHydratedLoadout(run, content);
-    const baseOrder = (actNumber + encounterNumber + run.summary.encountersCleared) % 2 === 0 ? ["weapon", "armor"] : ["armor", "weapon"];
-    return [...baseOrder].sort((left: string, right: string) => {
-      const scoreDelta = getEquipmentProgressScore((loadout as unknown as Record<string, RunEquipmentState | null>)[left], content) - getEquipmentProgressScore((loadout as unknown as Record<string, RunEquipmentState | null>)[right], content);
+    const seed = actNumber + encounterNumber + run.summary.encountersCleared;
+    const baseOrder = [...ALL_EQUIPMENT_SLOTS];
+    // Rotate the order based on seed so different slots get priority each encounter
+    const rotateBy = seed % baseOrder.length;
+    const rotated = [...baseOrder.slice(rotateBy), ...baseOrder.slice(0, rotateBy)];
+    return rotated.sort((left: EquipmentSlot, right: EquipmentSlot) => {
+      const leftKey = getLoadoutKeyForItemSlot(left, loadout);
+      const rightKey = getLoadoutKeyForItemSlot(right, loadout);
+      const scoreDelta = getEquipmentProgressScore(loadout[leftKey], content) - getEquipmentProgressScore(loadout[rightKey], content);
       if (scoreDelta !== 0) {
         return scoreDelta;
       }
-      return baseOrder.indexOf(left) - baseOrder.indexOf(right);
+      return rotated.indexOf(left) - rotated.indexOf(right);
     });
   }
 

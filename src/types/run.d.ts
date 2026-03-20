@@ -59,7 +59,7 @@ type RewardChoiceEffectKind =
 
 interface RewardChoiceEffect {
   kind: RewardChoiceEffectKind;
-  slot?: "weapon" | "armor";
+  slot?: EquipmentSlot;
   value?: number;
   cardId?: string;
   fromCardId?: string;
@@ -209,6 +209,14 @@ interface RunState {
   loadout: {
     weapon: RunEquipmentState | null;
     armor: RunEquipmentState | null;
+    helm: RunEquipmentState | null;
+    shield: RunEquipmentState | null;
+    gloves: RunEquipmentState | null;
+    boots: RunEquipmentState | null;
+    belt: RunEquipmentState | null;
+    ring1: RunEquipmentState | null;
+    ring2: RunEquipmentState | null;
+    amulet: RunEquipmentState | null;
   };
   town: RunTownState;
   progression: RunProgressionState;

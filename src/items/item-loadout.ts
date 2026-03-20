@@ -11,6 +11,29 @@
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
 
+  const ALL_LOADOUT_SLOTS: LoadoutSlotKey[] = ["weapon", "armor", "helm", "shield", "gloves", "boots", "belt", "ring1", "ring2", "amulet"];
+  const ALL_EQUIPMENT_SLOTS: EquipmentSlot[] = ["weapon", "armor", "helm", "shield", "gloves", "boots", "belt", "ring", "amulet"];
+  const INVENTORY_CAPACITY = 10;
+  const STASH_CAPACITY = 5;
+
+  const LOADOUT_SLOT_LABELS: Record<LoadoutSlotKey, string> = {
+    weapon: "Weapon", armor: "Armor", helm: "Helm", shield: "Shield",
+    gloves: "Gloves", boots: "Boots", belt: "Belt",
+    ring1: "Ring 1", ring2: "Ring 2", amulet: "Amulet",
+  };
+
+  const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = {
+    weapon: "Weapon", armor: "Armor", helm: "Helm", shield: "Shield",
+    gloves: "Gloves", boots: "Boots", belt: "Belt",
+    ring: "Ring", amulet: "Amulet",
+  };
+
+  const EQUIPMENT_SLOT_FAMILIES: Record<EquipmentSlot, string> = {
+    weapon: "Weapons", armor: "Body Armor", helm: "Helms", shield: "Shields",
+    gloves: "Gloves", boots: "Boots", belt: "Belts",
+    ring: "Rings", amulet: "Amulets",
+  };
+
   function createDefaultTraining() {
     return {
       vitality: 0,
@@ -89,7 +112,7 @@
     };
 
     const activeIds: string[] = [];
-    (["weapon", "armor"] as const).forEach((slot) => {
+    ALL_LOADOUT_SLOTS.forEach((slot) => {
       const equipment = run.loadout?.[slot] || null;
       if (!equipment) {
         return;
@@ -388,8 +411,35 @@
     return profile.stash.entries.splice(index, 1)[0] || null;
   }
 
+  function resolveLoadoutKey(slot: EquipmentSlot, run: RunState): LoadoutSlotKey {
+    if (slot === "ring") {
+      if (!run.loadout.ring1) { return "ring1"; }
+      if (!run.loadout.ring2) { return "ring2"; }
+      return "ring1";
+    }
+    return slot as LoadoutSlotKey;
+  }
+
+  function isInventoryFull(run: RunState): boolean {
+    return (run.inventory?.carried?.length || 0) >= INVENTORY_CAPACITY;
+  }
+
+  function isStashFull(profile: ProfileState): boolean {
+    return (profile?.stash?.entries?.length || 0) >= STASH_CAPACITY;
+  }
+
   // Ops (equip, socket, combat) are appended by item-loadout-ops.ts after this script loads
   runtimeWindow.ROUGE_ITEM_LOADOUT = {
+    ALL_LOADOUT_SLOTS,
+    ALL_EQUIPMENT_SLOTS,
+    INVENTORY_CAPACITY,
+    STASH_CAPACITY,
+    LOADOUT_SLOT_LABELS,
+    EQUIPMENT_SLOT_LABELS,
+    EQUIPMENT_SLOT_FAMILIES,
+    resolveLoadoutKey,
+    isInventoryFull,
+    isStashFull,
     createDefaultInventory,
     createDefaultTownState,
     hydrateRunLoadout,

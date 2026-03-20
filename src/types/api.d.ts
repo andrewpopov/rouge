@@ -179,11 +179,12 @@ interface ItemCatalogApi {
     runeword: RuntimeRunewordDefinition | null | undefined,
     content: GameContent
   ): boolean;
-  isRuneAllowedInSlot(rune: RuntimeRuneDefinition | null | undefined, slot: "weapon" | "armor"): boolean;
+  itemSlotForLoadoutKey(loadoutKey: string): string;
+  isRuneAllowedInSlot(rune: RuntimeRuneDefinition | null | undefined, slot: string): boolean;
   resolveRunewordId(equipment: RunEquipmentState | null | undefined, content: GameContent): string;
   normalizeEquipmentState(
     value: unknown,
-    slot: "weapon" | "armor",
+    slot: string,
     content: GameContent,
     legacyRuneId?: string
   ): RunEquipmentState | null;
@@ -201,6 +202,16 @@ interface ItemCatalogApi {
 }
 
 interface ItemLoadoutApi {
+  ALL_LOADOUT_SLOTS: LoadoutSlotKey[];
+  ALL_EQUIPMENT_SLOTS: EquipmentSlot[];
+  INVENTORY_CAPACITY: number;
+  STASH_CAPACITY: number;
+  LOADOUT_SLOT_LABELS: Record<LoadoutSlotKey, string>;
+  EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string>;
+  EQUIPMENT_SLOT_FAMILIES: Record<EquipmentSlot, string>;
+  resolveLoadoutKey(slot: EquipmentSlot, run: RunState): LoadoutSlotKey;
+  isInventoryFull(run: RunState): boolean;
+  isStashFull(profile: ProfileState): boolean;
   createDefaultInventory(): RunInventoryState;
   createDefaultTownState(): RunTownState;
   hydrateRunLoadout(run: RunState, content: GameContent): void;
@@ -222,9 +233,9 @@ interface ItemLoadoutApi {
   findCarriedEntry(run: RunState, entryId: string): InventoryEntry | null;
   removeCarriedEntry(run: RunState, entryId: string): InventoryEntry | null;
   removeStashEntry(profile: ProfileState, entryId: string): InventoryEntry | null;
-  equipInventoryEntry(run: RunState, entryId: string, content: GameContent): ActionResult;
-  unequipSlot(run: RunState, slot: "weapon" | "armor", content: GameContent): ActionResult;
-  socketInventoryRune(run: RunState, entryId: string, slot: "weapon" | "armor", content: GameContent): ActionResult;
+  equipInventoryEntry(run: RunState, entryId: string, content: GameContent, targetLoadoutSlot?: LoadoutSlotKey): ActionResult;
+  unequipSlot(run: RunState, slot: LoadoutSlotKey, content: GameContent): ActionResult;
+  socketInventoryRune(run: RunState, entryId: string, slot: LoadoutSlotKey, content: GameContent): ActionResult;
   stashCarriedEntry(run: RunState, profile: ProfileState, entryId: string): ActionResult;
   withdrawStashEntry(run: RunState, profile: ProfileState, entryId: string): ActionResult;
   getActiveRunewords(run: RunState, content: GameContent): string[];
@@ -517,6 +528,7 @@ interface AppState {
     hallExpanded: boolean;
     hallSection: string;
     townFocus: string;
+    inventoryOpen: boolean;
     exploring: boolean;
     explorationEvent: ExplorationEvent | null;
     scrollMapOpen: boolean;
