@@ -10,9 +10,12 @@
   // Maps card IDs to D2 skill icon PNGs by class.
   const CARD_ICONS: Record<string, string> = {
     // ── Neutral ──
-    strike: `${ICON_BASE}/cards/01_steam-blast.svg`,
-    defend: `${ICON_BASE}/cards/09_valve.svg`,
-    rally_mercenary: `${ICON_BASE}/cards/08_walking-turret.svg`,
+    strike: `${SKILL_ICON_BASE}/barbarian/bash.png`,
+    defend: `${SKILL_ICON_BASE}/paladin/defiance.png`,
+    rally_mercenary: `${SKILL_ICON_BASE}/barbarian/battle_command.png`,
+    execution_blow: `${SKILL_ICON_BASE}/barbarian/berserk.png`,
+    multishot: `${SKILL_ICON_BASE}/amazon/multiple_shot.png`,
+    emberstorm: `${SKILL_ICON_BASE}/sorceress/meteor.png`,
 
     // ── Barbarian ──
     barbarian_bash: `${SKILL_ICON_BASE}/barbarian/bash.png`,

@@ -2777,6 +2777,7 @@ button.waypoint:hover {
    ══════════════════════════════════════════════ */
 
 .combat-screen {
+  position: relative;
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
@@ -2879,14 +2880,15 @@ button.waypoint:hover {
     linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, 0.2) 100%);
 }
 
-.stage__bg-image {
+.combat-bg-image {
   position: absolute;
-  inset: -4px;
+  inset: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0;
   opacity: 0.35;
+  pointer-events: none;
 }
 
 .stage__backdrop {

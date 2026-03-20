@@ -430,6 +430,7 @@
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="combat-screen">
+          <div class="combat-bg-image" style="background-image:url('${runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || ""}')"></div>
 
         <div class="combat-hud">
           <div class="combat-hud__left">
@@ -451,7 +452,6 @@
 
         <div class="stage" data-env="${zoneEnv}">
           <div class="stage__backdrop"></div>
-          <div class="stage__bg-image" style="background-image:url('${runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || ""}')"></div>
           <div class="stage__particles"></div>
           <div class="stage__floor"></div>
 
