@@ -1600,23 +1600,27 @@ button.entity-card:disabled {
 }
 
 .town-npc-icon__dot {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(186, 169, 147, 0.5);
-  border: 2px solid var(--muted);
+  background: rgba(186, 169, 147, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.town-npc-icon--active .town-npc-icon__dot {
-  background: var(--accent);
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 10px rgba(212, 143, 70, 0.4);
-}
+/* Color-coded dots by NPC type */
+[data-npc-id="healer"] .town-npc-icon__dot { background: #e04030; }
+[data-npc-id="atma"] .town-npc-icon__dot { background: #e04030; }
+[data-npc-id="blacksmith"] .town-npc-icon__dot { background: #50d050; }
+[data-npc-id="vendor"] .town-npc-icon__dot { background: #e09030; }
+[data-npc-id="lysander"] .town-npc-icon__dot { background: #e09030; }
+[data-npc-id="mercenary"] .town-npc-icon__dot { background: #40c0d0; }
+[data-npc-id="stash"] .town-npc-icon__dot { background: #c0c0c0; }
+[data-npc-id="cain"] .town-npc-icon__dot { background: #e0d040; }
+[data-npc-id="travel"] .town-npc-icon__dot { background: #d060c0; }
 
 .town-npc-icon--focused .town-npc-icon__dot {
-  background: var(--accent-bright);
   border-color: #fff;
   box-shadow: 0 0 14px rgba(245, 193, 118, 0.6);
 }
@@ -3784,6 +3788,18 @@ button.waypoint:hover {
   opacity: 0.35;
   cursor: not-allowed;
   filter: grayscale(0.4);
+}
+
+.fan-card--rejected {
+  animation: card-reject 0.35s ease;
+}
+
+@keyframes card-reject {
+  0%, 100% { transform: rotate(var(--fan-rotate)) translateY(calc(-1 * var(--fan-lift))); }
+  20% { transform: rotate(var(--fan-rotate)) translateY(calc(-1 * var(--fan-lift))) translateX(-6px); }
+  40% { transform: rotate(var(--fan-rotate)) translateY(calc(-1 * var(--fan-lift))) translateX(5px); }
+  60% { transform: rotate(var(--fan-rotate)) translateY(calc(-1 * var(--fan-lift))) translateX(-3px); }
+  80% { transform: rotate(var(--fan-rotate)) translateY(calc(-1 * var(--fan-lift))) translateX(2px); }
 }
 
 .fan-card__cost {

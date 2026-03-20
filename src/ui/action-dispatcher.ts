@@ -328,6 +328,21 @@
         if (appState.combat) {
           const instanceId = actionEl.dataset.instanceId || "";
           const targetId = appState.combat.selectedEnemyId || "";
+          const cardInst = appState.combat.hand.find((c: CardInstance) => c.instanceId === instanceId);
+          const cardDef = cardInst ? appState.content.cardCatalog[cardInst.cardId] : null;
+          if (cardDef) {
+            const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
+            const reduction = evo ? evo.getTreeCostReduction(cardInst!.cardId, appState.combat.deckCardIds, appState.content.cardCatalog) : 0;
+            const cost = Math.max(0, cardDef.cost - reduction);
+            if (appState.combat.hero.energy < cost) {
+              addTempClass(actionEl, "fan-card--rejected", 400);
+              return true;
+            }
+            if (cardDef.target === "enemy" && !appState.combat.selectedEnemyId) {
+              addTempClass(actionEl, "fan-card--rejected", 400);
+              return true;
+            }
+          }
           doCombatAction(
             appState.combat,
             () => combatEngine.playCard(appState.combat, appState.content, instanceId, targetId),
