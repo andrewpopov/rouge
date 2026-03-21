@@ -3023,70 +3023,25 @@ button.waypoint:hover {
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0;
-  opacity: 0.45;
+  opacity: 1;
   pointer-events: none;
 }
 
 .stage__backdrop {
   position: absolute;
   inset: -4px;
-  background:
-    radial-gradient(ellipse at 50% 100%, rgba(160, 70, 20, 0.35), transparent 50%),
-    radial-gradient(ellipse at 25% 30%, rgba(120, 40, 10, 0.2), transparent 45%),
-    radial-gradient(ellipse at 75% 25%, rgba(90, 25, 8, 0.18), transparent 45%),
-    radial-gradient(ellipse at 50% 50%, rgba(60, 20, 8, 0.4), transparent 80%),
-    linear-gradient(180deg, rgba(4,2,1,0.7) 0%, rgba(14,6,4,0.65) 20%, rgba(30,14,8,0.55) 45%, rgba(45,22,12,0.5) 70%, rgba(58,30,16,0.45) 100%);
+  background: transparent;
   z-index: 0;
   transition: transform 0.15s ease-out;
 }
 
-.stage__backdrop::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 80%, rgba(255, 140, 40, 0.12), transparent 45%),
-    radial-gradient(ellipse at 10% 70%, rgba(200, 80, 20, 0.08), transparent 30%),
-    radial-gradient(ellipse at 90% 70%, rgba(200, 80, 20, 0.08), transparent 30%),
-    radial-gradient(ellipse at 50% 10%, rgba(80, 30, 10, 0.15), transparent 50%);
-}
-
+.stage__backdrop::before,
 .stage__backdrop::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0, 0, 0, 0.03) 3px,
-      rgba(0, 0, 0, 0.03) 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 5px,
-      rgba(0, 0, 0, 0.02) 5px,
-      rgba(0, 0, 0, 0.02) 6px
-    );
-  opacity: 0.5;
+  display: none;
 }
 
 .stage__floor {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100px;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(120, 60, 20, 0.3), transparent 60%),
-    linear-gradient(180deg, #2a1508 0%, #1a0c06 40%, #0d0603 100%);
-  border-top: 1px solid rgba(180, 90, 30, 0.2);
-  z-index: 0;
+  display: none;
 }
 
 .stage__floor::before {
@@ -3100,8 +3055,11 @@ button.waypoint:hover {
 }
 
 /* ── Environment-themed combat backgrounds ── */
+/* Background images now come from combat-bg-image; backdrop overlays disabled. */
+.stage[data-env] .stage__backdrop { background: transparent !important; }
+.stage[data-env] .stage__floor { display: none !important; }
 
-/* Moor: crimson fog, blood-stained earth */
+/* Legacy env rules kept for reference but overridden above */
 .stage[data-env="moor"] .stage__backdrop {
   background:
     radial-gradient(ellipse at 30% 20%, rgba(180, 40, 30, 0.25), transparent 50%),
