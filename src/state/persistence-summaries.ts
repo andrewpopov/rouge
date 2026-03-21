@@ -245,6 +245,7 @@
       completedPlannedRunewordIds,
       activeRunewordIds,
       newFeatureIds: uniqueStrings(newFeatureIds),
+      newCharmIds: [] as string[],
       completedAt: new Date().toISOString(),
       outcome: outcome as RunHistoryEntry["outcome"],
     };

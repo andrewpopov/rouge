@@ -127,6 +127,7 @@
       completedPlannedRunewordIds: uniqueStrings(source.completedPlannedRunewordIds),
       activeRunewordIds: uniqueStrings(source.activeRunewordIds),
       newFeatureIds: uniqueStrings(source.newFeatureIds),
+      newCharmIds: uniqueStrings(source.newCharmIds),
       completedAt: typeof source.completedAt === "string" ? source.completedAt : new Date(0).toISOString(),
       outcome: outcome === "completed" || outcome === "failed" || outcome === "abandoned" ? outcome : "abandoned",
     }, content);

@@ -296,6 +296,7 @@ interface RunHistoryEntry {
   completedPlannedRunewordIds: string[];
   activeRunewordIds: string[];
   newFeatureIds: string[];
+  newCharmIds?: string[];
   completedAt: string;
   outcome: "completed" | "failed" | "abandoned";
 }

@@ -199,6 +199,7 @@
     ensureMeta(profile);
     profile.runHistory = Array.isArray(profile.runHistory) ? profile.runHistory : [];
     const previousFeatureIds = uniqueStrings(profile.meta.unlocks?.townFeatureIds || []);
+    const previousCharmIds = uniqueStrings(profile.meta.charms?.unlockedCharmIds || []);
     syncProfileMetaFromRun(profile, run);
     profile.meta.progression.totalBossesDefeated =
       toNumber(profile.meta.progression.totalBossesDefeated, 0) + (run?.summary?.bossesDefeated || 0);
@@ -212,6 +213,7 @@
     applyDerivedAccountUnlocks(profile);
     profile.runHistory = profile.runHistory.slice(0, getRunHistoryCapacity(profile));
     entry.newFeatureIds = uniqueStrings((profile.meta.unlocks?.townFeatureIds || []).filter((featureId: string) => !previousFeatureIds.includes(featureId)));
+    entry.newCharmIds = uniqueStrings((profile.meta.charms?.unlockedCharmIds || []).filter((charmId: string) => !previousCharmIds.includes(charmId)));
   }
 
   function saveToStorage(snapshot: RunSnapshotEnvelope | string, storage: StorageLike | null = getDefaultStorage()) {

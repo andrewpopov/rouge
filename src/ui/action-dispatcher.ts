@@ -477,6 +477,21 @@
         appEngine.setPreferredClass(appState, actionEl.dataset.classId || "");
         render();
         return true;
+      case "manage-charm": {
+        const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
+        if (charmSystem && appState.profile) {
+          const charmAction = actionEl.dataset.charmAction || "";
+          const charmId = actionEl.dataset.charmId || "";
+          if (charmAction === "equip") {
+            charmSystem.equipCharm(appState.profile, charmId);
+          } else if (charmAction === "unequip") {
+            charmSystem.unequipCharm(appState.profile, charmId);
+          }
+          runtimeWindow.ROUGE_PERSISTENCE?.saveProfileToStorage(appState.profile);
+        }
+        render();
+        return true;
+      }
       case "set-planned-runeword":
         appEngine.setPlannedRuneword(
           appState,

@@ -12,6 +12,75 @@
 
   const { getPreviewLabel } = runtimeWindow.ROUGE_UI_COMMON;
 
+  function buildCharmPouchCard(appState: AppState, services: UiRenderServices): string {
+    const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
+    if (!charmSystem || !appState.profile?.meta?.charms) {
+      return "";
+    }
+    const summary = charmSystem.getCharmPouchSummary(appState.profile);
+    if (summary.unlockedCount === 0) {
+      return "";
+    }
+    const { buildBadge, buildStat, escapeHtml } = services.renderUtils;
+    const { describeBonusSet } = runtimeWindow.ROUGE_RUN_STATE;
+
+    function buildCharmRow(charm: CharmDefinition, equipped: boolean): string {
+      const bonusLines = describeBonusSet(charm.bonuses);
+      const bonusText = bonusLines.join(" ");
+      const classNote = charm.classId ? ` (${charm.classId})` : "";
+      const charmAction = equipped ? "unequip" : "equip";
+      const canEquip = !equipped && charmSystem.canEquipCharm(appState.profile, charm.id);
+      const disabled = !equipped && !canEquip;
+      const btnLabel = equipped ? "Remove" : "Equip";
+      const btnClass = equipped ? "danger-btn" : "neutral-btn";
+      return `
+        <div class="charm-row ${equipped ? "charm-row--equipped" : ""}">
+          <div class="charm-row__info">
+            <strong class="charm-row__name">${escapeHtml(charm.name)}${escapeHtml(classNote)}</strong>
+            <span class="charm-row__bonuses">${escapeHtml(bonusText)}</span>
+            <span class="charm-row__meta">${escapeHtml(charm.size)} · ${charm.slotCost} slot${charm.slotCost === 1 ? "" : "s"}</span>
+          </div>
+          ${!disabled ? `
+            <button class="${btnClass}" data-action="manage-charm"
+                    data-charm-id="${escapeHtml(charm.id)}"
+                    data-charm-action="${charmAction}">${escapeHtml(btnLabel)}</button>
+          ` : `<span class="charm-row__full">Full</span>`}
+        </div>
+      `;
+    }
+
+    const equippedRows = summary.equippedCharms.map((c: CharmDefinition) => buildCharmRow(c, true)).join("");
+    const availableRows = summary.unequippedCharms.map((c: CharmDefinition) => buildCharmRow(c, false)).join("");
+
+    return `
+      <article class="feature-card">
+        <div class="entity-name-row">
+          <strong>Charm Pouch</strong>
+          ${buildBadge(`${summary.slotsUsed}/${summary.capacity} slots`, summary.slotsRemaining > 0 ? "available" : "locked")}
+        </div>
+        <div class="entity-stat-grid">
+          ${buildStat("Equipped", summary.equippedCount)}
+          ${buildStat("Available", summary.unequippedCharms.length)}
+          ${buildStat("Unlocked", summary.unlockedCount)}
+          ${buildStat("Capacity", summary.capacity)}
+        </div>
+        ${equippedRows ? `
+          <div class="charm-section">
+            <div class="charm-section__label">Equipped</div>
+            ${equippedRows}
+          </div>
+        ` : ""}
+        ${availableRows ? `
+          <div class="charm-section">
+            <div class="charm-section__label">Available</div>
+            ${availableRows}
+          </div>
+        ` : ""}
+        ${summary.unlockedCount === 0 ? "<p>No charms unlocked yet. Complete acts and defeat bosses to earn charms.</p>" : ""}
+      </article>
+    `;
+  }
+
   function buildAccountControlsMarkup(appState: AppState, services: UiRenderServices, accountSummary: ProfileAccountSummary): string {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
@@ -159,6 +228,7 @@
             </div>
             <p>${escapeHtml("These toggles update the persisted profile immediately, so the next hall render reads the same account state without another settings layer.")}</p>
           </article>
+          ${buildCharmPouchCard(appState, services)}
           <article class="feature-card">
             <div class="entity-name-row">
               <strong>Class Command</strong>
