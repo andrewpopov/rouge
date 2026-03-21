@@ -69,6 +69,7 @@
         hallSection: "",
         townFocus: "",
         inventoryOpen: false,
+        inventoryTab: "",
         exploring: false,
         explorationEvent: null,
         scrollMapOpen: false,

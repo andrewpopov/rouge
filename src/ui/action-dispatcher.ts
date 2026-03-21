@@ -260,6 +260,10 @@
         appState.ui.inventoryOpen = true;
         render();
         return true;
+      case "switch-inv-tab":
+        appState.ui.inventoryTab = actionEl.dataset.invTab || "inventory";
+        render();
+        return true;
       case "close-inventory":
         appState.ui.inventoryOpen = false;
         render();
@@ -282,10 +286,24 @@
         appEngine.selectZone(appState, actionEl.dataset.zoneId || "");
         render();
         return true;
-      case "begin-encounter":
+      case "begin-encounter": {
+        const approach = actionEl.dataset.approach || "cautious";
+        const combat = appState.combat;
+        const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+        if (approach === "cautious") {
+          turns.applyGuard(combat.hero, 5);
+          turns.appendLog(combat, "Your careful approach reveals the enemy position. Hero gains 5 Guard.");
+        } else if (approach === "aggressive") {
+          combat.hero.damageBonus += 2;
+          turns.appendLog(combat, "Your bold charge disrupts the enemy formation. Hero gains +2 Damage.");
+        } else if (approach === "tactical") {
+          turns.drawCards(combat, 1);
+          turns.appendLog(combat, "Your reconnaissance reveals a tactical opening. Drew an extra card.");
+        }
         appState.ui.exploring = false;
         render();
         return true;
+      }
       case "pick-event-card": {
         const event = appState.ui.explorationEvent;
         if (event?.pendingChoiceId) {

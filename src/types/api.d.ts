@@ -605,6 +605,7 @@ interface AppState {
     hallSection: string;
     townFocus: string;
     inventoryOpen: boolean;
+    inventoryTab: string;
     exploring: boolean;
     explorationEvent: ExplorationEvent | null;
     scrollMapOpen: boolean;
