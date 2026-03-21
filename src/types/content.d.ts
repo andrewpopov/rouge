@@ -83,7 +83,19 @@ type MonsterTraitKind =
   | "fire_enchanted"
   | "lightning_enchanted"
   | "stone_skin"
-  | "mana_burn";
+  | "mana_burn"
+  | "summon_allies_on_spawn";
+
+interface SpawnConfig {
+  minCount: number;
+  maxCount: number;
+  spawnName: string;
+  lifeRatio: number;
+  attackRatio: number;
+  role: string;
+  traits: MonsterTraitKind[];
+  family: string;
+}
 
 interface CardEffect {
   kind: CardEffectKind;
@@ -172,6 +184,7 @@ interface EnemyTemplate {
   traits?: MonsterTraitKind[];
   family?: string;
   summonTemplateId?: string;
+  spawnConfig?: SpawnConfig;
 }
 
 interface EncounterEnemyEntry {

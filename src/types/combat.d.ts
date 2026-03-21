@@ -57,6 +57,7 @@ interface CombatEnemyState {
   traits?: MonsterTraitKind[];
   family?: string;
   summonTemplateId?: string;
+  spawnConfig?: SpawnConfig;
   consumed?: boolean;
   buffedAttack?: number;
   cooldowns?: Record<number, number>;

@@ -8,16 +8,27 @@
     roleOverride?: string;
     lifeMultiplier?: number;
     attackMultiplier?: number;
+    spawnConfig?: SpawnConfig;
     buildIntents?: (scale: EncounterRegistryEnemyScale, name: string) => EnemyIntent[];
   }
 
   const MONSTER_FAMILY_OVERRIDES: MonsterFamilyOverride[] = [
-    // ── Fallen Shaman: resurrect dead Fallen, fireball ──
+    // ── Fallen Shaman: summons Fallen on spawn, resurrects dead Fallen, fireball ──
     {
       keywords: ["fallen shaman", "carver shaman", "devilkin shaman", "dark shaman", "warped shaman"],
       family: "fallen_shaman",
       roleOverride: "support",
-      traits: [],
+      traits: ["summon_allies_on_spawn"],
+      spawnConfig: {
+        minCount: 1,
+        maxCount: 3,
+        spawnName: "Fallen",
+        lifeRatio: 0.6,
+        attackRatio: 0.8,
+        role: "raider",
+        traits: ["flee_on_ally_death"],
+        family: "fallen",
+      },
       buildIntents: (scale, name) => [
         { kind: "resurrect_ally", label: `${name} Resurrect`, value: scale.attack, target: "hero", cooldown: 2 },
         { kind: "attack_burn", label: `${name} Fireball`, value: scale.attack, target: "hero", secondaryValue: 1 },

@@ -209,6 +209,60 @@
     }
   }
 
+  // ── On-spawn trait processing (ETB triggers) ──
+
+  function processSpawnTraits(state: CombatState, enemy: CombatEnemyState) {
+    if (!Array.isArray(enemy.traits) || !enemy.traits.includes("summon_allies_on_spawn")) {
+      return;
+    }
+    const config = enemy.spawnConfig;
+    if (!config) {
+      return;
+    }
+    const range = config.maxCount - config.minCount + 1;
+    const count = config.minCount + Math.floor(state.randomFn() * range);
+    const spawnCount = Math.min(count, MAX_ENEMIES_IN_COMBAT - state.enemies.length);
+
+    for (let i = 0; i < spawnCount; i++) {
+      const spawnId = `spawn_init_${state.enemies.length}`;
+      const spawnLife = Math.max(3, Math.floor(enemy.maxLife * config.lifeRatio));
+      const baseAttack = enemy.intents[0]?.value || 3;
+      const spawnAttack = Math.max(2, Math.floor(baseAttack * config.attackRatio));
+      const spawn: CombatEnemyState = {
+        id: spawnId,
+        templateId: `${enemy.templateId}_${config.family}`,
+        name: config.spawnName,
+        role: config.role,
+        maxLife: spawnLife,
+        life: spawnLife,
+        guard: 0,
+        burn: 0,
+        poison: 0,
+        slow: 0,
+        freeze: 0,
+        stun: 0,
+        paralyze: 0,
+        alive: true,
+        intentIndex: 0,
+        currentIntent: { kind: "attack", label: `${config.spawnName} Stab`, value: spawnAttack, target: "hero" },
+        intents: [
+          { kind: "attack", label: `${config.spawnName} Stab`, value: spawnAttack, target: "hero" },
+          { kind: "attack", label: `${config.spawnName} Slash`, value: spawnAttack, target: "lowest_life" },
+        ],
+        traits: [...config.traits],
+        family: config.family,
+        summonTemplateId: "",
+        consumed: false,
+        buffedAttack: 0,
+      };
+      state.enemies.push(spawn);
+    }
+
+    if (spawnCount > 0) {
+      _appendLog(state, `${enemy.name} enters with ${spawnCount} ${config.spawnName}${spawnCount > 1 ? "s" : ""}!`);
+    }
+  }
+
   // ── D2 elite modifier: on-attack effects ──
 
   function processModifierOnAttack(state: CombatState, enemy: CombatEnemyState) {
@@ -561,6 +615,7 @@
     applyHeroWeaken,
     applyHeroEnergyDrain,
     processDeathTraits,
+    processSpawnTraits,
     processHeroDebuffs,
     processModifierOnAttack,
     processModifierOnHit,

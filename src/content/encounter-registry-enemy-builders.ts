@@ -391,6 +391,7 @@
       ...(affixes.length > 0 ? { affixes: [...affixes] } : {}),
       ...(familyOverride?.traits && familyOverride.traits.length > 0 ? { traits: [...familyOverride.traits] } : {}),
       ...(familyOverride?.family ? { family: familyOverride.family } : {}),
+      ...(familyOverride?.spawnConfig ? { spawnConfig: { ...familyOverride.spawnConfig, traits: [...familyOverride.spawnConfig.traits] } } : {}),
     };
   }
 

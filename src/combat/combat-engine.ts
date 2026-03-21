@@ -108,6 +108,7 @@
       traits: Array.isArray(template.traits) ? [...template.traits] : [],
       family: template.family || "",
       summonTemplateId: template.summonTemplateId || "",
+      spawnConfig: template.spawnConfig || undefined,
       consumed: false,
       buffedAttack: 0,
       cooldowns: {},
@@ -518,6 +519,13 @@
     };
 
     applyRandomAffixes(state, randomFn, encounterId);
+
+    // Process on-spawn triggers (ETB effects) — only for original encounter enemies
+    const initialEnemies = [...state.enemies];
+    initialEnemies.forEach((enemy: CombatEnemyState) => {
+      runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS.processSpawnTraits(state, enemy);
+    });
+
     state.drawPile = createDeck(state, content, starterDeck);
     state.selectedEnemyId = getFirstLivingEnemyId(state);
     appendLog(state, `${encounter.name}: ${encounter.description}`);
