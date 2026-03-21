@@ -87,6 +87,87 @@
     `;
   }
 
+  function buildCharmCell(
+    charm: CharmDefinition,
+    equipped: boolean,
+    canEquip: boolean,
+    classId: string,
+    escapeHtml: (s: string) => string
+  ): string {
+    const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
+    const { describeBonusSet } = runtimeWindow.ROUGE_RUN_STATE;
+    const bonusLines = describeBonusSet(charm.bonuses);
+    const sizeLabel = charm.size === "grand" ? "Grand" : charm.size === "large" ? "Large" : "Small";
+    const classInactive = charm.classId && charm.classId !== classId;
+    const sizeClass = `d2inv-charm--${charm.size}`;
+    const stateClass = equipped ? "d2inv-charm--equipped" : "";
+    const inactiveClass = classInactive ? "d2inv-charm--inactive" : "";
+
+    const actionId = equipped
+      ? `${charmSystem.ACTION_UNEQUIP_PREFIX}${charm.id}`
+      : `${charmSystem.ACTION_EQUIP_PREFIX}${charm.id}`;
+    const actionLabel = equipped ? "Remove" : "Equip";
+    const disabled = !equipped && !canEquip;
+
+    return `
+      <div class="d2inv-charm ${sizeClass} ${stateClass} ${inactiveClass}" title="${escapeHtml(charm.name)}">
+        <div class="d2inv-charm__name">${escapeHtml(charm.name)}</div>
+        <div class="d2inv-charm__size">${escapeHtml(sizeLabel)} (${charm.slotCost})</div>
+        ${!disabled ? `
+          <button class="d2inv-charm__action" data-action="use-town-action"
+                  data-town-action-id="${escapeHtml(actionId)}">${escapeHtml(actionLabel)}</button>
+        ` : ""}
+        <div class="d2inv-tip d2inv-tip--charm">
+          <div class="d2inv-tip__name">${escapeHtml(charm.name)}</div>
+          <div class="d2inv-tip__type">${escapeHtml(sizeLabel)} Charm · ${charm.slotCost} slot${charm.slotCost === 1 ? "" : "s"}</div>
+          ${bonusLines.map((line: string) => `<div class="d2inv-tip__stat">${escapeHtml(line)}</div>`).join("")}
+          ${charm.classId ? `<div class="d2inv-tip__stat">${escapeHtml(charm.classId)} only</div>` : ""}
+          <div class="d2inv-tip__socket">${escapeHtml(charm.source)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function buildCharmPouchMarkup(appState: AppState, escapeHtml: (s: string) => string): string {
+    const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
+    if (!charmSystem || !appState.profile?.meta?.charms) {
+      return "";
+    }
+    const summary = charmSystem.getCharmPouchSummary(appState.profile);
+    if (summary.unlockedCount === 0) {
+      return "";
+    }
+
+    const classId = appState.run?.classId || "";
+    const equippedCells = summary.equippedCharms.map(
+      (charm: CharmDefinition) => buildCharmCell(charm, true, false, classId, escapeHtml)
+    );
+    const unequippedCells = summary.unequippedCharms.map(
+      (charm: CharmDefinition) => buildCharmCell(charm, false, charmSystem.canEquipCharm(appState.profile, charm.id), classId, escapeHtml)
+    );
+    const emptySlots = Math.max(0, summary.capacity - summary.slotsUsed);
+
+    return `
+      <div class="d2inv-pouch">
+        <div class="d2inv__panel-label">
+          Charm Pouch <span class="d2inv__count">${summary.slotsUsed}/${summary.capacity}</span>
+        </div>
+        <div class="d2inv-pouch__grid">
+          ${equippedCells.join("")}
+          ${Array.from({ length: emptySlots }, () => `<div class="d2inv-charm d2inv-charm--empty"></div>`).join("")}
+        </div>
+        ${unequippedCells.length > 0 ? `
+          <div class="d2inv__panel-label d2inv__panel-label--sub">
+            Available <span class="d2inv__count">${unequippedCells.length}</span>
+          </div>
+          <div class="d2inv-pouch__grid">
+            ${unequippedCells.join("")}
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }
+
   function buildInventoryMarkup(appState: AppState, services: UiRenderServices): string {
     const { escapeHtml } = services.renderUtils;
     const run = appState.run;
@@ -143,6 +224,7 @@
             <span class="d2inv__gold-amount">${run.gold}</span>
           </div>
         </div>
+        ${buildCharmPouchMarkup(appState, escapeHtml)}
         <button class="d2inv__close" data-action="close-inventory">Close</button>
       </div>
     `;

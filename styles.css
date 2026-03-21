@@ -19,8 +19,8 @@
   --success: #86b993;
   --danger: #cf7b6f;
   --shadow: rgba(0, 0, 0, 0.45);
-  --font-display: "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  --font-body: "Iowan Old Style", "Garamond", "Palatino Linotype", Georgia, serif;
+  --font-display: "Cinzel", "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-body: "Crimson Text", "Iowan Old Style", "Garamond", "Palatino Linotype", Georgia, serif;
 }
 
 html,
@@ -761,10 +761,11 @@ button.entity-card:disabled {
 .welcome-hero {
   position: relative;
   overflow: hidden;
-  padding: 80px 32px 64px;
+  padding: 96px 32px 72px;
   text-align: center;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(212, 143, 70, 0.22), transparent),
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245, 193, 118, 0.16), transparent),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(160, 60, 20, 0.14), transparent),
     radial-gradient(circle at 20% 80%, rgba(88, 44, 24, 0.18), transparent 50%),
     radial-gradient(circle at 80% 60%, rgba(132, 82, 49, 0.14), transparent 50%),
     linear-gradient(180deg, rgba(68, 41, 29, 0.95), rgba(18, 11, 9, 0.98));
@@ -799,23 +800,38 @@ button.entity-card:disabled {
 }
 
 .welcome-title {
-  font-size: clamp(3.2rem, 7vw, 5.4rem);
-  letter-spacing: 0.08em;
+  font-size: clamp(3.6rem, 8vw, 6rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
   line-height: 0.95;
-  background: linear-gradient(180deg, #f5dfc4 0%, #d48f46 50%, #8d542b 100%);
+  background: linear-gradient(180deg, #ffe8c8 0%, #f5c176 25%, #d48f46 55%, #8d542b 85%, #5a3018 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 12px rgba(212, 143, 70, 0.3));
+  filter: drop-shadow(0 4px 16px rgba(212, 143, 70, 0.4)) drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5));
+  text-shadow: none;
 }
 
 .welcome-divider {
   display: block;
-  width: 60px;
-  height: 1px;
-  margin: 24px auto;
+  width: 120px;
+  height: 2px;
+  margin: 28px auto;
   border: none;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent-bright), var(--accent), var(--accent-bright), transparent);
+  position: relative;
+}
+
+.welcome-divider::before {
+  content: "◆";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.5rem;
+  color: var(--accent-bright);
+  background: rgba(18, 11, 9, 0.98);
+  padding: 0 8px;
 }
 
 .welcome-tagline {
@@ -836,20 +852,49 @@ button.entity-card:disabled {
 }
 
 .welcome-cta {
-  font-size: 1.1rem;
-  padding: 18px 48px;
-  letter-spacing: 0.04em;
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 20px 56px;
+  letter-spacing: 0.06em;
   border-radius: 999px;
   position: relative;
   overflow: hidden;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 30px rgba(212, 143, 70, 0.25),
+    0 12px 32px rgba(120, 68, 31, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  animation: cta-glow 3s ease-in-out infinite;
+}
+
+@keyframes cta-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 143, 70, 0.2), 0 12px 32px rgba(120, 68, 31, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(212, 143, 70, 0.35), 0 12px 32px rgba(120, 68, 31, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
 }
 
 .welcome-cta::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 50%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent 50%);
   pointer-events: none;
+}
+
+.welcome-cta::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+  animation: cta-shine 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes cta-shine {
+  0%, 80%, 100% { transform: translateX(-100%) rotate(0deg); }
+  60% { transform: translateX(100%) rotate(0deg); }
 }
 
 .welcome-nav-card {
@@ -1066,8 +1111,10 @@ button.entity-card:disabled {
 .welcome-flavor-text {
   font-family: var(--font-display);
   color: var(--muted);
-  font-size: 0.95rem;
-  letter-spacing: 0.04em;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  font-style: italic;
+  opacity: 0.7;
 }
 
 @media (max-width: 760px) {
@@ -1104,14 +1151,16 @@ button.entity-card:disabled {
 
 .campfire-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 5vw, 2.6rem);
-  background: linear-gradient(180deg, #f5c176 0%, #d48f46 60%, #a06830 100%);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 900;
+  background: linear-gradient(180deg, #ffe8c8 0%, #f5c176 30%, #d48f46 60%, #a06830 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 4px 0 0;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  filter: drop-shadow(0 2px 8px rgba(212, 143, 70, 0.2));
 }
 
 /* ── Ground / fire area ── */
@@ -1217,22 +1266,27 @@ button.entity-card:disabled {
 
 .campfire-hero--locked {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.65;
+  filter: brightness(0.35) saturate(0.3) sepia(0.3);
 }
 
 .campfire-hero--locked:hover {
-  filter: none;
+  filter: brightness(0.45) saturate(0.4) sepia(0.2);
   transform: none;
 }
 
 .campfire-hero__lock {
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--danger);
   font-family: var(--font-body);
   margin-top: 2px;
   text-transform: none;
   letter-spacing: 0;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(207, 123, 111, 0.2);
 }
 
 /* ── Selected hero detail panel ── */
@@ -1322,7 +1376,12 @@ button.entity-card:disabled {
 .campfire-detail--expanded {
   max-width: 720px;
   text-align: left;
-  padding: 20px 24px 24px;
+  padding: 24px 28px 28px;
+  border: 1px solid rgba(212, 143, 70, 0.2);
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(212, 143, 70, 0.06), transparent 50%),
+    var(--panel-strong);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(245, 193, 118, 0.06);
 }
 
 .campfire-detail__flavor {
@@ -1555,10 +1614,13 @@ button.entity-card:disabled {
   align-items: center;
   width: 100%;
   max-width: 800px;
-  padding: 8px 16px;
-  background: var(--panel-strong);
-  border: 1px solid var(--line);
+  padding: 10px 18px;
+  background:
+    linear-gradient(90deg, rgba(212, 143, 70, 0.06), transparent 30%, transparent 70%, rgba(212, 143, 70, 0.06)),
+    var(--panel-strong);
+  border: 1px solid var(--line-strong);
   border-radius: 8px 8px 0 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .town-status__zone {
@@ -1597,6 +1659,15 @@ button.entity-card:disabled {
   inset: 0;
 }
 
+.town-map-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 80px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
 /* ── NPC Icons on map ── */
 
 .town-npc-icon {
@@ -1620,12 +1691,12 @@ button.entity-card:disabled {
 }
 
 .town-npc-icon__dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: rgba(186, 169, 147, 0.7);
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  background: rgba(186, 169, 147, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.7), 0 0 16px rgba(0, 0, 0, 0.3);
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -1647,11 +1718,12 @@ button.entity-card:disabled {
 
 .town-npc-icon__label {
   font-family: var(--font-display);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
+  font-weight: 700;
   color: var(--text);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.5);
   white-space: nowrap;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -1668,18 +1740,20 @@ button.entity-card:disabled {
   top: 0;
   right: 50%;
   transform: translate(calc(100% + 2px), -2px);
-  background: var(--danger);
+  background: linear-gradient(135deg, #e8a040, #c07020);
   color: #fff;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
   pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(212, 143, 70, 0.3);
 }
 
 /* ── NPC Dialog Overlay (D2R style) ── */
@@ -1832,22 +1906,25 @@ button.entity-card:disabled {
 
 .merchant-card__icon {
   font-size: 1.5rem;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(212, 143, 70, 0.1);
-  border: 1px solid rgba(212, 143, 70, 0.2);
-  margin-bottom: 2px;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(212, 143, 70, 0.2), rgba(212, 143, 70, 0.05) 80%);
+  border: 1px solid rgba(212, 143, 70, 0.25);
+  margin-bottom: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .merchant-card__name {
   font-family: var(--font-display);
-  font-size: 0.85rem;
-  color: var(--text);
-  letter-spacing: 0.03em;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-bright);
+  letter-spacing: 0.04em;
   line-height: 1.3;
 }
 
@@ -2097,10 +2174,12 @@ button.entity-card:disabled {
 
 .actmap__name {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--accent-bright);
   margin: 2px 0 0;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 8px rgba(212, 143, 70, 0.15);
 }
 
 .actmap__stats {
@@ -2139,10 +2218,21 @@ button.entity-card:disabled {
   inset: 0;
   border-radius: inherit;
   background:
+    radial-gradient(ellipse at 10% 20%, rgba(80, 40, 18, 0.2), transparent 40%),
+    radial-gradient(ellipse at 85% 30%, rgba(60, 30, 15, 0.15), transparent 35%),
     radial-gradient(ellipse at 20% 35%, rgba(50, 30, 18, 0.35), transparent 55%),
     radial-gradient(ellipse at 75% 55%, rgba(35, 20, 12, 0.3), transparent 50%),
     radial-gradient(ellipse at 50% 80%, rgba(25, 15, 8, 0.25), transparent 60%);
   transition: opacity 0.25s ease;
+}
+
+.actmap__main-map::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.4), inset 0 0 120px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
 
 /* --- Scroll overlay (hidden by default) --- */
@@ -2231,7 +2321,7 @@ button.entity-card:disabled {
 }
 
 .map-edge {
-  stroke-width: 1.5px;
+  stroke-width: 2.5px;
   stroke-linecap: round;
   fill: none;
 }
@@ -2352,12 +2442,12 @@ button.waypoint:hover {
 }
 
 .waypoint--locked .waypoint__icon {
-  border-color: rgba(235, 200, 149, 0.12);
-  background: rgba(15, 10, 8, 0.7);
-  opacity: 0.35;
+  border-color: rgba(235, 200, 149, 0.08);
+  background: rgba(15, 10, 8, 0.8);
+  opacity: 0.45;
 }
 
-.waypoint--locked .waypoint__label { opacity: 0.35; }
+.waypoint--locked .waypoint__label { opacity: 0.4; }
 
 @keyframes waypoint-pulse {
   0%, 100% { box-shadow: 0 0 8px 1px rgba(212, 143, 70, 0.25); }
@@ -2456,10 +2546,12 @@ button.waypoint:hover {
 
 .explore-header__zone {
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: 2rem;
+  font-weight: 700;
   color: var(--accent-bright);
-  margin: 4px 0 8px;
-  letter-spacing: 0.04em;
+  margin: 6px 0 10px;
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 12px rgba(212, 143, 70, 0.2);
 }
 
 .explore-header__stats {
@@ -2477,11 +2569,14 @@ button.waypoint:hover {
 }
 
 .explore-scene__ambience {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 16px;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 143, 70, 0.15) 0%, transparent 70%);
+  background:
+    radial-gradient(circle, rgba(212, 143, 70, 0.18) 0%, rgba(160, 80, 30, 0.06) 50%, transparent 70%);
+  border: 1px solid rgba(212, 143, 70, 0.08);
+  box-shadow: 0 0 40px rgba(212, 143, 70, 0.08);
   animation: ambience-pulse 3s ease-in-out infinite;
 }
 
@@ -2534,21 +2629,25 @@ button.waypoint:hover {
 
 .explore-card__icon {
   font-size: 2rem;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(212, 143, 70, 0.12);
-  border: 1px solid rgba(212, 143, 70, 0.25);
+  background:
+    radial-gradient(circle at 40% 35%, rgba(212, 143, 70, 0.2), rgba(120, 60, 20, 0.08) 80%);
+  border: 2px solid rgba(212, 143, 70, 0.3);
+  box-shadow: 0 0 16px rgba(212, 143, 70, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .explore-card__title {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.08rem;
+  font-weight: 700;
   color: var(--accent-bright);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .explore-card__flavor {
@@ -3793,7 +3892,8 @@ button.waypoint:hover {
 
 .fan-card:hover:not(.fan-card--disabled) {
   z-index: 100;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+  transform: rotate(0deg) translateY(-28px) scale(1.12) !important;
 }
 
 .fan-card--fire:hover:not(.fan-card--disabled) { border-color: rgba(220, 70, 50, 0.7); }
@@ -3865,16 +3965,17 @@ button.waypoint:hover {
 
 .fan-card__name {
   font-family: var(--font-display);
-  font-size: 0.72rem;
-  color: var(--text);
-  font-weight: bold;
+  font-size: 0.76rem;
+  color: #fff;
+  font-weight: 700;
   line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .fan-card__desc {
-  font-size: 0.6rem;
-  color: var(--muted);
-  line-height: 1.3;
+  font-size: 0.62rem;
+  color: rgba(246, 235, 219, 0.8);
+  line-height: 1.35;
   margin-top: 2px;
   flex: 1;
 }
@@ -5573,6 +5674,7 @@ button.waypoint:hover {
 
 .d2inv {
   display: flex;
+  flex-wrap: wrap;
   gap: 0;
   width: min(780px, 96vw);
   max-height: 90vh;
@@ -5656,15 +5758,16 @@ button.waypoint:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(8, 6, 4, 0.6);
-  border: 1px solid #2a2018;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(30, 22, 14, 0.5), rgba(8, 6, 4, 0.7));
+  border: 1px solid #3a2a18;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   transition: border-color 0.12s, box-shadow 0.12s;
 }
 
 .d2inv-slot:hover {
-  border-color: #5a4a30;
-  box-shadow: inset 0 0 8px rgba(80, 60, 30, 0.3);
+  border-color: #6a5a38;
+  box-shadow: inset 0 0 12px rgba(80, 60, 30, 0.3), 0 0 8px rgba(212, 143, 70, 0.1);
 }
 
 /* Slot sizing — mimic D2 proportions */
@@ -5680,12 +5783,13 @@ button.waypoint:hover {
 .d2inv-slot--belt    { width: 64px; height: 36px; }
 
 .d2inv-slot__empty-label {
-  font-size: 0.55rem;
-  color: #3a3020;
+  font-size: 0.52rem;
+  color: #504030;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   pointer-events: none;
   text-align: center;
+  font-weight: 600;
 }
 
 .d2inv-slot__item {
@@ -5799,22 +5903,27 @@ button.waypoint:hover {
 .d2inv-grid-cell {
   position: relative;
   aspect-ratio: 1;
-  background: rgba(8, 6, 4, 0.5);
-  border: 1px solid #221a10;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(20, 16, 10, 0.4), rgba(8, 6, 4, 0.6));
+  border: 1px solid #2a2014;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 3px;
-  transition: border-color 0.12s;
+  transition: border-color 0.12s, box-shadow 0.12s;
   min-height: 48px;
 }
 
-.d2inv-grid-cell:hover { border-color: #5a4a30; }
+.d2inv-grid-cell:hover {
+  border-color: #6a5a38;
+  box-shadow: inset 0 0 8px rgba(80, 60, 30, 0.2);
+}
 
 .d2inv-grid-cell--empty {
-  background: rgba(4, 3, 2, 0.3);
-  border-color: #1a1408;
+  background: rgba(10, 8, 5, 0.4);
+  border-color: #1e1810;
+  border-style: dashed;
 }
 
 .d2inv-grid-cell__name {
@@ -5887,6 +5996,117 @@ button.waypoint:hover {
 }
 
 .d2inv__close:hover { color: #c0a050; border-color: #5a4a30; }
+
+/* ── Charm Pouch ── */
+
+.d2inv-pouch {
+  width: 100%;
+  background: linear-gradient(180deg, #141008 0%, #1a1410 50%, #121010 100%);
+  border: 1px solid #2a2014;
+  border-radius: 4px;
+  padding: 6px;
+  margin-top: 4px;
+}
+
+.d2inv__panel-label--sub {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px solid #2a2014;
+}
+
+.d2inv-pouch__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.d2inv-charm {
+  position: relative;
+  background: rgba(14, 10, 6, 0.6);
+  border: 1px solid #2a2014;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  cursor: default;
+}
+
+.d2inv-charm:hover { border-color: #6a5a38; }
+
+.d2inv-charm--equipped {
+  border-color: #3a6a3a;
+  background: rgba(20, 40, 20, 0.35);
+  box-shadow: inset 0 0 6px rgba(60, 120, 60, 0.15);
+}
+
+.d2inv-charm--inactive {
+  opacity: 0.5;
+}
+
+.d2inv-charm--empty {
+  background: rgba(10, 8, 5, 0.4);
+  border-color: #1e1810;
+  border-style: dashed;
+}
+
+.d2inv-charm--small { }
+.d2inv-charm--large { grid-column: span 2; }
+.d2inv-charm--grand { grid-column: span 2; border-color: #4a3a1a; }
+
+.d2inv-charm__name {
+  font-size: 0.5rem;
+  color: #c0c0c0;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+  pointer-events: none;
+}
+
+.d2inv-charm--equipped .d2inv-charm__name { color: #a0d0a0; }
+.d2inv-charm--grand .d2inv-charm__name { color: #c7b377; }
+
+.d2inv-charm__size {
+  font-size: 0.45rem;
+  color: #706050;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.d2inv-charm__action {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.d2inv-charm:hover .d2inv-charm__action {
+  background: rgba(80, 60, 20, 0.15);
+  color: #a08050;
+  font-size: 0.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2px;
+}
+
+.d2inv-charm--equipped:hover .d2inv-charm__action {
+  background: rgba(60, 30, 20, 0.15);
+  color: #cf7b6f;
+}
+
+.d2inv-charm:hover .d2inv-tip--charm {
+  display: block;
+}
+
+.d2inv-tip--charm {
+  border-color: #3a5a3a;
+}
 
 /* ── Inventory Toggle Button in Town ── */
 
