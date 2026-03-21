@@ -37,6 +37,19 @@
     setTimeout(() => el.remove(), 1200);
   }
 
+  function applyApproachBonus(combat: CombatState, bonusStr: string): void {
+    const { applyGuard, appendLog, drawCards } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    const [kind, rawVal] = bonusStr.split(":");
+    const v = parseInt(rawVal, 10) || 0;
+    if (kind === "guard") { applyGuard(combat.hero, v); appendLog(combat, `Careful approach. +${v} Guard.`); }
+    else if (kind === "damage") { combat.hero.damageBonus += v; appendLog(combat, `Aggressive charge. +${v} Damage.`); }
+    else if (kind === "draw") { drawCards(combat, v); appendLog(combat, `Tactical insight. Drew ${v} extra card${v > 1 ? "s" : ""}.`); }
+    else if (kind === "energy") { combat.hero.energy += v; appendLog(combat, `Strategic positioning. +${v} Energy.`); }
+    else if (kind === "potion") { combat.potions += v; appendLog(combat, `Scavenged supplies. +${v} Potion.`); }
+    else if (kind === "guard_bonus") { combat.hero.guardBonus += v; appendLog(combat, `Fortified stance. +${v} Guard per card.`); }
+    else if (kind === "burn_bonus") { combat.hero.burnBonus += v; appendLog(combat, `Infernal preparation. +${v} Burn per card.`); }
+  }
+
   function addTempClass(el: HTMLElement, cls: string, durationMs: number): void {
     el.classList.add(cls);
     setTimeout(() => el.classList.remove(cls), durationMs);
@@ -132,11 +145,7 @@
     });
   }
 
-  function doCombatAction(
-    combat: CombatState,
-    action: () => void,
-    syncAndRender: () => void
-  ): void {
+  function doCombatAction(combat: CombatState, action: () => void, syncAndRender: () => void): void {
     const snapshot = captureCombatSnapshot(combat);
     action();
     syncAndRender();
@@ -180,16 +189,8 @@
 
   /* ── Merchant buy feedback ── */
 
-  function flashMerchantFeedback(el: HTMLElement): void {
-    addTempClass(el, "merchant-card--bought", 500);
-  }
-
   function getActionTarget(target: EventTarget | null): HTMLElement | null {
-    if (!(target instanceof Element)) {
-      return null;
-    }
-
-    return target.closest("[data-action]") as HTMLElement | null;
+    return target instanceof Element ? target.closest("[data-action]") as HTMLElement | null : null;
   }
 
   function handleClick({
@@ -278,7 +279,7 @@
         render();
         return true;
       case "use-town-action":
-        flashMerchantFeedback(actionEl);
+        addTempClass(actionEl, "merchant-card--bought", 500);
         appEngine.useTownAction(appState, actionEl.dataset.townActionId || "");
         render();
         return true;
@@ -286,24 +287,11 @@
         appEngine.selectZone(appState, actionEl.dataset.zoneId || "");
         render();
         return true;
-      case "begin-encounter": {
-        const approach = actionEl.dataset.approach || "cautious";
-        const combat = appState.combat;
-        const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
-        if (approach === "cautious") {
-          turns.applyGuard(combat.hero, 5);
-          turns.appendLog(combat, "Your careful approach reveals the enemy position. Hero gains 5 Guard.");
-        } else if (approach === "aggressive") {
-          combat.hero.damageBonus += 2;
-          turns.appendLog(combat, "Your bold charge disrupts the enemy formation. Hero gains +2 Damage.");
-        } else if (approach === "tactical") {
-          turns.drawCards(combat, 1);
-          turns.appendLog(combat, "Your reconnaissance reveals a tactical opening. Drew an extra card.");
-        }
+      case "begin-encounter":
+        applyApproachBonus(appState.combat, actionEl.dataset.bonus || "guard:5");
         appState.ui.exploring = false;
         render();
         return true;
-      }
       case "pick-event-card": {
         const event = appState.ui.explorationEvent;
         if (event?.pendingChoiceId) {
@@ -347,7 +335,10 @@
       case "select-enemy":
         if (appState.combat) {
           appState.combat.selectedEnemyId = actionEl.dataset.enemyId || "";
-          render();
+          document.querySelectorAll("[data-action=\"select-enemy\"]").forEach((el) => {
+            const enemyId = (el as HTMLElement).dataset.enemyId || "";
+            el.classList.toggle("sprite--targeted", enemyId === appState.combat.selectedEnemyId);
+          });
         }
         return true;
       case "play-card":
