@@ -19,7 +19,8 @@
     "seeds:sync:runes": "node ./scripts/sync-d2-runes.js",
     "seeds:sync:runewords": "node ./scripts/sync-d2-runewords.js",
     "assets:download": "./scripts/download-assets.sh",
-    "assets:curate": "./scripts/curate-mvp-icons.sh"
+    "assets:curate": "./scripts/curate-mvp-icons.sh",
+    "screenshots": "tsc -p ./tsconfig.runtime.json && node ./scripts/take-screenshots.js"
   },
   "keywords": [],
   "author": "",
