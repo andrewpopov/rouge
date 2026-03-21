@@ -1,33 +1,12 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  type ApproachKind = "cautious" | "aggressive" | "tactical";
-
-  const BONUS = {
-    GUARD: "guard", DAMAGE: "damage", DRAW: "draw",
-    ENERGY: "energy", POTION: "potion", GUARD_BONUS: "guard_bonus", BURN_BONUS: "burn_bonus",
-  } as const;
-
   interface ExploreOption {
     title: string;
     flavor: string;
     icon: string;
-    approach: ApproachKind;
+    approach: string;
   }
-
-  const APPROACH_BONUS_POOL: Record<ApproachKind, [string, number, string][]> = {
-    cautious: [[BONUS.GUARD, 5, "+5 Guard"], [BONUS.GUARD, 8, "+8 Guard"], [BONUS.GUARD_BONUS, 1, "+1 Guard per card"], [BONUS.POTION, 1, "+1 Potion"]],
-    aggressive: [[BONUS.DAMAGE, 1, "+1 Damage"], [BONUS.DAMAGE, 2, "+2 Damage"], [BONUS.DAMAGE, 3, "+3 Damage"], [BONUS.BURN_BONUS, 1, "+1 Burn per card"]],
-    tactical: [[BONUS.DRAW, 1, "+1 Card drawn"], [BONUS.DRAW, 2, "+2 Cards drawn"], [BONUS.ENERGY, 1, "+1 Energy"], [BONUS.ENERGY, 2, "+2 Energy"]],
-  };
-
-  function pickBonus(approach: ApproachKind, seed: number): { id: string; label: string } {
-    const pool = APPROACH_BONUS_POOL[approach];
-    const entry = pool[((seed * 31 + approach.charCodeAt(0)) >>> 0) % pool.length];
-    return { id: `${entry[0]}:${entry[1]}`, label: entry[2] };
-  }
-
-  runtimeWindow.__ROUGE_APPROACH_BONUS = BONUS;
 
   const ZONE_SCENE_TEXT: Record<string, string> = {
     "blood moor": "Crimson fog clings to the moor. The stench of decay grows stronger with each step.",
@@ -270,7 +249,7 @@
 
         <div class="explore-choices">
           ${options.map((opt, i) => {
-            const bonus = pickBonus(opt.approach, seed * 7 + i * 13);
+            const bonus = runtimeWindow.__ROUGE_APPROACH_BONUS.pickBonus(opt.approach, seed * 7 + i * 13);
             return `
             <button class="explore-card" data-action="begin-encounter" data-bonus="${bonus.id}">
               <div class="explore-card__icon">${opt.icon}</div>

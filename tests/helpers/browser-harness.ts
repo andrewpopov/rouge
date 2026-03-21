@@ -114,6 +114,7 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/inventory-view.js",
   "src/ui/safe-zone-view.js",
   "src/ui/world-map-view.js",
+  "src/ui/approach-bonus.js",
   "src/ui/combat-view.js",
   "src/ui/reward-view-continuity.js",
   "src/ui/reward-view.js",
