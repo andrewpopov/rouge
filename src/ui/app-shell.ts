@@ -46,6 +46,7 @@
       <button class="game-menu__toggle" data-action="toggle-game-menu">\u2630</button>
       <div class="game-menu__panel" id="game-menu-panel">
         <div class="game-menu__section">
+          <button class="game-menu__item" data-action="open-inventory">\u{1F392} Inventory</button>
           <button class="game-menu__item" data-action="return-safe-zone">\u2190 Return to Town</button>
           <button class="game-menu__item game-menu__item--danger" data-action="prompt-abandon-saved-run">\u2717 Abandon Run</button>
         </div>
@@ -113,6 +114,12 @@
 
     if (RUN_PHASES.has(appState.phase)) {
       root.innerHTML = buildGameMenu(appState) + root.innerHTML;
+    }
+
+    if (appState.ui.inventoryOpen && appState.run && RUN_PHASES.has(appState.phase)) {
+      root.innerHTML += `<div class="inv-overlay" data-action="close-inventory">
+        <div data-action="noop">${runtimeWindow.ROUGE_INVENTORY_VIEW.buildInventoryMarkup(appState, services)}</div>
+      </div>`;
     }
   }
 

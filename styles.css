@@ -1650,8 +1650,8 @@ button.entity-card:disabled {
   height: 100%;
   object-fit: cover;
   pointer-events: none;
-  opacity: 0.85;
-  filter: brightness(0.9) contrast(1.1) saturate(0.9);
+  opacity: 0.92;
+  filter: brightness(1.05) contrast(1.15) saturate(1.05);
 }
 
 .town-npc-layer {
@@ -5695,8 +5695,8 @@ button.waypoint:hover {
   overflow-y: auto;
   cursor: default;
   animation: merchant-in 0.2s ease-out;
-  border: 3px solid #3a2a1a;
-  box-shadow: 0 0 0 1px #1a1008, 0 16px 64px rgba(0, 0, 0, 0.9);
+  border: 3px solid #5a4828;
+  box-shadow: 0 0 0 1px #2a1e10, 0 0 40px rgba(212, 143, 70, 0.08), 0 16px 64px rgba(0, 0, 0, 0.9);
   position: relative;
 }
 
@@ -5709,31 +5709,33 @@ button.waypoint:hover {
 .d2inv__panel--left {
   flex: 0 0 320px;
   background:
-    radial-gradient(ellipse at 50% 40%, rgba(40, 30, 20, 0.5) 0%, transparent 70%),
-    linear-gradient(180deg, #161008 0%, #1c1410 50%, #141010 100%);
-  border-right: 2px solid #3a2a1a;
+    radial-gradient(ellipse at 50% 30%, rgba(60, 45, 28, 0.4) 0%, transparent 60%),
+    linear-gradient(180deg, #201810 0%, #251c14 50%, #1c1612 100%);
+  border-right: 2px solid #4a3820;
 }
 
 .d2inv__panel--right {
   flex: 1;
-  background: linear-gradient(180deg, #141008 0%, #1a1410 50%, #121010 100%);
+  background: linear-gradient(180deg, #1c1610 0%, #221a14 50%, #1a1412 100%);
   min-width: 0;
 }
 
 .d2inv__panel-label {
   font-family: var(--font-display);
-  font-size: 0.8rem;
-  color: #a08050;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c8a060;
   text-align: center;
-  padding: 4px 0 8px;
-  border-bottom: 1px solid #2a1e14;
-  margin-bottom: 8px;
+  padding: 6px 0 10px;
+  border-bottom: 1px solid #3a2e1c;
+  margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .d2inv__count {
-  color: #706040;
+  color: #907850;
   font-size: 0.75rem;
 }
 
@@ -5773,15 +5775,15 @@ button.waypoint:hover {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(30, 22, 14, 0.5), rgba(8, 6, 4, 0.7));
-  border: 1px solid #3a2a18;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    radial-gradient(ellipse at 50% 40%, rgba(50, 38, 24, 0.45), rgba(18, 14, 10, 0.6));
+  border: 1px solid #504028;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   transition: border-color 0.12s, box-shadow 0.12s;
 }
 
 .d2inv-slot:hover {
-  border-color: #6a5a38;
-  box-shadow: inset 0 0 12px rgba(80, 60, 30, 0.3), 0 0 8px rgba(212, 143, 70, 0.1);
+  border-color: #7a6840;
+  box-shadow: inset 0 0 12px rgba(80, 60, 30, 0.35), 0 0 10px rgba(212, 143, 70, 0.15);
 }
 
 /* Slot sizing — mimic D2 proportions */
@@ -5798,7 +5800,7 @@ button.waypoint:hover {
 
 .d2inv-slot__empty-label {
   font-size: 0.52rem;
-  color: #504030;
+  color: #70604a;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   pointer-events: none;
@@ -5918,8 +5920,8 @@ button.waypoint:hover {
   position: relative;
   aspect-ratio: 1;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(20, 16, 10, 0.4), rgba(8, 6, 4, 0.6));
-  border: 1px solid #2a2014;
+    radial-gradient(ellipse at 50% 50%, rgba(35, 28, 18, 0.35), rgba(14, 10, 8, 0.5));
+  border: 1px solid #3a3020;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -5931,12 +5933,12 @@ button.waypoint:hover {
 
 .d2inv-grid-cell:hover {
   border-color: #6a5a38;
-  box-shadow: inset 0 0 8px rgba(80, 60, 30, 0.2);
+  box-shadow: inset 0 0 8px rgba(80, 60, 30, 0.25);
 }
 
 .d2inv-grid-cell--empty {
-  background: rgba(10, 8, 5, 0.4);
-  border-color: #1e1810;
+  background: rgba(18, 14, 10, 0.35);
+  border-color: #30281a;
   border-style: dashed;
 }
 
@@ -6194,10 +6196,10 @@ button.waypoint:hover {
   right: 8px;
   z-index: 5;
   background: rgba(24, 16, 10, 0.85);
-  border: 1px solid var(--gold);
+  border: 1px solid var(--accent);
   border-radius: 4px;
   padding: 6px 12px;
-  color: var(--gold);
+  color: var(--accent);
   font-family: var(--font-display);
   font-size: 0.75rem;
   cursor: pointer;
