@@ -39,15 +39,16 @@
 
   function applyApproachBonus(combat: CombatState, bonusStr: string): void {
     const { applyGuard, appendLog, drawCards } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    const B = runtimeWindow.__ROUGE_APPROACH_BONUS;
     const [kind, rawVal] = bonusStr.split(":");
     const v = parseInt(rawVal, 10) || 0;
-    if (kind === "guard") { applyGuard(combat.hero, v); appendLog(combat, `Careful approach. +${v} Guard.`); }
-    else if (kind === "damage") { combat.hero.damageBonus += v; appendLog(combat, `Aggressive charge. +${v} Damage.`); }
-    else if (kind === "draw") { drawCards(combat, v); appendLog(combat, `Tactical insight. Drew ${v} extra card${v > 1 ? "s" : ""}.`); }
-    else if (kind === "energy") { combat.hero.energy += v; appendLog(combat, `Strategic positioning. +${v} Energy.`); }
-    else if (kind === "potion") { combat.potions += v; appendLog(combat, `Scavenged supplies. +${v} Potion.`); }
-    else if (kind === "guard_bonus") { combat.hero.guardBonus += v; appendLog(combat, `Fortified stance. +${v} Guard per card.`); }
-    else if (kind === "burn_bonus") { combat.hero.burnBonus += v; appendLog(combat, `Infernal preparation. +${v} Burn per card.`); }
+    if (kind === B.GUARD) { applyGuard(combat.hero, v); appendLog(combat, `Careful approach. +${v} Guard.`); }
+    else if (kind === B.DAMAGE) { combat.hero.damageBonus += v; appendLog(combat, `Aggressive charge. +${v} Damage.`); }
+    else if (kind === B.DRAW) { drawCards(combat, v); appendLog(combat, `Tactical insight. Drew ${v} extra card${v > 1 ? "s" : ""}.`); }
+    else if (kind === B.ENERGY) { combat.hero.energy += v; appendLog(combat, `Strategic positioning. +${v} Energy.`); }
+    else if (kind === B.POTION) { combat.potions += v; appendLog(combat, `Scavenged supplies. +${v} Potion.`); }
+    else if (kind === B.GUARD_BONUS) { combat.hero.guardBonus += v; appendLog(combat, `Fortified stance. +${v} Guard per card.`); }
+    else if (kind === B.BURN_BONUS) { combat.hero.burnBonus += v; appendLog(combat, `Infernal preparation. +${v} Burn per card.`); }
   }
 
   function addTempClass(el: HTMLElement, cls: string, durationMs: number): void {

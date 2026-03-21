@@ -460,6 +460,10 @@ interface Window {
   __ROUGE_COMBAT_MERCENARY: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_ENGINE_TURNS: Record<string, any>;
+  __ROUGE_APPROACH_BONUS: {
+    pickBonus(approach: string, seed: number): { id: string; label: string };
+    applyBonus(combat: CombatState, bonusId: string): void;
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_EXPLORATION_EVENT_TEMPLATES: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

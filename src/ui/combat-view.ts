@@ -1,11 +1,33 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  type ApproachKind = "cautious" | "aggressive" | "tactical";
+
+  const BONUS = {
+    GUARD: "guard", DAMAGE: "damage", DRAW: "draw",
+    ENERGY: "energy", POTION: "potion", GUARD_BONUS: "guard_bonus", BURN_BONUS: "burn_bonus",
+  } as const;
+
   interface ExploreOption {
     title: string;
     flavor: string;
     icon: string;
+    approach: ApproachKind;
   }
+
+  const APPROACH_BONUS_POOL: Record<ApproachKind, [string, number, string][]> = {
+    cautious: [[BONUS.GUARD, 5, "+5 Guard"], [BONUS.GUARD, 8, "+8 Guard"], [BONUS.GUARD_BONUS, 1, "+1 Guard per card"], [BONUS.POTION, 1, "+1 Potion"]],
+    aggressive: [[BONUS.DAMAGE, 1, "+1 Damage"], [BONUS.DAMAGE, 2, "+2 Damage"], [BONUS.DAMAGE, 3, "+3 Damage"], [BONUS.BURN_BONUS, 1, "+1 Burn per card"]],
+    tactical: [[BONUS.DRAW, 1, "+1 Card drawn"], [BONUS.DRAW, 2, "+2 Cards drawn"], [BONUS.ENERGY, 1, "+1 Energy"], [BONUS.ENERGY, 2, "+2 Energy"]],
+  };
+
+  function pickBonus(approach: ApproachKind, seed: number): { id: string; label: string } {
+    const pool = APPROACH_BONUS_POOL[approach];
+    const entry = pool[((seed * 31 + approach.charCodeAt(0)) >>> 0) % pool.length];
+    return { id: `${entry[0]}:${entry[1]}`, label: entry[2] };
+  }
+
+  runtimeWindow.__ROUGE_APPROACH_BONUS = BONUS;
 
   const ZONE_SCENE_TEXT: Record<string, string> = {
     "blood moor": "Crimson fog clings to the moor. The stench of decay grows stronger with each step.",
@@ -66,26 +88,26 @@
 
   const ZONE_EXPLORE_OPTIONS: Record<string, ExploreOption[]> = {
     battle: [
-      { title: "Scout Ahead", flavor: "Move carefully through the underbrush. Something stirs in the shadows ahead.", icon: "\u{1F441}" },
-      { title: "Charge Forward", flavor: "No time for caution. Draw steel and press into the clearing.", icon: "\u2694" },
-      { title: "Follow the Trail", flavor: "Tracks in the mud lead deeper. Whatever made them was large.", icon: "\u{1F43E}" },
+      { title: "Scout Ahead", flavor: "Move carefully through the underbrush. Something stirs in the shadows ahead.", icon: "\u{1F441}", approach: "cautious" },
+      { title: "Charge Forward", flavor: "No time for caution. Draw steel and press into the clearing.", icon: "\u2694", approach: "aggressive" },
+      { title: "Follow the Trail", flavor: "Tracks in the mud lead deeper. Whatever made them was large.", icon: "\u{1F43E}", approach: "tactical" },
     ],
     miniboss: [
-      { title: "Enter the Lair", flavor: "The air grows heavy with malice. A powerful creature guards this passage.", icon: "\u{1F480}" },
-      { title: "Challenge the Guardian", flavor: "A towering figure blocks the path. It has been waiting for you.", icon: "\u2620" },
-      { title: "Disturb the Nest", flavor: "Bones crunch underfoot. This is no ordinary hunting ground.", icon: "\u{1F5E1}" },
+      { title: "Enter the Lair", flavor: "The air grows heavy with malice. A powerful creature guards this passage.", icon: "\u{1F480}", approach: "cautious" },
+      { title: "Challenge the Guardian", flavor: "A towering figure blocks the path. It has been waiting for you.", icon: "\u2620", approach: "aggressive" },
+      { title: "Disturb the Nest", flavor: "Bones crunch underfoot. This is no ordinary hunting ground.", icon: "\u{1F5E1}", approach: "tactical" },
     ],
     boss: [
-      { title: "Confront the Evil", flavor: "The final threshold. Beyond lies the source of corruption in this land.", icon: "\u{1F525}" },
-      { title: "Begin the Assault", flavor: "Your party steels themselves. This is what the entire journey has led to.", icon: "\u26A1" },
-      { title: "Open the Gate", flavor: "Ancient seals crack and groan. There is no turning back now.", icon: "\u{1F6AA}" },
+      { title: "Confront the Evil", flavor: "The final threshold. Beyond lies the source of corruption in this land.", icon: "\u{1F525}", approach: "cautious" },
+      { title: "Begin the Assault", flavor: "Your party steels themselves. This is what the entire journey has led to.", icon: "\u26A1", approach: "aggressive" },
+      { title: "Open the Gate", flavor: "Ancient seals crack and groan. There is no turning back now.", icon: "\u{1F6AA}", approach: "tactical" },
     ],
   };
 
   const GENERIC_OPTIONS: ExploreOption[] = [
-    { title: "Explore", flavor: "The path ahead is uncertain. Press on and see what fate has in store.", icon: "\u{1F9ED}" },
-    { title: "Investigate", flavor: "Something catches your eye in the distance. It warrants a closer look.", icon: "\u{1F50D}" },
-    { title: "Advance", flavor: "The road stretches onward. Your party moves deeper into the unknown.", icon: "\u{1F6B6}" },
+    { title: "Explore", flavor: "The path ahead is uncertain. Press on and see what fate has in store.", icon: "\u{1F9ED}", approach: "cautious" },
+    { title: "Investigate", flavor: "Something catches your eye in the distance. It warrants a closer look.", icon: "\u{1F50D}", approach: "tactical" },
+    { title: "Advance", flavor: "The road stretches onward. Your party moves deeper into the unknown.", icon: "\u{1F6B6}", approach: "aggressive" },
   ];
 
   function getCardElement(card: CardDefinition): string {
@@ -247,13 +269,16 @@
         </div>
 
         <div class="explore-choices">
-          ${options.map((opt) => `
-            <button class="explore-card" data-action="begin-encounter">
+          ${options.map((opt, i) => {
+            const bonus = pickBonus(opt.approach, seed * 7 + i * 13);
+            return `
+            <button class="explore-card" data-action="begin-encounter" data-bonus="${bonus.id}">
               <div class="explore-card__icon">${opt.icon}</div>
               <div class="explore-card__title">${escapeHtml(opt.title)}</div>
               <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>
-            </button>
-          `).join("")}
+              <div class="explore-card__bonus">${escapeHtml(bonus.label)}</div>
+            </button>`;
+          }).join("")}
         </div>
       </div>
     `;
