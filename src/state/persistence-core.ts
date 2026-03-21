@@ -95,6 +95,10 @@
       accountProgression: {
         focusedTreeId: ACCOUNT_PROGRESSION_TREES[0].id,
       },
+      charms: {
+        unlockedCharmIds: [] as string[],
+        equippedCharmIds: [] as string[],
+      },
     };
   }
 
@@ -339,6 +343,12 @@
     profile.meta.accountProgression = {
       ...defaultMeta.accountProgression,
       ...(profile.meta.accountProgression || {}),
+    };
+    profile.meta.charms = {
+      ...defaultMeta.charms,
+      ...(profile.meta.charms || {}),
+      unlockedCharmIds: uniqueStrings(profile.meta.charms?.unlockedCharmIds),
+      equippedCharmIds: uniqueStrings(profile.meta.charms?.equippedCharmIds),
     };
     profile.meta.accountProgression.focusedTreeId = getFocusedTreeId(profile);
     sanitizePlanningState(profile, content);

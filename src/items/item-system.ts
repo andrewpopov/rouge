@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const itemCatalog = runtimeWindow.ROUGE_ITEM_CATALOG;
+  const { RARITY } = itemCatalog;
   const itemLoadout = runtimeWindow.ROUGE_ITEM_LOADOUT;
   const itemTown = runtimeWindow.ROUGE_ITEM_TOWN;
   const {
@@ -46,13 +47,13 @@
       return null;
     }
 
-    const rarity = options.rarity || "white";
+    const rarity = options.rarity || RARITY.WHITE;
     const rarityBonuses = options.rarityBonuses || {};
     const combinedBonuses = { ...item.bonuses };
     Object.entries(rarityBonuses).forEach(([k, v]: [string, number]) => { (combinedBonuses as unknown as Record<string, number>)[k] = ((combinedBonuses as unknown as Record<string, number>)[k] || 0) + toNumber(v, 0); });
     let rarityLabel = "";
-    if (rarity === "brown") { rarityLabel = "Unique"; }
-    else if (rarity === "yellow") { rarityLabel = "Magic"; }
+    if (rarity === RARITY.UNIQUE) { rarityLabel = "Unique"; }
+    else if (rarity === RARITY.MAGIC) { rarityLabel = "Magic"; }
     const rarityTitle = rarityLabel ? `${rarityLabel} ${item.name}` : item.name;
 
     const loadout = buildHydratedLoadout(run, content);
@@ -274,7 +275,7 @@
       const slot = focusSlots[index];
       const upgradeItem = getUpgradeItemForSlot(slot, (buildHydratedLoadout(run, content) as unknown as Record<string, RunEquipmentState | null>)[slot], actNumber, zone, run, content, profile);
       const itemDef = upgradeItem ? getItemDefinition(content, upgradeItem.id) : null;
-      const rarityBonuses = itemDef && rarity !== "white" ? generateRarityBonuses(itemDef, rarity, randomFn) : {};
+      const rarityBonuses = itemDef && rarity !== RARITY.WHITE ? generateRarityBonuses(itemDef, rarity, randomFn) : {};
       const rarityOpts = { rarity, rarityBonuses };
       const choice = buildChoiceForSlot(slot, run, zone, actNumber, encounterNumber, content, profile, rarityOpts);
       if (choice) { return choice; }

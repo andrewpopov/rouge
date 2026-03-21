@@ -74,6 +74,7 @@
         refreshCount: 0,
         stock: [],
       },
+      sagePurgeCount: 0,
     };
   }
 

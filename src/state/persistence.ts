@@ -188,6 +188,11 @@
       markTutorialCompleted(profile, "world_node_rewards");
     }
     applyDerivedAccountUnlocks(profile);
+    runtimeWindow.ROUGE_CHARM_SYSTEM?.checkAndUnlockCharms(profile, run);
+    const newClassUnlocks = runtimeWindow.ROUGE_CLASS_UNLOCK_RULES?.checkAndUnlockClasses(profile) || [];
+    if (newClassUnlocks.length > 0) {
+      unlockProfileEntries(profile, "classIds", newClassUnlocks);
+    }
   }
 
   function recordRunHistory(profile: ProfileState, run: RunState, outcome: string, content: GameContent | null = null) {

@@ -2,42 +2,20 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
-  function buildRewardLedgerLines(run: RunState): string[] {
-    const questLines = Object.values(run.world?.questOutcomes || {}).map((entry) => `Quest · ${entry.title}: ${entry.outcomeTitle}.`);
-    const shrineLines = Object.values(run.world?.shrineOutcomes || {}).map((entry) => `Shrine · ${entry.title}: ${entry.outcomeTitle}.`);
-    const eventLines = Object.values(run.world?.eventOutcomes || {}).map((entry) => `Aftermath · ${entry.title}: ${entry.outcomeTitle}.`);
-    const opportunityLines = Object.values(run.world?.opportunityOutcomes || {}).map((entry) => `Opportunity · ${entry.title}: ${entry.outcomeTitle}.`);
-    const lines = [...questLines, ...shrineLines, ...eventLines, ...opportunityLines];
-    return lines.length > 0 ? lines.slice(-4).reverse() : ["No route ledger entries are active yet. Claims here still set the next route or archive handoff."];
-  }
-
   function buildRewardContinuityMarkup(
     appState: AppState,
     services: UiRenderServices,
     run: RunState,
     reward: RunReward,
     derivedParty: DerivedPartyState,
-    trainingRanks: number
+    _trainingRanks: number
   ): string {
-    const common = runtimeWindow.ROUGE_UI_COMMON;
-    const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
-    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
-    const review = accountSummary.review || {
-      availableConvergenceCount: 0,
-      nextConvergenceTitle: "",
-    };
-    const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
-    const ledgerLines = buildRewardLedgerLines(run);
+    const { buildBadge, buildStat, escapeHtml } = services.renderUtils;
     const totalLedgerEntries =
       Object.keys(run.world?.questOutcomes || {}).length +
       Object.keys(run.world?.shrineOutcomes || {}).length +
       Object.keys(run.world?.eventOutcomes || {}).length +
       Object.keys(run.world?.opportunityOutcomes || {}).length;
-    const planningStageLines = common.getPlanningCharterStageLines
-      ? common.getPlanningCharterStageLines(planning, appState.content)
-      : [];
-    const planningOverview = planning.overview;
-    const activeRunewordNames = derivedParty.activeRunewords;
     const isRouteReward = ["quest", "shrine", "event", "opportunity"].includes(reward.kind);
 
     let deltaLabel = "Immediate Delta";
@@ -58,140 +36,48 @@
       resolutionLine = `${run.actTitle} closes here, then the shell pivots into the act-transition wrapper.`;
     }
 
-    let routeCarryLine = "This reward preserves the current route and hands control back to the next encounter in the same zone.";
-    if (isRouteReward) {
-      routeCarryLine = "This reward writes directly into the route ledger and returns to the map without another encounter.";
-    } else if (reward.clearsZone) {
-      routeCarryLine = "This reward finishes the current encounter package before the route board reopens.";
-    }
-
-    const deltaLines = [
-      reward.clearsZone ? `${reward.zoneTitle} closes on this claim.` : `${reward.zoneTitle} stays active after this claim.`,
-      isRouteReward
-        ? "Route-side claims record consequence state without restarting combat."
-        : "Combat claims still mutate deck, loadout, progression, and supplies before the route resumes.",
-      resolutionLine,
-    ];
-
-    const routeCarryLines = [ledgerLines[0], routeCarryLine, `Active runewords riding the next combat: ${common.getPreviewLabel(activeRunewordNames, "none active yet")}.`];
-
-    let accountPressureLabel = "Focused Tree";
-    let accountPressureTone = accountSummary.focusedTreeId ? "cleared" : "locked";
-    let accountPressureLines = [
-      `Focused tree: ${accountSummary.focusedTreeTitle || "unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
-      `Training ranks carried on this expedition: ${trainingRanks}.`,
-      ...planningStageLines.slice(0, runtimeWindow.ROUGE_LIMITS.PLANNING_STAGE_COMPACT),
-    ].filter(Boolean);
-
-    if (review.availableConvergenceCount > 0) {
-      accountPressureLabel = "Convergence Ready";
-      accountPressureTone = "available";
-      accountPressureLines = [
-        `Ready convergence lane${review.availableConvergenceCount === 1 ? "" : "s"}: ${review.availableConvergenceCount}.`,
-        `Next convergence: ${review.nextConvergenceTitle || "all current convergence lanes are online"}.`,
-        ...planningStageLines.slice(0, runtimeWindow.ROUGE_LIMITS.PLANNING_STAGE_COMPACT),
-      ].filter(Boolean);
-    } else if (planning.plannedRunewordCount > 0) {
-      accountPressureLabel = "Charters Live";
-      accountPressureTone = "available";
-      accountPressureLines = [
-        `Planning stage: ${planningOverview.nextActionLabel || "Quiet"}.`,
-        planningOverview.nextActionSummary || "No active runeword charter is pinned across the account.",
-        ...planningStageLines.slice(0, runtimeWindow.ROUGE_LIMITS.PLANNING_STAGE_EXTENDED),
-      ].filter(Boolean);
-    }
-
     let nextShellLabel = "World Map";
     let nextShellTone = "available";
     let nextShellCopy = "After this claim the shell moves to World Map.";
-    let nextShellLines = [
-      "The world map reopens with updated route state and the same expedition context.",
-      `Current route ledger entries: ${totalLedgerEntries}.`,
-      `Next map-side account pressure: ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
-    ];
 
     if (reward.endsRun) {
       nextShellLabel = "Run-End Review";
       nextShellTone = "cleared";
       nextShellCopy = "After this claim the shell moves to Run-End Review.";
-      nextShellLines = [
-        "Run-end review turns expedition changes into archive delta and hall re-entry guidance.",
-        `Archive-facing carry-through: ${accountSummary.focusedTreeTitle || "account focus unset"} -> ${accountSummary.nextMilestoneTitle || "all milestones cleared"}.`,
-        `Current route ledger entries: ${totalLedgerEntries}.`,
-      ];
     } else if (reward.endsAct) {
       nextShellLabel = "Act Transition";
       nextShellTone = "cleared";
       nextShellCopy = "After this claim the shell moves to Act Transition.";
-      nextShellLines = [
-        `The act-transition wrapper opens next and then sends the expedition to ${run.acts[run.currentActIndex + 1]?.town || "the final screen"}.`,
-        "The next stop stays shell-owned: review the act delta, then enter town with the same loadout and account pressure.",
-        `Current route ledger entries: ${totalLedgerEntries}.`,
-      ];
     }
 
     return `
-      <section class="panel flow-panel">
-        <div class="panel-head">
-          <h2>Continuity Delta Desk</h2>
-          <p>The reward screen now carries the same continuity model as hall, town, and map: what changed, what pressure is still riding the expedition, and where the shell goes next after the claim.</p>
-        </div>
-        <div class="feature-grid feature-grid-wide">
-          <article class="feature-card">
-            <div class="entity-name-row">
-              <strong>${escapeHtml(deltaLabel)}</strong>
-              ${buildBadge(reward.kind, reward.endsAct || reward.endsRun ? "cleared" : "available")}
-            </div>
-            <div class="entity-stat-grid">
-              ${buildStat("Zone", reward.zoneTitle)}
-              ${buildStat("Gold", `+${reward.grants.gold}`)}
-              ${buildStat("XP", `+${reward.grants.xp}`)}
-              ${buildStat("Potions", `+${reward.grants.potions}`)}
-            </div>
-            ${buildStringList(deltaLines, "log-list reward-list reward-preview-list")}
-          </article>
-          <article class="feature-card">
-            <div class="entity-name-row">
-              <strong>Route Carry-Through</strong>
-              ${buildBadge(`${totalLedgerEntries} logged`, totalLedgerEntries > 0 ? "available" : "locked")}
-            </div>
-            <div class="entity-stat-grid">
-              ${buildStat("Ledger", totalLedgerEntries)}
-              ${buildStat("Loadout", derivedParty.loadoutLines.length)}
-              ${buildStat("Runewords", derivedParty.activeRunewords.length)}
-              ${buildStat("Deck", run.deck.length)}
-            </div>
-            ${buildStringList(routeCarryLines, "log-list reward-list reward-preview-list")}
-          </article>
-          <article class="feature-card">
-            <div class="entity-name-row">
-              <strong>Account Pressure Carry-Through</strong>
-              ${buildBadge(accountPressureLabel, accountPressureTone)}
-            </div>
-            <div class="entity-stat-grid">
-              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
-              ${buildStat("Next Milestone", accountSummary.nextMilestoneTitle || "Cleared")}
-              ${buildStat("Ready Conv.", review.availableConvergenceCount)}
-              ${buildStat("Charters", planning.plannedRunewordCount)}
-            </div>
-            ${buildStringList(accountPressureLines, "log-list reward-list reward-preview-list")}
-          </article>
-          <article class="feature-card">
-            <div class="entity-name-row">
-              <strong>Next Shell Handoff</strong>
-              ${buildBadge(nextShellLabel, nextShellTone)}
-            </div>
-            <p>${escapeHtml(nextShellCopy)}</p>
-            <div class="entity-stat-grid">
-              ${buildStat("Next", nextShellLabel)}
-              ${buildStat("Town", run.acts[run.currentActIndex + 1]?.town || run.safeZoneName)}
-              ${buildStat("Encounter", reward.encounterNumber)}
-              ${buildStat("Reward", reward.kind)}
-            </div>
-            ${buildStringList(nextShellLines, "log-list reward-list reward-preview-list")}
-          </article>
-        </div>
-      </section>
+      <div class="feature-grid feature-grid-wide">
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>${escapeHtml(deltaLabel)}</strong>
+            ${buildBadge(reward.kind, reward.endsAct || reward.endsRun ? "cleared" : "available")}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Zone", reward.zoneTitle)}
+            ${buildStat("Deck", run.deck.length)}
+            ${buildStat("Runewords", derivedParty.activeRunewords.length)}
+            ${buildStat("Ledger", totalLedgerEntries)}
+          </div>
+          <p class="service-subtitle">${escapeHtml(resolutionLine)}</p>
+        </article>
+        <article class="feature-card">
+          <div class="entity-name-row">
+            <strong>Next Phase</strong>
+            ${buildBadge(nextShellLabel, nextShellTone)}
+          </div>
+          <div class="entity-stat-grid">
+            ${buildStat("Destination", nextShellLabel)}
+            ${buildStat("Town", run.acts[run.currentActIndex + 1]?.town || run.safeZoneName)}
+            ${buildStat("Encounter", reward.encounterNumber)}
+          </div>
+          <p class="service-subtitle">${escapeHtml(nextShellCopy)}</p>
+        </article>
+      </div>
     `;
   }
 

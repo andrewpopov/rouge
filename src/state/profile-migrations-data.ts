@@ -2,7 +2,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  const CURRENT_PROFILE_SCHEMA_VERSION = 8;
+  const CURRENT_PROFILE_SCHEMA_VERSION = 9;
   const CORE_TOWN_FEATURE_IDS = [
     "front_door_profile_hall",
     "safe_zone_services",
@@ -44,6 +44,7 @@
         { id: "boss_trophy_gallery", rewardFeatureId: "boss_trophy_gallery", prerequisiteIds: [], target: 1, getProgress: (metrics: Record<string, number>) => metrics.unlockedBossCount },
         { id: "class_roster_archive", rewardFeatureId: "class_roster_archive", prerequisiteIds: [], target: 3, getProgress: (metrics: Record<string, number>) => metrics.classesPlayedCount },
         { id: "training_grounds", rewardFeatureId: "training_grounds", prerequisiteIds: ["class_roster_archive"], target: 10, getProgress: (metrics: Record<string, number>) => metrics.highestLevel },
+        { id: "horadric_cube", rewardFeatureId: "horadric_cube", prerequisiteIds: ["boss_trophy_gallery"], target: 8, getProgress: (metrics: Record<string, number>) => metrics.highestLevel },
         { id: "war_college", rewardFeatureId: "war_college", prerequisiteIds: ["boss_trophy_gallery", "training_grounds"], target: 5, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
         { id: "paragon_doctrine", rewardFeatureId: "paragon_doctrine", prerequisiteIds: ["war_college"], target: 8, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },
         { id: "apex_doctrine", rewardFeatureId: "apex_doctrine", prerequisiteIds: ["war_college", "paragon_doctrine"], target: 12, getProgress: (metrics: Record<string, number>) => metrics.totalBossesDefeated },

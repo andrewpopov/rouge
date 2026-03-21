@@ -37,6 +37,9 @@
     const quartermasterActions = serviceActions.filter((action) => action.id.startsWith("quartermaster_"));
     const progressionActions = townActions.filter((action) => action.category === "progression");
     const vendorActions = townActions.filter((action) => action.category === "vendor");
+    const blacksmithActions = townActions.filter((action) => action.category === "blacksmith");
+    const sageActions = townActions.filter((action) => action.category === "sage");
+    const gamblerActions = townActions.filter((action) => action.category === "gambler");
     const inventoryActions = townActions.filter((action) => action.category === "inventory");
     const stashActions = townActions.filter((action) => action.category === "stash");
     const mercenaryActions = townActions.filter((action) => action.category === "mercenary");
@@ -99,6 +102,9 @@
       quartermasterActions,
       progressionActions,
       vendorActions,
+      blacksmithActions,
+      sageActions,
+      gamblerActions,
       inventoryActions,
       stashActions,
       mercenaryActions,

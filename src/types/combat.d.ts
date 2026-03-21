@@ -82,6 +82,7 @@ interface CombatState {
   weaponFamily?: string;
   weaponDamageBonus?: number;
   classPreferredFamilies?: string[];
+  deckCardIds: string[];
 }
 
 interface CombatMercenaryRouteBonusState {

@@ -91,18 +91,24 @@
     const selectedClass = services.classRegistry.getClassDefinition(appState.seedBundle, appState.ui.selectedClassId);
     const deckProfileId = services.classRegistry.getDeckProfileId(appState.content, appState.ui.selectedClassId);
 
+    const unlockRules = runtimeWindow.ROUGE_CLASS_UNLOCK_RULES;
     const heroSprites = appState.registries.classes
       .map((entry) => {
         const isSelected = entry.id === appState.ui.selectedClassId;
+        const isLocked = unlockRules && !unlockRules.isClassUnlocked(appState.profile, entry.id);
+        const hint = isLocked ? unlockRules.getUnlockHint(entry.id) : "";
         return `
-          <button class="campfire-hero ${isSelected ? "campfire-hero--selected" : ""}"
-                  data-action="select-class" data-class-id="${escapeHtml(entry.id)}"
-                  title="${escapeHtml(entry.name)}">
+          <button class="campfire-hero ${isSelected ? "campfire-hero--selected" : ""} ${isLocked ? "campfire-hero--locked" : ""}"
+                  ${isLocked ? "" : `data-action="select-class" data-class-id="${escapeHtml(entry.id)}"`}
+                  title="${isLocked ? escapeHtml(hint) : escapeHtml(entry.name)}"
+                  ${isLocked ? "disabled" : ""}>
             <img class="campfire-hero__sprite"
                  src="./assets/curated/portraits/${escapeHtml(entry.id)}.png"
                  alt="${escapeHtml(entry.name)}"
-                 draggable="false" />
+                 draggable="false"
+                 ${isLocked ? `style="filter: grayscale(1) brightness(0.5)"` : ""} />
             <span class="campfire-hero__name">${escapeHtml(entry.name)}</span>
+            ${isLocked ? `<span class="campfire-hero__lock">${escapeHtml(hint)}</span>` : ""}
           </button>
         `;
       })

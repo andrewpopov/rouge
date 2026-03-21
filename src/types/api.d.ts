@@ -163,6 +163,7 @@ interface ItemDataApi {
 }
 
 interface ItemCatalogApi {
+  RARITY: { readonly WHITE: "white"; readonly MAGIC: "yellow"; readonly UNIQUE: "brown" };
   clamp(value: number, min: number, max: number): number;
   uniquePush(list: string[], value: string): void;
   toNumber(value: unknown, fallback?: number): number;
@@ -364,17 +365,17 @@ interface RunFactoryApi {
     starterDeck: string[];
   }): RunState;
   hydrateRun(run: RunState, content: GameContent): RunState;
-  createCombatOverrides(run: RunState, content: GameContent): CombatOverrides;
+  createCombatOverrides(run: RunState, content: GameContent, profile?: ProfileState | null): CombatOverrides;
   beginZone(run: RunState, zoneId: string, content?: GameContent | null): ZoneBeginResult;
   getCurrentAct(run: RunState): ActState | null;
   getCurrentZones(run: RunState): ZoneState[];
   getZoneById(run: RunState, zoneId: string): ZoneState | null;
   getReachableZones(run: RunState): ZoneState[];
   recomputeZoneStatuses(run: RunState): void;
-  snapshotPartyFromCombat(run: RunState, combatState: CombatState, content: GameContent): void;
+  snapshotPartyFromCombat(run: RunState, combatState: CombatState, content: GameContent, profile?: ProfileState | null): void;
   buildEncounterReward(config: { run: RunState; zone: ZoneState; combatState: CombatState; content: GameContent; profile?: ProfileState | null }): RunReward;
   applyReward(run: RunState, reward: RunReward, choiceId: string, content: GameContent): ActionResult;
-  buildCombatBonuses(run: RunState, content: GameContent): ItemBonusSet;
+  buildCombatBonuses(run: RunState, content: GameContent, profile?: ProfileState | null): ItemBonusSet;
   getProgressionSummary(run: RunState, content: GameContent): RunProgressionSummary;
   listProgressionActions(run: RunState, content: GameContent): TownAction[];
   applyProgressionAction(run: RunState, actionId: string, content: GameContent): ActionResult;
@@ -508,6 +509,81 @@ interface AssetMapApi {
   getMercenarySprite(role: string): string | null;
   getUiIcon(key: string): string | null;
   getIntentIcon(intentDescription: string): string;
+}
+
+interface CharmDataApi {
+  CHARM_CATALOG: Record<string, CharmDefinition>;
+  getCharmDefinition(charmId: string): CharmDefinition | null;
+  listAllCharms(): CharmDefinition[];
+}
+
+interface CharmPouchSummary {
+  capacity: number;
+  slotsUsed: number;
+  slotsRemaining: number;
+  equippedCount: number;
+  unlockedCount: number;
+  equippedCharms: CharmDefinition[];
+  unequippedCharms: CharmDefinition[];
+}
+
+interface CharmSystemApi {
+  POUCH_CAPACITY: number;
+  ACTION_EQUIP_PREFIX: string;
+  ACTION_UNEQUIP_PREFIX: string;
+  getEquippedSlotCost(profile: ProfileState | null): number;
+  canEquipCharm(profile: ProfileState | null, charmId: string): boolean;
+  equipCharm(profile: ProfileState, charmId: string): boolean;
+  unequipCharm(profile: ProfileState, charmId: string): boolean;
+  unlockCharm(profile: ProfileState, charmId: string): boolean;
+  buildCharmBonuses(profile: ProfileState | null, classId?: string): ItemBonusSet;
+  getCharmPouchSummary(profile: ProfileState | null): CharmPouchSummary;
+  checkAndUnlockCharms(profile: ProfileState, run: RunState | null): string[];
+}
+
+interface CubeRecipeInput {
+  kind: "charm" | "rune" | "equipment";
+  size?: CharmSize;
+  count?: number;
+  rarity?: string;
+}
+
+interface CubeRecipeOutput {
+  kind: "charm" | "rune_upgrade" | "charm_reroll";
+  size?: CharmSize;
+}
+
+interface CubeRecipe {
+  id: string;
+  title: string;
+  description: string;
+  inputs: CubeRecipeInput[];
+  output: CubeRecipeOutput;
+}
+
+interface HoradricCubeApi {
+  ACTION_PREFIX: string;
+  CUBE_RECIPES: CubeRecipe[];
+  canExecuteRecipe(profile: ProfileState, recipeId: string): boolean;
+  listAvailableRecipes(profile: ProfileState): { recipe: CubeRecipe; canExecute: boolean }[];
+  buildCubeActions(profile: ProfileState): TownAction[];
+  executeRecipe(profile: ProfileState, recipeId: string): ActionResult;
+}
+
+interface ClassUnlockRule {
+  classId: string;
+  className: string;
+  description: string;
+  condition: (profile: ProfileState) => boolean;
+}
+
+interface ClassUnlockRulesApi {
+  ALWAYS_UNLOCKED_CLASS_IDS: string[];
+  CLASS_UNLOCK_RULES: ClassUnlockRule[];
+  isClassUnlocked(profile: ProfileState | null, classId: string): boolean;
+  getUnlockHint(classId: string): string;
+  listUnlockedClassIds(profile: ProfileState | null): string[];
+  checkAndUnlockClasses(profile: ProfileState): string[];
 }
 
 interface AppState {

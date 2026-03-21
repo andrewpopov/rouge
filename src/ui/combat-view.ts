@@ -417,10 +417,11 @@
     const cardCount = combat.hand.length;
     const weaponEquip = run.loadout?.weapon;
     const weaponItem = weaponEquip ? appState.content.itemCatalog?.[weaponEquip.itemId] : null;
-    const weaponRarity = weaponEquip?.rarity || "white";
+    const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
+    const weaponRarity = weaponEquip?.rarity || RARITY.WHITE;
     let rarityColor = "#aaa";
-    if (weaponRarity === "brown") { rarityColor = "#c59a46"; }
-    else if (weaponRarity === "yellow") { rarityColor = "#ddc63b"; }
+    if (weaponRarity === RARITY.UNIQUE) { rarityColor = "#c59a46"; }
+    else if (weaponRarity === RARITY.MAGIC) { rarityColor = "#ddc63b"; }
     const canMelee = combat.phase === "player" && !combat.outcome && !combat.meleeUsed && (combat.weaponDamageBonus || 0) > 0;
     const hasOutcome = Boolean(combat.outcome);
 

@@ -2,19 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const { LOADOUT_SLOT_LABELS } = runtimeWindow.ROUGE_ITEM_LOADOUT;
-
-  const SLOT_ICONS: Record<string, string> = {
-    helm: "\u{1FA96}",
-    amulet: "\u{1F4FF}",
-    weapon: "\u2694",
-    armor: "\u{1F6E1}",
-    shield: "\u{1F6E1}",
-    gloves: "\u{1F9E4}",
-    ring1: "\u{1F48D}",
-    ring2: "\u{1F48D}",
-    belt: "\u{1F4BC}",
-    boots: "\u{1F462}",
-  };
+  const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
 
   function buildEquipmentTooltip(equipment: RunEquipmentState | null, content: GameContent, escapeHtml: (s: string) => string): string {
     if (!equipment) { return ""; }
@@ -30,49 +18,53 @@
     const bonusLines = describeBonusSet(combinedBonuses);
     let rarityClass = "";
     let rarityLabel = "";
-    if (equipment.rarity === "yellow") { rarityClass = "inv-tooltip--magic"; rarityLabel = "Magic"; }
-    else if (equipment.rarity === "brown") { rarityClass = "inv-tooltip--unique"; rarityLabel = "Unique"; }
+    if (equipment.rarity === RARITY.MAGIC) { rarityClass = "d2inv-tip--magic"; rarityLabel = "Magic"; }
+    else if (equipment.rarity === RARITY.UNIQUE) { rarityClass = "d2inv-tip--unique"; rarityLabel = "Unique"; }
     const socketLine = `Sockets: ${equipment.insertedRunes.length}/${equipment.socketsUnlocked}/${item.maxSockets}`;
     return `
-      <div class="inv-tooltip ${rarityClass}">
-        <div class="inv-tooltip__name">${rarityLabel ? `${escapeHtml(rarityLabel)} ` : ""}${escapeHtml(item.name)}</div>
-        <div class="inv-tooltip__slot">${escapeHtml(item.family || item.slot)}</div>
-        ${bonusLines.map((line: string) => `<div class="inv-tooltip__bonus">${escapeHtml(line)}</div>`).join("")}
-        <div class="inv-tooltip__socket">${escapeHtml(socketLine)}</div>
+      <div class="d2inv-tip ${rarityClass}">
+        <div class="d2inv-tip__name">${rarityLabel ? `${escapeHtml(rarityLabel)} ` : ""}${escapeHtml(item.name)}</div>
+        <div class="d2inv-tip__type">${escapeHtml(item.family || item.slot)}</div>
+        ${bonusLines.map((line: string) => `<div class="d2inv-tip__stat">${escapeHtml(line)}</div>`).join("")}
+        <div class="d2inv-tip__socket">${escapeHtml(socketLine)}</div>
       </div>
     `;
   }
 
-  function buildSlotCell(
+  function getRarityColorClass(rarity: string | undefined): string {
+    if (rarity === RARITY.UNIQUE) { return "d2inv--unique"; }
+    if (rarity === RARITY.MAGIC) { return "d2inv--magic"; }
+    return "";
+  }
+
+  function buildSlot(
     slotKey: LoadoutSlotKey,
     equipment: RunEquipmentState | null,
     content: GameContent,
     escapeHtml: (s: string) => string
   ): string {
-    const icon = SLOT_ICONS[slotKey] || "\u2B1C";
     const label = LOADOUT_SLOT_LABELS[slotKey] || slotKey;
     const itemDef = equipment ? runtimeWindow.ROUGE_ITEM_CATALOG.getItemDefinition(content, equipment.itemId) : null;
-    const isEmpty = !equipment;
-    let rarityClass = "";
-    if (equipment?.rarity === "brown") { rarityClass = "inv-slot--unique"; }
-    else if (equipment?.rarity === "yellow") { rarityClass = "inv-slot--magic"; }
+    const colorClass = equipment ? getRarityColorClass(equipment.rarity) : "";
+    const filledClass = equipment ? "d2inv-slot--filled" : "";
 
     return `
-      <div class="inv-slot ${isEmpty ? "inv-slot--empty" : ""} ${rarityClass} inv-slot--${slotKey}"
-           data-action="${isEmpty ? "noop" : "toggle-inv-tooltip"}" data-slot-key="${slotKey}"
-           title="${escapeHtml(itemDef?.name || label)}">
-        <div class="inv-slot__icon">${isEmpty ? icon : ""}</div>
-        ${itemDef ? `<div class="inv-slot__item-name">${escapeHtml(itemDef.name)}</div>` : `<div class="inv-slot__label">${escapeHtml(label)}</div>`}
+      <div class="d2inv-slot d2inv-slot--${slotKey} ${filledClass} ${colorClass}">
         ${equipment ? `
-          <button class="inv-slot__unequip" data-action="use-town-action" data-town-action-id="inventory_unequip_${slotKey}"
-                  title="Unequip">×</button>
-        ` : ""}
+          <div class="d2inv-slot__item ${colorClass}">
+            <span class="d2inv-slot__item-name">${escapeHtml(itemDef?.name || "?")}</span>
+          </div>
+          <button class="d2inv-slot__remove" data-action="use-town-action"
+                  data-town-action-id="inventory_unequip_${slotKey}" title="Unequip">\u00d7</button>
+        ` : `
+          <span class="d2inv-slot__empty-label">${escapeHtml(label)}</span>
+        `}
         ${buildEquipmentTooltip(equipment, content, escapeHtml)}
       </div>
     `;
   }
 
-  function buildBackpackCell(
+  function buildGridCell(
     entry: InventoryEntry,
     content: GameContent,
     escapeHtml: (s: string) => string
@@ -82,19 +74,14 @@
     const name = isEquipment
       ? (getItemDefinition(content, entry.equipment?.itemId || "")?.name || "Unknown")
       : (getRuneDefinition(content, entry.runeId)?.name || "Unknown Rune");
-    const slot = isEquipment ? (entry.equipment?.slot || "") : "";
-    let rarityClass = "";
-    if (isEquipment && entry.equipment?.rarity === "brown") { rarityClass = "inv-bp--unique"; }
-    else if (isEquipment && entry.equipment?.rarity === "yellow") { rarityClass = "inv-bp--magic"; }
-    const icon = isEquipment ? (SLOT_ICONS[slot] || "\u2B1C") : "\u{1F48E}";
+    const colorClass = isEquipment ? getRarityColorClass(entry.equipment?.rarity) : "d2inv--rune";
 
     return `
-      <div class="inv-bp-cell ${rarityClass}" title="${escapeHtml(name)}">
-        <div class="inv-bp-cell__icon">${icon}</div>
-        <div class="inv-bp-cell__name">${escapeHtml(name)}</div>
+      <div class="d2inv-grid-cell ${colorClass}" title="${escapeHtml(name)}">
+        <span class="d2inv-grid-cell__name">${escapeHtml(name)}</span>
         ${isEquipment ? `
-          <button class="inv-bp-cell__equip" data-action="use-town-action" data-town-action-id="inventory_equip_${entry.entryId}"
-                  title="Equip">Equip</button>
+          <button class="d2inv-grid-cell__use" data-action="use-town-action"
+                  data-town-action-id="inventory_equip_${entry.entryId}">Equip</button>
         ` : ""}
       </div>
     `;
@@ -106,79 +93,57 @@
     const content = appState.content;
     const { buildHydratedLoadout } = runtimeWindow.ROUGE_ITEM_CATALOG;
     const loadout = buildHydratedLoadout(run, content);
-
-    const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY || 10;
+    const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY;
     const carried = run.inventory?.carried || [];
+    const emptyCount = Math.max(0, capacity - carried.length);
 
-    // Build paperdoll - D2 layout:
-    //        [helm]
-    //       [amulet]
-    // [weapon][armor][shield]
-    // [gloves]      [ring1]
-    //  [belt]       [ring2]
-    // [boots]
-    const paperdoll = `
-      <div class="inv-paperdoll">
-        <div class="inv-paperdoll__row inv-paperdoll__row--top">
-          ${buildSlotCell("helm", loadout.helm, content, escapeHtml)}
-        </div>
-        <div class="inv-paperdoll__row inv-paperdoll__row--neck">
-          ${buildSlotCell("amulet", loadout.amulet, content, escapeHtml)}
-        </div>
-        <div class="inv-paperdoll__row inv-paperdoll__row--torso">
-          ${buildSlotCell("weapon", loadout.weapon, content, escapeHtml)}
-          ${buildSlotCell("armor", loadout.armor, content, escapeHtml)}
-          ${buildSlotCell("shield", loadout.shield, content, escapeHtml)}
-        </div>
-        <div class="inv-paperdoll__row inv-paperdoll__row--hands">
-          ${buildSlotCell("gloves", loadout.gloves, content, escapeHtml)}
-          <div class="inv-paperdoll__spacer"></div>
-          ${buildSlotCell("ring1", loadout.ring1, content, escapeHtml)}
-        </div>
-        <div class="inv-paperdoll__row inv-paperdoll__row--waist">
-          ${buildSlotCell("belt", loadout.belt, content, escapeHtml)}
-          <div class="inv-paperdoll__spacer"></div>
-          ${buildSlotCell("ring2", loadout.ring2, content, escapeHtml)}
-        </div>
-        <div class="inv-paperdoll__row inv-paperdoll__row--feet">
-          ${buildSlotCell("boots", loadout.boots, content, escapeHtml)}
-        </div>
-      </div>
-    `;
-
-    // Backpack grid
-    const emptySlots = Math.max(0, capacity - carried.length);
-    const backpackCells = carried.map((entry: InventoryEntry) => buildBackpackCell(entry, content, escapeHtml)).join("");
-    const emptyCells = Array.from({ length: emptySlots }, () => `<div class="inv-bp-cell inv-bp-cell--empty"></div>`).join("");
-
+    // D2 layout: left = paperdoll with slots around silhouette, right = grid
     return `
-      <div class="inv-screen">
-        <div class="inv-screen__header">
-          <h2 class="inv-screen__title">Equipment</h2>
-          <div class="inv-screen__stats">
-            ${escapeHtml(run.className)} Lv.${run.level}
+      <div class="d2inv">
+        <div class="d2inv__panel d2inv__panel--left">
+          <div class="d2inv__panel-label">
+            ${escapeHtml(run.className)} \u2014 Level ${run.level}
           </div>
-        </div>
-        <div class="inv-screen__body">
-          <div class="inv-screen__paperdoll">
-            ${paperdoll}
-          </div>
-          <div class="inv-screen__backpack">
-            <div class="inv-bp-header">
-              <span class="inv-bp-header__title">Backpack</span>
-              <span class="inv-bp-header__count">${carried.length}/${capacity}</span>
+          <div class="d2inv-doll">
+            <div class="d2inv-doll__row d2inv-doll__row--head">
+              ${buildSlot("helm", loadout.helm, content, escapeHtml)}
             </div>
-            <div class="inv-bp-grid">
-              ${backpackCells}
-              ${emptyCells}
+            <div class="d2inv-doll__row d2inv-doll__row--shoulders">
+              ${buildSlot("amulet", loadout.amulet, content, escapeHtml)}
+            </div>
+            <div class="d2inv-doll__row d2inv-doll__row--torso">
+              ${buildSlot("weapon", loadout.weapon, content, escapeHtml)}
+              <div class="d2inv-doll__body">
+                ${buildSlot("armor", loadout.armor, content, escapeHtml)}
+              </div>
+              ${buildSlot("shield", loadout.shield, content, escapeHtml)}
+            </div>
+            <div class="d2inv-doll__row d2inv-doll__row--lower">
+              ${buildSlot("ring1", loadout.ring1, content, escapeHtml)}
+              ${buildSlot("belt", loadout.belt, content, escapeHtml)}
+              ${buildSlot("ring2", loadout.ring2, content, escapeHtml)}
+            </div>
+            <div class="d2inv-doll__row d2inv-doll__row--feet">
+              ${buildSlot("gloves", loadout.gloves, content, escapeHtml)}
+              <div class="d2inv-doll__spacer"></div>
+              ${buildSlot("boots", loadout.boots, content, escapeHtml)}
             </div>
           </div>
         </div>
-        <div class="inv-screen__footer">
-          <button class="merchant-leave" data-action="close-inventory">
-            <span class="merchant-leave__arrow">\u2190</span> Close
-          </button>
+        <div class="d2inv__panel d2inv__panel--right">
+          <div class="d2inv__panel-label">
+            Inventory <span class="d2inv__count">${carried.length}/${capacity}</span>
+          </div>
+          <div class="d2inv-grid">
+            ${carried.map((entry: InventoryEntry) => buildGridCell(entry, content, escapeHtml)).join("")}
+            ${Array.from({ length: emptyCount }, () => `<div class="d2inv-grid-cell d2inv-grid-cell--empty"></div>`).join("")}
+          </div>
+          <div class="d2inv__gold">
+            <span class="d2inv__gold-icon">\u{1FA99}</span>
+            <span class="d2inv__gold-amount">${run.gold}</span>
+          </div>
         </div>
+        <button class="d2inv__close" data-action="close-inventory">Close</button>
       </div>
     `;
   }

@@ -3,6 +3,8 @@
   const { ITEM_TEMPLATES, RUNE_TEMPLATES, RUNEWORD_TEMPLATES, RUNE_REWARD_POOLS } = runtimeWindow.ROUGE_ITEM_DATA;
   const { clamp, toNumber, uniquePush } = runtimeWindow.ROUGE_UTILS;
 
+  const RARITY = { WHITE: "white", MAGIC: "yellow", UNIQUE: "brown" } as const;
+
   const SLOT_FAMILY_DEFAULTS: Record<EquipmentSlot, string> = {
     weapon: "Weapons", armor: "Body Armor", helm: "Helms", shield: "Shields",
     gloves: "Gloves", boots: "Boots", belt: "Belts", ring: "Rings", amulet: "Amulets",
@@ -193,7 +195,7 @@
       socketsUnlocked,
       insertedRunes,
       runewordId: "",
-      rarity: (obj.rarity as string) || "white",
+      rarity: (obj.rarity as string) || RARITY.WHITE,
       rarityBonuses: (obj.rarityBonuses as ItemBonusSet) || {},
     };
 
@@ -286,21 +288,21 @@
   function rollItemRarity(zoneKind: string, randomFn: RandomFn) {
     const roll = randomFn();
     if (zoneKind === "boss") {
-      if (roll < 0.30) { return "white"; }
-      return roll < 0.70 ? "yellow" : "brown";
+      if (roll < 0.30) { return RARITY.WHITE; }
+      return roll < 0.70 ? RARITY.MAGIC : RARITY.UNIQUE;
     }
     if (zoneKind === "miniboss") {
-      if (roll < 0.50) { return "white"; }
-      return roll < 0.85 ? "yellow" : "brown";
+      if (roll < 0.50) { return RARITY.WHITE; }
+      return roll < 0.85 ? RARITY.MAGIC : RARITY.UNIQUE;
     }
-    if (roll < 0.70) { return "white"; }
-    return roll < 0.95 ? "yellow" : "brown";
+    if (roll < 0.70) { return RARITY.WHITE; }
+    return roll < 0.95 ? RARITY.MAGIC : RARITY.UNIQUE;
   }
 
   function generateRarityBonuses(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn) {
-    if (!itemDef || rarity === "white" || !rarity) { return {}; }
-    const multiplier = rarity === "brown" ? 1.5 : 1.3;
-    const extraLineCount = rarity === "brown" ? 2 : 1;
+    if (!itemDef || rarity === RARITY.WHITE || !rarity) { return {}; }
+    const multiplier = rarity === RARITY.UNIQUE ? 1.5 : 1.3;
+    const extraLineCount = rarity === RARITY.UNIQUE ? 2 : 1;
     const scaled: Record<string, number> = {};
     Object.entries(itemDef.bonuses || {}).forEach(([key, value]: [string, number]) => {
       const base = toNumber(value, 0);
@@ -315,6 +317,7 @@
   }
 
   runtimeWindow.ROUGE_ITEM_CATALOG = {
+    RARITY,
     clamp,
     uniquePush,
     toNumber,

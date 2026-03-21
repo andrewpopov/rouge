@@ -67,6 +67,10 @@
         accountProgression: {
           focusedTreeId: "archives",
         },
+        charms: {
+          unlockedCharmIds: [],
+          equippedCharmIds: [],
+        },
       },
     };
   }

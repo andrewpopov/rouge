@@ -148,6 +148,66 @@
     return actMercs;
   }
 
+  function describeBonuses(bonuses: ItemBonusSet): string {
+    const parts: string[] = [];
+    if (bonuses.heroMaxLife) { parts.push(`+${bonuses.heroMaxLife} Life`); }
+    if (bonuses.heroMaxEnergy) { parts.push(`+${bonuses.heroMaxEnergy} Energy`); }
+    if (bonuses.heroDamageBonus) { parts.push(`+${bonuses.heroDamageBonus} Dmg`); }
+    if (bonuses.heroGuardBonus) { parts.push(`+${bonuses.heroGuardBonus} Guard`); }
+    if (bonuses.heroBurnBonus) { parts.push(`+${bonuses.heroBurnBonus} Burn`); }
+    if (bonuses.heroPotionHeal) { parts.push(`+${bonuses.heroPotionHeal} Potion`); }
+    if (bonuses.mercenaryAttack) { parts.push(`+${bonuses.mercenaryAttack} Merc Atk`); }
+    if (bonuses.mercenaryMaxLife) { parts.push(`+${bonuses.mercenaryMaxLife} Merc Life`); }
+    return parts.join(", ") || "No bonuses";
+  }
+
+  function buildCharmPouchActions(profile: ProfileState, run: RunState): TownAction[] {
+    const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
+    if (!charmSystem || !profile?.meta?.charms) {
+      return [];
+    }
+    const summary = charmSystem.getCharmPouchSummary(profile);
+    if (summary.unlockedCount === 0) {
+      return [];
+    }
+
+    const actions: TownAction[] = [];
+    const classId = run?.classId || "";
+
+    for (const charm of summary.equippedCharms) {
+      const classNote = charm.classId && charm.classId !== classId ? " (inactive — wrong class)" : "";
+      actions.push({
+        id: `${charmSystem.ACTION_UNEQUIP_PREFIX}${charm.id}`,
+        category: "charm",
+        title: charm.name,
+        subtitle: `Equipped · ${charm.size} (${charm.slotCost} slot${charm.slotCost === 1 ? "" : "s"})`,
+        description: `Remove this charm from the pouch.${classNote}`,
+        previewLines: [describeBonuses(charm.bonuses), `${summary.slotsUsed}/${summary.capacity} slots used.`],
+        cost: 0,
+        actionLabel: "Unequip",
+        disabled: false,
+      });
+    }
+
+    for (const charm of summary.unequippedCharms) {
+      const canEquip = charmSystem.canEquipCharm(profile, charm.id);
+      const classNote = charm.classId ? ` (${charm.classId} only)` : "";
+      actions.push({
+        id: `${charmSystem.ACTION_EQUIP_PREFIX}${charm.id}`,
+        category: "charm",
+        title: charm.name,
+        subtitle: `Available · ${charm.size} (${charm.slotCost} slot${charm.slotCost === 1 ? "" : "s"})${classNote}`,
+        description: `Place this charm in the pouch.`,
+        previewLines: [describeBonuses(charm.bonuses), canEquip ? `${summary.slotsRemaining} slot${summary.slotsRemaining === 1 ? "" : "s"} free.` : "Not enough pouch space."],
+        cost: 0,
+        actionLabel: canEquip ? "Equip" : "Full",
+        disabled: !canEquip,
+      });
+    }
+
+    return actions;
+  }
+
   function listActions(content: GameContent, run: RunState, profile: ProfileState) {
     const mercenaryActions = getActMercenaries(content, run).map((mercenaryDefinition) => {
       return buildMercenaryAction(run, mercenaryDefinition);
@@ -155,11 +215,30 @@
     const progressionActions = runtimeWindow.ROUGE_RUN_FACTORY?.listProgressionActions(run, content) || [];
     const itemActions = runtimeWindow.ROUGE_ITEM_SYSTEM?.listTownActions(run, profile, content) || [];
 
+    const deckServices = runtimeWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
+    const blacksmithActions = deckServices ? deckServices.buildBlacksmithActions(run, content) : [];
+    const sageActions = deckServices ? deckServices.buildSageActions(run, content) : [];
+    const gamblerActions = deckServices ? deckServices.buildGamblerActions(run) : [];
+
+    const hasCube = runtimeWindow.ROUGE_HORADRIC_CUBE &&
+      Array.isArray(profile?.meta?.unlocks?.townFeatureIds) &&
+      profile.meta.unlocks.townFeatureIds.includes("horadric_cube");
+    const cubeActions = hasCube
+      ? runtimeWindow.ROUGE_HORADRIC_CUBE.buildCubeActions(profile)
+      : [];
+
+    const charmActions = buildCharmPouchActions(profile, run);
+
     return [
       buildHealerAction(run, content),
       buildQuartermasterAction(run),
       ...progressionActions,
       ...itemActions,
+      ...blacksmithActions,
+      ...sageActions,
+      ...gamblerActions,
+      ...charmActions,
+      ...cubeActions,
       ...mercenaryActions,
     ];
   }
@@ -214,6 +293,51 @@
       actionId.startsWith("stash_")
     ) {
       return runtimeWindow.ROUGE_ITEM_SYSTEM.applyTownAction(run, profile, content, actionId);
+    }
+
+    if (actionId.startsWith("blacksmith_evolve_")) {
+      const deckServices = runtimeWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
+      if (!deckServices) {
+        return { ok: false, message: "Deck services not available." };
+      }
+      return deckServices.applyBlacksmithAction(run, content, actionId);
+    }
+
+    if (actionId.startsWith("sage_") && !actionId.startsWith("stash_")) {
+      const deckServices = runtimeWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
+      if (!deckServices) {
+        return { ok: false, message: "Deck services not available." };
+      }
+      return deckServices.applySageAction(run, content, actionId);
+    }
+
+    if (actionId.startsWith("gambler_mystery_")) {
+      const deckServices = runtimeWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
+      if (!deckServices) {
+        return { ok: false, message: "Deck services not available." };
+      }
+      return deckServices.applyGamblerAction(run, content, actionId);
+    }
+
+    const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
+    if (charmSystem && actionId.startsWith(charmSystem.ACTION_EQUIP_PREFIX)) {
+      const charmId = actionId.slice(charmSystem.ACTION_EQUIP_PREFIX.length);
+      return charmSystem.equipCharm(profile, charmId)
+        ? { ok: true, message: "Charm equipped." }
+        : { ok: false, message: "Cannot equip that charm." };
+    }
+
+    if (charmSystem && actionId.startsWith(charmSystem.ACTION_UNEQUIP_PREFIX)) {
+      const charmId = actionId.slice(charmSystem.ACTION_UNEQUIP_PREFIX.length);
+      return charmSystem.unequipCharm(profile, charmId)
+        ? { ok: true, message: "Charm unequipped." }
+        : { ok: false, message: "Charm is not equipped." };
+    }
+
+    const cube = runtimeWindow.ROUGE_HORADRIC_CUBE;
+    if (cube && actionId.startsWith(cube.ACTION_PREFIX)) {
+      const recipeId = actionId.slice(cube.ACTION_PREFIX.length);
+      return cube.executeRecipe(profile, recipeId);
     }
 
     if (actionId.startsWith("mercenary_contract_")) {

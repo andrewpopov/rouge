@@ -301,7 +301,7 @@
 
   function buildAndStartCombat(state: AppState, encounterId: string): void {
     const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
-    const overrides = runFactory.createCombatOverrides(state.run, state.content);
+    const overrides = runFactory.createCombatOverrides(state.run, state.content, state.profile);
     const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
     const combatBonuses = runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatBonuses?.(state.run, state.content) || {};
     const weaponItemId = state.run.loadout?.weapon?.itemId || "";
@@ -379,7 +379,7 @@
     }
 
     const runFactory = runtimeWindow.ROUGE_RUN_FACTORY;
-    runFactory.snapshotPartyFromCombat(state.run, state.combat, state.content);
+    runFactory.snapshotPartyFromCombat(state.run, state.combat, state.content, state.profile);
 
     if (state.combat.outcome === "defeat") {
       state.phase = PHASES.RUN_FAILED;

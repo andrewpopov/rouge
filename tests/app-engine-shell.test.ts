@@ -313,14 +313,12 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Continuity Delta Desk/);
-  assert.match(root.innerHTML, /Route Carry-Through/);
-  assert.match(root.innerHTML, /Next Shell Handoff/);
   assert.match(root.innerHTML, /Choose Your Reward/);
   assert.match(root.innerHTML, /Combat Reward/);
-  assert.match(root.innerHTML, /Advance Guide/);
-  assert.match(root.innerHTML, /Permanent Effect/);
-  assert.match(root.innerHTML, /Before And After/);
+  assert.match(root.innerHTML, /Before &amp; After/);
+  assert.match(root.innerHTML, /Next Phase/);
+  assert.match(root.innerHTML, /Party State/);
+  assert.match(root.innerHTML, /reward-choice-card__category/);
 
   state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
   state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);

@@ -66,30 +66,6 @@
     };
   }
 
-  function getAdvanceGuideLines(reward: RunReward): string[] {
-    if (reward.endsRun) {
-      return [
-        "Choose one reward effect.",
-        "Apply the reward.",
-        "Move directly into the run-end review.",
-      ];
-    }
-
-    if (reward.endsAct) {
-      return [
-        "Choose one reward effect.",
-        "Apply the reward.",
-        "Move into the act transition wrapper and then the next town.",
-      ];
-    }
-
-    return [
-      "Choose one reward effect.",
-      "Apply the reward immediately to the current expedition.",
-      "Return to the world map or next route state after the claim resolves.",
-    ];
-  }
-
   const EFFECT_ICON_MAP: Record<string, string> = {
     add_card: "\u{1F0CF}",
     upgrade_card: "\u2B06",
@@ -125,18 +101,112 @@
     return icons;
   }
 
+  function getCompactDeltaLines(choice: RewardChoice, run: RunState, content: GameContent): string[] {
+    const lines: string[] = [];
+    for (const effect of choice.effects) {
+      switch (effect.kind) {
+        case "add_card": {
+          const cardTitle = content.cardCatalog?.[effect.cardId || ""]?.title || effect.cardId || "?";
+          lines.push(`+1 Card: ${cardTitle}`);
+          break;
+        }
+        case "upgrade_card": {
+          const toCard = content.cardCatalog?.[effect.toCardId || ""]?.title || "Upgraded";
+          lines.push(`\u2B06 ${toCard}`);
+          break;
+        }
+        case "hero_max_life":
+          lines.push(`Life ${run.hero.maxLife} \u2192 ${run.hero.maxLife + (effect.value || 0)}`);
+          break;
+        case "hero_max_energy":
+          lines.push(`Energy ${run.hero.maxEnergy} \u2192 ${run.hero.maxEnergy + (effect.value || 0)}`);
+          break;
+        case "hero_potion_heal":
+          lines.push(`Potion ${run.hero.potionHeal} \u2192 ${run.hero.potionHeal + (effect.value || 0)}`);
+          break;
+        case "mercenary_attack":
+          lines.push(`Merc Atk ${run.mercenary.attack} \u2192 ${run.mercenary.attack + (effect.value || 0)}`);
+          break;
+        case "mercenary_max_life":
+          lines.push(`Merc Life ${run.mercenary.maxLife} \u2192 ${run.mercenary.maxLife + (effect.value || 0)}`);
+          break;
+        case "belt_capacity":
+          lines.push(`Belt ${run.belt.max} \u2192 ${run.belt.max + (effect.value || 0)}`);
+          break;
+        case "refill_potions":
+          lines.push(`+${effect.value || 0} Belt charges`);
+          break;
+        case "gold_bonus":
+          lines.push(`+${effect.value || 0} Bonus Gold`);
+          break;
+        case "equip_item": {
+          const item = content.itemCatalog?.[effect.itemId || ""];
+          lines.push(`Equip: ${item?.name || "Item"}`);
+          break;
+        }
+        case "add_socket":
+          lines.push(`+1 Socket (${effect.slot || "weapon"})`);
+          break;
+        case "socket_rune": {
+          const rune = content.runeCatalog?.[effect.runeId || ""];
+          lines.push(`Insert: ${rune?.name || "Rune"}`);
+          break;
+        }
+        case "class_point":
+          lines.push(`+${effect.value || 1} Class Point`);
+          break;
+        case "attribute_point":
+          lines.push(`+${effect.value || 1} Attribute Point`);
+          break;
+        case "record_quest_outcome":
+        case "record_quest_follow_up":
+        case "record_quest_consequence":
+        case "record_node_outcome":
+          lines.push(`\u{1F4DC} ${effect.outcomeTitle || "Ledger entry"}`);
+          break;
+        default:
+          break;
+      }
+    }
+    return lines;
+  }
+
+  function getCategoryTag(choice: RewardChoice): string {
+    const kinds = new Set(choice.effects.map((e) => e.kind));
+    if (kinds.has("add_card") || kinds.has("upgrade_card")) {
+      return "DECK";
+    }
+    if (kinds.has("equip_item") || kinds.has("add_socket") || kinds.has("socket_rune")) {
+      return "GEAR";
+    }
+    if (kinds.has("class_point") || kinds.has("attribute_point")) {
+      return "PROGRESSION";
+    }
+    if (kinds.has("hero_max_life") || kinds.has("hero_max_energy") || kinds.has("mercenary_attack") || kinds.has("mercenary_max_life")) {
+      return "STATS";
+    }
+    if (kinds.has("hero_potion_heal") || kinds.has("belt_capacity") || kinds.has("refill_potions")) {
+      return "SUPPLY";
+    }
+    if (kinds.has("gold_bonus")) {
+      return "GOLD";
+    }
+    if (kinds.has("record_quest_outcome") || kinds.has("record_quest_follow_up") || kinds.has("record_quest_consequence") || kinds.has("record_node_outcome")) {
+      return "QUEST";
+    }
+    return "REWARD";
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const continuity = runtimeWindow.__ROUGE_REWARD_VIEW_CONTINUITY;
-    const { escapeHtml, buildStat, buildStringList, buildBadge, buildChoiceList } = services.renderUtils;
+    const { escapeHtml, buildStat, buildStringList } = services.renderUtils;
     const run = appState.run;
     const reward = run.pendingReward;
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const trainingRanks = getTrainingRankCount(run.progression?.training);
-    const questOutcomeCount = Object.keys(run.world?.questOutcomes || {}).length;
     const rewardContext = getRewardContext(reward, run);
-    const advanceGuideLines = getAdvanceGuideLines(reward);
     let buttonLabel = "Continue Journey";
     if (reward.endsRun) {
       buttonLabel = "Finish Run";
@@ -165,10 +235,10 @@
           </div>
 
           <div class="reward-popup__grants">
-            <span class="reward-grant">\u{1F4B0} +${reward.grants.gold}</span>
-            <span class="reward-grant">\u2B50 +${reward.grants.xp} XP</span>
-            <span class="reward-grant">\u{1F9EA} +${reward.grants.potions}</span>
-            <span class="reward-grant">\u2764 ${run.hero.currentLife}/${run.hero.maxLife}</span>
+            <span class="reward-grant reward-grant--gold">\u{1F4B0} +${reward.grants.gold}</span>
+            <span class="reward-grant reward-grant--xp">\u2B50 +${reward.grants.xp} XP</span>
+            <span class="reward-grant reward-grant--potions">\u{1F9EA} +${reward.grants.potions}</span>
+            <span class="reward-grant reward-grant--life">\u2764 ${run.hero.currentLife}/${run.hero.maxLife}</span>
           </div>
 
           <h2 class="reward-popup__choose-label">Choose Your Reward</h2>
@@ -176,20 +246,22 @@
           <div class="reward-popup__choices">
             ${reward.choices.map((choice) => {
               const icons = getEffectIcons(choice);
-              const choiceRarity = choice.effects?.find((e) => e.rarity)?.rarity || "white";
-              let borderColor = "";
-              if (choiceRarity === "brown") { borderColor = "#c59a46"; }
-              else if (choiceRarity === "yellow") { borderColor = "#ddc63b"; }
-              const borderStyle = borderColor ? `border:2px solid ${borderColor}` : "";
-              let rarityTag = "";
-              if (choiceRarity === "brown") { rarityTag = "Unique "; }
-              else if (choiceRarity === "yellow") { rarityTag = "Magic "; }
+              const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
+              const choiceRarity = choice.effects?.find((e) => e.rarity)?.rarity || RARITY.WHITE;
+              const RARITY_CLASS_MAP: Record<string, string> = { [RARITY.UNIQUE]: "reward-choice-card--unique", [RARITY.MAGIC]: "reward-choice-card--magic" };
+              const rarityClass = RARITY_CLASS_MAP[choiceRarity] || "";
+              const category = getCategoryTag(choice);
+              const deltaLines = getCompactDeltaLines(choice, run, appState.content);
               return `
-                <button class="reward-choice-card" data-action="claim-reward-choice" data-choice-id="${escapeHtml(choice.id)}" style="${borderStyle}">
-                  <div class="reward-choice-card__icons">${icons.join(" ")}${rarityTag ? ` <span style="color:${borderColor};font-size:0.75em">${rarityTag}</span>` : ""}</div>
+                <button class="reward-choice-card ${rarityClass}" data-action="claim-reward-choice" data-choice-id="${escapeHtml(choice.id)}">
+                  <div class="reward-choice-card__top">
+                    <span class="reward-choice-card__category">${category}</span>
+                    <span class="reward-choice-card__icons">${icons.join(" ")}</span>
+                  </div>
                   <div class="reward-choice-card__name">${escapeHtml(choice.title)}</div>
                   <div class="reward-choice-card__sub">${escapeHtml(choice.subtitle)}</div>
                   <div class="reward-choice-card__desc">${escapeHtml(choice.description)}</div>
+                  ${deltaLines.length > 0 ? `<div class="reward-choice-card__deltas">${deltaLines.map((l) => `<span class="reward-choice-card__delta">${escapeHtml(l)}</span>`).join("")}</div>` : ""}
                 </button>
               `;
             }).join("")}
@@ -204,82 +276,16 @@
           <section class="battle-grid">
             <article class="panel battle-panel">
               <div class="panel-head">
-                <h2>Reward Ledger</h2>
-                <p>${escapeHtml(reward.zoneTitle)}</p>
-              </div>
-              ${buildStringList(reward.lines)}
-              <div class="feature-grid feature-grid-wide reward-metadata-grid">
-                <article class="feature-card">
-                  <div class="entity-name-row">
-                    <strong>Reward Kind</strong>
-                    ${buildBadge(reward.kind, "available")}
-                  </div>
-                  <p>${escapeHtml(`${buttonLabel} after the claim is applied.`)}</p>
-                </article>
-                <article class="feature-card">
-                  <strong>Grant Preview</strong>
-                  <div class="entity-stat-grid">
-                    ${buildStat("Gold", `+${reward.grants.gold}`)}
-                    ${buildStat("XP", `+${reward.grants.xp}`)}
-                    ${buildStat("Potions", `+${reward.grants.potions}`)}
-                    ${buildStat("Encounter", reward.encounterNumber)}
-                  </div>
-                  <p>These grants land no matter which choice you pick.</p>
-                </article>
-                <article class="feature-card">
-                  <strong>Permanent Effect</strong>
-                  <p>Choice effects can alter deck composition, party stats, equipment, socket state, runeword setup, or the world ledger before the route continues.</p>
-                </article>
-                <article class="feature-card">
-                  <strong>${escapeHtml(rewardContext.title)}</strong>
-                  ${buildStringList(rewardContext.lines, "log-list reward-list reward-preview-list")}
-                </article>
-                <article class="feature-card">
-                  <strong>Advance Guide</strong>
-                  ${buildStringList(advanceGuideLines, "log-list reward-list reward-preview-list")}
-                </article>
-              </div>
-              ${continuity.buildRewardContinuityMarkup(appState, services, run, reward, derivedParty, trainingRanks)}
-              ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
-                copy:
-                  "Reward claims change the run, but the same account-meta board stays visible here so archive pressure, charter staging, mastery focus, and convergence readiness never disappear behind the reward choice.",
-              })}
-              ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
-                copy:
-                  "The reward surface now keeps pinned charter slots and the next convergence lane explicit before you commit to a choice that hands the run back to map, transition, or archive review.",
-                charterFollowThrough:
-                  "If the claim does not solve the pinned charter pressure, use the next shell handoff to route back toward town or the hall with that slot target still in mind.",
-                convergenceFollowThrough:
-                  "If convergence pressure is waiting behind this claim, use the next shell handoff to decide whether the account-side lane matters more than another route push.",
-              })}
-              <div class="panel-head">
-                <h2>Current Build</h2>
-                <p>The loadout and active runewords shown here are already feeding the next combat override if the route continues.</p>
-              </div>
-              ${
-                derivedParty.loadoutLines.length > 0
-                  ? buildStringList(derivedParty.loadoutLines, "log-list reward-list reward-preview-list")
-                  : '<p class="flow-copy">No equipped loadout lines are active yet.</p>'
-              }
-            </article>
-
-            <article class="panel battle-panel">
-              <div class="panel-head">
-                <h2>Choose Your Reward</h2>
-                <p>${escapeHtml(`${buttonLabel} only after selecting one choice. The preview badges call out the systems each option will change.`)}</p>
-              </div>
-              ${buildChoiceList(reward.choices)}
-              <div class="panel-head panel-head-compact">
-                <h3>Before And After</h3>
-                <p>Every card below turns the live reward effects into explicit expedition deltas before you commit to one claim.</p>
+                <h2>Before &amp; After</h2>
+                <p>How each choice changes the expedition.</p>
               </div>
               ${continuity.buildChoiceDeltaMarkup(reward.choices, reward, run, appState.content, services.renderUtils)}
             </article>
 
             <article class="panel battle-panel">
               <div class="panel-head">
-                <h2>Carry Forward State</h2>
-                <p>These expedition-facing values remain after the reward is applied. This is where reward readability ties back into town, map, and the next combat state.</p>
+                <h2>Party State</h2>
+                <p>Current expedition values before the reward is applied.</p>
               </div>
               <div class="entity-row">
                 <article class="entity-card ally">
@@ -309,27 +315,37 @@
               </div>
               <div class="feature-grid feature-grid-wide reward-state-grid">
                 <article class="feature-card">
-                  <strong>Progression State</strong>
+                  <strong>Progression</strong>
                   <div class="entity-stat-grid">
                     ${buildStat("Skill Pts", run.progression.skillPointsAvailable)}
                     ${buildStat("Training", trainingRanks)}
                     ${buildStat("Trophies", run.progression.bossTrophies.length)}
                     ${buildStat("Runewords", derivedParty.activeRunewords.length)}
                   </div>
-                  <p>These values stay on the expedition after the claim resolves.</p>
                 </article>
                 <article class="feature-card">
-                  <strong>Quest And Loadout Hooks</strong>
-                  <p>${escapeHtml(`${questOutcomeCount} resolved quest outcomes and ${derivedParty.loadoutLines.length} active loadout lines are already part of this run.`)}</p>
-                  ${buildStringList(
-                    [
-                      "Reward previews can add deck growth, equipment swaps, rune insertion, or world-ledger outcomes.",
-                      "Shrine and special-event rewards land here without forcing a custom shell path.",
-                    ],
-                    "log-list reward-list reward-preview-list"
-                  )}
+                  <strong>Loadout</strong>
+                  ${
+                    derivedParty.loadoutLines.length > 0
+                      ? buildStringList(derivedParty.loadoutLines, "log-list reward-list reward-preview-list")
+                      : '<p class="flow-copy">No equipped loadout lines active.</p>'
+                  }
                 </article>
               </div>
+            </article>
+
+            <article class="panel battle-panel">
+              <div class="panel-head">
+                <h2>After Claim</h2>
+                <p>${escapeHtml(buttonLabel)} \u2014 ${escapeHtml(reward.clearsZone ? `${reward.zoneTitle} clears` : `${reward.zoneTitle} continues`)}</p>
+              </div>
+              ${continuity.buildRewardContinuityMarkup(appState, services, run, reward, derivedParty, trainingRanks)}
+              ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+                copy: "Account-level pressure and convergence state for this expedition.",
+              })}
+              ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+                copy: "Charter and convergence drilldowns for the current expedition.",
+              })}
             </article>
           </section>
         </div>

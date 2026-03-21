@@ -79,6 +79,10 @@ const RUN_RUNTIME_FILES = [
   "src/run/run-progression.js",
   "src/run/run-reward-flow.js",
   "src/run/run-factory.js",
+  "src/meta/charm-data.js",
+  "src/meta/charm-system.js",
+  "src/meta/class-unlock-rules.js",
+  "src/meta/horadric-cube.js",
 ];
 
 const PERSISTENCE_RUNTIME_FILES = [

@@ -6,6 +6,23 @@ interface DebugModeConfig {
   infiniteGold: boolean;
 }
 
+type CharmSize = "small" | "large" | "grand";
+
+interface CharmDefinition {
+  id: string;
+  name: string;
+  size: CharmSize;
+  slotCost: number;
+  bonuses: ItemBonusSet;
+  source: string;
+  classId?: string;
+}
+
+interface ProfileMetaCharmState {
+  unlockedCharmIds: string[];
+  equippedCharmIds: string[];
+}
+
 interface ProfileMetaSettings {
   showHints: boolean;
   reduceMotion: boolean;
@@ -62,6 +79,7 @@ interface ProfileMetaState {
   tutorials: ProfileMetaTutorialState;
   planning: ProfileMetaPlanningState;
   accountProgression: ProfileMetaAccountProgressionState;
+  charms: ProfileMetaCharmState;
 }
 
 interface ProfileState {

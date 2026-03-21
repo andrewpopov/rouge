@@ -246,9 +246,16 @@
     return amount;
   }
 
-  function resolveCardEffect(state: CombatState, effect: CardEffect, targetEnemy: CombatEnemyState | null) {
+  function getSynergyBonus(state: CombatState, cardId: string): number {
+    const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
+    if (!evo) { return 0; }
+    return evo.getSynergyDamageBonus(cardId, state.deckCardIds);
+  }
+
+  function resolveCardEffect(state: CombatState, effect: CardEffect, targetEnemy: CombatEnemyState | null, cardId: string) {
     if (effect.kind === "damage") {
-      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus));
+      const synergy = getSynergyBonus(state, cardId);
+      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus + synergy));
       const dealt = dealDamage(state, targetEnemy, damage);
       return `dealt ${dealt} to ${targetEnemy.name}.`;
     }
@@ -347,7 +354,8 @@
       return `buffed the mercenary's next attack by ${effect.value}.`;
     }
     if (effect.kind === "damage_all") {
-      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus));
+      const synergy = getSynergyBonus(state, cardId);
+      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus + synergy));
       const total = getLivingEnemies(state).reduce((sum: number, enemy: CombatEnemyState) => sum + dealDamage(state, enemy, damage), 0);
       return `dealt ${total} total damage.`;
     }
@@ -381,7 +389,10 @@
     if (!card) {
       return { ok: false, message: "Unknown card." };
     }
-    if (state.hero.energy < card.cost) {
+    const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
+    const costReduction = evo ? evo.getTreeCostReduction(cardInstance.cardId, state.deckCardIds, content.cardCatalog) : 0;
+    const effectiveCost = Math.max(0, card.cost - costReduction);
+    if (state.hero.energy < effectiveCost) {
       return { ok: false, message: "Not enough Energy." };
     }
 
@@ -393,12 +404,12 @@
       return { ok: false, message: "Select a living enemy." };
     }
 
-    state.hero.energy -= card.cost;
+    state.hero.energy -= effectiveCost;
     state.hand.splice(handIndex, 1);
 
     const segments: string[] = [];
     card.effects.forEach((effect: CardEffect) => {
-      const segment = resolveCardEffect(state, effect, targetEnemy);
+      const segment = resolveCardEffect(state, effect, targetEnemy, cardInstance.cardId);
       if (segment) {
         segments.push(segment);
       }
@@ -503,6 +514,7 @@
       weaponFamily,
       weaponDamageBonus,
       classPreferredFamilies,
+      deckCardIds: Array.isArray(starterDeck) && starterDeck.length > 0 ? [...starterDeck] : [...content.starterDeck],
     };
 
     applyRandomAffixes(state, randomFn, encounterId);

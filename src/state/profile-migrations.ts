@@ -51,6 +51,10 @@
       accountProgression: {
         focusedTreeId: ACCOUNT_PROGRESSION_TREES[0].id,
       },
+      charms: {
+        unlockedCharmIds: [] as string[],
+        equippedCharmIds: [] as string[],
+      },
     };
   }
 
@@ -184,6 +188,12 @@
         ...defaultMeta.accountProgression,
         ...(isObject(source.accountProgression) ? source.accountProgression : {}),
       },
+      charms: {
+        ...defaultMeta.charms,
+        ...(isObject(source.charms) ? source.charms : {}),
+        unlockedCharmIds: uniqueStrings(source.charms?.unlockedCharmIds),
+        equippedCharmIds: uniqueStrings(source.charms?.equippedCharmIds),
+      },
     };
     normalizedMeta.accountProgression.focusedTreeId = ACCOUNT_PROGRESSION_TREES.some(
       (tree: { id: string }) => tree.id === normalizedMeta.accountProgression.focusedTreeId
@@ -309,6 +319,14 @@
       if (envelope.schemaVersion === 7) {
         envelope = {
           schemaVersion: 8,
+          savedAt: envelope.savedAt,
+          profile: ensureProfileState(envelope.profile, content),
+        };
+        continue;
+      }
+      if (envelope.schemaVersion === 8) {
+        envelope = {
+          schemaVersion: 9,
           savedAt: envelope.savedAt,
           profile: ensureProfileState(envelope.profile, content),
         };

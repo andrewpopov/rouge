@@ -6,6 +6,7 @@
     getRuneDefinition,
     getRunewordDefinition,
     isRuneAllowedInSlot,
+    RARITY,
     resolveRunewordId,
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
@@ -175,7 +176,7 @@
         if (!item) {
           return { ok: false, message: "Reward item is invalid." };
         }
-        const entry = addEquipmentToInventory(run, item.id, content, effect.rarity || "white", effect.rarityBonuses || {});
+        const entry = addEquipmentToInventory(run, item.id, content, effect.rarity || RARITY.WHITE, effect.rarityBonuses || {});
         if (!entry) {
           return { ok: false, message: "Reward item could not be created." };
         }

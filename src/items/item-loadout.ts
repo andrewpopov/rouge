@@ -7,6 +7,7 @@
     getRuneDefinition,
     isRuneAllowedInSlot,
     normalizeEquipmentState,
+    RARITY,
     resolveRunewordId,
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
@@ -155,7 +156,7 @@
       socketsUnlocked: toNumber(equipment.socketsUnlocked, 0),
       insertedRunes: Array.isArray(equipment.insertedRunes) ? [...equipment.insertedRunes] : [],
       runewordId: equipment.runewordId || "",
-      rarity: equipment.rarity || "white",
+      rarity: equipment.rarity || RARITY.WHITE,
       rarityBonuses: equipment.rarityBonuses || {},
     };
   }
@@ -355,7 +356,7 @@
     };
   }
 
-  function addEquipmentToInventory(run: RunState, itemId: string, content: GameContent, rarity: string = "white", rarityBonuses: ItemBonusSet = {}): InventoryEquipmentEntry | null {
+  function addEquipmentToInventory(run: RunState, itemId: string, content: GameContent, rarity: string = RARITY.WHITE, rarityBonuses: ItemBonusSet = {}): InventoryEquipmentEntry | null {
     const item = getItemDefinition(content, itemId);
     if (!item) { return null; }
     const entryId = allocateInventoryEntryId(run);

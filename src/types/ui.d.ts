@@ -532,6 +532,10 @@ interface Window {
   ROUGE_WORLD_NODE_ZONES: WorldNodeZonesApi;
   ROUGE_WORLD_NODE_VARIANTS: WorldNodeVariantsApi;
   ROUGE_WORLD_NODES: WorldNodeEngineApi;
+  ROUGE_CHARM_DATA: CharmDataApi;
+  ROUGE_CHARM_SYSTEM: CharmSystemApi;
+  ROUGE_HORADRIC_CUBE: HoradricCubeApi;
+  ROUGE_CLASS_UNLOCK_RULES: ClassUnlockRulesApi;
   ROUGE_TOWN_SERVICES: TownServiceApi;
   ROUGE_RENDER_UTILS: RenderUtilsApi;
   ROUGE_RUN_STATE: RunStateHelpersApi;

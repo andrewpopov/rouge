@@ -121,7 +121,7 @@ test("profile migrations backfill unlock and tutorial ownership for older envelo
   assert.equal(restoredEnvelope.profile.meta.progression.highestActCleared, 2);
   assert.ok(restoredEnvelope.profile.meta.unlocks.classIds.includes("sorceress"));
   assert.ok(restoredEnvelope.profile.meta.unlocks.townFeatureIds.includes("front_door_profile_hall"));
-  assert.equal(restoredEnvelope.schemaVersion, 8);
+  assert.equal(restoredEnvelope.schemaVersion, 9);
   assert.equal(restoredEnvelope.profile.meta.planning.weaponRunewordId, "");
   assert.equal(restoredEnvelope.profile.meta.planning.armorRunewordId, "");
   assert.equal(restoredEnvelope.profile.meta.accountProgression.focusedTreeId, "archives");
@@ -358,8 +358,8 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.ok(unlockedFeatureIds.has("chronicle_exchange"));
   assert.ok(unlockedFeatureIds.has("war_annals"));
   assert.ok(unlockedFeatureIds.has("paragon_exchange"));
-  assert.equal(accountSummary.unlockedMilestoneCount, 18);
-  assert.equal(accountSummary.milestoneCount, 24);
+  assert.equal(accountSummary.unlockedMilestoneCount, 19);
+  assert.equal(accountSummary.milestoneCount, 25);
   assert.equal(accountSummary.focusedTreeId, "archives");
   assert.equal(accountSummary.nextMilestoneId, "sovereign_annals");
   assert.equal(accountSummary.nextMilestoneTitle, "Sovereign Annals");
@@ -369,7 +369,7 @@ test("account progress summary derives milestone feature unlocks from persisted 
   assert.equal(accountSummary.runHistoryCapacity, 75);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 5);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 7);
-  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 6);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 7);
   assert.equal(accountSummary.review.unlockedCapstoneCount, 3);
   assert.equal(accountSummary.review.unlockedConvergenceCount, 3);
   assert.equal(accountSummary.review.nextConvergenceTitle, "Sovereign Exchange");
@@ -436,8 +436,8 @@ test("account progress summary unlocks second-wave milestones and convergences f
   assert.ok(unlockedFeatureIds.has("sovereign_exchange"));
   assert.ok(unlockedFeatureIds.has("legendary_annals"));
   assert.ok(unlockedFeatureIds.has("ascendant_exchange"));
-  assert.equal(accountSummary.unlockedMilestoneCount, 21);
-  assert.equal(accountSummary.milestoneCount, 24);
+  assert.equal(accountSummary.unlockedMilestoneCount, 22);
+  assert.equal(accountSummary.milestoneCount, 25);
   assert.equal(accountSummary.review.unlockedCapstoneCount, 6);
   assert.equal(accountSummary.review.unlockedConvergenceCount, 6);
   assert.equal(accountSummary.nextMilestoneId, "imperial_annals");
@@ -446,7 +446,7 @@ test("account progress summary unlocks second-wave milestones and convergences f
   assert.equal(accountSummary.runHistoryCapacity, 100);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 6);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 8);
-  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 7);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 8);
   assert.equal(accountSummary.convergences.find((entry) => entry.id === "ascendant_exchange")?.status, "unlocked");
 });
 
@@ -505,8 +505,8 @@ test("account progress summary unlocks third-wave milestones and convergences fr
   assert.ok(unlockedFeatureIds.has("imperial_exchange"));
   assert.ok(unlockedFeatureIds.has("immortal_annals"));
   assert.ok(unlockedFeatureIds.has("mythic_exchange"));
-  assert.equal(accountSummary.unlockedMilestoneCount, 24);
-  assert.equal(accountSummary.milestoneCount, 24);
+  assert.equal(accountSummary.unlockedMilestoneCount, 25);
+  assert.equal(accountSummary.milestoneCount, 25);
   assert.equal(accountSummary.review.unlockedCapstoneCount, 9);
   assert.equal(accountSummary.review.unlockedConvergenceCount, 9);
   assert.equal(accountSummary.nextMilestoneId, "");
@@ -514,7 +514,7 @@ test("account progress summary unlocks third-wave milestones and convergences fr
   assert.equal(accountSummary.runHistoryCapacity, 125);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "archives")?.currentRank, 7);
   assert.equal(accountSummary.trees.find((tree) => tree.id === "economy")?.currentRank, 9);
-  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 8);
+  assert.equal(accountSummary.trees.find((tree) => tree.id === "mastery")?.currentRank, 9);
   assert.equal(accountSummary.convergences.find((entry) => entry.id === "mythic_exchange")?.status, "unlocked");
 });
 

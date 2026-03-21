@@ -42,15 +42,16 @@
   const CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
   const CONSEQUENCE_REWARD_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
-  function getCombatBonuses(run: RunState, content: GameContent): ItemBonusSet {
+  function getCombatBonuses(run: RunState, content: GameContent, profile?: ProfileState | null): ItemBonusSet {
     const total: ItemBonusSet = {};
     addBonusSet(total, buildProgressionBonuses(run, content));
     addBonusSet(total, runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatBonuses(run, content) || {});
+    addBonusSet(total, runtimeWindow.ROUGE_CHARM_SYSTEM?.buildCharmBonuses(profile, run.classId) || {});
     return total;
   }
 
-  function buildCombatBonuses(run: RunState, content: GameContent): ItemBonusSet {
-    return getCombatBonuses(run, content);
+  function buildCombatBonuses(run: RunState, content: GameContent, profile?: ProfileState | null): ItemBonusSet {
+    return getCombatBonuses(run, content, profile);
   }
 
   function hydrateRun(run: RunState, content: GameContent) {
@@ -394,8 +395,8 @@
     };
   }
 
-  function snapshotPartyFromCombat(run: RunState, combatState: CombatState, content: GameContent) {
-    const bonuses = getCombatBonuses(run, content);
+  function snapshotPartyFromCombat(run: RunState, combatState: CombatState, content: GameContent, profile?: ProfileState | null) {
+    const bonuses = getCombatBonuses(run, content, profile);
     run.hero.currentLife = Math.max(0, combatState.hero.life);
     run.hero.maxLife = Math.max(1, combatState.hero.maxLife - toBonusValue(bonuses.heroMaxLife));
     run.hero.maxEnergy = Math.max(1, combatState.hero.maxEnergy - toBonusValue(bonuses.heroMaxEnergy));
@@ -406,8 +407,8 @@
     run.belt.current = combatState.potions;
   }
 
-  function createCombatOverrides(run: RunState, content: GameContent) {
-    const bonuses = getCombatBonuses(run, content);
+  function createCombatOverrides(run: RunState, content: GameContent, profile?: ProfileState | null) {
+    const bonuses = getCombatBonuses(run, content, profile);
     const heroMaxLife = run.hero.maxLife + toBonusValue(bonuses.heroMaxLife);
     const heroMaxEnergy = run.hero.maxEnergy + toBonusValue(bonuses.heroMaxEnergy);
     const heroPotionHeal = run.hero.potionHeal + toBonusValue(bonuses.heroPotionHeal);
