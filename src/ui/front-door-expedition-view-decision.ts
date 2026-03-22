@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { toNumber } = runtimeWindow.ROUGE_UTILS;
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
 
   function formatTimestamp(timestamp: string, includeYear = false): string {
     const parsed = new Date(timestamp);
@@ -28,10 +29,10 @@
   }
 
   function getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string {
-    if (outcome === "completed") {
+    if (outcome === RUN_OUTCOME.COMPLETED) {
       return "cleared";
     }
-    if (outcome === "failed") {
+    if (outcome === RUN_OUTCOME.FAILED) {
       return "locked";
     }
     return "available";
@@ -425,7 +426,7 @@
               <strong>What Changed</strong>
               ${buildBadge(
                 archiveSummary.latestClassName || "No Archive",
-                archiveSummary.entryCount > 0 ? getRunOutcomeTone(archiveSummary.latestOutcome || "abandoned") : "locked"
+                archiveSummary.entryCount > 0 ? getRunOutcomeTone(archiveSummary.latestOutcome || RUN_OUTCOME.ABANDONED) : "locked"
               )}
             </div>
             <div class="entity-stat-grid">

@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const { getLevelForXp, toBonusValue } = runtimeWindow.ROUGE_RUN_STATE;
   const { getCurrentAct, getZoneById, recomputeZoneStatuses, syncCurrentActFields } = runtimeWindow.ROUGE_RUN_ROUTE_BUILDER;
   const { syncLevelProgression } = runtimeWindow.ROUGE_RUN_PROGRESSION;
@@ -65,7 +66,7 @@
     } else {
       lines.push(`${zone.title} progress: ${nextEncounterNumber}/${zone.encounterTotal} encounters cleared.`);
     }
-    if (zone.kind === "boss") {
+    if (zone.kind === ZONE_KIND.BOSS) {
       lines.push(`${currentAct.title} is complete.`);
       if (run.currentActIndex < run.acts.length - 1) {
         const nextAct = run.acts[run.currentActIndex + 1];
@@ -79,7 +80,7 @@
       zoneId: zone.id,
       zoneTitle: zone.title,
       kind: zone.kind,
-      title: zone.kind === "boss" ? `${currentAct.boss.name} Defeated` : `${zone.title} Cleared`,
+      title: zone.kind === ZONE_KIND.BOSS ? `${currentAct.boss.name} Defeated` : `${zone.title} Cleared`,
       lines,
       grants,
       choices: rewardEngine.buildRewardChoices({
@@ -92,8 +93,8 @@
       }),
       encounterNumber: nextEncounterNumber,
       clearsZone,
-      endsAct: zone.kind === "boss",
-      endsRun: zone.kind === "boss" && run.currentActIndex >= run.acts.length - 1,
+      endsAct: zone.kind === ZONE_KIND.BOSS,
+      endsRun: zone.kind === ZONE_KIND.BOSS && run.currentActIndex >= run.acts.length - 1,
       heroLifeAfterFight: combatState.hero.life,
       mercenaryLifeAfterFight: combatState.mercenary.life,
     };
@@ -144,7 +145,7 @@
     if (zone.encountersCleared >= zone.encounterTotal) {
       zone.cleared = true;
       run.summary.zonesCleared += 1;
-      if (zone.kind === "boss") {
+      if (zone.kind === ZONE_KIND.BOSS) {
         const currentAct = getCurrentAct(run);
         if (currentAct && !currentAct.complete) {
           currentAct.complete = true;

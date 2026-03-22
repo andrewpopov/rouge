@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function getWorldNodeCatalogApi() {
     if (!runtimeWindow.ROUGE_WORLD_NODE_CATALOG) {
@@ -250,7 +251,7 @@
   function buildZoneReward({ run, zone }: { run: RunState; zone: ZoneState }) {
     const actNumber = zone?.actNumber || run?.actNumber || 1;
 
-    if (zone.kind === "quest") {
+    if (zone.kind === ZONE_KIND.QUEST) {
       const definition = getQuestDefinition(actNumber);
       return {
         zoneId: zone.id,
@@ -273,7 +274,7 @@
       };
     }
 
-    if (zone.kind === "shrine") {
+    if (zone.kind === ZONE_KIND.SHRINE) {
       const definition = getShrineDefinition(actNumber);
       return {
         zoneId: zone.id,
@@ -296,14 +297,14 @@
       };
     }
 
-    if (zone.kind === "event") {
+    if (zone.kind === ZONE_KIND.EVENT) {
       const { eventDefinition, questRecord, followUp } = getWorldNodeVariantsApi().resolveEventFollowUp(run, actNumber);
       return buildNodeReward(run, zone, eventDefinition, followUp, "event", [
         `Earlier quest result: ${questRecord.outcomeTitle}.`,
       ]);
     }
 
-    if (zone.kind === "opportunity") {
+    if (zone.kind === ZONE_KIND.OPPORTUNITY) {
       const resolver = (opportunityResolvers as Record<string, (typeof opportunityResolvers)[keyof typeof opportunityResolvers]>)[zone.nodeType as string];
       if (resolver) {
         const { definition, variant, contextLines } = resolver(run, actNumber);

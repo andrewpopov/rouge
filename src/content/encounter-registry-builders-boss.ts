@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { MODIFIER_KIND } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
 
   function buildCovenantBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const bossScreenValue = Math.max(2, Math.min(4, actNumber));
@@ -7,9 +8,9 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "phalanx_march", value: Math.max(3, actNumber) },
-          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -17,9 +18,9 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.eliteC, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
-          { kind: "ritual_cadence", value: Math.max(1, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -27,10 +28,10 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "elite_onslaught", value: 1 },
-          { kind: "war_drums", value: 1 },
-          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -38,17 +39,17 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "phalanx_march", value: Math.max(3, actNumber) },
-          { kind: "ritual_cadence", value: Math.max(1, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) },
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
     return {
       enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteB, templateIds.ranged],
       modifiers: [
-        { kind: "boss_screen", value: bossScreenValue },
-        { kind: "sniper_nest", value: Math.max(2, actNumber) },
+        { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+        { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, actNumber) },
       ],
     };
   }
@@ -59,9 +60,9 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "linebreaker_charge", value: Math.max(2, Math.min(3, actNumber)) },
-          { kind: "phalanx_march", value: Math.max(3, actNumber + 1) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(2, Math.min(3, actNumber)) },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber + 1) },
         ],
       };
     }
@@ -69,9 +70,9 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.eliteD, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
-          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
         ],
       };
     }
@@ -79,10 +80,10 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "elite_onslaught", value: 1 },
-          { kind: "linebreaker_charge", value: Math.max(2, Math.min(3, actNumber - 1)) },
-          { kind: "war_drums", value: 1 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ],
       };
     }
@@ -90,19 +91,19 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "phalanx_march", value: Math.max(4, actNumber) },
-          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
-          { kind: "linebreaker_charge", value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(4, actNumber) },
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(2, Math.min(3, actNumber - 1)) },
         ],
       };
     }
     return {
       enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteB, templateIds.ranged],
       modifiers: [
-        { kind: "boss_screen", value: bossScreenValue },
-        { kind: "sniper_nest", value: Math.max(3, actNumber + 1) },
-        { kind: "linebreaker_charge", value: 1 },
+        { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+        { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(3, actNumber + 1) },
+        { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: 1 },
       ],
     };
   }
@@ -116,12 +117,12 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.brute, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_bulwark", value: escortBulwarkValue },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "phalanx_march", value: Math.max(3, actNumber) },
-          { kind: "war_drums", value: 1 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: escortBulwarkValue },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ],
       };
     }
@@ -129,12 +130,12 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.ranged, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_bulwark", value: escortBulwarkValue },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "sniper_nest", value: Math.max(3, actNumber) },
-          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: escortBulwarkValue },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(3, actNumber) },
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(2, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -142,12 +143,12 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_bulwark", value: escortBulwarkValue },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "phalanx_march", value: Math.max(4, actNumber) },
-          { kind: "war_drums", value: 1 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: escortBulwarkValue },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(4, actNumber) },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ],
       };
     }
@@ -155,23 +156,23 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_bulwark", value: escortBulwarkValue },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "phalanx_march", value: Math.max(4, actNumber) },
-          { kind: "war_drums", value: 1 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: escortBulwarkValue },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(4, actNumber) },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ],
       };
     }
     return {
       enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
       modifiers: [
-        { kind: "boss_screen", value: bossScreenValue },
-        { kind: "escort_bulwark", value: escortBulwarkValue },
-        { kind: "escort_rotation", value: escortRotationValue },
-        { kind: "boss_onslaught", value: bossOnslaughtValue },
-        { kind: "phalanx_march", value: Math.max(3, actNumber) },
+        { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+        { kind: MODIFIER_KIND.ESCORT_BULWARK, value: escortBulwarkValue },
+        { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+        { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+        { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) },
       ],
     };
   }
@@ -182,8 +183,8 @@
       enemyTemplateIds: [...drilledConfig.enemyTemplateIds],
       modifiers: [
         ...drilledConfig.modifiers,
-        { kind: "court_reserves", value: Math.max(2, Math.min(4, actNumber + 1)) },
-        { kind: "boss_salvo", value: Math.max(2, Math.min(4, actNumber + 1)) },
+        { kind: MODIFIER_KIND.COURT_RESERVES, value: Math.max(2, Math.min(4, actNumber + 1)) },
+        { kind: MODIFIER_KIND.BOSS_SALVO, value: Math.max(2, Math.min(4, actNumber + 1)) },
       ],
     };
   }
@@ -196,11 +197,11 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "phalanx_march", value: Math.max(3, actNumber) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) },
         ],
       };
     }
@@ -208,11 +209,11 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.ranged, templateIds.support],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "ritual_cadence", value: Math.max(2, Math.min(3, actNumber - 1)) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(2, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -220,11 +221,11 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "war_drums", value: 1 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ],
       };
     }
@@ -232,21 +233,21 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: "boss_screen", value: bossScreenValue },
-          { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
-          { kind: "escort_rotation", value: escortRotationValue },
-          { kind: "boss_onslaught", value: bossOnslaughtValue },
-          { kind: "phalanx_march", value: Math.max(4, actNumber) },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(4, actNumber) },
         ],
       };
     }
     return {
       enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
       modifiers: [
-        { kind: "boss_screen", value: bossScreenValue },
-        { kind: "escort_rotation", value: escortRotationValue },
-        { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
-        { kind: "boss_onslaught", value: bossOnslaughtValue },
+        { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
+        { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
+        { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
+        { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
       ],
     };
   }

@@ -4,6 +4,7 @@
     groupByRole,
     buildEnemyTemplate,
   } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS;
+  const { MODIFIER_KIND } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
 
   const ACT_FLAVOR = {
     1: {
@@ -169,14 +170,14 @@
         `${zoneName} Ambush`,
         `${zoneName} creatures emerge from the shadows with ranged support.`,
         [raiderA.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: "ambush_opening", value: 1 }]
+        [{ kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 }]
       ),
       [encounterIds[2]]: makeEncounter(
         encounterIds[2],
         `${zoneName} Swarm`,
         `A larger group of ${zoneName} inhabitants surges forward with brute force.`,
         [raiderA.templateId, bruteA.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: "vanguard_rush", value: 1 }]
+        [{ kind: MODIFIER_KIND.VANGUARD_RUSH, value: 1 }]
       ),
     };
 

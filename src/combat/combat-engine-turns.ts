@@ -5,6 +5,7 @@
   const { TRAIT } = monsterActions;
   const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
   const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
+  const { COMBAT_PHASE, COMBAT_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
 
   const THORNS_DAMAGE = 2;
   const REGENERATION_AMOUNT = 2;
@@ -125,16 +126,16 @@
 
   function checkOutcome(state: CombatState) {
     if (!state.hero.alive || state.hero.life <= 0) {
-      state.phase = "defeat";
-      state.outcome = "defeat";
+      state.phase = COMBAT_PHASE.DEFEAT;
+      state.outcome = COMBAT_OUTCOME.DEFEAT;
       if (!state.log.some((l: string) => l.includes("Encounter lost"))) {
         appendLog(state, "The Wanderer falls. Encounter lost.");
       }
       return true;
     }
     if (getLivingEnemies(state).length === 0) {
-      state.phase = "victory";
-      state.outcome = "victory";
+      state.phase = COMBAT_PHASE.VICTORY;
+      state.outcome = COMBAT_OUTCOME.VICTORY;
       appendLog(state, `${state.encounter.name} cleared.`);
       return true;
     }
@@ -419,7 +420,7 @@
   }
 
   function meleeStrike(state: CombatState, _content: GameContent) {
-    if (state.phase !== "player" || state.outcome) {
+    if (state.phase !== COMBAT_PHASE.PLAYER || state.outcome) {
       return { ok: false, message: "Cannot melee right now." };
     }
     if (state.meleeUsed) {
@@ -448,7 +449,7 @@
     if (state.outcome) {
       return;
     }
-    state.phase = "player";
+    state.phase = COMBAT_PHASE.PLAYER;
     state.turn += 1;
     state.meleeUsed = false;
     state.hero.guard = 0;
@@ -460,8 +461,8 @@
     if (state.turn > 1) {
       monsterActions.processHeroDebuffs(state);
       if (!state.hero.alive) {
-        state.phase = "defeat";
-        state.outcome = "defeat";
+        state.phase = COMBAT_PHASE.DEFEAT;
+        state.outcome = COMBAT_OUTCOME.DEFEAT;
         appendLog(state, "The Wanderer falls. Encounter lost.");
         return;
       }
@@ -488,12 +489,12 @@
   }
 
   function endTurn(state: CombatState) {
-    if (state.phase !== "player" || state.outcome) {
+    if (state.phase !== COMBAT_PHASE.PLAYER || state.outcome) {
       return { ok: false, message: "The turn cannot end right now." };
     }
 
     discardHand(state);
-    state.phase = "enemy";
+    state.phase = COMBAT_PHASE.ENEMY;
     resolveMercenaryAction(state);
     if (checkOutcome(state)) {
       return { ok: true, message: "Encounter resolved." };

@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : {}) as Window;
   const { parseInteger } = runtimeWindow.ROUGE_UTILS;
+  const { ENEMY_ROLE } = runtimeWindow.ROUGE_CONSTANTS;
 
   // Accessed lazily — combat-engine-turns loads after this module
   function applyGuard(target: CombatEnemyState, value: number) {
@@ -107,20 +108,43 @@
     INTENT.HEAL_ALLIES, INTENT.HEAL_AND_GUARD, INTENT.RESURRECT_ALLY,
   ]);
 
+  const MODIFIER_KIND = {
+    FORTIFIED_LINE: "fortified_line",
+    AMBUSH_OPENING: "ambush_opening",
+    ESCORT_BULWARK: "escort_bulwark",
+    BACKLINE_SCREEN: "backline_screen",
+    VANGUARD_RUSH: "vanguard_rush",
+    ESCORT_COMMAND: "escort_command",
+    ESCORT_ROTATION: "escort_rotation",
+    COURT_RESERVES: "court_reserves",
+    CROSSFIRE_LANES: "crossfire_lanes",
+    WAR_DRUMS: "war_drums",
+    TRIAGE_COMMAND: "triage_command",
+    TRIAGE_SCREEN: "triage_screen",
+    LINEBREAKER_CHARGE: "linebreaker_charge",
+    RITUAL_CADENCE: "ritual_cadence",
+    ELITE_ONSLAUGHT: "elite_onslaught",
+    SNIPER_NEST: "sniper_nest",
+    BOSS_SCREEN: "boss_screen",
+    BOSS_ONSLAUGHT: "boss_onslaught",
+    BOSS_SALVO: "boss_salvo",
+    PHALANX_MARCH: "phalanx_march",
+  } as const;
+
   function applyEncounterModifiers(state: CombatState) {
     const modifiers = Array.isArray(state?.encounter?.modifiers) ? state.encounter.modifiers : [];
 
     modifiers.forEach((modifier: EncounterModifier) => {
-      if (modifier.kind === "fortified_line") {
+      if (modifier.kind === MODIFIER_KIND.FORTIFIED_LINE) {
         const guardValue = Math.max(0, parseInteger(modifier.value, 0));
         state.enemies.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         appendLog(state, `${state.encounter.name} begins fortified. The enemy line gains ${guardValue} Guard.`);
         return;
       }
 
-      if (modifier.kind === "ambush_opening") {
+      if (modifier.kind === MODIFIER_KIND.AMBUSH_OPENING) {
         const stepCount = Math.max(1, parseInteger(modifier.value, 1));
-        const ambushers = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "raider" || enemy.role === "ranged");
+        const ambushers = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RAIDER || enemy.role === ENEMY_ROLE.RANGED);
         ambushers.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, stepCount));
         if (ambushers.length > 0) {
           appendLog(state, `${state.encounter.name} opens as an ambush. Raider and ranged enemies shift their first intent.`);
@@ -128,10 +152,10 @@
         return;
       }
 
-      if (modifier.kind === "escort_bulwark") {
+      if (modifier.kind === MODIFIER_KIND.ESCORT_BULWARK) {
         const guardValue = Math.max(0, parseInteger(modifier.value, 0));
         const escortTargets = state.enemies.filter((enemy: CombatEnemyState) => {
-          return enemy.role === "support" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+          return enemy.role === ENEMY_ROLE.SUPPORT || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
         });
         escortTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         if (escortTargets.length > 0) {
@@ -140,9 +164,9 @@
         return;
       }
 
-      if (modifier.kind === "backline_screen") {
+      if (modifier.kind === MODIFIER_KIND.BACKLINE_SCREEN) {
         const guardValue = Math.max(0, parseInteger(modifier.value, 0));
-        const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "support" || enemy.role === "ranged");
+        const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT || enemy.role === ENEMY_ROLE.RANGED);
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         if (backlineTargets.length > 0) {
           appendLog(state, `${state.encounter.name} establishes a backline screen. Ranged and support enemies gain ${guardValue} Guard.`);
@@ -150,9 +174,9 @@
         return;
       }
 
-      if (modifier.kind === "vanguard_rush") {
+      if (modifier.kind === MODIFIER_KIND.VANGUARD_RUSH) {
         const stepCount = Math.max(1, parseInteger(modifier.value, 1));
-        const vanguardTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "raider" || enemy.role === "brute");
+        const vanguardTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RAIDER || enemy.role === ENEMY_ROLE.BRUTE);
         vanguardTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, stepCount));
         if (vanguardTargets.length > 0) {
           appendLog(state, `${state.encounter.name} surges forward. Raider and brute enemies shift their first intent.`);
@@ -160,10 +184,10 @@
         return;
       }
 
-      if (modifier.kind === "escort_command") {
+      if (modifier.kind === MODIFIER_KIND.ESCORT_COMMAND) {
         const stepCount = Math.max(1, parseInteger(modifier.value, 1));
         const commandTargets = state.enemies.filter((enemy: CombatEnemyState) => {
-          return enemy.role === "support" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+          return enemy.role === ENEMY_ROLE.SUPPORT || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
         });
         commandTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, stepCount));
         if (commandTargets.length > 0) {
@@ -172,12 +196,12 @@
         return;
       }
 
-      if (modifier.kind === "escort_rotation") {
+      if (modifier.kind === MODIFIER_KIND.ESCORT_ROTATION) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const escortTargets = state.enemies.filter((enemy: CombatEnemyState) => {
           return !enemy.templateId.endsWith("_boss") && (
-            enemy.role === "support" ||
-            enemy.role === "brute" ||
+            enemy.role === ENEMY_ROLE.SUPPORT ||
+            enemy.role === ENEMY_ROLE.BRUTE ||
             enemy.templateId.includes("_elite")
           );
         });
@@ -192,13 +216,13 @@
         return;
       }
 
-      if (modifier.kind === "court_reserves") {
+      if (modifier.kind === MODIFIER_KIND.COURT_RESERVES) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const reserveTargets = state.enemies.filter((enemy: CombatEnemyState) => {
           return !enemy.templateId.endsWith("_boss") && (
             enemy.templateId.includes("_elite") ||
-            enemy.role === "ranged" ||
-            enemy.role === "support"
+            enemy.role === ENEMY_ROLE.RANGED ||
+            enemy.role === ENEMY_ROLE.SUPPORT
           );
         });
         reserveTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
@@ -215,9 +239,9 @@
         return;
       }
 
-      if (modifier.kind === "crossfire_lanes") {
+      if (modifier.kind === MODIFIER_KIND.CROSSFIRE_LANES) {
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
-        const rangedTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "ranged");
+        const rangedTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED);
         const boostedCount = rangedTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
@@ -227,9 +251,9 @@
         return;
       }
 
-      if (modifier.kind === "war_drums") {
+      if (modifier.kind === MODIFIER_KIND.WAR_DRUMS) {
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
-        const vanguardTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "raider" || enemy.role === "brute");
+        const vanguardTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RAIDER || enemy.role === ENEMY_ROLE.BRUTE);
         const boostedCount = vanguardTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
@@ -239,9 +263,9 @@
         return;
       }
 
-      if (modifier.kind === "triage_command") {
+      if (modifier.kind === MODIFIER_KIND.TRIAGE_COMMAND) {
         const healingBonus = Math.max(0, parseInteger(modifier.value, 0));
-        const supportTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "support");
+        const supportTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT);
         const boostedCount = supportTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, HEALING_INTENT_KINDS, healingBonus) ? 1 : 0);
         }, 0);
@@ -251,9 +275,9 @@
         return;
       }
 
-      if (modifier.kind === "triage_screen") {
+      if (modifier.kind === MODIFIER_KIND.TRIAGE_SCREEN) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
-        const supportTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "support");
+        const supportTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT);
         const guardTargets = supportTargets.filter((enemy: CombatEnemyState) => enemy.alive);
         guardTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = supportTargets.reduce((count: number, enemy: CombatEnemyState) => {
@@ -265,10 +289,10 @@
         return;
       }
 
-      if (modifier.kind === "linebreaker_charge") {
+      if (modifier.kind === MODIFIER_KIND.LINEBREAKER_CHARGE) {
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
         const linebreakerTargets = state.enemies.filter((enemy: CombatEnemyState) => {
-          return enemy.role === "brute" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+          return enemy.role === ENEMY_ROLE.BRUTE || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
         });
         const retunedCount = linebreakerTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (setEnemyIntentToFirstMatchingKind(enemy, LINEBREAKER_INTENT_KINDS) ? 1 : 0);
@@ -285,9 +309,9 @@
         return;
       }
 
-      if (modifier.kind === "ritual_cadence") {
+      if (modifier.kind === MODIFIER_KIND.RITUAL_CADENCE) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
-        const ritualTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "support" || enemy.templateId.endsWith("_boss"));
+        const ritualTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT || enemy.templateId.endsWith("_boss"));
         const retunedCount = ritualTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (setEnemyIntentToFirstMatchingKind(enemy, RITUAL_INTENT_KINDS) ? 1 : 0);
         }, 0);
@@ -304,7 +328,7 @@
         return;
       }
 
-      if (modifier.kind === "elite_onslaught") {
+      if (modifier.kind === MODIFIER_KIND.ELITE_ONSLAUGHT) {
         const damageBonus = Math.max(0, parseInteger(modifier.value, 0));
         const eliteTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss"));
         eliteTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, 1));
@@ -317,9 +341,9 @@
         return;
       }
 
-      if (modifier.kind === "sniper_nest") {
+      if (modifier.kind === MODIFIER_KIND.SNIPER_NEST) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
-        const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "ranged" || enemy.role === "support");
+        const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED || enemy.role === ENEMY_ROLE.SUPPORT);
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = backlineTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
@@ -330,10 +354,10 @@
         return;
       }
 
-      if (modifier.kind === "boss_screen") {
+      if (modifier.kind === MODIFIER_KIND.BOSS_SCREEN) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
-        const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === "ranged" || enemy.role === "support");
+        const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED || enemy.role === ENEMY_ROLE.SUPPORT);
         const bossIntentKinds = new Set([...ATTACK_INTENT_KINDS, ...HEALING_INTENT_KINDS, "guard", "guard_allies"]);
 
         bossTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
@@ -350,7 +374,7 @@
         return;
       }
 
-      if (modifier.kind === "boss_onslaught") {
+      if (modifier.kind === MODIFIER_KIND.BOSS_ONSLAUGHT) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
         const retunedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
@@ -368,9 +392,9 @@
         return;
       }
 
-      if (modifier.kind === "boss_salvo") {
+      if (modifier.kind === MODIFIER_KIND.BOSS_SALVO) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
-        const salvoTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss") || enemy.role === "ranged");
+        const salvoTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss") || enemy.role === ENEMY_ROLE.RANGED);
         const retunedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (setEnemyIntentToFirstMatchingKind(enemy, ATTACK_INTENT_KINDS) ? 1 : 0);
         }, 0);
@@ -386,10 +410,10 @@
         return;
       }
 
-      if (modifier.kind === "phalanx_march") {
+      if (modifier.kind === MODIFIER_KIND.PHALANX_MARCH) {
         const guardValue = Math.max(0, parseInteger(modifier.value, 0));
         const marchTargets = state.enemies.filter((enemy: CombatEnemyState) => {
-          return enemy.role === "brute" || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
+          return enemy.role === ENEMY_ROLE.BRUTE || enemy.templateId.includes("_elite") || enemy.templateId.endsWith("_boss");
         });
         marchTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         marchTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, 1));
@@ -402,6 +426,7 @@
 
   runtimeWindow.ROUGE_COMBAT_MODIFIERS = {
     INTENT,
+    MODIFIER_KIND,
     ATTACK_INTENT_KINDS,
     HEALING_INTENT_KINDS,
     LINEBREAKER_INTENT_KINDS,

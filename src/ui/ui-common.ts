@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function getAccountMeta(): UiAccountMetaApi {
     return runtimeWindow.ROUGE_UI_ACCOUNT_META;
@@ -137,7 +138,7 @@
     const clearedZones = currentZones.filter((zone) => zone.cleared).length;
     const encountersCleared = currentZones.reduce((total, zone) => total + zone.encountersCleared, 0);
     const encounterTotal = currentZones.reduce((total, zone) => total + zone.encounterTotal, 0);
-    const bossZone = currentZones.find((zone) => zone.kind === "boss") || currentZones[currentZones.length - 1] || null;
+    const bossZone = currentZones.find((zone) => zone.kind === ZONE_KIND.BOSS) || currentZones[currentZones.length - 1] || null;
     const nextZone = reachableZones[0] || null;
 
     return {

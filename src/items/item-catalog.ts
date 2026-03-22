@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const { ITEM_TEMPLATES, RUNE_TEMPLATES, RUNEWORD_TEMPLATES, RUNE_REWARD_POOLS } = runtimeWindow.ROUGE_ITEM_DATA;
   const { clamp, toNumber, uniquePush } = runtimeWindow.ROUGE_UTILS;
 
@@ -287,11 +288,11 @@
 
   function rollItemRarity(zoneKind: string, randomFn: RandomFn) {
     const roll = randomFn();
-    if (zoneKind === "boss") {
+    if (zoneKind === ZONE_KIND.BOSS) {
       if (roll < 0.30) { return RARITY.WHITE; }
       return roll < 0.70 ? RARITY.MAGIC : RARITY.UNIQUE;
     }
-    if (zoneKind === "miniboss") {
+    if (zoneKind === ZONE_KIND.MINIBOSS) {
       if (roll < 0.50) { return RARITY.WHITE; }
       return roll < 0.85 ? RARITY.MAGIC : RARITY.UNIQUE;
     }

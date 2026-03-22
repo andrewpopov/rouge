@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const {
     uniqueStrings,
     toNumber,
@@ -86,9 +87,9 @@
 
     return {
       entryCount: history.length,
-      completedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === "completed").length,
-      failedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === "failed").length,
-      abandonedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === "abandoned").length,
+      completedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.COMPLETED).length,
+      failedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.FAILED).length,
+      abandonedCount: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.ABANDONED).length,
       latestClassId: latestEntry?.classId || "",
       latestClassName: latestEntry?.className || "",
       latestOutcome: (latestEntry?.outcome || "") as ProfileArchiveSummary["latestOutcome"],

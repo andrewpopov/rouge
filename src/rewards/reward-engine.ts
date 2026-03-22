@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   const {
     pickProgressionChoice,
@@ -287,7 +288,7 @@
     });
     const progressionChoice = pickProgressionChoice(zone, seed + 3, run, actNumber, content, profile);
 
-    const firstCardPool = zone.kind === "boss" ? [...bossPool, ...profilePool] : [...profilePool, ...zonePool];
+    const firstCardPool = zone.kind === ZONE_KIND.BOSS ? [...bossPool, ...profilePool] : [...profilePool, ...zonePool];
     const firstCardId = pickUniqueCardId(firstCardPool, seed, usedCardIds, content);
     if (firstCardId) {
       usedCardIds.add(firstCardId);
@@ -302,14 +303,14 @@
       choices.push(equipmentChoice);
     }
 
-    if (zone.kind === "boss") {
+    if (zone.kind === ZONE_KIND.BOSS) {
       if (choices.length < 3) {
         choices.push(pickBoonChoice("boss", seed + 9, profile, actNumber));
       }
       if (upgradeChoice && choices.length < 3) {
         choices.push(upgradeChoice);
       }
-    } else if ((zone.kind === "miniboss" || zone.zoneRole === "branchBattle") && upgradeChoice) {
+    } else if ((zone.kind === ZONE_KIND.MINIBOSS || zone.zoneRole === "branchBattle") && upgradeChoice) {
       if (choices.length >= 3) {
         choices[choices.length - 1] = upgradeChoice;
       } else {
@@ -317,12 +318,12 @@
       }
     }
 
-    const boonRole = zone.kind === "boss" ? "boss" : zone.zoneRole;
-    if (zone.kind !== "boss" && choices.length < 3) {
+    const boonRole = zone.kind === ZONE_KIND.BOSS ? "boss" : zone.zoneRole;
+    if (zone.kind !== ZONE_KIND.BOSS && choices.length < 3) {
       choices.push(pickBoonChoice(boonRole, seed + 9, profile, actNumber));
     }
 
-    const secondCardPool = zone.kind === "boss" ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool];
+    const secondCardPool = zone.kind === ZONE_KIND.BOSS ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool];
     if (choices.length < 3) {
       const secondCardId = pickUniqueCardId(secondCardPool, seed + 5, usedCardIds, content);
       if (secondCardId) {

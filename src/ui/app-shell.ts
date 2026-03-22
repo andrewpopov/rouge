@@ -61,6 +61,7 @@
   }
 
   function render(root: HTMLElement, { appState, baseContent, bootState }: AppShellRenderConfig): void {
+    runtimeWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const services = common.getServices();
 

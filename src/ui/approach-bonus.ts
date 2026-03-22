@@ -45,6 +45,10 @@
   }
 
   function applyBonus(combat: CombatState, bonusId: string): void {
+    if (!combat || !combat.hero) {
+      if (typeof console !== "undefined") { console.warn("[approach-bonus] applyBonus called with invalid combat state"); }
+      return;
+    }
     const { applyGuard, appendLog, drawCards } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
     const [kind, rawVal] = bonusId.split(":");
     const v = parseInt(rawVal, 10) || 0;

@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function getWorldNodeCatalogApi() {
     if (!runtimeWindow.ROUGE_WORLD_NODE_CATALOG) {
@@ -108,7 +109,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("quest", getCatalogEntry("quests", actSeed.act), actSeed, prerequisites);
+    return buildNodeZone(ZONE_KIND.QUEST, getCatalogEntry("quests", actSeed.act), actSeed, prerequisites);
   }
 
   function createShrineZone({
@@ -119,7 +120,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("shrine", getCatalogEntry("shrines", actSeed.act), actSeed, prerequisites);
+    return buildNodeZone(ZONE_KIND.SHRINE, getCatalogEntry("shrines", actSeed.act), actSeed, prerequisites);
   }
 
   function createEventZone({
@@ -130,7 +131,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("event", getCatalogEntry("events", actSeed.act), actSeed, prerequisites);
+    return buildNodeZone(ZONE_KIND.EVENT, getCatalogEntry("events", actSeed.act), actSeed, prerequisites);
   }
 
   function createOpportunityZone({
@@ -141,7 +142,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("opportunities", actSeed.act), actSeed, prerequisites);
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("opportunities", actSeed.act), actSeed, prerequisites);
   }
 
   function createCrossroadOpportunityZone({
@@ -152,7 +153,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("crossroadOpportunities", actSeed.act), actSeed, prerequisites, "crossroad_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("crossroadOpportunities", actSeed.act), actSeed, prerequisites, "crossroad_opportunity");
   }
 
   function createShrineOpportunityZone({
@@ -163,7 +164,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("shrineOpportunities", actSeed.act), actSeed, prerequisites, "shrine_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("shrineOpportunities", actSeed.act), actSeed, prerequisites, "shrine_opportunity");
   }
 
   function createReserveOpportunityZone({
@@ -174,7 +175,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("reserveOpportunities", actSeed.act), actSeed, prerequisites, "reserve_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("reserveOpportunities", actSeed.act), actSeed, prerequisites, "reserve_opportunity");
   }
 
   function createRelayOpportunityZone({
@@ -185,7 +186,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("relayOpportunities", actSeed.act), actSeed, prerequisites, "relay_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("relayOpportunities", actSeed.act), actSeed, prerequisites, "relay_opportunity");
   }
 
   function createCulminationOpportunityZone({
@@ -196,7 +197,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("culminationOpportunities", actSeed.act), actSeed, prerequisites, "culmination_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("culminationOpportunities", actSeed.act), actSeed, prerequisites, "culmination_opportunity");
   }
 
   function createLegacyOpportunityZone({
@@ -207,7 +208,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("legacyOpportunities", actSeed.act), actSeed, prerequisites, "legacy_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("legacyOpportunities", actSeed.act), actSeed, prerequisites, "legacy_opportunity");
   }
 
   function createReckoningOpportunityZone({
@@ -218,7 +219,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("reckoningOpportunities", actSeed.act), actSeed, prerequisites, "reckoning_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("reckoningOpportunities", actSeed.act), actSeed, prerequisites, "reckoning_opportunity");
   }
 
   function createRecoveryOpportunityZone({
@@ -229,7 +230,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("recoveryOpportunities", actSeed.act), actSeed, prerequisites, "recovery_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("recoveryOpportunities", actSeed.act), actSeed, prerequisites, "recovery_opportunity");
   }
 
   function createAccordOpportunityZone({
@@ -240,7 +241,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("accordOpportunities", actSeed.act), actSeed, prerequisites, "accord_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("accordOpportunities", actSeed.act), actSeed, prerequisites, "accord_opportunity");
   }
 
   function createCovenantOpportunityZone({
@@ -251,7 +252,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("covenantOpportunities", actSeed.act), actSeed, prerequisites, "covenant_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("covenantOpportunities", actSeed.act), actSeed, prerequisites, "covenant_opportunity");
   }
 
   function createDetourOpportunityZone({
@@ -262,7 +263,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("detourOpportunities", actSeed.act), actSeed, prerequisites, "detour_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("detourOpportunities", actSeed.act), actSeed, prerequisites, "detour_opportunity");
   }
 
   function createEscalationOpportunityZone({
@@ -273,7 +274,7 @@
     prerequisites: string[];
   }): ZoneState {
     ensureValidCatalog();
-    return buildNodeZone("opportunity", getCatalogEntry("escalationOpportunities", actSeed.act), actSeed, prerequisites, "escalation_opportunity");
+    return buildNodeZone(ZONE_KIND.OPPORTUNITY, getCatalogEntry("escalationOpportunities", actSeed.act), actSeed, prerequisites, "escalation_opportunity");
   }
 
   function createActWorldNodes({
@@ -369,7 +370,7 @@
   }
 
   function isWorldNodeZone(zone: ZoneState) {
-    return zone?.kind === "quest" || zone?.kind === "shrine" || zone?.kind === "event" || zone?.kind === "opportunity";
+    return zone?.kind === ZONE_KIND.QUEST || zone?.kind === ZONE_KIND.SHRINE || zone?.kind === ZONE_KIND.EVENT || zone?.kind === ZONE_KIND.OPPORTUNITY;
   }
 
   runtimeWindow.ROUGE_WORLD_NODE_ZONES = {

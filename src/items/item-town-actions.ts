@@ -30,6 +30,7 @@
     buildInventoryAction,
 
   } = runtimeWindow.__ROUGE_ITEM_TOWN_PRICING;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function buildVendorRefreshAction(run: RunState, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
@@ -126,7 +127,7 @@
           "vendor_buy",
           "Buy From Vendor",
           `Purchase ${getEntryLabel(entry, content)} and move it into run inventory.`,
-          [entry.kind === "rune" ? `Rune stock for ${buyPrice} gold.` : `Equipment stock for ${buyPrice} gold.`],
+          [entry.kind === ENTRY_KIND.RUNE ? `Rune stock for ${buyPrice} gold.` : `Equipment stock for ${buyPrice} gold.`],
           { label: "Buy", cost: buyPrice, disabled: run.gold < buyPrice }
         )
       );
@@ -194,7 +195,7 @@
     });
 
     run.inventory.carried.forEach((entry: InventoryEntry) => {
-      if (entry.kind === "equipment") {
+      if (entry.kind === ENTRY_KIND.EQUIPMENT) {
         actions.push(
           buildInventoryAction(
             entry,
@@ -269,7 +270,7 @@
     });
 
     profile.stash.entries.forEach((entry: InventoryEntry) => {
-      if (entry.kind === "equipment") {
+      if (entry.kind === ENTRY_KIND.EQUIPMENT) {
         const commissionAction = buildSocketCommissionAction(
           run,
           entry.equipment,
@@ -291,7 +292,7 @@
           "stash_withdraw",
           "Withdraw From Stash",
           `Move ${getEntryLabel(entry, content)} from the profile stash into the active run inventory.`,
-          [entry.kind === "rune" ? "Rune stash entry." : "Equipment stash entry."],
+          [entry.kind === ENTRY_KIND.RUNE ? "Rune stash entry." : "Equipment stash entry."],
           { label: "Withdraw" }
         )
       );
@@ -304,8 +305,8 @@
     const hydrateRunInventory = runtimeWindow.ROUGE_ITEM_TOWN.hydrateRunInventory;
     hydrateRunInventory(run, content, profile);
     hydrateProfileStash(profile, content);
-    const carriedEquipment = run.inventory.carried.filter((entry: InventoryEntry) => entry.kind === "equipment").length;
-    const carriedRunes = run.inventory.carried.filter((entry: InventoryEntry) => entry.kind === "rune").length;
+    const carriedEquipment = run.inventory.carried.filter((entry: InventoryEntry) => entry.kind === ENTRY_KIND.EQUIPMENT).length;
+    const carriedRunes = run.inventory.carried.filter((entry: InventoryEntry) => entry.kind === ENTRY_KIND.RUNE).length;
     const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.length : 0;
     const vendorEntries = Array.isArray(run.town?.vendor?.stock) ? run.town.vendor.stock.length : 0;
     const features = getAccountEconomyFeatures(profile);

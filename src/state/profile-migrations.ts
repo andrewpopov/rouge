@@ -2,6 +2,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const {
     CURRENT_PROFILE_SCHEMA_VERSION,
     CORE_TOWN_FEATURE_IDS,
@@ -62,8 +63,8 @@
     const history = Array.isArray(runHistory) ? runHistory : [];
     return {
       runHistoryCount: history.length,
-      completedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === "completed").length,
-      failedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === "failed").length,
+      completedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.COMPLETED).length,
+      failedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.FAILED).length,
       highestLevel: toNumber(meta?.progression?.highestLevel, 1),
       highestActCleared: toNumber(meta?.progression?.highestActCleared, 0),
       totalBossesDefeated: toNumber(meta?.progression?.totalBossesDefeated, 0),

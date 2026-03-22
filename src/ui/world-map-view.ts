@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   const ZONE_KIND_ICONS: Record<string, string> = {
     battle: "\u2694",
@@ -169,9 +170,9 @@
         const parentPos = parentId ? positions.get(parentId) : null;
         if (parentPos) {
           let yOffset: number;
-          if (zone.kind === "quest") {
+          if (zone.kind === ZONE_KIND.QUEST) {
             yOffset = 18;
-          } else if (zone.kind === "event") {
+          } else if (zone.kind === ZONE_KIND.EVENT) {
             yOffset = 82;
           } else {
             yOffset = parentPos[1] - 15;
@@ -184,9 +185,9 @@
 
     // Fallback: dynamic layout for acts without measured data
     const mainline = zones.filter((z) => z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_"));
-    const boss = zones.find((z) => z.kind === "boss");
+    const boss = zones.find((z) => z.kind === ZONE_KIND.BOSS);
     const sides = zones.filter((z) => (z.zoneRole || "").startsWith("side_"));
-    const worldNodes = zones.filter((z) => z.kind === "quest" || z.kind === "event");
+    const worldNodes = zones.filter((z) => z.kind === ZONE_KIND.QUEST || z.kind === ZONE_KIND.EVENT);
 
     positions.set("town", [4, 50]);
 
@@ -213,7 +214,7 @@
       const parentId = (wn.prerequisites || [])[0];
       const parentPos = parentId ? positions.get(parentId) : null;
       if (parentPos) {
-        const yOffset = wn.kind === "quest" ? 18 : 82;
+        const yOffset = wn.kind === ZONE_KIND.QUEST ? 18 : 82;
         positions.set(wn.id, [Math.min(parentPos[0] + 4, 94), yOffset]);
       }
     }
@@ -336,32 +337,43 @@
 
   function getNodeFamilyLabel(zone: ZoneState | null): string {
     if (!zone) {return "Route";}
-    if (zone.kind === "quest") {return "Quest Fork";}
-    if (zone.kind === "shrine") {return "Shrine Blessing";}
-    if (zone.kind === "event") {return "Aftermath Node";}
-    if (zone.kind === "boss") {return "Boss Gate";}
-    if (zone.kind === "miniboss") {return "Pressure Route";}
-    if (zone.kind === "opportunity") {return "Opportunity";}
+    if (zone.kind === ZONE_KIND.QUEST) {return "Quest Fork";}
+    if (zone.kind === ZONE_KIND.SHRINE) {return "Shrine Blessing";}
+    if (zone.kind === ZONE_KIND.EVENT) {return "Aftermath Node";}
+    if (zone.kind === ZONE_KIND.BOSS) {return "Boss Gate";}
+    if (zone.kind === ZONE_KIND.MINIBOSS) {return "Pressure Route";}
+    if (zone.kind === ZONE_KIND.OPPORTUNITY) {return "Opportunity";}
     return "Battle Path";
+  }
+
+  function deriveWorldMapModel(appState: AppState, services: UiRenderServices) {
+    const run = appState.run;
+    const currentZones = services.runFactory.getCurrentZones(run);
+    const reachableZoneIds = new Set(services.runFactory.getReachableZones(run).map((z) => z.id));
+    const clearedCount = currentZones.filter((z) => z.cleared).length;
+    const mapZones = currentZones.filter(
+      (z) => z.kind !== ZONE_KIND.QUEST && z.kind !== ZONE_KIND.SHRINE && z.kind !== ZONE_KIND.OPPORTUNITY && z.kind !== ZONE_KIND.EVENT
+    );
+    const actMapFile = getActMapFilename(run.actNumber);
+    const positions = computePositions(mapZones, run.actNumber);
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
+    const zoneTitles = Object.fromEntries(currentZones.map((zone) => [zone.id, zone.title]));
+    const scrollOpen = appState.ui?.scrollMapOpen;
+    const progressPct = currentZones.length > 0 ? Math.round((clearedCount / currentZones.length) * 100) : 0;
+
+    return {
+      run, currentZones, reachableZoneIds, clearedCount,
+      mapZones, actMapFile, positions, accountSummary,
+      zoneTitles, scrollOpen, progressPct,
+    };
   }
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
-    const run = appState.run;
-    const currentZones = services.runFactory.getCurrentZones(run);
-    const reachableZoneIds = new Set(services.runFactory.getReachableZones(run).map((z) => z.id));
-    const clearedCount = currentZones.filter((z) => z.cleared).length;
+    const vm = deriveWorldMapModel(appState, services);
+    const { run, currentZones, reachableZoneIds, mapZones, actMapFile, positions, zoneTitles, scrollOpen, progressPct } = vm;
 
-    // Filter out world-node zones (quests, shrines, opportunities, events)
-    const mapZones = currentZones.filter(
-      (z) => z.kind !== "quest" && z.kind !== "shrine" && z.kind !== "opportunity" && z.kind !== "event"
-    );
-
-    const actMapFile = getActMapFilename(run.actNumber);
-    const positions = computePositions(mapZones, run.actNumber);
-
-    // Town waypoint (always shown, always cleared)
     const townPos = positions.get("town") || [8, 44];
     const townWaypoint = `
       <div class="waypoint waypoint--town" style="left:${townPos[0]}%;top:${townPos[1]}%">
@@ -372,11 +384,7 @@
 
     const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), escapeHtml, positions)).join("");
     const edges = buildSvgEdges(mapZones, positions, run.actNumber);
-    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
-    const zoneTitles = Object.fromEntries(currentZones.map((zone) => [zone.id, zone.title]));
-
-    const scrollOpen = appState.ui?.scrollMapOpen;
-    const progressPct = currentZones.length > 0 ? Math.round((clearedCount / currentZones.length) * 100) : 0;
+    const accountSummary = vm.accountSummary;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}

@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ENEMY_ROLE } = runtimeWindow.ROUGE_CONSTANTS;
 
   function chooseMercenaryTarget(state: CombatState) {
     const livingEnemies = state.enemies.filter((enemy: CombatEnemyState) => enemy.alive);
@@ -10,8 +11,8 @@
 
     if (state.mercenary.behavior === "backline_hunter") {
       const backlineTarget =
-        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === "support") ||
-        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === "ranged") ||
+        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT) ||
+        livingEnemies.find((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED) ||
         null;
       if (backlineTarget) {
         return backlineTarget;
@@ -95,7 +96,7 @@
     if (state.mercenary.behavior === "boss_hunter" && (target.templateId.endsWith("_boss") || target.templateId.includes("_elite"))) {
       damage += 3 + state.mercenary.contractBehaviorBonus;
     }
-    if (state.mercenary.behavior === "backline_hunter" && (target.role === "support" || target.role === "ranged")) {
+    if (state.mercenary.behavior === "backline_hunter" && (target.role === ENEMY_ROLE.SUPPORT || target.role === ENEMY_ROLE.RANGED)) {
       damage += 2 + state.mercenary.contractBehaviorBonus;
     }
     if (state.mercenary.behavior === "wounded_hunter" && target.life <= Math.ceil(target.maxLife / 2)) {

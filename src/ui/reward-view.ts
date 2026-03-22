@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
 
@@ -8,7 +9,7 @@
     const eventDefinition = catalog?.events?.[run.actNumber] || null;
     const linkedQuestRecord = eventDefinition?.requiresQuestId ? run.world?.questOutcomes?.[eventDefinition.requiresQuestId] || null : null;
 
-    if (reward.kind === "quest") {
+    if (reward.kind === ZONE_KIND.QUEST) {
       return {
         title: "Quest Resolution",
         lines: [
@@ -19,7 +20,7 @@
       };
     }
 
-    if (reward.kind === "shrine") {
+    if (reward.kind === ZONE_KIND.SHRINE) {
       return {
         title: "Shrine Blessing",
         lines: [
@@ -30,7 +31,7 @@
       };
     }
 
-    if (reward.kind === "event") {
+    if (reward.kind === ZONE_KIND.EVENT) {
       return {
         title: "Aftermath Follow-Up",
         lines: [
@@ -43,7 +44,7 @@
       };
     }
 
-    if (reward.kind === "opportunity") {
+    if (reward.kind === ZONE_KIND.OPPORTUNITY) {
       return {
         title: "Opportunity Chain",
         lines: [

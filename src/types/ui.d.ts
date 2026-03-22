@@ -299,6 +299,13 @@ interface AppShellRenderConfig {
   bootState: BootState;
 }
 
+interface ViewLifecycleApi {
+  managedTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout>;
+  managedRAF(fn: FrameRequestCallback): number;
+  cleanup(): void;
+  pendingCount(): number;
+}
+
 interface AppShellApi {
   render(root: HTMLElement, config: AppShellRenderConfig): void;
 }
@@ -319,6 +326,15 @@ interface ActionHandlerContext {
   combatEngine: CombatEngineApi;
   render: () => void;
   syncCombatResultAndRender: () => void;
+}
+
+interface ActionDispatcherCombatFxApi {
+  doCombatAction(combat: CombatState, action: () => void, syncAndRender: () => void): void;
+  addTempClass(el: HTMLElement, cls: string, durationMs: number): void;
+}
+
+interface ActionDispatcherRewardFxApi {
+  spawnRewardParticles(sourceEl: HTMLElement): void;
 }
 
 interface ActionDispatcherApi {
@@ -351,9 +367,47 @@ interface RougeLimits {
   MAX_HERO_POTION_HEAL: number;
 }
 
+interface RougeConstants {
+  COMBAT_PHASE: {
+    PLAYER: CombatPhase;
+    ENEMY: CombatPhase;
+    VICTORY: CombatPhase;
+    DEFEAT: CombatPhase;
+  };
+  COMBAT_OUTCOME: {
+    VICTORY: "victory";
+    DEFEAT: "defeat";
+  };
+  RUN_OUTCOME: {
+    COMPLETED: "completed";
+    FAILED: "failed";
+    ABANDONED: "abandoned";
+  };
+  ZONE_KIND: {
+    BATTLE: "battle";
+    MINIBOSS: "miniboss";
+    BOSS: "boss";
+    QUEST: "quest";
+    SHRINE: "shrine";
+    EVENT: "event";
+    OPPORTUNITY: "opportunity";
+  };
+  ENEMY_ROLE: {
+    RAIDER: "raider";
+    RANGED: "ranged";
+    SUPPORT: "support";
+    BRUTE: "brute";
+  };
+  ENTRY_KIND: {
+    EQUIPMENT: "equipment";
+    RUNE: "rune";
+  };
+}
+
 interface Window {
   ROUGE_UTILS: RougeUtilsApi;
   ROUGE_LIMITS: RougeLimits;
+  ROUGE_CONSTANTS: RougeConstants;
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_DEBUG: DebugModeConfig | null;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
@@ -455,11 +509,15 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_PROFILE_MIGRATIONS_DATA: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_MONSTER_TRAITS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_MONSTER_ACTIONS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_MERCENARY: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_ENGINE_TURNS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_CARD_EFFECTS: Record<string, any>;
   __ROUGE_APPROACH_BONUS: {
     pickBonus(approach: string, seed: number): { id: string; label: string };
     applyBonus(combat: CombatState, bonusId: string): void;
@@ -564,6 +622,8 @@ interface Window {
   ROUGE_SAFE_ZONE_OPERATIONS_VIEW: SafeZoneOperationsViewApi;
   __ROUGE_REWARD_VIEW_CONTINUITY: RewardViewContinuityApi;
   __ROUGE_ACCOUNT_META_DRILLDOWN: AccountMetaDrilldownInternalApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_ASSET_MAP_DATA: Record<string, any>;
   ROUGE_ASSET_MAP: AssetMapApi;
   __ROUGE_COMBAT_BG: { getCombatBackground(zoneTitle: string): string };
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
@@ -571,10 +631,18 @@ interface Window {
   ROUGE_INVENTORY_VIEW: InventoryViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
   ROUGE_WORLD_MAP_VIEW: UiPhaseViewApi;
+  __ROUGE_COMBAT_VIEW_EXPLORATION: {
+    getCardElement(card: CardDefinition): string;
+    ELEMENT_LABELS: Record<string, string>;
+    renderExploration(root: HTMLElement, appState: AppState, services: UiRenderServices): void;
+  };
   ROUGE_COMBAT_VIEW: UiPhaseViewApi;
   ROUGE_REWARD_VIEW: UiPhaseViewApi;
   ROUGE_ACT_TRANSITION_VIEW: UiPhaseViewApi;
   ROUGE_RUN_SUMMARY_VIEW: UiPhaseViewApi;
+  ROUGE_VIEW_LIFECYCLE: ViewLifecycleApi;
   ROUGE_APP_SHELL: AppShellApi;
+  __ROUGE_ACTION_DISPATCHER_COMBAT_FX: ActionDispatcherCombatFxApi;
+  __ROUGE_ACTION_DISPATCHER_REWARD_FX: ActionDispatcherRewardFxApi;
   ROUGE_ACTION_DISPATCHER: ActionDispatcherApi;
 }

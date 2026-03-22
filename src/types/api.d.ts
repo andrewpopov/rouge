@@ -23,6 +23,7 @@ interface CombatEngineApi {
 
 interface CombatModifiersApi {
   INTENT: Record<string, string>;
+  MODIFIER_KIND: Record<string, string>;
   ATTACK_INTENT_KINDS: Set<string>;
   HEALING_INTENT_KINDS: Set<string>;
   LINEBREAKER_INTENT_KINDS: Set<string>;

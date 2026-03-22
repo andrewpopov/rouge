@@ -26,6 +26,7 @@
     pickVendorEquipmentOffers,
     fillDefinitionSelection,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_VENDOR_OFFERS;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function buildVendorEntryId(run: RunState, index: number) {
     return `vendor_${run.actNumber}_${toNumber(run.town?.vendor?.refreshCount, 0)}_${index}`;
@@ -74,7 +75,7 @@
     });
     if (features.treasuryExchange) {
       const stashEquipment = (Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [])
-        .filter((entry: InventoryEntry) => entry?.kind === "equipment")
+        .filter((entry: InventoryEntry) => entry?.kind === ENTRY_KIND.EQUIPMENT)
         .map((entry: InventoryEntry) => (entry as InventoryEquipmentEntry).equipment)
         .filter(Boolean);
       stashEquipment.forEach((equipment: RunEquipmentState) => {
@@ -222,7 +223,7 @@
     [...selectedWeapons, ...selectedArmor].filter(Boolean).forEach((item: RuntimeItemDefinition, index: number) => {
       stock.push({
         entryId: buildVendorEntryId(run, index),
-        kind: "equipment",
+        kind: ENTRY_KIND.EQUIPMENT,
         equipment: {
           entryId: "",
           itemId: item.id,
@@ -237,7 +238,7 @@
     selectedRunes.filter(Boolean).forEach((rune: RuntimeRuneDefinition, index: number) => {
       stock.push({
         entryId: buildVendorEntryId(run, index + selectedWeapons.length + selectedArmor.length),
-        kind: "rune",
+        kind: ENTRY_KIND.RUNE,
         runeId: rune.id,
       });
     });

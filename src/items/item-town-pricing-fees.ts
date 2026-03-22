@@ -13,6 +13,7 @@
     hydrateProfileStash,
     removeCarriedEntry,
   } = runtimeWindow.ROUGE_ITEM_LOADOUT;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   // --- Buy / sell pricing ---
   const MIN_RUNE_BUY_PRICE = 10;
@@ -103,7 +104,7 @@
 
   function getEntryBuyPrice(entry: InventoryEntry, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
-    if (entry.kind === "rune") {
+    if (entry.kind === ENTRY_KIND.RUNE) {
       return Math.max(MIN_RUNE_BUY_PRICE, Math.floor(applyFeatureRates(getRuneValue(entry.runeId, content) * RUNE_BUY_MARKUP, features, BUY_DISCOUNT_RATES)));
     }
     return Math.max(MIN_EQUIPMENT_BUY_PRICE, Math.floor(applyFeatureRates(getEquipmentValue(entry.equipment, content) * EQUIPMENT_BUY_MARKUP, features, BUY_DISCOUNT_RATES)));
@@ -111,7 +112,7 @@
 
   function getEntrySellPrice(entry: InventoryEntry, content: GameContent, profile: ProfileState | null = null) {
     const features = getAccountEconomyFeatures(profile);
-    if (entry.kind === "rune") {
+    if (entry.kind === ENTRY_KIND.RUNE) {
       return Math.max(MIN_RUNE_SELL_PRICE, Math.floor(applyFeatureRates(getRuneValue(entry.runeId, content) * RUNE_SELL_RATE, features, SELL_BONUS_RATES)));
     }
     return Math.max(MIN_EQUIPMENT_SELL_PRICE, Math.floor(applyFeatureRates(getEquipmentValue(entry.equipment, content) * EQUIPMENT_SELL_RATE, features, SELL_BONUS_RATES)));
@@ -159,7 +160,7 @@
     }
     const buyPrice = getEntryBuyPrice(entry, content, profile);
     const planningPressure = getStashPlanningPressure(profile);
-    const baseFee = entry.kind === "rune" ? RUNE_CONSIGNMENT_BASE_FEE : EQUIPMENT_CONSIGNMENT_BASE_FEE;
+    const baseFee = entry.kind === ENTRY_KIND.RUNE ? RUNE_CONSIGNMENT_BASE_FEE : EQUIPMENT_CONSIGNMENT_BASE_FEE;
     const stashLoadFee = Math.min(MAX_CONSIGNMENT_STASH_LOAD_FEE, planningPressure.stashEntries);
     const planningFee = planningPressure.socketReadyEntries + planningPressure.runewordEntries;
     const planningMatch = getEntryPlanningMatch(entry, content, profile);
@@ -169,17 +170,17 @@
     const repeatableDiscount =
       planningMatch && toNumber(planningArchiveState?.completedRunCount, 0) > 0 ? 3 + Number(planningPressure.socketReadyEntries > 0) : 0;
     const chronicleDiscount = features.chronicleExchange ? 2 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
-    const paragonDiscount = features.paragonExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) : 0;
+    const paragonDiscount = features.paragonExchange && entry.kind === ENTRY_KIND.EQUIPMENT ? 1 + Number(Boolean(planningMatch)) : 0;
     const merchantDiscount = features.merchantPrincipate ? 1 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
     const sovereignDiscount = features.sovereignExchange ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const ascendantDiscount =
-      features.ascendantExchange && entry.kind === "equipment" ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
+      features.ascendantExchange && entry.kind === ENTRY_KIND.EQUIPMENT ? 1 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const hegemonyDiscount =
       features.tradeHegemony ? 2 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
     const imperialDiscount =
       features.imperialExchange ? 2 + Number(Boolean(planningMatch)) + Number(Boolean(planningArchiveState?.unfulfilled)) : 0;
     const mythicDiscount =
-      features.mythicExchange && entry.kind === "equipment" ? 2 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
+      features.mythicExchange && entry.kind === ENTRY_KIND.EQUIPMENT ? 2 + Number(Boolean(planningMatch)) + Number(planningPressure.socketReadyEntries > 0) : 0;
     const fee =
       baseFee +
       Math.floor(buyPrice * CONSIGNMENT_BUY_PRICE_FRACTION) +
@@ -196,7 +197,7 @@
       hegemonyDiscount -
       imperialDiscount -
       mythicDiscount;
-    return Math.max(entry.kind === "rune" ? RUNE_CONSIGNMENT_BASE_FEE : EQUIPMENT_CONSIGNMENT_BASE_FEE, fee);
+    return Math.max(entry.kind === ENTRY_KIND.RUNE ? RUNE_CONSIGNMENT_BASE_FEE : EQUIPMENT_CONSIGNMENT_BASE_FEE, fee);
   }
 
   function getSocketCommissionCost(run: RunState, equipment: RunEquipmentState | null, content: GameContent, profile: ProfileState | null = null, location: string = "inventory") {
@@ -304,7 +305,7 @@
     }
     const entry: InventoryEquipmentEntry = {
       entryId: actionId.replace(/^.*?_commission_/, ""),
-      kind: "equipment",
+      kind: ENTRY_KIND.EQUIPMENT,
       equipment: equipment!,
     };
     const cost = getSocketCommissionCost(run, equipment, content, profile, location);

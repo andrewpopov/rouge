@@ -14,6 +14,7 @@
     restoreTutorial,
   } = runtimeWindow.__ROUGE_APP_ENGINE_PROFILE;
 
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const {
     PHASES,
     getPersistence,
@@ -246,9 +247,9 @@
 
   function abandonSavedRun(state: AppState): ActionResult {
     if (state.run) {
-      recordRunHistory(state, "abandoned");
+      recordRunHistory(state, RUN_OUTCOME.ABANDONED);
     } else if (state.profile.activeRunSnapshot || getPersistence()?.loadFromStorage?.()) {
-      recordSnapshotRunHistory(state, "abandoned");
+      recordSnapshotRunHistory(state, RUN_OUTCOME.ABANDONED);
     } else {
       clearActiveRunProfile(state);
     }
@@ -384,7 +385,7 @@
 
     if (state.combat.outcome === "defeat") {
       state.phase = PHASES.RUN_FAILED;
-      recordRunHistory(state, "failed");
+      recordRunHistory(state, RUN_OUTCOME.FAILED);
       return { ok: true };
     }
 
@@ -423,7 +424,7 @@
 
     if (reward.endsRun || runFactory.runIsComplete(state.run)) {
       state.phase = PHASES.RUN_COMPLETE;
-      recordRunHistory(state, "completed");
+      recordRunHistory(state, RUN_OUTCOME.COMPLETED);
       return { ok: true };
     }
 

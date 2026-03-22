@@ -11,6 +11,7 @@
     resolveRunewordId,
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   const ALL_LOADOUT_SLOTS: LoadoutSlotKey[] = ["weapon", "armor", "helm", "shield", "gloves", "boots", "belt", "ring1", "ring2", "amulet"];
   const ALL_EQUIPMENT_SLOTS: EquipmentSlot[] = ["weapon", "armor", "helm", "shield", "gloves", "boots", "belt", "ring", "amulet"];
@@ -165,16 +166,16 @@
     if (!entry || typeof entry !== "object") {
       return null;
     }
-    if (entry.kind === "rune") {
+    if (entry.kind === ENTRY_KIND.RUNE) {
       return {
         entryId: entry.entryId || "",
-        kind: "rune",
+        kind: ENTRY_KIND.RUNE,
         runeId: entry.runeId || "",
       };
     }
     return {
       entryId: entry.entryId || "",
-      kind: "equipment",
+      kind: ENTRY_KIND.EQUIPMENT,
       equipment: cloneEquipmentState(entry.equipment || (entry as unknown as RunEquipmentState)),
     };
   }
@@ -202,14 +203,14 @@
     }
 
     const rec = entry as Record<string, unknown>;
-    if (rec.kind === "rune" || rec.runeId) {
+    if (rec.kind === ENTRY_KIND.RUNE || rec.runeId) {
       const rune = getRuneDefinition(content, rec.runeId as string);
       if (!rune) {
         return null;
       }
       return {
         entryId: (rec.entryId as string) || fallbackId || allocateInventoryEntryId(run),
-        kind: "rune",
+        kind: ENTRY_KIND.RUNE,
         runeId: rune.id,
       };
     }
@@ -223,7 +224,7 @@
     equipment.entryId = (rec.entryId as string) || equipment.entryId || fallbackId || allocateInventoryEntryId(run);
     return {
       entryId: equipment.entryId,
-      kind: "equipment",
+      kind: ENTRY_KIND.EQUIPMENT,
       equipment,
     };
   }
@@ -234,14 +235,14 @@
     }
 
     const rec = entry as Record<string, unknown>;
-    if (rec.kind === "rune" || rec.runeId) {
+    if (rec.kind === ENTRY_KIND.RUNE || rec.runeId) {
       const rune = getRuneDefinition(content, rec.runeId as string);
       if (!rune) {
         return null;
       }
       return {
         entryId: (rec.entryId as string) || fallbackId || "",
-        kind: "rune",
+        kind: ENTRY_KIND.RUNE,
         runeId: rune.id,
       };
     }
@@ -256,7 +257,7 @@
     equipment.entryId = (rec.entryId as string) || equipment.entryId || fallbackId || "";
     return {
       entryId: equipment.entryId,
-      kind: "equipment",
+      kind: ENTRY_KIND.EQUIPMENT,
       equipment,
     };
   }
@@ -283,10 +284,10 @@
       }
       seenEntryIds.add(nextId);
 
-      if (entry.kind === "equipment") {
+      if (entry.kind === ENTRY_KIND.EQUIPMENT) {
         return {
           entryId: nextId,
-          kind: "equipment",
+          kind: ENTRY_KIND.EQUIPMENT,
           equipment: {
             ...cloneEquipmentState(entry.equipment),
             entryId: nextId,
@@ -296,7 +297,7 @@
 
       return {
         entryId: nextId,
-        kind: "rune",
+        kind: ENTRY_KIND.RUNE,
         runeId: entry.runeId,
       };
     });
@@ -306,7 +307,7 @@
     if (!entry) {
       return "Unknown";
     }
-    if (entry.kind === "rune") {
+    if (entry.kind === ENTRY_KIND.RUNE) {
       return getRuneDefinition(content, entry.runeId)?.name || entry.runeId;
     }
     return getItemDefinition(content, entry.equipment?.itemId || "")?.name || entry.equipment?.itemId || entry.entryId;
@@ -362,7 +363,7 @@
     const entryId = allocateInventoryEntryId(run);
     const entry: InventoryEquipmentEntry = {
       entryId,
-      kind: "equipment",
+      kind: ENTRY_KIND.EQUIPMENT,
       equipment: {
         entryId,
         itemId: item.id,
@@ -385,7 +386,7 @@
     }
     const entry: InventoryRuneEntry = {
       entryId: allocateInventoryEntryId(run),
-      kind: "rune",
+      kind: ENTRY_KIND.RUNE,
       runeId: rune.id,
     };
     run.inventory.carried.push(entry);

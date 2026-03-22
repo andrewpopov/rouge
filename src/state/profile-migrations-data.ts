@@ -2,6 +2,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const CURRENT_PROFILE_SCHEMA_VERSION = 9;
   const CORE_TOWN_FEATURE_IDS = [
     "front_door_profile_hall",
@@ -98,7 +99,7 @@
     }
 
     const source = entry as Record<string, any>;
-    const outcome = typeof source.outcome === "string" ? source.outcome : "abandoned";
+    const outcome = typeof source.outcome === "string" ? source.outcome : RUN_OUTCOME.ABANDONED;
     return sanitizeHistoryPlanningEntry({
       runId: typeof source.runId === "string" ? source.runId : "",
       classId: typeof source.classId === "string" ? source.classId : "",
@@ -129,7 +130,7 @@
       newFeatureIds: uniqueStrings(source.newFeatureIds),
       newCharmIds: uniqueStrings(source.newCharmIds),
       completedAt: typeof source.completedAt === "string" ? source.completedAt : new Date(0).toISOString(),
-      outcome: outcome === "completed" || outcome === "failed" || outcome === "abandoned" ? outcome : "abandoned",
+      outcome: outcome === RUN_OUTCOME.COMPLETED || outcome === RUN_OUTCOME.FAILED || outcome === RUN_OUTCOME.ABANDONED ? outcome : RUN_OUTCOME.ABANDONED,
     }, content);
   }
 

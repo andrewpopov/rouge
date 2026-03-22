@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const { uniquePush } = runtimeWindow.ROUGE_UTILS;
 
   function ensureWorldState(run: RunState): RunWorldState {
@@ -204,16 +205,16 @@
     choice: RewardChoice,
     options?: WorldNodeOutcomeOptions
   ): ActionResult {
-    if (reward.kind === "quest") {
+    if (reward.kind === ZONE_KIND.QUEST) {
       return recordQuestOutcome(run, reward, choice);
     }
-    if (reward.kind === "shrine") {
+    if (reward.kind === ZONE_KIND.SHRINE) {
       return recordShrineOutcome(run, reward, choice);
     }
-    if (reward.kind === "event") {
+    if (reward.kind === ZONE_KIND.EVENT) {
       return recordEventOutcome(run, reward, choice);
     }
-    if (reward.kind === "opportunity") {
+    if (reward.kind === ZONE_KIND.OPPORTUNITY) {
       return recordOpportunityOutcome(run, reward, choice, options);
     }
     return { ok: false, message: "Unsupported world-node reward type." };

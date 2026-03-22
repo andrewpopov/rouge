@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const { clamp, deepClone, slugify, toBonusValue, uniquePush } = runtimeWindow.ROUGE_RUN_STATE;
 
   const MAX_ZONE_ENCOUNTERS = 5;
@@ -13,7 +14,7 @@
     zoneTitle?: string
   ): string[] {
     // Try zone-specific encounters first for contiguous themed waves
-    if (zoneTitle && kind !== "boss") {
+    if (zoneTitle && kind !== ZONE_KIND.BOSS) {
       const zoneKey = `act_${actNumber}_${slugify(zoneTitle)}`;
       const zonePool = content?.generatedZoneEncounterIds?.[zoneKey];
       if (Array.isArray(zonePool) && zonePool.length > 0) {
@@ -27,18 +28,18 @@
 
     if (typeof zoneRole === "string" && Array.isArray(actPools[zoneRole]) && actPools[zoneRole].length > 0) {
       sourcePool = actPools[zoneRole];
-    } else if (kind === "boss") {
+    } else if (kind === ZONE_KIND.BOSS) {
       sourcePool = actPools.boss;
-    } else if (kind === "miniboss") {
+    } else if (kind === ZONE_KIND.MINIBOSS) {
       sourcePool = actPools.branchMiniboss;
     } else {
       sourcePool = actPools.opening;
     }
 
     let fallbackPool = ["blood_moor_raiders"];
-    if (kind === "boss") {
+    if (kind === ZONE_KIND.BOSS) {
       fallbackPool = ["catacombs_gate"];
-    } else if (kind === "miniboss") {
+    } else if (kind === ZONE_KIND.MINIBOSS) {
       fallbackPool = ["burial_grounds"];
     }
 
@@ -103,7 +104,7 @@
       const zone = createZoneState({
         actNumber: actSeed.act,
         title: mainlineNames[i],
-        kind: "battle",
+        kind: ZONE_KIND.BATTLE,
         zoneRole: isFirst ? "opening" : `mainline_${i}`,
         description: isFirst
           ? "Opening pressure zone. The first area outside the safety of town."
@@ -137,7 +138,7 @@
       const zone = createZoneState({
         actNumber: actSeed.act,
         title: branch.name,
-        kind: branch.kind || "battle",
+        kind: branch.kind || ZONE_KIND.BATTLE,
         zoneRole: `side_${slugify(branch.name)}`,
         description: branch.description || "Optional side area with extra rewards.",
         encounterCount: branch.encounters || 5,
@@ -159,7 +160,7 @@
     const bossZone = createZoneState({
       actNumber: actSeed.act,
       title: bossZoneName,
-      kind: "boss",
+      kind: ZONE_KIND.BOSS,
       zoneRole: "boss",
       description: `Boss zone for ${actSeed.boss.name}. This closes the act and opens the next safe zone.`,
       encounterCount: 1,
@@ -182,7 +183,7 @@
   }
 
   function buildActSeedFromState(act: ActState): ActSeed {
-    const bossZone = Array.isArray(act?.zones) ? act.zones.find((zone) => zone.kind === "boss") || null : null;
+    const bossZone = Array.isArray(act?.zones) ? act.zones.find((zone) => zone.kind === ZONE_KIND.BOSS) || null : null;
     return {
       act: act?.actNumber || 1,
       name: String(act?.title || `Act ${act?.actNumber || 1}`).replace(/^Act\s+\d+:\s*/, ""),
@@ -201,16 +202,16 @@
     if (run.world?.resolvedNodeIds?.includes(zone.id)) {
       return true;
     }
-    if (zone.kind === "quest") {
+    if (zone.kind === ZONE_KIND.QUEST) {
       return Boolean(run.world?.questOutcomes?.[zone.nodeId || ""]);
     }
-    if (zone.kind === "shrine") {
+    if (zone.kind === ZONE_KIND.SHRINE) {
       return Boolean(run.world?.shrineOutcomes?.[zone.nodeId || ""]);
     }
-    if (zone.kind === "event") {
+    if (zone.kind === ZONE_KIND.EVENT) {
       return Boolean(run.world?.eventOutcomes?.[zone.nodeId || ""]);
     }
-    if (zone.kind === "opportunity") {
+    if (zone.kind === ZONE_KIND.OPPORTUNITY) {
       return Boolean(run.world?.opportunityOutcomes?.[zone.nodeId || ""]);
     }
     return false;
@@ -252,7 +253,7 @@
     }
 
     // World nodes gate behind the last mainline zone before the boss.
-    const nonBossZones = act.zones.filter((zone) => zone.kind !== "boss" && !runtimeWindow.ROUGE_WORLD_NODES?.isWorldNodeZone(zone));
+    const nonBossZones = act.zones.filter((zone) => zone.kind !== ZONE_KIND.BOSS && !runtimeWindow.ROUGE_WORLD_NODES?.isWorldNodeZone(zone));
     const mainlineChain = nonBossZones.filter((zone) => zone.zoneRole === "opening" || (zone.zoneRole || "").startsWith("mainline_"));
     const worldNodeGateZone =
       mainlineChain[mainlineChain.length - 1] ||
@@ -279,7 +280,7 @@
     });
 
     const nonWorldZones = act.zones.filter((zone) => !runtimeWindow.ROUGE_WORLD_NODES?.isWorldNodeZone(zone));
-    const bossIndex = nonWorldZones.findIndex((zone) => zone.kind === "boss");
+    const bossIndex = nonWorldZones.findIndex((zone) => zone.kind === ZONE_KIND.BOSS);
     const zones =
       bossIndex >= 0
         ? [...nonWorldZones.slice(0, bossIndex), ...normalizedWorldNodes, ...nonWorldZones.slice(bossIndex)]

@@ -26,9 +26,11 @@ const SHARED_RUNTIME_FILES = [
   "src/content/skill-evolution-trees.js",
   "src/content/game-content.js",
   "src/combat/combat-modifiers.js",
+  "src/combat/monster-traits.js",
   "src/combat/combat-engine-monster-actions.js",
   "src/combat/combat-engine-mercenary.js",
   "src/combat/combat-engine-turns.js",
+  "src/combat/card-effects.js",
   "src/combat/combat-engine.js",
 ];
 
@@ -115,12 +117,16 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/safe-zone-view.js",
   "src/ui/world-map-view.js",
   "src/ui/approach-bonus.js",
+  "src/ui/combat-view-exploration.js",
   "src/ui/combat-view.js",
   "src/ui/reward-view-continuity.js",
   "src/ui/reward-view.js",
   "src/ui/act-transition-view.js",
   "src/ui/run-summary-view.js",
+  "src/ui/view-lifecycle.js",
   "src/ui/app-shell.js",
+  "src/ui/action-dispatcher-combat-fx.js",
+  "src/ui/action-dispatcher-reward-fx.js",
   "src/ui/action-dispatcher.js",
 ];
 
@@ -156,7 +162,7 @@ const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/world-node-engine.js",
 ];
 
-const ASSET_MAP_FILES = ["src/content/combat-backgrounds.js", "src/content/asset-map.js"];
+const ASSET_MAP_FILES = ["src/content/combat-backgrounds.js", "src/content/asset-map-data.js", "src/content/asset-map.js"];
 
 const CONTENT_HELPER_RUNTIME_FILES = [
   ...SHARED_RUNTIME_FILES,

@@ -40,6 +40,7 @@
     listTownActions,
     getInventorySummary,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_ACTIONS;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function hydrateRunInventory(run: RunState, content: GameContent, profile: ProfileState | null = null) {
     const inventorySource = (run.inventory || {}) as Record<string, unknown>;
@@ -65,7 +66,7 @@
       .map((entry: unknown) => normalizeInventoryEntry(entry, run, content))
       .filter(Boolean)
       .filter((entry: InventoryEntry) => {
-        if (entry.kind !== "equipment") {
+        if (entry.kind !== ENTRY_KIND.EQUIPMENT) {
           return true;
         }
         return !equippedEntryIds.has(entry.entryId);
@@ -104,7 +105,7 @@
       }
       run.gold -= cost;
       run.town.vendor.stock.splice(index, 1);
-      if (stockEntry.kind === "rune") {
+      if (stockEntry.kind === ENTRY_KIND.RUNE) {
         addRuneToInventory(run, stockEntry.runeId, content);
       } else {
         addEquipmentToInventory(run, stockEntry.equipment.itemId, content);
@@ -170,7 +171,7 @@
     if (actionId.startsWith("inventory_commission_")) {
       const entryId = actionId.replace("inventory_commission_", "");
       const entry = findCarriedEntry(run, entryId);
-      if (!entry || entry.kind !== "equipment") {
+      if (!entry || entry.kind !== ENTRY_KIND.EQUIPMENT) {
         return { ok: false, message: "That carried item is no longer available for commission." };
       }
       const cost = getSocketCommissionCost(run, entry.equipment, content, profile, "inventory");
@@ -199,7 +200,7 @@
     if (actionId.startsWith("stash_commission_")) {
       const entryId = actionId.replace("stash_commission_", "");
       const entry = profile?.stash?.entries?.find((candidate) => candidate.entryId === entryId) || null;
-      if (!entry || entry.kind !== "equipment") {
+      if (!entry || entry.kind !== ENTRY_KIND.EQUIPMENT) {
         return { ok: false, message: "That stash item is no longer available for commission." };
       }
       if (!getAccountEconomyFeatures(profile).treasuryExchange) {

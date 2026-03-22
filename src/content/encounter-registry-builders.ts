@@ -23,6 +23,7 @@
     makeEncounter,
     buildZoneEncounterSet,
   } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES;
+  const { MODIFIER_KIND } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
 
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }: { actSeed: ActSeed; bossEntry: BossEntry | null | undefined; groupedEntries: EncounterRegistryGroupedEntries }) {
     const actNumber = actSeed.act;
@@ -199,84 +200,84 @@
         `${flavor.openingLabel} Pressure Pack`,
         `${flavor.openingDescription} The ranged line forces tighter target priority.`,
         [raiderA.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: "backline_screen", value: Math.max(2, actNumber) }]
+        [{ kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) }]
       ),
       [openingIds[2]]: makeEncounter(
         openingIds[2],
         `${flavor.openingLabel} Horde`,
         `${flavor.openingDescription} The pack density is higher, so area zones take more repeated clears.`,
         [raiderA.templateId, raiderB.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: "vanguard_rush", value: 1 }]
+        [{ kind: MODIFIER_KIND.VANGUARD_RUSH, value: 1 }]
       ),
       [openingIds[3]]: makeEncounter(
         openingIds[3],
         `${flavor.openingLabel} Crossfire`,
         `${flavor.openingDescription} This route angle leans on layered ranged fire and awkward target priority.`,
         [rangedA.templateId, rangedB.templateId, raiderA.templateId],
-        [{ kind: "crossfire_lanes", value: 1 }]
+        [{ kind: MODIFIER_KIND.CROSSFIRE_LANES, value: 1 }]
       ),
       [openingIds[4]]: makeEncounter(
         openingIds[4],
         `${flavor.openingLabel} Screen`,
         `${flavor.openingDescription} A tougher screen forces you through a guarded front before the backline breaks.`,
         [supportA.templateId, bruteA.templateId, rangedB.templateId],
-        [{ kind: "fortified_line", value: Math.max(2, actNumber) }]
+        [{ kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(2, actNumber) }]
       ),
       [openingIds[5]]: makeEncounter(
         openingIds[5],
         `${flavor.openingLabel} Raid`,
         `${flavor.openingDescription} A larger raiding party mixes brute pressure with a live backline immediately.`,
         [raiderA.templateId, bruteA.templateId, rangedA.templateId, supportB.templateId],
-        [{ kind: "ambush_opening", value: 1 }]
+        [{ kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 }]
       ),
       [openingIds[6]]: makeEncounter(
         openingIds[6],
         `${flavor.openingLabel} Sniper Nest`,
         `${flavor.openingDescription} Elevated lanes and clear sightlines turn the opener into a ranged damage check.`,
         [rangedA.templateId, rangedB.templateId, raiderA.templateId],
-        [{ kind: "sniper_nest", value: Math.max(2, actNumber) }]
+        [{ kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, actNumber) }]
       ),
       [branchBattleIds[0]]: makeEncounter(
         branchBattleIds[0],
         `${flavor.branchBattleLabel} Hold`,
         flavor.branchBattleDescription,
         [bruteA.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: "war_drums", value: 1 }]
+        [{ kind: MODIFIER_KIND.WAR_DRUMS, value: 1 }]
       ),
       [branchBattleIds[1]]: makeEncounter(
         branchBattleIds[1],
         `${flavor.branchBattleLabel} Ambush`,
         `${flavor.branchBattleDescription} This branch leans harder on ranged pressure and guarded fronts.`,
         [eliteB.templateId, rangedA.templateId, rangedB.templateId],
-        [{ kind: "ambush_opening", value: 1 }]
+        [{ kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 }]
       ),
       [branchBattleIds[2]]: makeEncounter(
         branchBattleIds[2],
         `${flavor.branchBattleLabel} Bulwark`,
         `${flavor.branchBattleDescription} Durable fronts and recovery support drag the branch into attrition.`,
         [bruteA.templateId, bruteB.templateId, supportB.templateId],
-        [{ kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) }]
+        [{ kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) }]
       ),
       [branchBattleIds[3]]: makeEncounter(
         branchBattleIds[3],
         `${flavor.branchBattleLabel} Counterpush`,
         `${flavor.branchBattleDescription} An elite support package turns the branch into a live counterattack.`,
         [eliteC.templateId, supportA.templateId, raiderA.templateId],
-        [{ kind: "triage_command", value: 1 }]
+        [{ kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]
       ),
       [branchBattleIds[4]]: makeEncounter(
         branchBattleIds[4],
         `${flavor.branchBattleLabel} Siege`,
         `${flavor.branchBattleDescription} A fourth elite package keeps the branch identity from collapsing into one repeated escort script.`,
         [eliteD.templateId, bruteA.templateId, supportA.templateId],
-        [{ kind: "fortified_line", value: Math.max(3, actNumber + 1) }]
+        [{ kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(3, actNumber + 1) }]
       ),
       [branchBattleIds[5]]: makeEncounter(
         branchBattleIds[5],
         `${flavor.branchBattleLabel} Breach`,
         `${flavor.branchBattleDescription} A drilled breach team opens on line-breaking charges instead of another slower front-line trade.`,
         [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
-        [{ kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
+        [{ kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
       ),
       [branchMinibossIds[0]]: makeEncounter(
         branchMinibossIds[0],
@@ -289,7 +290,7 @@
         `${flavor.branchMinibossLabel} Retinue`,
         `${flavor.branchMinibossDescription} A second elite escort package keeps the branch from collapsing into one repeated script.`,
         [eliteB.templateId, eliteC.templateId, bruteA.templateId],
-        [{ kind: "escort_bulwark", value: Math.max(3, actNumber) }]
+        [{ kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) }]
       ),
       [branchMinibossIds[2]]: makeEncounter(
         branchMinibossIds[2],
@@ -297,8 +298,8 @@
         `${flavor.branchMinibossDescription} The sanctum package doubles down on elite layering and a live backline.`,
         [eliteA.templateId, eliteC.templateId, supportA.templateId, rangedA.templateId],
         [
-          { kind: "escort_bulwark", value: Math.max(3, actNumber) },
-          { kind: "escort_command", value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) },
+          { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
         ]
       ),
       [branchMinibossIds[3]]: makeEncounter(
@@ -307,8 +308,8 @@
         `${flavor.branchMinibossDescription} A larger war host pushes multiple elite identities into the same branch fight.`,
         [eliteB.templateId, eliteC.templateId, eliteD.templateId, bruteB.templateId],
         [
-          { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
-          { kind: "elite_onslaught", value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
+          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
         ]
       ),
       [branchMinibossIds[4]]: makeEncounter(
@@ -316,14 +317,14 @@
         `${flavor.branchMinibossLabel} Phalanx`,
         `${flavor.branchMinibossDescription} A drilled elite front advances with brute escorts instead of leaning on another support pocket.`,
         [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
-        [{ kind: "phalanx_march", value: Math.max(3, actNumber) }]
+        [{ kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) }]
       ),
       [branchMinibossIds[5]]: makeEncounter(
         branchMinibossIds[5],
         `${flavor.branchMinibossLabel} Conclave`,
         `${flavor.branchMinibossDescription} A warding conclave opens on recovery rites and shield calls instead of another straight escort rush.`,
         [eliteA.templateId, supportA.templateId, supportB.templateId, rangedA.templateId],
-        [{ kind: "ritual_cadence", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
+        [{ kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
       ),
       [consequenceBranchBattleId]: makeEncounter(
         consequenceBranchBattleId,
@@ -331,8 +332,8 @@
         `${flavor.branchBattleDescription} Route-side recovery efforts change the next branch fight into a screened counterline instead of the default patrol mix.`,
         [eliteA.templateId, rangedA.templateId, supportB.templateId, bruteA.templateId],
         [
-          { kind: "backline_screen", value: Math.max(2, actNumber) },
-          { kind: "triage_command", value: 1 },
+          { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 },
         ]
       ),
       [consequenceDetourBranchBattleId]: makeEncounter(
@@ -341,8 +342,8 @@
         `${flavor.branchBattleDescription} A hidden post-covenant detour turns the next branch into a screened supply run instead of a direct hold.`,
         [supportA.templateId, bruteA.templateId, rangedA.templateId, bruteB.templateId],
         [
-          { kind: "fortified_line", value: Math.max(3, actNumber + 1) },
-          { kind: "backline_screen", value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(3, actNumber + 1) },
+          { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
         ]
       ),
       [consequenceGuidedDetourBranchBattleId]: makeEncounter(
@@ -351,8 +352,8 @@
         `${flavor.branchBattleDescription} A guided sidepass from the detour lane turns the next branch into a guarded flank instead of another default counterline.`,
         [eliteA.templateId, supportA.templateId, rangedA.templateId, bruteA.templateId],
         [
-          { kind: "fortified_line", value: Math.max(2, actNumber) },
-          { kind: "triage_screen", value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
         ]
       ),
       [consequenceSignalDetourBranchBattleId]: makeEncounter(
@@ -361,8 +362,8 @@
         `${flavor.branchBattleDescription} Earlier shrine signals carry through the full detour and turn the next branch into a screened beacon line instead of a plain convoy flank.`,
         [rangedA.templateId, rangedB.templateId, supportA.templateId, bruteA.templateId],
         [
-          { kind: "backline_screen", value: Math.max(2, actNumber) },
-          { kind: "sniper_nest", value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, actNumber) },
         ]
       ),
       [consequenceMobilizedDetourBranchBattleId]: makeEncounter(
@@ -371,9 +372,9 @@
         `${flavor.branchBattleDescription} Earlier accord musters now carry through the full signaled detour and turn the next branch into a reserve-backed beacon line instead of a looser routed flank.`,
         [eliteA.templateId, rangedA.templateId, rangedB.templateId, supportA.templateId],
         [
-          { kind: "backline_screen", value: Math.max(2, actNumber) },
-          { kind: "sniper_nest", value: Math.max(2, actNumber) },
-          { kind: "court_reserves", value: 1 },
+          { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, actNumber) },
+          { kind: MODIFIER_KIND.COURT_RESERVES, value: 1 },
         ]
       ),
       [consequenceBranchMinibossId]: makeEncounter(
@@ -382,8 +383,8 @@
         `${flavor.branchMinibossDescription} A full accord lane turns the next elite branch into a coordinated host with scripted escort pressure.`,
         [eliteA.templateId, eliteC.templateId, rangedA.templateId, supportA.templateId],
         [
-          { kind: "escort_command", value: 1 },
-          { kind: "elite_onslaught", value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
+          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
         ]
       ),
       [consequenceEscalationMinibossId]: makeEncounter(
@@ -392,8 +393,8 @@
         `${flavor.branchMinibossDescription} A post-covenant escalation turns the next elite branch into a direct strike package instead of a steadier escort shell.`,
         [eliteB.templateId, eliteD.templateId, bruteA.templateId, supportA.templateId],
         [
-          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
-          { kind: "elite_onslaught", value: 1 },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
         ]
       ),
       [consequenceBreachEscalationMinibossId]: makeEncounter(
@@ -402,8 +403,8 @@
         `${flavor.branchMinibossDescription} A guided escalation breach turns the next elite branch into a drilled pressure push instead of the default accord host.`,
         [eliteA.templateId, eliteB.templateId, bruteA.templateId, rangedA.templateId],
         [
-          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
-          { kind: "war_drums", value: 1 },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ]
       ),
       [consequenceDirectedEscalationMinibossId]: makeEncounter(
@@ -412,8 +413,8 @@
         `${flavor.branchMinibossDescription} Earlier crossroads guidance carries through the full escalation and turns the next elite branch into a routed strike package instead of a generic late surge.`,
         [eliteA.templateId, eliteD.templateId, rangedA.templateId, supportA.templateId],
         [
-          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
-          { kind: "escort_command", value: 1 },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
         ]
       ),
       [consequenceMobilizedEscalationMinibossId]: makeEncounter(
@@ -422,9 +423,9 @@
         `${flavor.branchMinibossDescription} Earlier accord musters now carry through the full directed escalation and turn the next elite branch into a reserve-backed strike package instead of a looser late surge.`,
         [eliteA.templateId, eliteD.templateId, supportA.templateId, supportB.templateId],
         [
-          { kind: "linebreaker_charge", value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
-          { kind: "escort_command", value: 1 },
-          { kind: "court_reserves", value: 1 },
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
+          { kind: MODIFIER_KIND.COURT_RESERVES, value: 1 },
         ]
       ),
       [bossId]: makeEncounter(
@@ -433,8 +434,8 @@
         flavor.bossDescription,
         bossEnemyTemplateIds,
         [
-          { kind: "escort_bulwark", value: Math.max(4, actNumber + 1) },
-          { kind: "escort_command", value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
+          { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
         ]
       ),
       [consequenceBossId]: makeEncounter(
@@ -456,14 +457,14 @@
         `${flavor.bossLabel} Directed Aftermath`,
         `${flavor.bossDescription} Earlier route guidance carries through the full aftermath and turns the boss into a directed closing court instead of a generic late-route collapse.`,
         aftermathBossConfig.enemyTemplateIds,
-        [...aftermathBossConfig.modifiers, { kind: "escort_command", value: 1 }]
+        [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]
       ),
       [consequenceSignaledAftermathBossId]: makeEncounter(
         consequenceSignaledAftermathBossId,
         `${flavor.bossLabel} Signaled Aftermath`,
         `${flavor.bossDescription} Earlier shrine signals and crossroads guidance both carry through the full aftermath and turn the boss into a fully signaled closing court instead of a looser routed collapse.`,
         aftermathBossConfig.enemyTemplateIds,
-        [...aftermathBossConfig.modifiers, { kind: "escort_command", value: 1 }, { kind: "triage_command", value: 1 }]
+        [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }, { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]
       ),
       [consequenceDrilledAftermathBossId]: makeEncounter(
         consequenceDrilledAftermathBossId,

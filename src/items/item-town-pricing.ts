@@ -8,6 +8,7 @@
     isRunewordCompatibleWithItem,
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   // --- Equipment & rune valuation ---
   const MIN_EQUIPMENT_VALUE = 8;
@@ -203,7 +204,7 @@
     if (plannedRunewords.length === 0 || !entry) {
       return null;
     }
-    if (entry.kind === "rune") {
+    if (entry.kind === ENTRY_KIND.RUNE) {
       const matchedRuneword = plannedRunewords.find((runeword: RuntimeRunewordDefinition) => runeword.requiredRunes.includes((entry as InventoryRuneEntry).runeId)) || null;
       return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
     }
@@ -219,7 +220,7 @@
     return getEntryPlanningMatch(
       {
         entryId: equipment.entryId || "",
-        kind: "equipment",
+        kind: ENTRY_KIND.EQUIPMENT,
         equipment,
       },
       content,
@@ -237,7 +238,7 @@
 
   function getStashPlanningPressure(profile: ProfileState | null) {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
-    const equipmentEntries = entries.filter((entry: InventoryEntry) => entry?.kind === "equipment");
+    const equipmentEntries = entries.filter((entry: InventoryEntry) => entry?.kind === ENTRY_KIND.EQUIPMENT);
     return {
       stashEntries: entries.length,
       socketReadyEntries: equipmentEntries.filter((entry: InventoryEntry) => toNumber((entry as InventoryEquipmentEntry)?.equipment?.socketsUnlocked, 0) > 0).length,

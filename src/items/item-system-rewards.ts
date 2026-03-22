@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const itemCatalog = runtimeWindow.ROUGE_ITEM_CATALOG;
   const itemTown = runtimeWindow.ROUGE_ITEM_TOWN;
   const {
@@ -86,8 +87,8 @@
   function isLateActPivotZone(zone: ZoneState | null, actNumber: number) {
     return (
       actNumber >= 4 &&
-      (zone?.kind === "boss" ||
-        zone?.kind === "miniboss" ||
+      (zone?.kind === ZONE_KIND.BOSS ||
+        zone?.kind === ZONE_KIND.MINIBOSS ||
         zone?.zoneRole === "branchMiniboss" ||
         zone?.zoneRole === "branchBattle")
     );
@@ -95,12 +96,12 @@
 
   function getProgressionTierAllowance(run: RunState, zone: ZoneState) {
     const levelAllowance = Math.min(2, Math.floor(Math.max(0, toNumber(run?.level, 1) - 1) / 2));
-    const trophyAllowance = zone.kind === "boss" ? 1 : Math.min(1, toNumber(run?.progression?.bossTrophies?.length, 0));
+    const trophyAllowance = zone.kind === ZONE_KIND.BOSS ? 1 : Math.min(1, toNumber(run?.progression?.bossTrophies?.length, 0));
     return levelAllowance + trophyAllowance;
   }
 
   function getAvailableItemsForSlot(slot: string, actNumber: number, zone: ZoneState, run: RunState, content: GameContent) {
-    const tierAllowance = zone.kind === "boss" ? 1 : 0;
+    const tierAllowance = zone.kind === ZONE_KIND.BOSS ? 1 : 0;
     const progressionAllowance = getProgressionTierAllowance(run, zone);
     return (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
       .filter((item: RuntimeItemDefinition) => item.slot === slot && item.progressionTier <= actNumber + tierAllowance + progressionAllowance)
@@ -262,7 +263,7 @@
       planningArchiveState.unfulfilled,
       planningCharter
     );
-    if (zone.kind === "boss" || zone.kind === "miniboss" || zone.zoneRole === "branchBattle") {
+    if (zone.kind === ZONE_KIND.BOSS || zone.kind === ZONE_KIND.MINIBOSS || zone.zoneRole === "branchBattle") {
       return sortedUpgradeItems[0] || null;
     }
     return sortedUpgradeItems[sortedUpgradeItems.length - 1] || null;
@@ -322,7 +323,7 @@
       (Boolean(currentRunewordId) && tierDelta >= 1) ||
       (economyPressure && (tierDelta >= 1 || socketDelta >= 1)) ||
       (paragonPressure && (tierDelta >= 1 || socketDelta >= 1)) ||
-      (zone?.kind === "boss" && currentBaseIsStale && tierDelta >= 1)
+      (zone?.kind === ZONE_KIND.BOSS && currentBaseIsStale && tierDelta >= 1)
     );
   }
 

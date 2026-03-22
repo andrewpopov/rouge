@@ -27,5 +27,53 @@
     MAX_HERO_POTION_HEAL: 24,
   };
 
+  const COMBAT_PHASE = {
+    PLAYER: "player" as CombatPhase,
+    ENEMY: "enemy" as CombatPhase,
+    VICTORY: "victory" as CombatPhase,
+    DEFEAT: "defeat" as CombatPhase,
+  };
+
+  const COMBAT_OUTCOME = {
+    VICTORY: "victory" as const,
+    DEFEAT: "defeat" as const,
+  };
+
+  const RUN_OUTCOME = {
+    COMPLETED: "completed" as const,
+    FAILED: "failed" as const,
+    ABANDONED: "abandoned" as const,
+  };
+
+  const ZONE_KIND = {
+    BATTLE: "battle" as const,
+    MINIBOSS: "miniboss" as const,
+    BOSS: "boss" as const,
+    QUEST: "quest" as const,
+    SHRINE: "shrine" as const,
+    EVENT: "event" as const,
+    OPPORTUNITY: "opportunity" as const,
+  };
+
+  const ENEMY_ROLE = {
+    RAIDER: "raider" as const,
+    RANGED: "ranged" as const,
+    SUPPORT: "support" as const,
+    BRUTE: "brute" as const,
+  };
+
+  const ENTRY_KIND = {
+    EQUIPMENT: "equipment" as const,
+    RUNE: "rune" as const,
+  };
+
   runtimeWindow.ROUGE_LIMITS = LIMITS;
+  runtimeWindow.ROUGE_CONSTANTS = {
+    COMBAT_PHASE,
+    COMBAT_OUTCOME,
+    RUN_OUTCOME,
+    ZONE_KIND,
+    ENEMY_ROLE,
+    ENTRY_KIND,
+  };
 })();

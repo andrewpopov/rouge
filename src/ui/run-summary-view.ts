@@ -12,6 +12,8 @@
       ? buildBadge("Victory", "cleared")
       : buildBadge("Defeated", "locked");
 
+    const notice = common.renderNotice(appState, services.renderUtils);
+
     services.renderUtils.buildShell(root, {
       eyebrow: victory ? "Victory" : "Defeat",
       title: victory ? `${run.className} Conquers The World` : `${run.className} Has Fallen`,
@@ -19,6 +21,7 @@
         ? `All acts cleared. ${run.className} returns to the hall in glory.`
         : `The expedition ends at ${run.actTitle}. The archive records the attempt.`,
       body: `
+        ${notice}
         ${common.renderRunStatus(run, victory ? "Victory" : "Defeat", services.renderUtils)}
 
         <section class="panel flow-panel">

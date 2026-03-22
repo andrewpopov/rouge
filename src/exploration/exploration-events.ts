@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const { toNumber } = runtimeWindow.ROUGE_UTILS;
 
   const {
@@ -130,7 +131,7 @@
   ): ExplorationEvent | null {
     const totalCleared = getTotalEncountersCleared(run);
 
-    if (zone.kind === "boss") {return null;}
+    if (zone.kind === ZONE_KIND.BOSS) {return null;}
 
     const roll = ((seed * 7919 + 1301) % 1000) / 1000;
     if (roll > EVENT_PROBABILITY) {return null;}

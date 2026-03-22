@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   function formatTimestamp(timestamp: string, includeYear = false): string {
     const parsed = new Date(timestamp);
@@ -27,10 +28,11 @@
   }
 
   function getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string {
-    if (outcome === "completed") {
+    const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
+    if (outcome === RUN_OUTCOME.COMPLETED) {
       return "cleared";
     }
-    if (outcome === "failed") {
+    if (outcome === RUN_OUTCOME.FAILED) {
       return "locked";
     }
     return "available";
@@ -39,11 +41,11 @@
   function getStashPreviewLines(profile: ProfileState, content: GameContent): string[] {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_ENTRIES) : [];
     return entries.map((entry) => {
-      if (entry.kind === "equipment") {
+      if (entry.kind === ENTRY_KIND.EQUIPMENT) {
         const item = content.itemCatalog?.[entry.equipment.itemId] || null;
         return item ? `${item.name} (${item.slot})` : entry.equipment.itemId;
       }
-      if (entry.kind === "rune") {
+      if (entry.kind === ENTRY_KIND.RUNE) {
         const rune = content.runeCatalog?.[entry.runeId] || null;
         return rune ? `${rune.name} rune` : entry.runeId;
       }
@@ -82,11 +84,24 @@
     `;
   }
 
-  function renderWelcomeScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+  function deriveWelcomeModel(appState: AppState, services: UiRenderServices) {
     const savedRunSummary = services.appEngine.getSavedRunSummary();
-    const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
     const runCount = appState.profile?.runHistory?.length || 0;
     const classCount = appState.registries.classes.length;
+    const recentRuns = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SUMMARY) : [];
+    const lastRun = recentRuns[0] || null;
+    const stashCount = Array.isArray(appState.profile?.stash?.entries) ? appState.profile.stash.entries.length : 0;
+    const unlockCount = (appState.profile?.meta?.unlocks?.classIds?.length || 0)
+      + (appState.profile?.meta?.unlocks?.bossIds?.length || 0)
+      + (appState.profile?.meta?.unlocks?.runewordIds?.length || 0);
+
+    return { savedRunSummary, runCount, classCount, recentRuns, lastRun, stashCount, unlockCount };
+  }
+
+  function renderWelcomeScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
+    const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
+    const vm = deriveWelcomeModel(appState, services);
+    const { savedRunSummary, runCount, classCount, recentRuns, lastRun, stashCount, unlockCount } = vm;
 
     const savedRunCard = savedRunSummary
       ? `<section class="panel flow-panel welcome-saved-run">
@@ -123,14 +138,6 @@
           </button>
         </section>`
       : "";
-
-    const recentRuns = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SUMMARY) : [];
-    const lastRun = recentRuns[0] || null;
-
-    const stashCount = Array.isArray(appState.profile?.stash?.entries) ? appState.profile.stash.entries.length : 0;
-    const unlockCount = (appState.profile?.meta?.unlocks?.classIds?.length || 0)
-      + (appState.profile?.meta?.unlocks?.bossIds?.length || 0)
-      + (appState.profile?.meta?.unlocks?.runewordIds?.length || 0);
 
     const menuItems = runCount > 0
       ? `<nav class="welcome-menu">

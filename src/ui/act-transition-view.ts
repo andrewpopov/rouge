@@ -70,7 +70,9 @@
       .map((line) => `<p class="cutscene__line">${escapeHtml(line)}</p>`)
       .join("\n");
 
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     root.innerHTML = `
+      ${common.renderNotice(appState, services.renderUtils)}
       <div class="cutscene">
         <div class="cutscene__backdrop"></div>
         <div class="cutscene__content">

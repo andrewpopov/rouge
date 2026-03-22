@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const {
     CORE_TOWN_FEATURE_IDS,
     ACCOUNT_PROGRESSION_TREES,
@@ -129,8 +130,8 @@
     const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
     return {
       runHistoryCount: history.length,
-      completedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === "completed").length,
-      failedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === "failed").length,
+      completedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.COMPLETED).length,
+      failedRuns: history.filter((entry: RunHistoryEntry) => entry?.outcome === RUN_OUTCOME.FAILED).length,
       highestLevel: toNumber(profile?.meta?.progression?.highestLevel, 1),
       highestActCleared: toNumber(profile?.meta?.progression?.highestActCleared, 0),
       totalBossesDefeated: toNumber(profile?.meta?.progression?.totalBossesDefeated, 0),

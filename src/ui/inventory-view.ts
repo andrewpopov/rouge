@@ -3,6 +3,7 @@
 
   const { LOADOUT_SLOT_LABELS } = runtimeWindow.ROUGE_ITEM_LOADOUT;
   const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
+  const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
 
   const TAB_CHARACTER = "character";
   const TAB_INVENTORY = "inventory";
@@ -73,7 +74,7 @@
     escapeHtml: (s: string) => string
   ): string {
     const { getItemDefinition, getRuneDefinition } = runtimeWindow.ROUGE_ITEM_CATALOG;
-    const isEquipment = entry.kind === "equipment";
+    const isEquipment = entry.kind === ENTRY_KIND.EQUIPMENT;
     const name = isEquipment
       ? (getItemDefinition(content, entry.equipment?.itemId || "")?.name || "Unknown")
       : (getRuneDefinition(content, entry.runeId)?.name || "Unknown Rune");
@@ -197,16 +198,24 @@
     `;
   }
 
-  function buildCharacterMarkup(appState: AppState, services: UiRenderServices): string {
-    const { escapeHtml } = services.renderUtils;
+  function deriveInventoryModel(appState: AppState, services: UiRenderServices) {
     const run = appState.run;
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
     const bonuses = derivedParty.bonuses;
-    const getBonusValue = common.getBonusValue;
     const attrs = run.progression?.attributes || { strength: 0, dexterity: 0, vitality: 0, energy: 0 };
     const lifePct = derivedParty.hero.maxLife > 0 ? Math.round((derivedParty.hero.currentLife / derivedParty.hero.maxLife) * 100) : 0;
     const mercLifePct = derivedParty.mercenary.maxLife > 0 ? Math.round((derivedParty.mercenary.currentLife / derivedParty.mercenary.maxLife) * 100) : 0;
+
+    return { run, derivedParty, bonuses, attrs, lifePct, mercLifePct };
+  }
+
+  function buildCharacterMarkup(appState: AppState, services: UiRenderServices): string {
+    const { escapeHtml } = services.renderUtils;
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const getBonusValue = common.getBonusValue;
+    const vm = deriveInventoryModel(appState, services);
+    const { run, derivedParty, bonuses, attrs, lifePct } = vm;
 
     return `
       <div class="d2char">
