@@ -236,17 +236,82 @@ function createMemoryStorage(): StorageLike {
 
 class FakeElement {
   dataset: Record<string, string>;
+  className: string;
+  textContent: string;
+  children: FakeElement[];
+  style: Record<string, string>;
+  private _classList: Set<string>;
 
   constructor(dataset: Record<string, string> = {}) {
     this.dataset = dataset;
+    this.className = "";
+    this.textContent = "";
+    this.children = [];
+    this.style = {};
+    this._classList = new Set();
+  }
+
+  get classList() {
+    const self = this;
+    return {
+      add(cls: string) { self._classList.add(cls); },
+      remove(cls: string) { self._classList.delete(cls); },
+      toggle(cls: string, force?: boolean) {
+        if (force === undefined) {
+          if (self._classList.has(cls)) { self._classList.delete(cls); } else { self._classList.add(cls); }
+        } else if (force) {
+          self._classList.add(cls);
+        } else {
+          self._classList.delete(cls);
+        }
+      },
+      contains(cls: string) { return self._classList.has(cls); },
+    };
   }
 
   closest(selector: string): FakeElement | null {
     return selector === "[data-action]" ? this : null;
   }
+
+  querySelector(_selector: string): FakeElement | null {
+    return null;
+  }
+
+  querySelectorAll(_selector: string): FakeElement[] {
+    return [];
+  }
+
+  appendChild(child: FakeElement): FakeElement {
+    this.children.push(child);
+    return child;
+  }
+
+  remove(): void {
+    // no-op in test
+  }
+
+  getBoundingClientRect() {
+    return { left: 0, top: 0, width: 100, height: 50, right: 100, bottom: 50 };
+  }
+
+  animate(_keyframes: unknown[], _options: unknown) {
+    return { onfinish: null as (() => void) | null };
+  }
+}
+
+function createFakeDocument(): Record<string, unknown> {
+  const body = new FakeElement();
+  return {
+    body,
+    createElement(_tag: string) { return new FakeElement(); },
+    querySelector(_selector: string): FakeElement | null { return null; },
+    querySelectorAll(_selector: string): FakeElement[] { return []; },
+    getElementById(_id: string): FakeElement | null { return null; },
+  };
 }
 
 function createBrowserSandbox(storage?: StorageLike): vm.Context {
+  const fakeDocument = createFakeDocument();
   const sandbox = {
     window: {
       localStorage: storage,
@@ -258,6 +323,7 @@ function createBrowserSandbox(storage?: StorageLike): vm.Context {
     Element: FakeElement,
     setTimeout,
     clearTimeout,
+    document: fakeDocument,
   };
   return vm.createContext(sandbox);
 }
