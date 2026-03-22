@@ -20,6 +20,7 @@
   const staging = runtimeWindow.__ROUGE_OPP_STAGING || {};
   const missing = EXPECTED_OPP_KEYS.filter((key) => !staging[key]);
   if (missing.length > 0) {
+    // eslint-disable-next-line no-console
     console.warn(`OPP_STAGING incomplete — missing: ${missing.join(", ")}. Check script load order in index.html.`);
   }
 

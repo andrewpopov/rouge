@@ -129,7 +129,7 @@
     };
   }
 
-  function checkAndUnlockCharms(profile: ProfileState, run: RunState | null): string[] {
+  function checkAndUnlockCharms(profile: ProfileState, _run: RunState | null): string[] {
     if (!profile?.meta?.charms || !profile?.meta?.progression) {
       return [];
     }

@@ -101,7 +101,9 @@
     const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
     const { describeBonusSet } = runtimeWindow.ROUGE_RUN_STATE;
     const bonusLines = describeBonusSet(charm.bonuses);
-    const sizeLabel = charm.size === "grand" ? "Grand" : charm.size === "large" ? "Large" : "Small";
+    let sizeLabel = "Small";
+    if (charm.size === "grand") { sizeLabel = "Grand"; }
+    else if (charm.size === "large") { sizeLabel = "Large"; }
     const classInactive = charm.classId && charm.classId !== classId;
     const sizeClass = `d2inv-charm--${charm.size}`;
     const stateClass = equipped ? "d2inv-charm--equipped" : "";

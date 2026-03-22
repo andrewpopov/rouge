@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 interface SavedRunSummary {
   savedAt: string;
   phase: AppPhase;
@@ -530,8 +531,8 @@ interface Window {
   __ROUGE_APP_ENGINE_RUN: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_APP_ENGINE_PROFILE: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_DATA_ACCESSORIES: Record<string, ItemTemplateDefinition>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_DATA_RUNES: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ITEM_LOADOUT_OPS: Record<string, any>;

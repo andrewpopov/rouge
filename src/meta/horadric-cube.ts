@@ -173,11 +173,12 @@
     const outputPool = getCharmsOfSize(outputSize);
     const alreadyUnlocked = new Set(profile.meta.charms.unlockedCharmIds);
     const candidates = outputPool.filter((charm) => !alreadyUnlocked.has(charm.id));
-    const chosen = candidates.length > 0
-      ? candidates[Math.floor(Math.random() * candidates.length)]
-      : outputPool.length > 0
-        ? outputPool[Math.floor(Math.random() * outputPool.length)]
-        : null;
+    let chosen: CharmDefinition | null = null;
+    if (candidates.length > 0) {
+      chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    } else if (outputPool.length > 0) {
+      chosen = outputPool[Math.floor(Math.random() * outputPool.length)];
+    }
 
     if (!chosen) {
       return { ok: false, message: `No ${outputSize} charms available in the pool.` };
@@ -219,11 +220,12 @@
     const outputPool = getCharmsOfSize(rerollSize);
     const alreadyUnlocked = new Set(profile.meta.charms.unlockedCharmIds);
     const candidates = outputPool.filter((charm) => !alreadyUnlocked.has(charm.id) && charm.id !== rerollCharmId);
-    const chosen = candidates.length > 0
-      ? candidates[Math.floor(Math.random() * candidates.length)]
-      : outputPool.length > 0
-        ? outputPool[Math.floor(Math.random() * outputPool.length)]
-        : null;
+    let chosen: CharmDefinition | null = null;
+    if (candidates.length > 0) {
+      chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    } else if (outputPool.length > 0) {
+      chosen = outputPool[Math.floor(Math.random() * outputPool.length)];
+    }
 
     if (!chosen) {
       return { ok: false, message: `No ${rerollSize} charms available for reroll.` };

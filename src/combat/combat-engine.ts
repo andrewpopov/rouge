@@ -2,9 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const {
-    healEntity,
     applyGuard,
-    dealDamage,
     checkOutcome,
     getLivingEnemies,
     getFirstLivingEnemyId,

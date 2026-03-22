@@ -194,14 +194,14 @@
     const actions: TownAction[] = [];
     const has = (vc: VendorClass) => classes.includes(vc);
 
-    if (has(VC.HEALER))        actions.push(...(actionsByCategory.healer || []));
-    if (has(VC.QUARTERMASTER)) actions.push(...(actionsByCategory.quartermaster || []));
-    if (has(VC.BLACKSMITH))    actions.push(...(actionsByCategory.blacksmith || []));
-    if (has(VC.VENDOR))        actions.push(...(actionsByCategory.vendor || []));
-    if (has(VC.MERCENARY))     actions.push(...(actionsByCategory.mercenary || []));
-    if (has(VC.SAGE))          actions.push(...(actionsByCategory.sage || []));
-    if (has(VC.STASH))         actions.push(...(actionsByCategory.stash || []));
-    if (has(VC.GAMBLER))       actions.push(...(actionsByCategory.gambler || []));
+    if (has(VC.HEALER))        { actions.push(...(actionsByCategory.healer || [])); }
+    if (has(VC.QUARTERMASTER)) { actions.push(...(actionsByCategory.quartermaster || [])); }
+    if (has(VC.BLACKSMITH))    { actions.push(...(actionsByCategory.blacksmith || [])); }
+    if (has(VC.VENDOR))        { actions.push(...(actionsByCategory.vendor || [])); }
+    if (has(VC.MERCENARY))     { actions.push(...(actionsByCategory.mercenary || [])); }
+    if (has(VC.SAGE))          { actions.push(...(actionsByCategory.sage || [])); }
+    if (has(VC.STASH))         { actions.push(...(actionsByCategory.stash || [])); }
+    if (has(VC.GAMBLER))       { actions.push(...(actionsByCategory.gambler || [])); }
     // TRAVEL: flavor NPC with no gameplay actions
 
     const emptyLabels: Partial<Record<VendorClass, string>> = {

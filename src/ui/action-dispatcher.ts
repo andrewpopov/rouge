@@ -18,6 +18,7 @@
   }: ActionDispatcherConfig): boolean {
     const actionEl = getActionTarget(target);
     if (!actionEl || !appState) {
+      // eslint-disable-next-line no-console
       if (!actionEl && typeof console !== "undefined") { console.debug("[action-dispatcher] click had no [data-action] target"); }
       return false;
     }

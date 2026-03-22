@@ -46,6 +46,7 @@
 
   function applyBonus(combat: CombatState, bonusId: string): void {
     if (!combat || !combat.hero) {
+      // eslint-disable-next-line no-console
       if (typeof console !== "undefined") { console.warn("[approach-bonus] applyBonus called with invalid combat state"); }
       return;
     }
