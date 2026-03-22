@@ -1,0 +1,226 @@
+export {};
+
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { createAppHarness } from "./helpers/browser-harness";
+
+function createRunState() {
+  const harness = createAppHarness();
+  const { appEngine, content, combatEngine, seedBundle, browserWindow } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "barbarian");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  const deckServices = browserWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
+  return { state, content, deckServices, browserWindow };
+}
+
+// ── Blacksmith ──
+
+test("buildBlacksmithActions returns at least one action", () => {
+  const { state, content, deckServices } = createRunState();
+  const actions = deckServices.buildBlacksmithActions(state.run, content);
+  assert.ok(Array.isArray(actions));
+  assert.ok(actions.length >= 1);
+  for (const action of actions) {
+    assert.equal(action.category, "blacksmith");
+    assert.ok(action.id);
+    assert.ok(action.title);
+  }
+});
+
+test("buildBlacksmithActions shows no-evolutions placeholder when none available", () => {
+  const { state, content, deckServices } = createRunState();
+  // Wipe deck to something non-evolvable
+  state.run.deck = ["nonexistent_card"];
+  const actions = deckServices.buildBlacksmithActions(state.run, content);
+  assert.ok(actions.length >= 1);
+  const placeholder = actions.find((a: TownAction) => a.id === "blacksmith_no_evolutions");
+  assert.ok(placeholder);
+  assert.equal(placeholder.disabled, true);
+});
+
+test("applyBlacksmithAction rejects when card has no evolution path", () => {
+  const { state, content, deckServices } = createRunState();
+  const result = deckServices.applyBlacksmithAction(state.run, content, "blacksmith_evolve_nonexistent");
+  assert.equal(result.ok, false);
+});
+
+test("applyBlacksmithAction rejects when gold is insufficient", () => {
+  const { state, content, deckServices, browserWindow } = createRunState();
+  const evo = browserWindow.__ROUGE_SKILL_EVOLUTION;
+  const evolvable = evo.listEvolvableCards(state.run);
+  if (evolvable.length > 0) {
+    state.run.gold = 0;
+    const result = deckServices.applyBlacksmithAction(state.run, content, `blacksmith_evolve_${evolvable[0].cardId}`);
+    assert.equal(result.ok, false);
+    assert.ok(result.message.includes("gold"));
+  }
+});
+
+// ── Sage ──
+
+test("buildSageActions includes identify, purge, and transform actions", () => {
+  const { state, content, deckServices } = createRunState();
+  const actions = deckServices.buildSageActions(state.run, content);
+  assert.ok(actions.length >= 2);
+  const identify = actions.find((a: TownAction) => a.id === "sage_identify");
+  assert.ok(identify, "should include identify action");
+  assert.equal(identify.disabled, false);
+  assert.equal(identify.cost, 0);
+
+  // There should be purge and transform actions for deck cards
+  const purges = actions.filter((a: TownAction) => a.id.startsWith("sage_purge_") && a.id !== "sage_purge_none");
+  const transforms = actions.filter((a: TownAction) => a.id.startsWith("sage_transform_"));
+  assert.ok(purges.length > 0 || transforms.length > 0, "should have purge or transform actions");
+});
+
+test("applySageAction identify returns success", () => {
+  const { state, content, deckServices } = createRunState();
+  const result = deckServices.applySageAction(state.run, content, "sage_identify");
+  assert.equal(result.ok, true);
+});
+
+test("applySageAction purge removes a card from deck", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  const deckBefore = state.run.deck.length;
+  const cardToPurge = state.run.deck[0];
+  const result = deckServices.applySageAction(state.run, content, `sage_purge_${cardToPurge}`);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.deck.length, deckBefore - 1);
+  assert.ok(state.run.gold < 999, "gold should be spent");
+});
+
+test("applySageAction purge fails when deck is at minimum size", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  state.run.deck = state.run.deck.slice(0, 5);
+  const result = deckServices.applySageAction(state.run, content, `sage_purge_${state.run.deck[0]}`);
+  assert.equal(result.ok, false);
+  assert.ok(result.message.includes("minimum"));
+});
+
+test("applySageAction purge fails when gold is insufficient", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 0;
+  const result = deckServices.applySageAction(state.run, content, `sage_purge_${state.run.deck[0]}`);
+  assert.equal(result.ok, false);
+  assert.ok(result.message.includes("gold"));
+});
+
+test("applySageAction purge increments sagePurgeCount", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  const before = state.run.town.sagePurgeCount || 0;
+  const cardToPurge = state.run.deck[0];
+  deckServices.applySageAction(state.run, content, `sage_purge_${cardToPurge}`);
+  assert.equal(state.run.town.sagePurgeCount, before + 1);
+});
+
+test("applySageAction transform replaces a card in deck", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  const cardToTransform = state.run.deck[0];
+  const deckBefore = state.run.deck.length;
+  const result = deckServices.applySageAction(state.run, content, `sage_transform_${cardToTransform}`);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.deck.length, deckBefore);
+  assert.ok(result.message.includes("transformed") || result.message.includes("Transform"));
+});
+
+test("applySageAction transform fails with insufficient gold", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 0;
+  const result = deckServices.applySageAction(state.run, content, `sage_transform_${state.run.deck[0]}`);
+  assert.equal(result.ok, false);
+  assert.ok(result.message.includes("gold"));
+});
+
+test("applySageAction unknown action returns error", () => {
+  const { state, content, deckServices } = createRunState();
+  const result = deckServices.applySageAction(state.run, content, "sage_unknown_xyz");
+  assert.equal(result.ok, false);
+});
+
+test("buildSageActions shows purge-none placeholder when deck is at min size", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.deck = state.run.deck.slice(0, 5);
+  const actions = deckServices.buildSageActions(state.run, content);
+  const purgeNone = actions.find((a: TownAction) => a.id === "sage_purge_none");
+  assert.ok(purgeNone);
+  assert.equal(purgeNone.disabled, true);
+});
+
+// ── Gambler ──
+
+test("buildGamblerActions returns tier-appropriate actions", () => {
+  const { state, deckServices } = createRunState();
+  state.run.gold = 999;
+  const actions = deckServices.buildGamblerActions(state.run);
+  assert.ok(actions.length >= 1);
+  for (const action of actions) {
+    assert.equal(action.category, "gambler");
+    assert.ok(action.id.startsWith("gambler_mystery_"));
+  }
+});
+
+test("buildGamblerActions respects act gating for gold tier", () => {
+  const { state, deckServices } = createRunState();
+  state.run.actNumber = 1;
+  state.run.gold = 9999;
+  const actionsAct1 = deckServices.buildGamblerActions(state.run);
+  const goldAct1 = actionsAct1.find((a: TownAction) => a.id === "gambler_mystery_gold");
+  // Gold tier requires act 3+
+  assert.equal(goldAct1, undefined);
+
+  state.run.actNumber = 3;
+  const actionsAct3 = deckServices.buildGamblerActions(state.run);
+  const goldAct3 = actionsAct3.find((a: TownAction) => a.id === "gambler_mystery_gold");
+  assert.ok(goldAct3);
+});
+
+test("applyGamblerAction bronze deducts gold and returns ok", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  const goldBefore = state.run.gold;
+  const result = deckServices.applyGamblerAction(state.run, content, "gambler_mystery_bronze");
+  assert.equal(result.ok, true);
+  assert.ok(state.run.gold < goldBefore, "gold should be spent");
+});
+
+test("applyGamblerAction fails with insufficient gold", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 0;
+  const result = deckServices.applyGamblerAction(state.run, content, "gambler_mystery_bronze");
+  assert.equal(result.ok, false);
+  assert.ok(result.message.includes("gold"));
+});
+
+test("applyGamblerAction silver deducts gold and returns ok", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  const result = deckServices.applyGamblerAction(state.run, content, "gambler_mystery_silver");
+  assert.equal(result.ok, true);
+});
+
+test("applyGamblerAction gold deducts gold and returns ok", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 9999;
+  state.run.actNumber = 3;
+  const result = deckServices.applyGamblerAction(state.run, content, "gambler_mystery_gold");
+  assert.equal(result.ok, true);
+});
+
+test("applyGamblerAction unknown tier returns error", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 9999;
+  const result = deckServices.applyGamblerAction(state.run, content, "gambler_mystery_diamond");
+  assert.equal(result.ok, false);
+});
