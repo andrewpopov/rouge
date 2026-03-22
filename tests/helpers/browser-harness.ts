@@ -256,6 +256,8 @@ function createBrowserSandbox(storage?: StorageLike): vm.Context {
     Math,
     Date,
     Element: FakeElement,
+    setTimeout,
+    clearTimeout,
   };
   return vm.createContext(sandbox);
 }
