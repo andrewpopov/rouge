@@ -37,6 +37,9 @@ screenshots/
 # Playwright MCP tooling
 .playwright-mcp/
 
+# Claude Code
+.claude/
+
 # Sprite backup dirs
 assets/curated/sprites/enemies/_originals/
 assets/curated/sprites/enemies/_replaced/
