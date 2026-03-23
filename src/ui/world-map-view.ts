@@ -322,8 +322,10 @@
     const action = canClick ? `data-action="select-zone" data-zone-id="${escapeHtml(zone.id)}"` : "";
     const ariaLabel = !canClick ? `aria-label="${escapeHtml(zone.title)} — ${zone.status === "cleared" ? "cleared" : "locked"}"` : "";
 
+    const kindClass = zone.kind !== "battle" ? `waypoint--${zone.kind}` : "";
+
     return `
-      <${tag} class="waypoint ${statusClass}" ${action} ${ariaLabel}
+      <${tag} class="waypoint ${statusClass} ${kindClass}" ${action} ${ariaLabel}
            style="left:${pos[0]}%;top:${pos[1]}%">
         <span class="waypoint__icon">${icon}</span>
         <span class="waypoint__label">${escapeHtml(zone.title)}</span>

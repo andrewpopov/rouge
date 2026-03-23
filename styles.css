@@ -933,10 +933,12 @@ button.entity-card:disabled {
 
 .welcome-saved-run {
   border-color: rgba(134, 185, 147, 0.28);
+  border-left: 3px solid rgba(134, 185, 147, 0.5);
   background:
     radial-gradient(circle at 10% 20%, rgba(134, 185, 147, 0.08), transparent 40%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
     var(--panel-base);
+  border-radius: 16px;
 }
 
 /* ── Hall Tab Navigation ── */
@@ -1040,6 +1042,19 @@ button.entity-card:disabled {
 
 .welcome-menu-item:hover {
   background: var(--panel-strong);
+}
+
+.welcome-menu-icon {
+  font-size: 1.1rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.welcome-menu-item:hover .welcome-menu-icon {
+  opacity: 0.8;
 }
 
 .welcome-menu-label {
@@ -1277,18 +1292,24 @@ button.entity-card:disabled {
   transform: scale(1.02);
 }
 
+.campfire-hero--locked:hover .campfire-hero__lock {
+  border-color: rgba(200, 140, 100, 0.4);
+  color: #e0b8a0;
+}
+
 .campfire-hero__lock {
   display: block;
-  font-size: 0.58rem;
-  color: var(--danger);
+  font-size: 0.62rem;
+  color: #d0a090;
   font-family: var(--font-body);
-  margin-top: 2px;
+  margin-top: 4px;
   text-transform: none;
-  letter-spacing: 0;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 2px 6px;
-  border-radius: 3px;
-  border: 1px solid rgba(207, 123, 111, 0.2);
+  letter-spacing: 0.02em;
+  background: rgba(10, 6, 4, 0.75);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(180, 120, 90, 0.25);
+  white-space: nowrap;
 }
 
 /* ── Selected hero detail panel ── */
@@ -2606,6 +2627,33 @@ button.waypoint:hover {
 }
 
 .waypoint--locked .waypoint__label { opacity: 0.4; }
+
+/* ── Zone kind accents ── */
+
+.waypoint--boss .waypoint__icon {
+  border-width: 3px;
+  width: 52px;
+  height: 52px;
+  font-size: 1.4rem;
+}
+.waypoint--boss:not(.waypoint--locked) .waypoint__icon {
+  border-color: rgba(200, 60, 60, 0.5);
+  box-shadow: 0 0 16px 4px rgba(180, 40, 30, 0.25);
+}
+.waypoint--boss .waypoint__label {
+  font-weight: 700;
+  color: var(--accent-bright);
+}
+
+.waypoint--miniboss:not(.waypoint--locked) .waypoint__icon {
+  border-color: rgba(180, 120, 60, 0.5);
+  box-shadow: 0 0 12px 2px rgba(180, 120, 60, 0.2);
+}
+
+.waypoint--quest:not(.waypoint--locked) .waypoint__icon,
+.waypoint--opportunity:not(.waypoint--locked) .waypoint__icon {
+  border-color: rgba(100, 170, 220, 0.4);
+}
 
 @keyframes waypoint-pulse {
   0%, 100% { box-shadow: 0 0 8px 1px rgba(212, 143, 70, 0.25); }
@@ -6648,6 +6696,49 @@ button.waypoint:hover {
 
 .town-inv-btn:hover {
   background: rgba(42, 30, 20, 0.9);
+}
+
+/* ── Auth ── */
+
+.auth-signin-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+  min-height: 40px;
+}
+
+.auth-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.auth-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+
+.auth-user-name {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.auth-signout-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.auth-signout-btn:hover {
+  color: var(--text);
 }
 
 /* ── Responsive ── */

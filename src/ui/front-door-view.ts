@@ -142,16 +142,19 @@
     const menuItems = runCount > 0
       ? `<nav class="welcome-menu">
           <button class="welcome-menu-item" data-action="expand-hall" data-section="vault">
+            <span class="welcome-menu-icon">\u{1F4DC}</span>
             <span class="welcome-menu-label">Recent Expeditions</span>
             <span class="welcome-menu-detail">${lastRun ? `${escapeHtml(lastRun.className)} \u00b7 Lv.${lastRun.level} \u00b7 ${escapeHtml(lastRun.outcome)}` : `${runCount} archived`}</span>
             <span class="welcome-menu-arrow">\u203a</span>
           </button>
           <button class="welcome-menu-item" data-action="expand-hall" data-section="overview">
+            <span class="welcome-menu-icon">\u2726</span>
             <span class="welcome-menu-label">Account</span>
             <span class="welcome-menu-detail">${runCount} run${runCount === 1 ? "" : "s"} \u00b7 ${unlockCount} unlock${unlockCount === 1 ? "" : "s"} \u00b7 ${stashCount} stash</span>
             <span class="welcome-menu-arrow">\u203a</span>
           </button>
           <button class="welcome-menu-item" data-action="expand-hall" data-section="settings">
+            <span class="welcome-menu-icon">\u2699</span>
             <span class="welcome-menu-label">Settings</span>
             <span class="welcome-menu-detail">Hints ${appState.profile?.meta?.settings?.showHints !== false ? "on" : "off"} \u00b7 Motion ${appState.profile?.meta?.settings?.reduceMotion ? "reduced" : "full"}</span>
             <span class="welcome-menu-arrow">\u203a</span>
@@ -177,16 +180,26 @@
         </div>`
       : "";
 
+    const auth = runtimeWindow.ROGUE_AUTH?.getAuthState?.() || { user: null, loading: false, ready: false };
+    const authRow = auth.user
+      ? `<div class="auth-user-row">
+          ${auth.user.avatarUrl ? `<img class="auth-avatar" src="${auth.user.avatarUrl}" alt="" referrerpolicy="no-referrer" />` : ""}
+          <span class="auth-user-name">${services.renderUtils.escapeHtml(auth.user.name || auth.user.email)}</span>
+          <button class="auth-signout-btn" data-action="auth-sign-out">Sign out</button>
+        </div>`
+      : '<div class="auth-signin-row" id="google-signin-container"></div>';
+
     root.innerHTML = `
       <section class="welcome-hero panel">
         <p class="eyebrow">Roguelite Deckbuilder</p>
-        <h1 class="welcome-title">Rouge</h1>
+        <h1 class="welcome-title">Rogue</h1>
         <hr class="welcome-divider" />
         <p class="welcome-tagline">
           ${runCount > 0
             ? `${runCount} expedition${runCount === 1 ? "" : "s"} archived \u2022 ${classCount} classes await your next draft`
             : `Choose a hero, sign a mercenary contract, and fight through five acts of Diablo\u2011inspired combat`}
         </p>
+        ${authRow}
       </section>
       <div class="shell-body">
         ${savedRunCard}
@@ -196,6 +209,13 @@
         ${!savedRunSummary ? recentRunStrip : ""}
       </div>
     `;
+
+    if (!auth.user && runtimeWindow.ROGUE_AUTH?.renderSignInButton) {
+      const container = root.querySelector("#google-signin-container") as HTMLElement | null;
+      if (container) {
+        runtimeWindow.ROGUE_AUTH.renderSignInButton(container);
+      }
+    }
   }
 
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
@@ -222,7 +242,7 @@
           <button class="neutral-btn" style="padding:6px 14px;font-size:0.85rem" data-action="collapse-hall">\u2190 Back</button>
           <div>
             <p class="eyebrow" style="margin:0">Account Hall</p>
-            <h1 style="font-size:1.6rem;margin:0">Rouge</h1>
+            <h1 style="font-size:1.6rem;margin:0">Rogue</h1>
           </div>
         </div>
       </section>

@@ -108,7 +108,7 @@
                  draggable="false"
                  ${isLocked ? `style="filter: grayscale(1) brightness(0.5)"` : ""} />
             <span class="campfire-hero__name">${escapeHtml(entry.name)}</span>
-            ${isLocked ? `<span class="campfire-hero__lock">${escapeHtml(hint)}</span>` : ""}
+            ${isLocked ? `<span class="campfire-hero__lock">\u{1F512} ${escapeHtml(hint)}</span>` : ""}
           </button>
         `;
       })
