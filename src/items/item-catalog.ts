@@ -18,7 +18,7 @@
       name: (seedEntry?.name as string) || template.sourceId,
       slot: template.slot as EquipmentSlot,
       family: (seedEntry?.family as string) || template.family || (SLOT_FAMILY_DEFAULTS[template.slot as EquipmentSlot] || "Gear"),
-      summary: (seedEntry?.summary as string) || "A salvaged piece of gear adapted for Rouge's persistent build growth.",
+      summary: (seedEntry?.summary as string) || "A salvaged piece of gear adapted for Rogue's persistent build growth.",
       actRequirement: template.actRequirement,
       progressionTier: template.progressionTier,
       maxSockets: clamp(toNumber((seedEntry?.stats as Record<string, unknown>)?.socketsMax, 2), 0, 3),
@@ -34,7 +34,7 @@
       allowedSlots: [...template.allowedSlots] as Array<EquipmentSlot>,
       rank: (seedEntry?.rank as number) || 1,
       progressionTier: template.progressionTier,
-      summary: (seedEntry?.summary as string) || "A socketable rune adapted for Rouge's runeword seam.",
+      summary: (seedEntry?.summary as string) || "A socketable rune adapted for Rogue's runeword seam.",
       bonuses: { ...template.bonuses },
     };
   }
@@ -53,7 +53,7 @@
       progressionTier,
       socketCount: template.requiredRunes.length,
       requiredRunes: [...template.requiredRunes],
-      summary: (seedEntry?.summary as string) || "A simplified runeword route for Rouge's progression layer.",
+      summary: (seedEntry?.summary as string) || "A simplified runeword route for Rogue's progression layer.",
       bonuses: { ...template.bonuses },
     };
   }

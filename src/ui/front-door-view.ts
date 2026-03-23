@@ -210,7 +210,7 @@
       </div>
     `;
 
-    if (!auth.user && runtimeWindow.ROGUE_AUTH?.renderSignInButton) {
+    if (!auth.user && runtimeWindow.ROGUE_AUTH?.renderSignInButton && root.querySelector) {
       const container = root.querySelector("#google-signin-container") as HTMLElement | null;
       if (container) {
         runtimeWindow.ROGUE_AUTH.renderSignInButton(container);

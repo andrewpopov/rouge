@@ -1,5 +1,5 @@
 {
-  "name": "rouge",
+  "name": "rogue",
   "version": "1.0.0",
   "description": "Diablo II-inspired roguelite deckbuilder combat foundation",
   "main": "index.js",
@@ -27,13 +27,16 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@types/node": "^24.6.1",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^24.6.1",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
     "eslint": "^10.0.2",
     "globals": "^17.4.0",
     "playwright": "^1.58.2",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.8.0"
   }
 }

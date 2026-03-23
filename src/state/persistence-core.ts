@@ -12,8 +12,10 @@
 
   const SCHEMA_VERSION = runtimeWindow.ROUGE_SAVE_MIGRATIONS?.CURRENT_SCHEMA_VERSION || 5;
   const PROFILE_SCHEMA_VERSION = runtimeWindow.ROUGE_PROFILE_MIGRATIONS?.CURRENT_PROFILE_SCHEMA_VERSION || 8;
-  const STORAGE_KEY = "rouge.run.snapshot";
-  const PROFILE_STORAGE_KEY = "rouge.profile";
+  const STORAGE_KEY = "rogue.run.snapshot";
+  const PROFILE_STORAGE_KEY = "rogue.profile";
+  const LEGACY_STORAGE_KEY = "rouge.run.snapshot";
+  const LEGACY_PROFILE_STORAGE_KEY = "rouge.profile";
 
   function getDefaultStorage() {
     return runtimeWindow.localStorage || null;
@@ -431,12 +433,25 @@
     }
 
     try {
-      const serializedProfile = storage.getItem(PROFILE_STORAGE_KEY);
+      let serializedProfile = storage.getItem(PROFILE_STORAGE_KEY);
+
+      if (!serializedProfile) {
+        const legacyProfile = storage.getItem(LEGACY_PROFILE_STORAGE_KEY);
+        if (legacyProfile) {
+          serializedProfile = legacyProfile;
+          if (storage.setItem) { storage.setItem(PROFILE_STORAGE_KEY, legacyProfile); }
+          if (storage.removeItem) { storage.removeItem(LEGACY_PROFILE_STORAGE_KEY); }
+        }
+      }
+
       if (serializedProfile) {
         return restoreProfile(serializedProfile, content)?.profile || null;
       }
 
-      const serializedLegacyRun = storage.getItem(STORAGE_KEY);
+      let serializedLegacyRun = storage.getItem(STORAGE_KEY);
+      if (!serializedLegacyRun) {
+        serializedLegacyRun = storage.getItem(LEGACY_STORAGE_KEY);
+      }
       if (!serializedLegacyRun) {
         return null;
       }
@@ -447,6 +462,10 @@
       }
 
       saveProfileToStorage(migratedEnvelope, storage, content);
+      if (storage.removeItem) {
+        storage.removeItem(LEGACY_STORAGE_KEY);
+        storage.removeItem(LEGACY_PROFILE_STORAGE_KEY);
+      }
       return migratedEnvelope.profile;
     } catch {
       return null;

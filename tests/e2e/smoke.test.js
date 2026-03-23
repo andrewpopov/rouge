@@ -294,7 +294,7 @@ test("built app smoke reaches encounter, reward, act transition, and run summary
   await runSummaryPage.page.locator('[data-action="claim-reward-choice"]').first().click();
   await expectText(runSummaryPage.page, "Expedition Summary", "run summary review");
   await (await expectPhase(runSummaryPage.page, '[data-action="return-front-door"]', "run summary exit")).click();
-  await expectText(runSummaryPage.page, "Rouge", "front door after run summary");
+  await expectText(runSummaryPage.page, "Rogue", "front door after run summary");
   assert.deepEqual(runSummaryPage.failures, []);
 });
 
@@ -341,7 +341,7 @@ test("built app falls back to a fresh front door when persisted storage is corru
 
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
 
-  await expectText(page, "Rouge", "front door after corrupted storage");
+  await expectText(page, "Rogue", "front door after corrupted storage");
   await expectPhase(page, '[data-action="start-character-select"]', "front door fallback controls");
   assert.equal(await page.locator('[data-action="continue-saved-run"]').count(), 0);
   assert.equal(await page.getByText("Boot Failure", { exact: false }).count(), 0);

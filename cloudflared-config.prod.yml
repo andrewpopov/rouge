@@ -2,6 +2,6 @@ tunnel: 356d8ee9-e696-4d20-8c09-0a3e69fe350d
 credentials-file: /home/admin/.cloudflared/356d8ee9-e696-4d20-8c09-0a3e69fe350d.json
 
 ingress:
-  - hostname: rouge.andrewvpopov.com
+  - hostname: rogue.andrewvpopov.com
     service: http://127.0.0.1:4173
   - service: http_status:404

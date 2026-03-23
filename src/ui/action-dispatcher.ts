@@ -25,6 +25,9 @@
 
     const action = actionEl.dataset.action || "";
     switch (action) {
+      case "auth-sign-out":
+        runtimeWindow.ROGUE_AUTH?.signOut().then(() => render());
+        return true;
       case "start-character-select":
         appEngine.startCharacterSelect(appState);
         render();

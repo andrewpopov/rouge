@@ -1,4 +1,4 @@
-# Rouge - Project Rules
+# Rogue - Project Rules
 
 ## Build & Test
 

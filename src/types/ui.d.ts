@@ -405,7 +405,31 @@ interface RougeConstants {
   };
 }
 
+interface RogueAuthUser {
+  googleId: string;
+  email: string;
+  name: string;
+  avatarUrl: string;
+}
+
+interface RogueAuthState {
+  user: RogueAuthUser | null;
+  loading: boolean;
+  ready: boolean;
+}
+
+interface RogueAuthApi {
+  initializeGoogleAuth(): void;
+  checkSession(): Promise<void>;
+  handleCredentialResponse(response: { credential: string }): Promise<void>;
+  renderSignInButton(container: HTMLElement): void;
+  signOut(): Promise<void>;
+  getAuthState(): RogueAuthState;
+  onAuthChange(fn: () => void): void;
+}
+
 interface Window {
+  ROGUE_AUTH: RogueAuthApi;
   ROUGE_UTILS: RougeUtilsApi;
   ROUGE_LIMITS: RougeLimits;
   ROUGE_CONSTANTS: RougeConstants;

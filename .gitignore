@@ -40,6 +40,9 @@ screenshots/
 # Claude Code
 .claude/
 
+# SQLite data
+data/users.db
+
 # Sprite backup dirs
 assets/curated/sprites/enemies/_originals/
 assets/curated/sprites/enemies/_replaced/

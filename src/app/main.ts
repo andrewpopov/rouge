@@ -89,6 +89,11 @@
     backdrop.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
   });
 
+  if (window.ROGUE_AUTH) {
+    window.ROGUE_AUTH.initializeGoogleAuth();
+    window.ROGUE_AUTH.onAuthChange(() => render());
+  }
+
   render();
 
   seedLoader

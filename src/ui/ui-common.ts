@@ -52,7 +52,7 @@
       renderUtils.buildShell(root, {
         eyebrow: "Boot Error",
         title: "The Account Hall Failed To Open",
-        copy: bootState.error || "Rouge could not finish loading the seed data bundle required to build the shell.",
+        copy: bootState.error || "Rogue could not finish loading the seed data bundle required to build the shell.",
         body: `
           <section class="panel flow-panel">
             <div class="panel-head">

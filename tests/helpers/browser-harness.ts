@@ -99,6 +99,7 @@ const PERSISTENCE_RUNTIME_FILES = [
 ];
 
 const APP_UI_RUNTIME_FILES = [
+  "src/ui/auth.js",
   "src/ui/ui-account-meta.js",
   "src/ui/ui-account-meta-drilldown.js",
   "src/ui/ui-common.js",

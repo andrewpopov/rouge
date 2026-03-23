@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "rouge-app",
+      name: "rogue-app",
       script: "scripts/tools/start-static.js",
       instances: 1,
       autorestart: true,
@@ -10,6 +10,8 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: "4173",
+        GOOGLE_CLIENT_ID: "",
+        ROGUE_SESSION_SECRET: "",
       },
       error_file: "logs/error.log",
       out_file: "logs/out.log",
@@ -17,7 +19,7 @@ module.exports = {
       time: true,
     },
     {
-      name: "rouge-tunnel",
+      name: "rogue-tunnel",
       script: "scripts/tools/start-tunnel.js",
       instances: 1,
       autorestart: true,
