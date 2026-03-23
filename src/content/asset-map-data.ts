@@ -309,6 +309,99 @@
     temple_guard: "zakarum_zealot", zakarumite: "zakarum_zealot",
   };
 
+  const ITEM_SPRITE_BASE = `${SPRITE_BASE}/items`;
+
+  const ITEM_SPRITES: Record<string, string> = {
+    // Swords
+    short_sword: `${ITEM_SPRITE_BASE}/short_sword.gif`,
+    scimitar: `${ITEM_SPRITE_BASE}/scimitar.gif`,
+    sabre: `${ITEM_SPRITE_BASE}/sabre.gif`,
+    long_sword: `${ITEM_SPRITE_BASE}/long_sword.gif`,
+    falchion: `${ITEM_SPRITE_BASE}/falchion.gif`,
+    crystal_sword: `${ITEM_SPRITE_BASE}/crystal_sword.gif`,
+    bastard_sword: `${ITEM_SPRITE_BASE}/bastard_sword.gif`,
+    broad_sword: `${ITEM_SPRITE_BASE}/broad_sword.gif`,
+    war_sword: `${ITEM_SPRITE_BASE}/war_sword.gif`,
+    rune_sword: `${ITEM_SPRITE_BASE}/rune_sword.gif`,
+    legend_sword: `${ITEM_SPRITE_BASE}/legend_sword.gif`,
+    zweihander: `${ITEM_SPRITE_BASE}/zweihander.gif`,
+    balrog_blade: `${ITEM_SPRITE_BASE}/balrog_blade.gif`,
+    colossus_blade: `${ITEM_SPRITE_BASE}/colossus_blade.gif`,
+    // Maces
+    mace: `${ITEM_SPRITE_BASE}/mace.gif`,
+    war_hammer: `${ITEM_SPRITE_BASE}/war_hammer.gif`,
+    // Polearms
+    partizan: `${ITEM_SPRITE_BASE}/partizan.gif`,
+    grim_scythe: `${ITEM_SPRITE_BASE}/grim_scythe.gif`,
+    // Wands
+    wand: `${ITEM_SPRITE_BASE}/wand.gif`,
+    yew_wand: `${ITEM_SPRITE_BASE}/yew_wand.gif`,
+    bone_wand: `${ITEM_SPRITE_BASE}/bone_wand.gif`,
+    lich_wand: `${ITEM_SPRITE_BASE}/lich_wand.gif`,
+    // Staves
+    battle_staff: `${ITEM_SPRITE_BASE}/battle_staff.gif`,
+    gnarled_staff: `${ITEM_SPRITE_BASE}/gnarled_staff.gif`,
+    war_staff: `${ITEM_SPRITE_BASE}/war_staff.gif`,
+    // Body Armor
+    quilted_armor: `${ITEM_SPRITE_BASE}/quilted_armor.gif`,
+    breast_plate: `${ITEM_SPRITE_BASE}/breast_plate.gif`,
+    leather_armor: `${ITEM_SPRITE_BASE}/leather_armor.gif`,
+    scale_mail: `${ITEM_SPRITE_BASE}/scale_mail.gif`,
+    chain_mail: `${ITEM_SPRITE_BASE}/chain_mail.gif`,
+    ring_mail: `${ITEM_SPRITE_BASE}/ring_mail.gif`,
+    splint_mail: `${ITEM_SPRITE_BASE}/splint_mail.gif`,
+    plate_mail: `${ITEM_SPRITE_BASE}/plate_mail.gif`,
+    field_plate: `${ITEM_SPRITE_BASE}/field_plate.gif`,
+    gothic_plate: `${ITEM_SPRITE_BASE}/gothic_plate.gif`,
+    light_plate: `${ITEM_SPRITE_BASE}/light_plate.gif`,
+    ghost_armor: `${ITEM_SPRITE_BASE}/ghost_armor.gif`,
+    mage_plate: `${ITEM_SPRITE_BASE}/mage_plate.gif`,
+    ancient_armor: `${ITEM_SPRITE_BASE}/ancient_armor.gif`,
+    ornate_plate: `${ITEM_SPRITE_BASE}/ornate_plate.gif`,
+    boneweave: `${ITEM_SPRITE_BASE}/boneweave.gif`,
+    chaos_armor: `${ITEM_SPRITE_BASE}/chaos_armor.gif`,
+    hellforge_plate: `${ITEM_SPRITE_BASE}/hellforge_plate.gif`,
+    archon_plate: `${ITEM_SPRITE_BASE}/archon_plate.gif`,
+    full_plate_mail: `${ITEM_SPRITE_BASE}/full_plate_mail.gif`,
+    // Helms
+    cap: `${ITEM_SPRITE_BASE}/cap.gif`,
+    skull_cap: `${ITEM_SPRITE_BASE}/skull_cap.gif`,
+    helm: `${ITEM_SPRITE_BASE}/helm.gif`,
+    great_helm: `${ITEM_SPRITE_BASE}/great_helm.gif`,
+    crown: `${ITEM_SPRITE_BASE}/crown.gif`,
+    // Shields
+    buckler: `${ITEM_SPRITE_BASE}/buckler.gif`,
+    small_shield: `${ITEM_SPRITE_BASE}/small_shield.gif`,
+    large_shield: `${ITEM_SPRITE_BASE}/large_shield.gif`,
+    tower_shield: `${ITEM_SPRITE_BASE}/tower_shield.gif`,
+    monarch: `${ITEM_SPRITE_BASE}/monarch.gif`,
+    // Gloves
+    leather_gloves: `${ITEM_SPRITE_BASE}/leather_gloves.gif`,
+    heavy_gloves: `${ITEM_SPRITE_BASE}/heavy_gloves.gif`,
+    chain_gloves: `${ITEM_SPRITE_BASE}/chain_gloves.gif`,
+    gauntlets: `${ITEM_SPRITE_BASE}/gauntlets.gif`,
+    // Boots
+    boots: `${ITEM_SPRITE_BASE}/boots.gif`,
+    heavy_boots: `${ITEM_SPRITE_BASE}/heavy_boots.gif`,
+    chain_boots: `${ITEM_SPRITE_BASE}/chain_boots.gif`,
+    war_boots: `${ITEM_SPRITE_BASE}/war_boots.gif`,
+    // Belts
+    sash: `${ITEM_SPRITE_BASE}/sash.gif`,
+    light_belt: `${ITEM_SPRITE_BASE}/light_belt.gif`,
+    heavy_belt: `${ITEM_SPRITE_BASE}/heavy_belt.gif`,
+    war_belt: `${ITEM_SPRITE_BASE}/war_belt.gif`,
+    // Rings
+    ring: `${ITEM_SPRITE_BASE}/ring.gif`,
+    coral_ring: `${ITEM_SPRITE_BASE}/coral_ring.gif`,
+    jade_ring: `${ITEM_SPRITE_BASE}/jade_ring.gif`,
+    diamond_ring: `${ITEM_SPRITE_BASE}/diamond_ring.gif`,
+    // Amulets
+    amulet: `${ITEM_SPRITE_BASE}/amulet.gif`,
+    jade_amulet: `${ITEM_SPRITE_BASE}/jade_amulet.gif`,
+    prismatic_amulet: `${ITEM_SPRITE_BASE}/prismatic_amulet.gif`,
+    highlords_amulet: `${ITEM_SPRITE_BASE}/highlords_amulet.gif`,
+  };
+
   runtimeWindow.__ROUGE_ASSET_MAP_DATA = {
     ICON_BASE,
     SPRITE_BASE,
@@ -322,5 +415,6 @@
     CLASS_PORTRAITS,
     KNOWN_ENEMY_SPRITES,
     VARIANT_SPRITE_MAP,
+    ITEM_SPRITES,
   };
 })();

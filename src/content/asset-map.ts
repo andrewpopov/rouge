@@ -12,6 +12,7 @@
     CLASS_PORTRAITS,
     KNOWN_ENEMY_SPRITES,
     VARIANT_SPRITE_MAP,
+    ITEM_SPRITES,
   } = runtimeWindow.__ROUGE_ASSET_MAP_DATA;
 
   const TEMPLATE_ID_RE = /^act_\d+_(.+)_(raider|ranged|support|brute|base|boss|alt|elite(?:_.*)?)$/;
@@ -95,6 +96,10 @@
     return INTENT_ICONS.unknown;
   }
 
+  function getItemSprite(sourceId: string): string | null {
+    return ITEM_SPRITES[sourceId] || null;
+  }
+
   runtimeWindow.ROUGE_ASSET_MAP = {
     getCardIcon,
     getEnemyIcon,
@@ -104,5 +109,6 @@
     getMercenarySprite,
     getUiIcon,
     getIntentIcon,
+    getItemSprite,
   };
 })();

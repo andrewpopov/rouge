@@ -8,6 +8,19 @@
   const TAB_CHARACTER = "character";
   const TAB_INVENTORY = "inventory";
 
+  const SLOT_GLYPHS: Record<string, string> = {
+    helm: "\u25B3",
+    amulet: "\u25C7",
+    weapon: "\u2694",
+    armor: "\u25A2",
+    shield: "\u25D5",
+    ring1: "\u25CB",
+    ring2: "\u25CB",
+    belt: "\u2261",
+    gloves: "\u2726",
+    boots: "\u25BD",
+  };
+
   function buildEquipmentTooltip(equipment: RunEquipmentState | null, content: GameContent, escapeHtml: (s: string) => string): string {
     if (!equipment) { return ""; }
     const item = runtimeWindow.ROUGE_ITEM_CATALOG.getItemDefinition(content, equipment.itemId);
@@ -24,6 +37,7 @@
     let rarityLabel = "";
     if (equipment.rarity === RARITY.MAGIC) { rarityClass = "d2inv-tip--magic"; rarityLabel = "Magic"; }
     else if (equipment.rarity === RARITY.UNIQUE) { rarityClass = "d2inv-tip--unique"; rarityLabel = "Unique"; }
+    else if (equipment.rarity === RARITY.SET) { rarityClass = "d2inv-tip--set"; rarityLabel = "Set"; }
     const socketLine = `Sockets: ${equipment.insertedRunes.length}/${equipment.socketsUnlocked}/${item.maxSockets}`;
     return `
       <div class="d2inv-tip ${rarityClass}">
@@ -38,6 +52,8 @@
   function getRarityColorClass(rarity: string | undefined): string {
     if (rarity === RARITY.UNIQUE) { return "d2inv--unique"; }
     if (rarity === RARITY.MAGIC) { return "d2inv--magic"; }
+    if (rarity === RARITY.SET) { return "d2inv--set"; }
+    if (rarity === RARITY.WHITE) { return "d2inv--normal"; }
     return "";
   }
 
@@ -51,16 +67,20 @@
     const itemDef = equipment ? runtimeWindow.ROUGE_ITEM_CATALOG.getItemDefinition(content, equipment.itemId) : null;
     const colorClass = equipment ? getRarityColorClass(equipment.rarity) : "";
     const filledClass = equipment ? "d2inv-slot--filled" : "";
+    const sprite = itemDef ? runtimeWindow.ROUGE_ASSET_MAP.getItemSprite(itemDef.sourceId) : null;
 
     return `
       <div class="d2inv-slot d2inv-slot--${slotKey} ${filledClass} ${colorClass}">
         ${equipment ? `
           <div class="d2inv-slot__item ${colorClass}">
-            <span class="d2inv-slot__item-name">${escapeHtml(itemDef?.name || "?")}</span>
+            ${sprite
+              ? `<img class="d2inv-slot__sprite" src="${escapeHtml(sprite)}" alt="${escapeHtml(itemDef?.name || "")}">`
+              : `<span class="d2inv-slot__item-name">${escapeHtml(itemDef?.name || "?")}</span>`}
           </div>
           <button class="d2inv-slot__remove" data-action="use-town-action"
                   data-town-action-id="inventory_unequip_${slotKey}" title="Unequip">\u00d7</button>
         ` : `
+          <span class="d2inv-slot__glyph">${SLOT_GLYPHS[slotKey] || ""}</span>
           <span class="d2inv-slot__empty-label">${escapeHtml(label)}</span>
         `}
         ${buildEquipmentTooltip(equipment, content, escapeHtml)}
@@ -75,14 +95,19 @@
   ): string {
     const { getItemDefinition, getRuneDefinition } = runtimeWindow.ROUGE_ITEM_CATALOG;
     const isEquipment = entry.kind === ENTRY_KIND.EQUIPMENT;
+    const itemDef = isEquipment ? getItemDefinition(content, entry.equipment?.itemId || "") : null;
     const name = isEquipment
-      ? (getItemDefinition(content, entry.equipment?.itemId || "")?.name || "Unknown")
+      ? (itemDef?.name || "Unknown")
       : (getRuneDefinition(content, entry.runeId)?.name || "Unknown Rune");
     const colorClass = isEquipment ? getRarityColorClass(entry.equipment?.rarity) : "d2inv--rune";
+    const sprite = itemDef ? runtimeWindow.ROUGE_ASSET_MAP.getItemSprite(itemDef.sourceId) : null;
 
     return `
       <div class="d2inv-grid-cell ${colorClass}" title="${escapeHtml(name)}">
-        <span class="d2inv-grid-cell__name">${escapeHtml(name)}</span>
+        ${sprite
+          ? `<img class="d2inv-grid-cell__sprite" src="${escapeHtml(sprite)}" alt="${escapeHtml(name)}">`
+          : `<span class="d2inv-grid-cell__name">${escapeHtml(name)}</span>`}
+        <span class="d2inv-grid-cell__label">${escapeHtml(name)}</span>
         ${isEquipment ? `
           <button class="d2inv-grid-cell__use" data-action="use-town-action"
                   data-town-action-id="inventory_equip_${entry.entryId}">Equip</button>

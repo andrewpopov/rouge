@@ -4,7 +4,7 @@
   const { ITEM_TEMPLATES, RUNE_TEMPLATES, RUNEWORD_TEMPLATES, RUNE_REWARD_POOLS } = runtimeWindow.ROUGE_ITEM_DATA;
   const { clamp, toNumber, uniquePush } = runtimeWindow.ROUGE_UTILS;
 
-  const RARITY = { WHITE: "white", MAGIC: "yellow", UNIQUE: "brown" } as const;
+  const RARITY = { WHITE: "white", MAGIC: "yellow", UNIQUE: "brown", SET: "green" } as const;
 
   const SLOT_FAMILY_DEFAULTS: Record<EquipmentSlot, string> = {
     weapon: "Weapons", armor: "Body Armor", helm: "Helms", shield: "Shields",

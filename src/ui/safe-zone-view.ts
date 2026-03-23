@@ -148,15 +148,98 @@
     `;
   }
 
+  function buildVendorItemCard(a: TownAction, escapeHtml: (s: string) => string): string {
+    const canAfford = !a.disabled;
+    return `
+      <button class="merchant-item ${a.disabled ? "merchant-item--disabled" : ""}"
+              data-action="use-town-action" data-town-action-id="${escapeHtml(a.id)}">
+        <div class="merchant-item__name">${escapeHtml(a.title)}</div>
+        <div class="merchant-item__footer">
+          <span class="merchant-item__price ${canAfford ? "" : "merchant-item__price--cant-afford"}">
+            <span class="merchant-card__coin">\u{1F4B0}</span> ${a.cost}
+          </span>
+          <span class="merchant-item__btn">${escapeHtml(a.actionLabel)}</span>
+        </div>
+      </button>
+    `;
+  }
+
+  function buildVendorSection(title: string, actions: TownAction[], escapeHtml: (s: string) => string): string {
+    return `
+      <div class="merchant-section">
+        <div class="merchant-section__title">${title}</div>
+        <div class="merchant-section__grid">
+          ${actions.map((a) => buildVendorItemCard(a, escapeHtml)).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function buildVendorStockLayout(actions: TownAction[], escapeHtml: (s: string) => string): string {
+    const refreshAction = actions.find((a) => a.id === "vendor_refresh_stock");
+    const buyActions = actions.filter((a) => a.id.startsWith("vendor_buy"));
+    const consignActions = actions.filter((a) => a.id.startsWith("vendor_consign"));
+    const otherActions = actions.filter((a) =>
+      a.id !== "vendor_refresh_stock" && !a.id.startsWith("vendor_buy") && !a.id.startsWith("vendor_consign")
+    );
+
+    const equipmentBuys = buyActions.filter((a) =>
+      a.previewLines.some((l) => l.startsWith("Equipment stock"))
+    );
+    const runeBuys = buyActions.filter((a) =>
+      a.previewLines.some((l) => l.startsWith("Rune stock"))
+    );
+
+    let html = "";
+
+    if (refreshAction) {
+      html += `
+        <div class="merchant-refresh">
+          <div class="merchant-refresh__info">
+            <span class="merchant-refresh__icon">\u21BB</span>
+            <span class="merchant-refresh__label">${escapeHtml(refreshAction.title)}</span>
+          </div>
+          <button class="merchant-refresh__btn ${refreshAction.disabled ? "merchant-refresh__btn--disabled" : ""}"
+                  data-action="use-town-action" data-town-action-id="${escapeHtml(refreshAction.id)}"
+                  ${refreshAction.disabled ? "disabled" : ""}>
+            ${refreshAction.cost > 0
+              ? `<span class="merchant-card__coin">\u{1F4B0}</span> ${refreshAction.cost}`
+              : escapeHtml(refreshAction.actionLabel)}
+          </button>
+        </div>
+      `;
+    }
+
+    if (equipmentBuys.length > 0) {
+      html += buildVendorSection("\u2694 Equipment", equipmentBuys, escapeHtml);
+    }
+    if (runeBuys.length > 0) {
+      html += buildVendorSection("\u2726 Runes", runeBuys, escapeHtml);
+    }
+    if (consignActions.length > 0) {
+      html += buildVendorSection("\u26B0 Stash Consignment", consignActions, escapeHtml);
+    }
+    if (otherActions.length > 0) {
+      html += `<div class="merchant-grid">${otherActions.map((a) => buildMerchantCard(a, escapeHtml)).join("")}</div>`;
+    }
+
+    return html;
+  }
+
   function buildNpcOverlay(
     npc: TownNpc,
     gold: number,
     escapeHtml: (s: string) => string
   ): string {
-    const actionCards =
-      npc.actions.length > 0
-        ? `<div class="merchant-grid">${npc.actions.map((a) => buildMerchantCard(a, escapeHtml)).join("")}</div>`
-        : `<p class="merchant-empty">${escapeHtml(npc.emptyLabel)}</p>`;
+    const isVendorStock = npc.actions.some((a) => a.id === "vendor_refresh_stock");
+    let actionCards: string;
+    if (npc.actions.length === 0) {
+      actionCards = `<p class="merchant-empty">${escapeHtml(npc.emptyLabel)}</p>`;
+    } else if (isVendorStock) {
+      actionCards = buildVendorStockLayout(npc.actions, escapeHtml);
+    } else {
+      actionCards = `<div class="merchant-grid">${npc.actions.map((a) => buildMerchantCard(a, escapeHtml)).join("")}</div>`;
+    }
 
     return `
       <div class="town-npc-overlay" data-action="close-town-npc">

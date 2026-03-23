@@ -252,7 +252,7 @@
           ${options.map((opt, i) => {
             const bonus = runtimeWindow.__ROUGE_APPROACH_BONUS.pickBonus(opt.approach, seed * 7 + i * 13);
             return `
-            <button class="explore-card" data-action="begin-encounter" data-bonus="${bonus.id}">
+            <button class="explore-card explore-card--${opt.approach}" data-action="begin-encounter" data-bonus="${bonus.id}">
               <div class="explore-card__icon">${opt.icon}</div>
               <div class="explore-card__title">${escapeHtml(opt.title)}</div>
               <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>

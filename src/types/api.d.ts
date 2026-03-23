@@ -165,7 +165,7 @@ interface ItemDataApi {
 }
 
 interface ItemCatalogApi {
-  RARITY: { readonly WHITE: "white"; readonly MAGIC: "yellow"; readonly UNIQUE: "brown" };
+  RARITY: { readonly WHITE: "white"; readonly MAGIC: "yellow"; readonly UNIQUE: "brown"; readonly SET: "green" };
   clamp(value: number, min: number, max: number): number;
   uniquePush(list: string[], value: string): void;
   toNumber(value: unknown, fallback?: number): number;
@@ -511,6 +511,7 @@ interface AssetMapApi {
   getMercenarySprite(role: string): string | null;
   getUiIcon(key: string): string | null;
   getIntentIcon(intentDescription: string): string;
+  getItemSprite(sourceId: string): string | null;
 }
 
 interface CharmDataApi {

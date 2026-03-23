@@ -77,11 +77,16 @@
     const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
     const enemyIcon = assets ? assets.getEnemyIcon(enemy.templateId || enemy.id) : "";
     const intentSvg = assets ? svgIcon(assets.getIntentIcon(intentDesc), "intent-icon", intentDesc) : "";
+    const lowerIntent = intentDesc.toLowerCase();
+    let intentTone = "";
+    if (lowerIntent.includes("dmg") || lowerIntent.includes("sunder")) { intentTone = "sprite__intent--damage"; }
+    else if (lowerIntent.includes("guard") || lowerIntent.includes("heal")) { intentTone = "sprite__intent--defend"; }
+    else if (lowerIntent.includes("summon") || lowerIntent.includes("resurrect") || lowerIntent.includes("amplify")) { intentTone = "sprite__intent--special"; }
     return `
       <button class="sprite sprite--enemy ${isSelected ? "sprite--targeted" : ""} ${isDead ? "sprite--dead" : ""}"
               data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}"
               ${isDead || hasOutcome ? "disabled" : ""}>
-        ${!isDead && !hasOutcome ? `<div class="sprite__intent"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span></div>` : ""}
+        ${!isDead && !hasOutcome ? `<div class="sprite__intent ${intentTone}"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span></div>` : ""}
         <div class="sprite__figure sprite__figure--enemy">${assets ? svgIcon(enemyIcon, "sprite__portrait sprite__portrait--enemy", enemy.name) : escapeHtml(enemy.name.charAt(0))}</div>
         <div class="sprite__bars">
           <div class="sprite__hp-bar">
@@ -188,7 +193,6 @@
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="combat-screen">
-          <div class="combat-bg-image" style="background-image:url('${runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || ""}')"></div>
 
         <div class="combat-hud">
           <div class="combat-hud__left">
@@ -209,6 +213,7 @@
         ${combat.phase === COMBAT_PHASE.PLAYER && !combat.outcome && combat.turn > 1 ? `<div class="turn-banner"><span class="turn-banner__text">Your Turn</span></div>` : ""}
 
         <div class="stage" data-env="${zoneEnv}">
+          <div class="combat-bg-image" style="background-image:url('${runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || ""}')"></div>
           <div class="stage__backdrop"></div>
           <div class="stage__particles"></div>
           <div class="stage__floor"></div>
