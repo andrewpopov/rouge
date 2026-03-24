@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  const GOOGLE_CLIENT_ID = "339988066498-fm3t7na3q58klm5r4hu9qhp5l2lbcikc.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID = "446638996728-tbolrc87b1rdj5q8iekcp3e0egqfoato.apps.googleusercontent.com";
 
   let authState: RogueAuthState = { user: null, loading: true, ready: false };
   const listeners: Array<() => void> = [];
