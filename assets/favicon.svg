@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Blade -->
+  <path d="M16 2 L18.5 14 L16 22 L13.5 14 Z" fill="#c8a86e" stroke="#8b6914" stroke-width="0.5"/>
+  <!-- Blade edge highlight -->
+  <path d="M16 2 L16 22 L13.5 14 Z" fill="#dbc291" opacity="0.4"/>
+  <!-- Cross-guard -->
+  <rect x="10" y="21" width="12" height="2.5" rx="1" fill="#8b6914" stroke="#5a4510" stroke-width="0.4"/>
+  <rect x="10.5" y="21.3" width="11" height="1" rx="0.5" fill="#c8a86e" opacity="0.5"/>
+  <!-- Grip -->
+  <rect x="14.5" y="23.5" width="3" height="4" rx="0.3" fill="#4a2c0a"/>
+  <line x1="14.8" y1="24.5" x2="17.2" y2="24.5" stroke="#6b3d12" stroke-width="0.5"/>
+  <line x1="14.8" y1="25.7" x2="17.2" y2="25.7" stroke="#6b3d12" stroke-width="0.5"/>
+  <line x1="14.8" y1="26.9" x2="17.2" y2="26.9" stroke="#6b3d12" stroke-width="0.5"/>
+  <!-- Pommel -->
+  <circle cx="16" cy="29" r="1.8" fill="#8b6914" stroke="#5a4510" stroke-width="0.4"/>
+  <circle cx="16" cy="29" r="0.8" fill="#c8a86e"/>
+</svg>
