@@ -2,10 +2,7 @@
 
 Last updated: March 9, 2026.
 
-Use this file as the short epic-level status map. For live implementation truth, defer to `docs/IMPLEMENTATION_PROGRESS.md`. For current agent pickup detail, defer to `docs/TEAM_WORKSTREAMS.md` and the `AGENT_*.md` files.
-
-Backlog rule:
-- A `ROUGE-*` ticket is part of the active execution plan only if it is referenced here and on the owning `AGENT_*.md` sheet. Older `TODO` tickets that are not referenced are backlog parking-lot items, not current assignments.
+Use this file as the short epic-level status map. For live implementation truth, defer to `docs/IMPLEMENTATION_PROGRESS.md`.
 
 | Epic | Status | Owner | Current note |
 |---|---|---|---|

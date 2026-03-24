@@ -1,3 +1,0 @@
-Sources:
-- potion_1_*: https://opengameart.org/node/89729
-- potion_2_*: https://opengameart.org/node/100558

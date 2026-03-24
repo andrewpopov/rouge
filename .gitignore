@@ -22,6 +22,10 @@ artifacts/quality/
 # Source asset dumps (keep curated runtime assets only)
 assets/raw/
 assets/source/
+assets/diablo2_downloads/
+
+# Processing temp directory
+.tmp/
 
 # Local archives
 *.zip

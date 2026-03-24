@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: March 9, 2026.
+Last updated: March 24, 2026.
 
 ## Purpose
 
@@ -30,6 +30,7 @@ The live browser build is a multi-screen app-loop prototype built on the combat 
 Implemented now:
 
 - boot-time seed loading from `data/seeds/d2/*.json`
+- boss-specific combat portrait resolution, Diablo-themed monster fallbacks, and a repacked monster portrait pass for clearer in-combat silhouettes
 - seed, runtime, world-node, and elite-affix validation with clearer failure messages through a split content-validator helper chain
 - front door, character select, safe zone, world map, encounter, reward, act transition, and run-end phases
 - front-door saved-snapshot review with explicit continue or abandon flow plus profile, stash, run-history, and onboarding panels
@@ -130,12 +131,6 @@ When docs conflict, use this order.
 - [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md)
 - [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md)
 - [docs/CODEBASE_RULES.md](/Users/andrew/proj/rouge/docs/CODEBASE_RULES.md)
-- [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
-- [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
-- [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
-- [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md)
-- [AGENT_5.md](/Users/andrew/proj/rouge/AGENT_5.md)
-- [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 
 These describe what is actually authored and playable now. `generated/` and `dist/` are runtime outputs, not editable source.
 
@@ -145,13 +140,6 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 
 - [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md)
 - [docs/ROADMAP_EPICS.md](/Users/andrew/proj/rouge/docs/ROADMAP_EPICS.md)
-- [docs/TEAM_WORKSTREAMS.md](/Users/andrew/proj/rouge/docs/TEAM_WORKSTREAMS.md)
-- [AGENT_1.md](/Users/andrew/proj/rouge/AGENT_1.md)
-- [AGENT_2.md](/Users/andrew/proj/rouge/AGENT_2.md)
-- [AGENT_3.md](/Users/andrew/proj/rouge/AGENT_3.md)
-- [AGENT_4.md](/Users/andrew/proj/rouge/AGENT_4.md)
-- [AGENT_5.md](/Users/andrew/proj/rouge/AGENT_5.md)
-- [PROJECT_MANAGER.md](/Users/andrew/proj/rouge/PROJECT_MANAGER.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
 - [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md)
@@ -159,19 +147,18 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/CLASS_CAPSTONES.md](/Users/andrew/proj/rouge/docs/CLASS_CAPSTONES.md)
 - [docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md](/Users/andrew/proj/rouge/docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md)
 - [docs/VISUAL_DESIGN_TRD.md](/Users/andrew/proj/rouge/docs/VISUAL_DESIGN_TRD.md)
-- [docs/DIABLO_INSPIRED_MIGRATION_PLAN.md](/Users/andrew/proj/rouge/docs/DIABLO_INSPIRED_MIGRATION_PLAN.md)
 - [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md)
 
 These capture intended Diablo II structure and next execution targets. They are product-direction truth, not automatic runtime truth.
 
-Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md) as the engineering bridge between the live repo and the target loop. Use the agent docs as the current product-manager-approved execution lanes.
+Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md) as the engineering bridge between the live repo and the target loop.
 
 ### 3. Operational support
 
-- [docs/ASSET_PACKS.md](/Users/andrew/proj/rouge/docs/ASSET_PACKS.md)
+- [docs/MONSTER-IMPLEMENTATION-GUIDE.md](/Users/andrew/proj/rouge/docs/MONSTER-IMPLEMENTATION-GUIDE.md)
 - [docs/ATTRIBUTION.md](/Users/andrew/proj/rouge/docs/ATTRIBUTION.md)
 
-These support sourcing and legal tracking.
+These support asset sourcing and legal tracking.
 
 ## Working Rule
 

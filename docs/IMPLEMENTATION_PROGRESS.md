@@ -244,5 +244,3 @@ When implementation changes:
 1. update this file first with the new status
 2. update `PROJECT_MASTER.md` if the top-level snapshot changed
 3. update `APPLICATION_ARCHITECTURE.md` if milestone status changed
-4. update `TEAM_WORKSTREAMS.md` if team pickup guidance changed
-5. update `AGENT_1.md`, `AGENT_2.md`, `AGENT_3.md`, `AGENT_4.md`, `AGENT_5.md`, or `PROJECT_MANAGER.md` if team execution rules changed
