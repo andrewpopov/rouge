@@ -171,8 +171,8 @@
       xp: 0,
       level: 1,
       belt: {
-        current: 2,
-        max: 2,
+        current: 3,
+        max: 3,
       },
       inventory: createDefaultInventory(),
       loadout: {

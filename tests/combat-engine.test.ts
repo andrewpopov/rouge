@@ -266,9 +266,9 @@ test("boss onslaught modifiers retune the boss opener without advancing the esco
   assert.ok(escort);
 
   const bossTemplate = content.enemyCatalog[boss.templateId];
-  assert.equal(boss.intentIndex, 1);
-  assert.equal(boss.currentIntent.kind, "attack_all");
-  assert.equal(boss.currentIntent.value, bossTemplate.intents[1].value + 3);
+  assert.equal(boss.intentIndex, 0);
+  assert.equal(boss.currentIntent.kind, "charge");
+  assert.equal(boss.currentIntent.value, bossTemplate.intents[0].value + 3);
   assert.equal(escort.intentIndex, 0);
   assert.equal(escort.guard, 0);
 });
@@ -301,10 +301,10 @@ test("boss salvo modifiers retune the boss and ranged escorts into a sharper ope
 
   const bossTemplate = content.enemyCatalog[boss.templateId];
   const rangedTemplate = content.enemyCatalog[ranged.templateId];
-  assert.equal(boss.intentIndex, 1);
-  assert.equal(boss.currentIntent.kind, "attack_all");
-  assert.equal(boss.currentIntent.value, bossTemplate.intents[1].value + 2);
-  const rangedAttackKinds = new Set(["attack", "attack_burn", "attack_burn_all", "attack_chill", "attack_poison", "drain_energy"]);
+  assert.equal(boss.intentIndex, 0);
+  assert.equal(boss.currentIntent.kind, "charge");
+  assert.equal(boss.currentIntent.value, bossTemplate.intents[0].value + 2);
+  const rangedAttackKinds = new Set(["attack", "attack_burn", "attack_burn_all", "attack_chill", "attack_poison", "attack_lightning", "attack_lightning_all", "attack_poison_all", "drain_energy"]);
   assert.ok(rangedAttackKinds.has(ranged.currentIntent.kind), "ranged should have an attack intent");
   assert.equal(ranged.currentIntent.value, rangedTemplate.intents[ranged.intentIndex].value + 2);
 });

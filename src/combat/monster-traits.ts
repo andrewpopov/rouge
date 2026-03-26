@@ -12,6 +12,18 @@
     return Array.isArray(enemy.traits) && enemy.traits.includes(trait);
   }
 
+  function heroIsImmuneTo(state: CombatState, damageType: DamageType) {
+    return Array.isArray(state.armorProfile?.immunities) && state.armorProfile.immunities.includes(damageType);
+  }
+
+  function dealHeroDamage(state: CombatState, amount: number, damageType: DamageType = "physical", bypassGuard = true) {
+    const combatTurns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    if (bypassGuard) {
+      return combatTurns?.dealDirectDamage?.(state, state.hero, amount, damageType) || 0;
+    }
+    return combatTurns?.dealDamage?.(state, state.hero, amount, damageType) || 0;
+  }
+
   // ── Elite modifier trait constants ──
 
   const TRAIT: Record<string, MonsterTraitKind> = {
@@ -95,14 +107,23 @@
   // ── Hero debuff helpers ──
 
   function applyHeroBurn(state: CombatState, stacks: number) {
+    if (heroIsImmuneTo(state, "fire")) {
+      return;
+    }
     state.hero.heroBurn = Math.max(0, state.hero.heroBurn + stacks);
   }
 
   function applyHeroPoison(state: CombatState, stacks: number) {
+    if (heroIsImmuneTo(state, "poison")) {
+      return;
+    }
     state.hero.heroPoison = Math.max(0, state.hero.heroPoison + stacks);
   }
 
   function applyHeroChill(state: CombatState, stacks: number) {
+    if (heroIsImmuneTo(state, "cold")) {
+      return;
+    }
     state.hero.chill = Math.max(0, state.hero.chill + stacks);
   }
 
@@ -127,9 +148,7 @@
 
     if (enemy.traits.includes("death_explosion")) {
       const explosionDamage = Math.max(1, Math.floor(enemy.maxLife * 0.3));
-      const before = state.hero.life;
-      state.hero.life = Math.max(0, state.hero.life - explosionDamage);
-      const dealt = before - state.hero.life;
+      const dealt = dealHeroDamage(state, explosionDamage, "physical", true);
       _appendLog(state, `${enemy.name} EXPLODES for ${dealt} damage! (bypasses Guard)`);
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
@@ -184,9 +203,7 @@
 
     if (enemy.traits.includes(TRAIT.FIRE_ENCHANTED)) {
       const fireDamage = Math.max(1, Math.floor(enemy.maxLife * 0.25));
-      const before = state.hero.life;
-      state.hero.life = Math.max(0, state.hero.life - fireDamage);
-      const dealt = before - state.hero.life;
+      const dealt = dealHeroDamage(state, fireDamage, "fire", true);
       _appendLog(state, `${enemy.name} erupts in flame for ${dealt} fire damage! (bypasses Guard)`);
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
@@ -264,8 +281,8 @@
 
     if (state.hero.heroBurn > 0) {
       const burnDmg = state.hero.heroBurn;
-      state.hero.life = Math.max(0, state.hero.life - burnDmg);
-      _appendLog(state, `The Wanderer takes ${burnDmg} Burn damage.`);
+      const dealt = dealHeroDamage(state, burnDmg, "fire", true);
+      _appendLog(state, `The Wanderer takes ${dealt} Burn damage.`);
       state.hero.heroBurn = Math.max(0, state.hero.heroBurn - 1);
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
@@ -276,8 +293,8 @@
 
     if (state.hero.heroPoison > 0) {
       const poisonDmg = state.hero.heroPoison;
-      state.hero.life = Math.max(0, state.hero.life - poisonDmg);
-      _appendLog(state, `The Wanderer takes ${poisonDmg} Poison damage.`);
+      const dealt = dealHeroDamage(state, poisonDmg, "poison", true);
+      _appendLog(state, `The Wanderer takes ${dealt} Poison damage.`);
       state.hero.heroPoison = Math.max(0, state.hero.heroPoison - 1);
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;

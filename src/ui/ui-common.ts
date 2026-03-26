@@ -22,6 +22,7 @@
 
   function getDerivedPartyState(run: RunState, content: GameContent, itemSystem: ItemSystemApi): DerivedPartyState {
     const bonuses = runtimeWindow.ROUGE_RUN_FACTORY?.buildCombatBonuses?.(run, content) || itemSystem?.buildCombatBonuses(run, content) || {};
+    const armorProfile = itemSystem?.buildCombatMitigationProfile?.(run, content) || null;
     const heroMaxLife = run.hero.maxLife + getBonusValue(bonuses.heroMaxLife);
     const heroMaxEnergy = run.hero.maxEnergy + getBonusValue(bonuses.heroMaxEnergy);
     const heroPotionHeal = run.hero.potionHeal + getBonusValue(bonuses.heroPotionHeal);
@@ -43,6 +44,7 @@
       loadoutLines: itemSystem?.getLoadoutSummary(run, content) || [],
       activeRunewords: itemSystem?.getActiveRunewords(run, content) || [],
       bonuses,
+      armorProfile,
     };
   }
 

@@ -95,10 +95,94 @@
       attackStep = 2;
     }
 
-    const life = base.life + actNumber * lifeStep;
-    const attack = base.attack + actNumber * attackStep;
-    const guard = (base.guard || 0) + (elite || boss ? actNumber : 0);
-    const heal = (base.heal || 0) + Math.max(0, actNumber - 1);
+    let lifeMultiplier = 1;
+    let lifeBonus = 0;
+    let attackBonus = 0;
+    let guardBonus = 0;
+    let healBonus = 0;
+
+    if (actNumber === 2) {
+      if (boss) {
+        lifeMultiplier = 1.15;
+        lifeBonus = 6;
+        attackBonus = 1;
+        guardBonus = 1;
+      } else if (elite) {
+        lifeMultiplier = 1.2;
+        lifeBonus = 6;
+        attackBonus = 1;
+        guardBonus = 1;
+      } else {
+        lifeMultiplier = 1.1;
+        lifeBonus = 3;
+        attackBonus = 1;
+      }
+    } else if (actNumber === 3) {
+      if (boss) {
+        lifeMultiplier = 1.3;
+        lifeBonus = 12;
+        attackBonus = 2;
+        guardBonus = 1;
+        healBonus = 1;
+      } else if (elite) {
+        lifeMultiplier = 1.55;
+        lifeBonus = 18;
+        attackBonus = 4;
+        guardBonus = 2;
+        healBonus = 1;
+      } else {
+        lifeMultiplier = 1.32;
+        lifeBonus = 10;
+        attackBonus = 3;
+        guardBonus = 1;
+        healBonus = 1;
+      }
+    } else if (actNumber === 4) {
+      if (boss) {
+        lifeMultiplier = 1.45;
+        lifeBonus = 20;
+        attackBonus = 3;
+        guardBonus = 2;
+        healBonus = 1;
+      } else if (elite) {
+        lifeMultiplier = 1.8;
+        lifeBonus = 28;
+        attackBonus = 5;
+        guardBonus = 3;
+        healBonus = 2;
+      } else {
+        lifeMultiplier = 1.5;
+        lifeBonus = 18;
+        attackBonus = 4;
+        guardBonus = 2;
+        healBonus = 1;
+      }
+    } else if (actNumber >= 5) {
+      if (boss) {
+        lifeMultiplier = 1.6;
+        lifeBonus = 28;
+        attackBonus = 4;
+        guardBonus = 3;
+        healBonus = 2;
+      } else if (elite) {
+        lifeMultiplier = 2.05;
+        lifeBonus = 38;
+        attackBonus = 6;
+        guardBonus = 4;
+        healBonus = 2;
+      } else {
+        lifeMultiplier = 1.7;
+        lifeBonus = 26;
+        attackBonus = 5;
+        guardBonus = 3;
+        healBonus = 2;
+      }
+    }
+
+    const life = Math.floor((base.life + actNumber * lifeStep + lifeBonus) * lifeMultiplier);
+    const attack = base.attack + actNumber * attackStep + attackBonus;
+    const guard = (base.guard || 0) + (elite || boss ? actNumber : 0) + guardBonus;
+    const heal = (base.heal || 0) + Math.max(0, actNumber - 1) + healBonus;
     return {
       life,
       attack,
@@ -246,7 +330,87 @@
     ];
   }
 
-  function buildBossIntentSet(actNumber: number, scale: EncounterRegistryEnemyScale, bossName: string): EnemyIntent[] {
+  function buildBossIntentSet(actNumber: number, scale: EncounterRegistryEnemyScale, bossName: string, bossId: string): EnemyIntent[] {
+    if (bossId === "andariel") {
+      return [
+        {
+          kind: "charge",
+          label: `${bossName} Venom Spit`,
+          value: scale.attack + 1,
+          target: "hero",
+          secondaryValue: Math.max(2, scale.guard),
+          damageType: "poison",
+        },
+        { kind: "attack_poison", label: `${bossName} Venom Spit`, value: scale.attack + 1, target: "hero", secondaryValue: 1 },
+        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(4, scale.attack - 1), target: "hero", secondaryValue: 1 },
+        { kind: "attack", label: `${bossName} Skewer`, value: scale.attack, target: "lowest_life" },
+      ];
+    }
+    if (bossId === "duriel") {
+      return [
+        {
+          kind: "charge",
+          label: `${bossName} Burrow Charge`,
+          value: scale.attack + 6,
+          target: "mercenary",
+          secondaryValue: Math.max(4, scale.guard + 2),
+        },
+        { kind: "sunder_attack", label: `${bossName} Burrow Charge`, value: scale.attack + 6, target: "mercenary" },
+        { kind: "attack", label: `${bossName} Crushing Pincher`, value: scale.attack + 3, target: "hero" },
+        {
+          kind: "attack_and_guard",
+          label: `${bossName} Shell Ram`,
+          value: scale.attack + 4,
+          target: "lowest_life",
+          secondaryValue: Math.max(4, scale.guard + 2),
+        },
+      ];
+    }
+    if (bossId === "mephisto") {
+      return [
+        {
+          kind: "charge",
+          label: `${bossName} Lightning Nova`,
+          value: scale.attack + 4,
+          target: "all_allies",
+          secondaryValue: Math.max(4, scale.guard + 1),
+          damageType: "lightning",
+        },
+        { kind: "attack_lightning_all", label: `${bossName} Lightning Nova`, value: scale.attack + 4 },
+        { kind: "heal_allies", label: `${bossName} Durance Pact`, value: Math.max(4, scale.heal + 1) },
+        { kind: "attack_lightning", label: `${bossName} Soul Bolt`, value: scale.attack + 2, target: "hero" },
+      ];
+    }
+    if (bossId === "diablo") {
+      return [
+        {
+          kind: "charge",
+          label: `${bossName} Apocalypse`,
+          value: scale.attack + 5,
+          target: "all_allies",
+          secondaryValue: Math.max(5, scale.guard + 2),
+          damageType: "fire",
+        },
+        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: scale.attack + 5, secondaryValue: 3 },
+        { kind: "attack_burn", label: `${bossName} Firestorm`, value: scale.attack + 2, target: "hero", secondaryValue: 2 },
+        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: scale.attack + 4, target: "hero" },
+      ];
+    }
+    if (bossId === "baal") {
+      return [
+        { kind: "teleport", label: `${bossName} Teleport Away`, value: Math.max(5, scale.guard + 3) },
+        { kind: "summon_minion", label: `${bossName} Worldstone Call`, value: Math.max(6, scale.attack - 1), secondaryValue: 2, cooldown: 3 },
+        {
+          kind: "charge",
+          label: `${bossName} Rift Burst`,
+          value: scale.attack + 5,
+          target: "all_allies",
+          secondaryValue: Math.max(4, scale.guard + 2),
+        },
+        { kind: "attack_all", label: `${bossName} Rift Burst`, value: scale.attack + 5 },
+        { kind: "heal_and_guard", label: `${bossName} Frozen Host`, value: Math.max(5, scale.heal + 1), secondaryValue: Math.max(6, scale.guard + 2) },
+      ];
+    }
     if (actNumber === 1) {
       return [
         { kind: "guard_allies", label: `${bossName} Brood Screen`, value: Math.max(4, scale.guard + 1) },
@@ -332,6 +496,25 @@
     return ELITE_AFFIX_PROFILES[profileId] || ELITE_AFFIX_PROFILES.warded;
   }
 
+  function getBossScaleAdjustments(bossId: string) {
+    if (bossId === "andariel") {
+      return { lifeMultiplier: 1.05, attackBonus: -1, guardBonus: 0, healBonus: 0 };
+    }
+    if (bossId === "duriel") {
+      return { lifeMultiplier: 1.45, attackBonus: 2, guardBonus: 3, healBonus: 0 };
+    }
+    if (bossId === "mephisto") {
+      return { lifeMultiplier: 1.6, attackBonus: 2, guardBonus: 3, healBonus: 1 };
+    }
+    if (bossId === "diablo") {
+      return { lifeMultiplier: 1.8, attackBonus: 3, guardBonus: 4, healBonus: 1 };
+    }
+    if (bossId === "baal") {
+      return { lifeMultiplier: 2.15, attackBonus: 4, guardBonus: 6, healBonus: 2 };
+    }
+    return { lifeMultiplier: 1.2, attackBonus: 1, guardBonus: 1, healBonus: 0 };
+  }
+
   function buildEnemyTemplate({
     actNumber,
     entry,
@@ -398,11 +581,45 @@
   function buildEliteTemplate({ actNumber, entry, role, profile, templateIdSuffix }: { actNumber: number; entry: EnemyPoolEntryRef; role: string; profile: EncounterRegistryEliteAffixProfile; templateIdSuffix: string }) {
     const baseScale = buildScale(actNumber, role, { elite: true });
     const modifier: MonsterTraitKind | undefined = ELITE_MODIFIER_MAP[profile.id];
+    const eliteBaselineLifeBonus = Math.max(4, actNumber * 2);
+    const eliteBaselineAttackBonus = Math.max(1, Math.floor((actNumber + 1) / 3));
+    const eliteBaselineGuardBonus = 1;
+    let elitePressureLifeMultiplier = 1;
+    let elitePressureLifeBonus = 0;
+    let elitePressureAttackBonus = 0;
+    let elitePressureGuardBonus = 0;
+    let elitePressureHealBonus = 0;
+
+    if (actNumber === 3) {
+      elitePressureLifeMultiplier = 1.15;
+      elitePressureLifeBonus = 8;
+      elitePressureAttackBonus = 2;
+      elitePressureGuardBonus = 1;
+    } else if (actNumber === 4) {
+      elitePressureLifeMultiplier = 1.25;
+      elitePressureLifeBonus = 14;
+      elitePressureAttackBonus = 3;
+      elitePressureGuardBonus = 2;
+      elitePressureHealBonus = 1;
+    } else if (actNumber >= 5) {
+      elitePressureLifeMultiplier = 1.4;
+      elitePressureLifeBonus = 20;
+      elitePressureAttackBonus = 4;
+      elitePressureGuardBonus = 2;
+      elitePressureHealBonus = 1;
+    }
+
+    const baseEliteLife =
+      baseScale.life +
+      profile.lifeBonus +
+      eliteBaselineLifeBonus +
+      elitePressureLifeBonus +
+      (modifier === TRAIT.STONE_SKIN ? Math.floor((baseScale.life + profile.lifeBonus + eliteBaselineLifeBonus) * 0.5) : 0);
     const eliteScale = {
-      life: baseScale.life + profile.lifeBonus + (modifier === TRAIT.STONE_SKIN ? Math.floor((baseScale.life + profile.lifeBonus) * 0.5) : 0),
-      attack: baseScale.attack + profile.attackBonus,
-      guard: baseScale.guard + profile.guardBonus,
-      heal: baseScale.heal,
+      life: Math.floor(baseEliteLife * elitePressureLifeMultiplier),
+      attack: baseScale.attack + profile.attackBonus + eliteBaselineAttackBonus + elitePressureAttackBonus,
+      guard: baseScale.guard + profile.guardBonus + eliteBaselineGuardBonus + elitePressureGuardBonus,
+      heal: baseScale.heal + (role === "support" ? 1 : 0) + elitePressureHealBonus,
     };
 
     const template = buildEnemyTemplate({
@@ -427,12 +644,20 @@
 
   function buildBossTemplate({ actNumber, actSeed, bossEntry }: { actNumber: number; actSeed: ActSeed; bossEntry: BossEntry }) {
     const scale = buildScale(actNumber, "boss", { boss: true });
+    const bossId = bossEntry?.id || actSeed.boss.id;
+    const adjustments = getBossScaleAdjustments(bossId);
+    const bossScale = {
+      life: Math.floor((scale.life + 12 + actNumber * 4) * adjustments.lifeMultiplier),
+      attack: scale.attack + 1 + adjustments.attackBonus,
+      guard: scale.guard + 1 + adjustments.guardBonus,
+      heal: scale.heal + 1 + adjustments.healBonus,
+    };
     const bossName = bossEntry?.name || actSeed.boss.name;
     return {
       templateId: `act_${actNumber}_${actSeed.boss.id}_boss`,
       name: bossName,
-      maxLife: scale.life,
-      intents: buildBossIntentSet(actNumber, scale, bossName),
+      maxLife: bossScale.life,
+      intents: buildBossIntentSet(actNumber, bossScale, bossName, bossId),
       role: "boss",
       variant: "boss",
     };

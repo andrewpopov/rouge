@@ -121,6 +121,20 @@
     return shuffled.slice(0, runtimeWindow.ROUGE_LIMITS.CARD_CHOICES);
   }
 
+  function getZoneKindLabel(zoneKind: string): string {
+    if (zoneKind === ZONE_KIND.BOSS) {return "Boss Gate";}
+    if (zoneKind === ZONE_KIND.MINIBOSS) {return "Hunt Pressure";}
+    if (zoneKind === ZONE_KIND.QUEST) {return "Quest Fork";}
+    if (zoneKind === ZONE_KIND.EVENT) {return "Aftermath";}
+    return "Battle Path";
+  }
+
+  function getApproachPrompt(zoneKind: string): string {
+    if (zoneKind === ZONE_KIND.BOSS) {return "Choose how the final assault begins.";}
+    if (zoneKind === ZONE_KIND.MINIBOSS) {return "Choose how you breach the den before the creature strikes first.";}
+    return "Choose how the first clash begins before the moor answers back.";
+  }
+
   function renderCardPickScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
@@ -213,6 +227,7 @@
     }
 
     const common = runtimeWindow.ROUGE_UI_COMMON;
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const { escapeHtml } = services.renderUtils;
     const run = appState.run;
     const combat = appState.combat;
@@ -223,42 +238,81 @@
     const encounterTotal = zone?.encounterTotal || 1;
     const seed = zoneName.length + encounterNum;
     const options = getExploreOptions(zoneKind, seed);
+    const zoneKindLabel = getZoneKindLabel(zoneKind);
+    const approachPrompt = getApproachPrompt(zoneKind);
+    const sceneText = zoneKind === ZONE_KIND.BOSS
+      ? "An oppressive darkness settles over the land. The final challenge awaits."
+      : getExploreSceneText(zoneKind, zoneName);
+    const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
+    const combatBgSrc = runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || "";
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="explore-screen">
-        <div class="explore-header">
-          <span class="explore-header__eyebrow">Encounter ${encounterNum} of ${encounterTotal}</span>
-          <h1 class="explore-header__zone">${escapeHtml(zoneName)}</h1>
-          <div class="explore-header__stats">
-            <span>${escapeHtml(run.className)} Lv.${run.level}</span>
-            <span>\u00b7</span>
-            <span>HP ${run.hero.currentLife}/${run.hero.maxLife}</span>
-            <span>\u00b7</span>
-            <span>${run.gold}g</span>
+        <div class="explore-stage">
+          <div class="explore-stage__bg" style="background-image:url('${escapeHtml(combatBgSrc)}')"></div>
+          <div class="explore-stage__shade"></div>
+          <div class="explore-stage__mist"></div>
+
+          <div class="explore-stage__inner">
+            <div class="explore-header">
+              <div class="explore-header__title-block">
+                <span class="explore-header__eyebrow">${escapeHtml(zoneKindLabel)} · Encounter ${encounterNum} of ${encounterTotal}</span>
+                <h1 class="explore-header__zone">${escapeHtml(zoneName)}</h1>
+                <p class="explore-header__copy">${escapeHtml(sceneText)}</p>
+              </div>
+
+              <div class="explore-header__stats">
+                <div class="explore-header__stat">
+                  <span class="explore-header__stat-label">Bloodline</span>
+                  <strong class="explore-header__stat-value">${escapeHtml(run.className)} Lv.${run.level}</strong>
+                </div>
+                <div class="explore-header__stat">
+                  <span class="explore-header__stat-label">Vitality</span>
+                  <strong class="explore-header__stat-value">HP ${run.hero.currentLife}/${run.hero.maxLife}</strong>
+                </div>
+                <div class="explore-header__stat">
+                  <span class="explore-header__stat-label">Treasury</span>
+                  <strong class="explore-header__stat-value">${run.gold}g</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="explore-stage__body">
+              ${heroPortraitSrc ? `
+              <div class="explore-stage__figure">
+                <div class="explore-stage__figure-glow"></div>
+                <img class="explore-stage__portrait" src="${escapeHtml(heroPortraitSrc)}" alt="${escapeHtml(run.className)}" />
+              </div>
+              ` : ""}
+
+              <div class="explore-stage__content">
+                <div class="explore-scene">
+                  <div class="explore-scene__tag">Approach Selection</div>
+                  <p class="explore-scene__prompt">${escapeHtml(approachPrompt)}</p>
+                </div>
+
+                <div class="explore-choices">
+                  ${options.map((opt, i) => {
+                    const bonus = runtimeWindow.__ROUGE_APPROACH_BONUS.pickBonus(opt.approach, seed * 7 + i * 13);
+                    return `
+                    <button class="explore-card explore-card--${opt.approach}" data-action="begin-encounter" data-bonus="${escapeHtml(bonus.id)}">
+                      <div class="explore-card__head">
+                        <span class="explore-card__icon">${opt.icon}</span>
+                        <span class="explore-card__approach">${escapeHtml(opt.approach)}</span>
+                      </div>
+                      <div class="explore-card__title">${escapeHtml(opt.title)}</div>
+                      <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>
+                      <div class="explore-card__footer">
+                        <span class="explore-card__bonus-label">Opening Edge</span>
+                        <strong class="explore-card__bonus">${escapeHtml(bonus.label)}</strong>
+                      </div>
+                    </button>`;
+                  }).join("")}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="explore-scene">
-          <div class="explore-scene__ambience"></div>
-          <p class="explore-scene__text">${escapeHtml(
-            zoneKind === ZONE_KIND.BOSS
-              ? "An oppressive darkness settles over the land. The final challenge awaits."
-              : getExploreSceneText(zoneKind, zoneName)
-          )}</p>
-        </div>
-
-        <div class="explore-choices">
-          ${options.map((opt, i) => {
-            const bonus = runtimeWindow.__ROUGE_APPROACH_BONUS.pickBonus(opt.approach, seed * 7 + i * 13);
-            return `
-            <button class="explore-card explore-card--${opt.approach}" data-action="begin-encounter" data-bonus="${bonus.id}">
-              <div class="explore-card__icon">${opt.icon}</div>
-              <div class="explore-card__title">${escapeHtml(opt.title)}</div>
-              <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>
-              <div class="explore-card__bonus">${escapeHtml(bonus.label)}</div>
-            </button>`;
-          }).join("")}
         </div>
       </div>
     `;

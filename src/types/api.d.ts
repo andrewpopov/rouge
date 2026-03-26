@@ -10,7 +10,10 @@ interface CombatEngineApi {
     starterDeck?: string[] | null;
     initialPotions?: number;
     weaponFamily?: string;
+    weaponName?: string;
     weaponDamageBonus?: number;
+    weaponProfile?: WeaponCombatProfile | null;
+    armorProfile?: ArmorMitigationProfile | null;
     classPreferredFamilies?: string[];
   }): CombatState;
   playCard(state: CombatState, content: GameContent, instanceId: string, targetId?: string): ActionResult;
@@ -165,7 +168,7 @@ interface ItemDataApi {
 }
 
 interface ItemCatalogApi {
-  RARITY: { readonly WHITE: "white"; readonly MAGIC: "yellow"; readonly UNIQUE: "brown"; readonly SET: "green" };
+  RARITY: { readonly WHITE: "white"; readonly MAGIC: "blue"; readonly RARE: "yellow"; readonly UNIQUE: "brown"; readonly SET: "green" };
   clamp(value: number, min: number, max: number): number;
   uniquePush(list: string[], value: string): void;
   toNumber(value: unknown, fallback?: number): number;
@@ -198,10 +201,21 @@ interface ItemCatalogApi {
     content: GameContent,
     preferredRunewordId?: string
   ): RuntimeRunewordDefinition | null;
+  normalizeRarity(rarity: unknown, rarityKind?: unknown): string;
+  getRarityKind(rarity: string | undefined): string;
+  getRarityLabel(rarity: string | undefined): string;
+  cloneWeaponProfile(profile: WeaponCombatProfile | null | undefined): WeaponCombatProfile | undefined;
+  cloneArmorProfile(profile: ArmorMitigationProfile | null | undefined): ArmorMitigationProfile | undefined;
+  getWeaponProfileForRarity(profile: WeaponCombatProfile | null | undefined, rarity: string | undefined): WeaponCombatProfile | undefined;
+  buildEquipmentWeaponProfile(equipment: RunEquipmentState | null | undefined, content: GameContent): WeaponCombatProfile | undefined;
+  getArmorProfileForRarity(profile: ArmorMitigationProfile | null | undefined, rarity: string | undefined): ArmorMitigationProfile | undefined;
+  buildEquipmentArmorProfile(equipment: RunEquipmentState | null | undefined, content: GameContent): ArmorMitigationProfile | undefined;
   getRuneRewardPool(slot: "weapon" | "armor"): string[];
   getWeaponFamily(itemId: string, content: GameContent): string;
   rollItemRarity(zoneKind: string, randomFn: RandomFn): string;
   generateRarityBonuses(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): ItemBonusSet;
+  rollWeaponAffixes(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): WeaponCombatProfile | undefined;
+  rollArmorAffixes(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): ArmorMitigationProfile | undefined;
 }
 
 interface ItemLoadoutApi {
@@ -231,7 +245,15 @@ interface ItemLoadoutApi {
     nextItemId: string,
     content: GameContent
   ): { socketsUnlocked: number; insertedRunes: string[] };
-  addEquipmentToInventory(run: RunState, itemId: string, content: GameContent, rarity?: string, rarityBonuses?: ItemBonusSet): InventoryEquipmentEntry | null;
+  addEquipmentToInventory(
+    run: RunState,
+    itemId: string,
+    content: GameContent,
+    rarity?: string,
+    rarityBonuses?: ItemBonusSet,
+    weaponAffixes?: WeaponCombatProfile,
+    armorAffixes?: ArmorMitigationProfile
+  ): InventoryEquipmentEntry | null;
   addRuneToInventory(run: RunState, runeId: string, content: GameContent): InventoryRuneEntry | null;
   findCarriedEntry(run: RunState, entryId: string): InventoryEntry | null;
   removeCarriedEntry(run: RunState, entryId: string): InventoryEntry | null;
@@ -245,6 +267,7 @@ interface ItemLoadoutApi {
   getLoadoutSummary(run: RunState, content: GameContent): string[];
   applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
   buildCombatBonuses(run: RunState, content: GameContent): ItemBonusSet;
+  buildCombatMitigationProfile(run: RunState, content: GameContent): ArmorMitigationProfile | undefined;
 }
 
 interface ItemTownApi {
@@ -278,10 +301,25 @@ interface ItemSystemApi {
     encounterNumber: number;
     profile?: ProfileState | null;
   }): RewardChoice | null;
+  buildZoneLootTable(config: {
+    content: GameContent;
+    run: RunState;
+    zone: ZoneState | null;
+    actNumber: number;
+    encounterNumber: number;
+    profile?: ProfileState | null;
+  }): Array<{
+    kind: "equipment" | "rune";
+    id: string;
+    weight: number;
+    dropRate: number;
+    rarity?: string;
+  }>;
   applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
   listTownActions(run: RunState, profile: ProfileState, content: GameContent): TownAction[];
   applyTownAction(run: RunState, profile: ProfileState, content: GameContent, actionId: string): ActionResult;
   buildCombatBonuses(run: RunState, content: GameContent): ItemBonusSet;
+  buildCombatMitigationProfile(run: RunState, content: GameContent): ArmorMitigationProfile | undefined;
   getActiveRunewords(run: RunState, content: GameContent): string[];
   getLoadoutSummary(run: RunState, content: GameContent): string[];
   getInventorySummary(run: RunState, profile: ProfileState, content: GameContent): string[];
@@ -405,6 +443,8 @@ interface RunStateHelpersApi {
   getTrainingRankCount(training: RunProgressionState["training"] | null | undefined): number;
   addBonusSet(total: ItemBonusSet, bonuses: ItemBonusSet | undefined, multiplier?: number): ItemBonusSet;
   describeBonusSet(bonuses: ItemBonusSet | null | undefined): string[];
+  describeWeaponProfile(profile: WeaponCombatProfile | null | undefined): string[];
+  describeArmorProfile(profile: ArmorMitigationProfile | null | undefined): string[];
 }
 
 interface RunRouteBuilderApi {
@@ -511,7 +551,8 @@ interface AssetMapApi {
   getMercenarySprite(role: string): string | null;
   getUiIcon(key: string): string | null;
   getIntentIcon(intentDescription: string): string;
-  getItemSprite(sourceId: string): string | null;
+  getItemSprite(sourceId: string, rarity?: string, slot?: string): string | null;
+  getRuneSprite(sourceId: string): string | null;
 }
 
 interface CharmDataApi {
@@ -612,6 +653,7 @@ interface AppState {
     exploring: boolean;
     explorationEvent: ExplorationEvent | null;
     scrollMapOpen: boolean;
+    routeIntelOpen: boolean;
   };
   profile: ProfileState;
   run: RunState | null;

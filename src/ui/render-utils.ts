@@ -103,6 +103,10 @@
                 return "Gold";
               case "equip_item":
                 return "Equip";
+              case "grant_item":
+                return "Loot";
+              case "grant_rune":
+                return "Loot";
               case "add_socket":
                 return "Socket";
               case "socket_rune":

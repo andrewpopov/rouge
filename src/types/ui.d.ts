@@ -73,6 +73,7 @@ interface DerivedPartyState {
   loadoutLines: string[];
   activeRunewords: string[];
   bonuses: ItemBonusSet;
+  armorProfile?: ArmorMitigationProfile | null;
 }
 
 interface SafeZoneSnapshot {
@@ -649,6 +650,13 @@ interface Window {
   __ROUGE_ACCOUNT_META_DRILLDOWN: AccountMetaDrilldownInternalApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_ASSET_MAP_DATA: Record<string, any>;
+  __ROUGE_UNIQUE_ART_MANIFEST: {
+    enemies: string[];
+    bosses: string[];
+    portraits: string[];
+    mercenaries: string[];
+    items?: string[];
+  };
   ROUGE_ASSET_MAP: AssetMapApi;
   __ROUGE_COMBAT_BG: { getCombatBackground(zoneTitle: string): string };
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;

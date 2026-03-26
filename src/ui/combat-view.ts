@@ -58,9 +58,12 @@
           ${unit.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${unit.guard}</div>` : ""}
           ${extraStatusHtml}
         </div>
-        <div class="sprite__label">${escapeHtml(unit.name)}</div>
-        <button class="sprite__potion" data-action="${potionAction}"
-          ${potionDisabled ? "disabled" : ""}>\u{1F9EA}</button>
+        <div class="sprite__meta-row"><span class="sprite__meta-spacer" aria-hidden="true"></span></div>
+        <div class="sprite__label-row"><div class="sprite__label">${escapeHtml(unit.name)}</div></div>
+        <div class="sprite__action-row">
+          <button class="sprite__potion" data-action="${potionAction}"
+            ${potionDisabled ? "disabled" : ""}>\u{1F9EA}</button>
+        </div>
       </div>
     `;
   }
@@ -82,6 +85,9 @@
     if (lowerIntent.includes("dmg") || lowerIntent.includes("sunder")) { intentTone = "sprite__intent--damage"; }
     else if (lowerIntent.includes("guard") || lowerIntent.includes("heal")) { intentTone = "sprite__intent--defend"; }
     else if (lowerIntent.includes("summon") || lowerIntent.includes("resurrect") || lowerIntent.includes("amplify")) { intentTone = "sprite__intent--special"; }
+    const traitsMarkup = !isDead && enemy.traits?.length
+      ? `<div class="sprite__traits">${renderTraitBadges(enemy.traits)}</div>`
+      : `<div class="sprite__traits sprite__traits--empty" aria-hidden="true"></div>`;
     return `
       <button class="sprite sprite--enemy ${isSelected ? "sprite--targeted" : ""} ${isDead ? "sprite--dead" : ""}"
               data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}"
@@ -101,8 +107,9 @@
           ${enemy.stun > 0 ? `<div class="sprite__status sprite__status--stun">\u26A1 ${enemy.stun}</div>` : ""}
           ${enemy.paralyze > 0 ? `<div class="sprite__status sprite__status--paralyze">\u{1F50C} ${enemy.paralyze}</div>` : ""}
         </div>
-        ${!isDead && enemy.traits?.length ? `<div class="sprite__traits">${renderTraitBadges(enemy.traits)}</div>` : ""}
-        <div class="sprite__label">${escapeHtml(enemy.name)}</div>
+        <div class="sprite__meta-row">${traitsMarkup}</div>
+        <div class="sprite__label-row"><div class="sprite__label">${escapeHtml(enemy.name)}</div></div>
+        <div class="sprite__action-row"><span class="sprite__action-spacer" aria-hidden="true"></span></div>
       </button>
     `;
   }
@@ -163,7 +170,8 @@
     const weaponRarity = weaponEquip?.rarity || RARITY.WHITE;
     let rarityColor = "#aaa";
     if (weaponRarity === RARITY.UNIQUE) { rarityColor = "#c59a46"; }
-    else if (weaponRarity === RARITY.MAGIC) { rarityColor = "#ddc63b"; }
+    else if (weaponRarity === RARITY.RARE) { rarityColor = "#ddc63b"; }
+    else if (weaponRarity === RARITY.MAGIC) { rarityColor = "#7db3ff"; }
     const canMelee = combat.phase === COMBAT_PHASE.PLAYER && !combat.outcome && !combat.meleeUsed && (combat.weaponDamageBonus || 0) > 0;
     const hasOutcome = Boolean(combat.outcome);
 
@@ -189,103 +197,163 @@
 
     const heroPortrait = assets ? svgIcon(assets.getClassSprite(run.classId) || assets.getClassPortrait(run.classId) || "", "sprite__portrait", run.className) : escapeHtml(run.className.charAt(0));
     const mercPortrait = assets ? svgIcon(assets.getMercenarySprite(combat.mercenary.id) || "", "sprite__portrait", combat.mercenary.role) : escapeHtml(combat.mercenary.role.charAt(0));
+    const selectedEnemyIntent = selectedEnemy ? services.combatEngine.describeIntent(selectedEnemy.currentIntent) : "";
+    const headerStatus = hasOutcome
+      ? combat.outcome === COMBAT_OUTCOME.VICTORY
+        ? "Field secured"
+        : "The line has fallen"
+      : selectedEnemy
+        ? `Marked target · ${selectedEnemy.name}`
+        : combat.phase === COMBAT_PHASE.PLAYER
+          ? "Choose your opening line"
+          : "Enemy pressure rising";
+    const briefTitle = hasOutcome
+      ? combat.outcome === COMBAT_OUTCOME.VICTORY ? "Field Secured" : "Line Broken"
+      : selectedEnemy
+        ? `Marked Target: ${selectedEnemy.name}`
+        : combat.phase === COMBAT_PHASE.PLAYER
+          ? "No Target Marked"
+          : "Enemy Pressure";
+    const briefCopy = hasOutcome
+      ? combat.outcome === COMBAT_OUTCOME.VICTORY
+        ? "Your war hand will stand down once the reward is claimed."
+        : "No further commands remain."
+      : selectedEnemy
+        ? `${selectedEnemyIntent}. ${selectedEnemy.life}/${selectedEnemy.maxLife} life remains${selectedEnemy.guard > 0 ? ` with ${selectedEnemy.guard} guard` : ""}.`
+        : combat.phase === COMBAT_PHASE.PLAYER
+          ? "Click a monster to mark it, or use non-targeted skills to shape the opening exchange."
+          : "Read the enemy intents, preserve the party, and prepare your next hand.";
+    const weaponMarkup = weaponItem
+      ? `<span class="combat-command__weapon-value" style="color:${rarityColor}">${escapeHtml(weaponItem.name)}</span>`
+      : `<span class="combat-command__weapon-value combat-command__weapon-value--none">No weapon equipped</span>`;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="combat-screen">
-
-        <div class="combat-hud">
-          <div class="combat-hud__left">
-            <span class="combat-hud__hp">${assets ? svgIcon(assets.getUiIcon("hp") || "", "hud-icon", "HP") : "\u2764"} ${combat.hero.life}/${combat.hero.maxLife}</span>
-            <span class="combat-hud__gold">\u{1F4B0} ${run.gold}</span>
-            <span class="combat-hud__potions">\u{1F9EA} ${combat.potions}</span>
-          </div>
-          <div class="combat-hud__center">
-            <span class="combat-hud__phase combat-hud__phase--${combat.outcome || combat.phase}">${escapeHtml(phaseText)}</span>
-            <span class="combat-hud__zone">${escapeHtml(zoneName)} \u00b7 ${encounterNum}/${encounterTotal}</span>
-          </div>
-          <div class="combat-hud__right">
-            <span class="combat-hud__floor">Wave ${encounterNum}</span>
-            ${weaponItem ? `<span style="color:${rarityColor};font-weight:bold;font-size:0.8em">${escapeHtml(weaponItem.name)}</span>` : ""}
-          </div>
-        </div>
-
-        ${combat.phase === COMBAT_PHASE.PLAYER && !combat.outcome && combat.turn > 1 ? `<div class="turn-banner"><span class="turn-banner__text">Your Turn</span></div>` : ""}
-
-        <div class="stage" data-env="${zoneEnv}">
-          <div class="combat-bg-image" style="background-image:url('${runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || ""}')"></div>
-          <div class="stage__backdrop"></div>
-          <div class="stage__particles"></div>
-          <div class="stage__floor"></div>
-
-          <div class="stage__allies">
-            ${renderAllySprite(
-              combat.hero, "sprite__figure--hero", heroPortrait, "use-potion-hero",
-              combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || hasOutcome,
-              [
-                combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : "",
-                combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : "",
-                combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : "",
-                combat.hero.amplify > 0 ? `<div class="sprite__status sprite__status--amplify">\u{1F53A} Amp ${combat.hero.amplify}t</div>` : "",
-                combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : "",
-                combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : "",
-              ].join(""),
-              escapeHtml
-            )}
-            ${renderAllySprite(
-              combat.mercenary, "sprite__figure--merc", mercPortrait, "use-potion-mercenary",
-              combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || hasOutcome,
-              "",
-              escapeHtml
-            )}
-          </div>
-
-          <div class="stage__enemies">
-            ${combat.enemies.map((enemy) =>
-              renderEnemySprite(enemy, selectedEnemy?.id === enemy.id, hasOutcome, services.combatEngine.describeIntent(enemy.currentIntent), escapeHtml)
-            ).join("")}
-          </div>
-
-          ${combat.outcome ? `
-            <div class="stage__outcome stage__outcome--${combat.outcome}">
-              <div class="stage__outcome-title">${combat.outcome === COMBAT_OUTCOME.VICTORY ? "\u2694 Victory!" : "\u{1F480} Defeat"}</div>
-              <div class="stage__outcome-sub">${combat.outcome === COMBAT_OUTCOME.VICTORY
-                ? "The enemies fall. Claim your reward."
-                : "Your expedition ends here."}</div>
+        <div class="combat-shell">
+          <header class="combat-header">
+            <div class="combat-header__title">
+              <span class="combat-header__eyebrow">${escapeHtml(zoneName)} · Encounter ${encounterNum} of ${encounterTotal}</span>
+              <div class="combat-header__phase-row">
+                <h1 class="combat-header__phase combat-header__phase--${combat.outcome || combat.phase}">${escapeHtml(phaseText)}</h1>
+                <span class="combat-header__status">${escapeHtml(headerStatus)}</span>
+              </div>
             </div>
-          ` : ""}
+          </header>
+
+          <section class="combat-board">
+            <div class="combat-board__frame">
+              <div class="stage" data-env="${zoneEnv}">
+                <div class="combat-bg-image" style="background-image:url('${runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(zoneName) || ""}')"></div>
+                <div class="stage__backdrop"></div>
+                <div class="stage__particles"></div>
+                <div class="stage__floor"></div>
+
+                <div class="stage__allies">
+                  ${renderAllySprite(
+                    combat.hero, "sprite__figure--hero", heroPortrait, "use-potion-hero",
+                    combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || hasOutcome,
+                    [
+                      combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : "",
+                      combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : "",
+                      combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : "",
+                      combat.hero.amplify > 0 ? `<div class="sprite__status sprite__status--amplify">\u{1F53A} Amp ${combat.hero.amplify}t</div>` : "",
+                      combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : "",
+                      combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : "",
+                    ].join(""),
+                    escapeHtml
+                  )}
+                  ${renderAllySprite(
+                    combat.mercenary, "sprite__figure--merc", mercPortrait, "use-potion-mercenary",
+                    combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || hasOutcome,
+                    "",
+                    escapeHtml
+                  )}
+                </div>
+
+                <div class="stage__enemies">
+                  ${combat.enemies.map((enemy) =>
+                    renderEnemySprite(enemy, selectedEnemy?.id === enemy.id, hasOutcome, services.combatEngine.describeIntent(enemy.currentIntent), escapeHtml)
+                  ).join("")}
+                </div>
+
+                ${combat.outcome ? `
+                  <div class="stage__outcome stage__outcome--${combat.outcome}">
+                    <div class="stage__outcome-title">${combat.outcome === COMBAT_OUTCOME.VICTORY ? "\u2694 Victory!" : "\u{1F480} Defeat"}</div>
+                    <div class="stage__outcome-sub">${combat.outcome === COMBAT_OUTCOME.VICTORY
+                      ? "The enemies fall. Claim your reward."
+                      : "Your expedition ends here."}</div>
+                  </div>
+                ` : ""}
+              </div>
+            </div>
+          </section>
+
+          <section class="combat-command">
+            <div class="combat-command__summary">
+              <div class="energy-orb ${combat.hero.energy > 0 ? "energy-orb--active" : "energy-orb--empty"}" title="Energy: play cards that cost this much or less">
+                <div class="energy-orb__value">${combat.hero.energy}</div>
+                <div class="energy-orb__max">/${combat.hero.maxEnergy}</div>
+                <div class="energy-orb__label">Energy</div>
+              </div>
+
+              <div class="combat-command__brief">
+                <span class="combat-command__brief-label">Battle Read</span>
+                <strong class="combat-command__brief-title">${escapeHtml(briefTitle)}</strong>
+                <p class="combat-command__brief-copy">${escapeHtml(briefCopy)}</p>
+                <div class="combat-command__resource-strip">
+                  <div class="combat-command__resource">
+                    <span class="combat-command__resource-label">Vitality</span>
+                    <strong class="combat-command__resource-value">${assets ? svgIcon(assets.getUiIcon("hp") || "", "hud-icon", "HP") : "\u2764"} ${combat.hero.life}/${combat.hero.maxLife}</strong>
+                  </div>
+                  <div class="combat-command__resource">
+                    <span class="combat-command__resource-label">Potions</span>
+                    <strong class="combat-command__resource-value">\u{1F9EA} ${combat.potions}</strong>
+                  </div>
+                  <div class="combat-command__resource">
+                    <span class="combat-command__resource-label">Treasury</span>
+                    <strong class="combat-command__resource-value">\u{1F4B0} ${run.gold}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="combat-command__deck-shell">
+              <div class="combat-command__deck-head">
+                <span class="combat-command__deck-label">War Hand</span>
+                <span class="combat-command__deck-count">${cardCount} card${cardCount === 1 ? "" : "s"} ready</span>
+              </div>
+              <div class="card-fan" style="--card-count:${cardCount}">
+                ${combat.hand.map((instance, i) => {
+                  const card = appState.content.cardCatalog[instance.cardId];
+                  const requiresTarget = card.target === "enemy";
+                  const cantPlay = hasOutcome || combat.phase !== COMBAT_PHASE.PLAYER || combat.hero.energy < card.cost || (requiresTarget && !selectedEnemy);
+                  return renderHandCard(instance, i, cardCount, card, cantPlay, escapeHtml);
+                }).join("")}
+              </div>
+            </div>
+
+            <div class="combat-command__actions">
+              <div class="combat-command__weapon-card">
+                <span class="combat-command__weapon-label">Weapon</span>
+                <strong class="combat-command__weapon-copy">${weaponMarkup}</strong>
+                <span class="combat-command__weapon-meta">Wave ${encounterNum}</span>
+              </div>
+              ${canMelee ? `<button class="combat-action-btn combat-action-btn--melee" data-action="melee-strike">\u2694 Melee Strike (${combat.weaponDamageBonus})</button>` : ""}
+              <button class="end-turn-btn combat-action-btn combat-action-btn--end-turn" data-action="end-turn"
+                ${combat.phase !== COMBAT_PHASE.PLAYER || combat.outcome ? "disabled" : ""}>
+                End Turn
+              </button>
+            </div>
+          </section>
+
+          <details class="town-operations-details combat-log">
+            <summary class="town-operations-toggle">Combat Log</summary>
+            <ol class="log-list combat-log-list">
+              ${combat.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}
+            </ol>
+          </details>
         </div>
-
-        <div class="combat-tray">
-          <div class="energy-orb ${combat.hero.energy > 0 ? "energy-orb--active" : "energy-orb--empty"}" title="Energy: play cards that cost this much or less">
-            <div class="energy-orb__value">${combat.hero.energy}</div>
-            <div class="energy-orb__max">/${combat.hero.maxEnergy}</div>
-            <div class="energy-orb__label">Energy</div>
-          </div>
-
-          <div class="card-fan" style="--card-count:${cardCount}">
-            ${combat.hand.map((instance, i) => {
-              const card = appState.content.cardCatalog[instance.cardId];
-              const requiresTarget = card.target === "enemy";
-              const cantPlay = hasOutcome || combat.phase !== COMBAT_PHASE.PLAYER || combat.hero.energy < card.cost || (requiresTarget && !selectedEnemy);
-              return renderHandCard(instance, i, cardCount, card, cantPlay, escapeHtml);
-            }).join("")}
-          </div>
-
-          ${canMelee ? `<button class="end-turn-btn" data-action="melee-strike" style="background:#754;margin-bottom:4px">\u2694 Melee Strike (${combat.weaponDamageBonus})</button>` : ""}
-
-          <button class="end-turn-btn" data-action="end-turn"
-            ${combat.phase !== COMBAT_PHASE.PLAYER || combat.outcome ? "disabled" : ""}>
-            End Turn
-          </button>
-        </div>
-
-        <details class="town-operations-details">
-          <summary class="town-operations-toggle">Combat Log</summary>
-          <ol class="log-list combat-log-list">
-            ${combat.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}
-          </ol>
-        </details>
       </div>
     `;
   }

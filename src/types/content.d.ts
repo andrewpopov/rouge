@@ -7,6 +7,8 @@ type EnemyIntentKind =
   | "attack_and_guard"
   | "drain_attack"
   | "sunder_attack"
+  | "charge"
+  | "teleport"
   | "guard"
   | "guard_allies"
   | "heal_ally"
@@ -16,6 +18,9 @@ type EnemyIntentKind =
   | "summon_minion"
   | "attack_burn"
   | "attack_burn_all"
+  | "attack_lightning"
+  | "attack_lightning_all"
+  | "attack_poison_all"
   | "attack_poison"
   | "attack_chill"
   | "curse_amplify"
@@ -24,7 +29,7 @@ type EnemyIntentKind =
   | "buff_allies_attack"
   | "consume_corpse"
   | "corpse_explosion";
-type EnemyIntentTarget = "hero" | "lowest_life";
+type EnemyIntentTarget = "hero" | "lowest_life" | "mercenary" | "all_allies";
 type ZoneKind = "battle" | "boss" | "miniboss" | "quest" | "shrine" | "event" | "opportunity";
 // ZoneRole values include fixed roles and dynamic mainline/side slugs (e.g. "mainline_1", "side_dark_wood")
 type ZoneRole = "opening" | "boss" | "branchBattle" | "branchMiniboss" | (string & {});
@@ -66,6 +71,9 @@ type CardEffectKind =
   | "apply_paralyze_all";
 
 type StatusEffectKind = "burn" | "poison" | "slow" | "freeze" | "stun" | "paralyze";
+type WeaponEffectKind = "burn" | "slow" | "freeze" | "shock" | "crushing";
+type WeaponDamageType = "fire" | "cold" | "lightning" | "poison";
+type DamageType = "physical" | WeaponDamageType;
 type HeroDebuffKind = "burn" | "poison" | "chill" | "amplify" | "weaken" | "energyDrain";
 type MonsterTraitKind =
   | "swift"
@@ -109,6 +117,7 @@ interface CardDefinition {
   target: CardTarget;
   text: string;
   effects: CardEffect[];
+  proficiency?: string;
   skillRef?: string;
   tier?: number;
 }
@@ -170,6 +179,8 @@ interface EnemyIntent {
   value: number;
   target?: EnemyIntentTarget;
   secondaryValue?: number;
+  damageType?: DamageType;
+  statusValue?: number;
   cooldown?: number;
 }
 
@@ -246,6 +257,35 @@ interface ItemBonusSet {
   mercenaryMaxLife?: number;
 }
 
+interface WeaponEffectDefinition {
+  kind: WeaponEffectKind;
+  amount: number;
+  proficiency?: string;
+}
+
+interface WeaponDamageDefinition {
+  type: WeaponDamageType;
+  amount: number;
+  proficiency?: string;
+}
+
+interface DamageResistanceDefinition {
+  type: DamageType;
+  amount: number;
+}
+
+interface WeaponCombatProfile {
+  attackDamageByProficiency?: Record<string, number>;
+  supportValueByProficiency?: Record<string, number>;
+  typedDamage?: WeaponDamageDefinition[];
+  effects?: WeaponEffectDefinition[];
+}
+
+interface ArmorMitigationProfile {
+  resistances?: DamageResistanceDefinition[];
+  immunities?: DamageType[];
+}
+
 interface RuntimeItemDefinition {
   id: string;
   sourceId: string;
@@ -257,6 +297,8 @@ interface RuntimeItemDefinition {
   progressionTier: number;
   maxSockets: number;
   bonuses: ItemBonusSet;
+  weaponProfile?: WeaponCombatProfile;
+  armorProfile?: ArmorMitigationProfile;
 }
 
 interface RuntimeRuneDefinition {

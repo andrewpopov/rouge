@@ -288,7 +288,17 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Act \d/);
   assert.match(root.innerHTML, /actmap__canvas/);
   assert.match(root.innerHTML, /waypoint/);
+  assert.doesNotMatch(root.innerHTML, /Route Atlas/);
+  assert.match(root.innerHTML, /View Route Intel/);
+
+  state.ui.routeIntelOpen = true;
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
   assert.match(root.innerHTML, /Route Atlas/);
+  assert.match(root.innerHTML, /Hide Route Intel/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
   appEngine.selectZone(state, openingZoneId);
@@ -367,7 +377,7 @@ test("expedition launch flow persists from hall through character select into to
   render();
   assert.match(root.innerHTML, /Choose Your Hero/);
   assert.match(root.innerHTML, /Sorceress/);
-  assert.match(root.innerHTML, /Enter Rogue Encampment/);
+  assert.match(root.innerHTML, /Begin Hunt/);
 
   appEngine.startRun(state);
   render();
@@ -457,6 +467,7 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   appEngine.startCharacterSelect(state);
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
+  state.ui.routeIntelOpen = true;
   render();
 
   assert.match(root.innerHTML, /Quest Fork/);
@@ -486,6 +497,7 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
 
+  state.ui.routeIntelOpen = true;
   render();
   assert.match(root.innerHTML, /actmap/);
 

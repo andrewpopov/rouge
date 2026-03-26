@@ -348,6 +348,15 @@
     return "Battle Path";
   }
 
+  function buildBriefingStat(label: string, value: string | number, escapeHtml: (s: string) => string): string {
+    return `
+      <div class="actmap__briefing-stat">
+        <span class="actmap__briefing-stat-label">${escapeHtml(label)}</span>
+        <strong class="actmap__briefing-stat-value">${escapeHtml(String(value))}</strong>
+      </div>
+    `;
+  }
+
   function deriveWorldMapModel(appState: AppState, services: UiRenderServices) {
     const run = appState.run;
     const currentZones = services.runFactory.getCurrentZones(run);
@@ -358,15 +367,53 @@
     );
     const actMapFile = getActMapFilename(run.actNumber);
     const positions = computePositions(mapZones, run.actNumber);
-    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const zoneTitles = Object.fromEntries(currentZones.map((zone) => [zone.id, zone.title]));
     const scrollOpen = appState.ui?.scrollMapOpen;
+    const routeIntelOpen = appState.ui?.routeIntelOpen;
     const progressPct = currentZones.length > 0 ? Math.round((clearedCount / currentZones.length) * 100) : 0;
+    const availableZones = currentZones.filter((zone) => zone.status === "available");
+    const reachableAvailableZones = currentZones.filter((zone) => zone.status === "available" && reachableZoneIds.has(zone.id));
+    const nextZone = reachableAvailableZones[0] || availableZones[0] || null;
+    const specialKinds = new Set<string>([ZONE_KIND.QUEST, ZONE_KIND.SHRINE, ZONE_KIND.EVENT, ZONE_KIND.OPPORTUNITY]);
+    const resolvedSpecialNodes = currentZones.filter((zone) =>
+      specialKinds.has(zone.kind) && zone.status === "cleared"
+    ).length;
+    const branchCount = currentZones.filter((zone) => specialKinds.has(zone.kind)).length;
+    const battleRoutesCleared = currentZones.filter((zone) => zone.kind === ZONE_KIND.BATTLE && zone.status === "cleared").length;
+    const atlasZones = currentZones.filter((zone) =>
+      zone.kind !== ZONE_KIND.BATTLE || zone.status === "available" || zone.zoneRole === "opening"
+    );
+    const atlasCards = atlasZones
+      .map((zone) => {
+        const reachable = reachableZoneIds.has(zone.id);
+        let actionLabel = "Locked";
+        if (zone.status === "available") {
+          actionLabel = zone.encountersCleared > 0 && !zone.cleared ? "Continue Route" : "Enter Route";
+        } else if (zone.status === "cleared") {
+          actionLabel = "Resolved";
+        }
+
+        return services.renderUtils.buildWorldMapNodeCard({
+          zone,
+          reachable,
+          actionLabel,
+          prerequisiteLabel:
+            zone.prerequisites.length > 0
+              ? zone.prerequisites.map((prerequisiteId) => zoneTitles[prerequisiteId] || prerequisiteId).join(", ")
+              : "Opening Route",
+          hookLabel: getNodeFamilyLabel(zone),
+          summaryLine: zone.description,
+          detailLines: [],
+        });
+      })
+      .join("");
 
     return {
       run, currentZones, reachableZoneIds, clearedCount,
-      mapZones, actMapFile, positions, accountSummary,
-      zoneTitles, scrollOpen, progressPct,
+      mapZones, actMapFile, positions,
+      zoneTitles, scrollOpen, routeIntelOpen, progressPct,
+      availableZones, reachableAvailableZones, nextZone,
+      resolvedSpecialNodes, branchCount, battleRoutesCleared, atlasCards,
     };
   }
 
@@ -374,7 +421,10 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
     const vm = deriveWorldMapModel(appState, services);
-    const { run, currentZones, reachableZoneIds, mapZones, actMapFile, positions, zoneTitles, scrollOpen, progressPct } = vm;
+    const {
+      run, reachableZoneIds, mapZones, actMapFile, positions, scrollOpen, routeIntelOpen, progressPct,
+      availableZones, reachableAvailableZones, nextZone, resolvedSpecialNodes, branchCount, battleRoutesCleared, atlasCards,
+    } = vm;
 
     const townPos = positions.get("town") || [8, 44];
     const townWaypoint = `
@@ -386,105 +436,146 @@
 
     const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), escapeHtml, positions)).join("");
     const edges = buildSvgEdges(mapZones, positions, run.actNumber);
-    const accountSummary = vm.accountSummary;
+    const nextZoneLabel = nextZone ? nextZone.title : "No route currently open";
+    const nextZoneFamily = getNodeFamilyLabel(nextZone);
+    const nextZoneStatus = nextZone
+      ? nextZone.status === "available"
+        ? nextZone.encountersCleared > 0 && !nextZone.cleared ? "Continue Route" : "Enter Route"
+        : "Resolved"
+      : "Awaiting route state";
+    const openRouteCount = reachableAvailableZones.length;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="actmap">
-        <div class="actmap__hud">
-          <div class="actmap__title">
-            <span class="actmap__eyebrow">Act ${run.actNumber}</span>
-            <h1 class="actmap__name">${escapeHtml(run.actTitle)}</h1>
-          </div>
-          <div class="actmap__stats">
-            <span>${escapeHtml(run.className)} Lv.${run.level}</span>
-            <span class="actmap__sep">\u00b7</span>
-            <span>HP ${run.hero.currentLife}/${run.hero.maxLife}</span>
-            <span class="actmap__sep">\u00b7</span>
-            <span>${run.gold}g</span>
-          </div>
-        </div>
-
-        <div class="actmap__canvas ${scrollOpen ? "actmap__canvas--scroll" : ""}">
-          <img class="actmap__bg"
-               src="./assets/curated/act-maps/${actMapFile}.png"
-               alt="${escapeHtml(run.actTitle)}"
-               draggable="false" />
-
-          <div class="actmap__main-map">
-            <svg class="actmap__edges">
-              ${edges}
-            </svg>
-
-            ${townWaypoint}
-            ${waypoints}
-
-            <div class="actmap__progress">
-              <div class="actmap__progress-fill" style="width:${progressPct}%"></div>
+        <div class="actmap__shell">
+          <div class="actmap__hud">
+            <div class="actmap__title">
+              <span class="actmap__eyebrow">Act ${run.actNumber} Campaign Board</span>
+              <h1 class="actmap__name">${escapeHtml(run.actTitle)}</h1>
+              <p class="actmap__intro">The fire is behind you now. Choose which blood-soaked trail deserves the next march.</p>
+            </div>
+            <div class="actmap__stats">
+              <div class="actmap__stat-pill">
+                <span class="actmap__stat-label">Bloodline</span>
+                <strong class="actmap__stat-value">${escapeHtml(run.className)} Lv.${run.level}</strong>
+              </div>
+              <div class="actmap__stat-pill">
+                <span class="actmap__stat-label">Vitality</span>
+                <strong class="actmap__stat-value">HP ${run.hero.currentLife}/${run.hero.maxLife}</strong>
+              </div>
+              <div class="actmap__stat-pill">
+                <span class="actmap__stat-label">Treasury</span>
+                <strong class="actmap__stat-value">${run.gold}g</strong>
+              </div>
+              <div class="actmap__stat-pill">
+                <span class="actmap__stat-label">Act Progress</span>
+                <strong class="actmap__stat-value">${progressPct}%</strong>
+              </div>
             </div>
           </div>
 
-          <div class="actmap__scroll-overlay">
-            <div class="actmap__scroll-label">\u{1F4DC} Recovered Map Fragment</div>
-          </div>
-        </div>
+          <div class="actmap__layout ${routeIntelOpen ? "actmap__layout--intel-open" : "actmap__layout--intel-closed"}">
+            <section class="actmap__board-panel ${routeIntelOpen ? "" : "actmap__board-panel--solo"}">
+              <div class="actmap__panel-head actmap__panel-head--board">
+                <div>
+                  <div class="actmap__panel-eyebrow">Trail Overview</div>
+                  <h2 class="actmap__panel-title">Waypoint Board</h2>
+                </div>
+                <div class="actmap__panel-copy">Mainline routes remain fixed. Side rites and aftermath forks surface as the act tightens around you.</div>
+              </div>
 
-        <div class="actmap__actions">
-          <button class="actmap__retreat" data-action="return-safe-zone">
-            \u2190 Return to ${escapeHtml(run.safeZoneName)}
-          </button>
-          <button class="actmap__scroll-toggle" data-action="toggle-scroll-map">
-            ${scrollOpen ? "\u2694 Waypoint Map" : "\u{1F4DC} View Scroll"}
-          </button>
+              <div class="actmap__canvas ${scrollOpen ? "actmap__canvas--scroll" : ""}">
+                <img class="actmap__bg"
+                     src="./assets/curated/act-maps/${actMapFile}.png"
+                     alt="${escapeHtml(run.actTitle)}"
+                     draggable="false" />
+
+                <div class="actmap__main-map">
+                  <svg class="actmap__edges">
+                    ${edges}
+                  </svg>
+
+                  ${townWaypoint}
+                  ${waypoints}
+
+                  <div class="actmap__progress">
+                    <div class="actmap__progress-fill" style="width:${progressPct}%"></div>
+                  </div>
+                </div>
+
+                <div class="actmap__scroll-overlay">
+                  <div class="actmap__scroll-label">\u{1F4DC} Recovered Map Fragment</div>
+                </div>
+              </div>
+
+              <div class="actmap__actions">
+                <div class="actmap__action-cluster">
+                  <button class="actmap__retreat" data-action="return-safe-zone">
+                    \u2190 Return to ${escapeHtml(run.safeZoneName)}
+                  </button>
+                </div>
+                <div class="actmap__action-cluster actmap__action-cluster--right">
+                  <button class="actmap__intel-toggle" data-action="toggle-route-intel" aria-expanded="${routeIntelOpen ? "true" : "false"}">
+                    ${routeIntelOpen ? "\u2715 Hide Route Intel" : "\u2630 View Route Intel"}
+                  </button>
+                  <button class="actmap__scroll-toggle" data-action="toggle-scroll-map">
+                    ${scrollOpen ? "\u2694 Waypoint Map" : "\u{1F4DC} View Scroll"}
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            ${routeIntelOpen ? `
+            <aside class="actmap__rail">
+              <section class="actmap__briefing">
+                <div class="actmap__panel-head">
+                  <div>
+                    <div class="actmap__panel-eyebrow">Field Briefing</div>
+                    <h2 class="actmap__panel-title">Route Pressure</h2>
+                  </div>
+                </div>
+                <p class="actmap__briefing-copy">
+                  ${escapeHtml(nextZone
+                    ? `${nextZoneFamily} ahead: ${nextZoneLabel}. ${openRouteCount} route${openRouteCount === 1 ? "" : "s"} can be pursued from the current board state.`
+                    : "No route is currently open. Resolve the pending path state before the board can move again.")}
+                </p>
+                <div class="actmap__briefing-stats">
+                  ${buildBriefingStat("Open Routes", openRouteCount, escapeHtml)}
+                  ${buildBriefingStat("Battle Paths Cleared", battleRoutesCleared, escapeHtml)}
+                  ${buildBriefingStat("Branch Nodes", branchCount, escapeHtml)}
+                  ${buildBriefingStat("Resolved Special Nodes", resolvedSpecialNodes, escapeHtml)}
+                </div>
+                <div class="actmap__next-route">
+                  <span class="actmap__next-route-label">Next Pressure Point</span>
+                  <strong class="actmap__next-route-name">${escapeHtml(nextZoneLabel)}</strong>
+                  <span class="actmap__next-route-meta">${escapeHtml(nextZoneFamily)} · ${escapeHtml(nextZoneStatus)}</span>
+                </div>
+                <div class="actmap__briefing-note">
+                  ${escapeHtml(scrollOpen
+                    ? "Scroll mode is open. The recovered parchment is visible for full-act orientation."
+                    : `${availableZones.length} waypoint${availableZones.length === 1 ? "" : "s"} are presently in motion across the act.`)}
+                </div>
+              </section>
+
+              <section class="actmap__atlas-panel">
+                <div class="actmap__panel-head">
+                  <div>
+                    <div class="actmap__panel-eyebrow">Operational Ledger</div>
+                    <h2 class="actmap__panel-title">Route Atlas</h2>
+                  </div>
+                  <div class="actmap__panel-copy">Quest forks, aftermath lanes, and combat routes are all tracked here beside the board.</div>
+                </div>
+                <div class="map-grid actmap__atlas-grid">
+                  ${atlasCards}
+                </div>
+              </section>
+            </aside>
+            ` : ""}
+          </div>
+
         </div>
       </div>
-
-      <details class="town-operations-details">
-        <summary class="town-operations-toggle">Route Details</summary>
-        <section class="safe-zone-grid">
-          ${common.renderRunStatus(run, "World Map", services.renderUtils)}
-          ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
-            copy: "Account meta board beside route pressure.",
-          })}
-          ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
-            copy: "Charter and convergence details.",
-            charterFollowThrough: "Charter pressure context for route decisions.",
-            convergenceFollowThrough: "Convergence pressure context for route decisions.",
-          })}
-          <section class="panel flow-panel">
-            <div class="panel-head">
-              <h2>Route Atlas</h2>
-              <p>Zone details and prerequisite chains.</p>
-            </div>
-            <div class="map-grid">
-              ${currentZones
-                .map((zone) => {
-                  const reachable = reachableZoneIds.has(zone.id);
-                  let actionLabel = "Locked";
-                  if (zone.status === "available") {
-                    actionLabel = zone.encountersCleared > 0 && !zone.cleared ? "Continue Route" : "Enter Route";
-                  } else if (zone.status === "cleared") {
-                    actionLabel = "Resolved";
-                  }
-
-                  return services.renderUtils.buildWorldMapNodeCard({
-                    zone,
-                    reachable,
-                    actionLabel,
-                    prerequisiteLabel:
-                      zone.prerequisites.length > 0
-                        ? zone.prerequisites.map((prerequisiteId) => zoneTitles[prerequisiteId] || prerequisiteId).join(", ")
-                        : "Opening Route",
-                    hookLabel: getNodeFamilyLabel(zone),
-                    summaryLine: zone.description,
-                    detailLines: [],
-                  });
-                })
-                .join("")}
-            </div>
-          </section>
-        </section>
-      </details>
     `;
   }
 

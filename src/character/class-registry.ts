@@ -5,13 +5,15 @@
   const TREE_ARCHETYPES = {
     martial: {
       id: "martial",
-      summary: "Build direct weapon pressure and unlock frontline class skills.",
+      summary: "Build direct weapon pressure, sturdier frontlines, and unlock melee class skills.",
       bonusPerRank: {
         heroDamageBonus: 1,
+        heroMaxLife: 1,
       },
       unlockThreshold: 2,
       unlockBonusPerThreshold: {
         heroDamageBonus: 1,
+        heroGuardBonus: 1,
       },
     },
     arcane: {
@@ -225,7 +227,7 @@
   const CLASS_PREFERRED_FAMILIES = {
     barbarian: ["Swords", "Maces", "Polearms"],
     paladin: ["Swords", "Maces"],
-    amazon: ["Polearms", "Swords"],
+    amazon: ["Bows", "Crossbows", "Javelins", "Spears", "Polearms"],
     assassin: ["Swords"],
     druid: ["Staves", "Maces"],
     sorceress: ["Wands", "Staves"],

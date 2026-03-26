@@ -2,8 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const {
     getItemDefinition,
-
-
+    getRuneDefinition,
     resolveRunewordId,
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
@@ -277,6 +276,8 @@
 
   function buildInventoryAction(entry: InventoryEntry, content: GameContent, kind: string, subtitle: string, description: string, previewLines: string[], action: { label: string; cost?: number; disabled?: boolean }) {
     let category = "inventory";
+    const itemDefinition = entry.kind === ENTRY_KIND.EQUIPMENT ? getItemDefinition(content, entry.equipment?.itemId || "") : null;
+    const runeDefinition = entry.kind === ENTRY_KIND.RUNE ? getRuneDefinition(content, entry.runeId || "") : null;
     if (kind.startsWith("stash_")) {
       category = "stash";
     } else if (kind.startsWith("vendor_")) {
@@ -293,6 +294,13 @@
       cost: action.cost || 0,
       actionLabel: action.label,
       disabled: action.disabled || false,
+      entryKind: entry.kind,
+      itemSourceId: itemDefinition?.sourceId || "",
+      itemSlot: itemDefinition?.slot || "",
+      itemFamily: itemDefinition?.family || "",
+      itemRarity: entry.kind === ENTRY_KIND.EQUIPMENT ? entry.equipment?.rarity || "" : "",
+      runeSourceId: runeDefinition?.sourceId || "",
+      runeTier: toNumber(runeDefinition?.progressionTier, 0),
     };
   }
 

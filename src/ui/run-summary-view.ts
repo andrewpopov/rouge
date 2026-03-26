@@ -1,117 +1,191 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const ACT_ENVIRONMENT_MAP: Record<number, string> = {
+    1: "./assets/curated/combat-backgrounds/desert.webp",
+    2: "./assets/curated/combat-backgrounds/jungle.webp",
+    3: "./assets/curated/combat-backgrounds/hell.webp",
+    4: "./assets/curated/combat-backgrounds/mountain.webp",
+    5: "./assets/curated/combat-backgrounds/worldstone_keep.webp",
+  };
+
+  function renderStat(label: string, value: string | number, escapeHtml: (value: unknown) => string): string {
+    return `
+      <div class="run-summary-stat">
+        <span class="run-summary-stat__label">${escapeHtml(label)}</span>
+        <strong class="run-summary-stat__value">${escapeHtml(value)}</strong>
+      </div>
+    `;
+  }
+
+  function renderSummaryCard(
+    title: string,
+    eyebrow: string,
+    stats: Array<{ label: string; value: string | number }>,
+    escapeHtml: (value: unknown) => string
+  ): string {
+    return `
+      <article class="run-summary-card">
+        <div class="run-summary-card__head">
+          <span class="run-summary-label">${escapeHtml(eyebrow)}</span>
+          <strong class="run-summary-card__title">${escapeHtml(title)}</strong>
+        </div>
+        <div class="run-summary-stat-grid">
+          ${stats.map((entry) => renderStat(entry.label, entry.value, escapeHtml)).join("")}
+        </div>
+      </article>
+    `;
+  }
+
+  function getBackdrop(run: RunState): string {
+    const actNumber = Math.max(1, Math.min(5, Number(run.actNumber) || 1));
+    return ACT_ENVIRONMENT_MAP[actNumber] || ACT_ENVIRONMENT_MAP[1];
+  }
+
+  function getOutcomeCopy(run: RunState, victory: boolean): string {
+    if (victory) {
+      return `The road closes behind ${run.className}. The hall receives the spoils, the scars, and the memory of ${run.actTitle}.`;
+    }
+    return `${run.className} falls before the campaign is spent. ${run.actTitle} keeps the dead, but the archive keeps the lesson.`;
+  }
+
+  function getFigureCopy(run: RunState, victory: boolean): string {
+    if (victory) {
+      return `The bloodline returns with ${run.summary.actsCleared} act${run.summary.actsCleared === 1 ? "" : "s"} broken, ${run.summary.bossesDefeated} boss${run.summary.bossesDefeated === 1 ? "" : "es"} felled, and ${run.gold} gold carried home.`;
+    }
+    return `The expedition ends in ${run.actTitle}. Even in defeat, the ledger keeps the gold won, the runes forged, and the strength earned on the march.`;
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
-    const { buildBadge, buildStat } = services.renderUtils;
+    const { escapeHtml } = services.renderUtils;
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const run = appState.run;
     const victory = appState.phase === services.appEngine.PHASES.RUN_COMPLETE;
     const profileSummary = services.appEngine.getProfileSummary(appState);
-
-    const outcomeBadge = victory
-      ? buildBadge("Victory", "cleared")
-      : buildBadge("Defeated", "locked");
-
     const notice = common.renderNotice(appState, services.renderUtils);
+    const title = victory ? `${run.className} Conquers The World` : `${run.className} Has Fallen`;
+    const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
+    const backdropSrc = getBackdrop(run);
+    const actsCleared = Math.max(Number(run.summary?.actsCleared) || 0, 0);
+    const bossesDefeated = Math.max(Number(run.summary?.bossesDefeated) || 0, 0);
+    const zonesCleared = Math.max(Number(run.summary?.zonesCleared) || 0, 0);
+    const encountersCleared = Math.max(Number(run.summary?.encountersCleared) || 0, 0);
+    const uniqueItemsFound = Math.max(Number(run.summary?.uniqueItemsFound) || 0, 0);
 
-    services.renderUtils.buildShell(root, {
-      eyebrow: victory ? "Victory" : "Defeat",
-      title: victory ? `${run.className} Conquers The World` : `${run.className} Has Fallen`,
-      copy: victory
-        ? `All acts cleared. ${run.className} returns to the hall in glory.`
-        : `The expedition ends at ${run.actTitle}. The archive records the attempt.`,
-      body: `
-        ${notice}
-        ${common.renderRunStatus(run, victory ? "Victory" : "Defeat", services.renderUtils)}
+    root.innerHTML = `
+      ${notice}
+      <div class="run-summary-screen">
+        <div class="run-summary-screen__backdrop" style="background-image:url('${escapeHtml(backdropSrc)}')"></div>
+        <div class="run-summary-screen__shade"></div>
 
-        <section class="panel flow-panel">
-          <div class="panel-head">
-            <h2>Expedition Summary</h2>
-          </div>
-          <div class="feature-grid feature-grid-wide">
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Outcome</strong>
-                ${outcomeBadge}
-              </div>
-              <div class="entity-stat-grid">
-                ${buildStat("Acts", run.summary.actsCleared)}
-                ${buildStat("Zones", run.summary.zonesCleared)}
-                ${buildStat("Encounters", run.summary.encountersCleared)}
-                ${buildStat("Bosses", run.summary.bossesDefeated)}
-              </div>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Hero</strong>
-              </div>
-              <div class="entity-stat-grid">
-                ${buildStat("Class", run.className)}
-                ${buildStat("Level", run.level)}
-                ${buildStat("XP Gained", run.summary.xpGained)}
-                ${buildStat("Levels Gained", run.summary.levelsGained)}
-              </div>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Loot</strong>
-              </div>
-              <div class="entity-stat-grid">
-                ${buildStat("Gold", run.summary.goldGained)}
-                ${buildStat("Runewords", run.summary.runewordsForged)}
-                ${buildStat("Skill Pts", run.summary.skillPointsEarned)}
-                ${buildStat("Class Pts", run.summary.classPointsEarned)}
-              </div>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Training</strong>
-              </div>
-              <div class="entity-stat-grid">
-                ${buildStat("Attr Pts", run.summary.attributePointsEarned)}
-                ${buildStat("Training Ranks", run.summary.trainingRanksGained)}
-                ${buildStat("Deck Size", run.deck.length)}
-                ${buildStat("Final Gold", run.gold)}
-              </div>
-            </article>
-          </div>
-        </section>
+        <div class="run-summary-shell">
+          <header class="run-summary-header">
+            <div class="run-summary-header__copy">
+              <p class="run-summary-header__eyebrow">${escapeHtml(victory ? "Victory" : "Defeat")}</p>
+              <h1 class="run-summary-header__title">${escapeHtml(title)}</h1>
+              <p class="run-summary-header__lede">${escapeHtml(getOutcomeCopy(run, victory))}</p>
+            </div>
 
-        <section class="panel flow-panel">
-          <div class="panel-head">
-            <h2>Account Records</h2>
-          </div>
-          <div class="feature-grid feature-grid-wide">
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Archive</strong>
-                ${buildBadge(`Run #${profileSummary.runHistoryCount}`, "cleared")}
+            <div class="run-summary-header__chips">
+              <div class="run-summary-chip">
+                <span class="run-summary-label">Acts Cleared</span>
+                <strong class="run-summary-chip__value">${actsCleared}</strong>
               </div>
-              <div class="entity-stat-grid">
-                ${buildStat("Total Runs", profileSummary.runHistoryCount)}
-                ${buildStat("Highest Lv", profileSummary.highestLevel)}
-                ${buildStat("Highest Act", profileSummary.highestActCleared)}
-                ${buildStat("Total Gold", profileSummary.totalGoldCollected)}
+              <div class="run-summary-chip">
+                <span class="run-summary-label">Bosses Felled</span>
+                <strong class="run-summary-chip__value">${bossesDefeated}</strong>
               </div>
-            </article>
-            <article class="feature-card">
-              <div class="entity-name-row">
-                <strong>Unlocks</strong>
+              <div class="run-summary-chip">
+                <span class="run-summary-label">Final Level</span>
+                <strong class="run-summary-chip__value">${escapeHtml(`Lv.${run.level}`)}</strong>
               </div>
-              <div class="entity-stat-grid">
-                ${buildStat("Classes", profileSummary.unlockedClassCount)}
-                ${buildStat("Bosses", profileSummary.unlockedBossCount)}
-                ${buildStat("Runewords", profileSummary.unlockedRunewordCount)}
-                ${buildStat("Town Features", profileSummary.townFeatureCount)}
+              <div class="run-summary-chip">
+                <span class="run-summary-label">Treasury</span>
+                <strong class="run-summary-chip__value">${escapeHtml(`${run.gold}g`)}</strong>
               </div>
-            </article>
-          </div>
-          <div class="cta-row">
-            <button class="primary-btn" data-action="return-front-door">Return To Account Hall</button>
-          </div>
-        </section>
-      `,
-    });
+            </div>
+          </header>
+
+          <section class="run-summary-stage">
+            <aside class="run-summary-figure">
+              <div class="run-summary-figure__art">
+                ${heroPortraitSrc
+                  ? `<img src="${escapeHtml(heroPortraitSrc)}" class="run-summary-figure__portrait" alt="${escapeHtml(run.className)}" loading="lazy" onerror="this.style.display='none'" />`
+                  : `<div class="run-summary-figure__monogram" aria-hidden="true">${escapeHtml(run.className.charAt(0))}</div>`}
+              </div>
+
+              <div class="run-summary-figure__copy">
+                <span class="run-summary-label">Final Chronicle</span>
+                <strong class="run-summary-figure__headline">${escapeHtml(victory ? "The expedition returns in glory." : "The expedition is sealed in ash.")}</strong>
+                <p class="run-summary-figure__text">${escapeHtml(getFigureCopy(run, victory))}</p>
+              </div>
+            </aside>
+
+            <div class="run-summary-report">
+              <div class="run-summary-report__head">
+                <div>
+                  <span class="run-summary-label">Expedition Summary</span>
+                  <h2 class="run-summary-report__title">${escapeHtml(victory ? "Outcome" : "Outcome")}</h2>
+                </div>
+                <strong class="run-summary-report__tag">${escapeHtml(run.actTitle)}</strong>
+              </div>
+
+              <div class="run-summary-card-grid">
+                ${renderSummaryCard("Outcome", "Expedition Summary", [
+                  { label: "Result", value: victory ? "Victory" : "Defeat" },
+                  { label: "Acts", value: actsCleared },
+                  { label: "Zones", value: zonesCleared },
+                  { label: "Encounters", value: encountersCleared },
+                ], escapeHtml)}
+                ${renderSummaryCard("Hero", "Bloodline", [
+                  { label: "Class", value: run.className },
+                  { label: "Level", value: run.level },
+                  { label: "XP Gained", value: run.summary.xpGained },
+                  { label: "Deck Size", value: run.deck.length },
+                ], escapeHtml)}
+                ${renderSummaryCard("Loot", "Spoils", [
+                  { label: "Gold", value: run.summary.goldGained },
+                  { label: "Runewords", value: run.summary.runewordsForged },
+                  { label: "Unique Finds", value: uniqueItemsFound },
+                  { label: "Final Gold", value: run.gold },
+                ], escapeHtml)}
+                ${renderSummaryCard("Training", "Growth", [
+                  { label: "Skill Pts", value: run.summary.skillPointsEarned },
+                  { label: "Class Pts", value: run.summary.classPointsEarned },
+                  { label: "Attr Pts", value: run.summary.attributePointsEarned },
+                  { label: "Training Ranks", value: run.summary.trainingRanksGained },
+                ], escapeHtml)}
+              </div>
+
+              <div class="run-summary-report__footer">
+                <details class="run-summary-intel">
+                  <summary class="run-summary-intel__summary">Account Records</summary>
+                  <div class="run-summary-intel__body">
+                    <div class="run-summary-intel__cards">
+                      ${renderSummaryCard("Archive", "Account Records", [
+                        { label: "Total Runs", value: profileSummary.runHistoryCount },
+                        { label: "Completed", value: profileSummary.completedRuns },
+                        { label: "Highest Lv", value: profileSummary.highestLevel },
+                        { label: "Total Gold", value: profileSummary.totalGoldCollected },
+                      ], escapeHtml)}
+                      ${renderSummaryCard("Unlocks", "Account Records", [
+                        { label: "Classes", value: profileSummary.unlockedClassCount },
+                        { label: "Bosses", value: profileSummary.unlockedBossCount },
+                        { label: "Runewords", value: profileSummary.unlockedRunewordCount },
+                        { label: "Town Features", value: profileSummary.townFeatureCount },
+                      ], escapeHtml)}
+                    </div>
+                  </div>
+                </details>
+
+                <button class="primary-btn run-summary__cta-btn" data-action="return-front-door">Return To Account Hall</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    `;
   }
 
   runtimeWindow.ROUGE_RUN_SUMMARY_VIEW = {

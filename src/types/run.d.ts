@@ -48,6 +48,8 @@ type RewardChoiceEffectKind =
   | "refill_potions"
   | "gold_bonus"
   | "equip_item"
+  | "grant_item"
+  | "grant_rune"
   | "add_socket"
   | "socket_rune"
   | "record_quest_outcome"
@@ -75,6 +77,8 @@ interface RewardChoiceEffect {
   flagIds?: string[];
   rarity?: string;
   rarityBonuses?: ItemBonusSet;
+  weaponAffixes?: WeaponCombatProfile;
+  armorAffixes?: ArmorMitigationProfile;
 }
 
 interface RewardChoice {
@@ -97,6 +101,13 @@ interface TownAction {
   cost: number;
   actionLabel: string;
   disabled: boolean;
+  entryKind?: string;
+  itemSourceId?: string;
+  itemSlot?: string;
+  itemFamily?: string;
+  itemRarity?: string;
+  runeSourceId?: string;
+  runeTier?: number;
 }
 
 interface RunReward {
@@ -237,6 +248,7 @@ interface RunState {
     trainingRanksGained: number;
     bossesDefeated: number;
     runewordsForged: number;
+    uniqueItemsFound: number;
   };
 }
 

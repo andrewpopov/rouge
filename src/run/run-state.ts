@@ -92,6 +92,7 @@
       trainingRanksGained: 0,
       bossesDefeated: 0,
       runewordsForged: 0,
+      uniqueItemsFound: 0,
     };
   }
 
@@ -144,6 +145,76 @@
     return lines;
   }
 
+  function toLabel(value: string): string {
+    return String(value || "")
+      .split(/[_\s]+/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(" ");
+  }
+
+  function describeWeaponProfile(profile: WeaponCombatProfile | null | undefined): string[] {
+    if (!profile) {
+      return [];
+    }
+
+    const lines: string[] = [];
+    Object.entries(profile.attackDamageByProficiency || {})
+      .sort(([left], [right]) => left.localeCompare(right))
+      .forEach(([proficiency, value]) => {
+        if (toBonusValue(value) > 0) {
+          lines.push(`${toLabel(proficiency)} attacks +${toBonusValue(value)}.`);
+        }
+      });
+    Object.entries(profile.supportValueByProficiency || {})
+      .sort(([left], [right]) => left.localeCompare(right))
+      .forEach(([proficiency, value]) => {
+        if (toBonusValue(value) > 0) {
+          lines.push(`${toLabel(proficiency)} support skills +${toBonusValue(value)}.`);
+        }
+      });
+
+    (profile.typedDamage || []).forEach((damageEntry) => {
+      const amount = Math.max(1, toBonusValue(damageEntry.amount, 1));
+      lines.push(`Adds ${amount} ${toLabel(damageEntry.type)} damage${damageEntry.proficiency ? ` on ${toLabel(damageEntry.proficiency)} attacks` : ""}.`);
+    });
+
+    (profile.effects || []).forEach((effect) => {
+      const amount = Math.max(1, toBonusValue(effect.amount, 1));
+      if (effect.kind === "crushing") {
+        lines.push(`Crushing hits shatter ${amount} Guard or Life${effect.proficiency ? ` on ${toLabel(effect.proficiency)} attacks` : ""}.`);
+        return;
+      }
+      const effectLabel = effect.kind === "shock" ? "Shock" : toLabel(effect.kind);
+      lines.push(`On hit: apply ${amount} ${effectLabel}${effect.proficiency ? ` on ${toLabel(effect.proficiency)} attacks` : ""}.`);
+    });
+
+    return lines;
+  }
+
+  function describeArmorProfile(profile: ArmorMitigationProfile | null | undefined): string[] {
+    if (!profile) {
+      return [];
+    }
+
+    const lines: string[] = [];
+    (profile.resistances || [])
+      .slice()
+      .sort((left, right) => left.type.localeCompare(right.type))
+      .forEach((entry) => {
+        if (toBonusValue(entry.amount) > 0) {
+          lines.push(`${toLabel(entry.type)} resistance +${toBonusValue(entry.amount)}.`);
+        }
+      });
+    (profile.immunities || [])
+      .slice()
+      .sort((left, right) => left.localeCompare(right))
+      .forEach((type) => {
+        lines.push(`Immune to ${toLabel(type)} damage.`);
+      });
+    return lines;
+  }
+
   runtimeWindow.ROUGE_RUN_STATE = {
     deepClone,
     clamp,
@@ -163,5 +234,7 @@
     getTrainingRankCount,
     addBonusSet,
     describeBonusSet,
+    describeWeaponProfile,
+    describeArmorProfile,
   };
 })();

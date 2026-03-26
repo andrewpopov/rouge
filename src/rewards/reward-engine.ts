@@ -12,6 +12,17 @@
   const { clamp, toNumber } = runtimeWindow.ROUGE_UTILS;
 
   const MAX_BELT_SIZE = 5;
+  function getDeckUpgradeThreshold(actNumber: number) {
+    return 12 + Math.max(0, actNumber) * 2;
+  }
+
+  function getDeckSoftCardCap(actNumber: number) {
+    return 14 + Math.max(0, actNumber) * 2;
+  }
+
+  function getDeckHardCardCap(actNumber: number) {
+    return 18 + Math.max(0, actNumber) * 3;
+  }
 
   const BOON_POOLS: Record<string, { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }[]> = {
     opening: [
@@ -226,7 +237,17 @@
     return choice;
   }
 
-  function ensureThreeChoices(choices: RewardChoice[], run: RunState, zone: ZoneState, content: GameContent, seed: number, usedCardIds: Set<string>, profile: ProfileState | null = null, actNumber: number = 1) {
+  function ensureThreeChoices(
+    choices: RewardChoice[],
+    run: RunState,
+    zone: ZoneState,
+    content: GameContent,
+    seed: number,
+    usedCardIds: Set<string>,
+    profile: ProfileState | null = null,
+    actNumber: number = 1,
+    allowFallbackCards = true
+  ) {
     const profileId = getDeckProfileId(content, run.classId);
     const fallbackPools = [
       content.rewardPools?.profileCards?.[profileId] || [],
@@ -234,14 +255,16 @@
       content.rewardPools?.bossCards || [],
     ];
 
-    for (let poolIndex = 0; choices.length < 3 && poolIndex < fallbackPools.length; poolIndex += 1) {
-      const pool = fallbackPools[poolIndex];
-      const cardId = pickUniqueCardId(pool, seed + poolIndex + choices.length, usedCardIds, content);
-      if (!cardId) {
-        continue;
+    if (allowFallbackCards) {
+      for (let poolIndex = 0; choices.length < 3 && poolIndex < fallbackPools.length; poolIndex += 1) {
+        const pool = fallbackPools[poolIndex];
+        const cardId = pickUniqueCardId(pool, seed + poolIndex + choices.length, usedCardIds, content);
+        if (!cardId) {
+          continue;
+        }
+        usedCardIds.add(cardId);
+        choices.push(buildCardChoice(cardId, content, "Fallback Skill"));
       }
-      usedCardIds.add(cardId);
-      choices.push(buildCardChoice(cardId, content, "Fallback Skill"));
     }
 
     while (choices.length < 3) {
@@ -278,6 +301,13 @@
     const upgradableCardIds = getUpgradableCardIds(run, content);
     const upgradeCardId = upgradableCardIds.length > 0 ? upgradableCardIds[seed % upgradableCardIds.length] : "";
     const upgradeChoice = upgradeCardId ? buildUpgradeChoice(upgradeCardId, content) : null;
+    const deckSize = Array.isArray(run.deck) ? run.deck.length : 0;
+    const upgradeThreshold = getDeckUpgradeThreshold(actNumber);
+    const softCardCap = getDeckSoftCardCap(actNumber);
+    const hardCardCap = getDeckHardCardCap(actNumber);
+    const preferUpgrade = deckSize >= upgradeThreshold && Boolean(upgradeChoice);
+    const softCapCards = deckSize >= softCardCap;
+    const hardCapCards = deckSize >= hardCardCap;
     const equipmentChoice = itemSystem?.buildEquipmentChoice({
       content,
       run,
@@ -290,9 +320,12 @@
 
     const firstCardPool = zone.kind === ZONE_KIND.BOSS ? [...bossPool, ...profilePool] : [...profilePool, ...zonePool];
     const firstCardId = pickUniqueCardId(firstCardPool, seed, usedCardIds, content);
-    if (firstCardId) {
+    const canOfferPrimaryCard = zone.kind === ZONE_KIND.BOSS ? !hardCapCards : !hardCapCards;
+    if (firstCardId && canOfferPrimaryCard) {
       usedCardIds.add(firstCardId);
       choices.push(buildCardChoice(firstCardId, content, "Class Skill"));
+    } else if (preferUpgrade && upgradeChoice) {
+      choices.push(upgradeChoice);
     }
 
     if (progressionChoice) {
@@ -303,11 +336,15 @@
       choices.push(equipmentChoice);
     }
 
+    if (preferUpgrade && upgradeChoice && !choices.some((choice) => choice.id === upgradeChoice.id) && choices.length < 3) {
+      choices.push(upgradeChoice);
+    }
+
     if (zone.kind === ZONE_KIND.BOSS) {
       if (choices.length < 3) {
         choices.push(pickBoonChoice("boss", seed + 9, profile, actNumber));
       }
-      if (upgradeChoice && choices.length < 3) {
+      if (upgradeChoice && choices.length < 3 && !choices.some((choice) => choice.id === upgradeChoice.id)) {
         choices.push(upgradeChoice);
       }
     } else if ((zone.kind === ZONE_KIND.MINIBOSS || zone.zoneRole === "branchBattle") && upgradeChoice) {
@@ -324,7 +361,8 @@
     }
 
     const secondCardPool = zone.kind === ZONE_KIND.BOSS ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool];
-    if (choices.length < 3) {
+    const canOfferSecondaryCard = zone.kind === ZONE_KIND.BOSS ? !hardCapCards : !softCapCards;
+    if (choices.length < 3 && canOfferSecondaryCard) {
       const secondCardId = pickUniqueCardId(secondCardPool, seed + 5, usedCardIds, content);
       if (secondCardId) {
         usedCardIds.add(secondCardId);
@@ -332,7 +370,8 @@
       }
     }
 
-    return ensureThreeChoices(choices, run, zone, content, seed + 13, usedCardIds, profile, actNumber);
+    const allowFallbackCards = zone.kind === ZONE_KIND.BOSS ? !hardCapCards : !softCapCards;
+    return ensureThreeChoices(choices, run, zone, content, seed + 13, usedCardIds, profile, actNumber, allowFallbackCards);
   }
 
   function addCardToDeck(run: RunState, cardId: string, content: GameContent) {
@@ -359,7 +398,13 @@
     const effects = Array.isArray(choice?.effects) ? choice.effects : [];
     const itemSystem = runtimeWindow.ROUGE_ITEM_SYSTEM;
     const equipmentEffects = effects.filter((effect: RewardChoiceEffect) => {
-      return effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket";
+      return (
+        effect.kind === "equip_item" ||
+        effect.kind === "grant_item" ||
+        effect.kind === "grant_rune" ||
+        effect.kind === "socket_rune" ||
+        effect.kind === "add_socket"
+      );
     });
 
     if (equipmentEffects.length > 0 && itemSystem) {
@@ -378,7 +423,13 @@
 
     for (let index = 0; index < effects.length; index += 1) {
       const effect = effects[index];
-      if (effect.kind === "equip_item" || effect.kind === "socket_rune" || effect.kind === "add_socket") {
+      if (
+        effect.kind === "equip_item" ||
+        effect.kind === "grant_item" ||
+        effect.kind === "grant_rune" ||
+        effect.kind === "socket_rune" ||
+        effect.kind === "add_socket"
+      ) {
         continue;
       }
 

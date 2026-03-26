@@ -230,7 +230,7 @@
     malice: {
       sourceId: "malice",
       slot: "weapon",
-      familyAllowList: ["Swords", "Maces", "Polearms", "Scepters", "Staves"],
+      familyAllowList: ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows", "Scepters", "Staves"],
       requiredRunes: ["rune_ith", "rune_el", "rune_eth"],
       bonuses: {
         heroDamageBonus: 5,
@@ -240,7 +240,7 @@
     strength: {
       sourceId: "strength",
       slot: "weapon",
-      familyAllowList: ["Swords", "Maces", "Polearms", "Scepters", "Staves"],
+      familyAllowList: ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows", "Scepters", "Staves"],
       requiredRunes: ["rune_amn", "rune_tir"],
       bonuses: {
         heroDamageBonus: 4,
@@ -312,7 +312,7 @@
     honor: {
       sourceId: "honor",
       slot: "weapon",
-      familyAllowList: ["Swords", "Maces", "Polearms", "Staves"],
+      familyAllowList: ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows", "Staves"],
       requiredRunes: ["rune_amn", "rune_el", "rune_ith"],
       bonuses: {
         heroDamageBonus: 7,
@@ -356,7 +356,7 @@
     passion: {
       sourceId: "passion",
       slot: "weapon",
-      familyAllowList: ["Swords", "Maces", "Polearms", "Staves"],
+      familyAllowList: ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows", "Staves"],
       requiredRunes: ["rune_dol", "rune_ort", "rune_lem"],
       bonuses: {
         heroDamageBonus: 7,
@@ -367,7 +367,7 @@
     crescent_moon: {
       sourceId: "crescent_moon",
       slot: "weapon",
-      familyAllowList: ["Swords", "Polearms"],
+      familyAllowList: ["Swords", "Polearms", "Spears", "Javelins"],
       requiredRunes: ["rune_shael", "rune_um", "rune_tir"],
       bonuses: {
         heroDamageBonus: 8,

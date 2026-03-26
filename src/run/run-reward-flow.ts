@@ -8,19 +8,19 @@
   // --- Encounter reward scaling ---
   const BATTLE_BASE_GOLD = 10;
   const BATTLE_GOLD_PER_ACT = 4;
-  const BATTLE_BASE_XP = 6;
-  const BATTLE_XP_PER_ACT = 3;
+  const BATTLE_BASE_XP = 5;
+  const BATTLE_XP_PER_ACT = 2;
 
   const MINIBOSS_BASE_GOLD = 16;
   const MINIBOSS_GOLD_PER_ACT = 6;
-  const MINIBOSS_BASE_XP = 10;
-  const MINIBOSS_XP_PER_ACT = 4;
+  const MINIBOSS_BASE_XP = 8;
+  const MINIBOSS_XP_PER_ACT = 3;
   const MINIBOSS_POTION_CHARGES = 1;
 
   const BOSS_BASE_GOLD = 28;
   const BOSS_GOLD_PER_ACT = 10;
-  const BOSS_BASE_XP = 18;
-  const BOSS_XP_PER_ACT = 6;
+  const BOSS_BASE_XP = 14;
+  const BOSS_XP_PER_ACT = 4;
   const BOSS_POTION_CHARGES = 1;
 
   const ECONOMY_LEDGER_GOLD_MULTIPLIER = 1.25;

@@ -1,10 +1,15 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  const ICON_BASE = "./assets/curated/icons";
-  const SKILL_ICON_BASE = `${ICON_BASE}/skills`;
+  const THEMED_ICON_BASE = "./assets/curated/themes/diablo-inspired/icons";
+  const THEMED_CARD_ICON_BASE = `${THEMED_ICON_BASE}/cards`;
+  const THEMED_ENEMY_ICON_BASE = `${THEMED_ICON_BASE}/enemies`;
+  const THEMED_UI_ICON_BASE = `${THEMED_ICON_BASE}/ui`;
+  const UNIQUE_ART_BASE = "./assets/curated/rouge-art";
+  const SKILL_ICON_BASE = "./assets/curated/skill-icons";
   const SPRITE_BASE = "./assets/curated/sprites";
   const PORTRAIT_BASE = "./assets/curated/portraits";
+  const RUNE_SPRITE_BASE = `${SPRITE_BASE}/runes`;
 
   // ── Card Icons ──
   const CARD_ICONS: Record<string, string> = {
@@ -134,56 +139,118 @@
   };
 
   const ATTACK_ICONS = [
-    `${ICON_BASE}/cards/01_steam-blast.svg`,
-    `${ICON_BASE}/cards/02_bolt-bomb.svg`,
-    `${ICON_BASE}/cards/03_drill.svg`,
-    `${ICON_BASE}/cards/04_laser-blast.svg`,
-    `${ICON_BASE}/cards/05_overdrive.svg`,
-    `${ICON_BASE}/cards/06_cogsplosion.svg`,
+    `${THEMED_CARD_ICON_BASE}/01_ember-shot.svg`,
+    `${THEMED_CARD_ICON_BASE}/03_broadsword.svg`,
+    `${THEMED_CARD_ICON_BASE}/04_crescent-blade.svg`,
+    `${THEMED_CARD_ICON_BASE}/06_burning-skull.svg`,
+    `${THEMED_CARD_ICON_BASE}/11_blast.svg`,
+    `${THEMED_CARD_ICON_BASE}/23_dragon-breath.svg`,
   ];
 
   const SKILL_ICONS = [
-    `${ICON_BASE}/cards/09_valve.svg`,
-    `${ICON_BASE}/cards/10_steam.svg`,
-    `${ICON_BASE}/cards/11_bellows.svg`,
-    `${ICON_BASE}/cards/12_plug.svg`,
-    `${ICON_BASE}/cards/13_battery-plus.svg`,
-    `${ICON_BASE}/cards/17_power-generator.svg`,
+    `${THEMED_CARD_ICON_BASE}/05_life-tap.svg`,
+    `${THEMED_CARD_ICON_BASE}/09_candle-holder.svg`,
+    `${THEMED_CARD_ICON_BASE}/10_burning-embers.svg`,
+    `${THEMED_CARD_ICON_BASE}/13_armor-upgrade.svg`,
+    `${THEMED_CARD_ICON_BASE}/15_ghost.svg`,
+    `${THEMED_CARD_ICON_BASE}/17_grim-reaper.svg`,
   ];
 
   const ENEMY_SVGS = [
-    `${ICON_BASE}/enemies/01_steam-locomotive.svg`,
-    `${ICON_BASE}/enemies/02_iron-hulled-warship.svg`,
-    `${ICON_BASE}/enemies/03_dreadnought.svg`,
-    `${ICON_BASE}/enemies/04_gas-mask.svg`,
-    `${ICON_BASE}/enemies/05_mechanical-arm.svg`,
-    `${ICON_BASE}/enemies/06_walking-turret.svg`,
-    `${ICON_BASE}/enemies/07_laser-turret.svg`,
-    `${ICON_BASE}/enemies/08_spoutnik.svg`,
-    `${ICON_BASE}/enemies/09_satellite.svg`,
-    `${ICON_BASE}/enemies/10_tesla.svg`,
-    `${ICON_BASE}/enemies/11_frankenstein-creature.svg`,
-    `${ICON_BASE}/enemies/12_zeppelin.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/01_diablo-skull.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/02_cultist.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/03_warlock-hood.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/04_ogre.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/05_troll.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/06_vampire-dracula.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/07_shambling-zombie.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/08_grim-reaper.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/09_devil-mask.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/10_death-skull.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/11_dragon-head.svg`,
+    `${THEMED_ENEMY_ICON_BASE}/12_crowned-skull.svg`,
   ];
 
+  const ENEMY_FALLBACK_DEFAULTS = {
+    regular: `${THEMED_ENEMY_ICON_BASE}/01_diablo-skull.svg`,
+    boss: `${THEMED_ENEMY_ICON_BASE}/12_crowned-skull.svg`,
+  };
+
+  const ENEMY_FALLBACK_RULES = [
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/07_shambling-zombie.svg`,
+      keywords: ["zombie", "mummy", "corpse", "reanimated", "cadaver", "putrid", "pindle"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/10_death-skull.svg`,
+      keywords: ["skeleton", "bone", "wraith", "ghost", "willowisp", "undead", "specter", "apparition"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/02_cultist.svg`,
+      keywords: ["rogue", "priest", "shaman", "witch", "countess", "summoner", "council", "zakarum"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/03_warlock-hood.svg`,
+      keywords: ["mage", "warlock", "oblivion", "succubus", "vampire", "andariel", "mephisto", "baal"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/04_ogre.svg`,
+      keywords: ["goatman", "blunderbore", "abominable", "mauler", "overseer", "tainted"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/05_troll.svg`,
+      keywords: ["wendigo", "hulk", "defiler", "siege_beast", "minion_of_destruction", "blood_lord"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/06_vampire-dracula.svg`,
+      keywords: ["vampire", "succubus", "lilith"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/09_devil-mask.svg`,
+      keywords: ["fallen", "carver", "imp", "fetish", "frog_demon", "baboon_demon", "devilkin"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/11_dragon-head.svg`,
+      keywords: ["hawk", "bat", "vulture", "scarab", "viper", "spider", "maggot", "mosquito", "swarm"],
+    },
+    {
+      icon: `${THEMED_ENEMY_ICON_BASE}/12_crowned-skull.svg`,
+      keywords: ["boss", "super_unique", "uber", "diablo", "duriel", "andariel", "izual", "nihlathak"],
+    },
+  ];
+
+  const BROKEN_ENEMY_SPRITES = new Set([
+    "baal_s_minion",
+    "fire_tower",
+    "lightning_spire",
+  ]);
+
+  const BROKEN_BOSS_SPRITES = new Set([
+    "bishibosh",
+    "corpsefire",
+    "eyeback_the_unleashed",
+    "fire_eye",
+    "rakanishu",
+  ]);
+
   const UI_ICONS: Record<string, string> = {
-    hp: `${ICON_BASE}/ui/hp_life-bar.svg`,
-    energy: `${ICON_BASE}/ui/energy_battery-50.svg`,
-    guard: `${ICON_BASE}/ui/power_plug.svg`,
-    burn: `${ICON_BASE}/ui/heat_radiations.svg`,
-    turn: `${ICON_BASE}/ui/turn_pocket-watch.svg`,
-    alert: `${ICON_BASE}/ui/alert_wall-light.svg`,
-    crit: `${ICON_BASE}/ui/crit_cross-flare.svg`,
-    idea: `${ICON_BASE}/ui/idea_light-bulb.svg`,
+    hp: `${THEMED_UI_ICON_BASE}/hp_heart-drop.svg`,
+    energy: `${THEMED_UI_ICON_BASE}/energy_chalice-drops.svg`,
+    guard: `${THEMED_UI_ICON_BASE}/block_chest-armor.svg`,
+    burn: `${THEMED_UI_ICON_BASE}/heat_burning-eye.svg`,
+    turn: `${THEMED_UI_ICON_BASE}/turn_grim-reaper.svg`,
+    alert: `${THEMED_UI_ICON_BASE}/alert_death-skull.svg`,
+    crit: `${THEMED_CARD_ICON_BASE}/19_fangs.svg`,
+    idea: `${THEMED_UI_ICON_BASE}/info_candle-holder.svg`,
   };
 
   const INTENT_ICONS: Record<string, string> = {
-    attack: `${ICON_BASE}/cards/01_steam-blast.svg`,
-    guard: `${ICON_BASE}/cards/09_valve.svg`,
-    buff: `${ICON_BASE}/cards/13_battery-plus.svg`,
-    debuff: `${ICON_BASE}/cards/14_battery-minus.svg`,
-    heal: `${ICON_BASE}/cards/13_battery-plus.svg`,
-    unknown: `${ICON_BASE}/ui/idea_light-bulb.svg`,
+    attack: `${THEMED_CARD_ICON_BASE}/03_broadsword.svg`,
+    guard: `${THEMED_CARD_ICON_BASE}/13_armor-upgrade.svg`,
+    buff: `${THEMED_CARD_ICON_BASE}/17_grim-reaper.svg`,
+    debuff: `${THEMED_CARD_ICON_BASE}/14_armor-downgrade.svg`,
+    heal: `${THEMED_CARD_ICON_BASE}/07_chalice-drops.svg`,
+    unknown: `${THEMED_UI_ICON_BASE}/info_candle-holder.svg`,
   };
 
   const CLASS_PORTRAITS: Record<string, string> = {
@@ -402,8 +469,34 @@
     highlords_amulet: `${ITEM_SPRITE_BASE}/highlords_amulet.gif`,
   };
 
+  const RUNE_SPRITES: Record<string, string> = {
+    el: `${RUNE_SPRITE_BASE}/el.png`,
+    eld: `${RUNE_SPRITE_BASE}/eld.png`,
+    tir: `${RUNE_SPRITE_BASE}/tir.png`,
+    eth: `${RUNE_SPRITE_BASE}/eth.png`,
+    ith: `${RUNE_SPRITE_BASE}/ith.png`,
+    nef: `${RUNE_SPRITE_BASE}/nef.png`,
+    tal: `${RUNE_SPRITE_BASE}/tal.png`,
+    ral: `${RUNE_SPRITE_BASE}/ral.png`,
+    ort: `${RUNE_SPRITE_BASE}/ort.png`,
+    thul: `${RUNE_SPRITE_BASE}/thul.png`,
+    amn: `${RUNE_SPRITE_BASE}/amn.png`,
+    sol: `${RUNE_SPRITE_BASE}/sol.png`,
+    shael: `${RUNE_SPRITE_BASE}/shael.png`,
+    hel: `${RUNE_SPRITE_BASE}/hel.png`,
+    lum: `${RUNE_SPRITE_BASE}/lum.png`,
+    dol: `${RUNE_SPRITE_BASE}/dol.png`,
+    io: `${RUNE_SPRITE_BASE}/io.png`,
+    ko: `${RUNE_SPRITE_BASE}/ko.png`,
+    fal: `${RUNE_SPRITE_BASE}/fal.png`,
+    lem: `${RUNE_SPRITE_BASE}/lem.png`,
+    pul: `${RUNE_SPRITE_BASE}/pul.png`,
+    um: `${RUNE_SPRITE_BASE}/um.png`,
+    mal: `${RUNE_SPRITE_BASE}/mal.png`,
+  };
+
   runtimeWindow.__ROUGE_ASSET_MAP_DATA = {
-    ICON_BASE,
+    UNIQUE_ART_BASE,
     SPRITE_BASE,
     PORTRAIT_BASE,
     CARD_ICONS,
@@ -415,6 +508,11 @@
     CLASS_PORTRAITS,
     KNOWN_ENEMY_SPRITES,
     VARIANT_SPRITE_MAP,
+    ENEMY_FALLBACK_DEFAULTS,
+    ENEMY_FALLBACK_RULES,
+    BROKEN_ENEMY_SPRITES,
+    BROKEN_BOSS_SPRITES,
     ITEM_SPRITES,
+    RUNE_SPRITES,
   };
 })();

@@ -131,14 +131,6 @@
         </section>`
       : "";
 
-    const startSection = !savedRunSummary
-      ? `<section class="welcome-cta-section" style="text-align:center;padding:8px 0">
-          <button class="primary-btn welcome-cta" data-action="start-character-select">
-            ${runCount > 0 ? "New Expedition" : "Begin Expedition"}
-          </button>
-        </section>`
-      : "";
-
     const menuItems = runCount > 0
       ? `<nav class="welcome-menu">
           <button class="welcome-menu-item" data-action="expand-hall" data-section="vault">
@@ -188,22 +180,43 @@
           <button class="auth-signout-btn" data-action="auth-sign-out">Sign out</button>
         </div>`
       : '<div class="auth-signin-row" id="google-signin-container"></div>';
+    const introParagraph = runCount > 0
+      ? "The black gate is still burning. Every archived run leaves another name in the ash, and every fresh draft is another march back toward the fire."
+      : "Under the eclipse, the black gate calls mercenaries, rune-bearers, and doomed pilgrims to the same road. Blood Rogue begins in ash and only grows darker from there.";
+    const instructionText = savedRunSummary
+      ? "Resume your expedition from the hall below, or clear the road before drafting another hero."
+      : runCount > 0
+        ? "Choose a hero, bind your runes, and march back through five acts of blood-soaked combat."
+        : "Choose a hero, sign a mercenary contract, and fight through five acts of Diablo-inspired combat.";
+    const heroActionMarkup = savedRunSummary
+      ? `<p class="welcome-hero-note">A live expedition already waits in the hall below. Resume it there before drafting another contract.</p>`
+      : `<div class="welcome-hero-actions">
+          <button class="primary-btn welcome-cta" data-action="start-character-select">
+            <span class="welcome-cta__label">${runCount > 0 ? "New Expedition" : "Begin Expedition"}</span>
+          </button>
+        </div>`;
 
     root.innerHTML = `
       <section class="welcome-hero panel">
-        <p class="eyebrow">Roguelite Deckbuilder</p>
-        <h1 class="welcome-title">Rogue</h1>
-        <hr class="welcome-divider" />
-        <p class="welcome-tagline">
-          ${runCount > 0
-            ? `${runCount} expedition${runCount === 1 ? "" : "s"} archived \u2022 ${classCount} classes await your next draft`
-            : `Choose a hero, sign a mercenary contract, and fight through five acts of Diablo\u2011inspired combat`}
-        </p>
-        ${authRow}
+        <div class="welcome-hero-art" aria-hidden="true">
+          <img class="welcome-cover-art" src="./assets/curated/title-screen/welcome-cover-art.jpg" alt="" />
+        </div>
+        <div class="welcome-hero-content">
+          <p class="eyebrow">Roguelite Deckbuilder</p>
+          <h1 class="welcome-title">
+            <img class="welcome-title-logo" src="./assets/curated/title-screen/blood-rogue-logo.png" alt="Blood Rogue" />
+          </h1>
+          <hr class="welcome-divider" />
+          <p class="welcome-intro">${introParagraph}</p>
+          <p class="welcome-tagline">
+            ${instructionText}
+          </p>
+          ${heroActionMarkup}
+          ${authRow}
+        </div>
       </section>
       <div class="shell-body">
         ${savedRunCard}
-        ${startSection}
         ${flavorSection}
         ${menuItems}
         ${!savedRunSummary ? recentRunStrip : ""}
@@ -242,7 +255,7 @@
           <button class="neutral-btn" style="padding:6px 14px;font-size:0.85rem" data-action="collapse-hall">\u2190 Back</button>
           <div>
             <p class="eyebrow" style="margin:0">Account Hall</p>
-            <h1 style="font-size:1.6rem;margin:0">Rogue</h1>
+            <h1 style="font-size:1.6rem;margin:0">Blood Rogue</h1>
           </div>
         </div>
       </section>

@@ -74,6 +74,7 @@
         exploring: false,
         explorationEvent: null,
         scrollMapOpen: false,
+        routeIntelOpen: false,
       },
       profile,
       run: null,
@@ -267,6 +268,7 @@
       return { ok: false, message: "No active run." };
     }
     runtimeWindow.ROUGE_RUN_FACTORY.recomputeZoneStatuses(state.run);
+    state.ui.routeIntelOpen = false;
     state.phase = PHASES.WORLD_MAP;
     state.error = "";
     persistRunIfPossible(state);
@@ -306,7 +308,11 @@
     const overrides = runFactory.createCombatOverrides(state.run, state.content, state.profile);
     const mercenaryRouteBonuses = buildMercenaryRouteCombatBonuses(state.run, state.content);
     const combatBonuses = runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatBonuses?.(state.run, state.content) || {};
+    const armorProfile = runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatMitigationProfile?.(state.run, state.content) || null;
+    const weaponEquipment = state.run.loadout?.weapon || null;
     const weaponItemId = state.run.loadout?.weapon?.itemId || "";
+    const weaponItem = runtimeWindow.ROUGE_ITEM_CATALOG?.getItemDefinition?.(state.content, weaponItemId) || null;
+    const weaponProfile = runtimeWindow.ROUGE_ITEM_CATALOG?.buildEquipmentWeaponProfile?.(weaponEquipment, state.content) || null;
     const weaponFamily = runtimeWindow.ROUGE_ITEM_CATALOG?.getWeaponFamily?.(weaponItemId, state.content) || "";
     const classPreferred = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(state.run.classId) || [];
     state.combat = state.combatEngine.createCombatState({
@@ -319,7 +325,10 @@
       initialPotions: overrides.initialPotions,
       randomFn: state.randomFn,
       weaponFamily,
+      weaponName: weaponItem?.name || "",
       weaponDamageBonus: combatBonuses.heroDamageBonus || 0,
+      weaponProfile,
+      armorProfile,
       classPreferredFamilies: classPreferred,
     });
     state.phase = PHASES.ENCOUNTER;

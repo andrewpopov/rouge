@@ -41,6 +41,10 @@
         appState.ui.scrollMapOpen = !appState.ui.scrollMapOpen;
         render();
         return true;
+      case "toggle-route-intel":
+        appState.ui.routeIntelOpen = !appState.ui.routeIntelOpen;
+        render();
+        return true;
       case "select-class":
         appEngine.setSelectedClass(appState, actionEl.dataset.classId || "");
         render();

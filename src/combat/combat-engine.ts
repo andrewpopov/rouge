@@ -176,6 +176,14 @@
     if (intent.kind === "drain_attack") {
       return `${intent.value} dmg + heal`;
     }
+    if (intent.kind === "charge") {
+      const scope = intent.target === "all_allies" ? " all" : intent.target === "mercenary" ? " merc" : "";
+      const damageType = intent.damageType ? ` ${intent.damageType}` : "";
+      return `${intent.label} (${intent.value} dmg${scope}${damageType} next)`;
+    }
+    if (intent.kind === "teleport") {
+      return `${intent.label} (+${intent.value} Guard)`;
+    }
     if (intent.kind === "guard") {
       return `+${intent.value} Guard`;
     }
@@ -206,8 +214,17 @@
     if (intent.kind === "attack_burn_all") {
       return `${intent.value} dmg all + Burn`;
     }
+    if (intent.kind === "attack_lightning") {
+      return `${intent.value} dmg + Lightning`;
+    }
+    if (intent.kind === "attack_lightning_all") {
+      return `${intent.value} dmg all + Lightning`;
+    }
     if (intent.kind === "attack_poison") {
       return `${intent.value} dmg + Poison`;
+    }
+    if (intent.kind === "attack_poison_all") {
+      return `${intent.value} dmg all + Poison`;
     }
     if (intent.kind === "attack_chill") {
       return `${intent.value} dmg + Chill`;
@@ -337,7 +354,10 @@
     starterDeck = null,
     initialPotions = 2,
     weaponFamily = "",
+    weaponName = "",
     weaponDamageBonus = 0,
+    weaponProfile = null,
+    armorProfile = null,
     classPreferredFamilies = [],
   }: {
     content: GameContent;
@@ -349,7 +369,10 @@
     starterDeck?: string[] | null;
     initialPotions?: number;
     weaponFamily?: string;
+    weaponName?: string;
     weaponDamageBonus?: number;
+    weaponProfile?: WeaponCombatProfile | null;
+    armorProfile?: ArmorMitigationProfile | null;
     classPreferredFamilies?: string[];
   }) {
     const encounter = content.encounterCatalog[encounterId];
@@ -371,7 +394,10 @@
       selectedEnemyId: "",
       meleeUsed: false,
       weaponFamily,
+      weaponName,
       weaponDamageBonus,
+      weaponProfile,
+      armorProfile,
       classPreferredFamilies,
       deckCardIds: Array.isArray(starterDeck) && starterDeck.length > 0 ? [...starterDeck] : [...content.starterDeck],
     };

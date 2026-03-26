@@ -3,6 +3,9 @@
   const {
     buildHydratedLoadout,
     clamp,
+    cloneArmorProfile,
+    cloneWeaponProfile,
+    getRarityKind,
     getItemDefinition,
     getRuneDefinition,
     isRuneAllowedInSlot,
@@ -110,6 +113,7 @@
       trainingRanksGained: 0,
       bossesDefeated: 0,
       runewordsForged: 0,
+      uniqueItemsFound: 0,
       ...(run.summary || {}),
     };
 
@@ -158,7 +162,10 @@
       insertedRunes: Array.isArray(equipment.insertedRunes) ? [...equipment.insertedRunes] : [],
       runewordId: equipment.runewordId || "",
       rarity: equipment.rarity || RARITY.WHITE,
+      rarityKind: equipment.rarityKind || getRarityKind(equipment.rarity || RARITY.WHITE),
       rarityBonuses: equipment.rarityBonuses || {},
+      weaponAffixes: cloneWeaponProfile(equipment.weaponAffixes),
+      armorAffixes: cloneArmorProfile(equipment.armorAffixes),
     };
   }
 
@@ -322,6 +329,11 @@
         socketsUnlocked: 0,
         insertedRunes: [],
         runewordId: "",
+        rarity: equipment.rarity || RARITY.WHITE,
+        rarityKind: equipment.rarityKind || getRarityKind(equipment.rarity || RARITY.WHITE),
+        rarityBonuses: equipment.rarityBonuses || {},
+        weaponAffixes: cloneWeaponProfile(equipment.weaponAffixes),
+        armorAffixes: cloneArmorProfile(equipment.armorAffixes),
       },
       equipment.slot,
       content
@@ -357,9 +369,18 @@
     };
   }
 
-  function addEquipmentToInventory(run: RunState, itemId: string, content: GameContent, rarity: string = RARITY.WHITE, rarityBonuses: ItemBonusSet = {}): InventoryEquipmentEntry | null {
+  function addEquipmentToInventory(
+    run: RunState,
+    itemId: string,
+    content: GameContent,
+    rarity: string = RARITY.WHITE,
+    rarityBonuses: ItemBonusSet = {},
+    weaponAffixes: WeaponCombatProfile | undefined = undefined,
+    armorAffixes: ArmorMitigationProfile | undefined = undefined
+  ): InventoryEquipmentEntry | null {
     const item = getItemDefinition(content, itemId);
     if (!item) { return null; }
+    const rarityKind = getRarityKind(rarity);
     const entryId = allocateInventoryEntryId(run);
     const entry: InventoryEquipmentEntry = {
       entryId,
@@ -372,7 +393,10 @@
         insertedRunes: [],
         runewordId: "",
         rarity,
+        rarityKind,
         rarityBonuses,
+        weaponAffixes: cloneWeaponProfile(weaponAffixes),
+        armorAffixes: cloneArmorProfile(armorAffixes),
       },
     };
     run.inventory.carried.push(entry);

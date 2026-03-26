@@ -9,7 +9,10 @@ interface RunEquipmentState {
   insertedRunes: string[];
   runewordId: string;
   rarity?: string;
+  rarityKind?: string;
   rarityBonuses?: ItemBonusSet;
+  weaponAffixes?: WeaponCombatProfile;
+  armorAffixes?: ArmorMitigationProfile;
 }
 
 interface InventoryEquipmentEntry {
@@ -48,6 +51,8 @@ interface ItemTemplateDefinition {
   actRequirement: number;
   progressionTier: number;
   bonuses: ItemBonusSet;
+  weaponProfile?: WeaponCombatProfile;
+  armorProfile?: ArmorMitigationProfile;
 }
 
 interface RuneTemplateDefinition {

@@ -951,3 +951,63 @@ test("upgrade rewards can upgrade a card already in the deck through the app flo
   assert.equal(state.run.deck.filter((cardId) => cardId === upgradeEffect.fromCardId).length, fromCountBefore - 1);
   assert.equal(state.run.deck.filter((cardId) => cardId === upgradeEffect.toCardId).length, toCountBefore + 1);
 });
+
+test("late-run reward choices shift away from extra card adds when the deck is already oversized", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle, browserWindow } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "paladin");
+  appEngine.startRun(state);
+
+  state.run.deck = Array.from({ length: 32 }, () => "quick_slash");
+  const openingZone = runFactory.getCurrentZones(state.run)[0];
+  const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: state.run,
+    zone: openingZone,
+    actNumber: openingZone.actNumber,
+    encounterNumber: 1,
+    profile: state.profile,
+  });
+
+  const cardChoices = rewardChoices.filter((choice: RewardChoice) => choice.kind === "card");
+
+  assert.equal(cardChoices.length, 0);
+  assert.ok(rewardChoices.some((choice: RewardChoice) => choice.kind !== "card"));
+});
+
+test("early-act reward choices cap card growth sooner than the late-game deck ceiling", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle, browserWindow } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "barbarian");
+  appEngine.startRun(state);
+
+  state.run.deck = Array.from({ length: 24 }, () => "barbarian_bash");
+  const openingZone = runFactory.getCurrentZones(state.run)[0];
+  const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: state.run,
+    zone: openingZone,
+    actNumber: openingZone.actNumber,
+    encounterNumber: 1,
+    profile: state.profile,
+  });
+
+  const cardChoices = rewardChoices.filter((choice: RewardChoice) => choice.kind === "card");
+
+  assert.equal(cardChoices.length, 0);
+  assert.ok(rewardChoices.some((choice: RewardChoice) => choice.kind !== "card"));
+});

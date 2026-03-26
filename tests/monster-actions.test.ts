@@ -98,6 +98,43 @@ test("resolveMonsterIntent handles summon_minion", () => {
   assert.ok(state.enemies.length > enemyCountBefore, "should have spawned a minion");
 });
 
+test("resolveMonsterIntent handles teleport by gaining guard and clearing crowd control", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+
+  const caster = state.enemies[0];
+  caster.freeze = 1;
+  caster.slow = 1;
+  const intent: EnemyIntent = { kind: "teleport", label: "Teleport Away", value: 7 };
+  caster.currentIntent = intent;
+  caster.intentIndex = 0;
+  caster.intents = [intent];
+
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  assert.equal(caster.guard, 7);
+  assert.equal(caster.freeze, 0);
+  assert.equal(caster.slow, 0);
+});
+
+test("resolveMonsterIntent handles charge by telegraphing and gaining guard", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+
+  const caster = state.enemies[0];
+  const intent: EnemyIntent = { kind: "charge", label: "Poison Wave", value: 9, target: "all_allies", secondaryValue: 4, damageType: "poison" };
+  caster.currentIntent = intent;
+  caster.intentIndex = 0;
+  caster.intents = [intent];
+
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  assert.equal(caster.guard, 4);
+  assert.ok(state.log.some((l: string) => l.includes("charging Poison Wave")));
+});
+
 test("resolveMonsterIntent handles attack_burn", () => {
   const harness = createCombatHarness();
   const state = createState(harness);
@@ -128,6 +165,41 @@ test("resolveMonsterIntent handles attack_poison", () => {
   harness.engine.endTurn(state);
 
   assert.ok(state.hero.heroPoison > 0, "hero should have poison stacks");
+});
+
+test("resolveMonsterIntent handles attack_poison_all", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+
+  const caster = state.enemies[0];
+  const intent: EnemyIntent = { kind: "attack_poison_all", label: "Poison Wave", value: 4, target: "all_allies", secondaryValue: 2 };
+  caster.currentIntent = intent;
+  caster.intentIndex = 0;
+  caster.intents = [intent];
+
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  assert.ok(state.hero.heroPoison > 0, "hero should have poison stacks");
+  assert.ok(state.mercenary.life < state.mercenary.maxLife, "mercenary should take poison damage");
+});
+
+test("resolveMonsterIntent handles attack_lightning", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+
+  const caster = state.enemies[0];
+  const intent: EnemyIntent = { kind: "attack_lightning", label: "Soul Bolt", value: 5, target: "hero" };
+  caster.currentIntent = intent;
+  caster.intentIndex = 0;
+  caster.intents = [intent];
+
+  const heroBefore = state.hero.life;
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  assert.ok(state.hero.life < heroBefore, "hero should take lightning damage");
+  assert.ok(state.log.some((l: string) => l.includes("lightning damage")));
 });
 
 test("resolveMonsterIntent handles attack_chill", () => {

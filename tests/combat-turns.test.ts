@@ -295,6 +295,274 @@ test("meleeStrike with weaken debuff reduces damage", () => {
   assert.equal(state.meleeUsed, true);
 });
 
+test("damage cards gain proficiency-matched weapon bonuses and on-hit effects", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["amazon_magic_arrow"],
+    weaponName: "Short Bow",
+    weaponProfile: {
+      attackDamageByProficiency: { bow: 2 },
+      effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
+    },
+  });
+  const target = state.enemies[0];
+  target.guard = 0;
+  const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
+  assert.ok(card);
+  const lifeBefore = target.life;
+
+  harness.engine.playCard(state, harness.content, card.instanceId, target.id);
+
+  assert.equal(lifeBefore - target.life, 9);
+  assert.equal(target.burn, 1);
+});
+
+test("preferred weapon families amplify matching weapon-skill bonuses", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["amazon_magic_arrow"],
+    weaponFamily: "Bows",
+    classPreferredFamilies: ["Bows"],
+    weaponName: "Short Bow",
+    weaponProfile: {
+      attackDamageByProficiency: { bow: 2 },
+      typedDamage: [{ type: "fire", amount: 2, proficiency: "bow" }],
+      effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
+    },
+  });
+  const target = state.enemies[0];
+  target.guard = 0;
+  const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
+  assert.ok(card);
+  const lifeBefore = target.life;
+
+  harness.engine.playCard(state, harness.content, card.instanceId, target.id);
+
+  assert.equal(lifeBefore - target.life, 13);
+  assert.equal(target.burn, 2);
+});
+
+test("typed weapon damage applies as a separate packet on matching attack cards", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["amazon_magic_arrow"],
+    weaponName: "Short Bow",
+    weaponProfile: {
+      typedDamage: [{ type: "fire", amount: 2, proficiency: "bow" }],
+    },
+  });
+  const target = state.enemies[0];
+  target.guard = 0;
+  const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
+  assert.ok(card);
+  const lifeBefore = target.life;
+
+  harness.engine.playCard(state, harness.content, card.instanceId, target.id);
+
+  assert.equal(lifeBefore - target.life, 9);
+  assert.ok(state.log.some((line: string) => /fire damage/i.test(line)));
+});
+
+test("weapon proficiency bonuses do not apply to unrelated attack skills", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["amazon_jab"],
+    weaponName: "Short Bow",
+    weaponProfile: {
+      attackDamageByProficiency: { bow: 2 },
+      effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
+    },
+  });
+  const target = state.enemies[0];
+  target.guard = 0;
+  const card = state.hand.find((entry) => entry.cardId === "amazon_jab");
+  assert.ok(card);
+  const lifeBefore = target.life;
+
+  harness.engine.playCard(state, harness.content, card.instanceId, target.id);
+
+  assert.equal(lifeBefore - target.life, 8);
+  assert.equal(target.burn, 0);
+});
+
+test("matching weapon proficiencies boost support skills as well as attacks", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["barbarian_natural_resistance"],
+    weaponName: "Short Sword",
+    weaponProfile: {
+      supportValueByProficiency: { masteries: 2 },
+    },
+  });
+  const card = state.hand.find((entry) => entry.cardId === "barbarian_natural_resistance");
+  assert.ok(card);
+  state.hero.life = Math.max(1, state.hero.maxLife - 10);
+  state.hero.guard = 0;
+
+  harness.engine.playCard(state, harness.content, card.instanceId);
+
+  assert.equal(state.hero.life, state.hero.maxLife - 2);
+  assert.equal(state.hero.guard, 5);
+});
+
+test("preferred weapon families amplify matching support skill bonuses", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["barbarian_natural_resistance"],
+    weaponFamily: "Swords",
+    classPreferredFamilies: ["Swords"],
+    weaponName: "Short Sword",
+    weaponProfile: {
+      supportValueByProficiency: { masteries: 2 },
+    },
+  });
+  const card = state.hand.find((entry) => entry.cardId === "barbarian_natural_resistance");
+  assert.ok(card);
+  state.hero.life = Math.max(1, state.hero.maxLife - 10);
+  state.hero.guard = 0;
+
+  harness.engine.playCard(state, harness.content, card.instanceId);
+
+  assert.equal(state.hero.life, state.hero.maxLife - 1);
+  assert.equal(state.hero.guard, 6);
+});
+
+test("armor physical resistance reduces incoming direct attacks", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    armorProfile: {
+      resistances: [{ type: "physical", amount: 2 }],
+    },
+  });
+  const enemy = state.enemies[0];
+  state.enemies = [enemy];
+  state.mercenary.alive = false;
+  state.hero.guard = 0;
+  enemy.intents = [{ kind: "attack", label: "Slash", value: 5, target: "hero" }];
+  enemy.currentIntent = { ...enemy.intents[0] };
+  const heroBefore = state.hero.life;
+
+  harness.engine.endTurn(state);
+
+  assert.equal(heroBefore - state.hero.life, 3);
+});
+
+test("fire immunity on armor negates fire attacks and burn application", () => {
+  const harness = createCombatHarness();
+  const state = harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    armorProfile: {
+      immunities: ["fire"],
+    },
+  });
+  const enemy = state.enemies[0];
+  state.enemies = [enemy];
+  state.mercenary.alive = false;
+  state.hero.guard = 0;
+  enemy.intents = [{ kind: "attack_burn", label: "Flame Lash", value: 5, target: "hero", secondaryValue: 2 }];
+  enemy.currentIntent = { ...enemy.intents[0] };
+  const heroBefore = state.hero.life;
+
+  harness.engine.endTurn(state);
+
+  assert.equal(heroBefore - state.hero.life, 0);
+  assert.equal(state.hero.heroBurn, 0);
+});
+
+test("thorns retaliation respects physical mitigation and guard", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+  state.weaponDamageBonus = 3;
+  state.weaponName = "Short Sword";
+  state.armorProfile = {
+    resistances: [{ type: "physical", amount: 1 }],
+  };
+  state.hero.guard = 1;
+  state.meleeUsed = false;
+  const target = state.enemies[0];
+  target.guard = 0;
+  target.traits = ["thorns"];
+  state.selectedEnemyId = target.id;
+  const heroLifeBefore = state.hero.life;
+
+  harness.engine.meleeStrike(state, harness.content);
+
+  assert.equal(state.hero.guard, 0);
+  assert.equal(heroLifeBefore - state.hero.life, 0);
+  assert.ok(state.log.some((line: string) => line.includes("thorns deal 1 damage back")));
+});
+
+test("meleeStrike applies crushing weapon effects after the base hit", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+  state.weaponDamageBonus = 2;
+  state.weaponName = "War Hammer";
+  state.weaponProfile = {
+    effects: [{ kind: "crushing", amount: 2 }],
+  };
+  state.meleeUsed = false;
+  const target = state.enemies[0];
+  target.guard = 3;
+  state.selectedEnemyId = target.id;
+  const lifeBefore = target.life;
+
+  harness.engine.meleeStrike(state, harness.content);
+
+  assert.equal(target.guard, 0);
+  assert.equal(lifeBefore - target.life, 1);
+});
+
+test("meleeStrike poison weapon damage bypasses remaining guard", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+  state.weaponDamageBonus = 2;
+  state.weaponName = "Plague Knife";
+  state.weaponProfile = {
+    typedDamage: [{ type: "poison", amount: 2 }],
+  };
+  state.meleeUsed = false;
+  const target = state.enemies[0];
+  target.guard = 3;
+  state.selectedEnemyId = target.id;
+  const lifeBefore = target.life;
+
+  harness.engine.meleeStrike(state, harness.content);
+
+  assert.equal(target.guard, 1);
+  assert.equal(lifeBefore - target.life, 2);
+});
+
 // ── endTurn ──
 
 test("endTurn fails during enemy phase", () => {
@@ -670,4 +938,29 @@ test("chooseEnemyTarget picks mercenary when lowest_life and merc has less HP", 
   if (!state.outcome && state.mercenary.alive) {
     assert.ok(state.mercenary.life <= mercLifeBefore, "mercenary should be targeted");
   }
+});
+
+test("chooseEnemyTarget can explicitly target the mercenary", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+  state.mercenary.life = state.mercenary.maxLife;
+  state.hero.life = state.hero.maxLife;
+
+  const enemy = state.enemies[0];
+  state.enemies.forEach((entry) => {
+    if (entry.id !== enemy.id) {
+      entry.life = 0;
+      entry.alive = false;
+    }
+  });
+  enemy.currentIntent = { kind: "attack", label: "Maul", value: 4, target: "mercenary" };
+  enemy.intents = [{ kind: "attack", label: "Maul", value: 4, target: "mercenary" }];
+
+  const heroLifeBefore = state.hero.life;
+  const mercLifeBefore = state.mercenary.life;
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  assert.equal(state.hero.life, heroLifeBefore);
+  assert.ok(state.mercenary.life < mercLifeBefore, "mercenary should take the hit");
 });

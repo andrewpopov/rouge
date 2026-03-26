@@ -4,7 +4,20 @@ const fs = require("fs/promises");
 const path = require("path");
 const { chromium } = require("playwright");
 
-const DEFAULT_TAGS = ["steampunk", "machine", "smoke", "light", "energy"];
+const DEFAULT_TAGS = [
+  "medieval-fantasy",
+  "weapon",
+  "blade",
+  "skull",
+  "blood",
+  "fire",
+  "poison",
+  "armor",
+  "zombie",
+  "vampire",
+  "death",
+  "mask",
+];
 
 async function downloadTagArchive(page, tag, outputDir) {
   const url = `https://game-icons.net/tags/${tag}.html`;

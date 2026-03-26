@@ -2,6 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   // ── Skill tree assignment: which D2 tree does each card belong to? ──
+  // This also seeds explicit card proficiencies used by weapon scaling.
 
   const CARD_TREE_MAP: Record<string, string> = {
     // Sorceress
@@ -9,15 +10,19 @@
     sorceress_frost_nova: "cold",
     sorceress_blizzard: "cold",
     sorceress_frozen_orb: "cold",
+    sorceress_frozen_armor: "cold",
     sorceress_fire_bolt: "fire",
     sorceress_fireball: "fire",
     sorceress_meteor: "fire",
     sorceress_inferno: "fire",
     sorceress_hydra: "fire",
+    sorceress_warmth: "fire",
     sorceress_charged_bolt: "lightning",
     sorceress_static_field: "lightning",
     sorceress_chain_lightning: "lightning",
     sorceress_lightning_mastery: "lightning",
+    sorceress_energy_shield: "lightning",
+    sorceress_teleport: "lightning",
 
     // Barbarian
     barbarian_bash: "combat_skills",
@@ -30,14 +35,17 @@
     barbarian_whirlwind: "combat_skills",
     barbarian_berserk: "combat_skills",
     barbarian_howl: "warcries",
+    barbarian_find_potion: "warcries",
     barbarian_shout: "warcries",
     barbarian_battle_orders: "warcries",
     barbarian_war_cry: "warcries",
     barbarian_sword_mastery: "masteries",
     barbarian_iron_skin: "masteries",
+    barbarian_natural_resistance: "masteries",
 
     // Necromancer
     necromancer_teeth: "poison_bone",
+    necromancer_bone_armor: "poison_bone",
     necromancer_corpse_explosion: "poison_bone",
     necromancer_bone_spear: "poison_bone",
     necromancer_bone_spirit: "poison_bone",
@@ -47,6 +55,7 @@
     necromancer_poison_nova: "poison_bone",
     necromancer_amplify_damage: "curses",
     necromancer_iron_maiden: "curses",
+    necromancer_life_tap: "curses",
     necromancer_decrepify: "curses",
     necromancer_raise_skeleton: "summoning",
     necromancer_clay_golem: "summoning",
@@ -67,11 +76,14 @@
     amazon_charged_strike: "javelin",
     amazon_lightning_fury: "javelin",
     amazon_inner_sight: "passive",
+    amazon_dodge: "passive",
+    amazon_critical_strike: "passive",
     amazon_valkyrie: "passive",
 
     // Assassin
     assassin_tiger_strike: "martial_arts",
     assassin_cobra_strike: "martial_arts",
+    assassin_fists_of_fire: "martial_arts",
     assassin_claws_of_thunder: "martial_arts",
     assassin_phoenix_strike: "martial_arts",
     assassin_fire_blast: "traps",
@@ -79,23 +91,28 @@
     assassin_lightning_sentry: "traps",
     assassin_death_sentry: "traps",
     assassin_psychic_hammer: "shadow",
+    assassin_cloak_of_shadows: "shadow",
     assassin_burst_of_speed: "shadow",
     assassin_fade: "shadow",
     assassin_claw_mastery: "shadow",
+    assassin_blade_shield: "shadow",
     assassin_shadow_warrior: "shadow",
 
     // Druid
     druid_firestorm: "elemental",
     druid_molten_boulder: "elemental",
     druid_fissure: "elemental",
+    druid_cyclone_armor: "elemental",
     druid_volcano: "elemental",
     druid_tornado: "elemental",
     druid_armageddon: "elemental",
     druid_hurricane: "elemental",
     druid_werewolf: "shape_shifting",
+    druid_lycanthropy: "shape_shifting",
     druid_werebear: "shape_shifting",
     druid_fury: "shape_shifting",
     druid_raven: "summoning",
+    druid_poison_creeper: "summoning",
     druid_oak_sage: "summoning",
     druid_heart_of_wolverine: "summoning",
     druid_summon_grizzly: "summoning",
@@ -110,6 +127,7 @@
     paladin_vengeance: "combat",
     paladin_prayer: "defensive_auras",
     paladin_defiance: "defensive_auras",
+    paladin_cleansing: "defensive_auras",
     paladin_holy_freeze: "defensive_auras",
     paladin_holy_shield: "defensive_auras",
     paladin_might: "offensive_auras",
@@ -118,6 +136,8 @@
     paladin_thorns: "offensive_auras",
     paladin_conviction: "offensive_auras",
   };
+
+  const CARD_PROFICIENCY_MAP: Record<string, string> = { ...CARD_TREE_MAP };
 
   // ── Evolution chains: source card -> target card ──
 
@@ -268,6 +288,31 @@
     return CARD_TREE_MAP[cardId] || "";
   }
 
+  function getCardProficiency(cardId: string): string {
+    const card =
+      runtimeWindow.ROUGE_GAME_CONTENT?.cardCatalog?.[cardId] ||
+      runtimeWindow.__ROUGE_CLASS_CARDS?.classCardCatalog?.[cardId];
+    if (card?.proficiency) {
+      return card.proficiency;
+    }
+    return CARD_PROFICIENCY_MAP[cardId] || getCardTree(cardId) || "";
+  }
+
+  function applyCardProficiencies(cardCatalog: Record<string, CardDefinition> | null | undefined) {
+    if (!cardCatalog) {
+      return;
+    }
+    Object.values(cardCatalog).forEach((card) => {
+      if (!card || card.proficiency) {
+        return;
+      }
+      const proficiency = CARD_PROFICIENCY_MAP[card.id] || getCardTree(card.id);
+      if (proficiency) {
+        card.proficiency = proficiency;
+      }
+    });
+  }
+
   function getEvolution(cardId: string): EvolutionEntry | null {
     return EVOLUTION_CHAINS[cardId] || null;
   }
@@ -398,12 +443,16 @@
     return results;
   }
 
+  applyCardProficiencies(runtimeWindow.__ROUGE_CLASS_CARDS?.classCardCatalog);
+
   runtimeWindow.__ROUGE_SKILL_EVOLUTION = {
     CARD_TREE_MAP,
+    CARD_PROFICIENCY_MAP,
     EVOLUTION_CHAINS,
     EVOLUTION_COST,
     GENERIC_UPGRADES,
     MAX_UPGRADE_SLOTS,
+    getCardProficiency,
     getCardTree,
     getEvolution,
     getEvolutionCost,

@@ -23,6 +23,10 @@
     return Array.isArray(enemy.traits) && enemy.traits.includes(trait);
   }
 
+  function _getLivingPartyTargets(state: CombatState) {
+    return [state.hero, state.mercenary].filter((target: CombatHeroState | CombatMercenaryState) => target?.alive);
+  }
+
   // ── D2 elite modifier: on-attack effects ──
 
   function processModifierOnAttack(state: CombatState, enemy: CombatEnemyState) {
@@ -53,9 +57,7 @@
     }
     if (enemy.traits.includes(TRAIT.LIGHTNING_ENCHANTED)) {
       const boltDamage = 2;
-      const before = state.hero.life;
-      state.hero.life = Math.max(0, state.hero.life - boltDamage);
-      const dealt = before - state.hero.life;
+      const dealt = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.dealDirectDamage?.(state, state.hero, boltDamage, "lightning") || 0;
       if (dealt > 0) {
         _appendLog(state, `${enemy.name}'s lightning arc zaps the Wanderer for ${dealt}!`);
       }
@@ -75,7 +77,12 @@
     intent: EnemyIntent,
     intentValue: number,
     chooseTarget: (state: CombatState, rule: EnemyIntentTarget | undefined) => CombatHeroState | CombatMercenaryState | null,
-    dealDamage: (state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) => number,
+    dealDamage: (
+      state: CombatState,
+      entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+      amount: number,
+      damageType?: DamageType
+    ) => number,
     healEntity: (entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) => number,
   ): boolean {
 
@@ -109,39 +116,44 @@
     }
 
     if (intent.kind === "summon_minion") {
-      if (state.enemies.length < MAX_ENEMIES_IN_COMBAT) {
-        const spawnId = `summon_${state.turn}_${state.enemies.length}`;
+      const spawnCount = Math.max(1, Math.floor(intent.secondaryValue || 1));
+      const availableSlots = Math.max(0, MAX_ENEMIES_IN_COMBAT - state.enemies.length);
+      const actualCount = Math.min(spawnCount, availableSlots);
+      if (actualCount > 0) {
         const spawnLife = Math.max(4, Math.floor(intent.value * 1.5));
         const spawnAttack = Math.max(2, Math.floor(intent.value * 0.6));
-        const spawn: CombatEnemyState = {
-          id: spawnId,
-          templateId: enemy.summonTemplateId || `${enemy.templateId}_young`,
-          name: intent.label.includes("Egg") ? "Maggot Young" : `${enemy.name} Minion`,
-          role: "raider",
-          maxLife: spawnLife,
-          life: spawnLife,
-          guard: 0,
-          burn: 0,
-          poison: 0,
-          slow: 0,
-          freeze: 0,
-          stun: 0,
-          paralyze: 0,
-          alive: true,
-          intentIndex: 0,
-          currentIntent: { kind: "attack", label: "Minion Strike", value: spawnAttack, target: "hero" },
-          intents: [
-            { kind: "attack", label: "Minion Strike", value: spawnAttack, target: "hero" },
-            { kind: "attack", label: "Minion Bite", value: spawnAttack, target: "lowest_life" },
-          ],
-          traits: [],
-          family: enemy.family || "",
-          summonTemplateId: "",
-          consumed: false,
-          buffedAttack: 0,
-        };
-        state.enemies.push(spawn);
-        _appendLog(state, `${enemy.name} uses ${intent.label} and spawns a minion!`);
+        for (let index = 0; index < actualCount; index += 1) {
+          const spawnId = `summon_${state.turn}_${state.enemies.length}`;
+          const spawn: CombatEnemyState = {
+            id: spawnId,
+            templateId: enemy.summonTemplateId || `${enemy.templateId}_young`,
+            name: intent.label.includes("Egg") ? "Maggot Young" : `${enemy.name} Minion`,
+            role: "raider",
+            maxLife: spawnLife,
+            life: spawnLife,
+            guard: 0,
+            burn: 0,
+            poison: 0,
+            slow: 0,
+            freeze: 0,
+            stun: 0,
+            paralyze: 0,
+            alive: true,
+            intentIndex: 0,
+            currentIntent: { kind: "attack", label: "Minion Strike", value: spawnAttack, target: "hero" },
+            intents: [
+              { kind: "attack", label: "Minion Strike", value: spawnAttack, target: "hero" },
+              { kind: "attack", label: "Minion Bite", value: spawnAttack, target: "lowest_life" },
+            ],
+            traits: [],
+            family: enemy.family || "",
+            summonTemplateId: "",
+            consumed: false,
+            buffedAttack: 0,
+          };
+          state.enemies.push(spawn);
+        }
+        _appendLog(state, `${enemy.name} uses ${intent.label} and spawns ${actualCount} minion${actualCount === 1 ? "" : "s"}!`);
         putIntentOnCooldown(enemy);
       } else {
         _appendLog(state, `${enemy.name} tries to summon but the field is full.`);
@@ -149,10 +161,38 @@
       return true;
     }
 
+    if (intent.kind === "charge") {
+      const guardGained = Math.max(0, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 3)));
+      if (guardGained > 0) {
+        runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.applyGuard?.(enemy, guardGained);
+      }
+      const scope = intent.target === "all_allies"
+        ? "the whole party"
+        : intent.target === "mercenary"
+          ? "the mercenary"
+          : "the Wanderer";
+      const damageType = intent.damageType ? ` ${intent.damageType}` : "";
+      _appendLog(
+        state,
+        `${enemy.name} begins charging ${intent.label}. ${scope} will take ${intent.value}${damageType} damage next turn.${guardGained > 0 ? ` ${enemy.name} gains ${guardGained} Guard.` : ""}`
+      );
+      return true;
+    }
+
+    if (intent.kind === "teleport") {
+      enemy.slow = 0;
+      enemy.freeze = 0;
+      enemy.stun = 0;
+      enemy.paralyze = 0;
+      runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.applyGuard?.(enemy, Math.max(0, intent.value));
+      _appendLog(state, `${enemy.name} uses ${intent.label}, blinking out of reach and gaining ${Math.max(0, intent.value)} Guard.`);
+      return true;
+    }
+
     if (intent.kind === "attack_burn") {
       const target = chooseTarget(state, intent.target);
       if (!target) { return true; }
-      const dealt = dealDamage(state, target, intentValue);
+      const dealt = dealDamage(state, target, intentValue, "fire");
       const burnStacks = intent.secondaryValue || 2;
       applyHeroBurn(state, burnStacks);
       _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts ${burnStacks} Burn!`);
@@ -160,9 +200,9 @@
     }
 
     if (intent.kind === "attack_burn_all") {
-      const partyTargets = [state.hero, state.mercenary].filter((t: CombatHeroState | CombatMercenaryState) => t?.alive);
+      const partyTargets = _getLivingPartyTargets(state);
       const segments = partyTargets.map((target) => {
-        const dealt = dealDamage(state, target, intentValue);
+        const dealt = dealDamage(state, target, intentValue, "fire");
         return `${target.name} for ${dealt}`;
       });
       const burnStacks = intent.secondaryValue || 2;
@@ -174,17 +214,47 @@
     if (intent.kind === "attack_poison") {
       const target = chooseTarget(state, intent.target);
       if (!target) { return true; }
-      const dealt = dealDamage(state, target, intentValue);
+      const dealt = dealDamage(state, target, intentValue, "poison");
       const poisonStacks = intent.secondaryValue || 2;
       applyHeroPoison(state, poisonStacks);
       _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts ${poisonStacks} Poison!`);
       return true;
     }
 
+    if (intent.kind === "attack_poison_all") {
+      const partyTargets = _getLivingPartyTargets(state);
+      const segments = partyTargets.map((target) => {
+        const dealt = dealDamage(state, target, intentValue, "poison");
+        return `${target.name} for ${dealt}`;
+      });
+      const poisonStacks = intent.secondaryValue || 2;
+      applyHeroPoison(state, poisonStacks);
+      _appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")} and inflicts ${poisonStacks} Poison!`);
+      return true;
+    }
+
+    if (intent.kind === "attack_lightning") {
+      const target = chooseTarget(state, intent.target);
+      if (!target) { return true; }
+      const dealt = dealDamage(state, target, intentValue, "lightning");
+      _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} lightning damage!`);
+      return true;
+    }
+
+    if (intent.kind === "attack_lightning_all") {
+      const partyTargets = _getLivingPartyTargets(state);
+      const segments = partyTargets.map((target) => {
+        const dealt = dealDamage(state, target, intentValue, "lightning");
+        return `${target.name} for ${dealt}`;
+      });
+      _appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}!`);
+      return true;
+    }
+
     if (intent.kind === "attack_chill") {
       const target = chooseTarget(state, intent.target);
       if (!target) { return true; }
-      const dealt = dealDamage(state, target, intentValue);
+      const dealt = dealDamage(state, target, intentValue, "cold");
       const chillStacks = intent.secondaryValue || 1;
       applyHeroChill(state, chillStacks);
       _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts Chill!`);

@@ -172,6 +172,39 @@ test("toggle-scroll-map flips scrollMapOpen state", () => {
   assert.equal(state.ui.scrollMapOpen, false);
 });
 
+test("toggle-route-intel flips routeIntelOpen state", () => {
+  const harness = createHarness();
+  const { actionDispatcher, appEngine, combatEngine, content, createActionTarget, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+
+  assert.ok(!state.ui.routeIntelOpen, "routeIntelOpen should start falsy");
+
+  actionDispatcher.handleClick({
+    target: createActionTarget({ action: "toggle-route-intel" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render: () => {},
+    syncCombatResultAndRender: () => {},
+  });
+  assert.equal(state.ui.routeIntelOpen, true);
+
+  actionDispatcher.handleClick({
+    target: createActionTarget({ action: "toggle-route-intel" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render: () => {},
+    syncCombatResultAndRender: () => {},
+  });
+  assert.equal(state.ui.routeIntelOpen, false);
+});
+
 test("end-turn action advances combat phase", () => {
   const setup = setupEncounterState(createHarness());
   const { state, actionDispatcher, appEngine, combatEngine, createActionTarget, syncCombatResultAndRender, browserWindow } = setup;

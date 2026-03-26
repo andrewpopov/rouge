@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  let lastRenderedPhase = "";
 
   function buildDebugBar(debug: DebugModeConfig, appState: AppState): string {
     const flag = (key: string, label: string, active: boolean) =>
@@ -77,6 +78,8 @@
     }
 
     const stateWithContent = { ...appState, content };
+    const phaseChanged = appState.phase !== lastRenderedPhase;
+    lastRenderedPhase = appState.phase;
 
     switch (appState.phase) {
       case services.appEngine.PHASES.FRONT_DOOR:
@@ -121,6 +124,15 @@
       root.innerHTML += `<div class="inv-overlay" data-action="close-inventory">
         <div data-action="noop">${runtimeWindow.ROUGE_INVENTORY_VIEW.buildInventoryMarkup(appState, services)}</div>
       </div>`;
+    }
+
+    if (phaseChanged) {
+      runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedRAF(() => {
+        if (typeof window !== "object" || typeof window.scrollTo !== "function") {
+          return;
+        }
+        window.scrollTo(0, 0);
+      });
     }
   }
 

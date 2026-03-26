@@ -81,7 +81,10 @@ interface CombatState {
   selectedEnemyId: string;
   meleeUsed?: boolean;
   weaponFamily?: string;
+  weaponName?: string;
   weaponDamageBonus?: number;
+  weaponProfile?: WeaponCombatProfile | null;
+  armorProfile?: ArmorMitigationProfile | null;
   classPreferredFamilies?: string[];
   deckCardIds: string[];
 }

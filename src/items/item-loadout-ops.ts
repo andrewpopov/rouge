@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const {
+    buildEquipmentArmorProfile,
     buildHydratedLoadout,
     getItemDefinition,
     getRuneDefinition,
@@ -168,6 +169,24 @@
     hydrateRunLoadout(run, content);
     runtimeWindow.ROUGE_ITEM_TOWN?.hydrateRunInventory?.(run, content);
 
+    const projectedExtraEntries = effects.reduce((total, effect) => {
+      if (effect.kind === "grant_item" || effect.kind === "grant_rune") {
+        return total + 1;
+      }
+      if (effect.kind !== "equip_item") {
+        return total;
+      }
+      const item = getItemDefinition(content, effect.itemId || "");
+      if (!item) {
+        return total;
+      }
+      const loadoutKey = resolveLoadoutKey(item.slot, run);
+      return total + (run.loadout?.[loadoutKey] ? 1 : 0);
+    }, 0);
+    if ((run.inventory?.carried?.length || 0) + projectedExtraEntries > loadoutApi.INVENTORY_CAPACITY) {
+      return { ok: false, message: "Not enough inventory space for this loot claim." };
+    }
+
     for (let index = 0; index < effects.length; index += 1) {
       const effect = effects[index];
 
@@ -176,13 +195,59 @@
         if (!item) {
           return { ok: false, message: "Reward item is invalid." };
         }
-        const entry = addEquipmentToInventory(run, item.id, content, effect.rarity || RARITY.WHITE, effect.rarityBonuses || {});
+        const entry = addEquipmentToInventory(
+          run,
+          item.id,
+          content,
+          effect.rarity || RARITY.WHITE,
+          effect.rarityBonuses || {},
+          effect.weaponAffixes,
+          effect.armorAffixes
+        );
         if (!entry) {
           return { ok: false, message: "Reward item could not be created." };
         }
         const equipResult = equipInventoryEntry(run, entry.entryId, content);
         if (!equipResult.ok) {
           return equipResult;
+        }
+        if ((effect.rarity || RARITY.WHITE) === RARITY.UNIQUE) {
+          run.summary.uniqueItemsFound = toNumber(run.summary?.uniqueItemsFound, 0) + 1;
+        }
+        continue;
+      }
+
+      if (effect.kind === "grant_item") {
+        const item = getItemDefinition(content, effect.itemId);
+        if (!item) {
+          return { ok: false, message: "Loot item is invalid." };
+        }
+        const entry = addEquipmentToInventory(
+          run,
+          item.id,
+          content,
+          effect.rarity || RARITY.WHITE,
+          effect.rarityBonuses || {},
+          effect.weaponAffixes,
+          effect.armorAffixes
+        );
+        if (!entry) {
+          return { ok: false, message: "Loot item could not be created." };
+        }
+        if ((effect.rarity || RARITY.WHITE) === RARITY.UNIQUE) {
+          run.summary.uniqueItemsFound = toNumber(run.summary?.uniqueItemsFound, 0) + 1;
+        }
+        continue;
+      }
+
+      if (effect.kind === "grant_rune") {
+        const rune = getRuneDefinition(content, effect.runeId);
+        if (!rune) {
+          return { ok: false, message: "Loot rune is invalid." };
+        }
+        const entry = addRuneToInventory(run, rune.id, content);
+        if (!entry) {
+          return { ok: false, message: "Loot rune could not be created." };
         }
         continue;
       }
@@ -250,6 +315,33 @@
     return total;
   }
 
+  function buildCombatMitigationProfile(run: RunState, content: GameContent) {
+    const loadout = buildHydratedLoadout(run, content);
+    const profiles = loadoutApi.ALL_LOADOUT_SLOTS
+      .map((slot: LoadoutSlotKey) => buildEquipmentArmorProfile(loadout[slot], content))
+      .filter(Boolean) as ArmorMitigationProfile[];
+    if (profiles.length === 0) {
+      return undefined;
+    }
+
+    const resistanceMap = profiles.reduce((total, profile) => {
+      (profile.resistances || []).forEach((entry) => {
+        total[entry.type] = (total[entry.type] || 0) + toNumber(entry.amount, 0);
+      });
+      return total;
+    }, {} as Record<string, number>);
+    const immunities = Array.from(new Set(profiles.flatMap((profile) => profile.immunities || [])));
+    const resistances = Object.entries(resistanceMap).map(([type, amount]) => ({
+      type: type as DamageType,
+      amount,
+    }));
+
+    return {
+      ...(resistances.length > 0 ? { resistances } : {}),
+      ...(immunities.length > 0 ? { immunities } : {}),
+    };
+  }
+
   // Append ops onto the existing ROUGE_ITEM_LOADOUT namespace
   loadoutApi.equipInventoryEntry = equipInventoryEntry;
   loadoutApi.unequipSlot = unequipSlot;
@@ -260,4 +352,5 @@
   loadoutApi.getLoadoutSummary = getLoadoutSummary;
   loadoutApi.applyChoice = applyChoice;
   loadoutApi.buildCombatBonuses = buildCombatBonuses;
+  loadoutApi.buildCombatMitigationProfile = buildCombatMitigationProfile;
 })();

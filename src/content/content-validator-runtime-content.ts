@@ -7,10 +7,11 @@
 
   const ALLOWED_INTENT_KINDS = new Set([
     "attack", "attack_all", "attack_and_guard", "attack_burn", "attack_burn_all",
-    "attack_chill", "attack_poison", "buff_allies_attack", "consume_corpse",
+    "attack_chill", "attack_lightning", "attack_lightning_all", "attack_poison",
+    "attack_poison_all", "buff_allies_attack", "charge", "consume_corpse",
     "corpse_explosion", "curse_amplify", "curse_weaken", "drain_attack", "drain_energy",
     "guard", "guard_allies", "heal_ally", "heal_allies", "heal_and_guard",
-    "resurrect_ally", "summon_minion", "sunder_attack",
+    "resurrect_ally", "summon_minion", "sunder_attack", "teleport",
   ]);
 
   const ALLOWED_ELITE_AFFIXES = new Set([

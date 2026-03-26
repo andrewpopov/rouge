@@ -1,6 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { clamp } = runtimeWindow.ROUGE_UTILS;
+  const { clamp, parseInteger } = runtimeWindow.ROUGE_UTILS;
   const monsterActions = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
   const { TRAIT } = monsterActions;
   const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
@@ -9,6 +9,9 @@
 
   const THORNS_DAMAGE = 2;
   const REGENERATION_AMOUNT = 2;
+  const PREFERRED_WEAPON_CARD_BONUS = 1;
+  const PREFERRED_WEAPON_EFFECT_BONUS = 1;
+  const PREFERRED_WEAPON_MELEE_BONUS = 4;
 
   function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
@@ -71,7 +74,43 @@
     }
   }
 
-  function dealDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) {
+  function heroIsImmuneTo(state: CombatState, damageType: DamageType = "physical") {
+    return Array.isArray(state.armorProfile?.immunities) && state.armorProfile.immunities.includes(damageType);
+  }
+
+  function getHeroResistance(state: CombatState, damageType: DamageType = "physical") {
+    return (state.armorProfile?.resistances || [])
+      .filter((entry) => entry.type === damageType)
+      .reduce((total, entry) => total + parseInteger(entry.amount, 0), 0);
+  }
+
+  function getMitigatedIncomingDamage(
+    state: CombatState,
+    entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+    amount: number,
+    damageType: DamageType = "physical"
+  ) {
+    let finalAmount = amount;
+    const isHero = entity === state.hero;
+    if (isHero && state.hero.amplify > 0) {
+      finalAmount = Math.floor(finalAmount * 1.5);
+    }
+    if (!isHero) {
+      return Math.max(0, Math.floor(finalAmount));
+    }
+    if (heroIsImmuneTo(state, damageType)) {
+      return 0;
+    }
+    const resisted = Math.max(0, Math.floor(finalAmount) - getHeroResistance(state, damageType));
+    return Math.max(0, resisted);
+  }
+
+  function dealDamage(
+    state: CombatState,
+    entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+    amount: number,
+    damageType: DamageType = "physical"
+  ) {
     if (!entity || !entity.alive) {
       return 0;
     }
@@ -87,13 +126,7 @@
       return entity.maxLife;
     }
 
-    let finalAmount = amount;
-    // Amplify: hero takes +50% damage
-    if (isAlly && entity === state.hero && state.hero.amplify > 0) {
-      finalAmount = Math.floor(finalAmount * 1.5);
-    }
-
-    const damage = Math.max(0, Math.floor(finalAmount));
+    const damage = getMitigatedIncomingDamage(state, entity, amount, damageType);
     const blocked = Math.min(entity.guard, damage);
     entity.guard -= blocked;
     const lifeLoss = damage - blocked;
@@ -104,16 +137,12 @@
       monsterActions.processModifierOnHit(state, entity as CombatEnemyState);
       if (hasTrait(entity as CombatEnemyState, "thorns")) {
         const thornsDamage = THORNS_DAMAGE;
-        const heroBefore = state.hero.life;
-        state.hero.life = Math.max(0, state.hero.life - thornsDamage);
-        const thornsDealt = heroBefore - state.hero.life;
+        const heroLifeBefore = state.hero.life;
+        const heroGuardBefore = state.hero.guard;
+        dealDamage(state, state.hero, thornsDamage, "physical");
+        const thornsDealt = (heroLifeBefore - state.hero.life) + (heroGuardBefore - state.hero.guard);
         if (thornsDealt > 0) {
           appendLog(state, `${entity.name}'s thorns deal ${thornsDealt} damage back!`);
-        }
-        if (state.hero.life <= 0 && state.hero.alive) {
-          state.hero.alive = false;
-          state.hero.guard = 0;
-          appendLog(state, "The Wanderer falls. Encounter lost.");
         }
       }
     }
@@ -122,6 +151,223 @@
       handleDefeat(state, entity);
     }
     return lifeLoss;
+  }
+
+  function dealDirectDamage(
+    state: CombatState,
+    entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+    amount: number,
+    damageType: DamageType = "physical"
+  ) {
+    if (!entity || !entity.alive) {
+      return 0;
+    }
+    const debug = runtimeWindow.ROUGE_DEBUG;
+    const isAlly = entity === state.hero || entity === state.mercenary;
+    if (debug?.invulnerable && isAlly) {
+      return 0;
+    }
+    if (debug?.oneHitKill && !isAlly) {
+      entity.life = 0;
+      handleDefeat(state, entity);
+      return entity.maxLife;
+    }
+
+    const damage = getMitigatedIncomingDamage(state, entity, amount, damageType);
+    if (damage <= 0) {
+      return 0;
+    }
+    const before = entity.life;
+    entity.life = Math.max(0, entity.life - damage);
+    if (entity.life <= 0 && entity.alive) {
+      handleDefeat(state, entity);
+    }
+    return before - entity.life;
+  }
+
+  function dealLifeDamage(state: CombatState, entity: CombatEnemyState, amount: number) {
+    if (!entity || !entity.alive) {
+      return 0;
+    }
+    const directDamage = Math.max(0, Math.floor(amount));
+    if (directDamage <= 0) {
+      return 0;
+    }
+    const before = entity.life;
+    entity.life = Math.max(0, entity.life - directDamage);
+    if (entity.life <= 0 && entity.alive) {
+      handleDefeat(state, entity);
+    }
+    return before - entity.life;
+  }
+
+  function getCardProficiency(cardId: string) {
+    return runtimeWindow.__ROUGE_SKILL_EVOLUTION?.getCardProficiency?.(cardId) ||
+      runtimeWindow.__ROUGE_SKILL_EVOLUTION?.getCardTree?.(cardId) ||
+      "";
+  }
+
+  function hasPreferredWeaponFamily(state: CombatState) {
+    const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
+    return preferred.includes(state.weaponFamily || "");
+  }
+
+  function getWeaponAttackBonus(state: CombatState, cardId: string) {
+    const proficiency = getCardProficiency(cardId);
+    if (!proficiency) {
+      return 0;
+    }
+    const baseBonus = Math.max(0, parseInteger(state.weaponProfile?.attackDamageByProficiency?.[proficiency], 0));
+    if (baseBonus <= 0) {
+      return 0;
+    }
+    return baseBonus + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_CARD_BONUS : 0);
+  }
+
+  function getWeaponSupportBonus(state: CombatState, cardId: string) {
+    const proficiency = getCardProficiency(cardId);
+    if (!proficiency) {
+      return 0;
+    }
+    const baseBonus = Math.max(0, parseInteger(state.weaponProfile?.supportValueByProficiency?.[proficiency], 0));
+    if (baseBonus <= 0) {
+      return 0;
+    }
+    return baseBonus + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_CARD_BONUS : 0);
+  }
+
+  function weaponProfileEntryMatchesUse(proficiency: string | undefined, cardId: string) {
+    if (!proficiency || !cardId) {
+      return true;
+    }
+    return proficiency === getCardProficiency(cardId);
+  }
+
+  function weaponEffectMatchesCard(effect: WeaponEffectDefinition, cardId: string) {
+    return weaponProfileEntryMatchesUse(effect.proficiency, cardId);
+  }
+
+  function applyWeaponTypedDamageToEnemy(state: CombatState, target: CombatEnemyState, damageEntry: WeaponDamageDefinition) {
+    if (!target?.alive) {
+      return null;
+    }
+
+    const amount = Math.max(
+      1,
+      parseInteger(damageEntry.amount, 1) + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_EFFECT_BONUS : 0)
+    );
+    const dealt = damageEntry.type === "poison"
+      ? dealLifeDamage(state, target, amount)
+      : dealDamage(state, target, amount, damageEntry.type);
+    return { type: damageEntry.type, amount, dealt, targetName: target.name };
+  }
+
+  function summarizeWeaponTypedDamage(
+    state: CombatState,
+    damageEntry: WeaponDamageDefinition,
+    results: Array<{ type: WeaponDamageType; amount: number; dealt: number; targetName: string }>
+  ) {
+    if (results.length === 0) {
+      return "";
+    }
+    const totalDamage = results.reduce((sum, result) => sum + result.dealt, 0);
+    if (totalDamage <= 0) {
+      return "";
+    }
+    const weaponLabel = state.weaponName || "Weapon";
+    return `${weaponLabel} dealt ${totalDamage} ${damageEntry.type} damage${results.length > 1 ? ` across ${results.length} targets` : ""}.`;
+  }
+
+  function applyWeaponTypedDamage(state: CombatState, targets: CombatEnemyState[], cardId: string) {
+    const typedDamageEntries = Array.isArray(state.weaponProfile?.typedDamage)
+      ? state.weaponProfile.typedDamage.filter((damageEntry) => weaponProfileEntryMatchesUse(damageEntry.proficiency, cardId))
+      : [];
+    return typedDamageEntries
+      .map((damageEntry) => {
+        const results = targets
+          .map((target) => applyWeaponTypedDamageToEnemy(state, target, damageEntry))
+          .filter(Boolean) as Array<{ type: WeaponDamageType; amount: number; dealt: number; targetName: string }>;
+        return summarizeWeaponTypedDamage(state, damageEntry, results);
+      })
+      .filter(Boolean);
+  }
+
+  function applyWeaponEffectToEnemy(state: CombatState, target: CombatEnemyState, effect: WeaponEffectDefinition) {
+    if (!target?.alive) {
+      return null;
+    }
+
+    const amount = Math.max(
+      1,
+      parseInteger(effect.amount, 1) + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_EFFECT_BONUS : 0)
+    );
+    if (effect.kind === "burn") {
+      target.burn = Math.max(0, target.burn + amount);
+      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
+    }
+    if (effect.kind === "slow") {
+      target.slow = Math.max(0, target.slow + amount);
+      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
+    }
+    if (effect.kind === "freeze") {
+      target.freeze = Math.max(0, target.freeze + amount);
+      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
+    }
+    if (effect.kind === "shock") {
+      target.paralyze = Math.max(0, target.paralyze + amount);
+      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
+    }
+    if (effect.kind === "crushing") {
+      const guardBroken = Math.min(target.guard, amount);
+      target.guard = Math.max(0, target.guard - guardBroken);
+      const lifeBroken = dealLifeDamage(state, target, amount - guardBroken);
+      return { kind: effect.kind, amount, guardBroken, lifeBroken, targetName: target.name };
+    }
+    return null;
+  }
+
+  function summarizeWeaponEffect(
+    state: CombatState,
+    effect: WeaponEffectDefinition,
+    results: Array<{ kind: WeaponEffectKind; amount: number; guardBroken: number; lifeBroken: number; targetName: string }>
+  ) {
+    if (results.length === 0) {
+      return "";
+    }
+
+    const weaponLabel = state.weaponName || "Weapon";
+    if (effect.kind === "crushing") {
+      const totalGuard = results.reduce((sum, result) => sum + result.guardBroken, 0);
+      const totalLife = results.reduce((sum, result) => sum + result.lifeBroken, 0);
+      const segments = [];
+      if (totalGuard > 0) {
+        segments.push(`shattered ${totalGuard} Guard`);
+      }
+      if (totalLife > 0) {
+        segments.push(`dealt ${totalLife} crushing damage`);
+      }
+      if (segments.length === 0) {
+        return "";
+      }
+      return `${weaponLabel} ${segments.join(" and ")}${results.length > 1 ? ` across ${results.length} targets` : ""}.`;
+    }
+
+    const statusLabel = effect.kind === "shock"
+      ? "Shock"
+      : effect.kind.charAt(0).toUpperCase() + effect.kind.slice(1);
+    return `${weaponLabel} applied ${results[0].amount} ${statusLabel}${results.length > 1 ? ` to ${results.length} targets` : ""}.`;
+  }
+
+  function applyWeaponEffects(state: CombatState, targets: CombatEnemyState[], cardId: string) {
+    const effects = Array.isArray(state.weaponProfile?.effects) ? state.weaponProfile.effects.filter((effect) => weaponEffectMatchesCard(effect, cardId)) : [];
+    return effects
+      .map((effect) => {
+        const results = targets
+          .map((target) => applyWeaponEffectToEnemy(state, target, effect))
+          .filter(Boolean) as Array<{ kind: WeaponEffectKind; amount: number; guardBroken: number; lifeBroken: number; targetName: string }>;
+        return summarizeWeaponEffect(state, effect, results);
+      })
+      .filter(Boolean);
   }
 
   function checkOutcome(state: CombatState) {
@@ -147,10 +393,19 @@
   }
 
   function chooseEnemyTarget(state: CombatState, rule: EnemyIntentTarget | undefined) {
+    if (rule === "mercenary" && state.mercenary.alive) {
+      return state.mercenary;
+    }
     if (rule === "lowest_life" && state.mercenary.alive && state.mercenary.life < state.hero.life) {
       return state.mercenary;
     }
-    return state.hero.alive ? state.hero : state.mercenary;
+    if (state.hero.alive) {
+      return state.hero;
+    }
+    if (state.mercenary.alive) {
+      return state.mercenary;
+    }
+    return null;
   }
 
   function resolveEnemyAction(state: CombatState, enemy: CombatEnemyState) {
@@ -199,15 +454,23 @@
       }
     }
 
+    const ignoresHardCrowdControl = intent.kind === "teleport";
+    if (ignoresHardCrowdControl) {
+      enemy.freeze = 0;
+      enemy.stun = 0;
+      enemy.slow = 0;
+      enemy.paralyze = 0;
+    }
+
     // ── CC: Freeze (skip turn) ──
-    if (enemy.freeze > 0) {
+    if (!ignoresHardCrowdControl && enemy.freeze > 0) {
       appendLog(state, `${enemy.name} is Frozen and cannot act.`);
       enemy.freeze = Math.max(0, enemy.freeze - 1);
       return;
     }
 
     // ── CC: Stun (skip turn, consumed) ──
-    if (enemy.stun > 0) {
+    if (!ignoresHardCrowdControl && enemy.stun > 0) {
       appendLog(state, `${enemy.name} is Stunned and cannot act.`);
       enemy.stun = 0;
       return;
@@ -429,7 +692,7 @@
     const baseDamage = Math.max(1, state.weaponDamageBonus || 0);
     const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
     const familyMatch = preferred.includes(state.weaponFamily || "");
-    let damage = familyMatch ? baseDamage + 2 : baseDamage;
+    let damage = familyMatch ? baseDamage + PREFERRED_WEAPON_MELEE_BONUS : baseDamage;
     // Weaken: hero deals -30% damage
     if (state.hero.weaken > 0) {
       damage = Math.max(1, Math.floor(damage * 0.7));
@@ -439,8 +702,12 @@
       return { ok: false, message: "No living enemy." };
     }
     const dealt = dealDamage(state, target, damage);
+    const weaponSegments = [
+      ...applyWeaponTypedDamage(state, target.alive ? [target] : [], ""),
+      ...applyWeaponEffects(state, target.alive ? [target] : [], ""),
+    ];
     state.meleeUsed = true;
-    appendLog(state, `Melee strike hits ${target.name} for ${dealt}${familyMatch ? " (proficient)" : ""}.`);
+    appendLog(state, `Melee strike hits ${target.name} for ${dealt}${familyMatch ? " (proficient)" : ""}.${weaponSegments.length > 0 ? ` ${weaponSegments.join(" ")}` : ""}`);
     checkOutcome(state);
     return { ok: true, message: "Melee strike landed." };
   }
@@ -558,12 +825,17 @@
     healEntity,
     applyGuard,
     dealDamage,
+    dealDirectDamage,
     checkOutcome,
     getLivingEnemies,
     getFirstLivingEnemyId,
     appendLog,
     drawCards,
     discardHand,
+    getWeaponAttackBonus,
+    getWeaponSupportBonus,
+    applyWeaponTypedDamage,
+    applyWeaponEffects,
     meleeStrike,
     startPlayerTurn,
     endTurn,

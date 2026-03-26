@@ -116,6 +116,46 @@ test("createCombatState accepts run-state overrides for hero, mercenary, deck, a
   assert.equal(state.drawPile.length + state.hand.length, 4);
 });
 
+test("generated elite and boss templates sit above the raw encounter baseline", () => {
+  const { content } = createHarness();
+  const rawRoleLife: Record<string, number> = { raider: 12, ranged: 10, support: 11, brute: 18, boss: 38 };
+  const rawRoleAttack: Record<string, number> = { raider: 4, ranged: 5, support: 3, brute: 6, boss: 9 };
+  const actNumber = 1;
+
+  const eliteTemplateId = Object.keys(content.enemyCatalog).find((templateId) => templateId.startsWith("act_1_") && templateId.includes("_elite"));
+  const bossTemplateId = Object.keys(content.enemyCatalog).find((templateId) => templateId.startsWith("act_1_") && templateId.endsWith("_boss"));
+  assert.ok(eliteTemplateId);
+  assert.ok(bossTemplateId);
+
+  const eliteTemplate = content.enemyCatalog[eliteTemplateId];
+  const bossTemplate = content.enemyCatalog[bossTemplateId];
+  const rawEliteLife = (rawRoleLife[eliteTemplate.role] || 10) + actNumber * 10;
+  const rawEliteAttack = (rawRoleAttack[eliteTemplate.role] || 4) + actNumber * 2;
+  const rawBossLife = rawRoleLife.boss + actNumber * 18;
+  const rawBossAttack = rawRoleAttack.boss + actNumber * 4;
+
+  assert.ok(eliteTemplate.maxLife > rawEliteLife);
+  assert.ok(eliteTemplate.intents.some((intent) => (intent.value || 0) > rawEliteAttack));
+  assert.ok(bossTemplate.maxLife > rawBossLife);
+  assert.ok(bossTemplate.intents.some((intent) => (intent.value || 0) > rawBossAttack));
+});
+
+test("act bosses expose unique scripted mechanics by act theme", () => {
+  const { content } = createHarness();
+  const andariel = content.enemyCatalog.act_1_andariel_boss;
+  const duriel = content.enemyCatalog.act_2_duriel_boss;
+  const mephisto = content.enemyCatalog.act_3_mephisto_boss;
+  const diablo = content.enemyCatalog.act_4_diablo_boss;
+  const baal = content.enemyCatalog.act_5_baal_boss;
+
+  assert.ok(andariel.intents.some((intent) => intent.kind === "attack_poison"));
+  assert.ok(duriel.intents.some((intent) => intent.kind === "sunder_attack" && intent.target === "mercenary"));
+  assert.ok(mephisto.intents.some((intent) => intent.kind === "attack_lightning_all"));
+  assert.ok(diablo.intents.some((intent) => intent.kind === "attack_burn_all"));
+  assert.ok(baal.intents.some((intent) => intent.kind === "teleport"));
+  assert.ok(baal.intents.some((intent) => intent.kind === "summon_minion"));
+});
+
 test("mercenary contract bonuses can add opening guard and deterministic damage bonuses", () => {
   const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({
@@ -304,16 +344,16 @@ test("scripted boss intents can shatter guard before dealing damage", () => {
       enemy.alive = false;
     }
   });
-  state.hero.guard = 9;
-  state.hero.life = state.hero.maxLife;
+  state.mercenary.guard = 9;
+  state.mercenary.life = state.mercenary.maxLife;
   boss.currentIntent = boss.intents.find((intent) => intent.kind === "sunder_attack");
   state.hand = [];
 
   const result = engine.endTurn(state);
 
   assert.equal(result.ok, true);
-  assert.equal(state.hero.guard, 0);
-  assert.ok(state.hero.life < state.hero.maxLife);
+  assert.equal(state.mercenary.guard, 0);
+  assert.ok(state.mercenary.life < state.mercenary.maxLife);
 });
 
 test("fortified encounters start with Guard on the full enemy line", () => {
@@ -490,4 +530,3 @@ test("backline screen modifiers harden ranged and support enemies without shield
   assert.equal(support.guard, 3);
   assert.equal(raider.guard, 0);
 });
-

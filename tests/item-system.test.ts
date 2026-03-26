@@ -76,6 +76,170 @@ test("getItemDefinition returns a valid item or null for unknown ids", () => {
   assert.equal(catalog.getItemDefinition(content, "nonexistent_item"), null);
 });
 
+test("weapon item definitions expose derived specialization profiles", () => {
+  const { content, catalog } = createRunFixture();
+
+  const bow = catalog.getItemDefinition(content, "item_short_bow");
+  const mace = catalog.getItemDefinition(content, "item_mace");
+
+  assert.ok(bow?.weaponProfile?.attackDamageByProficiency?.bow, "bows should expose bow attack bonuses");
+  assert.ok(bow?.weaponProfile?.supportValueByProficiency?.bow, "bows should expose bow support bonuses");
+  assert.equal(bow?.weaponProfile?.effects?.[0]?.kind, "burn");
+  assert.ok(mace?.weaponProfile?.effects?.some((effect) => effect.kind === "crushing"), "maces should expose crushing effects");
+});
+
+test("class cards expose explicit runtime proficiencies", () => {
+  const { content } = createRunFixture();
+
+  assert.equal(content.cardCatalog.amazon_magic_arrow?.proficiency, "bow");
+  assert.equal(content.cardCatalog.amazon_dodge?.proficiency, "passive");
+  assert.equal(content.cardCatalog.barbarian_natural_resistance?.proficiency, "masteries");
+});
+
+test("legacy yellow equipment normalizes to blue magic while explicit rares stay yellow", () => {
+  const { content, catalog } = createRunFixture();
+
+  const legacyMagic = catalog.normalizeEquipmentState({ itemId: "item_short_bow", rarity: "yellow" }, "weapon", content);
+  const rareBow = catalog.normalizeEquipmentState({ itemId: "item_short_bow", rarity: "yellow", rarityKind: "rare" }, "weapon", content);
+
+  assert.equal(legacyMagic?.rarity, catalog.RARITY.MAGIC);
+  assert.equal(legacyMagic?.rarityKind, "magic");
+  assert.equal(rareBow?.rarity, catalog.RARITY.RARE);
+  assert.equal(rareBow?.rarityKind, "rare");
+});
+
+test("weapon rarity ladder increases effective weapon profile strength", () => {
+  const { content, catalog } = createRunFixture();
+
+  const bow = catalog.getItemDefinition(content, "item_short_bow");
+  assert.ok(bow?.weaponProfile);
+
+  const whiteProfile = catalog.getWeaponProfileForRarity(bow?.weaponProfile, catalog.RARITY.WHITE);
+  const blueProfile = catalog.getWeaponProfileForRarity(bow?.weaponProfile, catalog.RARITY.MAGIC);
+  const yellowProfile = catalog.getWeaponProfileForRarity(bow?.weaponProfile, catalog.RARITY.RARE);
+  const brownProfile = catalog.getWeaponProfileForRarity(bow?.weaponProfile, catalog.RARITY.UNIQUE);
+
+  assert.equal(whiteProfile?.attackDamageByProficiency?.bow, 2);
+  assert.equal(blueProfile?.attackDamageByProficiency?.bow, 3);
+  assert.equal(yellowProfile?.attackDamageByProficiency?.bow, 4);
+  assert.equal(brownProfile?.attackDamageByProficiency?.bow, 6);
+  assert.equal(whiteProfile?.effects?.[0]?.amount, 1);
+  assert.equal(yellowProfile?.effects?.[0]?.amount, 2);
+  assert.equal(brownProfile?.effects?.[0]?.amount, 3);
+  assert.equal(whiteProfile?.typedDamage?.[0]?.type, "fire");
+  assert.equal(blueProfile?.typedDamage?.[0]?.amount, 2);
+});
+
+test("rarity bonus rolls stay ordered blue below yellow below brown", () => {
+  const { content, catalog } = createRunFixture();
+
+  const sword = catalog.getItemDefinition(content, "item_short_sword");
+  const blue = catalog.generateRarityBonuses(sword, catalog.RARITY.MAGIC, () => 0);
+  const yellow = catalog.generateRarityBonuses(sword, catalog.RARITY.RARE, () => 0);
+  const brown = catalog.generateRarityBonuses(sword, catalog.RARITY.UNIQUE, () => 0);
+  const total = (bonuses: ItemBonusSet) => Object.values(bonuses || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+
+  assert.ok(total(blue) < total(yellow));
+  assert.ok(total(yellow) < total(brown));
+});
+
+test("weapon affix rolls add persistent typed damage and status lines", () => {
+  const { content, catalog } = createRunFixture();
+
+  const bow = catalog.getItemDefinition(content, "item_short_bow");
+  const affixes = catalog.rollWeaponAffixes(bow, catalog.RARITY.RARE, () => 0);
+  assert.ok(affixes?.typedDamage?.some((damageEntry) => damageEntry.type === "fire"));
+
+  const equipment = catalog.normalizeEquipmentState(
+    {
+      itemId: "item_short_bow",
+      rarity: catalog.RARITY.RARE,
+      weaponAffixes: affixes,
+    },
+    "weapon",
+    content
+  );
+  const profile = catalog.buildEquipmentWeaponProfile(equipment, content);
+
+  assert.ok(profile?.typedDamage?.some((damageEntry) => damageEntry.type === "fire"));
+  assert.ok(profile?.effects?.some((effect) => effect.kind === "burn"));
+});
+
+test("armor affix rolls add persistent resistances while rarity stays on count and unique-only immunities", () => {
+  const { content, catalog } = createRunFixture();
+
+  const armor = catalog.getItemDefinition(content, "item_quilted_armor");
+  assert.ok(armor?.armorProfile?.resistances?.some((entry) => entry.type === "physical"));
+
+  const whiteProfile = catalog.getArmorProfileForRarity(armor?.armorProfile, catalog.RARITY.WHITE);
+  const brownProfile = catalog.getArmorProfileForRarity(armor?.armorProfile, catalog.RARITY.UNIQUE);
+  const whitePhysical = whiteProfile?.resistances?.find((entry) => entry.type === "physical")?.amount || 0;
+  const brownPhysical = brownProfile?.resistances?.find((entry) => entry.type === "physical")?.amount || 0;
+  assert.equal(brownPhysical, whitePhysical);
+
+  const rareAffixes = catalog.rollArmorAffixes(armor, catalog.RARITY.RARE, () => 0);
+  assert.equal(rareAffixes?.immunities?.length || 0, 0);
+
+  const affixes = catalog.rollArmorAffixes(armor, catalog.RARITY.UNIQUE, () => 0);
+  assert.ok(affixes?.resistances?.some((entry) => entry.type === "physical"));
+  assert.ok(affixes?.immunities?.includes("fire"));
+
+  const equipment = catalog.normalizeEquipmentState(
+    {
+      itemId: "item_quilted_armor",
+      rarity: catalog.RARITY.UNIQUE,
+      armorAffixes: affixes,
+    },
+    "armor",
+    content
+  );
+  const profile = catalog.buildEquipmentArmorProfile(equipment, content);
+
+  assert.ok(profile?.resistances?.some((entry) => entry.type === "physical"));
+  assert.ok(profile?.immunities?.includes("fire"));
+});
+
+test("zone loot tables expose per-entry chances and boss loot rolls multiple drops", () => {
+  const { browserWindow, content, run, state, runFactory } = createRunFixture();
+  const itemSystem = browserWindow.ROUGE_ITEM_SYSTEM;
+  const zones = runFactory.getCurrentZones(state.run);
+  const battleZone = zones.find((zone) => zone.kind === "battle");
+  const bossZone = zones.find((zone) => zone.kind === "boss");
+  assert.ok(battleZone);
+  assert.ok(bossZone);
+
+  const battleTable = itemSystem.buildZoneLootTable({
+    content,
+    run,
+    zone: battleZone,
+    actNumber: battleZone.actNumber,
+    encounterNumber: 1,
+  });
+  const tableRateTotal = battleTable.reduce((sum: number, entry: { dropRate: number }) => sum + entry.dropRate, 0);
+  assert.ok(Math.abs(tableRateTotal - 1) < 0.0001);
+
+  const bossLootChoice = itemSystem.buildEquipmentChoice({
+    content,
+    run,
+    zone: bossZone,
+    actNumber: bossZone.actNumber,
+    encounterNumber: 1,
+  });
+  assert.ok(bossLootChoice);
+  assert.equal(bossLootChoice.effects[0]?.kind, "equip_item");
+  assert.ok(bossLootChoice.effects.length >= 4, "boss loot should include the headline drop plus extras");
+
+  run.summary.uniqueItemsFound = 1;
+  const suppressedLootChoice = itemSystem.buildEquipmentChoice({
+    content,
+    run,
+    zone: battleZone,
+    actNumber: battleZone.actNumber,
+    encounterNumber: 1,
+  });
+  assert.ok(suppressedLootChoice?.previewLines.some((line) => /suppressed/i.test(line)));
+});
+
 test("getRuneDefinition returns a valid rune or null for unknown ids", () => {
   const { content, catalog } = createRunFixture();
 

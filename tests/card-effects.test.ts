@@ -93,6 +93,10 @@ test("describeIntent returns descriptive text for all intent kinds", () => {
   assert.ok(engine.describeIntent({ kind: "resurrect_ally", label: "Resurrect", value: 0, target: "hero" }).includes("Resurrect"));
   assert.ok(engine.describeIntent({ kind: "summon_minion", label: "Summon", value: 0, target: "hero" }).includes("Summon"));
   assert.ok(engine.describeIntent({ kind: "attack_burn", label: "Fire", value: 3, target: "hero" }).includes("Burn"));
+  assert.ok(engine.describeIntent({ kind: "charge", label: "Charge Nova", value: 8, target: "all_allies", damageType: "lightning" }).includes("Charge Nova"));
+  assert.ok(engine.describeIntent({ kind: "teleport", label: "Teleport Away", value: 6 }).includes("Teleport"));
+  assert.ok(engine.describeIntent({ kind: "attack_lightning", label: "Soul Bolt", value: 6, target: "hero" }).includes("Lightning"));
+  assert.ok(engine.describeIntent({ kind: "attack_poison_all", label: "Poison Wave", value: 5, target: "all_allies" }).includes("Poison"));
   assert.ok(engine.describeIntent({ kind: "curse_amplify", label: "Curse", value: 2, target: "hero" }).includes("Amplify"));
   assert.ok(engine.describeIntent({ kind: "drain_energy", label: "Drain", value: 3, target: "hero" }).includes("Drain"));
   assert.ok(engine.describeIntent({ kind: "consume_corpse", label: "Consume", value: 3, target: "hero" }).includes("corpse"));

@@ -72,8 +72,13 @@
     ATTACK_AND_GUARD: "attack_and_guard",
     DRAIN_ATTACK: "drain_attack",
     SUNDER_ATTACK: "sunder_attack",
+    CHARGE: "charge",
+    TELEPORT: "teleport",
     ATTACK_BURN: "attack_burn",
     ATTACK_BURN_ALL: "attack_burn_all",
+    ATTACK_LIGHTNING: "attack_lightning",
+    ATTACK_LIGHTNING_ALL: "attack_lightning_all",
+    ATTACK_POISON_ALL: "attack_poison_all",
     ATTACK_CHILL: "attack_chill",
     ATTACK_POISON: "attack_poison",
     DRAIN_ENERGY: "drain_energy",
@@ -94,8 +99,11 @@
   const ATTACK_INTENT_KINDS = new Set([
     INTENT.ATTACK, INTENT.ATTACK_ALL, INTENT.ATTACK_AND_GUARD,
     INTENT.DRAIN_ATTACK, INTENT.SUNDER_ATTACK, INTENT.ATTACK_BURN,
-    INTENT.ATTACK_BURN_ALL, INTENT.ATTACK_CHILL, INTENT.ATTACK_POISON, INTENT.DRAIN_ENERGY,
+    INTENT.ATTACK_BURN_ALL, INTENT.ATTACK_LIGHTNING, INTENT.ATTACK_LIGHTNING_ALL,
+    INTENT.ATTACK_CHILL, INTENT.ATTACK_POISON, INTENT.ATTACK_POISON_ALL, INTENT.DRAIN_ENERGY,
   ]);
+
+  const PRESSURE_INTENT_KINDS = new Set([...ATTACK_INTENT_KINDS, INTENT.CHARGE]);
 
   const HEALING_INTENT_KINDS = new Set([
     INTENT.HEAL_ALLY, INTENT.HEAL_ALLIES, INTENT.HEAL_AND_GUARD, INTENT.RESURRECT_ALLY,
@@ -358,7 +366,7 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
         const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED || enemy.role === ENEMY_ROLE.SUPPORT);
-        const bossIntentKinds = new Set([...ATTACK_INTENT_KINDS, ...HEALING_INTENT_KINDS, "guard", "guard_allies"]);
+        const bossIntentKinds = new Set([...PRESSURE_INTENT_KINDS, ...HEALING_INTENT_KINDS, "guard", "guard_allies"]);
 
         bossTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
@@ -378,10 +386,10 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
         const retunedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, ATTACK_INTENT_KINDS) ? 1 : 0);
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
         }, 0);
         const boostedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, PRESSURE_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(
@@ -396,10 +404,10 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const salvoTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss") || enemy.role === ENEMY_ROLE.RANGED);
         const retunedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, ATTACK_INTENT_KINDS) ? 1 : 0);
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
         }, 0);
         const boostedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
+          return count + (boostEnemyIntentValues(enemy, PRESSURE_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(

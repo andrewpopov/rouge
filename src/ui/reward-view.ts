@@ -79,6 +79,8 @@
     refill_potions: "\u{1F9EA}",
     gold_bonus: "\u{1F4B0}",
     equip_item: "\u{1F5E1}",
+    grant_item: "\u{1F5E1}",
+    grant_rune: "\u{1F48E}",
     add_socket: "\u{1F4A0}",
     socket_rune: "\u{1F48E}",
     class_point: "\u2B50",
@@ -145,6 +147,16 @@
           lines.push(`Equip: ${item?.name || "Item"}`);
           break;
         }
+        case "grant_item": {
+          const item = content.itemCatalog?.[effect.itemId || ""];
+          lines.push(`Carry: ${item?.name || "Item"}`);
+          break;
+        }
+        case "grant_rune": {
+          const rune = content.runeCatalog?.[effect.runeId || ""];
+          lines.push(`Carry: ${rune?.name || "Rune"}`);
+          break;
+        }
         case "add_socket":
           lines.push(`+1 Socket (${effect.slot || "weapon"})`);
           break;
@@ -177,7 +189,7 @@
     if (kinds.has("add_card") || kinds.has("upgrade_card")) {
       return "DECK";
     }
-    if (kinds.has("equip_item") || kinds.has("add_socket") || kinds.has("socket_rune")) {
+    if (kinds.has("equip_item") || kinds.has("grant_item") || kinds.has("grant_rune") || kinds.has("add_socket") || kinds.has("socket_rune")) {
       return "GEAR";
     }
     if (kinds.has("class_point") || kinds.has("attribute_point")) {
@@ -198,10 +210,88 @@
     return "REWARD";
   }
 
+  function svgIcon(src: string, cls: string, alt: string, escapeHtml: (value: unknown) => string): string {
+    if (!src) { return ""; }
+    return `<img src="${escapeHtml(src)}" class="${cls}" alt="${escapeHtml(alt)}" loading="lazy" onerror="this.style.display='none'" />`;
+  }
+
+  function getRewardLeadCopy(reward: RunReward, rewardContext: { title: string; lines: string[] }): string {
+    const opener = reward.lines?.[0] || rewardContext.lines?.[0] || "The route pauses while you choose what this victory becomes.";
+    if (reward.endsRun) {
+      return `${opener} One final claim remains before the expedition is sealed into the archive.`;
+    }
+    if (reward.endsAct) {
+      return `${opener} Take one spoils path, then press into the next act.`;
+    }
+    return `${opener} Take one mutation and the route resumes immediately.`;
+  }
+
+  function getChoiceVisualMarkup(choice: RewardChoice, content: GameContent, escapeHtml: (value: unknown) => string): string {
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
+    const itemEffect = choice.effects.find((effect) => effect.kind === "equip_item" && effect.itemId);
+    if (itemEffect?.itemId) {
+      const item = content.itemCatalog?.[itemEffect.itemId];
+      const sprite = item ? assets?.getItemSprite(item.sourceId, itemEffect.rarity, item.slot) : null;
+      if (sprite) {
+        return svgIcon(sprite, "reward-choice-card__art-img reward-choice-card__art-img--item", item?.name || choice.title, escapeHtml);
+      }
+    }
+
+    const runeEffect = choice.effects.find((effect) => effect.kind === "socket_rune" && effect.runeId);
+    if (runeEffect?.runeId) {
+      const rune = content.runeCatalog?.[runeEffect.runeId];
+      const sprite = rune ? assets?.getRuneSprite(rune.sourceId) : null;
+      if (sprite) {
+        return svgIcon(sprite, "reward-choice-card__art-img reward-choice-card__art-img--rune", rune?.name || choice.title, escapeHtml);
+      }
+    }
+
+    const cardEffect = choice.effects.find((effect) => effect.kind === "add_card" || effect.kind === "upgrade_card");
+    const cardId = cardEffect?.toCardId || cardEffect?.cardId || cardEffect?.fromCardId || "";
+    if (cardId) {
+      const card = content.cardCatalog?.[cardId];
+      const sprite = assets?.getCardIcon(cardId, card?.effects);
+      if (sprite) {
+        return svgIcon(sprite, "reward-choice-card__art-img reward-choice-card__art-img--card", card?.title || choice.title, escapeHtml);
+      }
+    }
+
+    const kinds = new Set(choice.effects.map((effect) => effect.kind));
+    let glyph = "\u2694";
+    if (kinds.has("record_quest_outcome") || kinds.has("record_quest_follow_up") || kinds.has("record_quest_consequence") || kinds.has("record_node_outcome")) {
+      glyph = "\u{1F4DC}";
+    } else if (kinds.has("class_point") || kinds.has("attribute_point")) {
+      glyph = "\u2726";
+    } else if (kinds.has("hero_max_life") || kinds.has("hero_max_energy") || kinds.has("mercenary_attack") || kinds.has("mercenary_max_life")) {
+      glyph = "\u2764";
+    } else if (kinds.has("hero_potion_heal") || kinds.has("belt_capacity") || kinds.has("refill_potions")) {
+      glyph = "\u{1F9EA}";
+    } else if (kinds.has("gold_bonus")) {
+      glyph = "\u{1F4B0}";
+    } else if (kinds.has("socket_rune")) {
+      glyph = "\u25C8";
+    } else if (kinds.has("equip_item") || kinds.has("add_socket")) {
+      glyph = "\u{1F5E1}";
+    } else if (kinds.has("add_card") || kinds.has("upgrade_card")) {
+      glyph = "\u{1F0CF}";
+    }
+
+    return `<span class="reward-choice-card__glyph" aria-hidden="true">${glyph}</span>`;
+  }
+
+  function getChoiceFeatureLines(choice: RewardChoice, run: RunState, content: GameContent): string[] {
+    const compact = getCompactDeltaLines(choice, run, content).slice(0, 3);
+    if (compact.length > 0) {
+      return compact;
+    }
+    return (choice.previewLines || []).slice(0, 3);
+  }
+
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const continuity = runtimeWindow.__ROUGE_REWARD_VIEW_CONTINUITY;
     const { escapeHtml, buildStat, buildStringList } = services.renderUtils;
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const run = appState.run;
     const reward = run.pendingReward;
     const derivedParty = common.getDerivedPartyState(run, appState.content, services.itemSystem);
@@ -222,57 +312,132 @@
       opportunity: "\u2726",
     };
     const kindIcon = REWARD_KIND_ICONS[reward.kind] || "\u2694";
+    const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
+    const combatBgSrc = runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(reward.zoneTitle) || "";
+    const promptCopy = reward.endsRun
+      ? "Choose one final claim. The run closes the moment it is taken."
+      : reward.endsAct
+        ? "Choose one reward, then cross into the next act."
+        : "Choose one reward and return to the map."
+    ;
+    const noteLines = Array.from(new Set([...(reward.lines || []), ...(rewardContext.lines || [])])).filter(Boolean).slice(0, 4);
+    const companionLife = `${run.mercenary.currentLife}/${run.mercenary.maxLife}`;
+    const choiceCountLabel = `${reward.choices.length} offering${reward.choices.length === 1 ? "" : "s"} waiting`;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
-      <div class="reward-overlay">
-        <div class="reward-popup" data-action="noop">
-          <div class="reward-popup__header">
-            <span class="reward-popup__icon">${kindIcon}</span>
-            <div class="reward-popup__titles">
-              <h1 class="reward-popup__title">${escapeHtml(reward.title)}</h1>
-              <span class="reward-popup__sub">${escapeHtml(reward.zoneTitle)} \u00b7 ${escapeHtml(rewardContext.title)}</span>
+      <div class="reward-screen reward-screen--${escapeHtml(reward.kind)}">
+        <div class="reward-screen__bg" style="background-image:url('${escapeHtml(combatBgSrc)}')"></div>
+        <div class="reward-screen__shade"></div>
+        <div class="reward-screen__embers"></div>
+
+        <div class="reward-shell" data-action="noop">
+          <header class="reward-header">
+            <div class="reward-header__seal">
+              <span class="reward-header__icon">${kindIcon}</span>
             </div>
-          </div>
 
-          <div class="reward-popup__grants">
-            <span class="reward-grant reward-grant--gold">\u{1F4B0} +${reward.grants.gold}</span>
-            <span class="reward-grant reward-grant--xp">\u2B50 +${reward.grants.xp} XP</span>
-            <span class="reward-grant reward-grant--potions">\u{1F9EA} +${reward.grants.potions}</span>
-            <span class="reward-grant reward-grant--life">\u2764 ${run.hero.currentLife}/${run.hero.maxLife}</span>
-          </div>
+            <div class="reward-header__titles">
+              <span class="reward-header__eyebrow">${escapeHtml(reward.zoneTitle)} · ${escapeHtml(rewardContext.title)} · Encounter ${reward.encounterNumber}</span>
+              <h1 class="reward-header__title">${escapeHtml(reward.title)}</h1>
+              <p class="reward-header__copy">${escapeHtml(getRewardLeadCopy(reward, rewardContext))}</p>
+            </div>
+          </header>
 
-          <h2 class="reward-popup__choose-label">Choose Your Reward</h2>
+          <section class="reward-stage">
+            <aside class="reward-stage__figure-rail">
+              <div class="reward-stage__grants">
+                <span class="reward-grant reward-grant--gold"><span class="reward-grant__label">Gold</span><strong>+${reward.grants.gold}</strong></span>
+                <span class="reward-grant reward-grant--xp"><span class="reward-grant__label">XP</span><strong>+${reward.grants.xp}</strong></span>
+                <span class="reward-grant reward-grant--potions"><span class="reward-grant__label">Potions</span><strong>+${reward.grants.potions}</strong></span>
+                <span class="reward-grant reward-grant--life"><span class="reward-grant__label">Vitality</span><strong>${run.hero.currentLife}/${run.hero.maxLife}</strong></span>
+              </div>
 
-          <div class="reward-popup__choices">
-            ${reward.choices.map((choice) => {
-              const icons = getEffectIcons(choice);
-              const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
-              const choiceRarity = choice.effects?.find((e) => e.rarity)?.rarity || RARITY.WHITE;
-              const RARITY_CLASS_MAP: Record<string, string> = { [RARITY.UNIQUE]: "reward-choice-card--unique", [RARITY.MAGIC]: "reward-choice-card--magic" };
-              const rarityClass = RARITY_CLASS_MAP[choiceRarity] || "";
-              const category = getCategoryTag(choice);
-              const deltaLines = getCompactDeltaLines(choice, run, appState.content);
-              return `
-                <button class="reward-choice-card ${rarityClass}" data-action="claim-reward-choice" data-choice-id="${escapeHtml(choice.id)}">
-                  <div class="reward-choice-card__top">
-                    <span class="reward-choice-card__category">${category}</span>
-                    <span class="reward-choice-card__icons">${icons.join(" ")}</span>
+              <div class="reward-stage__figure-card">
+                ${heroPortraitSrc ? `
+                  <div class="reward-stage__figure-glow"></div>
+                  <img class="reward-stage__portrait" src="${escapeHtml(heroPortraitSrc)}" alt="${escapeHtml(run.className)}" />
+                ` : `
+                  <div class="reward-stage__sigil" aria-hidden="true">${kindIcon}</div>
+                `}
+              </div>
+
+              <div class="reward-stage__dossier">
+                <span class="reward-stage__tag">${escapeHtml(rewardContext.title)}</span>
+                <p class="reward-stage__dossier-copy">${escapeHtml(promptCopy)}</p>
+
+                <div class="reward-stage__stats">
+                  <div class="reward-stage__stat">
+                    <span class="reward-stage__stat-label">Bloodline</span>
+                    <strong class="reward-stage__stat-value">${escapeHtml(run.className)} Lv.${run.level}</strong>
                   </div>
-                  <div class="reward-choice-card__name">${escapeHtml(choice.title)}</div>
-                  <div class="reward-choice-card__sub">${escapeHtml(choice.subtitle)}</div>
-                  <div class="reward-choice-card__desc">${escapeHtml(choice.description)}</div>
-                  ${deltaLines.length > 0 ? `<div class="reward-choice-card__deltas">${deltaLines.map((l) => `<span class="reward-choice-card__delta">${escapeHtml(l)}</span>`).join("")}</div>` : ""}
-                </button>
-              `;
-            }).join("")}
-          </div>
+                  <div class="reward-stage__stat">
+                    <span class="reward-stage__stat-label">Hero</span>
+                    <strong class="reward-stage__stat-value">${run.hero.currentLife}/${run.hero.maxLife}</strong>
+                  </div>
+                  <div class="reward-stage__stat">
+                    <span class="reward-stage__stat-label">Companion</span>
+                    <strong class="reward-stage__stat-value">${escapeHtml(companionLife)}</strong>
+                  </div>
+                  <div class="reward-stage__stat">
+                    <span class="reward-stage__stat-label">Treasury</span>
+                    <strong class="reward-stage__stat-value">${run.gold}g</strong>
+                  </div>
+                </div>
+
+                ${noteLines.length > 0 ? buildStringList(noteLines, "log-list reward-list reward-stage__notes") : ""}
+              </div>
+            </aside>
+
+            <section class="reward-stage__choices">
+              <div class="reward-stage__prompt">
+                <div>
+                  <span class="reward-stage__prompt-label">Choose Your Reward</span>
+                  <p class="reward-stage__prompt-copy">${escapeHtml(promptCopy)}</p>
+                </div>
+                <span class="reward-stage__prompt-count">${escapeHtml(choiceCountLabel)}</span>
+              </div>
+
+              <div class="reward-choice-grid">
+                ${reward.choices.map((choice) => {
+                  const icons = getEffectIcons(choice);
+                  const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
+                  const choiceRarity = choice.effects?.find((effect) => effect.rarity)?.rarity || RARITY.WHITE;
+                  const RARITY_CLASS_MAP: Record<string, string> = {
+                    [RARITY.UNIQUE]: "reward-choice-card--unique",
+                    [RARITY.RARE]: "reward-choice-card--rare",
+                    [RARITY.MAGIC]: "reward-choice-card--magic",
+                  };
+                  const rarityClass = RARITY_CLASS_MAP[choiceRarity] || "";
+                  const category = getCategoryTag(choice);
+                  const categoryClass = `reward-choice-card--${category.toLowerCase()}`;
+                  const featureLines = getChoiceFeatureLines(choice, run, appState.content);
+                  return `
+                    <button class="reward-choice-card ${rarityClass} ${categoryClass}" data-action="claim-reward-choice" data-choice-id="${escapeHtml(choice.id)}">
+                      <div class="reward-choice-card__top">
+                        <span class="reward-choice-card__category">${category}</span>
+                        <span class="reward-choice-card__icons">${icons.join(" ")}</span>
+                      </div>
+                      <div class="reward-choice-card__art">
+                        ${getChoiceVisualMarkup(choice, appState.content, escapeHtml)}
+                      </div>
+                      <div class="reward-choice-card__name">${escapeHtml(choice.title)}</div>
+                      <div class="reward-choice-card__sub">${escapeHtml(choice.subtitle)}</div>
+                      <div class="reward-choice-card__desc">${escapeHtml(choice.description)}</div>
+                      ${featureLines.length > 0 ? `<div class="reward-choice-card__deltas">${featureLines.map((line) => `<span class="reward-choice-card__delta">${escapeHtml(line)}</span>`).join("")}</div>` : ""}
+                      <div class="reward-choice-card__cta">Claim this path</div>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+            </section>
+          </section>
         </div>
       </div>
 
-      <details class="town-operations-details">
-        <summary class="town-operations-toggle">Reward Details</summary>
-        <div style="padding: 12px 16px;">
+      <details class="town-operations-details reward-intel">
+        <summary class="town-operations-toggle">View Reward Intel</summary>
+        <div class="reward-intel__body">
           ${common.renderRunStatus(run, "Reward", services.renderUtils)}
           <section class="battle-grid">
             <article class="panel battle-panel">

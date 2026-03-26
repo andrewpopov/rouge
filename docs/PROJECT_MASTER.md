@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: March 24, 2026.
+Last updated: March 25, 2026.
 
 ## Purpose
 
@@ -30,7 +30,7 @@ The live browser build is a multi-screen app-loop prototype built on the combat 
 Implemented now:
 
 - boot-time seed loading from `data/seeds/d2/*.json`
-- boss-specific combat portrait resolution, Diablo-themed monster fallbacks, and a repacked monster portrait pass for clearer in-combat silhouettes
+- boss-specific combat portrait resolution, Diablo-themed monster fallbacks, the removal of the retired steampunk icon runtime, a D2-sourced generated monster portrait batch, and a repacked monster portrait pass for clearer in-combat silhouettes
 - seed, runtime, world-node, and elite-affix validation with clearer failure messages through a split content-validator helper chain
 - front door, character select, safe zone, world map, encounter, reward, act transition, and run-end phases
 - front-door saved-snapshot review with explicit continue or abandon flow plus profile, stash, run-history, and onboarding panels
@@ -43,7 +43,7 @@ Implemented now:
 - quest outcome tracking plus shrine, event, and opportunity ledgers with explicit multi-step chain consequences on the run
 - reward choice screens with deck growth, card upgrades, party boons, item or rune progression, progression-point rewards, milestone-aware encounter payouts, profile-aware late-act equipment replacement pivots, and stronger account-gated boss pivots up through `mythic_doctrine` and `immortal_annals`
 - `skills.json`-backed class trees with capped tree investment, favored-tree summaries, level-based training, manual class-tree investment, manual stat allocation, and derived combat-bonus handoff
-- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, sovereign-tier market pressure through `merchant_principate`, `sovereign_exchange`, and `ascendant_exchange`, third-wave market pressure through `trade_hegemony`, `imperial_exchange`, and `mythic_exchange`, profile-owned runeword planning charters plus archive-backed charter ledgers and stash-ready charter staging summaries that steer vendor and reward curation, archive-backed repeat-forge pricing or rune-routing pressure once a charter is already proven, live planning-id sanitization against the current runeword catalog during hydrate or archive review or town routing, cross-tree convergence pressure like `chronicle_exchange`, `sovereign_exchange`, `legendary_annals`, `ascendant_exchange`, `imperial_exchange`, `immortal_annals`, and `mythic_exchange`, profile-aware reward-side replacement curation, and combat bonus handoff
+- socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, sovereign-tier market pressure through `merchant_principate`, `sovereign_exchange`, and `ascendant_exchange`, third-wave market pressure through `trade_hegemony`, `imperial_exchange`, and `mythic_exchange`, profile-owned runeword planning charters plus archive-backed charter ledgers and stash-ready charter staging summaries that steer vendor and reward curation, archive-backed repeat-forge pricing or rune-routing pressure once a charter is already proven, live planning-id sanitization against the current runeword catalog during hydrate or archive review or town routing, cross-tree convergence pressure like `chronicle_exchange`, `sovereign_exchange`, `legendary_annals`, `ascendant_exchange`, `imperial_exchange`, `immortal_annals`, and `mythic_exchange`, profile-aware reward-side replacement curation, combat bonus handoff, and live weapon-family combat profiles that grant proficiency-matched attack and support bonuses plus on-hit Burn or Freeze or Shock or Slow or Crushing effects for families like bows, crossbows, javelins, spears, maces, and polearms
 - account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals or sovereign-annals or imperial-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange or merchant-principate or trade-hegemony economy pressure, training-grounds or war-college or paragon-doctrine or apex-doctrine or legend-doctrine or mythic-doctrine reward pivots, and cross-tree convergence bundles like `chronicle_exchange`, `war_annals`, `paragon_exchange`, `sovereign_exchange`, `legendary_annals`, `ascendant_exchange`, `imperial_exchange`, `immortal_annals`, and `mythic_exchange`
 - stronger shell UX with a navigable front-door account hall, a primary expedition wing, a vault or archive wing, a hall-to-character-select-to-safe-zone expedition launch flow, town navigators, service drilldowns, route-intel panels, a world-map route decision desk, a reward continuity desk, an act-transition delta wrapper, explicit reward or run-end delta reviews, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, interactive archived-run review from the account hall, a hall decision desk, a town prep comparison board, a safe-zone before-or-after desk for the highest-value town-prep actions, a run-end hall handoff, a shared account-meta continuity board across hall or town or map or reward or act-transition or run-end, and a shared charter or convergence drilldown layer across those same shell phases
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, departure-readiness framing, and before-or-after action treatment for the highest-value prep decisions
@@ -156,6 +156,7 @@ Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION
 ### 3. Operational support
 
 - [docs/MONSTER-IMPLEMENTATION-GUIDE.md](/Users/andrew/proj/rouge/docs/MONSTER-IMPLEMENTATION-GUIDE.md)
+- [docs/SPRITE_GENERATION_BACKLOG.md](/Users/andrew/proj/rouge/docs/SPRITE_GENERATION_BACKLOG.md)
 - [docs/ATTRIBUTION.md](/Users/andrew/proj/rouge/docs/ATTRIBUTION.md)
 
 These support asset sourcing and legal tracking.

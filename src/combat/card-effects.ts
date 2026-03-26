@@ -7,6 +7,10 @@
     dealDamage,
     getLivingEnemies,
     drawCards,
+    getWeaponAttackBonus,
+    getWeaponSupportBonus,
+    applyWeaponTypedDamage,
+    applyWeaponEffects,
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
 
   function applyWeaken(state: CombatState, amount: number) {
@@ -22,22 +26,39 @@
     return evo.getSynergyDamageBonus(cardId, state.deckCardIds);
   }
 
+  function getWeaponScaledSupportValue(state: CombatState, effect: CardEffect, cardId: string): number {
+    const scalesWithWeapon =
+      effect.kind === "gain_guard_self" ||
+      effect.kind === "gain_guard_party" ||
+      effect.kind === "heal_hero" ||
+      effect.kind === "heal_mercenary" ||
+      effect.kind === "mark_enemy_for_mercenary" ||
+      effect.kind === "buff_mercenary_next_attack";
+    const weaponBonus = scalesWithWeapon ? getWeaponSupportBonus(state, cardId) : 0;
+    return Math.max(0, effect.value + weaponBonus);
+  }
+
   function resolveCardEffect(state: CombatState, effect: CardEffect, targetEnemy: CombatEnemyState | null, cardId: string) {
     if (effect.kind === "damage") {
       const synergy = getSynergyBonus(state, cardId);
-      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus + synergy));
+      const weaponBonus = getWeaponAttackBonus(state, cardId);
+      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus + synergy + weaponBonus));
       const dealt = dealDamage(state, targetEnemy, damage);
-      return `dealt ${dealt} to ${targetEnemy.name}.`;
+      const weaponSegments = [
+        ...applyWeaponTypedDamage(state, targetEnemy?.alive ? [targetEnemy] : [], cardId),
+        ...applyWeaponEffects(state, targetEnemy?.alive ? [targetEnemy] : [], cardId),
+      ];
+      return `dealt ${dealt} to ${targetEnemy.name}.${weaponSegments.length > 0 ? ` ${weaponSegments.join(" ")}` : ""}`;
     }
     if (effect.kind === "gain_guard_self") {
-      const guardValue = Math.max(0, effect.value + state.hero.guardBonus);
+      const guardValue = Math.max(0, getWeaponScaledSupportValue(state, effect, cardId) + state.hero.guardBonus);
       applyGuard(state.hero, guardValue);
       return `gained ${guardValue} Guard.`;
     }
     if (effect.kind === "mark_enemy_for_mercenary") {
       state.mercenary.markedEnemyId = targetEnemy?.alive ? targetEnemy.id : "";
-      state.mercenary.markBonus = effect.value;
-      return `marked ${targetEnemy.name} for the mercenary.`;
+      state.mercenary.markBonus = getWeaponScaledSupportValue(state, effect, cardId);
+      return `marked ${targetEnemy.name} for +${state.mercenary.markBonus} mercenary damage.`;
     }
     if (effect.kind === "apply_burn") {
       if (targetEnemy && targetEnemy.alive) {
@@ -114,23 +135,31 @@
       return `applied ${effect.value} Paralyze to all enemies.`;
     }
     if (effect.kind === "gain_guard_party") {
-      const guardValue = Math.max(0, effect.value + state.hero.guardBonus);
+      const guardValue = Math.max(0, getWeaponScaledSupportValue(state, effect, cardId) + state.hero.guardBonus);
       applyGuard(state.hero, guardValue);
       applyGuard(state.mercenary, guardValue);
       return `granted ${guardValue} Guard to the party.`;
     }
     if (effect.kind === "buff_mercenary_next_attack") {
-      state.mercenary.nextAttackBonus = Math.max(0, state.mercenary.nextAttackBonus + effect.value);
-      return `buffed the mercenary's next attack by ${effect.value}.`;
+      const attackBonus = getWeaponScaledSupportValue(state, effect, cardId);
+      state.mercenary.nextAttackBonus = Math.max(0, state.mercenary.nextAttackBonus + attackBonus);
+      return `buffed the mercenary's next attack by ${attackBonus}.`;
     }
     if (effect.kind === "damage_all") {
       const synergy = getSynergyBonus(state, cardId);
-      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus + synergy));
-      const total = getLivingEnemies(state).reduce((sum: number, enemy: CombatEnemyState) => sum + dealDamage(state, enemy, damage), 0);
-      return `dealt ${total} total damage.`;
+      const weaponBonus = getWeaponAttackBonus(state, cardId);
+      const damage = applyWeaken(state, Math.max(0, effect.value + state.hero.damageBonus + synergy + weaponBonus));
+      const targets = getLivingEnemies(state);
+      const total = targets.reduce((sum: number, enemy: CombatEnemyState) => sum + dealDamage(state, enemy, damage), 0);
+      const aliveTargets = targets.filter((enemy: CombatEnemyState) => enemy.alive);
+      const weaponSegments = [
+        ...applyWeaponTypedDamage(state, aliveTargets, cardId),
+        ...applyWeaponEffects(state, aliveTargets, cardId),
+      ];
+      return `dealt ${total} total damage.${weaponSegments.length > 0 ? ` ${weaponSegments.join(" ")}` : ""}`;
     }
     if (effect.kind === "heal_mercenary") {
-      const healed = healEntity(state.mercenary, effect.value);
+      const healed = healEntity(state.mercenary, getWeaponScaledSupportValue(state, effect, cardId));
       return `healed the mercenary for ${healed}.`;
     }
     if (effect.kind === "draw") {
@@ -138,7 +167,7 @@
       return `drew ${drew} card${drew === 1 ? "" : "s"}.`;
     }
     if (effect.kind === "heal_hero") {
-      const healed = healEntity(state.hero, effect.value);
+      const healed = healEntity(state.hero, getWeaponScaledSupportValue(state, effect, cardId));
       return `healed for ${healed}.`;
     }
     return "";

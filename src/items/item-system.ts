@@ -4,100 +4,532 @@
   const { RARITY } = itemCatalog;
   const itemLoadout = runtimeWindow.ROUGE_ITEM_LOADOUT;
   const itemTown = runtimeWindow.ROUGE_ITEM_TOWN;
+  const { getAccountEconomyFeatures, getPlannedRunewordArchiveState } = itemTown;
   const {
-    buildHydratedLoadout,
-    getItemDefinition,
-    getPreferredRunewordForEquipment,
-    getRuneDefinition,
-    isRunewordCompatibleWithItem,
-    isRuneAllowedInSlot,
-    rollItemRarity,
+    buildEquipmentArmorProfile,
+    buildEquipmentWeaponProfile,
+    createRuntimeContent,
     generateRarityBonuses,
+    getItemDefinition,
+    isRunewordCompatibleWithItem,
+    getRarityLabel,
+    getRuneDefinition,
+    rollArmorAffixes,
+    rollWeaponAffixes,
     toNumber,
   } = itemCatalog;
-  const { getAccountEconomyFeatures, getPlannedRunewordArchiveState, getPlannedRunewordId } = itemTown;
   const {
-    describeBonuses,
-    getFocusSlots,
-    isLateActPivotZone,
     getPlannedRuneword,
     getPlanningCharterSummary,
-    getUpgradeItemForSlot,
-    buildReplacementText,
-    pickFallbackRuneId,
-    shouldPrioritizeLateActReplacement,
+    isLateActPivotZone,
   } = runtimeWindow.__ROUGE_ITEM_SYSTEM_REWARDS;
 
-  function buildItemChoice(
-    itemId: string,
+  function hashString(value: string) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function createSeededRandom(seed: number): RandomFn {
+    let state = (seed >>> 0) || 1;
+    return () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 0x100000000;
+    };
+  }
+
+  function formatPercent(value: number) {
+    if (value >= 0.1) {
+      return `${value.toFixed(1)}%`;
+    }
+    return `${value.toFixed(2)}%`;
+  }
+
+  function getLootSeed(run: RunState, zone: ZoneState | null, actNumber: number, encounterNumber: number) {
+    return hashString([
+      run.id || "run",
+      zone?.id || zone?.title || "zone",
+      String(actNumber),
+      String(encounterNumber),
+      String(toNumber(run.summary?.encountersCleared, 0)),
+      String(toNumber(run.summary?.uniqueItemsFound, 0)),
+    ].join("|"));
+  }
+
+  function getTargetItemTier(run: RunState, zone: ZoneState | null, actNumber: number, content: GameContent) {
+    const maxItemTier = Math.max(
+      1,
+      ...(Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[]).map((item) => toNumber(item?.progressionTier, 1))
+    );
+    const levelAllowance = Math.min(2, Math.floor(Math.max(0, toNumber(run?.level, 1) - 1) / 2));
+    const trophyAllowance = zone?.kind === "boss" ? 1 : Math.min(1, toNumber(run?.progression?.bossTrophies?.length, 0));
+    const zoneAllowance =
+      zone?.kind === "boss" ? 1 :
+      zone?.kind === "miniboss" ? 0 :
+      zone?.zoneRole === "branchBattle" ? 0 :
+      0;
+    return Math.max(1, Math.min(maxItemTier, actNumber + levelAllowance + trophyAllowance + zoneAllowance));
+  }
+
+  function getZoneDropCount(zone: ZoneState | null, actNumber: number) {
+    let dropCount =
+      zone?.kind === "boss" ? 4 :
+      zone?.kind === "miniboss" ? 3 :
+      zone?.zoneRole === "branchBattle" ? 2 :
+      1;
+    if (actNumber >= 4) {
+      dropCount += zone?.kind === "battle" ? 1 : 0;
+    }
+    if (actNumber >= 3 && (zone?.kind === "miniboss" || zone?.kind === "boss")) {
+      dropCount += 1;
+    }
+    if (actNumber >= 5 && zone?.kind === "boss") {
+      dropCount += 1;
+    }
+    return Math.max(1, dropCount);
+  }
+
+  function getLateLootBias(profile: ProfileState | null, zone: ZoneState | null, actNumber: number) {
+    const features = getAccountEconomyFeatures(profile);
+    if (!isLateActPivotZone(zone, actNumber)) {
+      return { tierBias: 0, socketBias: 0 };
+    }
+    let tierBias = 0;
+    let socketBias = 0;
+    if (features.artisanStock || features.brokerageCharter) {
+      socketBias += 2;
+    }
+    if (features.treasuryExchange) {
+      tierBias += 1;
+    }
+    if (features.merchantPrincipate) {
+      tierBias += 1;
+      socketBias += 1;
+    }
+    if (features.tradeHegemony) {
+      socketBias += 1;
+    }
+    if (features.paragonExchange) {
+      tierBias += 1;
+    }
+    if (features.ascendantExchange) {
+      tierBias += 2;
+      socketBias += 1;
+    }
+    if (features.imperialExchange) {
+      tierBias += 2;
+      socketBias += 2;
+    }
+    if (features.mythicExchange) {
+      tierBias += 3;
+      socketBias += 3;
+    }
+    return { tierBias, socketBias };
+  }
+
+  function getEquipmentTableEntries(run: RunState, zone: ZoneState | null, actNumber: number, content: GameContent, profile: ProfileState | null = null) {
+    const targetTier = getTargetItemTier(run, zone, actNumber, content);
+    const maxTier = targetTier + (zone?.kind === "boss" ? 2 : zone?.kind === "miniboss" ? 1 : 0);
+    const minTier = Math.max(1, targetTier - 2);
+    const lateBias = getLateLootBias(profile, zone, actNumber);
+    const entries = (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
+      .filter((item) => {
+        const tier = toNumber(item?.progressionTier, 1);
+        return tier >= minTier && tier <= maxTier;
+      })
+      .map((item) => {
+        const tier = toNumber(item.progressionTier, 1);
+        let weight = Math.max(1, 10 - Math.abs(tier - targetTier) * 3);
+        if (item.slot === "weapon" || item.slot === "armor") {
+          weight += 3;
+        } else if (item.slot === "shield" || item.slot === "helm") {
+          weight += 1;
+        }
+        if (zone?.kind === "boss" && tier >= targetTier) {
+          weight += 1;
+        }
+        if (zone?.kind === "battle" && tier > targetTier) {
+          weight = Math.max(1, weight - 2);
+        }
+        if (lateBias.tierBias > 0 || lateBias.socketBias > 0) {
+          weight += tier * lateBias.tierBias;
+          weight += toNumber(item.maxSockets, 0) * lateBias.socketBias;
+        }
+        return { kind: "equipment" as const, id: item.id, item, weight };
+      });
+    const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0) || 1;
+    return entries.map((entry) => ({ ...entry, dropRate: entry.weight / totalWeight }));
+  }
+
+  function getPlanningFocusedEquipmentTable(
+    equipmentTable: Array<{ kind: "equipment"; id: string; item: RuntimeItemDefinition; weight: number; dropRate: number }>,
     run: RunState,
-    content: GameContent,
-    options: {
-      profile?: ProfileState | null;
-      lateActPivot?: boolean;
-      plannedRuneword?: RuntimeRunewordDefinition | null;
-      planningUnfulfilled?: boolean;
-      planningCharter?: ProfilePlanningCharterSummary | null;
-      rarity?: string;
-      rarityBonuses?: ItemBonusSet;
-    } = {}
+    profile: ProfileState | null,
+    content: GameContent
   ) {
-    const item = getItemDefinition(content, itemId);
+    const planningPriority: Array<"weapon" | "armor"> = ["weapon", "armor"];
+    for (const slot of planningPriority) {
+      const plannedRuneword = getPlannedRuneword(slot, profile, content);
+      const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
+      const planningCharter = getPlanningCharterSummary(profile, slot, content);
+      const shouldFocus =
+        Boolean(plannedRuneword) &&
+        (
+          planningArchiveState.unfulfilled ||
+          toNumber(planningCharter?.completedRunCount, 0) > 0 ||
+          Boolean(planningCharter?.hasReadyBase) ||
+          toNumber(planningCharter?.preparedBaseCount, 0) > 0
+        );
+      if (!plannedRuneword || !shouldFocus) {
+        continue;
+      }
+      const slotIsEmpty = !run.loadout?.[slot];
+      const matches = equipmentTable.filter((entry) => {
+        return entry.item.slot === slot && isRunewordCompatibleWithItem(entry.item, plannedRuneword);
+      });
+      if (matches.length > 0 && slotIsEmpty) {
+        return matches;
+      }
+      if (matches.length > 0 && slot === "weapon") {
+        return matches;
+      }
+    }
+    return equipmentTable;
+  }
+
+  function getRuneTableEntries(run: RunState, zone: ZoneState | null, actNumber: number, content: GameContent) {
+    const runeTargetTier = Math.max(1, actNumber + (zone?.kind === "boss" ? 2 : zone?.kind === "miniboss" ? 1 : 0));
+    const entries = (Object.values(content.runeCatalog || {}) as RuntimeRuneDefinition[])
+      .filter((rune) => toNumber(rune?.progressionTier, 1) <= runeTargetTier)
+      .map((rune) => {
+        const tier = toNumber(rune.progressionTier, 1);
+        let weight = Math.max(1, 7 - Math.abs(tier - runeTargetTier) * 2);
+        if (zone?.kind === "boss" && tier >= runeTargetTier - 1) {
+          weight += 1;
+        }
+        return { kind: "rune" as const, id: rune.id, rune, weight };
+      });
+    const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0) || 1;
+    return entries.map((entry) => ({ ...entry, dropRate: entry.weight / totalWeight }));
+  }
+
+  function buildZoneLootTable({
+    content,
+    run,
+    zone,
+    actNumber,
+    profile = null,
+  }: {
+    content: GameContent;
+    run: RunState;
+    zone: ZoneState | null;
+    actNumber: number;
+    encounterNumber: number;
+    profile?: ProfileState | null;
+  }) {
+    const combined = [
+      ...getEquipmentTableEntries(run, zone, actNumber, content, profile),
+      ...getRuneTableEntries(run, zone, actNumber, content),
+    ];
+    const totalWeight = combined.reduce((sum, entry) => sum + entry.weight, 0) || 1;
+    return combined
+      .map((entry) => ({ kind: entry.kind, id: entry.id, weight: entry.weight, dropRate: entry.weight / totalWeight }))
+      .sort((left, right) => right.weight - left.weight || left.id.localeCompare(right.id));
+  }
+
+  function pickWeightedEntry<T extends { weight: number }>(entries: T[], randomFn: RandomFn): T | null {
+    const totalWeight = entries.reduce((sum, entry) => sum + Math.max(0, entry.weight), 0);
+    if (totalWeight <= 0) {
+      return null;
+    }
+    let remaining = randomFn() * totalWeight;
+    for (const entry of entries) {
+      remaining -= Math.max(0, entry.weight);
+      if (remaining <= 0) {
+        return entry;
+      }
+    }
+    return entries[entries.length - 1] || null;
+  }
+
+  function rollEquipmentRarity(zone: ZoneState | null, run: RunState, randomFn: RandomFn) {
+    const uniqueSeen = toNumber(run.summary?.uniqueItemsFound, 0);
+    const uniqueChanceBase =
+      zone?.kind === "boss" ? 0.03 :
+      zone?.kind === "miniboss" ? 0.005 :
+      zone?.kind === "event" || zone?.kind === "opportunity" ? 0.015 :
+      0.0005;
+    const uniqueChance = uniqueChanceBase * (uniqueSeen > 0 ? 0.2 : 1);
+    const roll = randomFn();
+    if (roll < uniqueChance) {
+      return RARITY.UNIQUE;
+    }
+    const normalizedRoll = (roll - uniqueChance) / Math.max(0.0001, 1 - uniqueChance);
+    if (zone?.kind === "boss") {
+      if (normalizedRoll < 0.35) { return RARITY.WHITE; }
+      if (normalizedRoll < 0.78) { return RARITY.MAGIC; }
+      return RARITY.RARE;
+    }
+    if (zone?.kind === "miniboss" || zone?.zoneRole === "branchBattle") {
+      if (normalizedRoll < 0.48) { return RARITY.WHITE; }
+      if (normalizedRoll < 0.84) { return RARITY.MAGIC; }
+      return RARITY.RARE;
+    }
+    if (normalizedRoll < 0.65) { return RARITY.WHITE; }
+    if (normalizedRoll < 0.92) { return RARITY.MAGIC; }
+    return RARITY.RARE;
+  }
+
+  function buildDropLabel(
+    content: GameContent,
+    drop: {
+      kind: "equipment" | "rune";
+      id: string;
+      rarity?: string;
+    }
+  ) {
+    if (drop.kind === "rune") {
+      return getRuneDefinition(content, drop.id)?.name || drop.id;
+    }
+    const item = getItemDefinition(content, drop.id);
+    const rarityLabel = getRarityLabel(drop.rarity || RARITY.WHITE);
+    return `${rarityLabel ? `${rarityLabel} ` : ""}${item?.name || drop.id}`;
+  }
+
+  function buildPrimaryItemPreviewLines(
+    content: GameContent,
+    primaryDrop: {
+      itemId: string;
+      rarity: string;
+      rarityBonuses: ItemBonusSet;
+      weaponAffixes?: WeaponCombatProfile;
+      armorAffixes?: ArmorMitigationProfile;
+    }
+  ) {
+    const item = getItemDefinition(content, primaryDrop.itemId);
     if (!item) {
+      return [];
+    }
+    const combinedBonuses = { ...item.bonuses };
+    Object.entries(primaryDrop.rarityBonuses || {}).forEach(([key, value]) => {
+      (combinedBonuses as unknown as Record<string, number>)[key] = ((combinedBonuses as unknown as Record<string, number>)[key] || 0) + toNumber(value, 0);
+    });
+    const previewEquipment: RunEquipmentState = {
+      entryId: "",
+      itemId: item.id,
+      slot: item.slot,
+      socketsUnlocked: 0,
+      insertedRunes: [],
+      runewordId: "",
+      rarity: primaryDrop.rarity,
+      rarityKind: itemCatalog.getRarityKind(primaryDrop.rarity),
+      rarityBonuses: primaryDrop.rarityBonuses,
+      weaponAffixes: primaryDrop.weaponAffixes,
+      armorAffixes: primaryDrop.armorAffixes,
+    };
+    return [
+      ...runtimeWindow.ROUGE_RUN_STATE.describeBonusSet(combinedBonuses),
+      ...runtimeWindow.ROUGE_RUN_STATE.describeWeaponProfile(buildEquipmentWeaponProfile(previewEquipment, content)),
+      ...runtimeWindow.ROUGE_RUN_STATE.describeArmorProfile(buildEquipmentArmorProfile(previewEquipment, content)),
+      `Base sockets ${item.maxSockets}.`,
+    ];
+  }
+
+  function rollPrimaryEquipmentDrop(
+    equipmentTable: Array<{ kind: "equipment"; id: string; item: RuntimeItemDefinition; weight: number; dropRate: number }>,
+    zone: ZoneState | null,
+    run: RunState,
+    randomFn: RandomFn,
+    actNumber: number,
+    profile: ProfileState | null
+  ) {
+    const lateBias = getLateLootBias(profile, zone, actNumber);
+    const selected = [...equipmentTable].sort((left, right) => {
+      const weightDelta = right.weight - left.weight;
+      if (weightDelta !== 0) {
+        return weightDelta;
+      }
+      const tierDelta = toNumber(right.item?.progressionTier, 0) - toNumber(left.item?.progressionTier, 0);
+      if (tierDelta !== 0) {
+        return tierDelta;
+      }
+      const socketDelta = toNumber(right.item?.maxSockets, 0) - toNumber(left.item?.maxSockets, 0);
+      if (socketDelta !== 0) {
+        return socketDelta;
+      }
+      if (lateBias.tierBias > 0 || lateBias.socketBias > 0) {
+        return left.id.localeCompare(right.id);
+      }
+      return left.id.localeCompare(right.id);
+    })[0] || null;
+    if (!selected) {
+      return null;
+    }
+    const rarity = rollEquipmentRarity(zone, run, randomFn);
+    return {
+      kind: "equipment" as const,
+      id: selected.id,
+      tableDropRate: selected.dropRate,
+      rarity,
+      rarityBonuses: rarity !== RARITY.WHITE ? generateRarityBonuses(selected.item, rarity, randomFn) : {},
+      weaponAffixes: rollWeaponAffixes(selected.item, rarity, randomFn),
+      armorAffixes: rollArmorAffixes(selected.item, rarity, randomFn),
+    };
+  }
+
+  function rollExtraDrops(
+    equipmentTable: Array<{ kind: "equipment"; id: string; item: RuntimeItemDefinition; weight: number; dropRate: number }>,
+    runeTable: Array<{ kind: "rune"; id: string; rune: RuntimeRuneDefinition; weight: number; dropRate: number }>,
+    zone: ZoneState | null,
+    run: RunState,
+    randomFn: RandomFn,
+    desiredCount: number,
+    primaryItemId: string,
+    primaryItemSlot: EquipmentSlot
+  ) {
+    const chosenIds = new Set<string>([primaryItemId]);
+    const chosenEquipmentSlots = new Set<EquipmentSlot>([primaryItemSlot]);
+    const drops: Array<
+      | {
+          kind: "equipment";
+          id: string;
+          tableDropRate: number;
+          rarity: string;
+          rarityBonuses: ItemBonusSet;
+          weaponAffixes?: WeaponCombatProfile;
+          armorAffixes?: ArmorMitigationProfile;
+        }
+      | { kind: "rune"; id: string; tableDropRate: number }
+    > = [];
+
+    while (drops.length < desiredCount) {
+      const availableEquipment = equipmentTable.filter((entry) => {
+        return !chosenIds.has(entry.id) && !chosenEquipmentSlots.has(entry.item.slot);
+      });
+      const availableRunes = runeTable.filter((entry) => !chosenIds.has(entry.id));
+      const combined = [...availableEquipment, ...availableRunes];
+      if (combined.length === 0) {
+        break;
+      }
+      const selected = pickWeightedEntry(combined, randomFn);
+      if (!selected) {
+        break;
+      }
+      chosenIds.add(selected.id);
+      if (selected.kind === "rune") {
+        drops.push({ kind: "rune", id: selected.id, tableDropRate: selected.dropRate });
+        continue;
+      }
+      chosenEquipmentSlots.add(selected.item.slot);
+      const rarity = rollEquipmentRarity(zone, run, randomFn);
+      drops.push({
+        kind: "equipment",
+        id: selected.id,
+        tableDropRate: selected.dropRate,
+        rarity,
+        rarityBonuses: rarity !== RARITY.WHITE ? generateRarityBonuses(selected.item, rarity, randomFn) : {},
+        weaponAffixes: rollWeaponAffixes(selected.item, rarity, randomFn),
+        armorAffixes: rollArmorAffixes(selected.item, rarity, randomFn),
+      });
+    }
+
+    return drops;
+  }
+
+  function buildEquipmentChoice({
+    content,
+    run,
+    zone,
+    actNumber,
+    encounterNumber,
+    profile = null,
+  }: {
+    content: GameContent;
+    run: RunState;
+    zone: ZoneState | null;
+    actNumber: number;
+    encounterNumber: number;
+    profile?: ProfileState | null;
+  }): RewardChoice | null {
+    const randomFn = createSeededRandom(getLootSeed(run, zone, actNumber, encounterNumber));
+    const equipmentTable = getEquipmentTableEntries(run, zone, actNumber, content, profile);
+    const runeTable = getRuneTableEntries(run, zone, actNumber, content);
+    const primaryEquipmentTable = getPlanningFocusedEquipmentTable(equipmentTable, run, profile, content);
+    const primaryDrop = rollPrimaryEquipmentDrop(primaryEquipmentTable, zone, run, randomFn, actNumber, profile);
+    if (!primaryDrop) {
       return null;
     }
 
-    const rarity = options.rarity || RARITY.WHITE;
-    const rarityBonuses = options.rarityBonuses || {};
-    const combinedBonuses = { ...item.bonuses };
-    Object.entries(rarityBonuses).forEach(([k, v]: [string, number]) => { (combinedBonuses as unknown as Record<string, number>)[k] = ((combinedBonuses as unknown as Record<string, number>)[k] || 0) + toNumber(v, 0); });
-    let rarityLabel = "";
-    if (rarity === RARITY.UNIQUE) { rarityLabel = "Unique"; }
-    else if (rarity === RARITY.MAGIC) { rarityLabel = "Magic"; }
-    const rarityTitle = rarityLabel ? `${rarityLabel} ${item.name}` : item.name;
-
-    const loadout = buildHydratedLoadout(run, content);
-    const loadoutKey = itemLoadout.resolveLoadoutKey(item.slot, run);
-    const currentEquipment = loadout[loadoutKey];
-    const features = getAccountEconomyFeatures(options.profile);
+    const totalDropCount = getZoneDropCount(zone, actNumber);
+    const extraDrops = rollExtraDrops(
+      equipmentTable,
+      runeTable,
+      zone,
+      run,
+      randomFn,
+      Math.max(0, totalDropCount - 1),
+      primaryDrop.id,
+      getItemDefinition(content, primaryDrop.id)?.slot || "weapon"
+    );
+    const targetTier = getTargetItemTier(run, zone, actNumber, content);
+    const primaryLabel = buildDropLabel(content, { kind: "equipment", id: primaryDrop.id, rarity: primaryDrop.rarity });
     const previewLines = [
-      ...describeBonuses(combinedBonuses),
-      `Base sockets ${item.maxSockets}.`,
-      buildReplacementText(currentEquipment, item, content),
+      `${zone?.title || "Zone"} rolled ${1 + extraDrops.length} loot drop${1 + extraDrops.length === 1 ? "" : "s"} at target tier ${targetTier}.`,
+      `Primary drop: ${primaryLabel} (${formatPercent(primaryDrop.tableDropRate * 100)} table chance).`,
+      ...buildPrimaryItemPreviewLines(content, {
+        itemId: primaryDrop.id,
+        rarity: primaryDrop.rarity,
+        rarityBonuses: primaryDrop.rarityBonuses,
+        weaponAffixes: primaryDrop.weaponAffixes,
+        armorAffixes: primaryDrop.armorAffixes,
+      }),
     ];
-    if (rarityLabel) { previewLines.unshift(`Rarity: ${rarityLabel}.`); }
-    if (options.plannedRuneword && isRunewordCompatibleWithItem(item, options.plannedRuneword)) {
-      previewLines.push(`Planning charter: ${options.plannedRuneword.name}.`);
+    const primaryItem = getItemDefinition(content, primaryDrop.id);
+    const primarySlot = primaryItem?.slot || "weapon";
+    const plannedRuneword =
+      primarySlot === "weapon" || primarySlot === "armor"
+        ? getPlannedRuneword(primarySlot, profile, content)
+        : null;
+    const planningArchiveState =
+      plannedRuneword && (primarySlot === "weapon" || primarySlot === "armor")
+        ? getPlannedRunewordArchiveState(profile, primarySlot, content)
+        : { unfulfilled: false };
+    const planningCharter = getPlanningCharterSummary(profile, primarySlot, content);
+    const features = getAccountEconomyFeatures(profile);
+    if (plannedRuneword && primaryItem && isRunewordCompatibleWithItem(primaryItem, plannedRuneword)) {
+      previewLines.push(`Planning charter: ${plannedRuneword.name}.`);
     }
-    if (options.planningCharter?.hasReadyBase && options.plannedRuneword) {
-      previewLines.push(`Vault already has a ready ${options.plannedRuneword.name} base parked.`);
-    } else if (toNumber(options.planningCharter?.preparedBaseCount, 0) > 0 && options.plannedRuneword) {
-      previewLines.push(`Vault already has a prepared ${options.plannedRuneword.name} base parked.`);
-    }
-    if (toNumber(options.planningCharter?.completedRunCount, 0) > 0 && options.plannedRuneword) {
+    if (planningArchiveState.unfulfilled && plannedRuneword) {
+      previewLines.push("Archive charter still unfulfilled across the account.");
+    } else if (plannedRuneword && toNumber(planningCharter?.completedRunCount, 0) > 0) {
       previewLines.push(
-        `Archive already proved ${options.plannedRuneword.name} through Act ${Math.max(1, toNumber(options.planningCharter?.bestActsCleared, 0))}${
-          toNumber(options.planningCharter?.bestCompletedLoadoutTier, 0) > 0
-            ? ` at loadout tier ${toNumber(options.planningCharter?.bestCompletedLoadoutTier, 0)}`
+        `Archive already proved ${plannedRuneword.name} through Act ${Math.max(1, toNumber(planningCharter?.bestActsCleared, 0))}${
+          toNumber(planningCharter?.bestCompletedLoadoutTier, 0) > 0
+            ? ` at loadout tier ${toNumber(planningCharter?.bestCompletedLoadoutTier, 0)}`
             : ""
         }. This reward is supporting a repeat forge.`
       );
     }
-    if (options.planningUnfulfilled && options.plannedRuneword) {
-      previewLines.push("Archive charter still unfulfilled across the account.");
-    }
-
-    if (options.lateActPivot) {
+    if (isLateActPivotZone(zone, actNumber)) {
       previewLines.push("Late-act pivot: replace the old base before spending more sockets or runes on it.");
       const hasAnyTradeFeature =
-        features.artisanStock || features.brokerageCharter || features.treasuryExchange ||
-        features.merchantPrincipate || features.tradeHegemony || features.sovereignExchange ||
-        features.ascendantExchange || features.imperialExchange || features.mythicExchange ||
+        features.artisanStock ||
+        features.brokerageCharter ||
+        features.treasuryExchange ||
+        features.merchantPrincipate ||
+        features.tradeHegemony ||
+        features.sovereignExchange ||
+        features.ascendantExchange ||
+        features.imperialExchange ||
+        features.mythicExchange ||
         features.economyFocus;
       if (hasAnyTradeFeature) {
         previewLines.push("Trade Network is steering this reward toward a socket-ready late-game replacement base.");
       }
-      const PIVOT_FEATURE_LABELS: [keyof AccountEconomyFeatures, string][] = [
+      const pivotFeatureLabels: Array<[keyof AccountEconomyFeatures, string]> = [
         ["treasuryExchange", "Treasury Exchange is preserving this reward as a premium replacement instead of a short-term sidegrade."],
         ["merchantPrincipate", "Merchant Principate is widening this into a sovereign-tier late-market replacement offer."],
         ["sovereignExchange", "Sovereign Exchange is binding archive pressure to this premium staged replacement pivot."],
@@ -107,192 +539,72 @@
         ["imperialExchange", "Imperial Exchange is binding imperial archive pressure to this premium replacement pivot."],
         ["mythicExchange", "Mythic Exchange is escalating this into a mythic four-socket replacement pivot."],
       ];
-      for (const [featureKey, label] of PIVOT_FEATURE_LABELS) {
+      pivotFeatureLabels.forEach(([featureKey, label]) => {
         if (features[featureKey]) {
           previewLines.push(label);
         }
-      }
+      });
+    }
+    extraDrops.forEach((drop) => {
+      previewLines.push(`Extra drop: ${buildDropLabel(content, { kind: drop.kind, id: drop.id, rarity: "rarity" in drop ? drop.rarity : undefined })} (${formatPercent(drop.tableDropRate * 100)} table chance).`);
+    });
+    previewLines.push(
+      zone?.kind === "boss"
+        ? "Boss loot tables carry the main unique pressure; normal fights only whisper at uniques."
+        : "Unique items are mostly reserved for bosses and special outcomes."
+    );
+    if (toNumber(run.summary?.uniqueItemsFound, 0) > 0) {
+      previewLines.push("A unique already dropped this run, so additional unique rolls are heavily suppressed.");
     }
 
-    return {
-      id: `reward_item_${item.id}`,
-      kind: "item",
-      title: rarityTitle,
-      subtitle: `Equip ${itemLoadout.EQUIPMENT_SLOT_LABELS[item.slot] || item.slot}`,
-      description: item.summary,
-      previewLines,
-      effects: [{ kind: "equip_item" as const, itemId: item.id, rarity, rarityBonuses }],
-    };
-  }
-
-  function buildSocketChoice(slot: string, run: RunState, content: GameContent) {
-    const loadout = buildHydratedLoadout(run, content);
-    const equipment = (loadout as unknown as Record<string, RunEquipmentState | null>)[slot];
-    if (!equipment) {
-      return null;
-    }
-
-    const item = getItemDefinition(content, equipment.itemId);
-    if (!item || equipment.socketsUnlocked >= item.maxSockets) {
-      return null;
-    }
-
-    return {
-      id: `reward_socket_${slot}`,
-      kind: "socket",
-      title: `Larzuk's ${itemLoadout.EQUIPMENT_SLOT_LABELS[slot as EquipmentSlot] || "Gear"} Socket`,
-      subtitle: "Open Socket",
-      description: `Add one permanent socket to ${item.name}.`,
-      previewLines: [
-        `${item.name} sockets ${equipment.socketsUnlocked}/${item.maxSockets} -> ${equipment.socketsUnlocked + 1}/${item.maxSockets}.`,
-        "Existing runes remain in place.",
-      ],
-      effects: [{ kind: "add_socket" as const, slot: slot as "weapon" | "armor" }],
-    };
-  }
-
-  function buildRuneChoice(runeId: string, slot: string, run: RunState, content: GameContent, runeword: RuntimeRunewordDefinition | null = null) {
-    const rune = getRuneDefinition(content, runeId);
-    const loadout = buildHydratedLoadout(run, content);
-    const equipment = (loadout as unknown as Record<string, RunEquipmentState | null>)[slot];
-    if (!rune || !equipment || !isRuneAllowedInSlot(rune, slot as "weapon" | "armor")) {
-      return null;
-    }
-
-    const item = getItemDefinition(content, equipment.itemId);
-    const previewLines = [
-      ...describeBonuses(rune.bonuses),
-      `Socket into ${item?.name || equipment.itemId}.`,
-      `${equipment.insertedRunes.length + 1}/${equipment.socketsUnlocked} sockets filled.`,
+    const effects: RewardChoiceEffect[] = [
+      {
+        kind: "equip_item",
+        itemId: primaryDrop.id,
+        rarity: primaryDrop.rarity,
+        rarityBonuses: primaryDrop.rarityBonuses,
+        weaponAffixes: primaryDrop.weaponAffixes,
+        armorAffixes: primaryDrop.armorAffixes,
+      },
     ];
-
-    if (runeword) {
-      const nextSequence = [...equipment.insertedRunes, rune.id]
-        .map((entry: string) => getRuneDefinition(content, entry)?.name || entry)
-        .join(" + ");
-      previewLines.push(`Route to ${runeword.name}: ${nextSequence}.`);
-    }
+    extraDrops.forEach((drop) => {
+      if (drop.kind === "rune") {
+        effects.push({ kind: "grant_rune", runeId: drop.id });
+        return;
+      }
+      effects.push({
+        kind: "grant_item",
+        itemId: drop.id,
+        rarity: drop.rarity,
+        rarityBonuses: drop.rarityBonuses,
+        weaponAffixes: drop.weaponAffixes,
+        armorAffixes: drop.armorAffixes,
+      });
+    });
 
     return {
-      id: `reward_rune_${slot}_${rune.id}`,
-      kind: "rune",
-      title: rune.name,
-      subtitle: `Socket ${itemLoadout.EQUIPMENT_SLOT_LABELS[slot as EquipmentSlot] || "Gear"} Rune`,
-      description: rune.summary,
+      id: `reward_loot_${zone?.id || "zone"}_${encounterNumber}`,
+      kind: "item",
+      title: primaryLabel,
+      subtitle: "Zone Loot Table",
+      description: `Roll ${1 + extraDrops.length} drop${1 + extraDrops.length === 1 ? "" : "s"} from ${zone?.title || "this area"}, then auto-equip the headline piece and carry the rest.`,
       previewLines,
-      effects: [{ kind: "socket_rune" as const, runeId: rune.id, slot: slot as "weapon" | "armor" }],
+      effects,
     };
-  }
-
-  function buildChoiceForSlot(slot: string, run: RunState, zone: ZoneState | null, actNumber: number, encounterNumber: number, content: GameContent, profile: ProfileState | null = null, rarityOpts: { rarity?: string; rarityBonuses?: ItemBonusSet } = {}): RewardChoice | null {
-    const loadout = buildHydratedLoadout(run, content);
-    const equipment = (loadout as unknown as Record<string, RunEquipmentState | null>)[slot];
-    const upgradeItem = getUpgradeItemForSlot(slot, equipment, actNumber, zone, run, content, profile);
-    const plannedRuneword = getPlannedRuneword(slot, profile, content);
-    const planningArchiveState = getPlannedRunewordArchiveState(profile, slot as "weapon" | "armor", content);
-    const planningCharter = getPlanningCharterSummary(profile, slot, content);
-
-    if (!equipment) {
-      return upgradeItem
-        ? buildItemChoice(upgradeItem.id, run, content, {
-            lateActPivot: isLateActPivotZone(zone, actNumber),
-            profile,
-            plannedRuneword,
-            planningUnfulfilled: planningArchiveState.unfulfilled,
-            planningCharter,
-            ...rarityOpts,
-          })
-        : null;
-    }
-
-    const item = getItemDefinition(content, equipment.itemId);
-    const targetRuneword = equipment.runewordId
-      ? null
-      : getPreferredRunewordForEquipment(equipment, run, content, getPlannedRunewordId(profile, slot as "weapon" | "armor", content));
-
-    const planningPivot =
-      upgradeItem &&
-      plannedRuneword &&
-      planningArchiveState.unfulfilled &&
-      isLateActPivotZone(zone, actNumber) &&
-      isRunewordCompatibleWithItem(upgradeItem, plannedRuneword);
-
-    if (
-      upgradeItem &&
-      upgradeItem.id !== equipment.itemId &&
-      (shouldPrioritizeLateActReplacement(equipment, upgradeItem, actNumber, zone, run, content, profile) || planningPivot)
-    ) {
-      return buildItemChoice(upgradeItem.id, run, content, {
-        lateActPivot: true,
-        profile,
-        plannedRuneword,
-        planningUnfulfilled: planningArchiveState.unfulfilled,
-        planningCharter,
-        ...rarityOpts,
-      });
-    }
-
-    if (targetRuneword) {
-      if (equipment.socketsUnlocked < targetRuneword.socketCount && equipment.socketsUnlocked < item.maxSockets) {
-        return buildSocketChoice(slot, run, content);
-      }
-
-      if (equipment.insertedRunes.length < targetRuneword.requiredRunes.length && equipment.insertedRunes.length < equipment.socketsUnlocked) {
-        const nextRuneId = targetRuneword.requiredRunes[equipment.insertedRunes.length];
-        return buildRuneChoice(nextRuneId, slot, run, content, targetRuneword);
-      }
-    }
-
-    if (upgradeItem && upgradeItem.id !== equipment.itemId) {
-      return buildItemChoice(upgradeItem.id, run, content, {
-        profile,
-        plannedRuneword,
-        planningUnfulfilled: planningArchiveState.unfulfilled,
-        planningCharter,
-        ...rarityOpts,
-      });
-    }
-
-    if (equipment.socketsUnlocked < item.maxSockets) {
-      return buildSocketChoice(slot, run, content);
-    }
-
-    if (equipment.insertedRunes.length < equipment.socketsUnlocked) {
-      const fallbackRuneId = pickFallbackRuneId(slot, actNumber, encounterNumber, run, zone, content);
-      if (fallbackRuneId) {
-        return buildRuneChoice(fallbackRuneId, slot, run, content);
-      }
-    }
-
-    return null;
-  }
-
-  function buildEquipmentChoice({ content, run, zone, actNumber, encounterNumber, profile = null }: { content: GameContent; run: RunState; zone: ZoneState | null; actNumber: number; encounterNumber: number; profile?: ProfileState | null }): RewardChoice | null {
-    const randomFn = Math.random;
-    const rarity = rollItemRarity(zone?.kind || "battle", randomFn);
-    const focusSlots = getFocusSlots(run, actNumber, encounterNumber, content);
-    for (let index = 0; index < focusSlots.length; index += 1) {
-      const slot = focusSlots[index];
-      const upgradeItem = getUpgradeItemForSlot(slot, (buildHydratedLoadout(run, content) as unknown as Record<string, RunEquipmentState | null>)[slot], actNumber, zone, run, content, profile);
-      const itemDef = upgradeItem ? getItemDefinition(content, upgradeItem.id) : null;
-      const rarityBonuses = itemDef && rarity !== RARITY.WHITE ? generateRarityBonuses(itemDef, rarity, randomFn) : {};
-      const rarityOpts = { rarity, rarityBonuses };
-      const choice = buildChoiceForSlot(slot, run, zone, actNumber, encounterNumber, content, profile, rarityOpts);
-      if (choice) { return choice; }
-    }
-    return null;
   }
 
   runtimeWindow.ROUGE_ITEM_SYSTEM = {
-    createRuntimeContent: itemCatalog.createRuntimeContent,
+    createRuntimeContent,
     hydrateRunLoadout: itemLoadout.hydrateRunLoadout,
     hydrateRunInventory: itemTown.hydrateRunInventory,
     hydrateProfileStash: itemLoadout.hydrateProfileStash,
     buildEquipmentChoice,
+    buildZoneLootTable,
     applyChoice: itemLoadout.applyChoice,
     listTownActions: itemTown.listTownActions,
     applyTownAction: itemTown.applyTownAction,
     buildCombatBonuses: itemLoadout.buildCombatBonuses,
+    buildCombatMitigationProfile: itemLoadout.buildCombatMitigationProfile,
     getActiveRunewords: itemLoadout.getActiveRunewords,
     getLoadoutSummary: itemLoadout.getLoadoutSummary,
     getInventorySummary: itemTown.getInventorySummary,

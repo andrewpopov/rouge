@@ -6,8 +6,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
+const APP_ROOT = path.join(ROOT, "dist");
 const OUT_DIR = path.join(ROOT, "screenshots");
 const TIMEOUT = 5000;
+const GENERATED_HARNESS_PATH = path.join(ROOT, "generated/tests/helpers/browser-harness.js");
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -25,9 +27,9 @@ function createServer() {
   return http.createServer((req, res) => {
     const url = new URL(req.url || "/", "http://127.0.0.1");
     const relative = decodeURIComponent(url.pathname).replace(/^\/+/, "") || "index.html";
-    const fullPath = path.resolve(ROOT, relative);
+    const fullPath = path.resolve(APP_ROOT, relative);
 
-    if (!fullPath.startsWith(ROOT)) {
+    if (!fullPath.startsWith(APP_ROOT)) {
       res.writeHead(403);
       res.end("Forbidden");
       return;
@@ -77,6 +79,250 @@ async function shot(page, name, opts = {}) {
   console.log(`  ✓ ${name}.png${opts.fullPage ? " (full page)" : ""}`);
 }
 
+async function openGameMenu(page) {
+  const debugToggle = page.locator('[data-setting-key="debugMode.enabled"]').first();
+  if (await debugToggle.isVisible().catch(() => false)) {
+    return true;
+  }
+  const menuToggle = page.locator('[data-action="toggle-game-menu"]').first();
+  if (!(await menuToggle.isVisible().catch(() => false))) {
+    return false;
+  }
+  await menuToggle.click();
+  await page.waitForTimeout(250);
+  return await debugToggle.isVisible().catch(() => false);
+}
+
+async function closeGameMenu(page) {
+  const debugToggle = page.locator('[data-setting-key="debugMode.enabled"]').first();
+  if (!(await debugToggle.isVisible().catch(() => false))) {
+    return;
+  }
+  const menuToggle = page.locator('[data-action="toggle-game-menu"]').first();
+  if (!(await menuToggle.isVisible().catch(() => false))) {
+    return;
+  }
+  await menuToggle.click();
+  await page.waitForTimeout(250);
+}
+
+function buildActTransitionFixture() {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, runFactory, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.setSelectedMercenary(state, "iron_wolf");
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+  if (!appEngine.leaveSafeZone(state).ok) {
+    return null;
+  }
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  if (!appEngine.selectZone(state, openingZoneId).ok) {
+    return null;
+  }
+  if (state.phase === appEngine.PHASES.ENCOUNTER) {
+    state.combat.outcome = "victory";
+    if (!appEngine.syncEncounterOutcome(state).ok) {
+      return null;
+    }
+  }
+
+  state.run.pendingReward.endsAct = true;
+  const rewardChoiceId = state.run.pendingReward.choices[0].id;
+  if (!appEngine.claimRewardAndAdvance(state, rewardChoiceId).ok) {
+    return null;
+  }
+
+  state.run.acts[state.run.currentActIndex].complete = true;
+  state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
+  state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
+function buildRunSummaryFixture() {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, runFactory, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.setSelectedMercenary(state, "iron_wolf");
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+  if (!appEngine.leaveSafeZone(state).ok) {
+    return null;
+  }
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  if (!appEngine.selectZone(state, openingZoneId).ok) {
+    return null;
+  }
+  if (state.phase === appEngine.PHASES.ENCOUNTER) {
+    state.combat.outcome = "victory";
+    if (!appEngine.syncEncounterOutcome(state).ok) {
+      return null;
+    }
+  }
+
+  state.run.pendingReward.endsRun = true;
+  state.run.level = 12;
+  state.run.gold = 148;
+  state.run.summary.encountersCleared = 11;
+  state.run.summary.zonesCleared = 4;
+  state.run.summary.actsCleared = 1;
+  state.run.summary.goldGained = 148;
+  state.run.summary.xpGained = 92;
+  state.run.summary.levelsGained = 3;
+  state.run.summary.skillPointsEarned = 4;
+  state.run.summary.classPointsEarned = 3;
+  state.run.summary.attributePointsEarned = 10;
+  state.run.summary.trainingRanksGained = 5;
+  state.run.summary.bossesDefeated = 1;
+  state.run.summary.runewordsForged = 1;
+  state.run.summary.uniqueItemsFound = 1;
+  state.profile.meta.progression.highestLevel = 12;
+  state.profile.meta.progression.highestActCleared = 1;
+  state.profile.meta.progression.totalBossesDefeated = 1;
+  state.profile.meta.progression.totalGoldCollected = 148;
+  state.profile.meta.progression.totalRunewordsForged = 1;
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
+function buildTownOverlayFixture({ actNumber = 1, classId = "amazon", mercenaryId = "rogue_scout", gold = 19998 } = {}) {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, classId);
+  appEngine.setSelectedMercenary(state, mercenaryId);
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+
+  state.run.gold = gold;
+  if (actNumber > 1) {
+    state.run.actNumber = actNumber;
+    state.run.currentActIndex = Math.max(0, actNumber - 1);
+    const currentAct = state.run.acts[state.run.currentActIndex];
+    if (currentAct) {
+      state.run.safeZoneName = currentAct.town;
+      state.run.actTitle = currentAct.title;
+      if (currentAct.boss?.name) {
+        state.run.bossName = currentAct.boss.name;
+      }
+    }
+  }
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
+async function openFixturePage(browser, baseUrl, fixture) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  await context.addInitScript((savedFixture) => {
+    localStorage.clear();
+    localStorage.setItem(savedFixture.profileKey, savedFixture.profileValue);
+    localStorage.setItem(savedFixture.snapshotKey, savedFixture.snapshotValue);
+  }, fixture);
+
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+  await page.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
+  await page.goto(baseUrl);
+  await page.locator('[data-action="continue-saved-run"]').first().click();
+  await page.waitForTimeout(700);
+  return { context, page };
+}
+
+async function captureTownNpcOverlay(page, npcId, screenshotName) {
+  const npcButton = page.locator(`[data-action="focus-town-npc"][data-npc-id="${npcId}"]`).first();
+  await npcButton.waitFor({ state: "visible", timeout: TIMEOUT });
+  await npcButton.click();
+  await page.waitForTimeout(500);
+  await shot(page, screenshotName);
+  const leaveButton = page.locator(".merchant-leave").first();
+  if (await leaveButton.isVisible().catch(() => false)) {
+    await leaveButton.click();
+  } else {
+    await page.locator('[data-action="close-town-npc"]').first().click();
+  }
+  await page.waitForTimeout(350);
+}
+
 async function captureScreenshots(baseUrl) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -107,7 +353,7 @@ async function captureScreenshots(baseUrl) {
   await shot(page, "02-character-select", { fullPage: true });
 
   // ── 03. Enter town ──
-  if (!(await tryClick(page, /Enter .* Encampment/, 500))) {
+  if (!(await tryClick(page, /Begin Hunt|Begin Run|Enter .* Encampment|Enter Encampment/, 500))) {
     console.log("  ⚠ Could not enter town");
     await browser.close();
     return;
@@ -116,8 +362,17 @@ async function captureScreenshots(baseUrl) {
 
   // ── 04. Vendor ──
   if (await tryClick(page, /Gheed/i, 400)) {
-    await shot(page, "04-vendor", { fullPage: true });
+    await shot(page, "04-vendor");
     await tryClick(page, /Leave/, 300);
+  }
+
+  // ── 04b. Town NPC overlays ──
+  try {
+    await captureTownNpcOverlay(page, "mercenary", "12-kashya-mercenaries");
+    await captureTownNpcOverlay(page, "blacksmith", "13-charsi-blacksmith");
+    await captureTownNpcOverlay(page, "stash", "14-stash-empty");
+  } catch (e) {
+    console.log("  ⚠ Town NPC overlay capture error:", e.message);
   }
 
   // ── 05. Inventory (trigger via JS evaluation, screenshot, then close) ──
@@ -171,8 +426,103 @@ async function captureScreenshots(baseUrl) {
       // ── 08. Combat ──
       if (await tryClick(page, /Charge Forward|Scout Ahead|Follow the Trail/i, 600)) {
         await shot(page, "08-combat");
+
+        // ── 09. Reward ──
+        try {
+          const debugToggle = page.locator('[data-setting-key="debugMode.enabled"]').first();
+          const skipBattlesToggle = page.locator('[data-setting-key="debugMode.skipBattles"]').first();
+          const debugSkipEncounter = page.locator('[data-action="debug-skip-encounter"]').first();
+
+          if (await openGameMenu(page)) {
+            await debugToggle.click();
+            await page.waitForTimeout(350);
+            await closeGameMenu(page);
+          }
+
+          await skipBattlesToggle.waitFor({ state: "visible", timeout: TIMEOUT });
+          await skipBattlesToggle.click();
+          await page.waitForTimeout(350);
+
+          await debugSkipEncounter.waitFor({ state: "visible", timeout: TIMEOUT });
+          await debugSkipEncounter.click();
+          await page.waitForTimeout(700);
+
+          await page.locator('[data-action="claim-reward-choice"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+
+          if (await openGameMenu(page)) {
+            await debugToggle.click();
+            await page.waitForTimeout(350);
+            await closeGameMenu(page);
+          }
+
+          await page.waitForTimeout(900);
+          await shot(page, "09-reward");
+        } catch (e) {
+          console.log("  ⚠ Reward capture error:", e.message);
+        }
       }
     }
+  }
+
+  // ── 10. Act transition ──
+  const actTransitionFixture = buildActTransitionFixture();
+  if (actTransitionFixture) {
+    const transitionContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    await transitionContext.addInitScript((fixture) => {
+      localStorage.clear();
+      localStorage.setItem(fixture.profileKey, fixture.profileValue);
+      localStorage.setItem(fixture.snapshotKey, fixture.snapshotValue);
+    }, actTransitionFixture);
+
+    const transitionPage = await transitionContext.newPage();
+    transitionPage.setDefaultTimeout(TIMEOUT);
+    await transitionPage.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
+    await transitionPage.goto(baseUrl);
+    await transitionPage.locator('[data-action="continue-saved-run"]').first().click();
+    await transitionPage.locator('[data-action="continue-act-transition"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+    await transitionPage.waitForTimeout(700);
+    await shot(transitionPage, "10-act-transition");
+    await transitionContext.close();
+  } else {
+    console.log("  ⚠ Could not build act transition fixture");
+  }
+
+  // ── 11. Run summary ──
+  const runSummaryFixture = buildRunSummaryFixture();
+  if (runSummaryFixture) {
+    const summaryContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    await summaryContext.addInitScript((fixture) => {
+      localStorage.clear();
+      localStorage.setItem(fixture.profileKey, fixture.profileValue);
+      localStorage.setItem(fixture.snapshotKey, fixture.snapshotValue);
+    }, runSummaryFixture);
+
+    const summaryPage = await summaryContext.newPage();
+    summaryPage.setDefaultTimeout(TIMEOUT);
+    await summaryPage.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
+    await summaryPage.goto(baseUrl);
+    await summaryPage.locator('[data-action="continue-saved-run"]').first().click();
+    await summaryPage.locator('[data-action="claim-reward-choice"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+    await summaryPage.locator('[data-action="claim-reward-choice"]').first().click();
+    await summaryPage.locator('[data-action="return-front-door"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+    await summaryPage.waitForTimeout(700);
+    await shot(summaryPage, "11-run-summary");
+    await summaryContext.close();
+  } else {
+    console.log("  ⚠ Could not build run summary fixture");
+  }
+
+  // ── 11b. Cain overlay in a rescued town state ──
+  const cainTownFixture = buildTownOverlayFixture({ actNumber: 2 });
+  if (cainTownFixture) {
+    const { context: cainContext, page: cainPage } = await openFixturePage(browser, baseUrl, cainTownFixture);
+    try {
+      await captureTownNpcOverlay(cainPage, "cain", "11-deckard-cain-training");
+    } finally {
+      await cainContext.close();
+    }
+  } else {
+    console.log("  ⚠ Could not build Cain town fixture");
   }
 
   await browser.close();
@@ -182,7 +532,7 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const { server, baseUrl } = await startServer();
-  console.log(`Server running at ${baseUrl}`);
+  console.log(`Server running at ${baseUrl} from ${APP_ROOT}`);
 
   try {
     await captureScreenshots(baseUrl);

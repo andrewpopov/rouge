@@ -24,27 +24,38 @@ curl -L --fail --progress-bar \
   "https://kenney.nl/media/pages/assets/boardgame-pack/f1403c350d-1677667644/kenney_boardgame-pack.zip"
 
 echo "Downloading Game-icons tags via Playwright..."
-node "$ROOT_DIR/scripts/download-game-icons.js" steampunk machine smoke light energy
+GAME_ICON_TAGS=(
+  medieval-fantasy
+  weapon
+  blade
+  skull
+  blood
+  fire
+  poison
+  armor
+  zombie
+  vampire
+  death
+  mask
+)
+node "$ROOT_DIR/scripts/download-game-icons.js" "${GAME_ICON_TAGS[@]}"
 
 echo "Extracting archives..."
 mkdir -p "$RAW_DIR/kenney/ui-pack-sci-fi" \
   "$RAW_DIR/kenney/ui-pack-adventure" \
-  "$RAW_DIR/kenney/boardgame-pack" \
-  "$RAW_DIR/game-icons/steampunk" \
-  "$RAW_DIR/game-icons/machine" \
-  "$RAW_DIR/game-icons/smoke" \
-  "$RAW_DIR/game-icons/light" \
-  "$RAW_DIR/game-icons/energy"
+  "$RAW_DIR/kenney/boardgame-pack"
+
+for tag in "${GAME_ICON_TAGS[@]}"; do
+  mkdir -p "$RAW_DIR/game-icons/$tag"
+done
 
 unzip -qo "$KENNEY_DIR/ui-pack-sci-fi.zip" -d "$RAW_DIR/kenney/ui-pack-sci-fi"
 unzip -qo "$KENNEY_DIR/ui-pack-adventure.zip" -d "$RAW_DIR/kenney/ui-pack-adventure"
 unzip -qo "$KENNEY_DIR/boardgame-pack.zip" -d "$RAW_DIR/kenney/boardgame-pack"
 
-unzip -qo "$GAME_ICONS_DIR/steampunk.svg.zip" -d "$RAW_DIR/game-icons/steampunk"
-unzip -qo "$GAME_ICONS_DIR/machine.svg.zip" -d "$RAW_DIR/game-icons/machine"
-unzip -qo "$GAME_ICONS_DIR/smoke.svg.zip" -d "$RAW_DIR/game-icons/smoke"
-unzip -qo "$GAME_ICONS_DIR/light.svg.zip" -d "$RAW_DIR/game-icons/light"
-unzip -qo "$GAME_ICONS_DIR/energy.svg.zip" -d "$RAW_DIR/game-icons/energy"
+for tag in "${GAME_ICON_TAGS[@]}"; do
+  unzip -qo "$GAME_ICONS_DIR/$tag.svg.zip" -d "$RAW_DIR/game-icons/$tag"
+done
 
 echo "Done. Assets are in:"
 echo "  - $SOURCE_DIR"

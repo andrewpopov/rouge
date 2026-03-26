@@ -176,6 +176,16 @@
           lines.push(`${SLOT_LABEL[slot] || slot} ${currentItem} -> ${item?.name || effect.itemId || "Unknown item"}.`);
           break;
         }
+        case "grant_item": {
+          const item = content.itemCatalog?.[effect.itemId || ""] || null;
+          lines.push(`Inventory gains ${item?.name || effect.itemId || "an item"}.`);
+          break;
+        }
+        case "grant_rune": {
+          const rune = content.runeCatalog?.[effect.runeId || ""] || null;
+          lines.push(`Inventory gains ${rune?.name || effect.runeId || "a rune"}.`);
+          break;
+        }
         case "add_socket": {
           const slot = effect.slot || "weapon";
           const loadoutKey2 = slot === "ring" ? "ring1" : slot;

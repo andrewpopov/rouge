@@ -1,6 +1,6 @@
 # Combat Foundation
 
-Last updated: March 8, 2026.
+Last updated: March 25, 2026.
 
 ## Live Rule Set
 
@@ -29,6 +29,7 @@ The encounter sandbox sits inside a larger app loop:
 - `Energy`: the hero's card-play resource each turn
 - `Potions`: off-deck combat support actions
 - `Burn`: enemy damage-over-time status currently supported in the live build
+- equipped weapons can now contribute explicit skill-proficiency attack and support bonuses plus on-hit effects like Burn, Freeze, Shock, Slow, and Crushing depending on weapon family
 
 ## Ally Flow
 
@@ -62,6 +63,7 @@ Reward pools currently add:
 - Guard and draw support cards
 - mercenary synergy cards
 - item or rune choices that affect later fights indirectly through `RunState`
+- weapon families that now specialize live combat differently, including bow or crossbow bonuses for Amazon bow attacks and bow-tagged support cards, javelin or spear bonuses for javelin skills, and crushing or control hooks on heavier weapon families
 
 ## Live Mercenary Behaviors
 
@@ -97,5 +99,5 @@ The runtime enemy roster is a mix of authored fallback encounters and seed-deriv
 - class-specific decks and skill-tree hooks beyond the current starter deck profiles
 - broader mercenary route-perk breadth beyond the current twelve-per-contract route-perk baseline and reserve-or-relay-or-culmination-or-legacy-or-reckoning-or-recovery-or-accord-or-covenant-linked payoff pass
 - broader encounter-local modifier catalogs and escort or boss scripting beyond the current twenty-modifier, court-reserve, boss-salvo, linebreaker-charge, ritual-cadence, boss-screen, sniper-nest, and phalanx-march baseline
-- item and rune coverage that modifies more combat behaviors
+- broader per-item and runeword coverage for the new weapon-profile combat hooks
 - more encounter archetypes and route-side combat variety

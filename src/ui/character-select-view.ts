@@ -48,19 +48,11 @@
     buildBadge: (label: string, tone: string) => string
   ): string {
     const archInfo = (ARCHETYPE_LABELS as Record<string, { label: string; tone: string }>)[archetypeId] || ARCHETYPE_LABELS.martial;
-    const tierGroups: { tier: string; names: string[] }[] = [];
-    const tiers = [
-      { label: "Lv 1", min: 1, max: 5 },
-      { label: "Lv 6-12", min: 6, max: 17 },
-      { label: "Lv 18-24", min: 18, max: 29 },
-      { label: "Lv 30", min: 30, max: 99 },
-    ];
-    for (const tier of tiers) {
-      const names = skills.filter((s) => s.requiredLevel >= tier.min && s.requiredLevel <= tier.max).map((s) => s.name);
-      if (names.length > 0) {
-        tierGroups.push({ tier: tier.label, names });
-      }
-    }
+    const orderedSkills = [...skills].sort((a, b) => a.requiredLevel - b.requiredLevel);
+    const openingSkill = orderedSkills[0]?.name || "";
+    const summary = openingSkill
+      ? `First rite: ${openingSkill}.`
+      : "Ancient techniques carried into the dark beyond the gate.";
 
     return `
       <div class="class-tree-card class-tree-card--${escapeHtml(archetypeId)}">
@@ -68,19 +60,8 @@
           <strong class="class-tree-card__name">${escapeHtml(treeName)}</strong>
           ${buildBadge(archInfo.label, archInfo.tone)}
         </div>
-        <div class="class-tree-card__tiers">
-          ${tierGroups
-            .map(
-              (group) => `
-            <div class="class-tree-tier">
-              <span class="class-tree-tier__label">${escapeHtml(group.tier)}</span>
-              <span class="class-tree-tier__skills">${group.names.map((n) => escapeHtml(n)).join(", ")}</span>
-            </div>
-          `
-            )
-            .join("")}
-        </div>
-        <div class="class-tree-card__depth">${escapeHtml(skills.length)} skills</div>
+        <p class="class-tree-card__summary">${escapeHtml(summary)}</p>
+        <div class="class-tree-card__depth">${escapeHtml(orderedSkills.length)} skills</div>
       </div>
     `;
   }
@@ -91,22 +72,26 @@
     const selectedClass = services.classRegistry.getClassDefinition(appState.seedBundle, appState.ui.selectedClassId);
     const deckProfileId = services.classRegistry.getDeckProfileId(appState.content, appState.ui.selectedClassId);
 
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const unlockRules = runtimeWindow.ROUGE_CLASS_UNLOCK_RULES;
     const heroSprites = appState.registries.classes
       .map((entry) => {
         const isSelected = entry.id === appState.ui.selectedClassId;
         const isLocked = unlockRules && !unlockRules.isClassUnlocked(appState.profile, entry.id);
         const hint = isLocked ? unlockRules.getUnlockHint(entry.id) : "";
+        const portraitSrc = assets?.getClassPortrait(entry.id) || `./assets/curated/portraits/${entry.id}.png`;
         return `
           <button class="campfire-hero ${isSelected ? "campfire-hero--selected" : ""} ${isLocked ? "campfire-hero--locked" : ""}"
                   ${isLocked ? "" : `data-action="select-class" data-class-id="${escapeHtml(entry.id)}"`}
                   title="${isLocked ? escapeHtml(hint) : escapeHtml(entry.name)}"
                   ${isLocked ? "disabled" : ""}>
-            <img class="campfire-hero__sprite"
-                 src="./assets/curated/portraits/${escapeHtml(entry.id)}.png"
-                 alt="${escapeHtml(entry.name)}"
-                 draggable="false"
-                 ${isLocked ? `style="filter: grayscale(1) brightness(0.5)"` : ""} />
+            <span class="campfire-hero__frame">
+              <img class="campfire-hero__sprite"
+                   src="${escapeHtml(portraitSrc)}"
+                   alt="${escapeHtml(entry.name)}"
+                   draggable="false"
+                   ${isLocked ? `style="filter: grayscale(1) brightness(0.5)"` : ""} />
+            </span>
             <span class="campfire-hero__name">${escapeHtml(entry.name)}</span>
             ${isLocked ? `<span class="campfire-hero__lock">\u{1F512} ${escapeHtml(hint)}</span>` : ""}
           </button>
@@ -148,7 +133,7 @@
               <div class="campfire-detail__columns">
                 <div class="campfire-detail__left">
                   <div class="campfire-detail__section">
-                    <h3 class="campfire-detail__section-title">Base Attributes</h3>
+                    <h3 class="campfire-detail__section-title">Bloodline Attributes</h3>
                     <div class="class-stat-bars">
                       ${buildStatBar("STR", str, statMax, escapeHtml)}
                       ${buildStatBar("DEX", dex, statMax, escapeHtml)}
@@ -157,7 +142,7 @@
                     </div>
                   </div>
                   <div class="campfire-detail__section">
-                    <h3 class="campfire-detail__section-title">Starting Resources</h3>
+                    <h3 class="campfire-detail__section-title">Opening Vitals</h3>
                     <div class="campfire-detail__resources">
                       ${buildStat("Life", previewHero.maxLife)}
                       ${buildStat("Energy", previewHero.maxEnergy)}
@@ -166,13 +151,13 @@
                     </div>
                   </div>
                   <div class="campfire-detail__section">
-                    <h3 class="campfire-detail__section-title">Preferred Weapons</h3>
+                    <h3 class="campfire-detail__section-title">Favored Arms</h3>
                     <div class="campfire-detail__weapons">${weaponBadges}</div>
                   </div>
                 </div>
 
                 <div class="campfire-detail__right">
-                  <h3 class="campfire-detail__section-title">Skill Trees</h3>
+                  <h3 class="campfire-detail__section-title">Signature Paths</h3>
                   <div class="class-tree-list">
                     ${trees
                       .map((tree) => buildTreeCard(tree.name, tree.archetypeId, tree.skills, escapeHtml, buildBadge))
@@ -189,26 +174,36 @@
           `;
         })()
       : `<div class="campfire-detail campfire-detail--empty">
-           <p class="campfire-detail__prompt">Select a hero to begin your expedition</p>
+           <p class="campfire-detail__prompt">Choose the bloodline that will carry your name through the gate.</p>
          </div>`;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="campfire-screen">
+        <div class="campfire-screen__veil" aria-hidden="true"></div>
         <div class="campfire-sky">
-          <p class="eyebrow">New Expedition</p>
+          <img class="campfire-logo" src="./assets/curated/title-screen/blood-rogue-logo.png" alt="Blood Rogue" />
+          <p class="eyebrow">Before The Black Gate</p>
           <h1 class="campfire-title">Choose Your Hero</h1>
+          <p class="campfire-intro">
+            Seven bloodlines gather beneath the eclipse. Choose the oath beyond the gate.
+          </p>
         </div>
-        <div class="campfire-ground">
-          <div class="campfire-fire"></div>
-          <div class="campfire-lineup">
-            ${heroSprites}
+        <div class="campfire-main">
+          <div class="campfire-stage">
+            <div class="campfire-ground">
+              <div class="campfire-lineup">
+                ${heroSprites}
+              </div>
+            </div>
           </div>
-        </div>
-        ${selectedPanel}
-        <div class="campfire-actions">
-          <button class="neutral-btn" data-action="return-front-door">Back</button>
-          <button class="primary-btn" data-action="start-run" ${selectedClass ? "" : "disabled"}>Enter Rogue Encampment</button>
+          <div class="campfire-actions">
+            <button class="neutral-btn campfire-back-btn" data-action="return-front-door">Back</button>
+            <button class="primary-btn campfire-enter-btn" data-action="start-run" ${selectedClass ? "" : "disabled"}>
+              <span class="campfire-enter-btn__label">Begin Hunt</span>
+            </button>
+          </div>
+          ${selectedPanel}
         </div>
       </div>
     `;
