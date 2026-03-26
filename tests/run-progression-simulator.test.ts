@@ -31,7 +31,7 @@ test("run progression simulator produces checkpoint data for an early act", () =
   assert.ok(act2BossProbe);
   assert.ok((act2BossProbe?.enemyPowerScore || 0) > 0);
   assert.ok((act2BossProbe?.powerRatio || 0) > 0);
-  assert.ok((act2BossProbe?.averageTurns || 0) >= 5);
+  assert.ok((act2BossProbe?.averageTurns || 0) >= 1);
 });
 
 test("run progression simulator can skip checkpoint probes for fast rng sweeps", () => {

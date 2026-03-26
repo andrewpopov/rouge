@@ -38,6 +38,10 @@
     "minion_of_destruction",
     "mummy",
     "mummy_sarcophagus",
+    "oblivion_knight",
+    "overseer",
+    "pain_worm",
+    "reanimated_horde",
     "skeleton",
     "wraith",
     "zombie"

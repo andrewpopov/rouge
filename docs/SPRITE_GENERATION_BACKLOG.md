@@ -207,10 +207,10 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `minion_of_destruction`
 - [x] `mummy`
 - [x] `mummy_sarcophagus`
-- [ ] `oblivion_knight`
-- [ ] `overseer`
-- [ ] `pain_worm`
-- [ ] `reanimated_horde`
+- [x] `oblivion_knight`
+- [x] `overseer`
+- [x] `pain_worm`
+- [x] `reanimated_horde`
 - [ ] `regurgitator`
 - [ ] `reziarfg`
 - [ ] `sabre_cat`

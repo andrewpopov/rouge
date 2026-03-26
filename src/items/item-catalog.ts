@@ -26,8 +26,8 @@
     Javelins: { javelin: 2 },
     Bows: { bow: 2 },
     Crossbows: { bow: 2 },
-    Wands: { poison_bone: 1, curses: 1 },
-    Staves: { fire: 1, cold: 1, lightning: 1, elemental: 1 },
+    Wands: { poison_bone: 2, curses: 1 },
+    Staves: { fire: 3, cold: 3, lightning: 3, elemental: 2 },
   };
 
   const PRIMARY_WEAPON_PROFICIENCY_BY_FAMILY: Record<string, string> = {
@@ -50,10 +50,11 @@
     Javelins: [{ type: "lightning", amount: 1, proficiency: "javelin" }],
     Bows: [{ type: "fire", amount: 1, proficiency: "bow" }],
     Crossbows: [{ type: "cold", amount: 1, proficiency: "bow" }],
-    Wands: [{ type: "poison", amount: 1, proficiency: "poison_bone" }],
+    Wands: [{ type: "poison", amount: 2, proficiency: "poison_bone" }],
     Staves: [
-      { type: "fire", amount: 1, proficiency: "elemental" },
-      { type: "cold", amount: 1, proficiency: "elemental" },
+      { type: "fire", amount: 3, proficiency: "fire" },
+      { type: "cold", amount: 3, proficiency: "cold" },
+      { type: "lightning", amount: 3, proficiency: "lightning" },
     ],
   };
 
@@ -64,6 +65,11 @@
     Javelins: [{ kind: "shock", amount: 1, proficiency: "javelin" }],
     Bows: [{ kind: "burn", amount: 1, proficiency: "bow" }],
     Crossbows: [{ kind: "freeze", amount: 1, proficiency: "bow" }],
+    Staves: [
+      { kind: "burn", amount: 1, proficiency: "fire" },
+      { kind: "freeze", amount: 1, proficiency: "cold" },
+      { kind: "shock", amount: 1, proficiency: "lightning" },
+    ],
   };
 
   const DEFAULT_WEAPON_AFFIX_POOL = [

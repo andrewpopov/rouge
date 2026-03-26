@@ -124,6 +124,23 @@ function printHumanReport(summary, seedCount, throughActNumber) {
   }
 }
 
+function printSeedProgress(seedOffset, seedCount, report) {
+  const classLines = [];
+  for (const classReport of report.classReports) {
+    for (const policyReport of classReport.policyReports) {
+      const failureLabel = policyReport.failure
+        ? ` fail ${policyReport.failure.zoneTitle} / ${policyReport.failure.encounterName}`
+        : "";
+      classLines.push(
+        `${classReport.className} / ${policyReport.policyLabel}: ${policyReport.outcome}, act ${policyReport.finalActNumber}, level ${policyReport.finalLevel}${failureLabel}`
+      );
+    }
+  }
+
+  console.log(`seed ${seedOffset + 1}/${seedCount}`);
+  classLines.forEach((line) => console.log(`  ${line}`));
+}
+
 function main() {
   if (!fs.existsSync(HELPER_PATH)) {
     console.error("Missing compiled progression simulator helper. Run `npm run build` or `npm run sim:progression-sweep`.");
@@ -132,17 +149,23 @@ function main() {
 
   const { runProgressionSimulationReport } = require(HELPER_PATH);
   const options = parseArgs(process.argv.slice(2));
-  const reportBySeed = Array.from({ length: options.seedCount }, (_, seedOffset) => ({
-    seedOffset,
-    report: runProgressionSimulationReport({
+  const reportBySeed = Array.from({ length: options.seedCount }, (_, seedOffset) => {
+    const report = runProgressionSimulationReport({
       classIds: options.classIds,
       policyIds: options.policyIds,
       throughActNumber: options.throughActNumber,
       probeRuns: options.probeRuns,
       maxCombatTurns: options.maxCombatTurns,
       seedOffset,
-    }),
-  }));
+    });
+    if (!options.json) {
+      printSeedProgress(seedOffset, options.seedCount, report);
+    }
+    return {
+      seedOffset,
+      report,
+    };
+  });
   const summary = summarizeSeedRuns(reportBySeed);
 
   if (options.json) {

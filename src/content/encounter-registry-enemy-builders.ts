@@ -386,14 +386,14 @@
         {
           kind: "charge",
           label: `${bossName} Apocalypse`,
-          value: scale.attack + 5,
+          value: scale.attack + 3,
           target: "all_allies",
-          secondaryValue: Math.max(5, scale.guard + 2),
+          secondaryValue: Math.max(4, scale.guard + 1),
           damageType: "fire",
         },
-        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: scale.attack + 5, secondaryValue: 3 },
+        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: scale.attack + 3, secondaryValue: 4 },
         { kind: "attack_burn", label: `${bossName} Firestorm`, value: scale.attack + 2, target: "hero", secondaryValue: 2 },
-        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: scale.attack + 4, target: "hero" },
+        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: scale.attack + 2, target: "hero" },
       ];
     }
     if (bossId === "baal") {
@@ -507,7 +507,7 @@
       return { lifeMultiplier: 1.6, attackBonus: 2, guardBonus: 3, healBonus: 1 };
     }
     if (bossId === "diablo") {
-      return { lifeMultiplier: 1.8, attackBonus: 3, guardBonus: 4, healBonus: 1 };
+      return { lifeMultiplier: 1.9, attackBonus: 2, guardBonus: 2, healBonus: 1 };
     }
     if (bossId === "baal") {
       return { lifeMultiplier: 2.15, attackBonus: 4, guardBonus: 6, healBonus: 2 };

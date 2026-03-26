@@ -593,8 +593,7 @@ function isOptimizableTownAction(action: TownAction) {
   }
   if (
     actionId === "healer_restore_party" ||
-    actionId === "quartermaster_refill_belt" ||
-    actionId === "vendor_refresh_stock"
+    actionId === "quartermaster_refill_belt"
   ) {
     return true;
   }
@@ -616,10 +615,10 @@ function optimizeSafeZoneRun(
   harness: ReturnType<typeof createAppHarness>,
   run: RunState,
   profile: ProfileState,
-  policy: BuildPolicyDefinition
+  policy: BuildPolicyDefinition,
+  maxIterations = 24
 ) {
   const townServices = harness.browserWindow.ROUGE_TOWN_SERVICES;
-  const maxIterations = 64;
 
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
     const baseScore = evaluateRunScore(harness, run, policy, { assumeFullResources: false });
@@ -718,6 +717,75 @@ function getHeroDebuffScore(state: CombatState) {
   );
 }
 
+function scoreSingleEnemyThreat(enemy: CombatEnemyState) {
+  if (!enemy.alive || !enemy.currentIntent) {
+    return 0;
+  }
+  const intent = enemy.currentIntent;
+  const baseValue = Number(intent.value || 0);
+  if (
+    intent.kind === "attack_all" ||
+    intent.kind === "attack_burn_all" ||
+    intent.kind === "attack_lightning_all" ||
+    intent.kind === "attack_poison_all"
+  ) {
+    return baseValue * 1.45;
+  }
+  if (intent.kind === "charge") {
+    return baseValue * (intent.target === "all_allies" ? 1.35 : 1.15);
+  }
+  if (
+    intent.kind === "attack" ||
+    intent.kind === "attack_burn" ||
+    intent.kind === "attack_poison" ||
+    intent.kind === "attack_chill" ||
+    intent.kind === "sunder_attack" ||
+    intent.kind === "drain_attack"
+  ) {
+    return baseValue;
+  }
+  if (intent.kind === "curse_amplify" || intent.kind === "curse_weaken") {
+    return 4;
+  }
+  return 1;
+}
+
+function getPriorityEnemyTargets(state: CombatState) {
+  const aliveEnemies = state.enemies.filter((enemy) => enemy.alive);
+  if (aliveEnemies.length <= 2) {
+    return aliveEnemies;
+  }
+
+  const targets: CombatEnemyState[] = [];
+  const addTarget = (enemy: CombatEnemyState | undefined) => {
+    if (!enemy || targets.some((candidate) => candidate.id === enemy.id)) {
+      return;
+    }
+    targets.push(enemy);
+  };
+
+  addTarget(aliveEnemies.find((enemy) => enemy.id === state.mercenary.markedEnemyId));
+
+  const lowestEffectiveLife = [...aliveEnemies].sort((left, right) => {
+    return left.life + left.guard - (right.life + right.guard) || left.id.localeCompare(right.id);
+  });
+  addTarget(lowestEffectiveLife[0]);
+
+  const highestThreat = [...aliveEnemies].sort((left, right) => {
+    return scoreSingleEnemyThreat(right) - scoreSingleEnemyThreat(left) || right.maxLife - left.maxLife || left.id.localeCompare(right.id);
+  });
+  addTarget(highestThreat[0]);
+
+  if (targets.length < 2) {
+    addTarget(lowestEffectiveLife[1]);
+  }
+  if (targets.length < 3) {
+    addTarget(highestThreat[1]);
+  }
+
+  return targets.length > 0 ? targets : aliveEnemies.slice(0, 2);
+}
+
 function cloneCombatState(state: CombatState) {
   const clone = JSON.parse(JSON.stringify(state)) as CombatState;
   clone.randomFn = state.randomFn;
@@ -806,17 +874,28 @@ function listCandidateActions(
   matchingWeaponFamily: string
 ) {
   const candidates: CombatCandidateAction[] = [];
+  const maxCardEntriesToEvaluate = 6;
   if (state.phase !== "player" || state.outcome) {
     return candidates;
   }
 
-  state.hand.forEach((entry) => {
-    const card = content.cardCatalog[entry.cardId];
-    if (!card || card.cost > state.hero.energy) {
-      return;
-    }
+  const playableEntries = state.hand
+    .map((entry) => ({
+      entry,
+      card: content.cardCatalog[entry.cardId],
+    }))
+    .filter((candidate) => candidate.card && candidate.card.cost <= state.hero.energy)
+    .sort((left, right) => {
+      return (
+        scoreCard(right.card, policy, matchingWeaponFamily) - scoreCard(left.card, policy, matchingWeaponFamily) ||
+        left.entry.instanceId.localeCompare(right.entry.instanceId)
+      );
+    })
+    .slice(0, maxCardEntriesToEvaluate);
+
+  playableEntries.forEach(({ entry, card }) => {
     if (card.target === "enemy") {
-      state.enemies.filter((enemy) => enemy.alive).forEach((enemy) => {
+      getPriorityEnemyTargets(state).forEach((enemy) => {
         candidates.push({
           type: "card",
           score: Number.NEGATIVE_INFINITY,
@@ -1174,7 +1253,7 @@ function buildCheckpointSummary(
 function chooseBestRewardChoice(
   harness: ReturnType<typeof createAppHarness>,
   run: RunState,
-  profile: ProfileState,
+  _profile: ProfileState,
   reward: RunReward,
   policy: BuildPolicyDefinition
 ) {
@@ -1191,16 +1270,12 @@ function chooseBestRewardChoice(
       return;
     }
 
+    const assumeFullResources = reward.endsAct || reward.clearsZone;
     if (reward.endsAct && runClone.currentActIndex < runClone.acts.length - 1) {
       harness.runFactory.advanceToNextAct(runClone, harness.content);
-      optimizeSafeZoneRun(harness, runClone, profile, policy);
-    } else if (reward.clearsZone) {
-      optimizeSafeZoneRun(harness, runClone, profile, policy);
     }
 
-    const score = evaluateRunScore(harness, runClone, policy, {
-      assumeFullResources: reward.endsAct || reward.clearsZone,
-    });
+    const score = evaluateRunScore(harness, runClone, policy, { assumeFullResources });
     if (score > bestScore) {
       bestScore = score;
       bestChoice = choice;
