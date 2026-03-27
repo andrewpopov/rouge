@@ -70,10 +70,12 @@
     "willowisp",
     "wraith",
     "zakarum_priest",
+    "zakarum_zealot",
     "zombie"
   ],
   "bosses": [
     "andariel",
+    "baal",
     "blood_raven"
   ],
   "portraits": [
@@ -298,6 +300,9 @@
     "zakarum_priest": [
       "zakarum_priest.png"
     ],
+    "zakarum_zealot": [
+      "zakarum_zealot.png"
+    ],
     "zombie": [
       "zombie.png"
     ]
@@ -305,6 +310,9 @@
   "bossVariants": {
     "andariel": [
       "andariel.png"
+    ],
+    "baal": [
+      "baal.png"
     ],
     "blood_raven": [
       "blood_raven.png"

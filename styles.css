@@ -8942,6 +8942,69 @@ button.waypoint:hover {
   100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
 }
 
+.combat-screen--player-return .combat-board__frame {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 50px rgba(0, 0, 0, 0.28),
+    0 0 34px rgba(86, 125, 162, 0.14);
+}
+
+.stage--player-return::before {
+  animation: battlefield-reset-wash 0.82s ease-out;
+}
+
+@keyframes battlefield-reset-wash {
+  0% {
+    opacity: 0.1;
+    background:
+      linear-gradient(180deg, rgba(14, 6, 8, 0.18), rgba(16, 8, 10, 0.08) 24%, rgba(8, 5, 7, 0.48) 100%);
+  }
+  35% {
+    opacity: 1;
+    background:
+      linear-gradient(180deg, rgba(26, 18, 24, 0.18), rgba(38, 48, 60, 0.08) 24%, rgba(8, 5, 7, 0.42) 100%);
+  }
+  100% {
+    opacity: 1;
+    background:
+      linear-gradient(180deg, rgba(10, 4, 6, 0.12), rgba(14, 6, 8, 0.04) 24%, rgba(9, 4, 6, 0.42) 100%);
+  }
+}
+
+.sprite--turn-ready .sprite__figure {
+  animation: sprite-turn-ready 0.6s ease-out;
+}
+
+@keyframes sprite-turn-ready {
+  0% {
+    transform: translateY(4px) scale(0.98);
+    filter: brightness(0.96);
+  }
+  40% {
+    transform: translateY(-6px) scale(1.04);
+    filter: brightness(1.16) drop-shadow(0 0 16px rgba(157, 211, 238, 0.24));
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+.sprite--enemy-reset .sprite__intent {
+  animation: sprite-intent-reset 0.48s ease-out;
+}
+
+@keyframes sprite-intent-reset {
+  0% {
+    transform: translateY(-4px);
+    filter: brightness(1.12);
+  }
+  100% {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+}
+
 /* ── Upgraded card glow ── */
 
 .fan-card--upgraded {
@@ -12915,6 +12978,13 @@ button.waypoint:hover {
     0 0 34px rgba(120, 64, 22, 0.18);
 }
 
+.combat-command__deck-shell--return {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 0 1px rgba(128, 176, 210, 0.2),
+    0 0 40px rgba(64, 104, 148, 0.18);
+}
+
 .combat-command__deck-flow {
   position: absolute;
   top: 10px;
@@ -13029,6 +13099,11 @@ button.waypoint:hover {
   animation: combat-card-fan-settle 0.42s ease-out;
 }
 
+.card-fan--readying::after {
+  background: radial-gradient(ellipse, rgba(148, 198, 234, 0.22) 0%, rgba(148, 198, 234, 0) 72%);
+  animation: combat-card-fan-ready 0.72s ease-out;
+}
+
 .fan-card {
   flex: 0 0 112px;
   height: 144px;
@@ -13050,6 +13125,10 @@ button.waypoint:hover {
   color: #f7f3dc;
   background: radial-gradient(circle, rgba(181, 154, 84, 0.85), rgba(96, 72, 26, 0.95));
   border-color: rgba(223, 196, 110, 0.5);
+}
+
+.fan-card--wake {
+  animation: card-ready-wake 0.55s ease-out;
 }
 
 .fan-card__art {
@@ -13201,6 +13280,35 @@ button.waypoint:hover {
   100% {
     opacity: 0;
     transform: scaleX(1.02);
+  }
+}
+
+@keyframes combat-card-fan-ready {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.88);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1.04);
+  }
+}
+
+@keyframes card-ready-wake {
+  0% {
+    transform: rotate(var(--fan-rotate, 0deg)) translateY(calc(var(--fan-lift, 0px) + 12px)) scale(0.96);
+    filter: brightness(0.96);
+  }
+  40% {
+    transform: rotate(var(--fan-rotate, 0deg)) translateY(calc(var(--fan-lift, 0px) - 10px)) scale(1.03);
+    filter: brightness(1.14) drop-shadow(0 0 14px rgba(152, 203, 237, 0.2));
+  }
+  100% {
+    transform: rotate(var(--fan-rotate, 0deg)) translateY(var(--fan-lift, 0px)) scale(1);
+    filter: brightness(1);
   }
 }
 

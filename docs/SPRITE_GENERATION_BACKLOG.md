@@ -239,13 +239,13 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `willowisp`
 - [x] `wraith`
 - [x] `zakarum_priest`
-- [ ] `zakarum_zealot`
+- [x] `zakarum_zealot`
 - [x] `zombie`
 
 ## Bosses
 
 - [x] `andariel`
-- [ ] `baal`
+- [x] `baal`
 - [ ] `bartuc_the_bloody`
 - [ ] `battlemaid_sarina`
 - [ ] `beetleburst`

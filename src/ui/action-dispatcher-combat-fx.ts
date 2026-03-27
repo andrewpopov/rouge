@@ -123,6 +123,12 @@
     runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedTimeout(() => el.classList.remove(cls), durationMs);
   }
 
+  function addStaggeredTempClass(elements: HTMLElement[], cls: string, durationMs: number, stepMs: number): void {
+    elements.forEach((el, index) => {
+      runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedTimeout(() => addTempClass(el, cls, durationMs), index * stepMs);
+    });
+  }
+
   function spawnQueuedCallouts(
     spriteEl: HTMLElement,
     callouts: Array<{ text: string; cssClass: string }>
@@ -482,6 +488,34 @@
     }
   }
 
+  function applyPlayerReturnFx(before: CombatSnapshot, after: CombatState, stage: HTMLElement, screen: HTMLElement | null): void {
+    const returnedToPlayer = after.phase === "player" && !after.outcome && (after.phase !== before.phase || after.turn !== before.turn);
+    if (!returnedToPlayer) {
+      return;
+    }
+
+    const deckShell = document.querySelector(".combat-command__deck-shell") as HTMLElement | null;
+    const cardFan = deckShell?.querySelector(".card-fan") as HTMLElement | null;
+    const allySprites = Array.from(stage.querySelectorAll(".stage__allies .sprite:not(.sprite--dead)")) as HTMLElement[];
+    const enemySprites = Array.from(stage.querySelectorAll(".sprite--enemy:not(.sprite--dead)")) as HTMLElement[];
+    const handCards = Array.from(stage.ownerDocument.querySelectorAll(".card-fan .fan-card")) as HTMLElement[];
+
+    addTempClass(stage, "stage--player-return", 820);
+    if (screen) {
+      addTempClass(screen, "combat-screen--player-return", 760);
+    }
+    if (deckShell) {
+      addTempClass(deckShell, "combat-command__deck-shell--return", 820);
+    }
+    if (cardFan) {
+      addTempClass(cardFan, "card-fan--readying", 760);
+    }
+
+    addStaggeredTempClass(allySprites, "sprite--turn-ready", 620, 90);
+    addStaggeredTempClass(enemySprites, "sprite--enemy-reset", 520, 70);
+    addStaggeredTempClass(handCards, "fan-card--wake", 560, 45);
+  }
+
   function applyCombatFx(before: CombatSnapshot, after: CombatState, options: CombatFxActionOptions = {}): void {
     runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedRAF(() => {
       const stage = document.querySelector(".stage") as HTMLElement | null;
@@ -674,6 +708,7 @@
 
       applyResolutionBanner(before, after, screen);
       applyDeckFlowFx(before, after, options);
+      applyPlayerReturnFx(before, after, stage, screen);
       if (options.sequenceEnemyPhase) {
         playEnemyActionSequence(before, after, stage, screen);
       }
