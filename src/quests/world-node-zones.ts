@@ -25,6 +25,13 @@
   const { slugify } = runtimeWindow.ROUGE_UTILS;
 
   function describeEffect(effect: RewardChoiceEffect) {
+    const content = runtimeWindow.ROUGE_GAME_CONTENT || null;
+    const item = effect.itemId ? content?.itemCatalog?.[effect.itemId] || null : null;
+    const rune = effect.runeId ? content?.runeCatalog?.[effect.runeId] || null : null;
+    const slotLabel = effect.slot
+      ? runtimeWindow.ROUGE_ITEM_LOADOUT?.EQUIPMENT_SLOT_LABELS?.[effect.slot] || effect.slot
+      : "";
+
     if (effect.kind === "hero_max_life") {
       return `Hero max Life +${effect.value}.`;
     }
@@ -48,6 +55,21 @@
     }
     if (effect.kind === "gold_bonus") {
       return `Gain ${effect.value} extra gold.`;
+    }
+    if (effect.kind === "equip_item") {
+      return `Equip ${item?.name || effect.itemId || "item"}.`;
+    }
+    if (effect.kind === "grant_item") {
+      return `Carry ${item?.name || effect.itemId || "item"}.`;
+    }
+    if (effect.kind === "grant_rune") {
+      return `Carry ${rune?.name || effect.runeId || "rune"}.`;
+    }
+    if (effect.kind === "add_socket") {
+      return `Add 1 socket to ${slotLabel || "gear"}.`;
+    }
+    if (effect.kind === "socket_rune") {
+      return `Socket ${rune?.name || effect.runeId || "rune"} into ${slotLabel || "gear"}.`;
     }
     return "";
   }

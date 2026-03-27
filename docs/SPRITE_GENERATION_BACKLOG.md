@@ -246,13 +246,13 @@ This is the order I recommend for one-by-one generation so we establish the visu
 
 - [x] `andariel`
 - [x] `baal`
-- [ ] `bartuc_the_bloody`
-- [ ] `battlemaid_sarina`
-- [ ] `beetleburst`
-- [ ] `bishibosh`
+- [x] `bartuc_the_bloody`
+- [x] `battlemaid_sarina`
+- [x] `beetleburst`
+- [x] `bishibosh`
 - [x] `blood_raven`
-- [ ] `bloodwitch_the_wild`
-- [ ] `bonebreaker`
+- [x] `bloodwitch_the_wild`
+- [x] `bonebreaker`
 - [ ] `bonesaw_breaker`
 - [ ] `bremm_sparkfist`
 - [ ] `coldcrow`

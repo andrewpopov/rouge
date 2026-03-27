@@ -355,12 +355,12 @@
           label: `${bossName} Venom Spit`,
           value: scale.attack + 5,
           target: "hero",
-          secondaryValue: Math.max(3, scale.guard + 1),
+          secondaryValue: Math.max(4, scale.guard + 2),
           damageType: "poison",
         },
         { kind: "attack_poison", label: `${bossName} Venom Spit`, value: scale.attack + 5, target: "hero", secondaryValue: 4 },
-        { kind: "attack_poison_all", label: `${bossName} Poison Burst`, value: Math.max(4, scale.attack), secondaryValue: 2 },
-        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(6, scale.attack + 3), target: "hero", secondaryValue: 4 },
+        { kind: "attack_poison_all", label: `${bossName} Poison Burst`, value: Math.max(5, scale.attack + 1), secondaryValue: 3 },
+        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(7, scale.attack + 4), target: "hero", secondaryValue: 5 },
       ];
     }
     if (bossId === "duriel") {

@@ -355,7 +355,7 @@ interface WorldNodeEngineApi {
   createEscalationOpportunityZone(config: { actSeed: ActSeed; prerequisites: string[] }): ZoneState;
   createActWorldNodes(config: { actSeed: ActSeed; openingZoneId: string }): ZoneState[];
   isWorldNodeZone(zone: ZoneState): boolean;
-  buildZoneReward(config: { run: RunState; zone: ZoneState }): RunReward;
+  buildZoneReward(config: { run: RunState; zone: ZoneState; content?: GameContent | null }): RunReward;
   applyChoice(run: RunState, reward: RunReward, choice: RewardChoice): ActionResult;
 }
 

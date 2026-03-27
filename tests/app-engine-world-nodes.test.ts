@@ -116,6 +116,82 @@ test("quest world nodes resolve through the reward flow and persist outcomes on 
   assert.ok(state.run.hero.maxLife > heroLifeBefore);
 });
 
+test("quest rewards can forge an early weapon runeword through the shared reward seam", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "barbarian");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  assert.ok(questZone);
+
+  clearAllMainlineZones(runFactory, state.run);
+
+  const selectResult = appEngine.selectZone(state, questZone.id);
+  assert.equal(selectResult.ok, true);
+  assert.equal(state.phase, appEngine.PHASES.REWARD);
+
+  const choice = state.run.pendingReward.choices[0];
+  assert.ok(choice.effects.some((effect) => effect.kind === "equip_item"));
+  assert.ok(choice.effects.some((effect) => effect.kind === "add_socket" && effect.slot === "weapon"));
+  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "weapon" && effect.runeId === "rune_tir"));
+  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "weapon" && effect.runeId === "rune_el"));
+  assert.ok(choice.previewLines.some((line) => line.includes("Short Sword")));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Steel")));
+
+  const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
+  assert.equal(claimResult.ok, true);
+  assert.equal(state.run.loadout.weapon?.runewordId, "steel");
+  assert.equal(Array.from(state.run.loadout.weapon?.insertedRunes || []).join(","), "rune_tir,rune_el");
+  assert.ok(state.run.progression.activatedRunewords.includes("steel"));
+  assert.equal(state.run.summary.runewordsForged, 1);
+});
+
+test("quest rewards fall back to armor runewords when class-preferred weapon bases are not available yet", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  assert.ok(questZone);
+
+  clearAllMainlineZones(runFactory, state.run);
+
+  const selectResult = appEngine.selectZone(state, questZone.id);
+  assert.equal(selectResult.ok, true);
+
+  const choice = state.run.pendingReward.choices[0];
+  assert.ok(choice.effects.some((effect) => effect.kind === "equip_item"));
+  assert.ok(choice.effects.some((effect) => effect.kind === "add_socket" && effect.slot === "armor"));
+  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "armor" && effect.runeId === "rune_tal"));
+  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "armor" && effect.runeId === "rune_eth"));
+  assert.ok(choice.previewLines.some((line) => line.includes("Armor") || line.includes("Plate")));
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Stealth")));
+
+  const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
+  assert.equal(claimResult.ok, true);
+  assert.equal(state.run.loadout.armor?.runewordId, "stealth");
+  assert.equal(Array.from(state.run.loadout.armor?.insertedRunes || []).join(","), "rune_tal,rune_eth");
+  assert.ok(state.run.progression.activatedRunewords.includes("stealth"));
+});
+
 test("shrine world nodes resolve through the reward flow and persist shrine outcomes on the run", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({

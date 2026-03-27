@@ -9,6 +9,7 @@ Generated: March 27, 2026.
 - direct follow-up probes:
   - `node ./scripts/run-progression-sim.js --class paladin --policy aggressive --through-act 5 --seed-offset 1 --json`
   - `node ./scripts/run-progression-sim.js --class paladin --policy aggressive --through-act 5 --seed-offset 2 --json`
+  - same two Paladin seeds rerun after the late-guard card pass
 
 ## Aggressive Optimized Band
 
@@ -21,7 +22,7 @@ Additional current sample on slower classes:
 
 - Barbarian: seeds `0-2` all complete on the latest post-fix run; seed `3` remained a slow-path sim.
 - Necromancer: seeds `0-2` all complete on the latest post-fix run; seed `3` remained a slow-path sim.
-- Paladin: direct rechecks show seed `1` fails at `Act IV Diablo`, seed `2` fails at `Act IV Diablo`, and seed `3` completes. Seed `0` remained a slow-path sim.
+- Paladin: after the late guard-focused Paladin card pass, seeds `1` and `2` now complete, seed `3` already completed, and seed `0` remained a slow-path sim. Current read is at least `3/4`, with no remaining confirmed Paladin failure in the sampled set.
 
 ## Weak Build Early Pressure
 
@@ -41,6 +42,27 @@ Through Act II, 4 seeds each:
 ## Read
 
 - The deterministic aggressive target band is working for Amazon, Assassin, Druid, and Sorceress.
+- The deterministic aggressive target band now also looks acceptable for Paladin after the late guard-focused card pass.
 - Andariel is once again a real Act I failure point for weaker lines, especially Assassin and Sorceress.
 - Diablo remains the main optimized-build gate.
-- Paladin is the clearest remaining aggressive outlier and still needs a narrow follow-up before balance should be frozen.
+- The remaining uncertainty is simulator throughput on a few slow-path seeds, not a newly confirmed roster outlier.
+
+## March 27 Follow-Up
+
+- Starter sustain was trimmed slightly on Amazon, Barbarian, Druid, Necromancer, and Paladin tier-1 cards to reduce weak-line early safety.
+- Andariel's poison sequence was sharpened so her charge creates more guard, `Poison Burst` hits harder, and `Venom Claw` applies heavier poison.
+- Focused regression checks still cleared on optimized aggressive samples:
+  - Amazon seed `1`: `run_complete`
+  - Barbarian seed `1`: `run_complete`
+  - Paladin seed `1`: `run_complete`
+  - Sorceress seed `1`: `run_complete`
+- Focused weak-line spot checks still showed some sturdy openings:
+  - Amazon `Balanced` seed `0`: reached Act II
+  - Amazon `Balanced` seed `2`: reached Act II
+  - Barbarian `Balanced` seed `0`: reached Act II
+  - Paladin `Balanced` seed `0`: reached Act II
+  - Paladin `Balanced` seed `2`: reached Act II
+- Weak-line failures at Andariel still reproduce on fragile seeds:
+  - Assassin `Balanced` seed `2`: failed at Andariel
+  - Sorceress `Bulwark` seed `2`: failed at Andariel
+- Conclusion: this pass preserves the optimized endgame band and sharpens the Act I boss check, but it does not fully solve the broader “safe weak openings” problem on its own.

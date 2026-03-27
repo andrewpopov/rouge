@@ -392,6 +392,7 @@
         const reward = runtimeWindow.ROUGE_WORLD_NODES.buildZoneReward({
           run,
           zone,
+          content,
         });
         return {
           ok: true,

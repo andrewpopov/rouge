@@ -624,7 +624,7 @@
       : isElite
         ? `<span class="sprite__threat-badge sprite__threat-badge--elite">Elite</span>`
         : "";
-    const effectStrip = renderEffectStrip([
+    const effectItems = [
       enemy.guard > 0 ? { css: "sprite__effect--guard", icon: assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}", value: String(enemy.guard), label: `Guard ${enemy.guard}` } : null,
       enemy.burn > 0 ? { css: "sprite__effect--burn", icon: "\u{1F525}", value: String(enemy.burn), label: `Burn ${enemy.burn}` } : null,
       enemy.poison > 0 ? { css: "sprite__effect--poison", icon: "\u2620", value: String(enemy.poison), label: `Poison ${enemy.poison}` } : null,
@@ -632,15 +632,16 @@
       enemy.freeze > 0 ? { css: "sprite__effect--freeze", icon: "\u2744", value: String(enemy.freeze), label: `Freeze ${enemy.freeze}` } : null,
       enemy.stun > 0 ? { css: "sprite__effect--stun", icon: "\u26A1", value: String(enemy.stun), label: `Stun ${enemy.stun}` } : null,
       enemy.paralyze > 0 ? { css: "sprite__effect--paralyze", icon: "\u{1F50C}", value: String(enemy.paralyze), label: `Paralyze ${enemy.paralyze}` } : null,
-    ].filter(Boolean) as Array<{ css: string; icon: string; value: string; label: string }>);
+    ].filter(Boolean) as Array<{ css: string; icon: string; value: string; label: string }>;
+    const effectStrip = effectItems.length > 0 ? renderEffectStrip(effectItems) : "";
     const traitsContent = [
       threatBadge,
       isMarked && !isDead ? `<span class="sprite__mark-badge">Marked</span>` : "",
       renderTraitBadges(enemy.traits),
     ].filter(Boolean).join("");
-    const traitsMarkup = traitsContent
-      ? `<div class="sprite__traits">${traitsContent}</div>`
-      : `<div class="sprite__traits sprite__traits--empty" aria-hidden="true"></div>`;
+    const enemyFooter = [effectStrip, traitsContent ? `<div class="sprite__traits">${traitsContent}</div>` : ""]
+      .filter(Boolean)
+      .join("");
     return `
       <button class="sprite sprite--enemy ${enemyTierClass} ${isSelected ? "sprite--targeted" : ""} ${isMarked ? "sprite--marked" : ""} ${isDead ? "sprite--dead" : ""}"
               data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}" data-enemy-name="${escapeHtml(enemy.name)}"
@@ -653,11 +654,11 @@
             <div class="sprite__hp-fill sprite__hp-fill--enemy" style="width:${enemyHpPct}%"></div>
             <span class="sprite__hp-text">${enemy.life}/${enemy.maxLife}</span>
           </div>
-          ${effectStrip}
         </div>
-        <div class="sprite__meta-row">${traitsMarkup}</div>
         <div class="sprite__label-row"><div class="sprite__label">${escapeHtml(enemy.name)}</div></div>
-        <div class="sprite__action-row"><span class="sprite__action-spacer" aria-hidden="true"></span></div>
+        <div class="sprite__action-row sprite__action-row--enemy">
+          ${enemyFooter ? `<div class="sprite__enemy-footer">${enemyFooter}</div>` : '<span class="sprite__action-spacer" aria-hidden="true"></span>'}
+        </div>
       </button>
     `;
   }
@@ -682,8 +683,8 @@
     const previewSummary = summarizePreviewOutcome(previewOutcome);
     const mid = (cardCount - 1) / 2;
     const offset = index - mid;
-    const rotation = offset * 4;
-    const translateY = Math.abs(offset) * 6;
+    const rotation = offset * 1.4;
+    const translateY = Math.abs(offset) * 2;
     return `
       <button class="fan-card ${cantPlay ? "fan-card--disabled" : "fan-card--playable"} ${stateClass} fan-card--${element}${isUpgraded ? " fan-card--upgraded" : ""}"
               data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
@@ -708,6 +709,91 @@
           ${stateLabel ? `<div class="fan-card__state">${escapeHtml(stateLabel)}</div>` : ""}
         </div>
       </button>
+    `;
+  }
+
+  type CombatLogTone = "strike" | "status" | "surge" | "summon" | "loss" | "maneuver" | "report";
+
+  function classifyCombatLogEntry(entry: string): { tone: CombatLogTone; icon: string; label: string } {
+    const lower = entry.toLowerCase();
+    if (lower.includes("encounter lost") || lower.includes(" falls") || lower.includes("falls.")) {
+      return { tone: "loss", icon: "\u2620", label: "Loss" };
+    }
+    if (lower.includes("explodes") || lower.includes("erupts in flame") || lower.includes("frost nova")) {
+      return { tone: "loss", icon: "\u2739", label: "Burst" };
+    }
+    if (lower.includes("resurrect") || lower.includes("spawn") || lower.includes("summon")) {
+      return { tone: "summon", icon: "\u2726", label: "Summon" };
+    }
+    if (
+      lower.includes("burn") ||
+      lower.includes("poison") ||
+      lower.includes("chill") ||
+      lower.includes("freeze") ||
+      lower.includes("stun") ||
+      lower.includes("paralyze") ||
+      lower.includes("amplifies") ||
+      lower.includes("drains")
+    ) {
+      return { tone: "status", icon: "\u2727", label: "Affliction" };
+    }
+    if (lower.includes("guard") || lower.includes("heal") || lower.includes("heals") || lower.includes("gains")) {
+      return { tone: "surge", icon: "\u26E8", label: "Surge" };
+    }
+    if (lower.includes("charging") || lower.includes("flees") || lower.includes("blinking") || lower.includes("teleport")) {
+      return { tone: "maneuver", icon: "\u21BB", label: "Shift" };
+    }
+    if (lower.includes("uses") || lower.includes("attacks") || lower.includes("deals") || lower.includes("zaps")) {
+      return { tone: "strike", icon: "\u2694", label: "Strike" };
+    }
+    return { tone: "report", icon: "\u2022", label: "Report" };
+  }
+
+  function formatCombatLogEntryText(entry: string, escapeHtml: (s: string) => string): string {
+    return escapeHtml(entry)
+      .replace(/(\d+)/g, '<span class="combat-log-entry__value">$1</span>')
+      .replace(
+        /\b(Burn|Poison|Chill|Freeze|Stun|Paralyze|Slow|Guard|damage|fire|lightning|cold|energy|heals?|drains?|spawns?|resurrects?)\b/gi,
+        '<span class="combat-log-entry__keyword">$1</span>'
+      );
+  }
+
+  function renderCombatLogPanel(combat: CombatState, escapeHtml: (s: string) => string): string {
+    const latestEntry = combat.log[0] || "No exchanges yet.";
+    const latestMeta = classifyCombatLogEntry(latestEntry);
+
+    return `
+      <details class="combat-log" aria-label="Battle Log">
+        <summary class="combat-log__toggle">
+          <span class="combat-log__toggle-label">Battle Log</span>
+          <span class="combat-log__toggle-latest">
+            <span class="combat-log__toggle-icon" aria-hidden="true">${latestMeta.icon}</span>
+            <span class="combat-log__toggle-text">${escapeHtml(latestEntry)}</span>
+          </span>
+          <span class="combat-log__toggle-count">${combat.log.length} event${combat.log.length === 1 ? "" : "s"}</span>
+        </summary>
+        ${combat.log.length > 0 ? `
+          <ol class="log-list combat-log-list">
+            ${combat.log.map((entry, index) => {
+              const { tone, icon, label } = classifyCombatLogEntry(entry);
+              return `
+                <li class="combat-log-entry combat-log-entry--${tone}${index === 0 ? " combat-log-entry--latest" : ""}">
+                  <div class="combat-log-entry__meta">
+                    <span class="combat-log-entry__when">${index === 0 ? "Latest" : `${index} beat${index === 1 ? "" : "s"} ago`}</span>
+                    <span class="combat-log-entry__tag">${escapeHtml(label)}</span>
+                  </div>
+                  <div class="combat-log-entry__line">
+                    <span class="combat-log-entry__icon" aria-hidden="true">${icon}</span>
+                    <p class="combat-log-entry__text">${formatCombatLogEntryText(entry, escapeHtml)}</p>
+                  </div>
+                </li>
+              `;
+            }).join("")}
+          </ol>
+        ` : `
+          <div class="combat-log__empty">No exchanges yet. The field is still holding its breath.</div>
+        `}
+      </details>
     `;
   }
 
@@ -995,12 +1081,7 @@
             </div>
           </section>
 
-          <details class="town-operations-details combat-log">
-            <summary class="town-operations-toggle">Combat Log</summary>
-            <ol class="log-list combat-log-list">
-              ${combat.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}
-            </ol>
-          </details>
+          ${renderCombatLogPanel(combat, escapeHtml)}
         </div>
       </div>
     `;

@@ -24,6 +24,31 @@
     return runtimeWindow.ROUGE_WORLD_NODE_ZONES;
   }
 
+  function getGameContent(content: GameContent | null = null) {
+    return content || runtimeWindow.ROUGE_GAME_CONTENT || null;
+  }
+
+  function getItemCatalogApi() {
+    if (!runtimeWindow.ROUGE_ITEM_CATALOG) {
+      throw new Error("Item catalog helper is unavailable.");
+    }
+    return runtimeWindow.ROUGE_ITEM_CATALOG;
+  }
+
+  function getItemLoadoutApi() {
+    if (!runtimeWindow.ROUGE_ITEM_LOADOUT) {
+      throw new Error("Item loadout helper is unavailable.");
+    }
+    return runtimeWindow.ROUGE_ITEM_LOADOUT;
+  }
+
+  function getItemRewardApi() {
+    if (!runtimeWindow.__ROUGE_ITEM_SYSTEM_REWARDS) {
+      throw new Error("Item reward helper is unavailable.");
+    }
+    return runtimeWindow.__ROUGE_ITEM_SYSTEM_REWARDS;
+  }
+
   function buildChoice(kind: string, choiceDefinition: WorldNodeChoiceDefinition) {
     return getWorldNodeZonesApi().buildChoice(kind, choiceDefinition);
   }
@@ -45,6 +70,305 @@
       throw new Error("World-node variant helper is unavailable.");
     }
     return runtimeWindow.ROUGE_WORLD_NODE_VARIANTS;
+  }
+
+  function cloneEffect(effect: RewardChoiceEffect): RewardChoiceEffect {
+    return {
+      ...effect,
+      ...(Array.isArray(effect?.flagIds) ? { flagIds: [...effect.flagIds] } : {}),
+      ...(effect?.rarityBonuses ? { rarityBonuses: { ...effect.rarityBonuses } } : {}),
+      ...(effect?.weaponAffixes ? { weaponAffixes: runtimeWindow.ROUGE_ITEM_CATALOG?.cloneWeaponProfile?.(effect.weaponAffixes) || effect.weaponAffixes } : {}),
+      ...(effect?.armorAffixes ? { armorAffixes: runtimeWindow.ROUGE_ITEM_CATALOG?.cloneArmorProfile?.(effect.armorAffixes) || effect.armorAffixes } : {}),
+    };
+  }
+
+  function getRunePrefixLength(insertedRunes: string[], requiredRunes: string[]) {
+    let count = 0;
+    while (count < insertedRunes.length && insertedRunes[count] === requiredRunes[count]) {
+      count += 1;
+    }
+    return count;
+  }
+
+  function isStrictRunePrefix(insertedRunes: string[], requiredRunes: string[]) {
+    return getRunePrefixLength(insertedRunes, requiredRunes) === insertedRunes.length;
+  }
+
+  function getRunewordBonusScore(runeword: RuntimeRunewordDefinition, toNumber: (value: unknown, fallback?: number) => number) {
+    return Object.values(runeword?.bonuses || {}).reduce((total: number, value: unknown) => total + Math.max(0, toNumber(value, 0)), 0);
+  }
+
+  function pickQuestRunewordForEquipment(equipment: RunEquipmentState | null, run: RunState, actNumber: number, content: GameContent) {
+    if (!equipment) {
+      return null;
+    }
+    const itemCatalog = getItemCatalogApi();
+    const item = itemCatalog.getItemDefinition(content, equipment.itemId);
+    if (!item) {
+      return null;
+    }
+
+    const { isRunewordCompatibleWithItem, toNumber } = itemCatalog;
+    const insertedRunes = Array.isArray(equipment.insertedRunes) ? equipment.insertedRunes : [];
+    const targetTier = Math.max(2, actNumber + Number(equipment.slot === "weapon"));
+    const compatibleRunewords = (Object.values(content.runewordCatalog || {}) as RuntimeRunewordDefinition[])
+      .filter((runeword: RuntimeRunewordDefinition) => isRunewordCompatibleWithItem(item, runeword))
+      .filter((runeword: RuntimeRunewordDefinition) => isStrictRunePrefix(insertedRunes, runeword.requiredRunes))
+      .filter((runeword: RuntimeRunewordDefinition) => toNumber(equipment.socketsUnlocked, 0) <= toNumber(runeword.socketCount, 0));
+
+    if (compatibleRunewords.length === 0) {
+      return null;
+    }
+
+    return [...compatibleRunewords]
+      .sort((left: RuntimeRunewordDefinition, right: RuntimeRunewordDefinition) => {
+        const leftPrefix = getRunePrefixLength(insertedRunes, left.requiredRunes);
+        const rightPrefix = getRunePrefixLength(insertedRunes, right.requiredRunes);
+        if (leftPrefix !== rightPrefix) {
+          return rightPrefix - leftPrefix;
+        }
+
+        const leftSpecificity = Math.max(0, 6 - Math.max(1, left.familyAllowList?.length || 1));
+        const rightSpecificity = Math.max(0, 6 - Math.max(1, right.familyAllowList?.length || 1));
+        if (leftSpecificity !== rightSpecificity) {
+          return rightSpecificity - leftSpecificity;
+        }
+
+        const leftTierDistance = Math.abs(toNumber(left.progressionTier, 1) - targetTier);
+        const rightTierDistance = Math.abs(toNumber(right.progressionTier, 1) - targetTier);
+        if (leftTierDistance !== rightTierDistance) {
+          return leftTierDistance - rightTierDistance;
+        }
+
+        const leftBonusScore = getRunewordBonusScore(left, toNumber);
+        const rightBonusScore = getRunewordBonusScore(right, toNumber);
+        if (leftBonusScore !== rightBonusScore) {
+          return rightBonusScore - leftBonusScore;
+        }
+
+        return String(left.id || "").localeCompare(String(right.id || ""));
+      })
+      .shift() || null;
+  }
+
+  function buildQuestCandidateItems(slot: "weapon" | "armor", run: RunState, zone: ZoneState, actNumber: number, content: GameContent) {
+    const rewardApi = getItemRewardApi();
+    const itemCatalog = getItemCatalogApi();
+    const currentItem = itemCatalog.getItemDefinition(content, run.loadout?.[slot]?.itemId || "");
+    const preferredWeaponFamilies = slot === "weapon"
+      ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || []
+      : [];
+    const candidates = rewardApi.getAvailableItemsForSlot(slot, actNumber, zone, run, content)
+      .filter((item: RuntimeItemDefinition) => slot !== "weapon" || preferredWeaponFamilies.length === 0 || preferredWeaponFamilies.includes(item.family || ""))
+      .sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => {
+        const rightPreferred = Number(slot === "weapon" && preferredWeaponFamilies.includes(right.family || ""));
+        const leftPreferred = Number(slot === "weapon" && preferredWeaponFamilies.includes(left.family || ""));
+        if (rightPreferred !== leftPreferred) {
+          return rightPreferred - leftPreferred;
+        }
+
+        const rightCurrentFamily = Number((right.family || "") === (currentItem?.family || ""));
+        const leftCurrentFamily = Number((left.family || "") === (currentItem?.family || ""));
+        if (rightCurrentFamily !== leftCurrentFamily) {
+          return rightCurrentFamily - leftCurrentFamily;
+        }
+
+        const tierDelta = Number(right.progressionTier || 0) - Number(left.progressionTier || 0);
+        if (tierDelta !== 0) {
+          return tierDelta;
+        }
+
+        return Number(right.maxSockets || 0) - Number(left.maxSockets || 0);
+      });
+
+    if (candidates.length > 0) {
+      return candidates;
+    }
+
+    return rewardApi.getAvailableItemsForSlot(slot, actNumber, zone, run, content);
+  }
+
+  function createQuestProjectEquipment(
+    slot: "weapon" | "armor",
+    itemId: string,
+    run: RunState,
+    content: GameContent
+  ) {
+    const loadoutApi = getItemLoadoutApi();
+    const currentEquipment = run.loadout?.[slot] || null;
+    const preserved = loadoutApi.getPreservedSlotProgression(currentEquipment, itemId, content);
+    return {
+      itemId,
+      slot,
+      socketsUnlocked: preserved.socketsUnlocked,
+      insertedRunes: [...preserved.insertedRunes],
+      runewordId: "",
+    } as RunEquipmentState;
+  }
+
+  function buildQuestRuneforgeProjectForSlot(slot: "weapon" | "armor", run: RunState, zone: ZoneState, actNumber: number, content: GameContent) {
+    const itemCatalog = getItemCatalogApi();
+    const currentEquipment = run.loadout?.[slot] || null;
+    const candidateItemIds: string[] = [];
+    if (currentEquipment?.itemId) {
+      candidateItemIds.push(currentEquipment.itemId);
+    }
+    buildQuestCandidateItems(slot, run, zone, actNumber, content).forEach((item: RuntimeItemDefinition) => {
+      if (!candidateItemIds.includes(item.id)) {
+        candidateItemIds.push(item.id);
+      }
+    });
+
+    for (const itemId of candidateItemIds) {
+      const simulatedEquipment = createQuestProjectEquipment(slot, itemId, run, content);
+      const runeword = pickQuestRunewordForEquipment(simulatedEquipment, run, actNumber, content);
+      if (!runeword) {
+        continue;
+      }
+
+      const item = itemCatalog.getItemDefinition(content, itemId);
+      const currentRunewordId = currentEquipment?.runewordId || "";
+      const alreadyComplete =
+        currentEquipment?.itemId === itemId &&
+        currentRunewordId === runeword.id &&
+        currentEquipment.socketsUnlocked === runeword.socketCount &&
+        (currentEquipment.insertedRunes?.length || 0) === runeword.requiredRunes.length;
+      if (alreadyComplete) {
+        continue;
+      }
+
+      const preferredWeaponFamilies = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [];
+      const classFit = slot === "armor" ? 1 : Number(preferredWeaponFamilies.includes(item?.family || ""));
+      const socketsToAdd = Math.max(0, runeword.socketCount - simulatedEquipment.socketsUnlocked);
+      const runeIdsToSocket = runeword.requiredRunes.slice(simulatedEquipment.insertedRunes.length);
+      const targetTier = Math.max(2, actNumber + Number(slot === "weapon"));
+      const tierFit = Math.max(0, 8 - Math.abs(Number(runeword.progressionTier || 1) - targetTier) * 2);
+      const score =
+        Number(!currentRunewordId) * 40 +
+        classFit * 18 +
+        Number(slot === "weapon") * 8 +
+        tierFit +
+        Number(currentEquipment?.itemId !== itemId) * 4 +
+        Number(runeIdsToSocket.length > 0) * 3 +
+        Number(Boolean(currentEquipment?.itemId) && currentEquipment.itemId === itemId) * 2;
+
+      return {
+        slot,
+        itemId,
+        itemName: item?.name || itemId,
+        runeword,
+        equipItemId: currentEquipment?.itemId === itemId ? "" : itemId,
+        socketsToAdd,
+        runeIdsToSocket,
+        classFit,
+        score,
+      };
+    }
+
+    return null;
+  }
+
+  function buildQuestRuneforgePackage(run: RunState, zone: ZoneState, actNumber: number, content: GameContent | null = null) {
+    const resolvedContent = getGameContent(content);
+    if (!resolvedContent) {
+      return null;
+    }
+
+    const projects = (["weapon", "armor"] as const)
+      .map((slot) => buildQuestRuneforgeProjectForSlot(slot, run, zone, actNumber, resolvedContent))
+      .filter(Boolean) as Array<{
+        slot: "weapon" | "armor";
+        itemId: string;
+        itemName: string;
+        runeword: RuntimeRunewordDefinition;
+        equipItemId: string;
+        socketsToAdd: number;
+        runeIdsToSocket: string[];
+        classFit: number;
+        score: number;
+      }>;
+
+    if (projects.length === 0) {
+      return null;
+    }
+
+    const loadoutApi = getItemLoadoutApi();
+    const itemCatalog = getItemCatalogApi();
+    const project = [...projects]
+      .sort((left, right) => right.score - left.score || right.classFit - left.classFit || String(left.slot).localeCompare(String(right.slot)))
+      .shift();
+    if (!project) {
+      return null;
+    }
+
+    const slotLabel = loadoutApi.EQUIPMENT_SLOT_LABELS?.[project.slot] || project.slot;
+    const effects: RewardChoiceEffect[] = [];
+    if (project.equipItemId) {
+      effects.push({
+        kind: "equip_item",
+        itemId: project.equipItemId,
+        rarity: itemCatalog.RARITY.WHITE,
+      });
+    }
+    for (let socketIndex = 0; socketIndex < project.socketsToAdd; socketIndex += 1) {
+      effects.push({ kind: "add_socket", slot: project.slot });
+    }
+    project.runeIdsToSocket.forEach((runeId: string) => {
+      effects.push({ kind: "socket_rune", slot: project.slot, runeId });
+    });
+
+    const runeNames = project.runeword.requiredRunes
+      .map((runeId: string) => itemCatalog.getRuneDefinition(resolvedContent, runeId)?.name || runeId)
+      .join(" + ");
+    return {
+      summaryLine: `Runeforge commission: ${slotLabel} -> ${project.runeword.name} on ${project.itemName} (${runeNames}).`,
+      descriptionLine: `A route runesmith also prepares your ${slotLabel.toLowerCase()} toward ${project.runeword.name}.`,
+      effects,
+    };
+  }
+
+  function buildQuestChoices(run: RunState, zone: ZoneState, actNumber: number, definition: QuestNodeDefinition, content: GameContent | null = null) {
+    const runeforgePackage = buildQuestRuneforgePackage(run, zone, actNumber, content);
+    const resolvedContent = getGameContent(content);
+    return {
+      choices: definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => {
+        const augmentedChoiceDefinition = runeforgePackage
+          ? {
+              ...choiceDefinition,
+              description: `${choiceDefinition.description} ${runeforgePackage.descriptionLine}`.trim(),
+              effects: [
+                ...choiceDefinition.effects.map((effect: RewardChoiceEffect) => cloneEffect(effect)),
+                ...runeforgePackage.effects.map((effect: RewardChoiceEffect) => cloneEffect(effect)),
+              ],
+            }
+          : choiceDefinition;
+        const builtChoice = buildChoice("quest", augmentedChoiceDefinition);
+        if (resolvedContent) {
+          const slotLabels = (getItemLoadoutApi().EQUIPMENT_SLOT_LABELS || {}) as Record<string, string>;
+          const gearPreviewLines = augmentedChoiceDefinition.effects.map((effect: RewardChoiceEffect) => {
+            if (effect.kind === "equip_item") {
+              return `Equip ${getItemCatalogApi().getItemDefinition(resolvedContent, effect.itemId || "")?.name || effect.itemId || "item"}.`;
+            }
+            if (effect.kind === "grant_item") {
+              return `Carry ${getItemCatalogApi().getItemDefinition(resolvedContent, effect.itemId || "")?.name || effect.itemId || "item"}.`;
+            }
+            if (effect.kind === "grant_rune") {
+              return `Carry ${getItemCatalogApi().getRuneDefinition(resolvedContent, effect.runeId || "")?.name || effect.runeId || "rune"}.`;
+            }
+            if (effect.kind === "add_socket") {
+              return `Add 1 socket to ${slotLabels[effect.slot || ""] || effect.slot || "gear"}.`;
+            }
+            if (effect.kind === "socket_rune") {
+              return `Socket ${getItemCatalogApi().getRuneDefinition(resolvedContent, effect.runeId || "")?.name || effect.runeId || "rune"} into ${slotLabels[effect.slot || ""] || effect.slot || "gear"}.`;
+            }
+            return "";
+          }).filter(Boolean);
+          builtChoice.previewLines = [...(builtChoice.previewLines || []).filter(Boolean), ...gearPreviewLines];
+        }
+        return builtChoice;
+      }),
+      extraLines: runeforgePackage ? [runeforgePackage.summaryLine] : [],
+    };
   }
 
   function buildNodeReward(run: RunState, zone: ZoneState, definition: { title: string; summary: string; grants: RewardGrants }, variant: WorldNodeRewardDefinition, choiceKind: string, contextLines: string[]) {
@@ -248,11 +572,12 @@
     },
   };
 
-  function buildZoneReward({ run, zone }: { run: RunState; zone: ZoneState }) {
+  function buildZoneReward({ run, zone, content = null }: { run: RunState; zone: ZoneState; content?: GameContent | null }) {
     const actNumber = zone?.actNumber || run?.actNumber || 1;
 
     if (zone.kind === ZONE_KIND.QUEST) {
       const definition = getQuestDefinition(actNumber);
+      const { choices, extraLines } = buildQuestChoices(run, zone, actNumber, definition, content);
       return {
         zoneId: zone.id,
         zoneTitle: zone.title,
@@ -260,11 +585,12 @@
         title: definition.title,
         lines: [
           definition.summary,
+          ...extraLines,
           "This node resolves immediately and clears the route once you choose an outcome.",
           `${zone.title} is now clear.`,
         ],
         grants: { ...definition.grants },
-        choices: definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => buildChoice("quest", choiceDefinition)),
+        choices,
         encounterNumber: 1,
         clearsZone: true,
         endsAct: false,

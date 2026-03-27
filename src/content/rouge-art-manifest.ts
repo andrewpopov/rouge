@@ -76,7 +76,13 @@
   "bosses": [
     "andariel",
     "baal",
-    "blood_raven"
+    "bartuc_the_bloody",
+    "battlemaid_sarina",
+    "beetleburst",
+    "bishibosh",
+    "blood_raven",
+    "bloodwitch_the_wild",
+    "bonebreaker"
   ],
   "portraits": [
     "amazon",
@@ -314,8 +320,26 @@
     "baal": [
       "baal.png"
     ],
+    "bartuc_the_bloody": [
+      "bartuc_the_bloody.png"
+    ],
+    "battlemaid_sarina": [
+      "battlemaid_sarina.png"
+    ],
+    "beetleburst": [
+      "beetleburst.png"
+    ],
+    "bishibosh": [
+      "bishibosh.png"
+    ],
     "blood_raven": [
       "blood_raven.png"
+    ],
+    "bloodwitch_the_wild": [
+      "bloodwitch_the_wild.png"
+    ],
+    "bonebreaker": [
+      "bonebreaker.png"
     ]
   },
   "portraitVariants": {
