@@ -65,7 +65,7 @@ function printHumanReport(report) {
       const weaponLabel = build.weapon ? `${build.weapon.name} (${build.weapon.rarity})` : "Unarmed";
       console.log(`  ${scenario.label}`);
       console.log(
-        `    Build: Lv ${build.level}, power ${build.powerScore}, deck ${build.deckSize}, potions ${build.potions}, hero ${build.hero.maxLife} Life / ${build.hero.maxEnergy} Energy / heal ${build.hero.potionHeal}, weapon ${weaponLabel}`
+        `    Build: Lv ${build.level}, power ${build.powerScore}, deck ${build.deckSize}, potions ${build.potions}, hero ${build.hero.maxLife} Life / ${build.hero.maxEnergy} Energy / ${build.hero.handSize} Hand / heal ${build.hero.potionHeal}, weapon ${weaponLabel}`
       );
       console.log(
         `    Overall: ${formatPct(scenario.overall.winRate)} win, avg turns ${scenario.overall.averageTurns}, hero ${scenario.overall.averageHeroLifePct}% life, enemy ${scenario.overall.averageEnemyLifePct}% remaining`

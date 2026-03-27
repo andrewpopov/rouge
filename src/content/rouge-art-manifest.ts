@@ -82,7 +82,14 @@
     "bishibosh",
     "blood_raven",
     "bloodwitch_the_wild",
-    "bonebreaker"
+    "bonebreaker",
+    "bonesaw_breaker",
+    "bremm_sparkfist",
+    "coldcrow",
+    "coldworm_the_burrower",
+    "colenzo_the_annihilator",
+    "corpsefire",
+    "creeping_feature"
   ],
   "portraits": [
     "amazon",
@@ -340,6 +347,27 @@
     ],
     "bonebreaker": [
       "bonebreaker.png"
+    ],
+    "bonesaw_breaker": [
+      "bonesaw_breaker.png"
+    ],
+    "bremm_sparkfist": [
+      "bremm_sparkfist.png"
+    ],
+    "coldcrow": [
+      "coldcrow.png"
+    ],
+    "coldworm_the_burrower": [
+      "coldworm_the_burrower.png"
+    ],
+    "colenzo_the_annihilator": [
+      "colenzo_the_annihilator.png"
+    ],
+    "corpsefire": [
+      "corpsefire.png"
+    ],
+    "creeping_feature": [
+      "creeping_feature.png"
     ]
   },
   "portraitVariants": {

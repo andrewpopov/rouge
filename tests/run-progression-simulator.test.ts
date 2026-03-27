@@ -27,6 +27,10 @@ test("run progression simulator produces checkpoint data for an early act", () =
   assert.ok(policyReport.checkpoints[1].powerScore > 0);
   assert.ok(policyReport.checkpoints[1].powerBreakdown.deck > 0);
   assert.ok(policyReport.checkpoints[1].deckSize <= 24);
+  assert.ok(policyReport.summary.runSummary.encountersCleared >= 0);
+  assert.ok(policyReport.summary.world.questOutcomes >= 0);
+  assert.ok(policyReport.summary.finalBuild.hero.handSize >= 5);
+  assert.ok(policyReport.summary.finalBuild.deckProficiencies.length > 0);
   const act2BossProbe = policyReport.checkpoints[1].probes.find((probe) => probe.kind === "boss");
   assert.ok(act2BossProbe);
   assert.ok((act2BossProbe?.enemyPowerScore || 0) > 0);
@@ -48,6 +52,8 @@ test("run progression simulator can skip checkpoint probes for fast rng sweeps",
   const policyReport = report.classReports[0].policyReports[0];
   assert.ok(policyReport.checkpoints.length >= 1);
   assert.equal(policyReport.checkpoints[0].probes.length, 0);
+  assert.ok(typeof policyReport.summary.rewardKindCounts === "object");
+  assert.ok(typeof policyReport.summary.choiceKindCounts === "object");
 });
 
 test("run progression simulator is deterministic for the same seed", () => {

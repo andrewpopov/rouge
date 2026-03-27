@@ -245,6 +245,7 @@
       bonuses: {
         heroDamageBonus: 4,
         heroMaxLife: 4,
+        heroGuardBonus: 1,
       },
     },
     smoke: {
@@ -284,8 +285,9 @@
       familyAllowList: ["Wands"],
       requiredRunes: ["rune_dol", "rune_io"],
       bonuses: {
-        heroDamageBonus: 2,
-        heroBurnBonus: 3,
+        heroDamageBonus: 4,
+        heroGuardBonus: 2,
+        mercenaryAttack: 2,
       },
     },
     black: {

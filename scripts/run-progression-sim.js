@@ -71,8 +71,13 @@ function printHumanReport(report) {
       for (const checkpoint of policyReport.checkpoints) {
         const weaponLabel = checkpoint.weapon ? `${checkpoint.weapon.name} (${checkpoint.weapon.rarity})` : "Unarmed";
         console.log(
-          `    ${checkpoint.label}: Lv ${checkpoint.level}, power ${checkpoint.powerScore}, hero ${checkpoint.hero.maxLife} Life / ${checkpoint.hero.maxEnergy} Energy / +${checkpoint.hero.damageBonus} dmg / +${checkpoint.hero.guardBonus} guard, weapon ${weaponLabel}`
+          `    ${checkpoint.label}: Lv ${checkpoint.level}, power ${checkpoint.powerScore}, hero ${checkpoint.hero.maxLife} Life / ${checkpoint.hero.maxEnergy} Energy / ${checkpoint.hero.handSize} Hand / +${checkpoint.hero.damageBonus} dmg / +${checkpoint.hero.guardBonus} guard, weapon ${weaponLabel}`
         );
+        if (checkpoint.activeRunewords.length > 0 || checkpoint.runewordsForged > 0) {
+          console.log(
+            `      Runewords: forged ${checkpoint.runewordsForged}${checkpoint.activeRunewords.length > 0 ? `, active ${checkpoint.activeRunewords.join(", ")}` : ""}`
+          );
+        }
         checkpoint.probes.forEach((probe) => {
           console.log(
             `      ${probe.kind} ${probe.zoneTitle} / ${probe.encounterName}: ${formatPct(probe.winRate)} win, avg turns ${probe.averageTurns}, hero ${probe.averageHeroLifePct}%, enemy power ${probe.enemyPowerScore}, ratio ${probe.powerRatio}x`

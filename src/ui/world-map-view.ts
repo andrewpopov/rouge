@@ -303,6 +303,7 @@
   function buildWaypointNode(
     zone: ZoneState,
     reachable: boolean,
+    isPriority: boolean,
     escapeHtml: (s: string) => string,
     positions: Map<string, [number, number]>
   ): string {
@@ -324,8 +325,10 @@
 
     const kindClass = zone.kind !== "battle" ? `waypoint--${zone.kind}` : "";
 
+    const priorityClass = isPriority ? "waypoint--priority" : "";
+
     return `
-      <${tag} class="waypoint ${statusClass} ${kindClass}" ${action} ${ariaLabel}
+      <${tag} class="waypoint ${statusClass} ${kindClass} ${priorityClass}" ${action} ${ariaLabel}
            style="left:${pos[0]}%;top:${pos[1]}%">
         <span class="waypoint__icon">${icon}</span>
         <span class="waypoint__label">${escapeHtml(zone.title)}</span>
@@ -434,8 +437,6 @@
       </div>
     `;
 
-    const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), escapeHtml, positions)).join("");
-    const edges = buildSvgEdges(mapZones, positions, run.actNumber);
     const nextZoneLabel = nextZone ? nextZone.title : "No route currently open";
     const nextZoneFamily = getNodeFamilyLabel(nextZone);
     const nextZoneStatus = nextZone
@@ -444,6 +445,8 @@
         : "Resolved"
       : "Awaiting route state";
     const openRouteCount = reachableAvailableZones.length;
+    const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), nextZone?.id === z.id, escapeHtml, positions)).join("");
+    const edges = buildSvgEdges(mapZones, positions, run.actNumber);
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -453,7 +456,7 @@
             <div class="actmap__title">
               <span class="actmap__eyebrow">Act ${run.actNumber} Campaign Board</span>
               <h1 class="actmap__name">${escapeHtml(run.actTitle)}</h1>
-              <p class="actmap__intro">The fire is behind you now. Choose which blood-soaked trail deserves the next march.</p>
+              <p class="actmap__intro">Choose the next road through the act. The live route is emphasized on the board.</p>
             </div>
             <div class="actmap__stats">
               <div class="actmap__stat-pill">
@@ -480,9 +483,9 @@
               <div class="actmap__panel-head actmap__panel-head--board">
                 <div>
                   <div class="actmap__panel-eyebrow">Trail Overview</div>
-                  <h2 class="actmap__panel-title">Waypoint Board</h2>
+                  <h2 class="actmap__panel-title">Route Board</h2>
                 </div>
-                <div class="actmap__panel-copy">Mainline routes remain fixed. Side rites and aftermath forks surface as the act tightens around you.</div>
+                <div class="actmap__panel-copy">Follow the live route first; side forks and resolved paths recede behind it.</div>
               </div>
 
               <div class="actmap__canvas ${scrollOpen ? "actmap__canvas--scroll" : ""}">

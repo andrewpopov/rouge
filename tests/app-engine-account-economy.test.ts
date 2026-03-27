@@ -200,9 +200,10 @@ test("runeword codex widens vendor rune routing for unfinished recipes", () => {
   const codexRunes = getVendorRunes(codexState);
 
   assert.ok(baselineRunes.includes("rune_tir"));
-  assert.ok(!baselineRunes.includes("rune_el"));
   assert.ok(codexRunes.includes("rune_tir"));
   assert.ok(codexRunes.includes("rune_el"));
+  assert.ok(codexRunes.slice(0, 2).includes("rune_tir"));
+  assert.ok(codexRunes.slice(0, 2).includes("rune_el"));
   assert.ok(codexRunes.length > baselineRunes.length);
 });
 
@@ -258,8 +259,12 @@ test("treasury exchange adds direct vendor-to-stash consignment and stash-aware 
 
   const baselineRunes = getVendorRunes(baselineState);
   const treasuryRunes = getVendorRunes(treasuryState);
-  assert.ok(!baselineRunes.includes(targetRuneId));
   assert.ok(treasuryRunes.includes(targetRuneId));
+  assert.equal(treasuryRunes[0], targetRuneId);
+  assert.ok(
+    baselineRunes.indexOf(targetRuneId) === -1 ||
+    treasuryRunes.indexOf(targetRuneId) < baselineRunes.indexOf(targetRuneId)
+  );
 
   const baselineActions = itemSystem.listTownActions(baselineState.run, baselineState.profile, content);
   const treasuryActions = itemSystem.listTownActions(treasuryState.run, treasuryState.profile, content);

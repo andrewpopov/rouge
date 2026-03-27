@@ -4638,9 +4638,9 @@ button.entity-card:disabled {
 
 .actmap {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 0 14px 24px;
+  padding: 0 10px 22px;
 }
 
 .actmap__shell {
@@ -4659,9 +4659,9 @@ button.entity-card:disabled {
 .actmap__hud {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(420px, 0.9fr);
-  gap: 22px;
+  gap: 18px;
   align-items: start;
-  padding: 28px 30px 24px;
+  padding: 22px 24px 18px;
   border-bottom: 1px solid rgba(128, 48, 39, 0.3);
 }
 
@@ -4674,20 +4674,20 @@ button.entity-card:disabled {
 
 .actmap__name {
   font-family: var(--font-display);
-  font-size: clamp(1.95rem, 3.4vw, 3rem);
+  font-size: clamp(1.68rem, 3vw, 2.6rem);
   font-weight: 700;
   color: #f0d8c2;
-  margin: 8px 0 0;
-  letter-spacing: 0.06em;
+  margin: 6px 0 0;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   text-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 .actmap__intro {
-  margin: 12px 0 0;
-  max-width: 58ch;
-  font-size: 0.95rem;
-  line-height: 1.65;
+  margin: 10px 0 0;
+  max-width: 52ch;
+  font-size: 0.88rem;
+  line-height: 1.52;
   color: #bb998d;
 }
 
@@ -4700,8 +4700,8 @@ button.entity-card:disabled {
 .actmap__stat-pill {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 14px 16px;
+  gap: 4px;
+  padding: 12px 14px;
   border: 1px solid rgba(129, 52, 41, 0.28);
   border-radius: 18px;
   background:
@@ -4720,7 +4720,7 @@ button.entity-card:disabled {
 
 .actmap__stat-value {
   font-family: var(--font-display);
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   color: #f0d0b2;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -4729,7 +4729,7 @@ button.entity-card:disabled {
 .actmap__layout {
   display: grid;
   gap: 20px;
-  padding: 22px 30px;
+  padding: 16px 22px 20px;
   align-items: start;
 }
 
@@ -4754,11 +4754,11 @@ button.entity-card:disabled {
 }
 
 .actmap__board-panel {
-  padding: 22px;
+  padding: 18px;
 }
 
 .actmap__board-panel--solo {
-  padding-bottom: 20px;
+  padding-bottom: 18px;
 }
 
 .actmap__rail {
@@ -4777,12 +4777,12 @@ button.entity-card:disabled {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .actmap__panel-head--board {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .actmap__panel-eyebrow {
@@ -4793,18 +4793,18 @@ button.entity-card:disabled {
 }
 
 .actmap__panel-title {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   font-family: var(--font-display);
-  font-size: 1.06rem;
+  font-size: 0.98rem;
   color: #efcda9;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .actmap__panel-copy {
-  max-width: 34ch;
-  font-size: 0.82rem;
-  line-height: 1.55;
+  max-width: 28ch;
+  font-size: 0.76rem;
+  line-height: 1.45;
   color: #b89286;
 }
 
@@ -4825,11 +4825,12 @@ button.entity-card:disabled {
   width: 100%;
   height: auto;
   display: block;
-  opacity: 0.48;
+  opacity: 0;
   pointer-events: none;
   user-select: none;
   border-radius: inherit;
-  filter: sepia(0.7) saturate(0.7) brightness(0.84) contrast(1.06);
+  filter: sepia(0.62) saturate(0.82) brightness(0.92) contrast(1.1);
+  transition: opacity 0.3s ease;
 }
 
 .actmap__main-map {
@@ -4837,10 +4838,13 @@ button.entity-card:disabled {
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 18% 18%, rgba(177, 80, 50, 0.12), transparent 18%),
-    radial-gradient(circle at 82% 22%, rgba(139, 63, 40, 0.1), transparent 18%),
-    radial-gradient(circle at 50% 78%, rgba(53, 17, 16, 0.1), transparent 28%),
-    linear-gradient(180deg, rgba(17, 8, 9, 0.2), rgba(8, 4, 5, 0.3));
+    radial-gradient(circle at 16% 20%, rgba(182, 84, 54, 0.08), transparent 16%),
+    radial-gradient(circle at 82% 24%, rgba(154, 70, 46, 0.07), transparent 18%),
+    radial-gradient(circle at 50% 76%, rgba(70, 22, 18, 0.06), transparent 30%),
+    linear-gradient(180deg, rgba(23, 11, 12, 0.58), rgba(11, 5, 7, 0.74)),
+    linear-gradient(90deg, rgba(92, 48, 31, 0.08) 0, rgba(92, 48, 31, 0.08) 1px, transparent 1px, transparent 14%),
+    linear-gradient(rgba(92, 48, 31, 0.06) 0, rgba(92, 48, 31, 0.06) 1px, transparent 1px, transparent 18%);
+  background-size: auto, auto, auto, auto, 96px 100%, 100% 72px;
   transition: opacity 0.25s ease;
 }
 
@@ -4850,8 +4854,8 @@ button.entity-card:disabled {
   inset: 0;
   border-radius: inherit;
   box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.24),
-    inset 0 0 120px rgba(0, 0, 0, 0.1);
+    inset 0 0 42px rgba(0, 0, 0, 0.2),
+    inset 0 0 110px rgba(0, 0, 0, 0.08);
   pointer-events: none;
 }
 
@@ -4942,25 +4946,26 @@ button.entity-card:disabled {
 }
 
 .map-edge {
-  stroke-width: 2.6px;
+  stroke-width: 3px;
   stroke-linecap: round;
   fill: none;
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.32));
 }
 
 .map-edge.edge--cleared {
-  stroke: rgba(224, 174, 96, 0.58);
-  opacity: 0.68;
+  stroke: rgba(229, 182, 104, 0.64);
+  opacity: 0.76;
 }
 
 .map-edge.edge--active {
-  stroke: rgba(242, 182, 98, 0.88);
-  opacity: 0.9;
+  stroke: rgba(244, 190, 108, 0.94);
+  opacity: 0.98;
   stroke-dasharray: 6px 4px;
   animation: edge-march 1s linear infinite;
 }
 
 .map-edge.edge--locked {
-  stroke: rgba(188, 135, 89, 0.34);
+  stroke: rgba(188, 135, 89, 0.42);
   stroke-dasharray: 4px 6px;
 }
 
@@ -4972,7 +4977,7 @@ button.entity-card:disabled {
   position: absolute;
   z-index: 2;
   transform: translate(-50%, -50%);
-  width: 56px;
+  width: 60px;
   border: none;
   background: none;
   padding: 0;
@@ -4988,18 +4993,18 @@ button.entity-card:disabled {
 button.waypoint { cursor: pointer; }
 
 button.waypoint:hover {
-  transform: translate(-50%, -50%) scale(1.15);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .waypoint__icon {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   flex-shrink: 0;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.24rem;
+  font-size: 1.28rem;
   border: 1px solid;
   background:
     linear-gradient(180deg, rgba(33, 14, 13, 0.94), rgba(13, 7, 8, 0.98));
@@ -5011,19 +5016,24 @@ button.waypoint:hover {
 }
 
 .waypoint__label {
-  margin-top: 7px;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(9, 5, 7, 0.66);
   font-family: var(--font-display);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: normal;
   color: #f7e5d8;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.7);
-  max-width: 120px;
+  max-width: 126px;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.16;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
 }
 
 .waypoint__check {
@@ -5043,7 +5053,12 @@ button.waypoint:hover {
 }
 
 .waypoint__progress {
-  font-size: 0.62rem;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(15, 8, 8, 0.76);
+  border: 1px solid rgba(244, 177, 89, 0.16);
+  font-size: 0.58rem;
   color: #efbe7d;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
@@ -5068,6 +5083,11 @@ button.waypoint:hover {
   animation: waypoint-pulse 2s ease-in-out infinite;
 }
 
+.waypoint--available .waypoint__label {
+  border-color: rgba(244, 177, 89, 0.16);
+  background: rgba(20, 9, 8, 0.82);
+}
+
 .waypoint--cleared .waypoint__icon {
   border-color: rgba(205, 163, 91, 0.38);
   background:
@@ -5083,13 +5103,14 @@ button.waypoint:hover {
 }
 
 .waypoint--locked .waypoint__label {
-  opacity: 0.68;
+  opacity: 0.62;
+  background: rgba(8, 5, 6, 0.5);
 }
 
 .waypoint--boss .waypoint__icon {
   border-width: 2px;
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   font-size: 1.4rem;
 }
 
@@ -5112,6 +5133,25 @@ button.waypoint:hover {
 .waypoint--quest:not(.waypoint--locked) .waypoint__icon,
 .waypoint--opportunity:not(.waypoint--locked) .waypoint__icon {
   border-color: rgba(155, 174, 214, 0.44);
+}
+
+.waypoint--priority {
+  z-index: 5;
+}
+
+.waypoint--priority .waypoint__icon {
+  border-color: rgba(246, 191, 101, 0.98);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(39, 17, 10, 0.84),
+    0 0 26px 6px rgba(232, 127, 66, 0.2),
+    0 22px 34px rgba(0, 0, 0, 0.34);
+}
+
+.waypoint--priority .waypoint__label {
+  border-color: rgba(244, 177, 89, 0.24);
+  background: rgba(27, 10, 9, 0.88);
+  color: #fff0dc;
 }
 
 @keyframes waypoint-pulse {
@@ -5146,7 +5186,7 @@ button.waypoint:hover {
 }
 
 .actmap__actions {
-  padding-top: 16px;
+  padding-top: 14px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -5157,11 +5197,11 @@ button.waypoint:hover {
 .actmap__scroll-toggle,
 .actmap__intel-toggle {
   font-family: var(--font-display);
-  font-size: 0.78rem;
-  padding: 11px 18px;
+  font-size: 0.72rem;
+  padding: 10px 16px;
   cursor: pointer;
   transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -12207,7 +12247,7 @@ button.waypoint:hover {
 .stage__allies,
 .stage__enemies {
   flex: 1 1 0;
-  gap: 14px;
+  gap: 10px;
   margin-bottom: -14px;
 }
 
@@ -12224,6 +12264,24 @@ button.waypoint:hover {
 
 .sprite {
   gap: 5px;
+}
+
+.sprite--enemy {
+  --enemy-stage-width: 112px;
+  --enemy-stage-height: 138px;
+  --enemy-stage-bars: 120px;
+  --enemy-figure-width: var(--enemy-stage-width);
+  --enemy-figure-height: var(--enemy-stage-height);
+  --enemy-bar-width: var(--enemy-stage-bars);
+  --enemy-portrait-scale: 1;
+  --enemy-portrait-y: 0px;
+  --enemy-shadow-width: 80%;
+  --enemy-shadow-height: 10px;
+  --enemy-shadow-bottom: -4px;
+  --enemy-glow-inset: 8px;
+  --enemy-glow-top: 12px;
+  --enemy-glow-bottom: 14px;
+  z-index: 2;
 }
 
 .sprite--enemy::before {
@@ -12252,6 +12310,29 @@ button.waypoint:hover {
   height: 152px;
 }
 
+.sprite--enemy .sprite__figure {
+  width: var(--enemy-figure-width);
+  height: var(--enemy-figure-height);
+}
+
+.sprite--enemy .sprite__figure::after {
+  width: var(--enemy-shadow-width);
+  height: var(--enemy-shadow-height);
+  bottom: var(--enemy-shadow-bottom);
+}
+
+.sprite--enemy .sprite__figure--enemy::before {
+  left: var(--enemy-glow-inset);
+  right: var(--enemy-glow-inset);
+  top: var(--enemy-glow-top);
+  bottom: var(--enemy-glow-bottom);
+}
+
+.sprite--enemy .sprite__portrait--enemy {
+  transform: translateY(var(--enemy-portrait-y)) scale(var(--enemy-portrait-scale));
+  transform-origin: center bottom;
+}
+
 .sprite__bars {
   width: 120px;
   gap: 4px;
@@ -12260,6 +12341,95 @@ button.waypoint:hover {
 .sprite__figure--hero + .sprite__bars,
 .sprite__figure--merc + .sprite__bars {
   width: 128px;
+}
+
+.sprite--enemy .sprite__bars {
+  width: var(--enemy-bar-width);
+}
+
+.sprite--enemy .sprite__enemy-footer {
+  max-width: var(--enemy-bar-width);
+}
+
+.enemy-stage--crawler {
+  --enemy-figure-width: calc(var(--enemy-stage-width) + 18px);
+  --enemy-figure-height: calc(var(--enemy-stage-height) - 16px);
+  --enemy-bar-width: calc(var(--enemy-stage-bars) - 2px);
+  --enemy-portrait-scale: 1.18;
+  --enemy-portrait-y: 14px;
+  --enemy-shadow-width: 94%;
+  --enemy-shadow-height: 14px;
+  --enemy-shadow-bottom: -1px;
+  --enemy-glow-top: 28px;
+  --enemy-glow-bottom: 8px;
+  margin-bottom: -4px;
+  z-index: 4;
+}
+
+.enemy-stage--serpentine {
+  --enemy-figure-width: calc(var(--enemy-stage-width) + 14px);
+  --enemy-figure-height: calc(var(--enemy-stage-height) - 4px);
+  --enemy-bar-width: calc(var(--enemy-stage-bars) + 2px);
+  --enemy-portrait-scale: 1.12;
+  --enemy-portrait-y: 8px;
+  --enemy-shadow-width: 90%;
+  --enemy-shadow-height: 12px;
+  --enemy-shadow-bottom: -2px;
+  --enemy-glow-top: 18px;
+  --enemy-glow-bottom: 10px;
+  margin-bottom: -2px;
+  z-index: 3;
+}
+
+.enemy-stage--skirmisher {
+  --enemy-figure-width: calc(var(--enemy-stage-width) - 4px);
+  --enemy-figure-height: calc(var(--enemy-stage-height) - 6px);
+  --enemy-bar-width: calc(var(--enemy-stage-bars) - 6px);
+  --enemy-portrait-scale: 0.98;
+  --enemy-portrait-y: 6px;
+  margin-bottom: 2px;
+  z-index: 3;
+}
+
+.enemy-stage--ranged,
+.enemy-stage--caster {
+  --enemy-figure-width: calc(var(--enemy-stage-width) + 4px);
+  --enemy-figure-height: calc(var(--enemy-stage-height) + 8px);
+  --enemy-bar-width: calc(var(--enemy-stage-bars) + 2px);
+  --enemy-portrait-scale: 1.03;
+  --enemy-portrait-y: 4px;
+  --enemy-shadow-width: 74%;
+  --enemy-shadow-height: 9px;
+  margin-bottom: 10px;
+  z-index: 1;
+}
+
+.enemy-stage--spectral {
+  --enemy-figure-width: calc(var(--enemy-stage-width) + 6px);
+  --enemy-figure-height: calc(var(--enemy-stage-height) + 8px);
+  --enemy-bar-width: calc(var(--enemy-stage-bars) + 2px);
+  --enemy-portrait-scale: 1.05;
+  --enemy-portrait-y: 1px;
+  --enemy-shadow-width: 68%;
+  --enemy-shadow-height: 8px;
+  --enemy-shadow-bottom: -1px;
+  margin-bottom: 12px;
+  z-index: 1;
+}
+
+.enemy-stage--brute {
+  --enemy-figure-width: calc(var(--enemy-stage-width) + 12px);
+  --enemy-figure-height: calc(var(--enemy-stage-height) + 14px);
+  --enemy-bar-width: calc(var(--enemy-stage-bars) + 6px);
+  --enemy-portrait-scale: 1.08;
+  --enemy-portrait-y: 10px;
+  --enemy-shadow-width: 86%;
+  --enemy-shadow-height: 12px;
+  --enemy-shadow-bottom: -2px;
+  --enemy-glow-top: 10px;
+  --enemy-glow-bottom: 12px;
+  margin-bottom: -3px;
+  z-index: 4;
 }
 
 .sprite__hp-bar {
@@ -12536,6 +12706,18 @@ button.waypoint:hover {
   border-color: rgba(144, 175, 154, 0.3);
   background: rgba(15, 20, 16, 0.86);
   color: #d2e5d5;
+}
+
+.sprite--enemy.enemy-stage--crawler .sprite__intent,
+.sprite--enemy.enemy-stage--serpentine .sprite__intent {
+  top: -18px;
+}
+
+.sprite--enemy.enemy-stage--caster .sprite__intent,
+.sprite--enemy.enemy-stage--ranged .sprite__intent,
+.sprite--enemy.enemy-stage--spectral .sprite__intent,
+.sprite--enemy.enemy-stage--brute .sprite__intent {
+  top: -24px;
 }
 
 .sprite--marked .sprite__figure {
@@ -13104,8 +13286,13 @@ button.waypoint:hover {
   position: relative;
   z-index: 3;
   overflow: visible;
-  gap: 6px;
+  gap: 8px;
   padding: 2px 2px 2px;
+}
+
+.card-fan:hover .fan-card:not(:hover):not(.fan-card--disabled) {
+  opacity: 0.82;
+  filter: saturate(0.78) brightness(0.9);
 }
 
 .card-fan::after {
@@ -13163,6 +13350,7 @@ button.waypoint:hover {
 .fan-card__name {
   font-size: 0.7rem;
   letter-spacing: 0.03em;
+  line-height: 1.1;
 }
 
 .fan-card__desc {
@@ -13171,17 +13359,26 @@ button.waypoint:hover {
 
 .fan-card__intel {
   margin-top: auto;
-  padding: 4px 5px 5px;
+  padding: 0;
+  min-height: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
 }
 
 .fan-card__intel-scope {
+  display: none;
   font-size: 0.38rem;
 }
 
 .fan-card__intel-outcome {
-  margin-top: 2px;
-  font-size: 0.5rem;
+  margin-top: 0;
+  font-size: 0.46rem;
   line-height: 1.16;
+  color: rgba(242, 217, 187, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fan-card__footer {
@@ -13189,13 +13386,15 @@ button.waypoint:hover {
   align-items: center;
   justify-content: space-between;
   gap: 4px;
-  margin-top: 4px;
+  margin-top: 3px;
+  opacity: 0.78;
 }
 
 .fan-card__type {
   font-size: 0.44rem;
   border-radius: 999px;
   padding: 2px 5px;
+  opacity: 0.78;
 }
 
 .fan-card__state {
@@ -13215,6 +13414,29 @@ button.waypoint:hover {
 .fan-card:hover:not(.fan-card--disabled) {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
   transform: rotate(0deg) translateY(-20px) scale(1.08) !important;
+}
+
+.fan-card:hover:not(.fan-card--disabled) .fan-card__intel {
+  margin-top: 4px;
+  padding: 4px 5px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 7, 9, 0.44);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.fan-card:hover:not(.fan-card--disabled) .fan-card__intel-scope {
+  display: block;
+}
+
+.fan-card:hover:not(.fan-card--disabled) .fan-card__intel-outcome {
+  margin-top: 2px;
+  font-size: 0.5rem;
+  color: #f2d9bb;
+}
+
+.fan-card:hover:not(.fan-card--disabled) .fan-card__footer,
+.fan-card:hover:not(.fan-card--disabled) .fan-card__type {
+  opacity: 1;
 }
 
 .fan-card--playable {
@@ -13586,6 +13808,12 @@ button.waypoint:hover {
 
   .stage__enemies {
     max-width: 54%;
+  }
+
+  .sprite--enemy {
+    --enemy-stage-width: 102px;
+    --enemy-stage-height: 132px;
+    --enemy-stage-bars: 110px;
   }
 
   .sprite__figure {

@@ -915,7 +915,7 @@
   const UNIQUE_EXTRA_BONUS_POOL = [
     { heroDamageBonus: 2 }, { heroDamageBonus: 3 }, { heroGuardBonus: 2 }, { heroGuardBonus: 3 },
     { heroBurnBonus: 2 }, { heroBurnBonus: 3 }, { heroMaxLife: 6 }, { heroMaxLife: 10 },
-    { heroMaxEnergy: 2 }, { heroPotionHeal: 3 },
+    { heroMaxEnergy: 2 }, { heroHandSize: 1 }, { heroPotionHeal: 3 },
     { mercenaryAttack: 2 }, { mercenaryAttack: 3 }, { mercenaryMaxLife: 6 }, { mercenaryMaxLife: 10 },
   ];
 
@@ -951,6 +951,9 @@
     for (let i = 0; i < extraLineCount; i++) {
       const pick = bonusPool[Math.floor(randomFn() * bonusPool.length)];
       Object.entries(pick).forEach(([key, value]: [string, number]) => { scaled[key] = (scaled[key] || 0) + value; });
+    }
+    if ((scaled as ItemBonusSet).heroHandSize) {
+      (scaled as ItemBonusSet).heroHandSize = Math.min(1, toNumber((scaled as ItemBonusSet).heroHandSize, 0));
     }
     return scaled;
   }

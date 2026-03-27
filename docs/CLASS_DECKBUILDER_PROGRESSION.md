@@ -4,7 +4,7 @@ _Snapshot: 2026-03-06_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
-- Use `GAME_GUIDE.md` for the player-facing overview.
+- Use `PROJECT_MASTER.md` plus `COMBAT_FOUNDATION.md` for the current-build overview.
 - Use this document for the class, skill, deck, and upgrade-path combat model.
 
 ## Core Loop

@@ -68,9 +68,8 @@
       if (!equipment || !runeword || equipment.insertedRunes.length >= runeword.requiredRunes.length) {
         return;
       }
-      const codexTargets = features.runewordCodex
-        ? runeword.requiredRunes.slice(equipment.insertedRunes.length, equipment.insertedRunes.length + 2)
-        : [runeword.requiredRunes[equipment.insertedRunes.length]];
+      const targetCount = features.runewordCodex ? 2 : 1 + Number(run.actNumber >= 3);
+      const codexTargets = runeword.requiredRunes.slice(equipment.insertedRunes.length, equipment.insertedRunes.length + targetCount);
       codexTargets.forEach((runeId: string) => uniquePush(targetRuneIds, runeId));
     });
     if (features.treasuryExchange) {
@@ -184,7 +183,7 @@
       (run.actNumber >= 5 ? 3 : 1 + Number(run.actNumber >= 3)) +
       Number(features.advancedVendorStock) + sharedOfferBonus;
     const runeOfferCount =
-      (run.actNumber >= 5 ? 4 : 2 + Number(run.actNumber >= 3)) +
+      (run.actNumber >= 5 ? 5 : 3 + Number(run.actNumber >= 3)) +
       Number(features.advancedVendorStock) + Number(features.runewordCodex) + sharedOfferBonus;
     const selectedWeapons = fillDefinitionSelection(
       pickVendorEquipmentOffers(

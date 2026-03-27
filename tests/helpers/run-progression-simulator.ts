@@ -278,6 +278,11 @@ interface CombatCandidateAction {
 
 interface PolicyProgressSummary {
   actionCounts: Record<string, number>;
+  rewardKindCounts: Record<string, number>;
+  rewardEffectCounts: Record<string, number>;
+  zoneKindCounts: Record<string, number>;
+  zoneRoleCounts: Record<string, number>;
+  nodeTypeCounts: Record<string, number>;
 }
 
 interface ProbeEncounterSummary {
@@ -319,6 +324,7 @@ interface SafeZoneCheckpointSummary {
   hero: {
     maxLife: number;
     maxEnergy: number;
+    handSize: number;
     potionHeal: number;
     damageBonus: number;
     guardBonus: number;
@@ -339,6 +345,8 @@ interface SafeZoneCheckpointSummary {
     family: string;
     rarity: string;
   } | null;
+  activeRunewords: string[];
+  runewordsForged: number;
   armor: {
     resistances: Array<{ type: DamageType; amount: number }>;
     immunities: DamageType[];
@@ -354,6 +362,67 @@ interface SimulationFailureSummary {
   encounterName: string;
 }
 
+interface FinalBuildSummary {
+  level: number;
+  deckSize: number;
+  topCards: string[];
+  deckProficiencies: Array<{ proficiency: string; count: number }>;
+  hero: {
+    maxLife: number;
+    maxEnergy: number;
+    handSize: number;
+    potionHeal: number;
+    damageBonus: number;
+    guardBonus: number;
+    burnBonus: number;
+  };
+  mercenary: {
+    name: string;
+    maxLife: number;
+    attack: number;
+  };
+  weapon: {
+    itemId: string;
+    name: string;
+    family: string;
+    rarity: string;
+    preferredForClass: boolean;
+    damageTypes: Array<{ type: WeaponDamageType; amount: number }>;
+    effects: Array<{ kind: WeaponEffectKind; amount: number }>;
+  } | null;
+  armor: {
+    itemId: string;
+    name: string;
+    rarity: string;
+    resistances: Array<{ type: DamageType; amount: number }>;
+    immunities: DamageType[];
+  } | null;
+  activeRunewords: string[];
+}
+
+interface WorldProgressSummary {
+  resolvedNodeCount: number;
+  worldFlagCount: number;
+  questOutcomes: number;
+  questFollowUpsResolved: number;
+  questChainsResolved: number;
+  shrineOutcomes: number;
+  eventOutcomes: number;
+  opportunityOutcomes: number;
+}
+
+interface PolicyRunSummary {
+  runSummary: RunState["summary"];
+  zoneKindCounts: Record<string, number>;
+  zoneRoleCounts: Record<string, number>;
+  nodeTypeCounts: Record<string, number>;
+  rewardKindCounts: Record<string, number>;
+  choiceKindCounts: Record<string, number>;
+  rewardEffectCounts: Record<string, number>;
+  world: WorldProgressSummary;
+  finalBuild: FinalBuildSummary;
+}
+
 interface PolicySimulationReport {
   policyId: string;
   policyLabel: string;
@@ -364,6 +433,7 @@ interface PolicySimulationReport {
   finalLevel: number;
   checkpoints: SafeZoneCheckpointSummary[];
   failure: SimulationFailureSummary | null;
+  summary: PolicyRunSummary;
 }
 
 interface ClassProgressionReport {
@@ -394,6 +464,14 @@ function clamp(value: number, min: number, max: number) {
 function roundTo(value: number, digits = 2) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
+}
+
+function incrementCount(target: Record<string, number>, key: string | null | undefined, amount = 1) {
+  const normalizedKey = String(key || "").trim();
+  if (!normalizedKey) {
+    return;
+  }
+  target[normalizedKey] = (target[normalizedKey] || 0) + amount;
 }
 
 function hashString(value: string) {
@@ -448,6 +526,10 @@ function getWeaponEquipment(run: RunState) {
   return run.loadout?.weapon || null;
 }
 
+function getArmorEquipment(run: RunState) {
+  return run.loadout?.armor || null;
+}
+
 function getWeaponFamily(harness: ReturnType<typeof createAppHarness>, run: RunState) {
   const weaponEquipment = getWeaponEquipment(run);
   return harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(weaponEquipment?.itemId || "", harness.content) || "";
@@ -476,6 +558,48 @@ function getLoadoutTierScore(harness: ReturnType<typeof createAppHarness>, run: 
       ? 26
       : 10;
   return weaponTier * preferredWeaponTierWeight + armorTier * 14 + helmTier * 6 + shieldTier * 6;
+}
+
+function getEquipmentRarityScore(rarity: string | undefined) {
+  switch (String(rarity || "").toLowerCase()) {
+    case "brown":
+      return 4;
+    case "yellow":
+      return 3;
+    case "blue":
+      return 2;
+    default:
+      return 1;
+  }
+}
+
+function getCarriedEntryScore(harness: ReturnType<typeof createAppHarness>, entry: InventoryEntry) {
+  if (entry.kind === "equipment") {
+    const item = harness.browserWindow.ROUGE_ITEM_CATALOG.getItemDefinition(harness.content, entry.equipment.itemId);
+    const tier = Number(item?.progressionTier || 0);
+    return tier * 10 + getEquipmentRarityScore(entry.equipment.rarity);
+  }
+  const rune = harness.browserWindow.ROUGE_ITEM_CATALOG.getRuneDefinition(harness.content, entry.runeId);
+  const tier = Number(rune?.progressionTier || 0);
+  return 100 + tier * 10;
+}
+
+function discardLowestValueCarriedEntry(harness: ReturnType<typeof createAppHarness>, run: RunState) {
+  const carried = Array.isArray(run.inventory?.carried) ? run.inventory.carried : [];
+  if (carried.length === 0) {
+    return false;
+  }
+  let lowestIndex = 0;
+  let lowestScore = getCarriedEntryScore(harness, carried[0]);
+  for (let index = 1; index < carried.length; index += 1) {
+    const score = getCarriedEntryScore(harness, carried[index]);
+    if (score < lowestScore) {
+      lowestScore = score;
+      lowestIndex = index;
+    }
+  }
+  carried.splice(lowestIndex, 1);
+  return true;
 }
 
 function getMatchingWeaponProficienciesForRun(
@@ -618,6 +742,7 @@ function evaluateRunScore(
     scoringRun.level * 6 +
     overrides.heroState.maxLife * policy.heroLifeWeight +
     overrides.heroState.maxEnergy * policy.heroEnergyWeight +
+    Math.max(0, Number(overrides.heroState.handSize || 5) - 5) * 8 +
     Number(overrides.heroState.damageBonus || 0) * policy.heroDamageWeight +
     Number(overrides.heroState.guardBonus || 0) * policy.heroGuardWeight +
     Number(overrides.heroState.burnBonus || 0) * policy.heroBurnWeight +
@@ -1298,12 +1423,14 @@ function buildCheckpointSummary(
   const weaponItem = weaponEquipment ? harness.browserWindow.ROUGE_ITEM_CATALOG.getItemDefinition(harness.content, weaponEquipment.itemId) : null;
   const deckStats = buildDeckStats(harness, scoringRun, policy);
   const progressionSummary = harness.runFactory.getProgressionSummary(scoringRun, harness.content);
+  const activeRunewords = harness.itemSystem.getActiveRunewords(scoringRun, harness.content) || [];
   const partyPower = scorePartyPower({
     content: harness.content,
     deckCardIds: scoringRun.deck,
     heroState: {
       maxLife: overrides.heroState.maxLife,
       maxEnergy: overrides.heroState.maxEnergy,
+      handSize: overrides.heroState.handSize,
       potionHeal: overrides.heroState.potionHeal,
       damageBonus: Number(overrides.heroState.damageBonus || 0),
       guardBonus: Number(overrides.heroState.guardBonus || 0),
@@ -1361,6 +1488,7 @@ function buildCheckpointSummary(
     hero: {
       maxLife: overrides.heroState.maxLife,
       maxEnergy: overrides.heroState.maxEnergy,
+      handSize: overrides.heroState.handSize,
       potionHeal: overrides.heroState.potionHeal,
       damageBonus: Number(overrides.heroState.damageBonus || 0),
       guardBonus: Number(overrides.heroState.guardBonus || 0),
@@ -1383,6 +1511,8 @@ function buildCheckpointSummary(
           rarity: weaponEquipment.rarity || "white",
         }
       : null,
+    activeRunewords,
+    runewordsForged: Number(scoringRun.summary?.runewordsForged || 0),
     armor: {
       resistances: (armorProfile?.resistances || []).map((entry) => ({
         type: entry.type,
@@ -1392,6 +1522,115 @@ function buildCheckpointSummary(
     },
     choiceCounts: { ...progress.actionCounts },
     probes,
+  };
+}
+
+function buildFinalBuildSummary(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  profile: ProfileState,
+  policy: BuildPolicyDefinition
+): FinalBuildSummary {
+  const scoringRun = createScoringRun(harness, run, true);
+  const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, profile);
+  const weaponEquipment = getWeaponEquipment(scoringRun);
+  const armorEquipment = getArmorEquipment(scoringRun);
+  const weaponItem = weaponEquipment ? harness.browserWindow.ROUGE_ITEM_CATALOG.getItemDefinition(harness.content, weaponEquipment.itemId) : null;
+  const armorItem = armorEquipment ? harness.browserWindow.ROUGE_ITEM_CATALOG.getItemDefinition(harness.content, armorEquipment.itemId) : null;
+  const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(weaponEquipment, harness.content) || null;
+  const armorProfile = harness.itemSystem.buildCombatMitigationProfile(scoringRun, harness.content) || null;
+  const activeRunewords = harness.itemSystem.getActiveRunewords(scoringRun, harness.content) || [];
+  const deckStats = buildDeckStats(harness, scoringRun, policy);
+  const preferredFamilies = harness.classRegistry.getPreferredWeaponFamilies(scoringRun.classId) || [];
+
+  return {
+    level: scoringRun.level,
+    deckSize: scoringRun.deck.length,
+    topCards: deckStats.topCards,
+    deckProficiencies: Object.entries(deckStats.proficiencyCounts)
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+      .slice(0, 5)
+      .map(([proficiency, count]) => ({ proficiency, count })),
+    hero: {
+      maxLife: overrides.heroState.maxLife,
+      maxEnergy: overrides.heroState.maxEnergy,
+      handSize: overrides.heroState.handSize,
+      potionHeal: overrides.heroState.potionHeal,
+      damageBonus: Number(overrides.heroState.damageBonus || 0),
+      guardBonus: Number(overrides.heroState.guardBonus || 0),
+      burnBonus: Number(overrides.heroState.burnBonus || 0),
+    },
+    mercenary: {
+      name: scoringRun.mercenary.name,
+      maxLife: overrides.mercenaryState.maxLife,
+      attack: overrides.mercenaryState.attack,
+    },
+    weapon: weaponEquipment
+      ? {
+          itemId: weaponEquipment.itemId,
+          name: weaponItem?.name || weaponEquipment.itemId,
+          family: weaponItem?.family || "",
+          rarity: weaponEquipment.rarity || "white",
+          preferredForClass: preferredFamilies.includes(weaponItem?.family || ""),
+          damageTypes: (weaponProfile?.typedDamage || []).map((entry) => ({
+            type: entry.type,
+            amount: Number(entry.amount || 0),
+          })),
+          effects: (weaponProfile?.effects || []).map((entry) => ({
+            kind: entry.kind,
+            amount: Number(entry.amount || 0),
+          })),
+        }
+      : null,
+    armor: armorEquipment
+      ? {
+          itemId: armorEquipment.itemId,
+          name: armorItem?.name || armorEquipment.itemId,
+          rarity: armorEquipment.rarity || "white",
+          resistances: (armorProfile?.resistances || []).map((entry) => ({
+            type: entry.type,
+            amount: Number(entry.amount || 0),
+          })),
+          immunities: [...(armorProfile?.immunities || [])],
+        }
+      : null,
+    activeRunewords,
+  };
+}
+
+function buildWorldProgressSummary(run: RunState): WorldProgressSummary {
+  const questOutcomes = Object.values(run.world?.questOutcomes || {});
+  return {
+    resolvedNodeCount: Array.isArray(run.world?.resolvedNodeIds) ? run.world.resolvedNodeIds.length : 0,
+    worldFlagCount: Array.isArray(run.world?.worldFlags) ? run.world.worldFlags.length : 0,
+    questOutcomes: questOutcomes.length,
+    questFollowUpsResolved: questOutcomes.filter((entry) => Boolean(entry.followUpNodeId)).length,
+    questChainsResolved: questOutcomes.filter((entry) => entry.status === "chain_resolved").length,
+    shrineOutcomes: Object.keys(run.world?.shrineOutcomes || {}).length,
+    eventOutcomes: Object.keys(run.world?.eventOutcomes || {}).length,
+    opportunityOutcomes: Object.keys(run.world?.opportunityOutcomes || {}).length,
+  };
+}
+
+function buildPolicyRunSummary(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  profile: ProfileState,
+  policy: BuildPolicyDefinition,
+  progress: PolicyProgressSummary
+): PolicyRunSummary {
+  return {
+    runSummary: {
+      ...run.summary,
+    },
+    zoneKindCounts: { ...progress.zoneKindCounts },
+    zoneRoleCounts: { ...progress.zoneRoleCounts },
+    nodeTypeCounts: { ...progress.nodeTypeCounts },
+    rewardKindCounts: { ...progress.rewardKindCounts },
+    choiceKindCounts: { ...progress.actionCounts },
+    rewardEffectCounts: { ...progress.rewardEffectCounts },
+    world: buildWorldProgressSummary(run),
+    finalBuild: buildFinalBuildSummary(harness, run, profile, policy),
   };
 }
 
@@ -1430,12 +1669,26 @@ function chooseBestRewardChoice(
   return bestChoice;
 }
 
-function countChoice(progress: PolicyProgressSummary, choice: RewardChoice | null) {
+function countSelectedZone(progress: PolicyProgressSummary, zone: ZoneState | null) {
+  if (!zone) {
+    return;
+  }
+  incrementCount(progress.zoneKindCounts, zone.kind || "unknown");
+  incrementCount(progress.zoneRoleCounts, zone.zoneRole || "unknown");
+  incrementCount(progress.nodeTypeCounts, zone.nodeType || zone.kind || "unknown");
+}
+
+function countChoice(progress: PolicyProgressSummary, reward: RunReward | null, choice: RewardChoice | null) {
+  if (reward) {
+    incrementCount(progress.rewardKindCounts, reward.kind || "unknown");
+  }
   if (!choice) {
     return;
   }
-  const key = String(choice.kind || "unknown");
-  progress.actionCounts[key] = (progress.actionCounts[key] || 0) + 1;
+  incrementCount(progress.actionCounts, choice.kind || "unknown");
+  (Array.isArray(choice.effects) ? choice.effects : []).forEach((effect) => {
+    incrementCount(progress.rewardEffectCounts, effect.kind || "unknown");
+  });
 }
 
 function getZoneUnlockValue(run: RunState, zone: ZoneState) {
@@ -1550,7 +1803,14 @@ function simulatePolicyRun(
   const state = createSimulationState(harness, classId, seed);
   const PHASES = harness.appEngine.PHASES;
   const checkpoints: SafeZoneCheckpointSummary[] = [];
-  const progress: PolicyProgressSummary = { actionCounts: {} };
+  const progress: PolicyProgressSummary = {
+    actionCounts: {},
+    rewardKindCounts: {},
+    rewardEffectCounts: {},
+    zoneKindCounts: {},
+    zoneRoleCounts: {},
+    nodeTypeCounts: {},
+  };
   let failure: SimulationFailureSummary | null = null;
   let lastEncounterContext: SimulationFailureSummary | null = null;
 
@@ -1575,6 +1835,7 @@ function simulatePolicyRun(
           finalLevel: state.run.level,
           checkpoints,
           failure: null,
+          summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress),
         };
       }
 
@@ -1610,6 +1871,7 @@ function simulatePolicyRun(
         const selectResult = harness.appEngine.selectZone(state, nextZone.id);
         if (selectResult.ok) {
           selectedZone = nextZone;
+          countSelectedZone(progress, selectedZone);
           break;
         }
         lastSelectMessage = selectResult.message || `Could not select zone ${nextZone.id}.`;
@@ -1658,6 +1920,7 @@ function simulatePolicyRun(
           finalLevel: state.run?.level || 1,
           checkpoints,
           failure,
+          summary: buildPolicyRunSummary(harness, state.run as RunState, state.profile, policy, progress),
         };
       }
       continue;
@@ -1668,11 +1931,37 @@ function simulatePolicyRun(
       if (!reward) {
         throw new Error("Reward phase is active without a pending reward.");
       }
-      const choice = chooseBestRewardChoice(harness, state.run, state.profile, reward, policy);
-      countChoice(progress, choice);
-      const claimResult = harness.appEngine.claimRewardAndAdvance(state, choice?.id || "");
-      if (!claimResult.ok) {
-        throw new Error(claimResult.message || "Could not claim reward.");
+      const primaryChoice = chooseBestRewardChoice(harness, state.run, state.profile, reward, policy);
+      const orderedChoices = [
+        primaryChoice,
+        ...((Array.isArray(reward.choices) ? reward.choices : []).filter((choice) => choice.id !== primaryChoice?.id)),
+      ].filter(Boolean) as RewardChoice[];
+      let claimed = false;
+      let lastClaimMessage = "";
+      for (const choice of orderedChoices) {
+        let attempts = 0;
+        while (attempts <= ((state.run.inventory?.carried?.length || 0) + 1)) {
+          const claimResult = harness.appEngine.claimRewardAndAdvance(state, choice?.id || "");
+          if (claimResult.ok) {
+            countChoice(progress, reward, choice);
+            claimed = true;
+            break;
+          }
+          lastClaimMessage = claimResult.message || "Could not claim reward.";
+          if (!lastClaimMessage.includes("Not enough inventory space")) {
+            break;
+          }
+          if (!discardLowestValueCarriedEntry(harness, state.run)) {
+            break;
+          }
+          attempts += 1;
+        }
+        if (claimed) {
+          break;
+        }
+      }
+      if (!claimed) {
+        throw new Error(lastClaimMessage || "Could not claim reward.");
       }
       continue;
     }
@@ -1703,6 +1992,7 @@ function simulatePolicyRun(
         finalLevel: state.run.level,
         checkpoints,
         failure: null,
+        summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress),
       };
     }
 

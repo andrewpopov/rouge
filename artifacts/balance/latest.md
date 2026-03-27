@@ -4,12 +4,28 @@ Generated: March 27, 2026.
 
 ## Commands
 
-- `node ./scripts/run-progression-class-sweep.js --class amazon,assassin,druid,sorceress --policy aggressive --through-act 5 --probe-runs 0 --seeds 4`
-- `node ./scripts/run-progression-class-sweep.js --policy balanced,control,bulwark --through-act 2 --probe-runs 0 --seeds 4`
-- direct follow-up probes:
-  - `node ./scripts/run-progression-sim.js --class paladin --policy aggressive --through-act 5 --seed-offset 1 --json`
-  - `node ./scripts/run-progression-sim.js --class paladin --policy aggressive --through-act 5 --seed-offset 2 --json`
-  - same two Paladin seeds rerun after the late-guard card pass
+- optimized clear-rate sweep:
+  - `npm run sim:progression-class-sweep -- --policy aggressive --through-act 5 --probe-runs 0 --seeds 4`
+- weak-build early-pressure sweep:
+  - `npm run sim:progression-class-sweep -- --policy balanced,control,bulwark --through-act 2 --probe-runs 0 --seeds 4`
+- per-run deterministic checkpoint view:
+  - `npm run sim:progression -- --class barbarian,sorceress --policy aggressive --through-act 5 --probe-runs 0`
+- power-curve report:
+  - `npm run sim:power-curve -- --class barbarian --policy aggressive --through-act 5`
+- encounter-set balance report:
+  - `npm run sim:balance -- --class barbarian,sorceress --scenario mainline_conservative,mainline_rewarded --set act5_endgame --runs 8`
+- skill-value audit:
+  - `npm run sim:skill-audit`
+- focused runtime regression lane:
+  - `node --test generated/tests/item-system.test.js generated/tests/app-engine-account-economy.test.js generated/tests/app-engine-world-nodes.test.js generated/tests/run-progression-simulator.test.js generated/tests/app-engine-progression.test.js`
+
+## How To Read It
+
+- `sim:progression-class-sweep` is the main pass or fail gate for class-policy balance.
+- `sim:progression` is the best human-readable checkpoint report. It now prints hand size plus active runewords at each safe zone.
+- `sim:power-curve` is the band check. Use it when a class feels too strong or too weak at a specific act.
+- `sim:balance` is the fixed encounter-set check for boss or elite pacing once campaign balance already looks sane.
+- `sim:skill-audit` is the class-card normalization tool. Use it before hand-tuning skill numbers by feel.
 
 ## Aggressive Optimized Band
 
@@ -66,3 +82,51 @@ Through Act II, 4 seeds each:
   - Assassin `Balanced` seed `2`: failed at Andariel
   - Sorceress `Bulwark` seed `2`: failed at Andariel
 - Conclusion: this pass preserves the optimized endgame band and sharpens the Act I boss check, but it does not fully solve the broader “safe weak openings” problem on its own.
+
+## March 27 Rune And Unique Follow-Up
+
+- Runes and runewords are now materially easier to use in a live run:
+  - bosses always stamp at least one rune into the reward pile
+  - minibosses can do the same when the run has an active unfinished runeword project
+  - rune loot weights now bias toward the next missing recipe piece
+  - vendor rune stock is deeper and more willing to surface missing recipe runes
+  - quest rewards can equip a compatible base, add sockets, and finish a recipe through the normal reward seam
+- Unique-only bonus lines now include `+1` hand size. That bonus is live in combat, visible in UI summaries, and included in simulator scoring.
+- Focused progression spot-check after the rune follow-up:
+  - `npm run sim:progression -- --class barbarian,sorceress --policy aggressive --through-act 3 --probe-runs 0`
+  - Barbarian reached Act II with `Strength` active, then Act III with `Strength` and `Stealth`
+  - Sorceress reached Act II with `Leaf` active, then Act III with `Leaf` and `Stealth`
+- No fresh full 4-seed class sweep has been rerun after the rune-economy and hand-size-affix follow-up. The last broad optimized and weak-line sweep results above are still the roster baseline.
+
+## March 27 Targeted Late-Game Follow-Up
+
+- Late-game class and weapon tuning was pushed specifically at the remaining `Act IV Diablo` failures:
+  - Amazon bow-side boss cards were already holding after the earlier pass.
+  - Barbarian got more guard on `Concentrate`, `Berserk`, and `War Cry`.
+  - Paladin got more guard on `Zeal`, `Holy Shield`, and `Fist of the Heavens`.
+  - Necromancer got more single-target and guard on `Decrepify`, `Bone Spirit`, and `Revive`.
+  - Mace progression was raised at the top end through `War Hammer` and `Maul`.
+  - `Strength` now grants a small guard bonus.
+  - `White` was corrected away from an irrelevant burn bonus and now grants real wand-build combat value.
+  - `Bone Wand` and `Lich Wand` were pushed up so the Necromancer weapon ladder no longer plateaus at Act IV.
+- Exact previously failing deterministic seeds that now clear:
+  - `Paladin / Aggressive / seed 1`: `run_complete`
+  - `Necromancer / Aggressive / seed 0`: `run_complete`
+  - `Barbarian / Aggressive / seed 1`: `run_complete`
+- With those flips, the previously weak late-game roster outliers no longer reproduce on the same deterministic checkpoints.
+
+## March 27 Early-Game Follow-Up
+
+- Starter sustain was trimmed again on the sturdier early classes:
+  - Amazon `Critical Strike`
+  - Barbarian `Find Potion`, `Natural Resistance`
+  - Druid `Lycanthropy`, `Oak Sage`
+  - Paladin `Prayer`, `Cleansing`
+- Result on a fresh deterministic sturdy-class weak-opening sweep:
+  - `npm run sim:progression-class-sweep -- --class amazon,barbarian,druid,paladin --policy balanced,control,bulwark --through-act 2 --probe-runs 0 --seeds 2`
+  - Outcome: `24/24` runs still reached `Act II`
+- Current interpretation:
+  - late optimized balance improved materially
+  - weak Act I failures still mostly live on fragile classes like Assassin and Sorceress
+  - sturdy weak builds are still too safe early
+  - the next early-game pass should target encounter / reward / progression structure rather than keep shaving individual starter cards

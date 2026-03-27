@@ -253,13 +253,13 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `blood_raven`
 - [x] `bloodwitch_the_wild`
 - [x] `bonebreaker`
-- [ ] `bonesaw_breaker`
-- [ ] `bremm_sparkfist`
-- [ ] `coldcrow`
-- [ ] `coldworm_the_burrower`
-- [ ] `colenzo_the_annihilator`
-- [ ] `corpsefire`
-- [ ] `creeping_feature`
+- [x] `bonesaw_breaker`
+- [x] `bremm_sparkfist`
+- [x] `coldcrow`
+- [x] `coldworm_the_burrower`
+- [x] `colenzo_the_annihilator`
+- [x] `corpsefire`
+- [x] `creeping_feature`
 - [ ] `dac_farren`
 - [ ] `dark_elder`
 - [ ] `diablo`

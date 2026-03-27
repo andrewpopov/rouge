@@ -249,6 +249,7 @@ interface RewardCardPools {
 interface ItemBonusSet {
   heroMaxLife?: number;
   heroMaxEnergy?: number;
+  heroHandSize?: number;
   heroPotionHeal?: number;
   heroDamageBonus?: number;
   heroGuardBonus?: number;

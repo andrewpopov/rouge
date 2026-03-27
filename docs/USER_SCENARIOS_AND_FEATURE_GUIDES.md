@@ -2,7 +2,7 @@
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
-- Use `GAME_GUIDE.md` for the player-facing current-build explanation.
+- Use `PROJECT_MASTER.md` plus `COMBAT_FOUNDATION.md` for the current-build explanation.
 - This document supports player scenarios and content workflows.
 
 ## 1) Primary User Scenarios

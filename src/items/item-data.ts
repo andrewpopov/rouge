@@ -202,9 +202,9 @@
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
-        heroDamageBonus: 7,
-        heroGuardBonus: 2,
-        heroMaxLife: 6,
+        heroDamageBonus: 8,
+        heroGuardBonus: 3,
+        heroMaxLife: 8,
       },
     },
     item_maul: {
@@ -212,11 +212,11 @@
       slot: "weapon",
       family: "Maces",
       actRequirement: 5,
-      progressionTier: 6,
+      progressionTier: 7,
       bonuses: {
-        heroDamageBonus: 8,
-        heroGuardBonus: 2,
-        heroMaxLife: 8,
+        heroDamageBonus: 10,
+        heroGuardBonus: 3,
+        heroMaxLife: 10,
       },
     },
     item_partizan: {
@@ -271,12 +271,12 @@
       slot: "weapon",
       family: "Wands",
       actRequirement: 4,
-      progressionTier: 5,
+      progressionTier: 6,
       bonuses: {
         heroMaxEnergy: 3,
-        heroDamageBonus: 1,
-        heroGuardBonus: 2,
-        mercenaryAttack: 3,
+        heroDamageBonus: 2,
+        heroGuardBonus: 3,
+        mercenaryAttack: 4,
       },
     },
     item_lich_wand: {
@@ -284,12 +284,12 @@
       slot: "weapon",
       family: "Wands",
       actRequirement: 5,
-      progressionTier: 7,
+      progressionTier: 8,
       bonuses: {
         heroMaxEnergy: 4,
-        heroDamageBonus: 2,
-        heroGuardBonus: 3,
-        mercenaryAttack: 4,
+        heroDamageBonus: 3,
+        heroGuardBonus: 4,
+        mercenaryAttack: 5,
       },
     },
     item_battle_staff: {

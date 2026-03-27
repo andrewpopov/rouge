@@ -443,6 +443,7 @@
     run.hero.currentLife = Math.max(0, combatState.hero.life);
     run.hero.maxLife = Math.max(1, combatState.hero.maxLife - toBonusValue(bonuses.heroMaxLife));
     run.hero.maxEnergy = Math.max(1, combatState.hero.maxEnergy - toBonusValue(bonuses.heroMaxEnergy));
+    run.hero.handSize = Math.max(1, combatState.hero.handSize - toBonusValue(bonuses.heroHandSize));
     run.hero.potionHeal = Math.max(1, combatState.hero.potionHeal - toBonusValue(bonuses.heroPotionHeal));
     run.mercenary.currentLife = Math.max(0, combatState.mercenary.life);
     run.mercenary.maxLife = Math.max(1, combatState.mercenary.maxLife - toBonusValue(bonuses.mercenaryMaxLife));
@@ -454,6 +455,7 @@
     const bonuses = getCombatBonuses(run, content, profile);
     const heroMaxLife = run.hero.maxLife + toBonusValue(bonuses.heroMaxLife);
     const heroMaxEnergy = run.hero.maxEnergy + toBonusValue(bonuses.heroMaxEnergy);
+    const heroHandSize = run.hero.handSize + toBonusValue(bonuses.heroHandSize);
     const heroPotionHeal = run.hero.potionHeal + toBonusValue(bonuses.heroPotionHeal);
     const mercenaryMaxLife = run.mercenary.maxLife + toBonusValue(bonuses.mercenaryMaxLife);
     const mercenaryAttack = run.mercenary.attack + toBonusValue(bonuses.mercenaryAttack);
@@ -463,6 +465,7 @@
         ...run.hero,
         maxLife: heroMaxLife,
         maxEnergy: heroMaxEnergy,
+        handSize: heroHandSize,
         potionHeal: heroPotionHeal,
         life: clamp(run.hero.currentLife, 0, heroMaxLife),
         damageBonus: toBonusValue(bonuses.heroDamageBonus),

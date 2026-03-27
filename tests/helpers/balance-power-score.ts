@@ -112,6 +112,7 @@ export interface PartyPowerScoreInput {
   heroState: {
     maxLife: number;
     maxEnergy: number;
+    handSize?: number;
     potionHeal: number;
     damageBonus?: number;
     guardBonus?: number;
@@ -352,6 +353,7 @@ export function scorePartyPower(input: PartyPowerScoreInput): PartyPowerScore {
 
   const heroMaxLife = Number(input.heroState.maxLife || 0);
   const heroMaxEnergy = Number(input.heroState.maxEnergy || 0);
+  const heroHandSizeBonus = Math.max(0, Number(input.heroState.handSize || 5) - 5);
   const heroPotionHeal = Number(input.heroState.potionHeal || 0);
   const heroDamageBonus = Number(input.heroState.damageBonus || 0);
   const heroGuardBonus = Number(input.heroState.guardBonus || 0);
@@ -366,7 +368,7 @@ export function scorePartyPower(input: PartyPowerScoreInput): PartyPowerScore {
   const offense = heroDamageBonus * 10 + heroBurnBonus * 4 + mercenaryAttack * 0.9;
   const defense = heroMaxLife * 1.1 + heroGuardBonus * 6 + mercenaryMaxLife * 0.4;
   const sustain = heroPotionHeal * 3.2 + potions * 3.5;
-  const utility = heroMaxEnergy * 3 + (preferredFamilyMatch ? 8 : 0) + deckScore.matchingProficiencyCount * 0.75;
+  const utility = heroMaxEnergy * 3 + heroHandSizeBonus * 7 + (preferredFamilyMatch ? 8 : 0) + deckScore.matchingProficiencyCount * 0.75;
   const equipment = weaponScore + armorScore;
   const progression =
     level * 5 +

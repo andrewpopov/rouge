@@ -605,6 +605,7 @@
     const isBoss = enemy.role === "boss" || enemy.templateId.endsWith("_boss");
     const isElite = !isBoss && enemy.templateId.includes("_elite");
     const enemyTierClass = isBoss ? "sprite--boss" : isElite ? "sprite--elite" : "";
+    const enemyStageClass = getEnemyStageProfile(enemy);
     const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
     const enemyIcon = assets ? assets.getEnemyIcon(enemy.templateId || enemy.id) : "";
     const intentSvg = assets ? svgIcon(assets.getIntentIcon(intentDesc), "intent-icon", intentDesc) : "";
@@ -643,7 +644,7 @@
       .filter(Boolean)
       .join("");
     return `
-      <button class="sprite sprite--enemy ${enemyTierClass} ${isSelected ? "sprite--targeted" : ""} ${isMarked ? "sprite--marked" : ""} ${isDead ? "sprite--dead" : ""}"
+      <button class="sprite sprite--enemy ${enemyTierClass} ${enemyStageClass} ${isSelected ? "sprite--targeted" : ""} ${isMarked ? "sprite--marked" : ""} ${isDead ? "sprite--dead" : ""}"
               data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}" data-enemy-name="${escapeHtml(enemy.name)}"
               ${isDead || hasOutcome ? "disabled" : ""}>
         ${!isDead && !hasOutcome ? `<div class="sprite__intent ${intentClasses}"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span>${intentPresentation.targetLabel ? `<span class="sprite__intent-target">${escapeHtml(intentPresentation.targetLabel)}</span>` : ""}</div>` : ""}
@@ -661,6 +662,61 @@
         </div>
       </button>
     `;
+  }
+
+  function getEnemyStageProfile(enemy: CombatEnemyState): string {
+    const haystack = [
+      enemy.family || "",
+      enemy.templateId || "",
+      enemy.name || "",
+      enemy.role || "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const matches = (patterns: readonly string[]): boolean => patterns.some((pattern) => haystack.includes(pattern));
+
+    if (matches(["quill_rat", "spike_fiend", "scarab", "sand_maggot", "rock worm", "devourer", "pain_worm", "beetle", "maggot"])) {
+      return "enemy-stage--crawler";
+    }
+
+    if (matches(["claw_viper", "pit viper", "tomb_viper", "serpent", "salamander", "viper"])) {
+      return "enemy-stage--serpentine";
+    }
+
+    if (matches(["wraith", "ghost", "specter", "apparition", "willowisp", "gloam", "burning soul", "black soul"])) {
+      return "enemy-stage--spectral";
+    }
+
+    if (
+      (enemy.role || "").toLowerCase() === "brute" ||
+      matches(["thorned_hulk", "balrog", "frozen_horror", "grave_brute", "corrupted_knight", "wendigo", "yeti", "mauler", "hulk", "brute"])
+    ) {
+      return "enemy-stage--brute";
+    }
+
+    if (
+      (enemy.role || "").toLowerCase() === "support" ||
+      matches(["fallen_shaman", "fetish_shaman", "greater_mummy", "oblivion_knight", "overseer", "vampire", "succubus"])
+    ) {
+      return "enemy-stage--caster";
+    }
+
+    if (
+      (enemy.role || "").toLowerCase() === "ranged" ||
+      matches(["archer", "slinger", "rogue_archer", "mage"])
+    ) {
+      return "enemy-stage--ranged";
+    }
+
+    if (
+      (enemy.role || "").toLowerCase() === "raider" ||
+      matches(["fallen", "fetish", "bone_fetish", "rat man"])
+    ) {
+      return "enemy-stage--skirmisher";
+    }
+
+    return "enemy-stage--standard";
   }
 
   function renderHandCard(

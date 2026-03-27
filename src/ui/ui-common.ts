@@ -25,6 +25,7 @@
     const armorProfile = itemSystem?.buildCombatMitigationProfile?.(run, content) || null;
     const heroMaxLife = run.hero.maxLife + getBonusValue(bonuses.heroMaxLife);
     const heroMaxEnergy = run.hero.maxEnergy + getBonusValue(bonuses.heroMaxEnergy);
+    const heroHandSize = run.hero.handSize + getBonusValue(bonuses.heroHandSize);
     const heroPotionHeal = run.hero.potionHeal + getBonusValue(bonuses.heroPotionHeal);
     const mercenaryMaxLife = run.mercenary.maxLife + getBonusValue(bonuses.mercenaryMaxLife);
     const mercenaryAttack = run.mercenary.attack + getBonusValue(bonuses.mercenaryAttack);
@@ -34,6 +35,7 @@
         currentLife: Math.min(run.hero.currentLife, heroMaxLife),
         maxLife: heroMaxLife,
         maxEnergy: heroMaxEnergy,
+        handSize: heroHandSize,
         potionHeal: heroPotionHeal,
       },
       mercenary: {

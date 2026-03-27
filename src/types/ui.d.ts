@@ -63,6 +63,7 @@ interface DerivedPartyState {
     currentLife: number;
     maxLife: number;
     maxEnergy: number;
+    handSize: number;
     potionHeal: number;
   };
   mercenary: {

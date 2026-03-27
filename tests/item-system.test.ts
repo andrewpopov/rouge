@@ -245,6 +245,59 @@ test("zone loot tables expose per-entry chances and boss loot rolls multiple dro
   assert.ok(suppressedLootChoice?.previewLines.some((line) => /suppressed/i.test(line)));
 });
 
+test("unfinished runeword projects bias rune table odds toward the next missing rune", () => {
+  const { browserWindow, content, run, loadout } = createRunFixture();
+  const itemSystem = browserWindow.ROUGE_ITEM_SYSTEM;
+
+  const swordEntry = loadout.addEquipmentToInventory(run, "item_short_sword", content);
+  assert.ok(swordEntry);
+  assert.equal(loadout.equipInventoryEntry(run, swordEntry.entryId, content).ok, true);
+  assert.equal(loadout.applyChoice(run, {
+    id: "bias_socket_stack",
+    kind: "socket",
+    title: "Socket Stack",
+    subtitle: "",
+    description: "",
+    previewLines: [],
+    effects: [
+      { kind: "add_socket", slot: "weapon" },
+      { kind: "add_socket", slot: "weapon" },
+      { kind: "socket_rune", slot: "weapon", runeId: "rune_tir" },
+    ],
+  }, content).ok, true);
+
+  const bossZone = { id: "act_1_test_boss", title: "Act 1 Boss", kind: "boss", zoneRole: "boss", actNumber: 1 } as ZoneState;
+  const table = itemSystem.buildZoneLootTable({
+    content,
+    run,
+    zone: bossZone,
+    actNumber: 1,
+    encounterNumber: 1,
+  });
+  const targetRate = table.find((entry) => entry.kind === "rune" && entry.id === "rune_el")?.dropRate || 0;
+  const offRecipeRate = table.find((entry) => entry.kind === "rune" && entry.id === "rune_eld")?.dropRate || 0;
+
+  assert.ok(targetRate > offRecipeRate);
+});
+
+test("boss loot guarantees at least one rune in the extra drop pile", () => {
+  const { browserWindow, content, run } = createRunFixture();
+  const itemSystem = browserWindow.ROUGE_ITEM_SYSTEM;
+  const bossZone = { id: "act_1_test_boss", title: "Act 1 Boss", kind: "boss", zoneRole: "boss", actNumber: 1 } as ZoneState;
+
+  const choice = itemSystem.buildEquipmentChoice({
+    content,
+    run,
+    zone: bossZone,
+    actNumber: 1,
+    encounterNumber: 1,
+  });
+
+  assert.ok(choice);
+  assert.ok(choice.effects.some((effect) => effect.kind === "grant_rune"));
+  assert.ok(choice.previewLines.some((line) => line.includes("at least one rune")));
+});
+
 test("getRuneDefinition returns a valid rune or null for unknown ids", () => {
   const { content, catalog } = createRunFixture();
 
@@ -521,6 +574,42 @@ test("buildCombatBonuses includes rune bonuses on socketed equipment", () => {
 
   const after = itemSystem.buildCombatBonuses(run, content);
   assert.ok((after.heroDamageBonus || 0) > beforeDamage, "damage bonus should increase after socketing rune_el");
+});
+
+test("unique-only hand size bonuses flow into combat overrides and opening hand", () => {
+  const { content, run, loadout, itemSystem, runFactory, combatEngine } = createRunFixture();
+
+  const weaponEntry = loadout.addEquipmentToInventory(
+    run,
+    "item_short_sword",
+    content,
+    undefined,
+    {
+      heroHandSize: 1,
+    }
+  );
+  assert.ok(weaponEntry);
+  assert.equal(loadout.equipInventoryEntry(run, weaponEntry.entryId, content).ok, true);
+
+  const bonuses = itemSystem.buildCombatBonuses(run, content);
+  assert.equal(bonuses.heroHandSize || 0, 1);
+
+  const overrides = runFactory.createCombatOverrides(run, content, null);
+  assert.equal(overrides.heroState.handSize, run.hero.handSize + 1);
+
+  const combat = combatEngine.createCombatState({
+    content: { ...content, hero: overrides.heroState },
+    encounterId: "blood_moor_raiders",
+    mercenaryId: run.mercenary.id,
+    heroState: overrides.heroState,
+    mercenaryState: overrides.mercenaryState,
+    starterDeck: overrides.starterDeck,
+    initialPotions: overrides.initialPotions,
+    randomFn: () => 0,
+  });
+
+  assert.equal(combat.hero.handSize, overrides.heroState.handSize);
+  assert.equal(combat.hand.length, overrides.heroState.handSize);
 });
 
 // ---------------------------------------------------------------------------

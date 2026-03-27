@@ -133,6 +133,9 @@
     if (toBonusValue(bonuses?.heroMaxEnergy) > 0) {
       lines.push(`Hero max Energy +${toBonusValue(bonuses.heroMaxEnergy)}.`);
     }
+    if (toBonusValue(bonuses?.heroHandSize) > 0) {
+      lines.push(`Hero hand size +${toBonusValue(bonuses.heroHandSize)}.`);
+    }
     if (toBonusValue(bonuses?.heroPotionHeal) > 0) {
       lines.push(`Potion healing +${toBonusValue(bonuses.heroPotionHeal)}.`);
     }

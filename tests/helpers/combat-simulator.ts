@@ -134,6 +134,7 @@ interface SimulationBuildSummary {
   hero: {
     maxLife: number;
     maxEnergy: number;
+    handSize: number;
     potionHeal: number;
     damageBonus: number;
     guardBonus: number;
@@ -1160,6 +1161,7 @@ function buildSummary(context: SimulatedBuildContext): SimulationBuildSummary {
     heroState: {
       maxLife: combatOverrides.heroState.maxLife,
       maxEnergy: combatOverrides.heroState.maxEnergy,
+      handSize: combatOverrides.heroState.handSize,
       potionHeal: combatOverrides.heroState.potionHeal,
       damageBonus: Number(combatOverrides.heroState.damageBonus || 0),
       guardBonus: Number(combatOverrides.heroState.guardBonus || 0),
@@ -1206,6 +1208,7 @@ function buildSummary(context: SimulatedBuildContext): SimulationBuildSummary {
     hero: {
       maxLife: combatOverrides.heroState.maxLife,
       maxEnergy: combatOverrides.heroState.maxEnergy,
+      handSize: combatOverrides.heroState.handSize,
       potionHeal: combatOverrides.heroState.potionHeal,
       damageBonus: Number(combatOverrides.heroState.damageBonus || 0),
       guardBonus: Number(combatOverrides.heroState.guardBonus || 0),

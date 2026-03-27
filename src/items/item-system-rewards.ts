@@ -35,6 +35,9 @@
     if (bonuses.heroMaxEnergy) {
       lines.push(`Hero max Energy +${bonuses.heroMaxEnergy}.`);
     }
+    if (bonuses.heroHandSize) {
+      lines.push(`Hero hand size +${bonuses.heroHandSize}.`);
+    }
     if (bonuses.heroPotionHeal) {
       lines.push(`Potion healing +${bonuses.heroPotionHeal}.`);
     }

@@ -27,10 +27,12 @@ The encounter sandbox sits inside a larger app loop:
 - `Life`: persistent health inside the encounter
 - `Guard`: temporary mitigation that absorbs damage before Life
 - `Energy`: the hero's card-play resource each turn
+- `Hand Size`: the hero's turn-start hand target; this is usually class-defined, but unique item bonuses can now raise it
 - `Potions`: off-deck combat support actions
 - `Burn`, `Freeze`, `Shock`, `Slow`, and `Crushing`: live status or control hooks applied by skills, enemies, and weapon effects depending on source
 - equipped weapons can now contribute explicit skill-proficiency attack and support bonuses, typed fire or cold or lightning or poison damage, and on-hit effects like Burn, Freeze, Shock, Slow, and Crushing depending on weapon family
 - equipped armor can now contribute physical and elemental mitigation through live resistance lines, with rare unique-only immunities on armor
+- socketed runes and completed runewords now feed directly into derived combat stats before encounter creation, and unique-only rarity bonuses can affect hand size as well as the more traditional Life or Energy or damage hooks
 
 ## Ally Flow
 

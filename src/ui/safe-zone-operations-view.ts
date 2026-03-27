@@ -375,6 +375,7 @@
             <div class="entity-stat-grid">
               ${buildStat("Hero Life+", common.getBonusValue(derivedParty.bonuses.heroMaxLife))}
               ${buildStat("Hero Energy+", common.getBonusValue(derivedParty.bonuses.heroMaxEnergy))}
+              ${buildStat("Hand+", common.getBonusValue(derivedParty.bonuses.heroHandSize))}
               ${buildStat("Merc Attack+", common.getBonusValue(derivedParty.bonuses.mercenaryAttack))}
               ${buildStat("Merc Life+", common.getBonusValue(derivedParty.bonuses.mercenaryMaxLife))}
             </div>

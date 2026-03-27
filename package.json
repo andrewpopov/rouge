@@ -14,6 +14,7 @@
     "sim:progression-sweep": "tsc -p ./tsconfig.runtime.json && tsc -p ./tsconfig.tests.json && node ./scripts/run-progression-rng-sweep.js",
     "sim:progression-class-sweep": "tsc -p ./tsconfig.runtime.json && tsc -p ./tsconfig.tests.json && node ./scripts/run-progression-class-sweep.js",
     "sim:power-curve": "tsc -p ./tsconfig.runtime.json && tsc -p ./tsconfig.tests.json && node ./scripts/run-power-curve-report.js",
+    "sim:comprehensive-balance": "tsc -p ./tsconfig.runtime.json && tsc -p ./tsconfig.tests.json && node ./scripts/run-comprehensive-balance-report.js",
     "test:e2e": "npm run build && node ./scripts/run-e2e.js",
     "lint": "eslint . --max-warnings 0",
     "check": "npm run lint && npm run build && node --test generated/tests/*.test.js",

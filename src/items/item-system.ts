@@ -6,11 +6,13 @@
   const itemTown = runtimeWindow.ROUGE_ITEM_TOWN;
   const { getAccountEconomyFeatures, getPlannedRunewordArchiveState } = itemTown;
   const {
+    buildHydratedLoadout,
     buildEquipmentArmorProfile,
     buildEquipmentWeaponProfile,
     createRuntimeContent,
     generateRarityBonuses,
     getItemDefinition,
+    getPreferredRunewordForEquipment,
     isRunewordCompatibleWithItem,
     getRarityLabel,
     getRuneDefinition,
@@ -217,6 +219,28 @@
   }
 
   function getRuneTableEntries(run: RunState, zone: ZoneState | null, actNumber: number, content: GameContent) {
+    const loadout = buildHydratedLoadout(run, content);
+    const targetProjects = (["weapon", "armor"] as const)
+      .map((slot) => {
+        const equipment = loadout[slot];
+        const targetRuneword = equipment && !equipment.runewordId
+          ? getPreferredRunewordForEquipment(equipment, run, content)
+          : null;
+        if (!targetRuneword) {
+          return null;
+        }
+        const insertedRunes = Array.isArray(equipment?.insertedRunes) ? equipment.insertedRunes : [];
+        const prefixLength = insertedRunes.reduce((count: number, runeId: string, index: number) => {
+          return count === index && targetRuneword.requiredRunes[index] === runeId ? count + 1 : count;
+        }, 0);
+        return {
+          nextRuneId: targetRuneword.requiredRunes[prefixLength] || "",
+          remainingRuneIds: targetRuneword.requiredRunes.slice(prefixLength),
+        };
+      })
+      .filter(Boolean) as Array<{ nextRuneId: string; remainingRuneIds: string[] }>;
+    const nextTargetRuneIds = Array.from(new Set(targetProjects.map((project) => project.nextRuneId).filter(Boolean)));
+    const remainingTargetRuneIds = Array.from(new Set(targetProjects.flatMap((project) => project.remainingRuneIds).filter(Boolean)));
     const runeTargetTier = Math.max(1, actNumber + (zone?.kind === "boss" ? 2 : zone?.kind === "miniboss" ? 1 : 0));
     const entries = (Object.values(content.runeCatalog || {}) as RuntimeRuneDefinition[])
       .filter((rune) => toNumber(rune?.progressionTier, 1) <= runeTargetTier)
@@ -226,10 +250,33 @@
         if (zone?.kind === "boss" && tier >= runeTargetTier - 1) {
           weight += 1;
         }
+        if (nextTargetRuneIds.includes(rune.id)) {
+          weight += zone?.kind === "boss" ? 10 : zone?.kind === "miniboss" ? 8 : 5;
+        } else if (remainingTargetRuneIds.includes(rune.id)) {
+          weight += zone?.kind === "boss" ? 6 : zone?.kind === "miniboss" ? 4 : 2;
+        }
+        if (actNumber <= 2 && tier <= actNumber + 2) {
+          weight += 1;
+        }
         return { kind: "rune" as const, id: rune.id, rune, weight };
       });
     const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0) || 1;
     return entries.map((entry) => ({ ...entry, dropRate: entry.weight / totalWeight }));
+  }
+
+  function getGuaranteedRuneDropCount(zone: ZoneState | null, run: RunState, content: GameContent) {
+    const loadout = buildHydratedLoadout(run, content);
+    const hasActiveRunewordProject = (["weapon", "armor"] as const).some((slot) => {
+      const equipment = loadout[slot];
+      return Boolean(equipment && !equipment.runewordId && getPreferredRunewordForEquipment(equipment, run, content));
+    });
+    if (zone?.kind === "boss") {
+      return 1;
+    }
+    if (zone?.kind === "miniboss" && hasActiveRunewordProject) {
+      return 1;
+    }
+    return 0;
   }
 
   function buildZoneLootTable({
@@ -404,7 +451,8 @@
     randomFn: RandomFn,
     desiredCount: number,
     primaryItemId: string,
-    primaryItemSlot: EquipmentSlot
+    primaryItemSlot: EquipmentSlot,
+    guaranteedRuneCount: number
   ) {
     const chosenIds = new Set<string>([primaryItemId]);
     const chosenEquipmentSlots = new Set<EquipmentSlot>([primaryItemSlot]);
@@ -420,6 +468,19 @@
         }
       | { kind: "rune"; id: string; tableDropRate: number }
     > = [];
+
+    while (drops.length < Math.min(desiredCount, guaranteedRuneCount)) {
+      const availableRunes = runeTable.filter((entry) => !chosenIds.has(entry.id));
+      if (availableRunes.length === 0) {
+        break;
+      }
+      const selectedRune = pickWeightedEntry(availableRunes, randomFn);
+      if (!selectedRune) {
+        break;
+      }
+      chosenIds.add(selectedRune.id);
+      drops.push({ kind: "rune", id: selectedRune.id, tableDropRate: selectedRune.dropRate });
+    }
 
     while (drops.length < desiredCount) {
       const availableEquipment = equipmentTable.filter((entry) => {
@@ -480,6 +541,7 @@
     }
 
     const totalDropCount = getZoneDropCount(zone, actNumber);
+    const guaranteedRuneCount = getGuaranteedRuneDropCount(zone, run, content);
     const extraDrops = rollExtraDrops(
       equipmentTable,
       runeTable,
@@ -488,7 +550,8 @@
       randomFn,
       Math.max(0, totalDropCount - 1),
       primaryDrop.id,
-      getItemDefinition(content, primaryDrop.id)?.slot || "weapon"
+      getItemDefinition(content, primaryDrop.id)?.slot || "weapon",
+      guaranteedRuneCount
     );
     const targetTier = getTargetItemTier(run, zone, actNumber, content);
     const primaryLabel = buildDropLabel(content, { kind: "equipment", id: primaryDrop.id, rarity: primaryDrop.rarity });
@@ -566,7 +629,7 @@
     });
     previewLines.push(
       zone?.kind === "boss"
-        ? "Boss loot tables carry the main unique pressure; normal fights only whisper at uniques."
+        ? "Boss loot tables carry the main unique pressure and always stamp at least one rune into the reward pile."
         : "Unique items are mostly reserved for bosses and special outcomes."
     );
     if (toNumber(run.summary?.uniqueItemsFound, 0) > 0) {
