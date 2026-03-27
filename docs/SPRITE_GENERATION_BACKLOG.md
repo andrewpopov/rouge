@@ -211,34 +211,34 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `overseer`
 - [x] `pain_worm`
 - [x] `reanimated_horde`
-- [ ] `regurgitator`
-- [ ] `reziarfg`
-- [ ] `sabre_cat`
-- [ ] `sand_maggot`
-- [ ] `sand_maggot_egg`
-- [ ] `sand_maggot_young`
-- [ ] `sand_raider`
-- [ ] `scarab_demon`
-- [ ] `siege_beast`
+- [x] `regurgitator`
+- [x] `reziarfg`
+- [x] `sabre_cat`
+- [x] `sand_maggot`
+- [x] `sand_maggot_egg`
+- [x] `sand_maggot_young`
+- [x] `sand_raider`
+- [x] `scarab_demon`
+- [x] `siege_beast`
 - [x] `skeleton`
-- [ ] `skeleton_archer`
-- [ ] `skeleton_mage`
-- [ ] `slinger`
-- [ ] `spike_fiend`
-- [ ] `stygian_fury`
-- [ ] `succubus`
-- [ ] `suicide_minion`
-- [ ] `swarm`
-- [ ] `tainted`
-- [ ] `undead_horror`
-- [ ] `vampire`
-- [ ] `vile_child`
-- [ ] `vile_mother`
-- [ ] `vulture_demon`
-- [ ] `wendigo`
-- [ ] `willowisp`
+- [x] `skeleton_archer`
+- [x] `skeleton_mage`
+- [x] `slinger`
+- [x] `spike_fiend`
+- [x] `stygian_fury`
+- [x] `succubus`
+- [x] `suicide_minion`
+- [x] `swarm`
+- [x] `tainted`
+- [x] `undead_horror`
+- [x] `vampire`
+- [x] `vile_child`
+- [x] `vile_mother`
+- [x] `vulture_demon`
+- [x] `wendigo`
+- [x] `willowisp`
 - [x] `wraith`
-- [ ] `zakarum_priest`
+- [x] `zakarum_priest`
 - [ ] `zakarum_zealot`
 - [x] `zombie`
 

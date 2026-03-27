@@ -767,8 +767,9 @@
       .map((label) => `<span class="merchant-portrait__chip">${escapeHtml(label)}</span>`)
       .join("");
     const isVendorStock = npc.actions.some((a) => a.id === "vendor_refresh_stock");
+    const isEmptyOverlay = npc.actions.length === 0;
     let actionCards: string;
-    if (npc.actions.length === 0) {
+    if (isEmptyOverlay) {
       actionCards = buildEmptyOverlayState(npc, themeKey, escapeHtml);
     } else if (isVendorStock) {
       actionCards = buildVendorStockLayout(npc.actions, content, escapeHtml);
@@ -817,7 +818,7 @@
                   <span class="merchant-header__coin">\u{1F4B0}</span> ${gold}g
                 </div>
               </div>
-              <div class="merchant-body">
+              <div class="merchant-body ${isEmptyOverlay ? "merchant-body--empty" : ""}">
                 ${actionCards}
               </div>
               <div class="merchant-footer">

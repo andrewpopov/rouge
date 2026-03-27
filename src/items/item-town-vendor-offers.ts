@@ -44,7 +44,14 @@
 
     const features = getAccountEconomyFeatures(profile);
     const currentTier = getCurrentEquipmentTier(currentEquipment, content);
-    const upgradeOptions = options.filter((item: RuntimeItemDefinition) => item.progressionTier > currentTier);
+    const preferredWeaponFamilies = slot === "weapon"
+      ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || []
+      : [];
+    const prioritizedOptions = preferredWeaponFamilies.length > 0
+      ? options.filter((item: RuntimeItemDefinition) => preferredWeaponFamilies.includes(item.family || ""))
+      : options;
+    const optionPool = prioritizedOptions.length > 0 ? prioritizedOptions : options;
+    const upgradeOptions = optionPool.filter((item: RuntimeItemDefinition) => item.progressionTier > currentTier);
     const lateBias =
       features.advancedVendorStock ||
       features.merchantPrincipate ||
@@ -250,13 +257,13 @@
         : null;
     const primaryUpgrade =
       upgradeOptions[(lateBias ? upgradeOptions.length - 1 : 0)] ||
-      options[Math.max(0, options.length - 1)] ||
+      optionPool[Math.max(0, optionPool.length - 1)] ||
       null;
     const secondaryUpgrade =
       upgradeOptions[Math.max(0, upgradeOptions.length - 2)] ||
-      options[Math.max(0, options.length - 2)] ||
+      optionPool[Math.max(0, optionPool.length - 2)] ||
       null;
-    const sidegrade = options[(seed + (slot === "weapon" ? 0 : 1)) % options.length] || null;
+    const sidegrade = optionPool[(seed + (slot === "weapon" ? 0 : 1)) % optionPool.length] || null;
 
     return pickUniqueDefinitions(
       [
@@ -276,7 +283,7 @@
         treasuryOffer,
         sidegrade,
       ],
-      options,
+      optionPool,
       desiredCount,
       seed
     );

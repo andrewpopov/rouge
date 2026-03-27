@@ -1,5 +1,6 @@
 import { createAppHarness } from "./browser-harness";
 import {
+  getMatchingProficienciesForWeapon,
   scoreEncounterPowerFromDefinition,
   scorePartyPower,
 } from "./balance-power-score";
@@ -147,14 +148,14 @@ const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
     heroPotionWeight: 0.7,
     mercenaryLifeWeight: 0.55,
     mercenaryAttackWeight: 1.8,
-    goldWeight: 0.04,
+    goldWeight: 0.015,
     potionChargeWeight: 1.4,
     currentLifeWeight: 0.55,
     currentMercLifeWeight: 0.25,
     deckTopWeight: 1.15,
     deckRestWeight: 0.3,
     deckBloatPenalty: 2.1,
-    weaponWeight: 1.15,
+    weaponWeight: 1.25,
     armorWeight: 0.8,
     matchingProficiencyWeight: 2.8,
     bankedSkillPointWeight: 1.6,
@@ -452,19 +453,78 @@ function getWeaponFamily(harness: ReturnType<typeof createAppHarness>, run: RunS
   return harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(weaponEquipment?.itemId || "", harness.content) || "";
 }
 
+function getWeaponProfile(harness: ReturnType<typeof createAppHarness>, run: RunState) {
+  return harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(getWeaponEquipment(run), harness.content) || null;
+}
+
+function getLoadoutItemTier(harness: ReturnType<typeof createAppHarness>, equipment: RunEquipmentState | null | undefined) {
+  if (!equipment?.itemId) {
+    return 0;
+  }
+  return Number(harness.content.itemCatalog?.[equipment.itemId]?.progressionTier || 0);
+}
+
+function getLoadoutTierScore(harness: ReturnType<typeof createAppHarness>, run: RunState) {
+  const weaponTier = getLoadoutItemTier(harness, run.loadout?.weapon || null);
+  const armorTier = getLoadoutItemTier(harness, run.loadout?.armor || null);
+  const helmTier = getLoadoutItemTier(harness, run.loadout?.helm || null);
+  const shieldTier = getLoadoutItemTier(harness, run.loadout?.shield || null);
+  const preferredWeaponFamilies = harness.classRegistry.getPreferredWeaponFamilies(run.classId) || [];
+  const weaponFamily = getWeaponFamily(harness, run);
+  const preferredWeaponTierWeight =
+    preferredWeaponFamilies.length === 0 || preferredWeaponFamilies.includes(weaponFamily)
+      ? 26
+      : 10;
+  return weaponTier * preferredWeaponTierWeight + armorTier * 14 + helmTier * 6 + shieldTier * 6;
+}
+
+function getMatchingWeaponProficienciesForRun(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  weaponProfile?: WeaponCombatProfile | null
+) {
+  return getMatchingProficienciesForWeapon(
+    getWeaponFamily(harness, run),
+    weaponProfile ?? getWeaponProfile(harness, run)
+  );
+}
+
+function getMatchingWeaponProficienciesForCombatState(state: CombatState) {
+  return getMatchingProficienciesForWeapon(state.weaponFamily || "", state.weaponProfile || undefined);
+}
+
 function hasPreferredWeaponFamily(harness: ReturnType<typeof createAppHarness>, run: RunState) {
   const preferred = harness.classRegistry.getPreferredWeaponFamilies(run.classId) || [];
   return preferred.includes(getWeaponFamily(harness, run));
 }
 
-function scoreWeaponProfile(profile: WeaponCombatProfile | undefined) {
+function getWeaponProficiencyWeight(proficiencyCounts: Record<string, number>, proficiency?: string) {
+  if (!proficiency) {
+    return 1;
+  }
+  const cardCount = Number(proficiencyCounts[proficiency] || 0);
+  if (cardCount <= 0) {
+    return 0.1;
+  }
+  return 1 + Math.min(0.45, cardCount * 0.08);
+}
+
+function scoreWeaponProfileForDeck(profile: WeaponCombatProfile | undefined, proficiencyCounts: Record<string, number>) {
   if (!profile) {
     return 0;
   }
-  const attackScore = Object.values(profile.attackDamageByProficiency || {}).reduce((sum, value) => sum + Number(value || 0), 0) * 2.6;
-  const supportScore = Object.values(profile.supportValueByProficiency || {}).reduce((sum, value) => sum + Number(value || 0), 0) * 1.3;
-  const typedDamageScore = (profile.typedDamage || []).reduce((sum, entry) => sum + Number(entry.amount || 0), 0) * 2.4;
-  const effectScore = (profile.effects || []).reduce((sum, entry) => sum + Number(entry.amount || 0), 0) * 1.7;
+  const attackScore = Object.entries(profile.attackDamageByProficiency || {}).reduce((sum, [proficiency, value]) => {
+    return sum + Number(value || 0) * 2.6 * getWeaponProficiencyWeight(proficiencyCounts, proficiency);
+  }, 0);
+  const supportScore = Object.entries(profile.supportValueByProficiency || {}).reduce((sum, [proficiency, value]) => {
+    return sum + Number(value || 0) * 1.3 * getWeaponProficiencyWeight(proficiencyCounts, proficiency);
+  }, 0);
+  const typedDamageScore = (profile.typedDamage || []).reduce((sum, entry) => {
+    return sum + Number(entry.amount || 0) * 2.4 * getWeaponProficiencyWeight(proficiencyCounts, entry.proficiency);
+  }, 0);
+  const effectScore = (profile.effects || []).reduce((sum, entry) => {
+    return sum + Number(entry.amount || 0) * 1.7 * getWeaponProficiencyWeight(proficiencyCounts, entry.proficiency);
+  }, 0);
   return attackScore + supportScore + typedDamageScore + effectScore;
 }
 
@@ -477,7 +537,7 @@ function scoreArmorProfile(profile: ArmorMitigationProfile | undefined) {
   return resistanceScore + immunityScore;
 }
 
-function scoreCard(card: CardDefinition | null | undefined, policy: BuildPolicyDefinition, matchingWeaponFamily: string) {
+function scoreCard(card: CardDefinition | null | undefined, policy: BuildPolicyDefinition, matchingProficiencies: Set<string>) {
   if (!card) {
     return Number.NEGATIVE_INFINITY;
   }
@@ -487,15 +547,15 @@ function scoreCard(card: CardDefinition | null | undefined, policy: BuildPolicyD
   }, 0);
   const tierBonus = Number(card.tier || 1) * 2.5;
   const neutralTargetBonus = card.target === "none" ? 1 : 0;
-  const proficiencyBonus = card.proficiency && card.proficiency === matchingWeaponFamily ? policy.matchingProficiencyWeight : 0;
+  const proficiencyBonus = card.proficiency && matchingProficiencies.has(card.proficiency) ? policy.matchingProficiencyWeight : 0;
   return effectScore + tierBonus + neutralTargetBonus + proficiencyBonus - card.cost * 2.4;
 }
 
 function buildDeckStats(harness: ReturnType<typeof createAppHarness>, run: RunState, policy: BuildPolicyDefinition) {
-  const matchingWeaponFamily = getWeaponFamily(harness, run);
+  const matchingProficiencies = new Set(getMatchingWeaponProficienciesForRun(harness, run));
   const preferredFamilyMatch = hasPreferredWeaponFamily(harness, run);
   const scores = run.deck
-    .map((cardId) => scoreCard(harness.content.cardCatalog[cardId], policy, matchingWeaponFamily))
+    .map((cardId) => scoreCard(harness.content.cardCatalog[cardId], policy, matchingProficiencies))
     .filter((score) => Number.isFinite(score))
     .sort((left, right) => right - left);
   const topCards = scores.slice(0, 10);
@@ -511,7 +571,9 @@ function buildDeckStats(harness: ReturnType<typeof createAppHarness>, run: RunSt
     return counts;
   }, {} as Record<string, number>);
 
-  const matchingProficiencyCount = matchingWeaponFamily ? proficiencyCounts[matchingWeaponFamily] || 0 : 0;
+  const matchingProficiencyCount = [...matchingProficiencies].reduce((sum, proficiency) => {
+    return sum + Number(proficiencyCounts[proficiency] || 0);
+  }, 0);
   return {
     deckScore,
     matchingProficiencyCount,
@@ -519,8 +581,8 @@ function buildDeckStats(harness: ReturnType<typeof createAppHarness>, run: RunSt
     topCards: run.deck
       .slice()
       .sort((leftId, rightId) => {
-        return scoreCard(harness.content.cardCatalog[rightId], policy, matchingWeaponFamily) -
-          scoreCard(harness.content.cardCatalog[leftId], policy, matchingWeaponFamily);
+        return scoreCard(harness.content.cardCatalog[rightId], policy, matchingProficiencies) -
+          scoreCard(harness.content.cardCatalog[leftId], policy, matchingProficiencies);
       })
       .slice(0, 5)
       .map((cardId) => harness.content.cardCatalog[cardId]?.title || cardId),
@@ -548,8 +610,7 @@ function evaluateRunScore(
 ) {
   const scoringRun = createScoringRun(harness, run, options.assumeFullResources);
   const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, null);
-  const weaponEquipment = getWeaponEquipment(scoringRun);
-  const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(weaponEquipment, harness.content) || null;
+  const weaponProfile = getWeaponProfile(harness, scoringRun);
   const armorProfile = harness.itemSystem.buildCombatMitigationProfile(scoringRun, harness.content) || null;
   const deckStats = buildDeckStats(harness, scoringRun, policy);
 
@@ -570,7 +631,8 @@ function evaluateRunScore(
     deckStats.deckScore +
     deckStats.matchingProficiencyCount * policy.matchingProficiencyWeight +
     (deckStats.preferredFamilyMatch ? 24 : 0) +
-    scoreWeaponProfile(weaponProfile || undefined) * policy.weaponWeight +
+    getLoadoutTierScore(harness, scoringRun) +
+    scoreWeaponProfileForDeck(weaponProfile || undefined, deckStats.proficiencyCounts) * policy.weaponWeight +
     scoreArmorProfile(armorProfile || undefined) * policy.armorWeight +
     Number(scoringRun.progression?.skillPointsAvailable || 0) * policy.bankedSkillPointWeight +
     Number(scoringRun.progression?.classPointsAvailable || 0) * policy.bankedClassPointWeight +
@@ -620,6 +682,70 @@ function optimizeSafeZoneRun(
 ) {
   const townServices = harness.browserWindow.ROUGE_TOWN_SERVICES;
 
+  function settleVendorFollowups(targetRun: RunState, maxFollowups = 3) {
+    for (let followupIndex = 0; followupIndex < maxFollowups; followupIndex += 1) {
+      const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false });
+      const actions = townServices
+        .listActions(harness.content, targetRun, profile)
+        .filter((action: TownAction) => {
+          const actionId = action.id || "";
+          return !action.disabled && (actionId.startsWith("vendor_buy_") || actionId.startsWith("inventory_equip_"));
+        });
+
+      let bestAction: TownAction | null = null;
+      let bestDelta = 0;
+
+      actions.forEach((action: TownAction) => {
+        const clone = cloneRun(harness, targetRun);
+        const result = townServices.applyAction(clone, profile, harness.content, action.id);
+        if (!result.ok) {
+          return;
+        }
+
+        if ((action.id || "").startsWith("vendor_buy_")) {
+          const equipActions = townServices
+            .listActions(harness.content, clone, profile)
+            .filter((candidate: TownAction) => !candidate.disabled && (candidate.id || "").startsWith("inventory_equip_"));
+          let bestEquipAction: TownAction | null = null;
+          let bestEquipScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
+
+          equipActions.forEach((equipAction: TownAction) => {
+            const equipClone = cloneRun(harness, clone);
+            const equipResult = townServices.applyAction(equipClone, profile, harness.content, equipAction.id);
+            if (!equipResult.ok) {
+              return;
+            }
+            const equipScore = evaluateRunScore(harness, equipClone, policy, { assumeFullResources: false });
+            if (equipScore > bestEquipScore + 0.05) {
+              bestEquipScore = equipScore;
+              bestEquipAction = equipAction;
+            }
+          });
+
+          if (bestEquipAction) {
+            townServices.applyAction(clone, profile, harness.content, bestEquipAction.id);
+          }
+        }
+
+        const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
+        const delta = nextScore - baseScore;
+        if (delta > bestDelta) {
+          bestDelta = delta;
+          bestAction = action;
+        }
+      });
+
+      if (!bestAction || bestDelta <= 0.05) {
+        break;
+      }
+
+      const result = townServices.applyAction(targetRun, profile, harness.content, bestAction.id);
+      if (!result.ok) {
+        break;
+      }
+    }
+  }
+
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
     const baseScore = evaluateRunScore(harness, run, policy, { assumeFullResources: false });
     const actions = townServices
@@ -635,6 +761,11 @@ function optimizeSafeZoneRun(
       if (!result.ok) {
         return;
       }
+
+      if ((action.id || "") === "vendor_refresh_stock" || (action.id || "").startsWith("vendor_buy_")) {
+        settleVendorFollowups(clone, 3);
+      }
+
       const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
       const delta = nextScore - baseScore;
       if (delta > bestDelta) {
@@ -650,6 +781,10 @@ function optimizeSafeZoneRun(
     const result = townServices.applyAction(run, profile, harness.content, bestAction.id);
     if (!result.ok) {
       break;
+    }
+
+    if ((bestAction.id || "") === "vendor_refresh_stock" || (bestAction.id || "").startsWith("vendor_buy_")) {
+      settleVendorFollowups(run, 3);
     }
   }
 }
@@ -674,8 +809,12 @@ function getIncomingThreat(state: CombatState) {
       return sum + (Number(intent.value || 0) + statusBonus) * aoeMultiplier;
     }
     if (intent.kind === "charge") {
-      const aoeMultiplier = intent.target === "all_allies" ? 1.25 : 1;
-      return sum + Number(intent.value || 0) * aoeMultiplier;
+      const aoeMultiplier = intent.target === "all_allies" ? 1.4 : 1.1;
+      const typedThreatBonus =
+        intent.damageType === "fire" || intent.damageType === "poison" || intent.damageType === "lightning" || intent.damageType === "cold"
+          ? 2
+          : 0;
+      return sum + (Number(intent.value || 0) + typedThreatBonus) * aoeMultiplier;
     }
     if (intent.kind === "curse_amplify" || intent.kind === "curse_weaken") {
       return sum + 3;
@@ -732,7 +871,11 @@ function scoreSingleEnemyThreat(enemy: CombatEnemyState) {
     return baseValue * 1.45;
   }
   if (intent.kind === "charge") {
-    return baseValue * (intent.target === "all_allies" ? 1.35 : 1.15);
+    const typedThreatBonus =
+      intent.damageType === "fire" || intent.damageType === "poison" || intent.damageType === "lightning" || intent.damageType === "cold"
+        ? 2
+        : 0;
+    return (baseValue + typedThreatBonus) * (intent.target === "all_allies" ? 1.45 : 1.2);
   }
   if (
     intent.kind === "attack" ||
@@ -792,9 +935,9 @@ function cloneCombatState(state: CombatState) {
   return clone;
 }
 
-function getHandValue(state: CombatState, content: GameContent, policy: BuildPolicyDefinition, matchingWeaponFamily: string) {
+function getHandValue(state: CombatState, content: GameContent, policy: BuildPolicyDefinition, matchingProficiencies: Set<string>) {
   return state.hand.reduce((sum, entry) => {
-    return sum + Math.max(0, scoreCard(content.cardCatalog[entry.cardId], policy, matchingWeaponFamily));
+    return sum + Math.max(0, scoreCard(content.cardCatalog[entry.cardId], policy, matchingProficiencies));
   }, 0);
 }
 
@@ -804,7 +947,7 @@ function scoreCombatStateDelta(
   content: GameContent,
   actionType: CombatCandidateAction["type"],
   policy: BuildPolicyDefinition,
-  matchingWeaponFamily: string
+  matchingProficiencies: Set<string>
 ) {
   const beforeEnemyLife = before.enemies.reduce((sum, enemy) => sum + enemy.life, 0);
   const beforeEnemyGuard = before.enemies.reduce((sum, enemy) => sum + enemy.guard, 0);
@@ -832,7 +975,7 @@ function scoreCombatStateDelta(
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
     (beforeShortfall - afterShortfall) * 5 +
     (beforePressure - afterPressure) * (chargeThreat ? 42 : 18) +
-    (getHandValue(after, content, policy, matchingWeaponFamily) - getHandValue(before, content, policy, matchingWeaponFamily)) * 0.12;
+    (getHandValue(after, content, policy, matchingProficiencies) - getHandValue(before, content, policy, matchingProficiencies)) * 0.12;
 
   if (after.mercenary.markedEnemyId && !before.mercenary.markedEnemyId) {
     score += 6;
@@ -871,10 +1014,12 @@ function listCandidateActions(
   content: GameContent,
   engine: CombatEngineApi,
   policy: BuildPolicyDefinition,
-  matchingWeaponFamily: string
+  matchingProficiencies: Set<string>
 ) {
   const candidates: CombatCandidateAction[] = [];
-  const maxCardEntriesToEvaluate = 6;
+  const threatPressure = getThreatPressure(state);
+  const chargeThreat = hasChargeThreat(state);
+  const maxCardEntriesToEvaluate = chargeThreat ? 12 : threatPressure >= 0.5 ? 9 : 6;
   if (state.phase !== "player" || state.outcome) {
     return candidates;
   }
@@ -887,7 +1032,7 @@ function listCandidateActions(
     .filter((candidate) => candidate.card && candidate.card.cost <= state.hero.energy)
     .sort((left, right) => {
       return (
-        scoreCard(right.card, policy, matchingWeaponFamily) - scoreCard(left.card, policy, matchingWeaponFamily) ||
+        scoreCard(right.card, policy, matchingProficiencies) - scoreCard(left.card, policy, matchingProficiencies) ||
         left.entry.instanceId.localeCompare(right.entry.instanceId)
       );
     })
@@ -933,7 +1078,7 @@ function listCandidateActions(
       engine.endTurn(clone);
       return {
         ...candidate,
-        score: scoreCombatStateDelta(state, clone, content, "end_turn", policy, matchingWeaponFamily),
+        score: scoreCombatStateDelta(state, clone, content, "end_turn", policy, matchingProficiencies),
       };
     }
 
@@ -953,7 +1098,7 @@ function listCandidateActions(
 
     return {
       ...candidate,
-      score: scoreCombatStateDelta(state, clone, content, candidate.type, policy, matchingWeaponFamily),
+      score: scoreCombatStateDelta(state, clone, content, candidate.type, policy, matchingProficiencies),
     };
   });
 }
@@ -963,9 +1108,9 @@ function chooseBestCombatAction(
   content: GameContent,
   engine: CombatEngineApi,
   policy: BuildPolicyDefinition,
-  matchingWeaponFamily: string
+  matchingProficiencies: Set<string>
 ) {
-  const candidates = listCandidateActions(state, content, engine, policy, matchingWeaponFamily).sort((left, right) => right.score - left.score);
+  const candidates = listCandidateActions(state, content, engine, policy, matchingProficiencies).sort((left, right) => right.score - left.score);
   const best = candidates[0] || { type: "end_turn", score: 0 };
   if (best.score < 1) {
     return { type: "end_turn", score: 0 } as CombatCandidateAction;
@@ -1031,7 +1176,7 @@ function simulateEncounterWithRun(
   seed: number
 ) {
   const combatState = buildCombatStateForEncounter(harness, run, profile, encounterId, seed);
-  const matchingWeaponFamily = getWeaponFamily(harness, run);
+  const matchingProficiencies = new Set(getMatchingWeaponProficienciesForCombatState(combatState));
   const actionLimitPerTurn = 32;
 
   while (!combatState.outcome && combatState.turn < maxTurns) {
@@ -1041,7 +1186,7 @@ function simulateEncounterWithRun(
     }
     let actionsTaken = 0;
     while (combatState.phase === "player" && !combatState.outcome && actionsTaken < actionLimitPerTurn) {
-      const action = chooseBestCombatAction(combatState, harness.content, harness.combatEngine, policy, matchingWeaponFamily);
+      const action = chooseBestCombatAction(combatState, harness.content, harness.combatEngine, policy, matchingProficiencies);
       const result = executeCombatAction(action, combatState, harness.content, harness.combatEngine);
       actionsTaken += 1;
       if (!result.ok || action.type === "end_turn") {
@@ -1343,7 +1488,7 @@ function playStateCombat(
   if (!state.combat) {
     return;
   }
-  const matchingWeaponFamily = getWeaponFamily(harness, state.run as RunState);
+  const matchingProficiencies = new Set(getMatchingWeaponProficienciesForCombatState(state.combat));
   const actionLimitPerTurn = 32;
 
   while (!state.combat.outcome && state.combat.turn < maxCombatTurns) {
@@ -1353,7 +1498,7 @@ function playStateCombat(
     }
     let actionsTaken = 0;
     while (state.combat.phase === "player" && !state.combat.outcome && actionsTaken < actionLimitPerTurn) {
-      const action = chooseBestCombatAction(state.combat, harness.content, harness.combatEngine, policy, matchingWeaponFamily);
+      const action = chooseBestCombatAction(state.combat, harness.content, harness.combatEngine, policy, matchingProficiencies);
       const result = executeCombatAction(action, state.combat, harness.content, harness.combatEngine);
       actionsTaken += 1;
       if (!result.ok || action.type === "end_turn") {
@@ -1441,7 +1586,10 @@ function simulatePolicyRun(
     }
 
     if (state.phase === PHASES.WORLD_MAP) {
-      const needsTown = state.run.hero.currentLife < state.run.hero.maxLife || state.run.belt.current < state.run.belt.max || state.run.mercenary.currentLife <= 0;
+      const needsTown =
+        state.run.hero.currentLife <= Math.ceil(state.run.hero.maxLife * 0.5) ||
+        state.run.belt.current <= 0 ||
+        state.run.mercenary.currentLife <= 0;
       if (needsTown) {
         const returnResult = harness.appEngine.returnToSafeZone(state);
         if (returnResult.ok) {

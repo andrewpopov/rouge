@@ -81,11 +81,16 @@ test("weapon item definitions expose derived specialization profiles", () => {
 
   const bow = catalog.getItemDefinition(content, "item_short_bow");
   const mace = catalog.getItemDefinition(content, "item_mace");
+  const wand = catalog.getItemDefinition(content, "item_wand");
+  const staff = catalog.getItemDefinition(content, "item_battle_staff");
 
   assert.ok(bow?.weaponProfile?.attackDamageByProficiency?.bow, "bows should expose bow attack bonuses");
   assert.ok(bow?.weaponProfile?.supportValueByProficiency?.bow, "bows should expose bow support bonuses");
+  assert.ok(bow?.weaponProfile?.supportValueByProficiency?.passive, "bows should support amazon passive skills");
   assert.equal(bow?.weaponProfile?.effects?.[0]?.kind, "burn");
   assert.ok(mace?.weaponProfile?.effects?.some((effect) => effect.kind === "crushing"), "maces should expose crushing effects");
+  assert.ok(wand?.weaponProfile?.supportValueByProficiency?.summoning, "wands should support necromancer summoning skills");
+  assert.ok(staff?.weaponProfile?.attackDamageByProficiency?.elemental, "staves should support druid elemental attacks");
 });
 
 test("class cards expose explicit runtime proficiencies", () => {
@@ -119,15 +124,15 @@ test("weapon rarity ladder increases effective weapon profile strength", () => {
   const yellowProfile = catalog.getWeaponProfileForRarity(bow?.weaponProfile, catalog.RARITY.RARE);
   const brownProfile = catalog.getWeaponProfileForRarity(bow?.weaponProfile, catalog.RARITY.UNIQUE);
 
-  assert.equal(whiteProfile?.attackDamageByProficiency?.bow, 2);
-  assert.equal(blueProfile?.attackDamageByProficiency?.bow, 3);
-  assert.equal(yellowProfile?.attackDamageByProficiency?.bow, 4);
-  assert.equal(brownProfile?.attackDamageByProficiency?.bow, 6);
-  assert.equal(whiteProfile?.effects?.[0]?.amount, 1);
-  assert.equal(yellowProfile?.effects?.[0]?.amount, 2);
-  assert.equal(brownProfile?.effects?.[0]?.amount, 3);
+  assert.equal(whiteProfile?.attackDamageByProficiency?.bow, 3);
+  assert.equal(blueProfile?.attackDamageByProficiency?.bow, 4);
+  assert.equal(yellowProfile?.attackDamageByProficiency?.bow, 5);
+  assert.equal(brownProfile?.attackDamageByProficiency?.bow, 7);
+  assert.equal(whiteProfile?.effects?.[0]?.amount, 2);
+  assert.equal(yellowProfile?.effects?.[0]?.amount, 3);
+  assert.equal(brownProfile?.effects?.[0]?.amount, 4);
   assert.equal(whiteProfile?.typedDamage?.[0]?.type, "fire");
-  assert.equal(blueProfile?.typedDamage?.[0]?.amount, 2);
+  assert.equal(blueProfile?.typedDamage?.[0]?.amount, 3);
 });
 
 test("rarity bonus rolls stay ordered blue below yellow below brown", () => {

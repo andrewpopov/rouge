@@ -26,12 +26,18 @@
     portraits: [],
     mercenaries: [],
     items: [],
+    enemyVariants: {},
+    bossVariants: {},
+    portraitVariants: {},
+    mercenaryVariants: {},
+    itemVariants: {},
   };
   const UNIQUE_ENEMY_SPRITES = new Set(uniqueArtManifest.enemies || []);
   const UNIQUE_BOSS_SPRITES = new Set(uniqueArtManifest.bosses || []);
   const UNIQUE_CLASS_PORTRAITS = new Set(uniqueArtManifest.portraits || []);
   const UNIQUE_MERCENARY_SPRITES = new Set(uniqueArtManifest.mercenaries || []);
   const UNIQUE_ITEM_SPRITES = new Set(uniqueArtManifest.items || []);
+  const UNIQUE_ART_VARIANT_SALT = Math.random().toString(36).slice(2);
 
   const TEMPLATE_ID_RE = /^act_\d+_(.+)_(raider|ranged|support|brute|base|boss|alt|elite(?:_.*)?)$/;
 
@@ -41,6 +47,45 @@
       h = ((h << 5) - h + str.charCodeAt(i)) | 0;
     }
     return Math.abs(h);
+  }
+
+  function getUniqueArtVariantPaths(
+    folder: string,
+    slug: string,
+    variantManifest: Record<string, string[]> | undefined | null
+  ): string[] {
+    const variants = Array.isArray(variantManifest?.[slug])
+      ? variantManifest[slug].filter((entry) => typeof entry === "string" && entry.toLowerCase().endsWith(".png"))
+      : [];
+    if (variants.length > 0) {
+      return variants.map((entry) => `${UNIQUE_ART_BASE}/${folder}/${entry}`);
+    }
+    return [`${UNIQUE_ART_BASE}/${folder}/${slug}.png`];
+  }
+
+  function pickUniqueArtPath(paths: string[], selectionKey: string, useSessionSalt = false): string | null {
+    if (!Array.isArray(paths) || paths.length === 0) {
+      return null;
+    }
+    if (paths.length === 1) {
+      return paths[0];
+    }
+
+    // Weight the primary file slightly higher while still rotating alt art into use.
+    const weightedPaths = [paths[0], ...paths];
+    const hashKey = useSessionSalt ? `${UNIQUE_ART_VARIANT_SALT}:${selectionKey}` : selectionKey;
+    const index = simpleHash(hashKey) % weightedPaths.length;
+    return weightedPaths[index];
+  }
+
+  function resolveUniqueArtPath(
+    folder: string,
+    slug: string,
+    variantManifest: Record<string, string[]> | undefined | null,
+    selectionKey: string,
+    useSessionSalt = false
+  ): string | null {
+    return pickUniqueArtPath(getUniqueArtVariantPaths(folder, slug, variantManifest), selectionKey, useSessionSalt);
   }
 
   function getCardIcon(cardId: string, effects?: CardEffect[]): string {
@@ -99,17 +144,26 @@
   function getEnemySprite(templateId: string): string | null {
     const { rawSlug, resolvedSlug, isBoss } = parseEnemyTemplateId(templateId);
     if (isBoss && rawSlug) {
-      if (UNIQUE_BOSS_SPRITES.has(rawSlug)) {return `${UNIQUE_ART_BASE}/bosses/${rawSlug}.png`;}
+      if (UNIQUE_BOSS_SPRITES.has(rawSlug)) {
+        return resolveUniqueArtPath("bosses", rawSlug, uniqueArtManifest.bossVariants, `boss:${templateId}`);
+      }
       if (BROKEN_BOSS_SPRITES.has(rawSlug)) {return null;}
       return `${SPRITE_BASE}/bosses/${rawSlug}.png`;
     }
+    if (rawSlug && UNIQUE_ENEMY_SPRITES.has(rawSlug)) {
+      return resolveUniqueArtPath("enemies", rawSlug, uniqueArtManifest.enemyVariants, `enemy:${templateId}`);
+    }
     if (resolvedSlug) {
-      if (UNIQUE_ENEMY_SPRITES.has(resolvedSlug)) {return `${UNIQUE_ART_BASE}/enemies/${resolvedSlug}.png`;}
+      if (UNIQUE_ENEMY_SPRITES.has(resolvedSlug)) {
+        return resolveUniqueArtPath("enemies", resolvedSlug, uniqueArtManifest.enemyVariants, `enemy:${templateId}`);
+      }
       if (!isBoss && BROKEN_ENEMY_SPRITES.has(resolvedSlug)) {return null;}
       return `${SPRITE_BASE}/${isBoss ? "bosses" : "enemies"}/${resolvedSlug}.png`;
     }
     if (KNOWN_ENEMY_SPRITES.has(rawSlug)) {
-      if (UNIQUE_ENEMY_SPRITES.has(rawSlug)) {return `${UNIQUE_ART_BASE}/enemies/${rawSlug}.png`;}
+      if (UNIQUE_ENEMY_SPRITES.has(rawSlug)) {
+        return resolveUniqueArtPath("enemies", rawSlug, uniqueArtManifest.enemyVariants, `enemy:${templateId}`);
+      }
       if (BROKEN_ENEMY_SPRITES.has(rawSlug)) {return null;}
       return `${SPRITE_BASE}/enemies/${rawSlug}.png`;
     }
@@ -126,18 +180,24 @@
   }
 
   function getClassPortrait(classId: string): string | null {
-    if (UNIQUE_CLASS_PORTRAITS.has(classId)) {return `${UNIQUE_ART_BASE}/portraits/${classId}.png`;}
+    if (UNIQUE_CLASS_PORTRAITS.has(classId)) {
+      return resolveUniqueArtPath("portraits", classId, uniqueArtManifest.portraitVariants, `portrait:${classId}`, true);
+    }
     return CLASS_PORTRAITS[classId] || null;
   }
 
   function getClassSprite(classId: string): string | null {
-    if (UNIQUE_CLASS_PORTRAITS.has(classId)) {return `${UNIQUE_ART_BASE}/portraits/${classId}.png`;}
+    if (UNIQUE_CLASS_PORTRAITS.has(classId)) {
+      return resolveUniqueArtPath("portraits", classId, uniqueArtManifest.portraitVariants, `portrait:${classId}`, true);
+    }
     return CLASS_PORTRAITS[classId] || null;
   }
 
   function getMercenarySprite(role: string): string | null {
     const slug = role.replace(/\s+/g, "_").toLowerCase();
-    if (UNIQUE_MERCENARY_SPRITES.has(slug)) {return `${UNIQUE_ART_BASE}/mercenaries/${slug}.png`;}
+    if (UNIQUE_MERCENARY_SPRITES.has(slug)) {
+      return resolveUniqueArtPath("mercenaries", slug, uniqueArtManifest.mercenaryVariants, `mercenary:${slug}`, true);
+    }
     return `${SPRITE_BASE}/mercenaries/${slug}.png`;
   }
 
@@ -157,7 +217,7 @@
 
   function getItemSprite(sourceId: string, rarity: string = "", _slot: string = ""): string | null {
     if ((rarity === "brown" || rarity === "unique") && UNIQUE_ITEM_SPRITES.has(sourceId)) {
-      return `${UNIQUE_ART_BASE}/items/${sourceId}.png`;
+      return resolveUniqueArtPath("items", sourceId, uniqueArtManifest.itemVariants, `item:${sourceId}`, true);
     }
     return ITEM_SPRITES[sourceId] || null;
   }

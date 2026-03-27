@@ -313,6 +313,8 @@ This means:
 
 ## Implementation Order
 
+Phases 1-6 describe the shell rebuild that has already been largely executed across the live browser flow. The next wave should stay inside that new Blood Rogue presentation and focus on readability, interaction quality, and repeated-surface art instead of reopening the overall shell structure.
+
 ### Phase 1: Character Select Wizard (highest impact, most broken screen)
 1. Add `charSelectStep` to `appState.ui` (1 = hero, 2 = merc)
 2. Rewrite `character-select-view.ts` render function
@@ -352,6 +354,42 @@ This means:
 2. Better saved-run card
 3. Smooth animations
 
+### Phase 7: Combat Readability Pass (top priority after shell rebuild)
+1. Keep the battleground as the dominant region and stop support UI from stealing vertical space
+2. Make enemy intent, target state, and act-order cues readable in one glance
+3. Make playable, unplayable, exhausted, and selected card states visually obvious without extra prose
+4. Tighten buff, debuff, potion, vitality, treasury, and weapon surfacing so they stay readable without crowding the arena
+5. Keep monster bars, status chips, and party reads aligned across encounter shapes
+6. Update screenshots and combat-shell tests after each pass
+
+### Phase 8: World Map Clarity Pass
+1. Emphasize current node, legal next nodes, and route completion state more strongly than decorative map texture
+2. Keep route intel optional so the board remains the primary object on screen
+3. Simplify labels and visual noise around actionable path data
+4. Strengthen selected-node and locked-node contrast on the darker board
+5. Update screenshots and shell tests
+
+### Phase 9: Character-Select Identity Pass
+1. Preserve the one-row campfire stage, but make class identity readable before the player reads the labels
+2. Increase selected-class emphasis versus the rest of the lineup through framing, lighting, and stage treatment
+3. Improve the dossier panel so it feels like a payoff for selection rather than a second screen competing with the lineup
+4. Keep the background readable while making silhouettes and portraits carry more of the class identity
+5. Update screenshots and shell tests
+
+### Phase 10: Interaction Polish Pass
+1. Unify hover, focus, pressed, selected, and disabled states across buttons, cards, map nodes, overlays, and menus
+2. Add restrained motion for overlay open or close, reward claim, route selection, combat feedback, and other high-frequency interactions
+3. Keep motion informative and atmospheric rather than decorative
+4. Make desktop and mobile interactions feel like the same product family
+5. Update screenshots and interaction-focused checks where needed
+
+### Phase 11: Content Art Beyond Town Portraits
+1. Add mercenary contract portraits or stage art so companion choice reads as strongly as town NPCs do now
+2. Improve boss, elite, and repeated enemy presentation consistency
+3. Add bespoke key art where class select, reward, or summary surfaces still lean too hard on generic framing
+4. Keep future prompt-writing explicit: character or subject description first, differentiation second, output requirements third, style last
+5. Track any new sourced or generated assets in the relevant support docs if sourcing or licensing changes
+
 ---
 
 ## Test Strategy
@@ -377,6 +415,11 @@ Key constraint: tests assert on specific text strings from the prose we're remov
 | 4 | world-map-view.ts, tests | Simplify |
 | 5 | reward-view.ts, tests | Strip prose |
 | 6 | front-door-view.ts, styles.css | Polish |
+| 7 | combat-view.ts, styles.css, tests | Readability pass |
+| 8 | world-map-view.ts, styles.css, tests | Route clarity pass |
+| 9 | character-select-view.ts, styles.css, tests | Identity pass |
+| 10 | styles.css, shared shell utilities, targeted tests | Interaction polish |
+| 11 | assets/curated/*, relevant UI views, support docs | Art pass |
 
 ---
 

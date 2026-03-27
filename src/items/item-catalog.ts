@@ -18,16 +18,28 @@
     gloves: "Gloves", boots: "Boots", belt: "Belts", ring: "Rings", amulet: "Amulets",
   };
 
-  const WEAPON_PROFICIENCY_BONUS_PROFILES: Record<string, Record<string, number>> = {
-    Swords: { combat_skills: 1, masteries: 1, combat: 1 },
-    Maces: { combat_skills: 1, combat: 1 },
-    Polearms: { combat_skills: 1, javelin: 1 },
-    Spears: { combat_skills: 1, javelin: 2 },
-    Javelins: { javelin: 2 },
-    Bows: { bow: 2 },
-    Crossbows: { bow: 2 },
-    Wands: { poison_bone: 2, curses: 1 },
-    Staves: { fire: 3, cold: 3, lightning: 3, elemental: 2 },
+  const WEAPON_ATTACK_PROFILES: Record<string, Record<string, number>> = {
+    Swords: { combat_skills: 1, masteries: 1, combat: 2, martial_arts: 2 },
+    Maces: { combat_skills: 2, combat: 3, masteries: 3, offensive_auras: 2, defensive_auras: 2, shape_shifting: 2, elemental: 2 },
+    Polearms: { combat_skills: 2, javelin: 2 },
+    Spears: { combat_skills: 1, javelin: 3 },
+    Javelins: { javelin: 3 },
+    Bows: { bow: 3 },
+    Crossbows: { bow: 3 },
+    Wands: { poison_bone: 4 },
+    Staves: { fire: 3, cold: 3, lightning: 3, elemental: 3 },
+  };
+
+  const WEAPON_SUPPORT_PROFILES: Record<string, Record<string, number>> = {
+    Swords: { masteries: 1, warcries: 1, combat: 1, offensive_auras: 1, defensive_auras: 1, shadow: 2, martial_arts: 1 },
+    Maces: { combat: 2, combat_skills: 1, masteries: 3, warcries: 3, offensive_auras: 3, defensive_auras: 3, shape_shifting: 2, elemental: 2, summoning: 2 },
+    Polearms: { combat_skills: 1, javelin: 1, passive: 1, warcries: 1 },
+    Spears: { javelin: 2, passive: 1 },
+    Javelins: { javelin: 2, passive: 2 },
+    Bows: { bow: 2, passive: 2 },
+    Crossbows: { bow: 2, passive: 2 },
+    Wands: { poison_bone: 3, curses: 3, summoning: 4 },
+    Staves: { fire: 2, cold: 2, lightning: 2, elemental: 3 },
   };
 
   const PRIMARY_WEAPON_PROFICIENCY_BY_FAMILY: Record<string, string> = {
@@ -44,13 +56,13 @@
 
   const WEAPON_DAMAGE_PROFILES: Record<string, WeaponDamageDefinition[]> = {
     Swords: [{ type: "lightning", amount: 1, proficiency: "combat_skills" }],
-    Maces: [{ type: "fire", amount: 1, proficiency: "combat" }],
-    Polearms: [{ type: "fire", amount: 1, proficiency: "combat_skills" }],
-    Spears: [{ type: "cold", amount: 1, proficiency: "javelin" }],
-    Javelins: [{ type: "lightning", amount: 1, proficiency: "javelin" }],
-    Bows: [{ type: "fire", amount: 1, proficiency: "bow" }],
-    Crossbows: [{ type: "cold", amount: 1, proficiency: "bow" }],
-    Wands: [{ type: "poison", amount: 2, proficiency: "poison_bone" }],
+    Maces: [{ type: "fire", amount: 2, proficiency: "combat" }],
+    Polearms: [{ type: "fire", amount: 2, proficiency: "combat_skills" }],
+    Spears: [{ type: "cold", amount: 2, proficiency: "javelin" }],
+    Javelins: [{ type: "lightning", amount: 2, proficiency: "javelin" }],
+    Bows: [{ type: "fire", amount: 2, proficiency: "bow" }],
+    Crossbows: [{ type: "cold", amount: 2, proficiency: "bow" }],
+    Wands: [{ type: "poison", amount: 4, proficiency: "poison_bone" }],
     Staves: [
       { type: "fire", amount: 3, proficiency: "fire" },
       { type: "cold", amount: 3, proficiency: "cold" },
@@ -59,12 +71,13 @@
   };
 
   const WEAPON_EFFECT_PROFILES: Record<string, WeaponEffectDefinition[]> = {
-    Maces: [{ kind: "crushing", amount: 1 }],
-    Polearms: [{ kind: "slow", amount: 1, proficiency: "combat_skills" }, { kind: "slow", amount: 1, proficiency: "javelin" }],
-    Spears: [{ kind: "slow", amount: 1, proficiency: "javelin" }],
-    Javelins: [{ kind: "shock", amount: 1, proficiency: "javelin" }],
-    Bows: [{ kind: "burn", amount: 1, proficiency: "bow" }],
-    Crossbows: [{ kind: "freeze", amount: 1, proficiency: "bow" }],
+    Maces: [{ kind: "crushing", amount: 2 }],
+    Polearms: [{ kind: "slow", amount: 2, proficiency: "combat_skills" }, { kind: "slow", amount: 1, proficiency: "javelin" }],
+    Spears: [{ kind: "slow", amount: 2, proficiency: "javelin" }],
+    Javelins: [{ kind: "shock", amount: 2, proficiency: "javelin" }],
+    Bows: [{ kind: "burn", amount: 2, proficiency: "bow" }],
+    Crossbows: [{ kind: "freeze", amount: 2, proficiency: "bow" }],
+    Wands: [{ kind: "slow", amount: 2, proficiency: "curses" }],
     Staves: [
       { kind: "burn", amount: 1, proficiency: "fire" },
       { kind: "freeze", amount: 1, proficiency: "cold" },
@@ -128,9 +141,9 @@
     ],
     Wands: [
       { kind: "damage", type: "poison" as WeaponDamageType },
-      { kind: "damage", type: "fire" as WeaponDamageType },
-      { kind: "effect", effectKind: "burn" as WeaponEffectKind },
-      { kind: "effect", effectKind: "shock" as WeaponEffectKind },
+      { kind: "damage", type: "cold" as WeaponDamageType },
+      { kind: "effect", effectKind: "slow" as WeaponEffectKind },
+      { kind: "effect", effectKind: "freeze" as WeaponEffectKind },
     ],
     Staves: [
       { kind: "damage", type: "fire" as WeaponDamageType },
@@ -147,17 +160,36 @@
   const ARMOR_IMMUNITY_POOL: DamageType[] = ["fire", "cold", "lightning", "poison"];
   const UNIQUE_ARMOR_IMMUNITY_CHANCE = 0.1;
 
-  function scaleWeaponTreeBonus(baseValue: number, progressionTier: number) {
-    return Math.max(1, baseValue + Math.floor(Math.max(0, progressionTier - 1) / 4));
+  function getWeaponTierTempoBonus(family: string, progressionTier: number) {
+    const tier = Math.max(1, progressionTier);
+    const genericBonus =
+      tier >= 8 ? 3 :
+      tier >= 6 ? 2 :
+      tier >= 4 ? 1 :
+      0;
+    const martialBonus =
+      ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows"].includes(family)
+        ? (tier >= 7 ? 2 : tier >= 5 ? 1 : 0)
+        : 0;
+    return genericBonus + martialBonus;
   }
 
-  function scaleWeaponDamageAmount(baseValue: number, progressionTier: number) {
-    return Math.max(1, baseValue + Math.floor(Math.max(0, progressionTier - 1) / 4));
+  function scaleWeaponTreeBonus(baseValue: number, progressionTier: number, family: string) {
+    return Math.max(1, baseValue + Math.floor(Math.max(0, progressionTier - 1) / 2) + getWeaponTierTempoBonus(family, progressionTier));
   }
 
-  function scaleWeaponEffectAmount(effect: WeaponEffectDefinition, progressionTier: number) {
-    const step = effect.kind === "crushing" ? 3 : 5;
-    return Math.max(1, toNumber(effect.amount, 1) + Math.floor(Math.max(0, progressionTier - 1) / step));
+  function scaleWeaponDamageAmount(baseValue: number, progressionTier: number, family: string) {
+    return Math.max(1, baseValue + Math.floor(Math.max(0, progressionTier - 1) / 2) + getWeaponTierTempoBonus(family, progressionTier));
+  }
+
+  function scaleWeaponEffectAmount(effect: WeaponEffectDefinition, progressionTier: number, family: string) {
+    const step = effect.kind === "crushing" ? 2 : 3;
+    return Math.max(
+      1,
+      toNumber(effect.amount, 1) +
+        Math.floor(Math.max(0, progressionTier - 1) / step) +
+        Math.floor(getWeaponTierTempoBonus(family, progressionTier) / 2)
+    );
   }
 
   function scaleArmorResistanceAmount(baseValue: number, progressionTier: number, type: DamageType = "physical") {
@@ -308,21 +340,21 @@
       return undefined;
     }
 
-    const attackDamageByProficiency = Object.entries(WEAPON_PROFICIENCY_BONUS_PROFILES[family] || {}).reduce((total, [proficiency, value]) => {
-      total[proficiency] = scaleWeaponTreeBonus(value, progressionTier);
+    const attackDamageByProficiency = Object.entries(WEAPON_ATTACK_PROFILES[family] || {}).reduce((total, [proficiency, value]) => {
+      total[proficiency] = scaleWeaponTreeBonus(value, progressionTier, family);
       return total;
     }, {} as Record<string, number>);
-    const supportValueByProficiency = Object.entries(WEAPON_PROFICIENCY_BONUS_PROFILES[family] || {}).reduce((total, [proficiency, value]) => {
-      total[proficiency] = scaleWeaponTreeBonus(value, progressionTier);
+    const supportValueByProficiency = Object.entries(WEAPON_SUPPORT_PROFILES[family] || {}).reduce((total, [proficiency, value]) => {
+      total[proficiency] = scaleWeaponTreeBonus(value, progressionTier, family);
       return total;
     }, {} as Record<string, number>);
     const typedDamage = (WEAPON_DAMAGE_PROFILES[family] || []).map((damageEntry) => ({
       ...damageEntry,
-      amount: scaleWeaponDamageAmount(damageEntry.amount, progressionTier),
+      amount: scaleWeaponDamageAmount(damageEntry.amount, progressionTier, family),
     }));
     const effects = (WEAPON_EFFECT_PROFILES[family] || []).map((effect) => ({
       ...effect,
-      amount: scaleWeaponEffectAmount(effect, progressionTier),
+      amount: scaleWeaponEffectAmount(effect, progressionTier, family),
     }));
 
     if (
@@ -520,7 +552,7 @@
       if (selected.kind === "damage" && selected.type) {
         typedDamage.push({
           type: selected.type,
-          amount: scaleWeaponDamageAmount(1, itemDef.progressionTier),
+          amount: scaleWeaponDamageAmount(1, itemDef.progressionTier, itemDef.family || ""),
           ...(primaryProficiency ? { proficiency: primaryProficiency } : {}),
         });
         continue;
@@ -528,7 +560,7 @@
       if (selected.kind === "effect" && selected.effectKind) {
         effects.push({
           kind: selected.effectKind,
-          amount: scaleWeaponEffectAmount({ kind: selected.effectKind, amount: 1 }, itemDef.progressionTier),
+          amount: scaleWeaponEffectAmount({ kind: selected.effectKind, amount: 1 }, itemDef.progressionTier, itemDef.family || ""),
           ...(primaryProficiency ? { proficiency: primaryProficiency } : {}),
         });
       }

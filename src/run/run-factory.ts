@@ -42,6 +42,26 @@
   const CONSEQUENCE_ENCOUNTER_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
   const CONSEQUENCE_REWARD_ZONE_ROLES = new Set(["branchBattle", "branchMiniboss", "boss"]);
 
+  function hashString(value: string) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function normalizeRunSeed(seed: unknown, fallbackSource: string) {
+    const parsed = Number(seed);
+    if (Number.isFinite(parsed)) {
+      const normalized = parsed >>> 0;
+      if (normalized > 0) {
+        return normalized;
+      }
+    }
+    return hashString(fallbackSource) || 1;
+  }
+
   function getCombatBonuses(run: RunState, content: GameContent, profile?: ProfileState | null): ItemBonusSet {
     const total: ItemBonusSet = {};
     addBonusSet(total, buildProgressionBonuses(run, content));
@@ -55,6 +75,7 @@
   }
 
   function hydrateRun(run: RunState, content: GameContent) {
+    run.seed = normalizeRunSeed(run.seed, [run.id || "run", run.classId || "class", String(run.level || 1)].join("|"));
     run.world = {
       ...createDefaultWorldState(),
       ...(run.world || {}),
@@ -140,16 +161,37 @@
     return run;
   }
 
-  function createRun({ content, seedBundle, classDefinition, heroDefinition, mercenaryId, starterDeck }: { content: GameContent; seedBundle: SeedBundle; classDefinition: ClassDefinition; heroDefinition: HeroDefinition; mercenaryId: string; starterDeck: string[] }) {
+  function createRun({
+    content,
+    seedBundle,
+    classDefinition,
+    heroDefinition,
+    mercenaryId,
+    starterDeck,
+    runSeed,
+  }: {
+    content: GameContent;
+    seedBundle: SeedBundle;
+    classDefinition: ClassDefinition;
+    heroDefinition: HeroDefinition;
+    mercenaryId: string;
+    starterDeck: string[];
+    runSeed?: number;
+  }) {
     const mercenaryDefinition = content.mercenaryCatalog[mercenaryId];
     const actSeeds = Array.isArray(seedBundle?.zones?.acts) ? seedBundle.zones.acts : [];
     const bossEntries = Array.isArray(seedBundle?.bosses?.entries) ? seedBundle.bosses.entries : [];
     const acts = actSeeds.map((actSeed: ActSeed) =>
       createActState(actSeed, bossEntries.find((entry: BossEntry) => entry.id === actSeed.boss.id) || null, content)
     );
+    const seed = normalizeRunSeed(
+      runSeed,
+      [classDefinition.id, mercenaryId, starterDeck.join("|"), String(heroDefinition.maxLife), String(actSeeds.length)].join("|")
+    );
 
     const run = {
-      id: `run_${Date.now()}`,
+      id: `run_${classDefinition.id}_${seed.toString(36)}`,
+      seed,
       currentActIndex: 0,
       acts,
       actNumber: 1,
@@ -171,7 +213,7 @@
       xp: 0,
       level: 1,
       belt: {
-        current: 3,
+        current: 2,
         max: 3,
       },
       inventory: createDefaultInventory(),

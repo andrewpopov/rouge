@@ -206,7 +206,6 @@
           <h1 class="welcome-title">
             <img class="welcome-title-logo" src="./assets/curated/title-screen/blood-rogue-logo.png" alt="Blood Rogue" />
           </h1>
-          <hr class="welcome-divider" />
           <p class="welcome-intro">${introParagraph}</p>
           <p class="welcome-tagline">
             ${instructionText}

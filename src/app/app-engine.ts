@@ -126,6 +126,7 @@
 
     const heroDefinition = classRegistry.createHeroFromClass(state.content, classDefinition);
     const starterDeck = classRegistry.getStarterDeckForClass(state.content, classDefinition.id);
+    const runSeed = Math.max(1, Math.floor(state.randomFn() * 0x100000000) >>> 0);
     state.run = runFactory.createRun({
       content: state.content,
       seedBundle: state.seedBundle,
@@ -133,6 +134,7 @@
       heroDefinition,
       mercenaryId: state.ui.selectedMercenaryId,
       starterDeck,
+      runSeed,
     });
     syncProfileMetaSelection(state.profile, classDefinition.id);
     getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);

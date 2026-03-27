@@ -101,7 +101,24 @@
     let guardBonus = 0;
     let healBonus = 0;
 
-    if (actNumber === 2) {
+    if (actNumber === 1) {
+      if (boss) {
+        lifeMultiplier = 1;
+        lifeBonus = 0;
+        attackBonus = 0;
+        guardBonus = 0;
+      } else if (elite) {
+        lifeMultiplier = 1.12;
+        lifeBonus = 3;
+        attackBonus = 1;
+        guardBonus = 1;
+      } else {
+        lifeMultiplier = 1;
+        lifeBonus = 0;
+        attackBonus = 0;
+        guardBonus = 0;
+      }
+    } else if (actNumber === 2) {
       if (boss) {
         lifeMultiplier = 1.15;
         lifeBonus = 6;
@@ -336,14 +353,14 @@
         {
           kind: "charge",
           label: `${bossName} Venom Spit`,
-          value: scale.attack + 1,
+          value: scale.attack + 5,
           target: "hero",
-          secondaryValue: Math.max(2, scale.guard),
+          secondaryValue: Math.max(3, scale.guard + 1),
           damageType: "poison",
         },
-        { kind: "attack_poison", label: `${bossName} Venom Spit`, value: scale.attack + 1, target: "hero", secondaryValue: 1 },
-        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(4, scale.attack - 1), target: "hero", secondaryValue: 1 },
-        { kind: "attack", label: `${bossName} Skewer`, value: scale.attack, target: "lowest_life" },
+        { kind: "attack_poison", label: `${bossName} Venom Spit`, value: scale.attack + 5, target: "hero", secondaryValue: 4 },
+        { kind: "attack_poison_all", label: `${bossName} Poison Burst`, value: Math.max(4, scale.attack), secondaryValue: 2 },
+        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(6, scale.attack + 3), target: "hero", secondaryValue: 4 },
       ];
     }
     if (bossId === "duriel") {
@@ -386,14 +403,14 @@
         {
           kind: "charge",
           label: `${bossName} Apocalypse`,
-          value: scale.attack + 3,
+          value: scale.attack + 1,
           target: "all_allies",
-          secondaryValue: Math.max(4, scale.guard + 1),
+          secondaryValue: Math.max(3, scale.guard),
           damageType: "fire",
         },
-        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: scale.attack + 3, secondaryValue: 4 },
-        { kind: "attack_burn", label: `${bossName} Firestorm`, value: scale.attack + 2, target: "hero", secondaryValue: 2 },
-        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: scale.attack + 2, target: "hero" },
+        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: scale.attack + 1, secondaryValue: 2 },
+        { kind: "attack_burn", label: `${bossName} Firestorm`, value: scale.attack + 1, target: "hero", secondaryValue: 1 },
+        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: scale.attack + 1, target: "hero" },
       ];
     }
     if (bossId === "baal") {
@@ -498,7 +515,7 @@
 
   function getBossScaleAdjustments(bossId: string) {
     if (bossId === "andariel") {
-      return { lifeMultiplier: 1.05, attackBonus: -1, guardBonus: 0, healBonus: 0 };
+      return { lifeMultiplier: 1.2, attackBonus: 2, guardBonus: 0, healBonus: 0 };
     }
     if (bossId === "duriel") {
       return { lifeMultiplier: 1.45, attackBonus: 2, guardBonus: 3, healBonus: 0 };
@@ -507,7 +524,7 @@
       return { lifeMultiplier: 1.6, attackBonus: 2, guardBonus: 3, healBonus: 1 };
     }
     if (bossId === "diablo") {
-      return { lifeMultiplier: 1.9, attackBonus: 2, guardBonus: 2, healBonus: 1 };
+      return { lifeMultiplier: 1.8, attackBonus: 0, guardBonus: 1, healBonus: 1 };
     }
     if (bossId === "baal") {
       return { lifeMultiplier: 2.15, attackBonus: 4, guardBonus: 6, healBonus: 2 };

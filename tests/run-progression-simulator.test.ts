@@ -49,3 +49,29 @@ test("run progression simulator can skip checkpoint probes for fast rng sweeps",
   assert.ok(policyReport.checkpoints.length >= 1);
   assert.equal(policyReport.checkpoints[0].probes.length, 0);
 });
+
+test("run progression simulator is deterministic for the same seed", () => {
+  const options = {
+    classIds: ["barbarian"],
+    policyIds: ["aggressive"],
+    throughActNumber: 2,
+    probeRuns: 0,
+    maxCombatTurns: 24,
+    seedOffset: 3,
+  };
+
+  const firstReport = runProgressionSimulationReport(options);
+  const secondReport = runProgressionSimulationReport(options);
+  const firstSnapshot = JSON.stringify({
+    throughActNumber: firstReport.throughActNumber,
+    classReports: firstReport.classReports,
+  });
+  const secondSnapshot = JSON.stringify({
+    throughActNumber: secondReport.throughActNumber,
+    classReports: secondReport.classReports,
+  });
+
+  if (firstSnapshot !== secondSnapshot) {
+    throw new Error("Progression simulator report drifted for the same seed.");
+  }
+});

@@ -98,26 +98,31 @@
 
   function getTreeArchetype(treeName: string, index: number) {
     const normalized = String(treeName || "").toLowerCase();
+    const normalizedWords = normalized.replace(/[^a-z]+/g, " ").trim();
+
+    if (normalizedWords === "offensive auras" || normalizedWords.includes("offensive aura")) {
+      return TREE_ARCHETYPES.support;
+    }
 
     if (
       ["elemental", "fire", "cold", "lightning", "poison", "bone", "trap", "curses", "orb", "sorcer", "mage"].some((token) =>
-        normalized.includes(token)
+        normalizedWords.includes(token)
       )
     ) {
       return TREE_ARCHETYPES.arcane;
     }
 
     if (
-      ["summon", "summoning", "warcries", "passive", "shadow", "spirit", "druid"].some((token) => normalized.includes(token))
+      ["summon", "summoning", "warcries", "passive", "shadow", "spirit", "druid"].some((token) => normalizedWords.includes(token))
     ) {
       return TREE_ARCHETYPES.command;
     }
 
-    if (["defensive", "holy", "shape", "masteries", "discipline"].some((token) => normalized.includes(token))) {
+    if (["defensive", "offensive aura", "holy", "shape", "masteries", "discipline"].some((token) => normalizedWords.includes(token))) {
       return TREE_ARCHETYPES.support;
     }
 
-    if (["combat", "bow", "crossbow", "javelin", "spear", "martial"].some((token) => normalized.includes(token))) {
+    if (["combat", "bow", "crossbow", "javelin", "spear", "martial"].some((token) => normalizedWords.includes(token))) {
       return TREE_ARCHETYPES.martial;
     }
 

@@ -330,8 +330,13 @@ interface ActionHandlerContext {
   syncCombatResultAndRender: () => void;
 }
 
+interface CombatFxActionOptions {
+  playedCardEl?: HTMLElement | null;
+  sequenceEnemyPhase?: boolean;
+}
+
 interface ActionDispatcherCombatFxApi {
-  doCombatAction(combat: CombatState, action: () => void, syncAndRender: () => void): void;
+  doCombatAction(combat: CombatState, action: () => void, syncAndRender: () => void, options?: CombatFxActionOptions): void;
   addTempClass(el: HTMLElement, cls: string, durationMs: number): void;
 }
 
@@ -656,6 +661,11 @@ interface Window {
     portraits: string[];
     mercenaries: string[];
     items?: string[];
+    enemyVariants?: Record<string, string[]>;
+    bossVariants?: Record<string, string[]>;
+    portraitVariants?: Record<string, string[]>;
+    mercenaryVariants?: Record<string, string[]>;
+    itemVariants?: Record<string, string[]>;
   };
   ROUGE_ASSET_MAP: AssetMapApi;
   __ROUGE_COMBAT_BG: { getCombatBackground(zoneTitle: string): string };

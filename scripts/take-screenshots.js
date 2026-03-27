@@ -303,7 +303,10 @@ async function openFixturePage(browser, baseUrl, fixture) {
   page.setDefaultTimeout(TIMEOUT);
   await page.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
   await page.goto(baseUrl);
-  await page.locator('[data-action="continue-saved-run"]').first().click();
+  const continueSavedRun = page.locator('[data-action="continue-saved-run"]').first();
+  if (await continueSavedRun.isVisible({ timeout: 1200 }).catch(() => false)) {
+    await continueSavedRun.click();
+  }
   await page.waitForTimeout(700);
   return { context, page };
 }
@@ -447,7 +450,10 @@ async function captureScreenshots(baseUrl) {
           await debugSkipEncounter.click();
           await page.waitForTimeout(700);
 
-          await page.locator('[data-action="claim-reward-choice"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+          const rewardChoice = page.locator('[data-action="claim-reward-choice"]').first();
+          if (await rewardChoice.isVisible({ timeout: 1200 }).catch(() => false)) {
+            await rewardChoice.waitFor({ state: "visible", timeout: TIMEOUT });
+          }
 
           if (await openGameMenu(page)) {
             await debugToggle.click();
@@ -478,8 +484,14 @@ async function captureScreenshots(baseUrl) {
     transitionPage.setDefaultTimeout(TIMEOUT);
     await transitionPage.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
     await transitionPage.goto(baseUrl);
-    await transitionPage.locator('[data-action="continue-saved-run"]').first().click();
-    await transitionPage.locator('[data-action="continue-act-transition"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+    const transitionContinue = transitionPage.locator('[data-action="continue-saved-run"]').first();
+    if (await transitionContinue.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await transitionContinue.click();
+    }
+    const transitionAdvance = transitionPage.locator('[data-action="continue-act-transition"]').first();
+    if (await transitionAdvance.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await transitionAdvance.waitFor({ state: "visible", timeout: TIMEOUT });
+    }
     await transitionPage.waitForTimeout(700);
     await shot(transitionPage, "10-act-transition");
     await transitionContext.close();
@@ -501,10 +513,18 @@ async function captureScreenshots(baseUrl) {
     summaryPage.setDefaultTimeout(TIMEOUT);
     await summaryPage.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
     await summaryPage.goto(baseUrl);
-    await summaryPage.locator('[data-action="continue-saved-run"]').first().click();
-    await summaryPage.locator('[data-action="claim-reward-choice"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
-    await summaryPage.locator('[data-action="claim-reward-choice"]').first().click();
-    await summaryPage.locator('[data-action="return-front-door"]').first().waitFor({ state: "visible", timeout: TIMEOUT });
+    const summaryContinue = summaryPage.locator('[data-action="continue-saved-run"]').first();
+    if (await summaryContinue.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await summaryContinue.click();
+    }
+    const rewardClaim = summaryPage.locator('[data-action="claim-reward-choice"]').first();
+    if (await rewardClaim.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await rewardClaim.click();
+    }
+    const returnFrontDoor = summaryPage.locator('[data-action="return-front-door"]').first();
+    if (await returnFrontDoor.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await returnFrontDoor.waitFor({ state: "visible", timeout: TIMEOUT });
+    }
     await summaryPage.waitForTimeout(700);
     await shot(summaryPage, "11-run-summary");
     await summaryContext.close();

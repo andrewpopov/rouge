@@ -9,6 +9,51 @@
     listEvolvableCards,
   } = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
 
+  function hashString(value: string) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function getRunSeed(run: RunState) {
+    const parsed = Number(run?.seed);
+    if (Number.isFinite(parsed)) {
+      const normalized = parsed >>> 0;
+      if (normalized > 0) {
+        return normalized;
+      }
+    }
+    return hashString([run?.id || "run", run?.classId || "class"].join("|")) || 1;
+  }
+
+  function createActionRandom(run: RunState, actionId: string): RandomFn {
+    const deckSignature = Array.isArray(run?.deck) ? run.deck.join("|") : "";
+    let state = hashString([
+      String(getRunSeed(run)),
+      actionId,
+      String(run?.actNumber || 1),
+      String(run?.gold || 0),
+      String(run?.town?.sagePurgeCount || 0),
+      String(run?.summary?.encountersCleared || 0),
+      deckSignature,
+    ].join("|")) || 1;
+    return () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 0x100000000;
+    };
+  }
+
+  function pickRandomValue<T>(candidates: T[], randomFn: RandomFn): T | null {
+    if (!Array.isArray(candidates) || candidates.length === 0) {
+      return null;
+    }
+    const index = Math.floor(randomFn() * candidates.length);
+    return candidates[Math.max(0, Math.min(candidates.length - 1, index))] || candidates[0] || null;
+  }
+
   // ── Blacksmith: evolution + generic upgrades ──
 
   function buildBlacksmithActions(run: RunState, content: GameContent): TownAction[] {
@@ -258,8 +303,11 @@
       }
 
       run.gold -= cost;
-      const randomIndex = Math.floor(Math.random() * candidates.length);
-      const newCardId = candidates[randomIndex];
+      const randomFn = createActionRandom(run, actionId);
+      const newCardId = pickRandomValue(candidates, randomFn);
+      if (!newCardId) {
+        return { ok: false, message: "No transform candidates available for this tier." };
+      }
       run.deck[deckIndex] = newCardId;
 
       const newCard = content.cardCatalog[newCardId];
@@ -349,9 +397,10 @@
     }
 
     run.gold -= cost;
+    const randomFn = createActionRandom(run, actionId);
 
     // Roll outcome: 50% card, 30% gold refund, 20% nothing special
-    const roll = Math.random();
+    const roll = randomFn();
 
     if (tierId === "bronze") {
       if (roll < 0.5) {
@@ -360,7 +409,10 @@
           .filter((card) => (card.tier || 0) === 1)
           .map((card) => card.id);
         if (tier1Cards.length > 0) {
-          const cardId = tier1Cards[Math.floor(Math.random() * tier1Cards.length)];
+          const cardId = pickRandomValue(tier1Cards, randomFn);
+          if (!cardId) {
+            return { ok: true, message: `Gamble reveals: a pouch of ${Math.floor(cost * 0.4)} gold. Better luck next time.` };
+          }
           run.deck.push(cardId);
           const card = content.cardCatalog[cardId];
           return { ok: true, message: `Gamble reveals: ${card?.title || cardId}! Added to your deck.` };
@@ -379,7 +431,10 @@
           .filter((card) => (card.tier || 0) === 2)
           .map((card) => card.id);
         if (tier2Cards.length > 0) {
-          const cardId = tier2Cards[Math.floor(Math.random() * tier2Cards.length)];
+          const cardId = pickRandomValue(tier2Cards, randomFn);
+          if (!cardId) {
+            return { ok: true, message: `Gamble reveals: a sack of ${Math.floor(cost * 0.5)} gold.` };
+          }
           run.deck.push(cardId);
           const card = content.cardCatalog[cardId];
           return { ok: true, message: `Gamble reveals: ${card?.title || cardId}! Added to your deck.` };
@@ -396,7 +451,10 @@
         .filter((card) => (card.tier || 0) === 1)
         .map((card) => card.id);
       if (tier1Cards.length > 0) {
-        const cardId = tier1Cards[Math.floor(Math.random() * tier1Cards.length)];
+        const cardId = pickRandomValue(tier1Cards, randomFn);
+        if (!cardId) {
+          return { ok: true, message: "Gamble reveals: dust. The gambler shrugs." };
+        }
         run.deck.push(cardId);
         const card = content.cardCatalog[cardId];
         return { ok: true, message: `Gamble reveals: ${card?.title || cardId}. Not quite what you hoped for.` };
@@ -411,7 +469,12 @@
           .filter((card) => (card.tier || 0) >= 3)
           .map((card) => card.id);
         if (rareCards.length > 0) {
-          const cardId = rareCards[Math.floor(Math.random() * rareCards.length)];
+          const cardId = pickRandomValue(rareCards, randomFn);
+          if (!cardId) {
+            const refund = Math.floor(cost * 0.35);
+            run.gold += refund;
+            return { ok: true, message: `Gamble reveals: ${refund} gold and an empty box. The gambler smirks.` };
+          }
           run.deck.push(cardId);
           const card = content.cardCatalog[cardId];
           return { ok: true, message: `Gamble reveals: ${card?.title || cardId}! A rare find. Added to your deck.` };
@@ -423,7 +486,12 @@
           .filter((card) => (card.tier || 0) === 2)
           .map((card) => card.id);
         if (tier2Cards.length > 0) {
-          const cardId = tier2Cards[Math.floor(Math.random() * tier2Cards.length)];
+          const cardId = pickRandomValue(tier2Cards, randomFn);
+          if (!cardId) {
+            const refund = Math.floor(cost * 0.35);
+            run.gold += refund;
+            return { ok: true, message: `Gamble reveals: ${refund} gold and an empty box. The gambler smirks.` };
+          }
           run.deck.push(cardId);
           const card = content.cardCatalog[cardId];
           return { ok: true, message: `Gamble reveals: ${card?.title || cardId}. Added to your deck.` };

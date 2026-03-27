@@ -194,6 +194,7 @@ interface RunProgressionState {
 
 interface RunState {
   id: string;
+  seed: number;
   currentActIndex: number;
   acts: ActState[];
   actNumber: number;

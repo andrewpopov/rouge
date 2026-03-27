@@ -403,6 +403,7 @@ interface RunFactoryApi {
     heroDefinition: HeroDefinition;
     mercenaryId: string;
     starterDeck: string[];
+    runSeed?: number;
   }): RunState;
   hydrateRun(run: RunState, content: GameContent): RunState;
   createCombatOverrides(run: RunState, content: GameContent, profile?: ProfileState | null): CombatOverrides;

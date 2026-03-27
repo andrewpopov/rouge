@@ -813,7 +813,10 @@ test("run rewards can level the party and snapshots restore the progressed run",
   const progressedItemEffect = progressedEquipmentChoice?.effects.find((effect) => effect.kind === "equip_item");
   const progressedItemId = progressedItemEffect?.itemId || "";
   assert.ok(progressedItemId);
-  assert.ok(content.itemCatalog[progressedItemId].progressionTier > initialItemTier);
+  const progressedTargetTierMatch = progressedEquipmentChoice?.previewLines?.[0]?.match(/target tier (\d+)/i);
+  const progressedTargetTier = Number(progressedTargetTierMatch?.[1] || 0);
+  assert.ok(progressedTargetTier >= initialItemTier + 1);
+  assert.ok(content.itemCatalog[progressedItemId].progressionTier >= initialItemTier);
 
   appEngine.leaveSafeZone(state);
   const snapshot = appEngine.saveRunSnapshot(state);

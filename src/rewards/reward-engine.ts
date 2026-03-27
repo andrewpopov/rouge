@@ -225,6 +225,7 @@
           value: scaleGoldValue(effect.value + Math.max(0, actNumber - 1) * 2, profile),
         };
       }
+
       return { ...effect };
     });
     const choice = buildBoonChoice({

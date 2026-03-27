@@ -159,10 +159,7 @@
       case "select-enemy":
         if (appState.combat) {
           appState.combat.selectedEnemyId = actionEl.dataset.enemyId || "";
-          document.querySelectorAll("[data-action=\"select-enemy\"]").forEach((el) => {
-            const enemyId = (el as HTMLElement).dataset.enemyId || "";
-            el.classList.toggle("sprite--targeted", enemyId === appState.combat.selectedEnemyId);
-          });
+          render();
         }
         return true;
       case "play-card":
@@ -187,7 +184,8 @@
           doCombatAction(
             appState.combat,
             () => combatEngine.playCard(appState.combat, appState.content, instanceId, targetId),
-            syncCombatResultAndRender
+            syncCombatResultAndRender,
+            { playedCardEl: actionEl }
           );
         }
         return true;
@@ -205,7 +203,8 @@
           doCombatAction(
             appState.combat,
             () => combatEngine.endTurn(appState.combat),
-            syncCombatResultAndRender
+            syncCombatResultAndRender,
+            { sequenceEnemyPhase: true }
           );
         }
         return true;

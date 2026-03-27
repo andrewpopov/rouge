@@ -50,7 +50,7 @@
 
   function getLootSeed(run: RunState, zone: ZoneState | null, actNumber: number, encounterNumber: number) {
     return hashString([
-      run.id || "run",
+      String((toNumber((run as RunState | null)?.seed, 0) >>> 0) || hashString([run.id || "run", run.classId || "class"].join("|")) || 1),
       zone?.id || zone?.title || "zone",
       String(actNumber),
       String(encounterNumber),
@@ -135,10 +135,14 @@
     const maxTier = targetTier + (zone?.kind === "boss" ? 2 : zone?.kind === "miniboss" ? 1 : 0);
     const minTier = Math.max(1, targetTier - 2);
     const lateBias = getLateLootBias(profile, zone, actNumber);
+    const preferredWeaponFamilies = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [];
+    const currentWeaponTier = Math.max(0, toNumber(content.itemCatalog?.[run.loadout?.weapon?.itemId || ""]?.progressionTier, 0));
+    const currentArmorTier = Math.max(0, toNumber(content.itemCatalog?.[run.loadout?.armor?.itemId || ""]?.progressionTier, 0));
     const entries = (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
       .filter((item) => {
         const tier = toNumber(item?.progressionTier, 1);
-        return tier >= minTier && tier <= maxTier;
+        const requiredAct = Math.max(1, toNumber(item?.actRequirement, 1));
+        return tier >= minTier && tier <= maxTier && requiredAct <= actNumber;
       })
       .map((item) => {
         const tier = toNumber(item.progressionTier, 1);
@@ -147,6 +151,18 @@
           weight += 3;
         } else if (item.slot === "shield" || item.slot === "helm") {
           weight += 1;
+        }
+        if (item.slot === "weapon" && preferredWeaponFamilies.includes(item.family || "")) {
+          weight += 5;
+        }
+        if (item.slot === "weapon" && tier > currentWeaponTier) {
+          weight += 2 + (tier - currentWeaponTier) * 2;
+          if (preferredWeaponFamilies.includes(item.family || "")) {
+            weight += 3;
+          }
+        }
+        if (item.slot === "armor" && tier > currentArmorTier) {
+          weight += 1 + (tier - currentArmorTier);
         }
         if (zone?.kind === "boss" && tier >= targetTier) {
           weight += 1;

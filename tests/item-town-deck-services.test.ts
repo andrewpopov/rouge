@@ -135,6 +135,23 @@ test("applySageAction transform replaces a card in deck", () => {
   assert.ok(result.message.includes("transformed") || result.message.includes("Transform"));
 });
 
+test("applySageAction transform is deterministic for the same run state", () => {
+  const first = createRunState();
+  const second = createRunState();
+  first.state.run.gold = 999;
+  second.state.run.gold = 999;
+  const cardToTransform = first.state.run.deck[0];
+
+  const firstResult = first.deckServices.applySageAction(first.state.run, first.content, `sage_transform_${cardToTransform}`);
+  const secondResult = second.deckServices.applySageAction(second.state.run, second.content, `sage_transform_${cardToTransform}`);
+
+  assert.equal(firstResult.ok, true);
+  assert.equal(secondResult.ok, true);
+  assert.equal(firstResult.message, secondResult.message);
+  assert.equal(JSON.stringify(Array.from(first.state.run.deck)), JSON.stringify(Array.from(second.state.run.deck)));
+  assert.equal(first.state.run.gold, second.state.run.gold);
+});
+
 test("applySageAction transform fails with insufficient gold", () => {
   const { state, content, deckServices } = createRunState();
   state.run.gold = 0;
@@ -223,4 +240,20 @@ test("applyGamblerAction unknown tier returns error", () => {
   state.run.gold = 9999;
   const result = deckServices.applyGamblerAction(state.run, content, "gambler_mystery_diamond");
   assert.equal(result.ok, false);
+});
+
+test("applyGamblerAction is deterministic for the same run state", () => {
+  const first = createRunState();
+  const second = createRunState();
+  first.state.run.gold = 999;
+  second.state.run.gold = 999;
+
+  const firstResult = first.deckServices.applyGamblerAction(first.state.run, first.content, "gambler_mystery_bronze");
+  const secondResult = second.deckServices.applyGamblerAction(second.state.run, second.content, "gambler_mystery_bronze");
+
+  assert.equal(firstResult.ok, true);
+  assert.equal(secondResult.ok, true);
+  assert.equal(firstResult.message, secondResult.message);
+  assert.equal(first.state.run.gold, second.state.run.gold);
+  assert.equal(JSON.stringify(Array.from(first.state.run.deck)), JSON.stringify(Array.from(second.state.run.deck)));
 });

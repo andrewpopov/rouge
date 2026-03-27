@@ -21,6 +21,7 @@ function parseArgs(argv) {
   const parsed = {
     kind: "",
     slug: "",
+    variant: "",
     downloadsDir: DOWNLOADS_DIR,
     dryRun: false,
   };
@@ -32,6 +33,9 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === "--slug") {
       parsed.slug = argv[index + 1] || "";
+      index += 1;
+    } else if (arg === "--variant") {
+      parsed.variant = argv[index + 1] || "";
       index += 1;
     } else if (arg === "--downloads-dir") {
       parsed.downloadsDir = argv[index + 1] || "";
@@ -52,6 +56,9 @@ function parseArgs(argv) {
   if (!/^[a-z0-9_]+$/.test(parsed.slug)) {
     throw new Error("Missing or invalid --slug. Use lowercase snake_case only.");
   }
+  if (parsed.variant && !/^[a-z0-9_]+$/.test(parsed.variant)) {
+    throw new Error("Invalid --variant. Use lowercase snake_case only.");
+  }
 
   return parsed;
 }
@@ -63,6 +70,7 @@ function printHelp() {
 Options:
   --kind enemy|boss|portrait|mercenary
   --slug snake_case target asset id
+  --variant snake_case alt label (writes slug__variant.png)
   --downloads-dir /custom/path
   --dry-run
 `);
@@ -115,18 +123,57 @@ function importImageFile(sourcePath, destinationPath) {
 }
 
 function buildManifestObject() {
-  const readFolder = (folder) =>
-    fs
+  const readFolder = (folder) => {
+    const grouped = new Map();
+    const entries = fs
       .readdirSync(path.join(ROUGE_ART_DIR, folder), { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".png"))
-      .map((entry) => path.parse(entry.name).name)
-      .sort();
+      .map((entry) => entry.name);
+
+    entries.forEach((fileName) => {
+      const baseName = path.parse(fileName).name;
+      const variantIndex = baseName.indexOf("__");
+      const slug = variantIndex === -1 ? baseName : baseName.slice(0, variantIndex);
+      if (!grouped.has(slug)) {
+        grouped.set(slug, []);
+      }
+      grouped.get(slug).push(fileName);
+    });
+
+    const slugs = [...grouped.keys()].sort();
+    const variants = Object.fromEntries(
+      slugs.map((slug) => {
+        const primaryFile = `${slug}.png`;
+        const files = (grouped.get(slug) || []).sort((left, right) => {
+          if (left === primaryFile) {
+            return -1;
+          }
+          if (right === primaryFile) {
+            return 1;
+          }
+          return left.localeCompare(right);
+        });
+        return [slug, files];
+      })
+    );
+
+    return { slugs, variants };
+  };
+
+  const enemies = readFolder("enemies");
+  const bosses = readFolder("bosses");
+  const portraits = readFolder("portraits");
+  const mercenaries = readFolder("mercenaries");
 
   return {
-    enemies: readFolder("enemies"),
-    bosses: readFolder("bosses"),
-    portraits: readFolder("portraits"),
-    mercenaries: readFolder("mercenaries"),
+    enemies: enemies.slugs,
+    bosses: bosses.slugs,
+    portraits: portraits.slugs,
+    mercenaries: mercenaries.slugs,
+    enemyVariants: enemies.variants,
+    bossVariants: bosses.variants,
+    portraitVariants: portraits.variants,
+    mercenaryVariants: mercenaries.variants,
   };
 }
 
@@ -144,7 +191,8 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const latestImage = getLatestImageFile(args.downloadsDir);
   const folder = KIND_TO_FOLDER[args.kind];
-  const destinationPath = path.join(ROUGE_ART_DIR, folder, `${args.slug}.png`);
+  const fileName = `${args.slug}${args.variant ? `__${args.variant}` : ""}.png`;
+  const destinationPath = path.join(ROUGE_ART_DIR, folder, fileName);
 
   console.log(`latest download: ${latestImage.fullPath}`);
   console.log(`target asset: ${destinationPath}`);

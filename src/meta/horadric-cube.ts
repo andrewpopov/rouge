@@ -149,6 +149,45 @@
     return charmData.listAllCharms().filter((charm: CharmDefinition) => charm.size === size);
   }
 
+  function hashString(value: string) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function createProfileRandom(profile: ProfileState, salt: string): RandomFn {
+    const stashSignature = Array.isArray(profile?.stash?.entries)
+      ? profile.stash.entries.map((entry: InventoryEntry) => {
+          if (entry.kind === "rune") {
+            return `r:${(entry as InventoryRuneEntry).runeId}:${entry.entryId}`;
+          }
+          if (entry.kind === "equipment") {
+            return `e:${(entry as InventoryEquipmentEntry).equipment?.itemId || "item"}:${entry.entryId}`;
+          }
+          return `entry:${(entry as InventoryEntry).entryId}`;
+        }).join("|")
+      : "";
+    const unlockedCharms = Array.isArray(profile?.meta?.charms?.unlockedCharmIds)
+      ? [...profile.meta.charms.unlockedCharmIds].sort().join("|")
+      : "";
+    let state = hashString([salt, stashSignature, unlockedCharms].join("|")) || 1;
+    return () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 0x100000000;
+    };
+  }
+
+  function pickRandomValue<T>(values: T[], randomFn: RandomFn): T | null {
+    if (!Array.isArray(values) || values.length === 0) {
+      return null;
+    }
+    const index = Math.floor(randomFn() * values.length);
+    return values[Math.max(0, Math.min(values.length - 1, index))] || values[0] || null;
+  }
+
   function removeFirstRune(profile: ProfileState): boolean {
     const stashEntries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries : [];
     const runeIndex = stashEntries.findIndex((entry: InventoryEntry) => entry.kind === "rune");
@@ -173,11 +212,12 @@
     const outputPool = getCharmsOfSize(outputSize);
     const alreadyUnlocked = new Set(profile.meta.charms.unlockedCharmIds);
     const candidates = outputPool.filter((charm) => !alreadyUnlocked.has(charm.id));
+    const randomFn = createProfileRandom(profile, `transmute:${inputSize}:${outputSize}:${inputCount}`);
     let chosen: CharmDefinition | null = null;
     if (candidates.length > 0) {
-      chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      chosen = pickRandomValue(candidates, randomFn);
     } else if (outputPool.length > 0) {
-      chosen = outputPool[Math.floor(Math.random() * outputPool.length)];
+      chosen = pickRandomValue(outputPool, randomFn);
     }
 
     if (!chosen) {
@@ -220,11 +260,12 @@
     const outputPool = getCharmsOfSize(rerollSize);
     const alreadyUnlocked = new Set(profile.meta.charms.unlockedCharmIds);
     const candidates = outputPool.filter((charm) => !alreadyUnlocked.has(charm.id) && charm.id !== rerollCharmId);
+    const randomFn = createProfileRandom(profile, `reroll:${rerollSize}:${rerollCharmId}`);
     let chosen: CharmDefinition | null = null;
     if (candidates.length > 0) {
-      chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      chosen = pickRandomValue(candidates, randomFn);
     } else if (outputPool.length > 0) {
-      chosen = outputPool[Math.floor(Math.random() * outputPool.length)];
+      chosen = pickRandomValue(outputPool, randomFn);
     }
 
     if (!chosen) {
@@ -303,7 +344,7 @@
     const entriesToRemove = runeCounts[eligibleRuneId].entryIds.slice(0, 3);
     profile.stash.entries = stashEntries.filter((entry: InventoryEntry) => !entriesToRemove.includes(entry.entryId));
 
-    const nextEntryId = `cube_rune_${Date.now()}`;
+    const nextEntryId = `cube_rune_${nextTierRune.sourceId}_${hashString(entriesToRemove.join("|"))}`;
     profile.stash.entries.push({
       entryId: nextEntryId,
       kind: "rune",
