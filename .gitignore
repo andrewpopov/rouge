@@ -19,6 +19,8 @@ playwright-report/
 test-results/
 artifacts/quality/
 artifacts/balance/
+output/generated-sheet-splits/
+tmp/art-review/
 
 # Source asset dumps (keep curated runtime assets only)
 assets/raw/

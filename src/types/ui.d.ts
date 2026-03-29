@@ -532,6 +532,9 @@ interface Window {
   ROUGE_ENCOUNTER_REGISTRY: EncounterRegistryApi;
   ROUGE_CLASS_REGISTRY: ClassRegistryApi;
   ROUGE_ITEM_DATA: ItemDataApi;
+  __ROUGE_ITEM_DATA_RUNES: ItemDataRunesApi;
+  __ROUGE_ITEM_CATALOG_PROFILES: ItemCatalogProfilesApi;
+  __ROUGE_ITEM_CATALOG_RUNTIME_CONTENT: ItemCatalogRuntimeContentApi;
   ROUGE_ITEM_CATALOG: ItemCatalogApi;
   ROUGE_ITEM_LOADOUT: ItemLoadoutApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -600,26 +603,15 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_APP_ENGINE_PROFILE: Record<string, any>;
   __ROUGE_ITEM_DATA_ACCESSORIES: Record<string, ItemTemplateDefinition>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_DATA_RUNES: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_LOADOUT_OPS: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_TOWN_PRICING: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_TOWN_PRICING_FEES: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_TOWN_VENDOR_OFFERS: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_TOWN_VENDOR: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_TOWN_ACTIONS: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_TOWN_DECK_SERVICES: Record<string, any>;
+  __ROUGE_ITEM_CATALOG_PROFILE_DATA: Record<string, unknown>;
+  __ROUGE_ITEM_TOWN_PRICING: ItemTownPricingApi;
+  __ROUGE_ITEM_TOWN_VENDOR_OFFERS: ItemTownVendorOffersApi;
+  __ROUGE_ITEM_TOWN_VENDOR: ItemTownVendorApi;
+  __ROUGE_ITEM_TOWN_ACTIONS: ItemTownActionsApi;
+  __ROUGE_ITEM_TOWN_DECK_SERVICES: ItemTownDeckServicesApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_SKILL_EVOLUTION: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_ITEM_SYSTEM_REWARDS: Record<string, any>;
+  __ROUGE_ITEM_SYSTEM_REWARDS: ItemSystemRewardsApi;
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
@@ -717,6 +709,8 @@ interface Window {
   __ROUGE_CHARACTER_SELECT_VIEW_DETAILS: CharacterSelectViewDetailsApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
   ROUGE_INVENTORY_VIEW: InventoryViewApi;
+  __ROUGE_SAFE_ZONE_VIEW_MERCHANT_PRESENTATION: Record<string, unknown>;
+  __ROUGE_SAFE_ZONE_VIEW_MERCHANT: SafeZoneViewMerchantApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
   ROUGE_WORLD_MAP_VIEW: UiPhaseViewApi;
   ROUGE_ACT_GUIDE_VIEW: ActGuideViewApi;

@@ -348,6 +348,11 @@ async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselin
   const totalRuns = helper.buildBalanceRunTasks(spec).length;
   const queue = [...tasks];
   const concurrency = Math.max(1, Number(spec.concurrency || 1));
+  const taskTimeoutMs = Math.max(
+    5 * 60 * 1000,
+    Number(spec.taskTimeoutMs || 0),
+    Number(spec.slowRunThresholdMs || 0) > 0 ? Number(spec.slowRunThresholdMs || 0) * 20 : 0
+  );
   let completedNewRuns = 0;
   let completedRuns = runMap.size;
 
@@ -418,6 +423,11 @@ async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselin
           cwd: ROOT,
           stdio: ["ignore", "pipe", "pipe"],
         });
+        let timedOut = false;
+        const timeoutHandle = setTimeout(() => {
+          timedOut = true;
+          child.kill("SIGKILL");
+        }, taskTimeoutMs);
         let stdout = "";
         let stderr = "";
         child.stdout.on("data", (chunk) => {
@@ -427,9 +437,44 @@ async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselin
           stderr += String(chunk);
         });
         child.on("close", (code) => {
+          clearTimeout(timeoutHandle);
           active -= 1;
+          if (timedOut) {
+            const result = {
+              record: helper.createSyntheticBalanceRunRecord(spec, task, {
+                outcome: "run_failed",
+                durationMs: taskTimeoutMs,
+                failureLabel: "Worker timeout",
+                errorMessage: `Timed out after ${taskTimeoutMs}ms`,
+              }),
+              tracePayloads: [],
+            };
+            persistResult(result);
+            console.error(`[timeout] ${result.record.classId} / ${result.record.policyId} / seed ${result.record.seedOffset}: exceeded ${taskTimeoutMs}ms`);
+            if (queue.length === 0 && active === 0) {
+              resolve(undefined);
+              return;
+            }
+            launchNext();
+            return;
+          }
           if (code !== 0) {
-            reject(new Error(stderr || `Child task failed with exit code ${code}`));
+            const result = {
+              record: helper.createSyntheticBalanceRunRecord(spec, task, {
+                outcome: "run_failed",
+                durationMs: 0,
+                failureLabel: "Worker error",
+                errorMessage: (stderr || `Child task failed with exit code ${code}`).trim(),
+              }),
+              tracePayloads: [],
+            };
+            persistResult(result);
+            console.error(`[worker-error] ${result.record.classId} / ${result.record.policyId} / seed ${result.record.seedOffset}: ${stderr || `exit ${code}`}`);
+            if (queue.length === 0 && active === 0) {
+              resolve(undefined);
+              return;
+            }
+            launchNext();
             return;
           }
           try {

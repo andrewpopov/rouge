@@ -90,6 +90,9 @@
     if (features.runewordCodex || features.treasuryExchange) {
       const planning = getPlanningSummary(profile, content);
       getPlannedRunewordTargets(profile, content).forEach((runeword: RuntimeRunewordDefinition) => {
+        if (runeword.slot !== "weapon" && runeword.slot !== "armor") {
+          return;
+        }
         const archiveState = getPlannedRunewordArchiveState(profile, runeword.slot, content);
         const planningCharter = runeword.slot === "weapon" ? planning.weaponCharter : planning.armorCharter;
         const planningTargetCount =

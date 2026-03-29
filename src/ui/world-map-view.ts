@@ -424,6 +424,9 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
+    const archiveSummary = accountSummary?.archive;
+    const planningSummary = accountSummary?.planning || common.createDefaultPlanningSummary();
+    const reviewSummary = accountSummary?.review;
     const vm = deriveWorldMapModel(appState, services);
     const {
       run, currentZones, reachableZoneIds, mapZones, actMapFile, positions, scrollOpen, routeIntelOpen, progressPct,
@@ -440,6 +443,9 @@
 
     const nextZoneLabel = nextZone ? nextZone.title : "No route currently open";
     const nextZoneFamily = getNodeFamilyLabel(nextZone);
+    const accountLedgerArchiveCount = archiveSummary?.entryCount || 0;
+    const accountLedgerReadyCharters = planningSummary.overview?.readyCharterCount || 0;
+    const accountLedgerAvailableConvergences = reviewSummary?.availableConvergenceCount || 0;
     let nextZoneStatus = "Awaiting route state";
     if (nextZone) {
       if (nextZone.status !== "available") {
@@ -598,18 +604,43 @@
 
         </div>
       </div>
-      ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
-        copy:
-          "World-map routing now keeps the same archive, charter, mastery, and convergence pressure visible beside the act board instead of hiding the account layer between towns.",
-      })}
-      ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
-        copy:
-          "Route picks can now be weighed against the same charter and convergence drilldowns that remain visible in town, rewards, and the hall.",
-        charterFollowThrough:
-          "If charter pressure outranks the next route, retreat to town and resolve loadout or stash posture before committing the board.",
-        convergenceFollowThrough:
-          "If convergence pressure outranks the next route, review the account progression wing before pushing deeper into the act.",
-      })}
+      <details class="actmap__account-details">
+        <summary class="actmap__account-toggle">
+          <span class="actmap__account-toggle-copy">
+            <span class="actmap__account-toggle-eyebrow">Account Pressure Ledger</span>
+            <span class="actmap__account-toggle-title">Archive, charter, and convergence context</span>
+            <span class="actmap__account-toggle-hint">Open this when you want the account-side pressure behind the current route pick.</span>
+          </span>
+          <span class="actmap__account-toggle-stats" aria-hidden="true">
+            <span class="actmap__account-toggle-stat">
+              <strong>${accountLedgerArchiveCount}</strong>
+              <span>archive runs</span>
+            </span>
+            <span class="actmap__account-toggle-stat">
+              <strong>${accountLedgerReadyCharters}</strong>
+              <span>ready charters</span>
+            </span>
+            <span class="actmap__account-toggle-stat">
+              <strong>${accountLedgerAvailableConvergences}</strong>
+              <span>open convergences</span>
+            </span>
+          </span>
+        </summary>
+        <div class="actmap__account-surface">
+          ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+            copy:
+              "World-map routing now keeps the same archive, charter, mastery, and convergence pressure available beside the act board without forcing it into the main route view.",
+          })}
+          ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+            copy:
+              "Route picks can still be weighed against the same charter and convergence drilldowns used in town, rewards, and the hall.",
+            charterFollowThrough:
+              "If charter pressure outranks the next route, retreat to town and resolve loadout or stash posture before committing the board.",
+            convergenceFollowThrough:
+              "If convergence pressure outranks the next route, review the account progression wing before pushing deeper into the act.",
+          })}
+        </div>
+      </details>
     `;
   }
 

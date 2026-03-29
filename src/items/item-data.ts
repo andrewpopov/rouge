@@ -274,8 +274,8 @@
       progressionTier: 6,
       bonuses: {
         heroMaxEnergy: 3,
-        heroDamageBonus: 2,
-        heroGuardBonus: 3,
+        heroDamageBonus: 3,
+        heroGuardBonus: 4,
         mercenaryAttack: 4,
       },
     },
@@ -312,9 +312,9 @@
       progressionTier: 3,
       bonuses: {
         heroMaxEnergy: 2,
-        heroDamageBonus: 1,
-        heroGuardBonus: 2,
-        heroBurnBonus: 2,
+        heroDamageBonus: 2,
+        heroGuardBonus: 3,
+        heroBurnBonus: 3,
       },
     },
     item_war_staff: {
@@ -325,9 +325,10 @@
       progressionTier: 5,
       bonuses: {
         heroMaxEnergy: 3,
-        heroDamageBonus: 3,
-        heroGuardBonus: 2,
-        heroBurnBonus: 5,
+        heroDamageBonus: 4,
+        heroGuardBonus: 3,
+        heroBurnBonus: 6,
+        heroMaxLife: 4,
       },
     },
     item_short_bow: {

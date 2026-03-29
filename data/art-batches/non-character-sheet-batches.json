@@ -31,18 +31,19 @@
         "maul"
       ]
     },
-    "weapons_polearms_bows_and_throwing": {
+    "weapons_bows_and_crossbows": {
       "category": "item",
       "priority": "high",
-      "description": "Polearms, bows, crossbows, spears, and javelins.",
-      "cols": 5,
-      "rows": 4,
+      "description": "Bow and crossbow families split out from long polearms for cleaner batched generation.",
+      "cols": 4,
+      "rows": 3,
       "extent": "128x128",
+      "insetX": 16,
+      "insetY": 16,
       "trim": true,
+      "keepLargestComponent": true,
       "keyColor": "#00FF00",
       "labels": [
-        "partizan",
-        "grim_scythe",
         "short_bow",
         "long_bow",
         "composite_bow",
@@ -53,7 +54,24 @@
         "edge_bow",
         "siege_crossbow",
         "hydra_bow",
-        "gorgon_crossbow",
+        "gorgon_crossbow"
+      ]
+    },
+    "weapons_polearms_and_throwing": {
+      "category": "item",
+      "priority": "high",
+      "description": "Polearms, spears, and javelins split out from bows for cleaner batched generation.",
+      "cols": 4,
+      "rows": 2,
+      "extent": "128x128",
+      "insetX": 12,
+      "insetY": 12,
+      "trim": true,
+      "keepLargestComponent": true,
+      "keyColor": "#00FF00",
+      "labels": [
+        "partizan",
+        "grim_scythe",
         "javelin",
         "spear",
         "war_javelin",

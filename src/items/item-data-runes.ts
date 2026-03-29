@@ -297,8 +297,8 @@
       familyAllowList: ["Wands"],
       requiredRunes: ["rune_dol", "rune_io"],
       bonuses: {
-        heroDamageBonus: 4,
-        heroGuardBonus: 2,
+        heroDamageBonus: 5,
+        heroGuardBonus: 3,
         mercenaryAttack: 2,
       },
     },
@@ -333,7 +333,8 @@
       bonuses: {
         heroMaxEnergy: 3,
         heroBurnBonus: 3,
-        heroGuardBonus: 2,
+        heroGuardBonus: 4,
+        heroMaxLife: 4,
       },
     },
     melody: {

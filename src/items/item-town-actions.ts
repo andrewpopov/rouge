@@ -39,7 +39,7 @@
     const cost = getVendorRefreshCost(run, profile, content);
     const affordable = run.gold >= cost;
     const previewLines = [`Refresh fee ${cost} gold.`, `Current refresh count ${run.town.vendor.refreshCount}.`];
-    const VENDOR_FEATURE_DESCRIPTIONS: [string, string][] = [
+    const VENDOR_FEATURE_DESCRIPTIONS: Array<[keyof AccountEconomyFeatures, string]> = [
       ["advancedVendorStock", "Advanced vendor stock is widening equipment offers."],
       ["runewordCodex", "Runeword Codex is biasing rune stock toward unfinished recipes."],
       ["economyLedger", "Economy Ledger discount is active on town trading."],
@@ -311,7 +311,7 @@
     const vendorEntries = Array.isArray(run.town?.vendor?.stock) ? run.town.vendor.stock.length : 0;
     const features = getAccountEconomyFeatures(profile);
     const activeEconomyFeatures = ECONOMY_FEATURE_MAP
-      .filter(([key]: [string, string]) => features[key])
+      .filter(([key]: [string, string]) => features[key as keyof AccountEconomyFeatures])
       .map(([, featureId]: [string, string]) => featureId.replace(/_/g, " "));
 
     const lines = [

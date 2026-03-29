@@ -203,16 +203,6 @@
     const departureBriefingMarkup = opsMarkup.buildDepartureBriefingMarkup(run, routeSnapshot, derivedParty, worldOutcomeCount, services.renderUtils);
     const loadoutBenchMarkup = opsMarkup.buildLoadoutBenchMarkup(run, appState.content, services.renderUtils);
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
-    const townJumpRow = `
-      <div class="cta-row hall-jump-row">
-        <a class="neutral-btn" href="#town-departure">Departure Board</a>
-        <a class="neutral-btn" href="#town-loadout">Loadout Bench</a>
-        <a class="neutral-btn" href="#town-prep-outcomes">Before / After Desk</a>
-        <a class="neutral-btn" href="#town-drilldowns">Service Drilldowns</a>
-        <a class="neutral-btn" href="#town-districts">Town Districts</a>
-      </div>
-    `;
-
     return `
       <article class="panel battle-panel" id="town-departure">
         <div class="panel-head">
@@ -249,12 +239,6 @@
             <p>${escapeHtml(`${run.mercenary.name} is under contract as your ${run.mercenary.role.toLowerCase()}.`)}</p>
           </article>
         </div>
-
-        <div class="panel-head">
-          <h2>Town Navigator</h2>
-          <p>Use these anchors to move between departure, loadout, prep drilldowns, and the live district list without losing the run-vs-profile framing.</p>
-        </div>
-        ${townJumpRow}
 
         <div class="panel-head">
           <h2>Run State Vs Profile State</h2>

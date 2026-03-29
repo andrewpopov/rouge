@@ -87,6 +87,11 @@ output/generated-sheet-splits/<batch-id>/
 
 Each batch also writes `_split-manifest.json` with the exact crop boxes and output filenames.
 
+Practical note from the first live equipment pass:
+
+- dense mixed long-weapon sheets are risky when the generator snaps back to `1024 x 1024`
+- bows/crossbows and polearms/throwing weapons should be split into separate sheets rather than forcing one oversized mixed batch
+
 ## Shared Prompt Rules
 
 Use these rules for every item or rune sheet:
@@ -196,15 +201,23 @@ Cell order:
   `legend_sword`, `zweihander`, `balrog_blade`, `colossus_blade`, `mace`,
   `morning_star`, `flail`, `war_hammer`, `maul`
 
-`weapons_polearms_bows_and_throwing`
+`weapons_bows_and_crossbows`
 
 - priority: high
-- grid: `5 x 4`
-- recommended canvas: `3072 x 3072`
+- grid: `4 x 3`
+- recommended canvas: `2048 x 2048`
 - labels:
-  `partizan`, `grim_scythe`, `short_bow`, `long_bow`, `composite_bow`,
-  `crossbow`, `ashwood_bow`, `cedar_bow`, `stag_bow`, `edge_bow`,
-  `siege_crossbow`, `hydra_bow`, `gorgon_crossbow`, `javelin`, `spear`,
+  `short_bow`, `long_bow`, `composite_bow`, `crossbow`,
+  `ashwood_bow`, `cedar_bow`, `stag_bow`, `edge_bow`,
+  `siege_crossbow`, `hydra_bow`, `gorgon_crossbow`
+
+`weapons_polearms_and_throwing`
+
+- priority: high
+- grid: `4 x 2`
+- recommended canvas: `2048 x 1024`
+- labels:
+  `partizan`, `grim_scythe`, `javelin`, `spear`,
   `war_javelin`, `war_spear`, `hyperion_javelin`, `ghost_spear`
 
 `weapons_wands_staves_and_family_icons`

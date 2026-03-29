@@ -9,6 +9,7 @@
     toNumber,
   } = runtimeWindow.ROUGE_ITEM_CATALOG;
   const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
+  type PlanningSlot = "weapon" | "armor";
 
   // --- Equipment & rune valuation ---
   const MIN_EQUIPMENT_VALUE = 8;
@@ -37,7 +38,7 @@
 
   const { hasTownFeature, getFocusedAccountTreeId } = runtimeWindow.ROUGE_UTILS;
 
-  const ECONOMY_FEATURE_MAP: [string, string][] = [
+  const ECONOMY_FEATURE_MAP: Array<[Exclude<keyof AccountEconomyFeatures, "economyFocus">, string]> = [
     ["advancedVendorStock", "advanced_vendor_stock"],
     ["runewordCodex", "runeword_codex"],
     ["economyLedger", "economy_ledger"],
@@ -195,6 +196,9 @@
     if (!equipment) {
       return null;
     }
+    if (equipment.slot !== "weapon" && equipment.slot !== "armor") {
+      return null;
+    }
     const plannedRuneword = getPlannedRuneword(profile, equipment.slot, content);
     const targetRuneword = getPreferredRunewordForEquipment(equipment, run, content, plannedRuneword?.id || "");
     if (!targetRuneword) {
@@ -214,11 +218,15 @@
     }
     if (entry.kind === ENTRY_KIND.RUNE) {
       const matchedRuneword = plannedRunewords.find((runeword: RuntimeRunewordDefinition) => runeword.requiredRunes.includes((entry as InventoryRuneEntry).runeId)) || null;
-      return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
+      return matchedRuneword && (matchedRuneword.slot === "weapon" || matchedRuneword.slot === "armor")
+        ? { runeword: matchedRuneword, slot: matchedRuneword.slot as PlanningSlot }
+        : null;
     }
     const item = getItemDefinition(content, entry?.equipment?.itemId || "");
     const matchedRuneword = plannedRunewords.find((runeword: RuntimeRunewordDefinition) => isRunewordCompatibleWithItem(item, runeword)) || null;
-    return matchedRuneword ? { runeword: matchedRuneword, slot: matchedRuneword.slot } : null;
+    return matchedRuneword && (matchedRuneword.slot === "weapon" || matchedRuneword.slot === "armor")
+      ? { runeword: matchedRuneword, slot: matchedRuneword.slot as PlanningSlot }
+      : null;
   }
 
   function getEquipmentPlanningMatch(equipment: RunEquipmentState | null, content: GameContent, profile: ProfileState | null = null) {
@@ -272,5 +280,5 @@
     getStashPlanningPressure,
     getEquipmentValue,
     getRuneValue,
-  };
+  } as ItemTownPricingApi;
 })();

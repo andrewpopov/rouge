@@ -243,7 +243,7 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   });
   assert.match(root.innerHTML, /Town Districts/);
   assert.match(root.innerHTML, /Departure Board/);
-  assert.match(root.innerHTML, /Town Navigator/);
+  assert.match(root.innerHTML, /Town Ledger/);
   assert.match(root.innerHTML, /Run State Vs Profile State/);
   assert.match(root.innerHTML, /Progression Board/);
   assert.match(root.innerHTML, /Account Signals/);

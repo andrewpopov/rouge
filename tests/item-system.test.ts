@@ -59,6 +59,24 @@ test("createRuntimeContent populates item, rune, and runeword catalogs from seed
   assert.ok(runewordIds.includes("steel"));
 });
 
+test("item catalog internal helpers stay aligned with the public catalog seam", () => {
+  const { browserWindow, seedBundle } = createAppHarness();
+  const profiles = browserWindow.__ROUGE_ITEM_CATALOG_PROFILES;
+  const runtimeContentApi = browserWindow.__ROUGE_ITEM_CATALOG_RUNTIME_CONTENT;
+
+  const bowProfile = profiles.buildDefaultWeaponProfile("weapon", "Bows", 1);
+  assert.equal(bowProfile?.attackDamageByProficiency?.bow, 4);
+  assert.equal(profiles.getWeaponProfileForRarity(bowProfile, profiles.RARITY.RARE)?.effects?.[0]?.amount, 4);
+
+  const classRuntimeContent = browserWindow.ROUGE_CLASS_REGISTRY.createRuntimeContent(browserWindow.ROUGE_GAME_CONTENT, seedBundle);
+  const runtimeContent = runtimeContentApi.createRuntimeContent(classRuntimeContent, seedBundle);
+  const sword = browserWindow.ROUGE_ITEM_CATALOG.getItemDefinition(runtimeContent, "item_short_sword");
+
+  assert.ok(sword);
+  assert.equal(sword?.weaponProfile?.attackDamageByProficiency?.combat_skills, 1);
+  assert.ok(runtimeContent.runewordCatalog.steel);
+});
+
 // ---------------------------------------------------------------------------
 // Catalog: definition lookups
 // ---------------------------------------------------------------------------

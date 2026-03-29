@@ -10,17 +10,19 @@
     getPlannedRunewordArchiveState,
     hasOpenPlanningCharter,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_PRICING;
+  type PlanningSlot = "weapon" | "armor";
+  type DefinitionWithId = { id: string };
 
   function getCurrentEquipmentTier(equipment: RunEquipmentState | null, content: GameContent) {
     const { getItemDefinition } = runtimeWindow.ROUGE_ITEM_CATALOG;
     return toNumber(getItemDefinition(content, equipment?.itemId || "")?.progressionTier, 0);
   }
 
-  function pickUniqueDefinitions(candidates: ({ id: string } | null)[], options: { id: string }[], desiredCount: number, seed: number) {
-    const selected: { id: string }[] = [];
+  function pickUniqueDefinitions<T extends DefinitionWithId>(candidates: (T | null | undefined)[], options: T[], desiredCount: number, seed: number): T[] {
+    const selected: T[] = [];
     const seenIds = new Set<string>();
 
-    const pushCandidate = (candidate: { id: string } | null) => {
+    const pushCandidate = (candidate: T | null | undefined) => {
       if (!candidate?.id || seenIds.has(candidate.id)) {
         return;
       }
@@ -37,7 +39,7 @@
     return selected.slice(0, desiredCount);
   }
 
-  function pickVendorEquipmentOffers(slot: string, run: RunState, currentEquipment: RunEquipmentState | null, options: RuntimeItemDefinition[], desiredCount: number, seed: number, content: GameContent, profile: ProfileState | null = null) {
+  function pickVendorEquipmentOffers(slot: PlanningSlot, run: RunState, currentEquipment: RunEquipmentState | null, options: RuntimeItemDefinition[], desiredCount: number, seed: number, content: GameContent, profile: ProfileState | null = null) {
     if (options.length === 0 || desiredCount <= 0) {
       return [];
     }
@@ -304,9 +306,9 @@
     );
   }
 
-  function fillDefinitionSelection(selection: { id: string }[], options: { id: string }[], desiredCount: number) {
+  function fillDefinitionSelection<T extends DefinitionWithId>(selection: T[], options: T[], desiredCount: number): T[] {
     const filled = [...selection];
-    const seenIds = new Set(filled.map((entry: { id: string }) => entry?.id).filter(Boolean));
+    const seenIds = new Set(filled.map((entry: T) => entry?.id).filter(Boolean));
 
     for (let index = options.length - 1; filled.length < desiredCount && index >= 0; index -= 1) {
       const candidate = options[index];

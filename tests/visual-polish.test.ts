@@ -123,6 +123,28 @@ test("safe-zone merchant overlay includes description text", () => {
   assert.match(root.innerHTML, /merchant-screen/);
 });
 
+test("safe-zone merchant helper renders extracted overlay markup directly", () => {
+  const { state, browserWindow } = createTownFixture();
+  const services = browserWindow.ROUGE_UI_COMMON.getServices();
+  const operations = browserWindow.ROUGE_SAFE_ZONE_OPERATIONS_VIEW.createOperationsModel(state, services);
+  const overlay = browserWindow.__ROUGE_SAFE_ZONE_VIEW_MERCHANT.buildNpcOverlay(
+    {
+      id: "vendor",
+      name: "Gheed",
+      role: "Vendor & Gambler",
+      icon: "\u2696",
+      actions: operations.vendorActions,
+      emptyLabel: "Vendor stock is empty.",
+    },
+    state.run.gold,
+    state.content,
+    services.renderUtils.escapeHtml
+  );
+
+  assert.match(overlay, /merchant-screen/);
+  assert.match(overlay, /merchant-refresh|merchant-card__desc|merchant-item/);
+});
+
 // ── Account Hall: Empty Section Collapsing ──
 
 test("account hall collapses stash vault card when stash is empty", () => {

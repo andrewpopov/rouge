@@ -340,12 +340,50 @@ interface ItemDataApi {
   RUNE_REWARD_POOLS: Record<string, string[]>;
 }
 
+interface ItemDataRunesApi {
+  RUNE_TEMPLATES: Record<string, RuneTemplateDefinition>;
+  RUNEWORD_TEMPLATES: Record<string, RunewordTemplateDefinition>;
+  RUNE_REWARD_POOLS: Record<string, string[]>;
+}
+
+interface ItemCatalogProfilesApi {
+  RARITY: ItemCatalogApi["RARITY"];
+  SLOT_FAMILY_DEFAULTS: Record<EquipmentSlot, string>;
+  normalizeRarity(rarity: unknown, rarityKind?: unknown): string;
+  getRarityKind(rarity: string | undefined): string;
+  getRarityLabel(rarity: string | undefined): string;
+  cloneWeaponProfile(profile: WeaponCombatProfile | null | undefined): WeaponCombatProfile | undefined;
+  cloneArmorProfile(profile: ArmorMitigationProfile | null | undefined): ArmorMitigationProfile | undefined;
+  buildDefaultWeaponProfile(slot: EquipmentSlot, family: string, progressionTier: number): WeaponCombatProfile | undefined;
+  buildDefaultArmorProfile(slot: EquipmentSlot, progressionTier: number): ArmorMitigationProfile | undefined;
+  mergeWeaponProfiles(
+    baseProfile: WeaponCombatProfile | null | undefined,
+    overrideProfile: WeaponCombatProfile | null | undefined
+  ): WeaponCombatProfile | undefined;
+  mergeArmorProfiles(
+    baseProfile: ArmorMitigationProfile | null | undefined,
+    overrideProfile: ArmorMitigationProfile | null | undefined
+  ): ArmorMitigationProfile | undefined;
+  getWeaponProfileForRarity(profile: WeaponCombatProfile | null | undefined, rarity: string | undefined): WeaponCombatProfile | undefined;
+  getArmorProfileForRarity(profile: ArmorMitigationProfile | null | undefined, rarity: string | undefined): ArmorMitigationProfile | undefined;
+  buildEquipmentWeaponProfile(equipment: RunEquipmentState | null | undefined, content: GameContent): WeaponCombatProfile | undefined;
+  buildEquipmentArmorProfile(equipment: RunEquipmentState | null | undefined, content: GameContent): ArmorMitigationProfile | undefined;
+  rollWeaponAffixes(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): WeaponCombatProfile | undefined;
+  rollArmorAffixes(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): ArmorMitigationProfile | undefined;
+  rollItemRarity(zoneKind: string, randomFn: RandomFn): string;
+  generateRarityBonuses(itemDef: RuntimeItemDefinition | null, rarity: string, randomFn: RandomFn): ItemBonusSet;
+}
+
+interface ItemCatalogRuntimeContentApi {
+  createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle | null): GameContent;
+}
+
 interface ItemCatalogApi {
   RARITY: { readonly WHITE: "white"; readonly MAGIC: "blue"; readonly RARE: "yellow"; readonly UNIQUE: "brown"; readonly SET: "green" };
   clamp(value: number, min: number, max: number): number;
   uniquePush(list: string[], value: string): void;
   toNumber(value: unknown, fallback?: number): number;
-  createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle): GameContent;
+  createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle | null): GameContent;
   getItemDefinition(content: GameContent, itemId: string): RuntimeItemDefinition | null;
   getRuneDefinition(content: GameContent, runeId: string): RuntimeRuneDefinition | null;
   getRunewordDefinition(content: GameContent, runewordId: string): RuntimeRunewordDefinition | null;
@@ -443,6 +481,167 @@ interface ItemLoadoutApi {
   buildCombatMitigationProfile(run: RunState, content: GameContent): ArmorMitigationProfile | undefined;
 }
 
+interface ItemTownPlanningMatch {
+  runeword: RuntimeRunewordDefinition;
+  slot: EquipmentSlot;
+}
+
+interface ItemTownPricingApi {
+  ECONOMY_FEATURE_MAP: [keyof AccountEconomyFeatures, string][];
+  getAccountEconomyFeatures(profile?: ProfileState | null): AccountEconomyFeatures;
+  getPlannedRunewordId(profile: ProfileState | null | undefined, slot: string, content?: GameContent | null): string;
+  getPlannedRuneword(
+    profile: ProfileState | null | undefined,
+    slot: string,
+    content?: GameContent | null
+  ): RuntimeRunewordDefinition | null;
+  getPlannedRunewordTargets(profile: ProfileState | null | undefined, content?: GameContent | null): RuntimeRunewordDefinition[];
+  getPlannedRunewordArchiveState(
+    profile: ProfileState | null | undefined,
+    slot: string,
+    content?: GameContent | null
+  ): { runewordId: string; archivedRunCount: number; completedRunCount: number; bestActsCleared: number; unfulfilled: boolean };
+  getPlanningSummary(profile: ProfileState | null | undefined, content?: GameContent | null): ProfilePlanningSummary;
+  hasOpenPlanningCharter(profile: ProfileState | null | undefined, content?: GameContent | null): boolean;
+  getPlanningStageLine(slot: string, planning: ProfilePlanningSummary | null | undefined, content: GameContent): string;
+  getPlanningRunewordListLabel(runewordIds: string[], content: GameContent): string;
+  getTargetRunewordForEquipment(
+    equipment: RunEquipmentState | null,
+    run: RunState,
+    content: GameContent,
+    profile?: ProfileState | null
+  ): RuntimeRunewordDefinition | null;
+  getEntryPlanningMatch(entry: InventoryEntry | null, content: GameContent, profile?: ProfileState | null): ItemTownPlanningMatch | null;
+  getEquipmentPlanningMatch(
+    equipment: RunEquipmentState | null,
+    content: GameContent,
+    profile?: ProfileState | null
+  ): ItemTownPlanningMatch | null;
+  canCommissionSocket(equipment: RunEquipmentState | null, content: GameContent): boolean;
+  getStashPlanningPressure(profile: ProfileState | null): { stashEntries: number; socketReadyEntries: number; runewordEntries: number };
+  getEquipmentValue(equipment: RunEquipmentState | null | undefined, content: GameContent): number;
+  getRuneValue(runeId: string, content: GameContent): number;
+  getEntryBuyPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
+  getEntrySellPrice(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
+  sellCarriedEntry(run: RunState, entryId: string, content: GameContent, profile?: ProfileState | null): ActionResult;
+  getVendorRefreshCost(run: RunState, profile?: ProfileState | null, content?: GameContent | null): number;
+  getVendorConsignmentFee(entry: InventoryEntry, content: GameContent, profile?: ProfileState | null): number;
+  getSocketCommissionCost(
+    run: RunState,
+    equipment: RunEquipmentState | null,
+    content: GameContent,
+    profile?: ProfileState | null,
+    location?: string
+  ): number;
+  buildSocketCommissionAction(
+    run: RunState,
+    equipment: RunEquipmentState | null,
+    content: GameContent,
+    profile: ProfileState | null,
+    location: string,
+    actionId: string,
+    subtitle: string,
+    description: string
+  ): TownAction | null;
+  commissionEquipmentSocket(equipment: RunEquipmentState, content: GameContent): boolean;
+  addVendorEntryToProfileStash(profile: ProfileState, entry: InventoryEntry, content: GameContent): InventoryEntry | null;
+  buildInventoryAction(
+    entry: InventoryEntry,
+    content: GameContent,
+    kind: string,
+    subtitle: string,
+    description: string,
+    previewLines: string[],
+    action: { label: string; cost?: number; disabled?: boolean }
+  ): TownAction;
+}
+
+interface ItemTownVendorOffersApi {
+  pickUniqueDefinitions<T extends { id: string }>(
+    candidates: (T | null | undefined)[],
+    options: T[],
+    desiredCount: number,
+    seed: number
+  ): T[];
+  pickVendorEquipmentOffers(
+    slot: "weapon" | "armor",
+    run: RunState,
+    currentEquipment: RunEquipmentState | null,
+    options: RuntimeItemDefinition[],
+    desiredCount: number,
+    seed: number,
+    content: GameContent,
+    profile?: ProfileState | null
+  ): RuntimeItemDefinition[];
+  fillDefinitionSelection<T extends { id: string }>(selection: T[], options: T[], desiredCount: number): T[];
+}
+
+interface ItemTownVendorApi {
+  generateVendorStock(run: RunState, content: GameContent, profile?: ProfileState | null): InventoryEntry[];
+  normalizeVendorStock(run: RunState, content: GameContent, profile?: ProfileState | null): void;
+}
+
+interface ItemTownActionsApi {
+  listTownActions(run: RunState, profile: ProfileState, content: GameContent): TownAction[];
+  getInventorySummary(run: RunState, profile: ProfileState, content: GameContent): string[];
+}
+
+interface ItemTownDeckServicesApi {
+  buildBlacksmithActions(run: RunState, content: GameContent): TownAction[];
+  applyBlacksmithAction(run: RunState, content: GameContent, actionId: string): ActionResult;
+  buildSageActions(run: RunState, content: GameContent): TownAction[];
+  applySageAction(run: RunState, content: GameContent, actionId: string): ActionResult;
+  buildGamblerActions(run: RunState): TownAction[];
+  applyGamblerAction(run: RunState, content: GameContent, actionId: string): ActionResult;
+}
+
+interface ItemSystemRewardsApi {
+  describeBonuses(bonuses: ItemBonusSet): string[];
+  getFocusSlots(run: RunState, actNumber: number, encounterNumber: number, content: GameContent): EquipmentSlot[];
+  isLateActPivotZone(zone: ZoneState | null, actNumber: number): boolean;
+  getAvailableItemsForSlot(
+    slot: string,
+    actNumber: number,
+    zone: ZoneState,
+    run: RunState,
+    content: GameContent
+  ): RuntimeItemDefinition[];
+  getPlannedRuneword(slot: string, profile: ProfileState | null, content: GameContent): RuntimeRunewordDefinition | null;
+  getPlanningSummary(profile: ProfileState | null | undefined, content?: GameContent | null): ProfilePlanningSummary;
+  getPlanningCharterSummary(
+    profile: ProfileState | null,
+    slot: string,
+    content?: GameContent | null
+  ): ProfilePlanningCharterSummary | null;
+  getUpgradeItemForSlot(
+    slot: string,
+    equipment: RunEquipmentState | null,
+    actNumber: number,
+    zone: ZoneState,
+    run: RunState,
+    content: GameContent,
+    profile?: ProfileState | null
+  ): RuntimeItemDefinition | null;
+  buildReplacementText(currentEquipment: RunEquipmentState | null, nextItem: RuntimeItemDefinition | null, content: GameContent): string;
+  pickFallbackRuneId(
+    slot: string,
+    actNumber: number,
+    encounterNumber: number,
+    run: RunState,
+    zone: ZoneState,
+    content: GameContent
+  ): string;
+  shouldPrioritizeLateActReplacement(
+    equipment: RunEquipmentState | null,
+    upgradeItem: RuntimeItemDefinition | null,
+    actNumber: number,
+    zone: ZoneState,
+    run: RunState,
+    content: GameContent,
+    profile?: ProfileState | null
+  ): boolean;
+}
+
 interface ItemTownApi {
   getAccountEconomyFeatures(profile?: ProfileState | null): AccountEconomyFeatures;
   getPlannedRunewordId(profile: ProfileState | null | undefined, slot: "weapon" | "armor", content?: GameContent | null): string;
@@ -462,7 +661,7 @@ interface ItemTownApi {
 }
 
 interface ItemSystemApi {
-  createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle): GameContent;
+  createRuntimeContent(baseContent: GameContent, seedBundle: SeedBundle | null): GameContent;
   hydrateRunLoadout(run: RunState, content: GameContent): void;
   hydrateRunInventory(run: RunState, content: GameContent, profile?: ProfileState | null): void;
   hydrateProfileStash(profile: ProfileState, content: GameContent): void;
@@ -600,6 +799,25 @@ interface RewardEngineApplyApi {
 interface TownServiceApi {
   listActions(content: GameContent, run: RunState, profile: ProfileState): TownAction[];
   applyAction(run: RunState, profile: ProfileState, content: GameContent, actionId: string): ActionResult;
+}
+
+interface SafeZoneNpcViewModel {
+  id: string;
+  name: string;
+  role: string;
+  icon: string;
+  actions: TownAction[];
+  emptyLabel: string;
+  isMerc?: boolean;
+}
+
+interface SafeZoneViewMerchantApi {
+  buildNpcOverlay(
+    npc: SafeZoneNpcViewModel,
+    gold: number,
+    content: GameContent,
+    escapeHtml: (value: string) => string
+  ): string;
 }
 
 interface SaveMigrationApi {

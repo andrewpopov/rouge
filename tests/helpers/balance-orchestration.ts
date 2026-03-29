@@ -305,6 +305,114 @@ export interface BalanceRunExecutionResult {
   }>;
 }
 
+function buildEmptyFinalBuild(): PolicyRunSummary["finalBuild"] {
+  return {
+    level: 0,
+    deckSize: 0,
+    topCards: [],
+    deckProficiencies: [],
+    hero: {
+      maxLife: 0,
+      maxEnergy: 0,
+      handSize: 5,
+      potionHeal: 0,
+      damageBonus: 0,
+      guardBonus: 0,
+      burnBonus: 0,
+    },
+    mercenary: {
+      name: "",
+      maxLife: 0,
+      attack: 0,
+    },
+    weapon: null,
+    armor: null,
+    favoredTreeId: "",
+    favoredTreeName: "",
+    dominantArchetypeId: "",
+    dominantArchetypeLabel: "",
+    dominantArchetypeScore: 0,
+    secondaryArchetypeId: "",
+    secondaryArchetypeLabel: "",
+    secondaryArchetypeScore: 0,
+    archetypeScores: [],
+    activeRunewords: [],
+  };
+}
+
+function buildEmptySummary(): PolicyRunSummary {
+  return {
+    runSummary: {} as RunState["summary"],
+    zoneKindCounts: {},
+    zoneRoleCounts: {},
+    nodeTypeCounts: {},
+    rewardKindCounts: {},
+    choiceKindCounts: {},
+    rewardEffectCounts: {},
+    rewardRoleCounts: {},
+    strategyRoleCounts: {},
+    encounterResults: [],
+    encounterMetricsByKind: {},
+    world: {
+      resolvedNodeCount: 0,
+      worldFlagCount: 0,
+      questOutcomes: 0,
+      questFollowUpsResolved: 0,
+      questChainsResolved: 0,
+      shrineOutcomes: 0,
+      eventOutcomes: 0,
+      opportunityOutcomes: 0,
+    },
+    finalBuild: buildEmptyFinalBuild(),
+  };
+}
+
+export function createSyntheticBalanceRunRecord(
+  spec: BalanceExperimentSpec,
+  task: BalanceRunTask,
+  options: {
+    outcome?: string;
+    durationMs?: number;
+    failureLabel?: string;
+    errorMessage?: string;
+  } = {}
+): BalanceRunRecord {
+  const summary = buildEmptySummary();
+  if (options.errorMessage) {
+    summary.rewardEffectCounts.worker_error = 1;
+  }
+  const failureLabel = options.failureLabel || "Worker failure";
+  return {
+    runKey: buildRunKeyString(task.runKey),
+    experimentId: spec.experimentId,
+    scenarioType: spec.scenarioType,
+    classId: task.classId,
+    className: task.classId,
+    policyId: task.policyId,
+    policyLabel: task.policyId,
+    seedOffset: task.seedOffset,
+    outcome: options.outcome || "run_failed",
+    finalActNumber: 0,
+    finalLevel: 0,
+    failure: {
+      actNumber: 0,
+      zoneTitle: failureLabel,
+      encounterId: "synthetic_failure",
+      encounterName: options.errorMessage ? `${failureLabel}: ${options.errorMessage}` : failureLabel,
+      kind: "battle",
+      zoneKind: "synthetic",
+      zoneRole: "synthetic",
+      nodeType: "synthetic",
+    },
+    durationMs: Number(options.durationMs || 0),
+    completedAt: new Date().toISOString(),
+    checkpoints: [],
+    summary,
+    snapshots: {},
+    traces: [],
+  };
+}
+
 function roundTo(value: number, digits = 3) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;

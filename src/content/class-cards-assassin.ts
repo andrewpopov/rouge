@@ -208,10 +208,11 @@
       title: "Death Sentry",
       cost: 2,
       target: "none",
-      text: "Deal 11 lightning damage to all enemies. Apply 2 Paralyze to all.",
+      text: "Deal 12 lightning damage to all enemies. Apply 2 Paralyze to all. Gain 5 Guard.",
       effects: [
-        { kind: "damage_all", value: 11 },
+        { kind: "damage_all", value: 12 },
         { kind: "apply_paralyze_all", value: 2 },
+        { kind: "gain_guard_self", value: 5 },
       ],
       skillRef: "assassin_death_sentry",
       tier: 4,

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 from pathlib import Path
 from typing import Any
+from collections import deque
 
 from PIL import Image, ImageColor, ImageOps
 
@@ -34,8 +34,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gutter-y", type=int, default=0, help="Vertical space between cells.")
     parser.add_argument("--cell-width", type=int, help="Explicit cell width.")
     parser.add_argument("--cell-height", type=int, help="Explicit cell height.")
+    parser.add_argument("--inset-x", type=int, default=0, help="Crop this many pixels from the left and right of each cell before processing.")
+    parser.add_argument("--inset-y", type=int, default=0, help="Crop this many pixels from the top and bottom of each cell before processing.")
     parser.add_argument("--trim", action="store_true", help="Trim transparent bounds after keying.")
     parser.add_argument("--no-trim", action="store_true", help="Disable trimming even if enabled in config.")
+    parser.add_argument(
+        "--largest-component",
+        action="store_true",
+        help="Keep only the largest connected non-transparent component in each cell.",
+    )
     parser.add_argument("--key-color", help="Flat background color to remove, e.g. #00FF00.")
     parser.add_argument("--key-threshold", type=int, default=20, help="Per-channel tolerance for key color removal.")
     parser.add_argument("--extent", help="Optional fixed output canvas, e.g. 128x128.")
@@ -46,7 +53,7 @@ def parse_args() -> argparse.Namespace:
 
 def load_config(config_path: Path) -> dict[str, Any]:
     if not config_path.exists():
-      raise FileNotFoundError(f"Missing config file: {config_path}")
+        raise FileNotFoundError(f"Missing config file: {config_path}")
     return json.loads(config_path.read_text())
 
 
@@ -76,7 +83,10 @@ def merge_settings(args: argparse.Namespace, batch: dict[str, Any]) -> dict[str,
         "gutter_y": args.gutter_y,
         "cell_width": args.cell_width,
         "cell_height": args.cell_height,
+        "inset_x": args.inset_x or int(batch.get("insetX") or 0),
+        "inset_y": args.inset_y or int(batch.get("insetY") or 0),
         "trim": False if args.no_trim else (args.trim or bool(batch.get("trim"))),
+        "largest_component": args.largest_component or bool(batch.get("keepLargestComponent")),
         "key_color": args.key_color or batch.get("keyColor"),
         "key_threshold": args.key_threshold,
         "extent": parse_extent(args.extent or batch.get("extent")),
@@ -117,6 +127,58 @@ def trim_transparent_bounds(image: Image.Image) -> Image.Image:
     if not bbox:
         return image
     return image.crop(bbox)
+
+
+def keep_largest_alpha_component(image: Image.Image) -> Image.Image:
+    alpha = image.getchannel("A")
+    width, height = image.size
+    alpha_pixels = alpha.load()
+    visited = bytearray(width * height)
+    largest_component: list[tuple[int, int]] = []
+    neighbors = [
+        (-1, -1), (0, -1), (1, -1),
+        (-1, 0),           (1, 0),
+        (-1, 1),  (0, 1),  (1, 1),
+    ]
+
+    for y in range(height):
+        for x in range(width):
+            index = y * width + x
+            if visited[index] or alpha_pixels[x, y] == 0:
+                continue
+            queue: deque[tuple[int, int]] = deque([(x, y)])
+            visited[index] = 1
+            component: list[tuple[int, int]] = []
+
+            while queue:
+                cx, cy = queue.popleft()
+                component.append((cx, cy))
+                for dx, dy in neighbors:
+                    nx = cx + dx
+                    ny = cy + dy
+                    if nx < 0 or ny < 0 or nx >= width or ny >= height:
+                        continue
+                    neighbor_index = ny * width + nx
+                    if visited[neighbor_index] or alpha_pixels[nx, ny] == 0:
+                        continue
+                    visited[neighbor_index] = 1
+                    queue.append((nx, ny))
+
+            if len(component) > len(largest_component):
+                largest_component = component
+
+    if not largest_component:
+        return image
+
+    rgba = image.copy()
+    rgba_pixels = rgba.load()
+    keep = set(largest_component)
+    for y in range(height):
+        for x in range(width):
+            if (x, y) not in keep:
+                r, g, b, _a = rgba_pixels[x, y]
+                rgba_pixels[x, y] = (r, g, b, 0)
+    return rgba
 
 
 def contain_on_canvas(image: Image.Image, extent: tuple[int, int]) -> Image.Image:
@@ -169,10 +231,18 @@ def main() -> None:
         y0 = settings["offset_y"] + row * (cell_height + settings["gutter_y"])
         x1 = x0 + cell_width
         y1 = y0 + cell_height
-        cell = sheet.crop((x0, y0, x1, y1))
+        inner_x0 = x0 + settings["inset_x"]
+        inner_y0 = y0 + settings["inset_y"]
+        inner_x1 = x1 - settings["inset_x"]
+        inner_y1 = y1 - settings["inset_y"]
+        if inner_x1 <= inner_x0 or inner_y1 <= inner_y0:
+            raise ValueError("Insets are too large for the computed cell size.")
+        cell = sheet.crop((inner_x0, inner_y0, inner_x1, inner_y1))
 
         if settings["key_color"]:
             cell = transparentize_key_color(cell, settings["key_color"], settings["key_threshold"])
+        if settings["largest_component"]:
+            cell = keep_largest_alpha_component(cell)
         if settings["trim"]:
             cell = trim_transparent_bounds(cell)
 
@@ -190,6 +260,7 @@ def main() -> None:
                 "row": row,
                 "col": col,
                 "box": [x0, y0, x1, y1],
+                "innerBox": [inner_x0, inner_y0, inner_x1, inner_y1],
                 "output": str(out_path),
                 "empty": is_empty,
             }
@@ -211,8 +282,11 @@ def main() -> None:
             "offsetY": settings["offset_y"],
             "gutterX": settings["gutter_x"],
             "gutterY": settings["gutter_y"],
+            "insetX": settings["inset_x"],
+            "insetY": settings["inset_y"],
         },
         "trim": settings["trim"],
+        "largestComponent": settings["largest_component"],
         "keyColor": settings["key_color"] or "",
         "extent": list(settings["extent"]) if settings["extent"] else None,
         "outputs": outputs,
