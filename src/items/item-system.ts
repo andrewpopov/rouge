@@ -68,20 +68,25 @@
     );
     const levelAllowance = Math.min(2, Math.floor(Math.max(0, toNumber(run?.level, 1) - 1) / 2));
     const trophyAllowance = zone?.kind === "boss" ? 1 : Math.min(1, toNumber(run?.progression?.bossTrophies?.length, 0));
-    const zoneAllowance =
-      zone?.kind === "boss" ? 1 :
-      zone?.kind === "miniboss" ? 0 :
-      zone?.zoneRole === "branchBattle" ? 0 :
-      0;
+    const zoneAllowance = zone?.kind === "boss" ? 1 : 0;
     return Math.max(1, Math.min(maxItemTier, actNumber + levelAllowance + trophyAllowance + zoneAllowance));
   }
 
+  function getBaseZoneDropCount(zone: ZoneState | null) {
+    if (zone?.kind === "boss") {
+      return 4;
+    }
+    if (zone?.kind === "miniboss") {
+      return 3;
+    }
+    if (zone?.zoneRole === "branchBattle") {
+      return 2;
+    }
+    return 1;
+  }
+
   function getZoneDropCount(zone: ZoneState | null, actNumber: number) {
-    let dropCount =
-      zone?.kind === "boss" ? 4 :
-      zone?.kind === "miniboss" ? 3 :
-      zone?.zoneRole === "branchBattle" ? 2 :
-      1;
+    let dropCount = getBaseZoneDropCount(zone);
     if (actNumber >= 4) {
       dropCount += zone?.kind === "battle" ? 1 : 0;
     }
@@ -134,10 +139,17 @@
 
   function getEquipmentTableEntries(run: RunState, zone: ZoneState | null, actNumber: number, content: GameContent, profile: ProfileState | null = null) {
     const targetTier = getTargetItemTier(run, zone, actNumber, content);
-    const maxTier = targetTier + (zone?.kind === "boss" ? 2 : zone?.kind === "miniboss" ? 1 : 0);
+    let maxTier = targetTier;
+    if (zone?.kind === "boss") {
+      maxTier += 2;
+    } else if (zone?.kind === "miniboss") {
+      maxTier += 1;
+    }
     const minTier = Math.max(1, targetTier - 2);
     const lateBias = getLateLootBias(profile, zone, actNumber);
     const preferredWeaponFamilies = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [];
+    const strategicWeaponFamilies = runtimeWindow.ROUGE_REWARD_ENGINE?.getStrategicWeaponFamilies?.(run, content) || preferredWeaponFamilies;
+    const primaryStrategicWeaponFamily = strategicWeaponFamilies[0] || "";
     const currentWeaponTier = Math.max(0, toNumber(content.itemCatalog?.[run.loadout?.weapon?.itemId || ""]?.progressionTier, 0));
     const currentArmorTier = Math.max(0, toNumber(content.itemCatalog?.[run.loadout?.armor?.itemId || ""]?.progressionTier, 0));
     const entries = (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
@@ -154,13 +166,21 @@
         } else if (item.slot === "shield" || item.slot === "helm") {
           weight += 1;
         }
-        if (item.slot === "weapon" && preferredWeaponFamilies.includes(item.family || "")) {
+        if (item.slot === "weapon" && (item.family || "") === primaryStrategicWeaponFamily) {
+          weight += 8;
+        } else if (item.slot === "weapon" && strategicWeaponFamilies.includes(item.family || "")) {
           weight += 5;
+        } else if (item.slot === "weapon" && preferredWeaponFamilies.includes(item.family || "")) {
+          weight += 3;
         }
         if (item.slot === "weapon" && tier > currentWeaponTier) {
           weight += 2 + (tier - currentWeaponTier) * 2;
-          if (preferredWeaponFamilies.includes(item.family || "")) {
-            weight += 3;
+          if ((item.family || "") === primaryStrategicWeaponFamily) {
+            weight += 6;
+          } else if (strategicWeaponFamilies.includes(item.family || "")) {
+            weight += 4;
+          } else if (preferredWeaponFamilies.includes(item.family || "")) {
+            weight += 2;
           }
         }
         if (item.slot === "armor" && tier > currentArmorTier) {
@@ -223,10 +243,18 @@
     const targetProjects = (["weapon", "armor"] as const)
       .map((slot) => {
         const equipment = loadout[slot];
-        const targetRuneword = equipment && !equipment.runewordId
+        const targetRuneword = equipment
           ? getPreferredRunewordForEquipment(equipment, run, content)
           : null;
         if (!targetRuneword) {
+          return null;
+        }
+        const hasActiveProject =
+          !equipment?.runewordId ||
+          equipment.runewordId !== targetRuneword.id ||
+          toNumber(equipment.socketsUnlocked, 0) < toNumber(targetRuneword.socketCount, 0) ||
+          (equipment.insertedRunes?.length || 0) < targetRuneword.requiredRunes.length;
+        if (!hasActiveProject) {
           return null;
         }
         const insertedRunes = Array.isArray(equipment?.insertedRunes) ? equipment.insertedRunes : [];
@@ -241,7 +269,12 @@
       .filter(Boolean) as Array<{ nextRuneId: string; remainingRuneIds: string[] }>;
     const nextTargetRuneIds = Array.from(new Set(targetProjects.map((project) => project.nextRuneId).filter(Boolean)));
     const remainingTargetRuneIds = Array.from(new Set(targetProjects.flatMap((project) => project.remainingRuneIds).filter(Boolean)));
-    const runeTargetTier = Math.max(1, actNumber + (zone?.kind === "boss" ? 2 : zone?.kind === "miniboss" ? 1 : 0));
+    let runeTargetTier = Math.max(1, actNumber);
+    if (zone?.kind === "boss") {
+      runeTargetTier += 2;
+    } else if (zone?.kind === "miniboss") {
+      runeTargetTier += 1;
+    }
     const entries = (Object.values(content.runeCatalog || {}) as RuntimeRuneDefinition[])
       .filter((rune) => toNumber(rune?.progressionTier, 1) <= runeTargetTier)
       .map((rune) => {
@@ -251,9 +284,21 @@
           weight += 1;
         }
         if (nextTargetRuneIds.includes(rune.id)) {
-          weight += zone?.kind === "boss" ? 10 : zone?.kind === "miniboss" ? 8 : 5;
+          if (zone?.kind === "boss") {
+            weight += 7;
+          } else if (zone?.kind === "miniboss") {
+            weight += 5;
+          } else {
+            weight += 3;
+          }
         } else if (remainingTargetRuneIds.includes(rune.id)) {
-          weight += zone?.kind === "boss" ? 6 : zone?.kind === "miniboss" ? 4 : 2;
+          if (zone?.kind === "boss") {
+            weight += 4;
+          } else if (zone?.kind === "miniboss") {
+            weight += 3;
+          } else {
+            weight += 1;
+          }
         }
         if (actNumber <= 2 && tier <= actNumber + 2) {
           weight += 1;
@@ -268,7 +313,19 @@
     const loadout = buildHydratedLoadout(run, content);
     const hasActiveRunewordProject = (["weapon", "armor"] as const).some((slot) => {
       const equipment = loadout[slot];
-      return Boolean(equipment && !equipment.runewordId && getPreferredRunewordForEquipment(equipment, run, content));
+      const targetRuneword = equipment
+        ? getPreferredRunewordForEquipment(equipment, run, content)
+        : null;
+      return Boolean(
+        equipment &&
+        targetRuneword &&
+        (
+          !equipment.runewordId ||
+          equipment.runewordId !== targetRuneword.id ||
+          toNumber(equipment.socketsUnlocked, 0) < toNumber(targetRuneword.socketCount, 0) ||
+          (equipment.insertedRunes?.length || 0) < targetRuneword.requiredRunes.length
+        )
+      );
     });
     if (zone?.kind === "boss") {
       return 1;
@@ -320,11 +377,14 @@
 
   function rollEquipmentRarity(zone: ZoneState | null, run: RunState, randomFn: RandomFn) {
     const uniqueSeen = toNumber(run.summary?.uniqueItemsFound, 0);
-    const uniqueChanceBase =
-      zone?.kind === "boss" ? 0.03 :
-      zone?.kind === "miniboss" ? 0.005 :
-      zone?.kind === "event" || zone?.kind === "opportunity" ? 0.015 :
-      0.0005;
+    let uniqueChanceBase = 0.0005;
+    if (zone?.kind === "boss") {
+      uniqueChanceBase = 0.03;
+    } else if (zone?.kind === "miniboss") {
+      uniqueChanceBase = 0.005;
+    } else if (zone?.kind === "event" || zone?.kind === "opportunity") {
+      uniqueChanceBase = 0.015;
+    }
     const uniqueChance = uniqueChanceBase * (uniqueSeen > 0 ? 0.2 : 1);
     const roll = randomFn();
     if (roll < uniqueChance) {
@@ -443,17 +503,27 @@
     };
   }
 
-  function rollExtraDrops(
-    equipmentTable: Array<{ kind: "equipment"; id: string; item: RuntimeItemDefinition; weight: number; dropRate: number }>,
-    runeTable: Array<{ kind: "rune"; id: string; rune: RuntimeRuneDefinition; weight: number; dropRate: number }>,
-    zone: ZoneState | null,
-    run: RunState,
-    randomFn: RandomFn,
-    desiredCount: number,
-    primaryItemId: string,
-    primaryItemSlot: EquipmentSlot,
-    guaranteedRuneCount: number
-  ) {
+  function rollExtraDrops({
+    equipmentTable,
+    runeTable,
+    zone,
+    run,
+    randomFn,
+    desiredCount,
+    primaryItemId,
+    primaryItemSlot,
+    guaranteedRuneCount,
+  }: {
+    equipmentTable: Array<{ kind: "equipment"; id: string; item: RuntimeItemDefinition; weight: number; dropRate: number }>;
+    runeTable: Array<{ kind: "rune"; id: string; rune: RuntimeRuneDefinition; weight: number; dropRate: number }>;
+    zone: ZoneState | null;
+    run: RunState;
+    randomFn: RandomFn;
+    desiredCount: number;
+    primaryItemId: string;
+    primaryItemSlot: EquipmentSlot;
+    guaranteedRuneCount: number;
+  }) {
     const chosenIds = new Set<string>([primaryItemId]);
     const chosenEquipmentSlots = new Set<EquipmentSlot>([primaryItemSlot]);
     const drops: Array<
@@ -542,17 +612,17 @@
 
     const totalDropCount = getZoneDropCount(zone, actNumber);
     const guaranteedRuneCount = getGuaranteedRuneDropCount(zone, run, content);
-    const extraDrops = rollExtraDrops(
+    const extraDrops = rollExtraDrops({
       equipmentTable,
       runeTable,
       zone,
       run,
       randomFn,
-      Math.max(0, totalDropCount - 1),
-      primaryDrop.id,
-      getItemDefinition(content, primaryDrop.id)?.slot || "weapon",
-      guaranteedRuneCount
-    );
+      desiredCount: Math.max(0, totalDropCount - 1),
+      primaryItemId: primaryDrop.id,
+      primaryItemSlot: getItemDefinition(content, primaryDrop.id)?.slot || "weapon",
+      guaranteedRuneCount,
+    });
     const targetTier = getTargetItemTier(run, zone, actNumber, content);
     const primaryLabel = buildDropLabel(content, { kind: "equipment", id: primaryDrop.id, rarity: primaryDrop.rarity });
     const previewLines = [

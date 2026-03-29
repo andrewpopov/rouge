@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Javelin">
+  <defs>
+    <linearGradient id="javWood" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#a1693d"/>
+      <stop offset="55%" stop-color="#6f4322"/>
+      <stop offset="100%" stop-color="#332013"/>
+    </linearGradient>
+    <linearGradient id="javMetal" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f2dbc1"/>
+      <stop offset="55%" stop-color="#c89558"/>
+      <stop offset="100%" stop-color="#72421e"/>
+    </linearGradient>
+    <filter id="javGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#javGlow)" transform="translate(9 10) rotate(-34 54 54)">
+    <path d="M52 12L58 12L61 98L49 98Z" fill="url(#javWood)"/>
+    <path d="M48 14L62 14" stroke="#27160d" stroke-linecap="round" stroke-opacity="0.3" stroke-width="1.8"/>
+    <path d="M55 2L67 18L55 42L43 18Z" fill="url(#javMetal)"/>
+    <path d="M55 10L60 18L55 30L50 18Z" fill="#f6ebdb" fill-opacity="0.72"/>
+    <path d="M48 78L62 78" stroke="#e0c7a0" stroke-linecap="round" stroke-width="2.2"/>
+    <path d="M43 91L55 104L67 91" fill="none" stroke="#7e241e" stroke-linecap="round" stroke-width="4"/>
+    <path d="M46 88L55 97L64 88" fill="none" stroke="#d7a35f" stroke-linecap="round" stroke-width="2.1"/>
+  </g>
+</svg>

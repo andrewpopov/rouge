@@ -166,11 +166,12 @@
       if (guardGained > 0) {
         runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.applyGuard?.(enemy, guardGained);
       }
-      const scope = intent.target === "all_allies"
-        ? "the whole party"
-        : intent.target === "mercenary"
-          ? "the mercenary"
-          : "the Wanderer";
+      let scope = "the Wanderer";
+      if (intent.target === "all_allies") {
+        scope = "the whole party";
+      } else if (intent.target === "mercenary") {
+        scope = "the mercenary";
+      }
       const damageType = intent.damageType ? ` ${intent.damageType}` : "";
       _appendLog(
         state,

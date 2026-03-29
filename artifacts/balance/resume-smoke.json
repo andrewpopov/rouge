@@ -1,0 +1,2474 @@
+{
+  "generatedAt": "2026-03-29T00:04:03.405Z",
+  "throughActNumber": 2,
+  "probeRuns": 0,
+  "seedCount": 2,
+  "classIds": [
+    "amazon"
+  ],
+  "policyIds": [
+    "aggressive",
+    "balanced"
+  ],
+  "summary": [
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "runs": 2,
+      "winRate": 0,
+      "failureRate": 0,
+      "averageFinalAct": 2,
+      "averageFinalLevel": 7,
+      "averageFinalHandSize": 5,
+      "dominantArchetypes": [
+        {
+          "key": "Bow Volley",
+          "count": 2
+        }
+      ],
+      "secondaryArchetypes": [
+        {
+          "key": "Passive Tempo",
+          "count": 2
+        }
+      ],
+      "weaponFamilies": [
+        {
+          "key": "Bows",
+          "count": 2
+        }
+      ],
+      "weaponRarities": [
+        {
+          "key": "yellow",
+          "count": 2
+        }
+      ],
+      "runewords": [
+        {
+          "key": "Edge",
+          "count": 2
+        }
+      ],
+      "failureEncounters": [
+        {
+          "key": "none",
+          "count": 2
+        }
+      ],
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "runs": 2,
+          "averagePower": 342.95,
+          "averageDeckSize": 13,
+          "averageDamageBonus": 0,
+          "averageGuardBonus": 0,
+          "averageHandSize": 5
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "runs": 2,
+          "averagePower": 1229.8,
+          "averageDeckSize": 24,
+          "averageDamageBonus": 27,
+          "averageGuardBonus": 9.5,
+          "averageHandSize": 5
+        }
+      ],
+      "probes": []
+    },
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "balanced",
+      "policyLabel": "Balanced",
+      "runs": 2,
+      "winRate": 0,
+      "failureRate": 0,
+      "averageFinalAct": 2,
+      "averageFinalLevel": 7,
+      "averageFinalHandSize": 5,
+      "dominantArchetypes": [
+        {
+          "key": "Bow Volley",
+          "count": 2
+        }
+      ],
+      "secondaryArchetypes": [
+        {
+          "key": "Passive Tempo",
+          "count": 2
+        }
+      ],
+      "weaponFamilies": [
+        {
+          "key": "Bows",
+          "count": 2
+        }
+      ],
+      "weaponRarities": [
+        {
+          "key": "brown",
+          "count": 1
+        },
+        {
+          "key": "yellow",
+          "count": 1
+        }
+      ],
+      "runewords": [
+        {
+          "key": "Edge",
+          "count": 2
+        }
+      ],
+      "failureEncounters": [
+        {
+          "key": "none",
+          "count": 2
+        }
+      ],
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "runs": 2,
+          "averagePower": 342.95,
+          "averageDeckSize": 13,
+          "averageDamageBonus": 0,
+          "averageGuardBonus": 0,
+          "averageHandSize": 5
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "runs": 2,
+          "averagePower": 1227.81,
+          "averageDeckSize": 24,
+          "averageDamageBonus": 23,
+          "averageGuardBonus": 12,
+          "averageHandSize": 5
+        }
+      ],
+      "probes": []
+    }
+  ],
+  "runs": [
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "seedOffset": 0,
+      "outcome": "reached_checkpoint",
+      "finalActNumber": 2,
+      "finalLevel": 7,
+      "failure": null,
+      "finalBuild": {
+        "level": 7,
+        "deckSize": 24,
+        "topCards": [
+          "Guided Arrow",
+          "Freezing Arrow",
+          "Valkyrie",
+          "Strafe",
+          "Strafe"
+        ],
+        "deckProficiencies": [
+          {
+            "proficiency": "bow",
+            "count": 15
+          },
+          {
+            "proficiency": "passive",
+            "count": 6
+          },
+          {
+            "proficiency": "javelin",
+            "count": 2
+          },
+          {
+            "proficiency": "neutral",
+            "count": 1
+          }
+        ],
+        "hero": {
+          "maxLife": 141,
+          "maxEnergy": 9,
+          "handSize": 5,
+          "potionHeal": 22,
+          "damageBonus": 27,
+          "guardBonus": 10,
+          "burnBonus": 5
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "maxLife": 68,
+          "attack": 17
+        },
+        "weapon": {
+          "itemId": "item_short_bow",
+          "name": "Short Bow",
+          "family": "Bows",
+          "rarity": "yellow",
+          "preferredForClass": true,
+          "damageTypes": [
+            {
+              "type": "fire",
+              "amount": 5
+            },
+            {
+              "type": "fire",
+              "amount": 3
+            },
+            {
+              "type": "poison",
+              "amount": 3
+            }
+          ],
+          "effects": [
+            {
+              "kind": "burn",
+              "amount": 4
+            }
+          ]
+        },
+        "armor": {
+          "itemId": "item_quilted_armor",
+          "name": "Quilted Armor",
+          "rarity": "white",
+          "resistances": [
+            {
+              "type": "physical",
+              "amount": 1
+            }
+          ],
+          "immunities": []
+        },
+        "favoredTreeId": "amazon_bow_and_crossbow",
+        "favoredTreeName": "Bow and Crossbow",
+        "dominantArchetypeId": "amazon_bow_and_crossbow",
+        "dominantArchetypeLabel": "Bow Volley",
+        "dominantArchetypeScore": 135,
+        "secondaryArchetypeId": "amazon_passive_and_magic",
+        "secondaryArchetypeLabel": "Passive Tempo",
+        "secondaryArchetypeScore": 40,
+        "archetypeScores": [
+          {
+            "archetypeId": "amazon_bow_and_crossbow",
+            "label": "Bow Volley",
+            "score": 135
+          },
+          {
+            "archetypeId": "amazon_passive_and_magic",
+            "label": "Passive Tempo",
+            "score": 40
+          },
+          {
+            "archetypeId": "amazon_javelin_and_spear",
+            "label": "Javelin Storm",
+            "score": 13
+          }
+        ],
+        "activeRunewords": [
+          "Edge"
+        ]
+      },
+      "summary": {
+        "runSummary": {
+          "encountersCleared": 33,
+          "zonesCleared": 22,
+          "actsCleared": 1,
+          "goldGained": 650,
+          "xpGained": 312,
+          "levelsGained": 6,
+          "skillPointsEarned": 6,
+          "classPointsEarned": 6,
+          "attributePointsEarned": 6,
+          "trainingRanksGained": 6,
+          "bossesDefeated": 1,
+          "runewordsForged": 1,
+          "uniqueItemsFound": 0
+        },
+        "zoneKindCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "zoneRoleCounts": {
+          "opening": 1,
+          "mainline_1": 1,
+          "side_burial_grounds": 1,
+          "mainline_2": 1,
+          "mainline_3": 1,
+          "mainline_4": 1,
+          "mainline_5": 1,
+          "side_forgotten_tower": 1,
+          "mainline_6": 1,
+          "mainline_7": 1,
+          "mainline_8": 1,
+          "mainline_9": 1,
+          "mainline_10": 1,
+          "mainline_11": 1,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "side_den_of_evil": 1,
+          "side_tristram": 1,
+          "boss": 1
+        },
+        "nodeTypeCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 1,
+          "shrine_opportunity": 1,
+          "boss": 1
+        },
+        "rewardKindCounts": {
+          "battle": 24,
+          "miniboss": 8,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "choiceKindCounts": {
+          "item": 5,
+          "card": 8,
+          "upgrade": 1,
+          "boon": 19,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2
+        },
+        "rewardEffectCounts": {
+          "equip_item": 6,
+          "add_card": 8,
+          "upgrade_card": 1,
+          "hero_max_life": 12,
+          "grant_rune": 3,
+          "grant_item": 1,
+          "mercenary_attack": 4,
+          "mercenary_max_life": 4,
+          "gold_bonus": 4,
+          "refill_potions": 8,
+          "record_quest_outcome": 1,
+          "add_socket": 3,
+          "socket_rune": 3,
+          "record_node_outcome": 4,
+          "support_build": 3,
+          "record_quest_follow_up": 1,
+          "hero_potion_heal": 2,
+          "record_quest_consequence": 1,
+          "hero_max_energy": 1
+        },
+        "world": {
+          "resolvedNodeCount": 5,
+          "worldFlagCount": 5,
+          "questOutcomes": 1,
+          "questFollowUpsResolved": 1,
+          "questChainsResolved": 1,
+          "shrineOutcomes": 1,
+          "eventOutcomes": 1,
+          "opportunityOutcomes": 2
+        },
+        "finalBuild": {
+          "level": 7,
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 141,
+            "maxEnergy": 9,
+            "handSize": 5,
+            "potionHeal": 22,
+            "damageBonus": 27,
+            "guardBonus": 10,
+            "burnBonus": 5
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 68,
+            "attack": 17
+          },
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow",
+            "preferredForClass": true,
+            "damageTypes": [
+              {
+                "type": "fire",
+                "amount": 5
+              },
+              {
+                "type": "fire",
+                "amount": 3
+              },
+              {
+                "type": "poison",
+                "amount": 3
+              }
+            ],
+            "effects": [
+              {
+                "kind": "burn",
+                "amount": 4
+              }
+            ]
+          },
+          "armor": {
+            "itemId": "item_quilted_armor",
+            "name": "Quilted Armor",
+            "rarity": "white",
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "activeRunewords": [
+            "Edge"
+          ]
+        }
+      },
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "level": 1,
+          "gold": 0,
+          "powerScore": 342.95,
+          "powerBreakdown": {
+            "offense": 4.5,
+            "defense": 66.2,
+            "sustain": 58.5,
+            "utility": 9,
+            "deck": 199.75,
+            "equipment": 0,
+            "progression": 5,
+            "resources": 0
+          },
+          "deckSize": 13,
+          "topCards": [
+            "Inner Sight",
+            "Inner Sight",
+            "Magic Arrow",
+            "Magic Arrow",
+            "Magic Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 5
+            },
+            {
+              "proficiency": "passive",
+              "count": 5
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 50,
+            "maxEnergy": 3,
+            "handSize": 5,
+            "potionHeal": 15,
+            "damageBonus": 0,
+            "guardBonus": 0,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 28,
+            "attack": 5
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 0,
+            "focus": 0,
+            "command": 0
+          },
+          "favoredTreeId": "",
+          "favoredTreeName": "",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 24,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 22,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 24
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 22
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 12
+            }
+          ],
+          "weapon": null,
+          "activeRunewords": [],
+          "runewordsForged": 0,
+          "armor": {
+            "resistances": [],
+            "immunities": []
+          },
+          "choiceCounts": {},
+          "probes": []
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "level": 7,
+          "gold": 23,
+          "powerScore": 1233.35,
+          "powerBreakdown": {
+            "offense": 305.3,
+            "defense": 242.3,
+            "sustain": 80.9,
+            "utility": 50.75,
+            "deck": 452.9,
+            "equipment": 61.2,
+            "progression": 40,
+            "resources": 0
+          },
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 141,
+            "maxEnergy": 9,
+            "handSize": 5,
+            "potionHeal": 22,
+            "damageBonus": 27,
+            "guardBonus": 10,
+            "burnBonus": 5
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 68,
+            "attack": 17
+          },
+          "attributes": {
+            "strength": 4,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 2,
+            "focus": 2,
+            "command": 8
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow"
+          },
+          "activeRunewords": [
+            "Edge"
+          ],
+          "runewordsForged": 1,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 5,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 19,
+            "quest": 1,
+            "shrine": 1,
+            "event": 1,
+            "opportunity": 2
+          },
+          "probes": []
+        }
+      ]
+    },
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "seedOffset": 1,
+      "outcome": "reached_checkpoint",
+      "finalActNumber": 2,
+      "finalLevel": 7,
+      "failure": null,
+      "finalBuild": {
+        "level": 7,
+        "deckSize": 24,
+        "topCards": [
+          "Guided Arrow",
+          "Freezing Arrow",
+          "Valkyrie",
+          "Strafe",
+          "Strafe"
+        ],
+        "deckProficiencies": [
+          {
+            "proficiency": "bow",
+            "count": 15
+          },
+          {
+            "proficiency": "passive",
+            "count": 6
+          },
+          {
+            "proficiency": "javelin",
+            "count": 2
+          },
+          {
+            "proficiency": "neutral",
+            "count": 1
+          }
+        ],
+        "hero": {
+          "maxLife": 151,
+          "maxEnergy": 8,
+          "handSize": 5,
+          "potionHeal": 21,
+          "damageBonus": 27,
+          "guardBonus": 9,
+          "burnBonus": 3
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "maxLife": 72,
+          "attack": 20
+        },
+        "weapon": {
+          "itemId": "item_short_bow",
+          "name": "Short Bow",
+          "family": "Bows",
+          "rarity": "yellow",
+          "preferredForClass": true,
+          "damageTypes": [
+            {
+              "type": "fire",
+              "amount": 5
+            },
+            {
+              "type": "fire",
+              "amount": 3
+            }
+          ],
+          "effects": [
+            {
+              "kind": "burn",
+              "amount": 4
+            },
+            {
+              "kind": "slow",
+              "amount": 2
+            }
+          ]
+        },
+        "armor": {
+          "itemId": "item_quilted_armor",
+          "name": "Quilted Armor",
+          "rarity": "white",
+          "resistances": [
+            {
+              "type": "physical",
+              "amount": 1
+            }
+          ],
+          "immunities": []
+        },
+        "favoredTreeId": "amazon_bow_and_crossbow",
+        "favoredTreeName": "Bow and Crossbow",
+        "dominantArchetypeId": "amazon_bow_and_crossbow",
+        "dominantArchetypeLabel": "Bow Volley",
+        "dominantArchetypeScore": 135,
+        "secondaryArchetypeId": "amazon_passive_and_magic",
+        "secondaryArchetypeLabel": "Passive Tempo",
+        "secondaryArchetypeScore": 40,
+        "archetypeScores": [
+          {
+            "archetypeId": "amazon_bow_and_crossbow",
+            "label": "Bow Volley",
+            "score": 135
+          },
+          {
+            "archetypeId": "amazon_passive_and_magic",
+            "label": "Passive Tempo",
+            "score": 40
+          },
+          {
+            "archetypeId": "amazon_javelin_and_spear",
+            "label": "Javelin Storm",
+            "score": 13
+          }
+        ],
+        "activeRunewords": [
+          "Edge"
+        ]
+      },
+      "summary": {
+        "runSummary": {
+          "encountersCleared": 33,
+          "zonesCleared": 22,
+          "actsCleared": 1,
+          "goldGained": 668,
+          "xpGained": 312,
+          "levelsGained": 6,
+          "skillPointsEarned": 6,
+          "classPointsEarned": 6,
+          "attributePointsEarned": 6,
+          "trainingRanksGained": 6,
+          "bossesDefeated": 1,
+          "runewordsForged": 1,
+          "uniqueItemsFound": 0
+        },
+        "zoneKindCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "zoneRoleCounts": {
+          "opening": 1,
+          "mainline_1": 1,
+          "side_burial_grounds": 1,
+          "mainline_2": 1,
+          "mainline_3": 1,
+          "mainline_4": 1,
+          "mainline_5": 1,
+          "side_forgotten_tower": 1,
+          "mainline_6": 1,
+          "mainline_7": 1,
+          "mainline_8": 1,
+          "mainline_9": 1,
+          "mainline_10": 1,
+          "mainline_11": 1,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "side_den_of_evil": 1,
+          "side_tristram": 1,
+          "boss": 1
+        },
+        "nodeTypeCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 1,
+          "shrine_opportunity": 1,
+          "boss": 1
+        },
+        "rewardKindCounts": {
+          "battle": 24,
+          "miniboss": 8,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "choiceKindCounts": {
+          "item": 3,
+          "card": 8,
+          "upgrade": 1,
+          "boon": 21,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2
+        },
+        "rewardEffectCounts": {
+          "equip_item": 4,
+          "add_card": 8,
+          "upgrade_card": 1,
+          "hero_max_life": 12,
+          "gold_bonus": 5,
+          "refill_potions": 9,
+          "grant_rune": 1,
+          "grant_item": 1,
+          "mercenary_attack": 5,
+          "mercenary_max_life": 5,
+          "record_quest_outcome": 1,
+          "add_socket": 3,
+          "socket_rune": 3,
+          "record_node_outcome": 4,
+          "support_build": 3,
+          "record_quest_follow_up": 1,
+          "hero_potion_heal": 2,
+          "record_quest_consequence": 1,
+          "hero_max_energy": 1
+        },
+        "world": {
+          "resolvedNodeCount": 5,
+          "worldFlagCount": 5,
+          "questOutcomes": 1,
+          "questFollowUpsResolved": 1,
+          "questChainsResolved": 1,
+          "shrineOutcomes": 1,
+          "eventOutcomes": 1,
+          "opportunityOutcomes": 2
+        },
+        "finalBuild": {
+          "level": 7,
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 151,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 27,
+            "guardBonus": 9,
+            "burnBonus": 3
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 72,
+            "attack": 20
+          },
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow",
+            "preferredForClass": true,
+            "damageTypes": [
+              {
+                "type": "fire",
+                "amount": 5
+              },
+              {
+                "type": "fire",
+                "amount": 3
+              }
+            ],
+            "effects": [
+              {
+                "kind": "burn",
+                "amount": 4
+              },
+              {
+                "kind": "slow",
+                "amount": 2
+              }
+            ]
+          },
+          "armor": {
+            "itemId": "item_quilted_armor",
+            "name": "Quilted Armor",
+            "rarity": "white",
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "activeRunewords": [
+            "Edge"
+          ]
+        }
+      },
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "level": 1,
+          "gold": 0,
+          "powerScore": 342.95,
+          "powerBreakdown": {
+            "offense": 4.5,
+            "defense": 66.2,
+            "sustain": 58.5,
+            "utility": 9,
+            "deck": 199.75,
+            "equipment": 0,
+            "progression": 5,
+            "resources": 0
+          },
+          "deckSize": 13,
+          "topCards": [
+            "Inner Sight",
+            "Inner Sight",
+            "Magic Arrow",
+            "Magic Arrow",
+            "Magic Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 5
+            },
+            {
+              "proficiency": "passive",
+              "count": 5
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 50,
+            "maxEnergy": 3,
+            "handSize": 5,
+            "potionHeal": 15,
+            "damageBonus": 0,
+            "guardBonus": 0,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 28,
+            "attack": 5
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 0,
+            "focus": 0,
+            "command": 0
+          },
+          "favoredTreeId": "",
+          "favoredTreeName": "",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 24,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 22,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 24
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 22
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 12
+            }
+          ],
+          "weapon": null,
+          "activeRunewords": [],
+          "runewordsForged": 0,
+          "armor": {
+            "resistances": [],
+            "immunities": []
+          },
+          "choiceCounts": {},
+          "probes": []
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "level": 7,
+          "gold": 16,
+          "powerScore": 1226.24,
+          "powerBreakdown": {
+            "offense": 300,
+            "defense": 248.9,
+            "sustain": 77.7,
+            "utility": 47.75,
+            "deck": 454.29,
+            "equipment": 57.6,
+            "progression": 40,
+            "resources": 0
+          },
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 151,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 27,
+            "guardBonus": 9,
+            "burnBonus": 3
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 72,
+            "attack": 20
+          },
+          "attributes": {
+            "strength": 4,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 2,
+            "focus": 2,
+            "command": 8
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow"
+          },
+          "activeRunewords": [
+            "Edge"
+          ],
+          "runewordsForged": 1,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 3,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 21,
+            "quest": 1,
+            "shrine": 1,
+            "event": 1,
+            "opportunity": 2
+          },
+          "probes": []
+        }
+      ]
+    },
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "balanced",
+      "policyLabel": "Balanced",
+      "seedOffset": 0,
+      "outcome": "reached_checkpoint",
+      "finalActNumber": 2,
+      "finalLevel": 7,
+      "failure": null,
+      "finalBuild": {
+        "level": 7,
+        "deckSize": 24,
+        "topCards": [
+          "Guided Arrow",
+          "Freezing Arrow",
+          "Valkyrie",
+          "Strafe",
+          "Strafe"
+        ],
+        "deckProficiencies": [
+          {
+            "proficiency": "bow",
+            "count": 15
+          },
+          {
+            "proficiency": "passive",
+            "count": 6
+          },
+          {
+            "proficiency": "javelin",
+            "count": 2
+          },
+          {
+            "proficiency": "neutral",
+            "count": 1
+          }
+        ],
+        "hero": {
+          "maxLife": 147,
+          "maxEnergy": 8,
+          "handSize": 5,
+          "potionHeal": 21,
+          "damageBonus": 23,
+          "guardBonus": 14,
+          "burnBonus": 7
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "maxLife": 64,
+          "attack": 12
+        },
+        "weapon": {
+          "itemId": "item_short_bow",
+          "name": "Short Bow",
+          "family": "Bows",
+          "rarity": "brown",
+          "preferredForClass": true,
+          "damageTypes": [
+            {
+              "type": "fire",
+              "amount": 7
+            },
+            {
+              "type": "fire",
+              "amount": 5
+            },
+            {
+              "type": "poison",
+              "amount": 5
+            }
+          ],
+          "effects": [
+            {
+              "kind": "burn",
+              "amount": 5
+            }
+          ]
+        },
+        "armor": {
+          "itemId": "item_quilted_armor",
+          "name": "Quilted Armor",
+          "rarity": "white",
+          "resistances": [
+            {
+              "type": "physical",
+              "amount": 1
+            }
+          ],
+          "immunities": []
+        },
+        "favoredTreeId": "amazon_bow_and_crossbow",
+        "favoredTreeName": "Bow and Crossbow",
+        "dominantArchetypeId": "amazon_bow_and_crossbow",
+        "dominantArchetypeLabel": "Bow Volley",
+        "dominantArchetypeScore": 135,
+        "secondaryArchetypeId": "amazon_passive_and_magic",
+        "secondaryArchetypeLabel": "Passive Tempo",
+        "secondaryArchetypeScore": 40,
+        "archetypeScores": [
+          {
+            "archetypeId": "amazon_bow_and_crossbow",
+            "label": "Bow Volley",
+            "score": 135
+          },
+          {
+            "archetypeId": "amazon_passive_and_magic",
+            "label": "Passive Tempo",
+            "score": 40
+          },
+          {
+            "archetypeId": "amazon_javelin_and_spear",
+            "label": "Javelin Storm",
+            "score": 13
+          }
+        ],
+        "activeRunewords": [
+          "Edge"
+        ]
+      },
+      "summary": {
+        "runSummary": {
+          "encountersCleared": 33,
+          "zonesCleared": 22,
+          "actsCleared": 1,
+          "goldGained": 650,
+          "xpGained": 312,
+          "levelsGained": 6,
+          "skillPointsEarned": 6,
+          "classPointsEarned": 6,
+          "attributePointsEarned": 6,
+          "trainingRanksGained": 6,
+          "bossesDefeated": 1,
+          "runewordsForged": 1,
+          "uniqueItemsFound": 1
+        },
+        "zoneKindCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "zoneRoleCounts": {
+          "opening": 1,
+          "mainline_1": 1,
+          "side_burial_grounds": 1,
+          "mainline_2": 1,
+          "mainline_3": 1,
+          "mainline_4": 1,
+          "mainline_5": 1,
+          "side_forgotten_tower": 1,
+          "mainline_6": 1,
+          "mainline_7": 1,
+          "mainline_8": 1,
+          "mainline_9": 1,
+          "mainline_10": 1,
+          "mainline_11": 1,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "side_den_of_evil": 1,
+          "side_tristram": 1,
+          "boss": 1
+        },
+        "nodeTypeCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 1,
+          "shrine_opportunity": 1,
+          "boss": 1
+        },
+        "rewardKindCounts": {
+          "battle": 24,
+          "miniboss": 8,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "choiceKindCounts": {
+          "item": 3,
+          "card": 8,
+          "boon": 21,
+          "upgrade": 1,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2
+        },
+        "rewardEffectCounts": {
+          "equip_item": 4,
+          "add_card": 8,
+          "hero_max_life": 13,
+          "upgrade_card": 1,
+          "gold_bonus": 4,
+          "refill_potions": 8,
+          "mercenary_attack": 5,
+          "mercenary_max_life": 5,
+          "grant_rune": 1,
+          "grant_item": 1,
+          "record_quest_outcome": 1,
+          "add_socket": 3,
+          "socket_rune": 3,
+          "record_node_outcome": 4,
+          "support_build": 3,
+          "record_quest_follow_up": 1,
+          "hero_potion_heal": 2,
+          "record_quest_consequence": 1,
+          "hero_max_energy": 1
+        },
+        "world": {
+          "resolvedNodeCount": 5,
+          "worldFlagCount": 5,
+          "questOutcomes": 1,
+          "questFollowUpsResolved": 1,
+          "questChainsResolved": 1,
+          "shrineOutcomes": 1,
+          "eventOutcomes": 1,
+          "opportunityOutcomes": 2
+        },
+        "finalBuild": {
+          "level": 7,
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 147,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 23,
+            "guardBonus": 14,
+            "burnBonus": 7
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 64,
+            "attack": 12
+          },
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "brown",
+            "preferredForClass": true,
+            "damageTypes": [
+              {
+                "type": "fire",
+                "amount": 7
+              },
+              {
+                "type": "fire",
+                "amount": 5
+              },
+              {
+                "type": "poison",
+                "amount": 5
+              }
+            ],
+            "effects": [
+              {
+                "kind": "burn",
+                "amount": 5
+              }
+            ]
+          },
+          "armor": {
+            "itemId": "item_quilted_armor",
+            "name": "Quilted Armor",
+            "rarity": "white",
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "activeRunewords": [
+            "Edge"
+          ]
+        }
+      },
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "level": 1,
+          "gold": 0,
+          "powerScore": 342.95,
+          "powerBreakdown": {
+            "offense": 4.5,
+            "defense": 66.2,
+            "sustain": 58.5,
+            "utility": 9,
+            "deck": 199.75,
+            "equipment": 0,
+            "progression": 5,
+            "resources": 0
+          },
+          "deckSize": 13,
+          "topCards": [
+            "Inner Sight",
+            "Inner Sight",
+            "Magic Arrow",
+            "Magic Arrow",
+            "Magic Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 5
+            },
+            {
+              "proficiency": "passive",
+              "count": 5
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 50,
+            "maxEnergy": 3,
+            "handSize": 5,
+            "potionHeal": 15,
+            "damageBonus": 0,
+            "guardBonus": 0,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 28,
+            "attack": 5
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 0,
+            "focus": 0,
+            "command": 0
+          },
+          "favoredTreeId": "",
+          "favoredTreeName": "",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 24,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 22,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 24
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 22
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 12
+            }
+          ],
+          "weapon": null,
+          "activeRunewords": [],
+          "runewordsForged": 0,
+          "armor": {
+            "resistances": [],
+            "immunities": []
+          },
+          "choiceCounts": {},
+          "probes": []
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "level": 7,
+          "gold": 75,
+          "powerScore": 1249.4,
+          "powerBreakdown": {
+            "offense": 268.8,
+            "defense": 271.3,
+            "sustain": 77.7,
+            "utility": 47.75,
+            "deck": 437.65,
+            "equipment": 87.2,
+            "progression": 59,
+            "resources": 0
+          },
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 147,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 23,
+            "guardBonus": 14,
+            "burnBonus": 7
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 64,
+            "attack": 12
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 2,
+            "focus": 2,
+            "command": 2
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "brown"
+          },
+          "activeRunewords": [
+            "Edge"
+          ],
+          "runewordsForged": 1,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 3,
+            "card": 8,
+            "boon": 21,
+            "upgrade": 1,
+            "quest": 1,
+            "shrine": 1,
+            "event": 1,
+            "opportunity": 2
+          },
+          "probes": []
+        }
+      ]
+    },
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "balanced",
+      "policyLabel": "Balanced",
+      "seedOffset": 1,
+      "outcome": "reached_checkpoint",
+      "finalActNumber": 2,
+      "finalLevel": 7,
+      "failure": null,
+      "finalBuild": {
+        "level": 7,
+        "deckSize": 24,
+        "topCards": [
+          "Guided Arrow",
+          "Freezing Arrow",
+          "Valkyrie",
+          "Strafe",
+          "Strafe"
+        ],
+        "deckProficiencies": [
+          {
+            "proficiency": "bow",
+            "count": 15
+          },
+          {
+            "proficiency": "passive",
+            "count": 6
+          },
+          {
+            "proficiency": "javelin",
+            "count": 2
+          },
+          {
+            "proficiency": "neutral",
+            "count": 1
+          }
+        ],
+        "hero": {
+          "maxLife": 154,
+          "maxEnergy": 8,
+          "handSize": 5,
+          "potionHeal": 21,
+          "damageBonus": 23,
+          "guardBonus": 10,
+          "burnBonus": 4
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "maxLife": 59,
+          "attack": 11
+        },
+        "weapon": {
+          "itemId": "item_short_bow",
+          "name": "Short Bow",
+          "family": "Bows",
+          "rarity": "yellow",
+          "preferredForClass": true,
+          "damageTypes": [
+            {
+              "type": "fire",
+              "amount": 5
+            },
+            {
+              "type": "poison",
+              "amount": 3
+            }
+          ],
+          "effects": [
+            {
+              "kind": "burn",
+              "amount": 4
+            },
+            {
+              "kind": "slow",
+              "amount": 2
+            }
+          ]
+        },
+        "armor": {
+          "itemId": "item_quilted_armor",
+          "name": "Quilted Armor",
+          "rarity": "yellow",
+          "resistances": [
+            {
+              "type": "physical",
+              "amount": 1
+            },
+            {
+              "type": "fire",
+              "amount": 1
+            },
+            {
+              "type": "poison",
+              "amount": 1
+            }
+          ],
+          "immunities": []
+        },
+        "favoredTreeId": "amazon_bow_and_crossbow",
+        "favoredTreeName": "Bow and Crossbow",
+        "dominantArchetypeId": "amazon_bow_and_crossbow",
+        "dominantArchetypeLabel": "Bow Volley",
+        "dominantArchetypeScore": 135,
+        "secondaryArchetypeId": "amazon_passive_and_magic",
+        "secondaryArchetypeLabel": "Passive Tempo",
+        "secondaryArchetypeScore": 40,
+        "archetypeScores": [
+          {
+            "archetypeId": "amazon_bow_and_crossbow",
+            "label": "Bow Volley",
+            "score": 135
+          },
+          {
+            "archetypeId": "amazon_passive_and_magic",
+            "label": "Passive Tempo",
+            "score": 40
+          },
+          {
+            "archetypeId": "amazon_javelin_and_spear",
+            "label": "Javelin Storm",
+            "score": 13
+          }
+        ],
+        "activeRunewords": [
+          "Edge"
+        ]
+      },
+      "summary": {
+        "runSummary": {
+          "encountersCleared": 33,
+          "zonesCleared": 22,
+          "actsCleared": 1,
+          "goldGained": 668,
+          "xpGained": 312,
+          "levelsGained": 6,
+          "skillPointsEarned": 6,
+          "classPointsEarned": 6,
+          "attributePointsEarned": 6,
+          "trainingRanksGained": 6,
+          "bossesDefeated": 1,
+          "runewordsForged": 1,
+          "uniqueItemsFound": 0
+        },
+        "zoneKindCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "zoneRoleCounts": {
+          "opening": 1,
+          "mainline_1": 1,
+          "side_burial_grounds": 1,
+          "mainline_2": 1,
+          "mainline_3": 1,
+          "mainline_4": 1,
+          "mainline_5": 1,
+          "side_forgotten_tower": 1,
+          "mainline_6": 1,
+          "mainline_7": 1,
+          "mainline_8": 1,
+          "mainline_9": 1,
+          "mainline_10": 1,
+          "mainline_11": 1,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "side_den_of_evil": 1,
+          "side_tristram": 1,
+          "boss": 1
+        },
+        "nodeTypeCounts": {
+          "battle": 14,
+          "miniboss": 2,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 1,
+          "shrine_opportunity": 1,
+          "boss": 1
+        },
+        "rewardKindCounts": {
+          "battle": 24,
+          "miniboss": 8,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2,
+          "boss": 1
+        },
+        "choiceKindCounts": {
+          "item": 3,
+          "card": 8,
+          "upgrade": 1,
+          "boon": 21,
+          "quest": 1,
+          "shrine": 1,
+          "event": 1,
+          "opportunity": 2
+        },
+        "rewardEffectCounts": {
+          "equip_item": 4,
+          "add_card": 8,
+          "grant_rune": 1,
+          "grant_item": 1,
+          "upgrade_card": 1,
+          "hero_max_life": 13,
+          "gold_bonus": 5,
+          "refill_potions": 9,
+          "mercenary_attack": 4,
+          "mercenary_max_life": 4,
+          "record_quest_outcome": 1,
+          "add_socket": 3,
+          "socket_rune": 3,
+          "record_node_outcome": 4,
+          "support_build": 3,
+          "record_quest_follow_up": 1,
+          "hero_potion_heal": 2,
+          "record_quest_consequence": 1,
+          "hero_max_energy": 1
+        },
+        "world": {
+          "resolvedNodeCount": 5,
+          "worldFlagCount": 5,
+          "questOutcomes": 1,
+          "questFollowUpsResolved": 1,
+          "questChainsResolved": 1,
+          "shrineOutcomes": 1,
+          "eventOutcomes": 1,
+          "opportunityOutcomes": 2
+        },
+        "finalBuild": {
+          "level": 7,
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 154,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 23,
+            "guardBonus": 10,
+            "burnBonus": 4
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 59,
+            "attack": 11
+          },
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow",
+            "preferredForClass": true,
+            "damageTypes": [
+              {
+                "type": "fire",
+                "amount": 5
+              },
+              {
+                "type": "poison",
+                "amount": 3
+              }
+            ],
+            "effects": [
+              {
+                "kind": "burn",
+                "amount": 4
+              },
+              {
+                "kind": "slow",
+                "amount": 2
+              }
+            ]
+          },
+          "armor": {
+            "itemId": "item_quilted_armor",
+            "name": "Quilted Armor",
+            "rarity": "yellow",
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              },
+              {
+                "type": "fire",
+                "amount": 1
+              },
+              {
+                "type": "poison",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "activeRunewords": [
+            "Edge"
+          ]
+        }
+      },
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "level": 1,
+          "gold": 0,
+          "powerScore": 342.95,
+          "powerBreakdown": {
+            "offense": 4.5,
+            "defense": 66.2,
+            "sustain": 58.5,
+            "utility": 9,
+            "deck": 199.75,
+            "equipment": 0,
+            "progression": 5,
+            "resources": 0
+          },
+          "deckSize": 13,
+          "topCards": [
+            "Inner Sight",
+            "Inner Sight",
+            "Magic Arrow",
+            "Magic Arrow",
+            "Magic Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 5
+            },
+            {
+              "proficiency": "passive",
+              "count": 5
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 50,
+            "maxEnergy": 3,
+            "handSize": 5,
+            "potionHeal": 15,
+            "damageBonus": 0,
+            "guardBonus": 0,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 28,
+            "attack": 5
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 0,
+            "focus": 0,
+            "command": 0
+          },
+          "favoredTreeId": "",
+          "favoredTreeName": "",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 24,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 22,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 24
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 22
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 12
+            }
+          ],
+          "weapon": null,
+          "activeRunewords": [],
+          "runewordsForged": 0,
+          "armor": {
+            "resistances": [],
+            "immunities": []
+          },
+          "choiceCounts": {},
+          "probes": []
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "level": 7,
+          "gold": 39,
+          "powerScore": 1206.22,
+          "powerBreakdown": {
+            "offense": 255.9,
+            "defense": 253,
+            "sustain": 77.7,
+            "utility": 47.75,
+            "deck": 451.67,
+            "equipment": 61.2,
+            "progression": 59,
+            "resources": 0
+          },
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 154,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 23,
+            "guardBonus": 10,
+            "burnBonus": 4
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 59,
+            "attack": 11
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 2,
+            "focus": 2,
+            "command": 2
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow"
+          },
+          "activeRunewords": [
+            "Edge"
+          ],
+          "runewordsForged": 1,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              },
+              {
+                "type": "fire",
+                "amount": 1
+              },
+              {
+                "type": "poison",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 3,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 21,
+            "quest": 1,
+            "shrine": 1,
+            "event": 1,
+            "opportunity": 2
+          },
+          "probes": []
+        }
+      ]
+    }
+  ],
+  "stability": {
+    "summary": {
+      "totalChecks": 0,
+      "mismatchCount": 0
+    },
+    "checks": []
+  }
+}

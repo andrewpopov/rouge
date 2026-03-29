@@ -256,7 +256,11 @@
         `${flavor.branchBattleLabel} Bulwark`,
         `${flavor.branchBattleDescription} Durable fronts and recovery support drag the branch into attrition.`,
         [bruteA.templateId, bruteB.templateId, supportB.templateId],
-        [{ kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) }]
+        [
+          { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: 1 },
+          { kind: MODIFIER_KIND.BOSS_SALVO, value: 1 },
+        ]
       ),
       [branchBattleIds[3]]: makeEncounter(
         branchBattleIds[3],
@@ -434,8 +438,8 @@
         flavor.bossDescription,
         bossEnemyTemplateIds,
         [
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: actNumber === 1 ? 6 : Math.max(5, Math.min(8, actNumber + 3)) },
           { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
-          { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
         ]
       ),
       [consequenceBossId]: makeEncounter(
@@ -457,14 +461,18 @@
         `${flavor.bossLabel} Directed Aftermath`,
         `${flavor.bossDescription} Earlier route guidance carries through the full aftermath and turns the boss into a directed closing court instead of a generic late-route collapse.`,
         aftermathBossConfig.enemyTemplateIds,
-        [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]
+        actNumber === 4
+          ? [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) }]
+          : [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]
       ),
       [consequenceSignaledAftermathBossId]: makeEncounter(
         consequenceSignaledAftermathBossId,
         `${flavor.bossLabel} Signaled Aftermath`,
         `${flavor.bossDescription} Earlier shrine signals and crossroads guidance both carry through the full aftermath and turn the boss into a fully signaled closing court instead of a looser routed collapse.`,
         aftermathBossConfig.enemyTemplateIds,
-        [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }, { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]
+        actNumber === 4
+          ? [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.COURT_RESERVES, value: 1 }, { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]
+          : [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }, { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]
       ),
       [consequenceDrilledAftermathBossId]: makeEncounter(
         consequenceDrilledAftermathBossId,

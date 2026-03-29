@@ -16,7 +16,7 @@ function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
   runFactory.recomputeZoneStatuses(run);
 }
 
-type ResolveActOneToCovenantOptions = {
+type _ResolveActOneToCovenantOptions = {
   routeChoiceIndex?: number;
   crossroadChoiceIndex?: number;
   accordChoiceIndex?: number;
@@ -64,13 +64,13 @@ function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
   }
 }
 
-function resolveActOneToCovenant(
+function _resolveActOneToCovenant(
   state: AppState,
   appEngine: AppEngineApi,
   runFactory: RunFactoryApi,
-  options: ResolveActOneToCovenantOptions | number = 0
+  options: _ResolveActOneToCovenantOptions | number = 0
 ) {
-  const normalizedOptions: ResolveActOneToCovenantOptions =
+  const normalizedOptions: _ResolveActOneToCovenantOptions =
     typeof options === "number" ? { covenantChoiceIndex: options } : options || {};
   const routeChoiceIndex = normalizedOptions.routeChoiceIndex || 0;
   const crossroadChoiceIndex = normalizedOptions.crossroadChoiceIndex || 0;
@@ -273,4 +273,3 @@ test("legacy opportunity lanes unlock after culmination and pay off the culminat
   assert.ok(state.run.world.worldFlags.includes(legacyEffect.flagIds[0]));
   assert.ok(runFactory.getZoneById(state.run, legacyZone.id).cleared);
 });
-

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 test("account progression trees drive mastery focus and archive retention behavior", () => {
-  const { browserWindow, content, combatEngine, appEngine, itemSystem, persistence, runFactory, seedBundle } = createHarness();
+  const { browserWindow, content, combatEngine, appEngine, persistence, runFactory, seedBundle } = createHarness();
   const buildState = (featureIds: string[] = [], focusedTreeId = "") => {
     persistence.clearStorage();
     const state = appEngine.createAppState({

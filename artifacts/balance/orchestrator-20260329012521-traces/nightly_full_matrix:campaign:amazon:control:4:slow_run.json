@@ -1,0 +1,227 @@
+{
+  "mode": "combat",
+  "digest": "1bcb0777c663c5b6",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Catacombs / Andariel",
+    "checkpointId": "",
+    "encounterId": "act_1_boss",
+    "runKey": "nightly_full_matrix:campaign:amazon:control:4"
+  },
+  "classId": "amazon",
+  "actNumber": 1,
+  "encounterId": "act_1_boss",
+  "policyId": "control",
+  "outcome": "victory",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 132,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 51,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 183,
+            "maxLife": 183,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Brood Screen (26)"
+          },
+          {
+            "id": "act_1_boss_enemy_2",
+            "name": "Goatman",
+            "life": 24,
+            "maxLife": 24,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Goatman Brace (4)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 35,
+            "maxLife": 35,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (17)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 35,
+            "maxLife": 35,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (15)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_23",
+            "cardId": "amazon_guided_arrow",
+            "title": "Guided Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_24",
+            "cardId": "amazon_freezing_arrow",
+            "title": "Freezing Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_10",
+            "cardId": "rally_mercenary_plus",
+            "title": "Rally Mercenary+",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_19",
+            "cardId": "amazon_multiple_shot",
+            "title": "Multiple Shot",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_7",
+            "cardId": "amazon_fire_arrow",
+            "title": "Fire Arrow",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Freezing Arrow",
+        "Card: Multiple Shot",
+        "Card: Guided Arrow -> Andariel",
+        "Card: Fire Arrow -> Andariel",
+        "Melee strike",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 132,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 51,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [],
+        "hand": []
+      },
+      "log": [
+        "Goatman falls.",
+        "Freezing Arrow: dealt 78 total damage. Long Bow dealt 12 fire damage across 3 targets. Long Bow applied 4 Burn to 3 targets. applied 1 Freeze to all enemies. applied 1 Slow to all enemies. gained 15 Guard.",
+        "Huntsman Skeleton Archer falls.",
+        "Black Arrow Corrupt Rogue Archer falls.",
+        "Multiple Shot: dealt 72 total damage. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn.",
+        "Guided Arrow: dealt 34 to Andariel. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn. drew 1 card. gained 15 Guard.",
+        "Fire Arrow: dealt 23 to Andariel. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn. applied 5 Burn.",
+        "Melee strike hits Andariel for 17 (proficient). Long Bow dealt 4 fire damage. Long Bow applied 4 Burn.",
+        "Rogue Scout hits Andariel for 11.",
+        "Andariel takes 25 Burn damage.",
+        "Andariel is Frozen and cannot act.",
+        "Turn 2 begins.",
+        "Rogue Scout hits Andariel for 11.",
+        "Andariel falls.",
+        "Andariel takes 24 Burn damage.",
+        "Andariel cleared."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 132,
+      "maxLife": 134,
+      "guard": 0,
+      "energy": 6,
+      "burn": 0,
+      "poison": 0,
+      "chill": 0,
+      "amplify": 0,
+      "weaken": 0,
+      "energyDrain": 0
+    },
+    "mercenary": {
+      "name": "Rogue Scout",
+      "life": 51,
+      "maxLife": 51,
+      "guard": 0,
+      "nextAttackBonus": 0,
+      "markedEnemyId": ""
+    },
+    "enemies": [],
+    "hand": []
+  },
+  "recentLog": [
+    "Andariel forms an escort bulwark. Elite and support enemies gain 4 Guard.",
+    "Turn 1 begins.",
+    "Goatman falls.",
+    "Freezing Arrow: dealt 78 total damage. Long Bow dealt 12 fire damage across 3 targets. Long Bow applied 4 Burn to 3 targets. applied 1 Freeze to all enemies. applied 1 Slow to all enemies. gained 15 Guard.",
+    "Huntsman Skeleton Archer falls.",
+    "Black Arrow Corrupt Rogue Archer falls.",
+    "Multiple Shot: dealt 72 total damage. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn.",
+    "Guided Arrow: dealt 34 to Andariel. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn. drew 1 card. gained 15 Guard.",
+    "Fire Arrow: dealt 23 to Andariel. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn. applied 5 Burn.",
+    "Melee strike hits Andariel for 17 (proficient). Long Bow dealt 4 fire damage. Long Bow applied 4 Burn.",
+    "Rogue Scout hits Andariel for 11.",
+    "Andariel takes 25 Burn damage.",
+    "Andariel is Frozen and cannot act.",
+    "Turn 2 begins.",
+    "Rogue Scout hits Andariel for 11.",
+    "Andariel falls.",
+    "Andariel takes 24 Burn damage.",
+    "Andariel cleared."
+  ]
+}

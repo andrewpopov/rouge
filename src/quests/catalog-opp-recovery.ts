@@ -31,7 +31,7 @@
               "Recover the desert stores and keep the reliquary road from thinning out at the end of the act.",
               "last_cask_rows_restored",
               ["sunwell_recovery_cask_rows"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "support_build" }, { kind: "refill_potions", value: 1 }]
             ),
             buildRecoveryChoice(
               "sunwell_recovery_opportunity",
@@ -41,7 +41,7 @@
               "Turn the same closing route into one last shaded caravan line before the tomb seals.",
               "final_caravan_line_shaded",
               ["sunwell_recovery_caravan_shade"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -144,7 +144,7 @@
               "Turn the same closing route into one final set of tide signals across the docks.",
               "tide_signals_rehung",
               ["kurast_recovery_tide_signals"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -247,7 +247,7 @@
               "Turn the same closing line into one final ash-watch chain across the infernal cut.",
               "ash_watch_relit",
               ["hellforge_recovery_ash_watch"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -350,7 +350,7 @@
               "Turn the same closing climb into one final watchfire ring over the summit.",
               "watchfire_ring_relit",
               ["harrogath_recovery_watchfire_ring"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },

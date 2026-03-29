@@ -95,7 +95,7 @@ test("front door welcome screen includes class count and action buttons", () => 
 });
 
 test("front door saved run guidance shows resume option", () => {
-  const { appEngine, appShell, browserWindow, content, combatEngine, persistence, seedBundle } = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = createHarness();
   const state = appEngine.createAppState({
     content,
     seedBundle,

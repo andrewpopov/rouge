@@ -365,22 +365,27 @@
 
   function buildHallTabNav(activeSection: string): string {
     const tabs = [
-      { id: "overview", label: "Overview" },
-      { id: "expedition", label: "Expedition" },
-      { id: "progression", label: "Progression" },
-      { id: "vault", label: "Vault & Archive" },
-      { id: "settings", label: "Settings" },
+      { id: "overview", label: "Overview", detail: "Hall pulse, archive, and account summary", icon: "\u2726" },
+      { id: "expedition", label: "Expedition", detail: "Live route, launch flow, and re-entry", icon: "\u2694" },
+      { id: "progression", label: "Progression", detail: "Trees, convergence, and capstones", icon: "\u2B50" },
+      { id: "vault", label: "Vault & Archive", detail: "Stash, chronicle, and unlock galleries", icon: "\u{1F5DC}" },
+      { id: "settings", label: "Settings", detail: "Guidance, class command, and charters", icon: "\u2699" },
     ];
     return `
-      <nav class="hall-tab-nav" style="display:flex;gap:0;flex-wrap:wrap;border-bottom:2px solid var(--border);margin-bottom:24px">
+      <nav class="hall-tab-nav">
         ${tabs.map((tab) => {
           const isActive = tab.id === activeSection;
           return `<button
             class="hall-tab${isActive ? " hall-tab-active" : ""}"
-            style="padding:10px 18px;background:${isActive ? "var(--surface)" : "transparent"};border:2px solid ${isActive ? "var(--border)" : "transparent"};border-bottom:${isActive ? "2px solid var(--surface)" : "none"};margin-bottom:-2px;color:${isActive ? "var(--text)" : "var(--muted)"};cursor:pointer;font-weight:${isActive ? "700" : "500"};font-size:0.92rem;letter-spacing:0.02em;transition:color 0.15s"
             data-action="switch-hall-section"
             data-section="${tab.id}"
-          >${tab.label}</button>`;
+          >
+            <span class="hall-tab__icon" aria-hidden="true">${tab.icon}</span>
+            <span class="hall-tab__copy">
+              <span class="hall-tab__label">${tab.label}</span>
+              <span class="hall-tab__detail">${tab.detail}</span>
+            </span>
+          </button>`;
         }).join("")}
       </nav>
     `;

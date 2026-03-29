@@ -58,6 +58,21 @@
     }
   }
 
+  function getScrollDropCopy(clearedActNumber: number, bossName: string, nextTown: string): string {
+    switch (clearedActNumber) {
+      case 1:
+        return `As ${bossName} perishes, a blood-sealed way scroll slips from the ruin. Its markings chart the caravan road east to ${nextTown}.`;
+      case 2:
+        return `${bossName} falls with a sand-stained charter bound at the tomb's heart, opening the sea road toward ${nextTown}.`;
+      case 3:
+        return `With ${bossName} broken, a scorched guide scroll is recovered from the temple vault, naming the path onward to ${nextTown}.`;
+      case 4:
+        return `${bossName}'s defeat yields a frost-bitten war scroll bearing the final route to ${nextTown} and the siege beyond.`;
+      default:
+        return `${bossName}'s death leaves behind a marked route scroll pointing the expedition toward ${nextTown}.`;
+    }
+  }
+
   function getCutscene(clearedActNumber: number, bossName: string, nextTown: string): ActCutscene {
     const cutscenes: Record<number, ActCutscene> = {
       1: {
@@ -114,11 +129,12 @@
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const { escapeHtml } = services.renderUtils;
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
+    const common = runtimeWindow.ROUGE_UI_COMMON;
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const run = appState.run;
     const nextAct = run.acts[run.currentActIndex + 1];
     const nextTown = nextAct?.town || "the next town";
     const cutscene = getCutscene(run.actNumber, run.bossName, nextTown);
-    const currentActPosterSrc = ACT_POSTER_MAP[run.actNumber] || "";
     const destinationTownSrc = TOWN_ART_MAP[nextAct?.actNumber || run.actNumber] || "";
     const backdropSrc = ACT_ENVIRONMENT_MAP[nextAct?.actNumber || run.actNumber] || destinationTownSrc;
     const bossTemplateId = ACT_BOSS_TEMPLATE_MAP[run.actNumber] || "";
@@ -127,12 +143,28 @@
     const actsCleared = Math.max(run.summary?.actsCleared || 0, 1);
     const bossesDefeated = Math.max(run.summary?.bossesDefeated || 0, 1);
     const destinationBrief = getDestinationBrief(run.actNumber, nextTown);
+    const nextActPosterSrc = ACT_POSTER_MAP[nextAct?.actNumber || run.actNumber] || "";
+    const scrollDropCopy = getScrollDropCopy(run.actNumber, run.bossName, nextTown);
+    const scrollOverlay = appState.ui.actTransitionScrollOpen ? `
+      <div class="act-transition-scroll-overlay" data-action="close-act-transition-scroll">
+        <div class="act-transition-scroll-overlay__panel" data-action="noop">
+          <div class="act-transition-scroll-overlay__head">
+            <span class="act-transition-label">Recovered Guide Scroll</span>
+            <button class="act-transition-scroll-overlay__close" data-action="close-act-transition-scroll" aria-label="Close Scroll">Close</button>
+          </div>
+          <div class="act-transition-scroll-overlay__frame">
+            ${renderImage(nextActPosterSrc, "act-transition-scroll-overlay__poster", nextAct?.title || nextTown, escapeHtml)}
+          </div>
+        </div>
+      </div>
+    ` : "";
 
-    const narrativeLines = cutscene.lines
+    const chronicleLines = cutscene.lines.slice(1);
+    const narrativeLines = chronicleLines
       .map((line) => `<p class="cutscene__line">${escapeHtml(line)}</p>`)
       .join("\n");
+    const chapterSummary = cutscene.lines.slice(0, 2).join(" ");
 
-    const common = runtimeWindow.ROUGE_UI_COMMON;
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="cutscene act-transition-screen">
@@ -144,7 +176,8 @@
             <div class="act-transition-header__title-block">
               <p class="cutscene__eyebrow">Act ${run.actNumber} Complete</p>
               <h1 class="cutscene__title">${escapeHtml(run.actTitle)}</h1>
-              <p class="act-transition-header__copy">${escapeHtml(cutscene.closing)}</p>
+              <p class="act-transition-header__closing">${escapeHtml(cutscene.closing)}</p>
+              <p class="act-transition-header__copy">${escapeHtml(`The chapter is closed. A recovered way scroll now names the road to ${nextTown}.`)}</p>
             </div>
 
             <div class="act-transition-header__chips">
@@ -169,10 +202,6 @@
 
           <section class="act-transition-body">
             <aside class="act-transition-chapter">
-              <div class="act-transition-chapter__poster">
-                ${renderImage(currentActPosterSrc, "act-transition-chapter__poster-img", run.actTitle, escapeHtml)}
-              </div>
-
               <div class="act-transition-chapter__boss-card">
                 <div class="act-transition-chapter__boss-icon">
                   ${bossSpriteSrc
@@ -185,12 +214,23 @@
                   <p class="act-transition-chapter__boss-text">The blood debt of this chapter is paid, but the hunt only turns darker from here.</p>
                 </div>
               </div>
+
+              <div class="act-transition-chapter__seal">
+                <span class="act-transition-label">Chapter Aftermath</span>
+                <p class="act-transition-chapter__seal-copy">${escapeHtml(chapterSummary)}</p>
+              </div>
             </aside>
 
             <article class="act-transition-chronicle">
               <div class="act-transition-chronicle__head">
                 <span class="act-transition-label">War Chronicle</span>
                 <strong class="cutscene__closing">${escapeHtml(cutscene.closing)}</strong>
+              </div>
+              <div class="act-transition-scroll-drop">
+                <div class="act-transition-scroll-drop__copy">
+                  <p class="act-transition-scroll-drop__text">${escapeHtml(scrollDropCopy)}</p>
+                  <button class="secondary-btn act-transition-scroll-drop__btn" data-action="open-act-transition-scroll">Open Scroll</button>
+                </div>
               </div>
               <div class="cutscene__narrative">
                 ${narrativeLines}
@@ -217,6 +257,19 @@
           </section>
         </div>
       </div>
+      ${scrollOverlay}
+      ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+        copy:
+          "The act handoff now keeps archive pressure, charter staging, mastery focus, and convergence pressure visible while the expedition shifts between acts.",
+      })}
+      ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+        copy:
+          "Act transition now carries the same charter and convergence drilldowns forward, so the next-town decision inherits the same account-side read.",
+        charterFollowThrough:
+          "If charter pressure wins the handoff, use the next town to settle vault or loadout posture before reopening the route.",
+        convergenceFollowThrough:
+          "If convergence pressure wins the handoff, review the account focus before the next act leaves town.",
+      })}
     `;
   }
 

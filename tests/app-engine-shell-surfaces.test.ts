@@ -284,6 +284,15 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
+  assert.match(root.innerHTML, /First Expedition Charter/);
+  assert.match(root.innerHTML, /continue-act-guide/);
+
+  appEngine.continueActGuide(state);
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
   assert.match(root.innerHTML, /actmap/);
   assert.match(root.innerHTML, /Act \d/);
   assert.match(root.innerHTML, /actmap__canvas/);
@@ -332,7 +341,18 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
 
   state.run.summary.actsCleared = Math.max(state.run.summary.actsCleared, 1);
   state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, 1);
+  state.run.guide.overlayKind = "reward";
+  state.run.guide.targetActNumber = state.run.actNumber + 1;
   state.phase = appEngine.PHASES.ACT_TRANSITION;
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+  assert.match(root.innerHTML, /Act Boss Reward/);
+  assert.match(root.innerHTML, /Recovered Guide Scroll/);
+
+  appEngine.continueActGuide(state);
   appShell.render(root, {
     appState: state,
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
@@ -467,6 +487,7 @@ test("world-map and reward shell render node-specific quest and aftermath guidan
   appEngine.startCharacterSelect(state);
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
+  appEngine.continueActGuide(state);
   state.ui.routeIntelOpen = true;
   render();
 

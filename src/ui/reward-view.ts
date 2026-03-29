@@ -91,7 +91,30 @@
     record_node_outcome: "\u{1F4DC}",
   };
 
-  function getEffectIcons(choice: RewardChoice): string[] {
+  function getEffectIcons(choice: RewardChoice, content: GameContent): string[] {
+    const equipmentEffect = choice.effects.find((effect) =>
+      (effect.kind === "equip_item" || effect.kind === "grant_item") && effect.itemId
+    );
+    if (equipmentEffect?.itemId) {
+      const item = content.itemCatalog?.[equipmentEffect.itemId];
+      const family = item?.family || "";
+      if (family === "Bows" || family === "Crossbows") {
+        return ["🏹"];
+      }
+      if (family === "Spears" || family === "Javelins" || family === "Polearms") {
+        return ["⟡"];
+      }
+      if (family === "Maces") {
+        return ["🔨"];
+      }
+      if (item?.slot === "shield") {
+        return ["🛡"];
+      }
+      if (item?.slot === "armor" || item?.slot === "helm" || item?.slot === "gloves" || item?.slot === "boots" || item?.slot === "belt") {
+        return ["✦"];
+      }
+    }
+
     const seen = new Set<string>();
     const icons: string[] = [];
     for (const effect of choice.effects) {
@@ -226,6 +249,27 @@
     return `${opener} Take one mutation and the route resumes immediately.`;
   }
 
+  function getRewardDossierCopy(reward: RunReward, rewardContext: { title: string; lines: string[] }): string {
+    const supportLine = reward.lines?.[1] || rewardContext.lines?.[1] || "";
+    if (reward.endsRun) {
+      return supportLine || "The final spoils are weighed before the expedition is sealed into the hall record.";
+    }
+    if (reward.endsAct) {
+      return supportLine || "The act is closed. One spoils path remains before the crossing east begins.";
+    }
+    return supportLine || "The route pauses only long enough for one claim before the trail opens again.";
+  }
+
+  function getRewardPromptHeading(reward: RunReward): string {
+    if (reward.endsRun) {
+      return "Choose The Final Claim";
+    }
+    if (reward.endsAct) {
+      return "Choose The Crossing Reward";
+    }
+    return "Choose Your Reward";
+  }
+
   function getChoiceVisualMarkup(choice: RewardChoice, content: GameContent, escapeHtml: (value: unknown) => string): string {
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const itemEffect = choice.effects.find((effect) => effect.kind === "equip_item" && effect.itemId);
@@ -314,15 +358,15 @@
     const kindIcon = REWARD_KIND_ICONS[reward.kind] || "\u2694";
     const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
     const combatBgSrc = runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(reward.zoneTitle) || "";
-    const promptCopy = reward.endsRun
-      ? "Choose one final claim. The run closes the moment it is taken."
-      : reward.endsAct
-        ? "Choose one reward, then cross into the next act."
-        : "Choose one reward and return to the map."
-    ;
-    const noteLines = Array.from(new Set([...(reward.lines || []), ...(rewardContext.lines || [])])).filter(Boolean).slice(0, 4);
+    let promptCopy = "Choose one reward and return to the map.";
+    if (reward.endsRun) {
+      promptCopy = "Choose one final claim. The run closes the moment it is taken.";
+    } else if (reward.endsAct) {
+      promptCopy = "Choose one reward, then cross into the next act.";
+    }
+    const noteLines = Array.from(new Set([...(reward.lines || []), ...(rewardContext.lines || [])])).filter(Boolean).slice(0, 2);
     const companionLife = `${run.mercenary.currentLife}/${run.mercenary.maxLife}`;
-    const choiceCountLabel = `${reward.choices.length} offering${reward.choices.length === 1 ? "" : "s"} waiting`;
+    const choiceCountLabel = `${reward.choices.length} path${reward.choices.length === 1 ? "" : "s"} ready`;
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -338,7 +382,7 @@
             </div>
 
             <div class="reward-header__titles">
-              <span class="reward-header__eyebrow">${escapeHtml(reward.zoneTitle)} · ${escapeHtml(rewardContext.title)} · Encounter ${reward.encounterNumber}</span>
+              <span class="reward-header__eyebrow">${escapeHtml(reward.zoneTitle)} · Encounter ${reward.encounterNumber}</span>
               <h1 class="reward-header__title">${escapeHtml(reward.title)}</h1>
               <p class="reward-header__copy">${escapeHtml(getRewardLeadCopy(reward, rewardContext))}</p>
             </div>
@@ -364,7 +408,7 @@
 
               <div class="reward-stage__dossier">
                 <span class="reward-stage__tag">${escapeHtml(rewardContext.title)}</span>
-                <p class="reward-stage__dossier-copy">${escapeHtml(promptCopy)}</p>
+                <p class="reward-stage__dossier-copy">${escapeHtml(getRewardDossierCopy(reward, rewardContext))}</p>
 
                 <div class="reward-stage__stats">
                   <div class="reward-stage__stat">
@@ -392,7 +436,7 @@
             <section class="reward-stage__choices">
               <div class="reward-stage__prompt">
                 <div>
-                  <span class="reward-stage__prompt-label">Choose Your Reward</span>
+                  <span class="reward-stage__prompt-label">${escapeHtml(getRewardPromptHeading(reward))}</span>
                   <p class="reward-stage__prompt-copy">${escapeHtml(promptCopy)}</p>
                 </div>
                 <span class="reward-stage__prompt-count">${escapeHtml(choiceCountLabel)}</span>
@@ -400,7 +444,7 @@
 
               <div class="reward-choice-grid">
                 ${reward.choices.map((choice) => {
-                  const icons = getEffectIcons(choice);
+                  const icons = getEffectIcons(choice, appState.content);
                   const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
                   const choiceRarity = choice.effects?.find((effect) => effect.rarity)?.rarity || RARITY.WHITE;
                   const RARITY_CLASS_MAP: Record<string, string> = {

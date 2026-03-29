@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
+const { execFileSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const HELPER_PATH = path.join(ROOT, "generated", "tests", "helpers", "run-progression-simulator.js");
+const ORCHESTRATOR_SCRIPT = path.join(ROOT, "scripts", "run-balance-orchestrator.js");
 
 const DEFAULT_CLASS_IDS = ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"];
 
@@ -16,6 +18,7 @@ function parseArgs(argv) {
     probeRuns: 0,
     maxCombatTurns: 36,
     seedCount: 2,
+    output: "",
     json: false,
   };
 
@@ -52,6 +55,11 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === "--output" && next) {
+      parsed.output = path.resolve(ROOT, next);
+      index += 1;
+      continue;
+    }
     if (arg === "--json") {
       parsed.json = true;
     }
@@ -60,19 +68,17 @@ function parseArgs(argv) {
   return parsed;
 }
 
-function summarizeRuns(results) {
+function summarizeRuns(runs) {
   const summary = [];
 
-  for (const result of results) {
-    const classReport = result.report.classReports[0];
-    const policyReport = classReport.policyReports[0];
-    let entry = summary.find((candidate) => candidate.classId === classReport.classId && candidate.policyId === policyReport.policyId);
+  for (const run of runs) {
+    let entry = summary.find((candidate) => candidate.classId === run.classId && candidate.policyId === run.policyId);
     if (!entry) {
       entry = {
-        classId: classReport.classId,
-        className: classReport.className,
-        policyId: policyReport.policyId,
-        policyLabel: policyReport.policyLabel,
+        classId: run.classId,
+        className: run.className,
+        policyId: run.policyId,
+        policyLabel: run.policyLabel,
         runs: 0,
         wins: 0,
         failures: 0,
@@ -86,18 +92,18 @@ function summarizeRuns(results) {
     }
 
     entry.runs += 1;
-    entry.wins += policyReport.outcome === "run_complete" ? 1 : 0;
-    entry.failures += policyReport.outcome === "run_failed" ? 1 : 0;
-    entry.reachedAct2 += policyReport.finalActNumber >= 2 ? 1 : 0;
-    entry.reachedAct5 += policyReport.finalActNumber >= 5 ? 1 : 0;
-    entry.averageFinalAct += policyReport.finalActNumber;
-    entry.averageFinalLevel += policyReport.finalLevel;
+    entry.wins += run.outcome === "run_complete" ? 1 : 0;
+    entry.failures += run.outcome === "run_failed" ? 1 : 0;
+    entry.reachedAct2 += run.finalActNumber >= 2 ? 1 : 0;
+    entry.reachedAct5 += run.finalActNumber >= 5 ? 1 : 0;
+    entry.averageFinalAct += run.finalActNumber;
+    entry.averageFinalLevel += run.finalLevel;
     entry.outcomes.push({
-      seedOffset: result.seedOffset,
-      outcome: policyReport.outcome,
-      finalActNumber: policyReport.finalActNumber,
-      finalLevel: policyReport.finalLevel,
-      failure: policyReport.failure,
+      seedOffset: run.seedOffset,
+      outcome: run.outcome,
+      finalActNumber: run.finalActNumber,
+      finalLevel: run.finalLevel,
+      failure: run.failure || null,
     });
   }
 
@@ -113,19 +119,8 @@ function summarizeRuns(results) {
   return summary.sort((left, right) => left.className.localeCompare(right.className) || left.policyLabel.localeCompare(right.policyLabel));
 }
 
-function printProgress(result, totalRuns, completedRuns) {
-  const classReport = result.report.classReports[0];
-  const policyReport = classReport.policyReports[0];
-  const failureLabel = policyReport.failure
-    ? ` fail ${policyReport.failure.zoneTitle} / ${policyReport.failure.encounterName}`
-    : "";
-  console.log(
-    `[${completedRuns}/${totalRuns}] ${classReport.className} / ${policyReport.policyLabel} / seed ${result.seedOffset}: ${policyReport.outcome}, act ${policyReport.finalActNumber}, level ${policyReport.finalLevel}${failureLabel}`
-  );
-}
-
 function printSummary(summary, options) {
-  console.log(`\nSequential class sweep through Act ${options.throughActNumber} | ${options.seedCount} seeds`);
+  console.log(`\nOrchestrated class sweep through Act ${options.throughActNumber} | ${options.seedCount} seeds`);
   for (const entry of summary) {
     console.log(
       `\n${entry.className} / ${entry.policyLabel}: ${(entry.winRate * 100).toFixed(1)}% complete, ${(entry.failureRate * 100).toFixed(1)}% failed, Act 2 ${(entry.act2Rate * 100).toFixed(1)}%, Act 5 ${(entry.act5Rate * 100).toFixed(1)}%, avg final act ${entry.averageFinalAct}, avg level ${entry.averageFinalLevel}`
@@ -138,53 +133,70 @@ function printSummary(summary, options) {
 }
 
 function main() {
-  if (!fs.existsSync(HELPER_PATH)) {
-    console.error("Missing compiled progression simulator helper. Run `npm run build` first.");
-    process.exit(1);
-  }
-
-  // eslint-disable-next-line global-require, import/no-dynamic-require
-  const { runProgressionSimulationReport } = require(HELPER_PATH);
   const options = parseArgs(process.argv.slice(2));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "rouge-class-sweep-"));
 
-  const totalRuns = options.classIds.length * options.policyIds.length * options.seedCount;
-  let completedRuns = 0;
-  const results = [];
-
-  for (const classId of options.classIds) {
-    for (const policyId of options.policyIds) {
-      for (let seedOffset = 0; seedOffset < options.seedCount; seedOffset += 1) {
-        const report = runProgressionSimulationReport({
-          classIds: [classId],
-          policyIds: [policyId],
-          throughActNumber: options.throughActNumber,
-          probeRuns: options.probeRuns,
-          maxCombatTurns: options.maxCombatTurns,
-          seedOffset,
-        });
-        const result = { classId, policyId, seedOffset, report };
-        results.push(result);
-        completedRuns += 1;
-        if (!options.json) {
-          printProgress(result, totalRuns, completedRuns);
-        }
-      }
-    }
-  }
-
-  const summary = summarizeRuns(results);
-
-  if (options.json) {
-    console.log(JSON.stringify({
-      generatedAt: new Date().toISOString(),
+  try {
+    const spec = {
+      experimentId: "progression_class_sweep",
+      title: "Progression Class Sweep",
+      scenarioType: "campaign",
+      classIds: options.classIds,
+      policyIds: options.policyIds,
+      seedOffsets: Array.from({ length: options.seedCount }, (_, index) => index),
       throughActNumber: options.throughActNumber,
-      seedCount: options.seedCount,
-      summary,
-    }, null, 2));
-    return;
-  }
+      probeRuns: options.probeRuns,
+      maxCombatTurns: options.maxCombatTurns,
+      concurrency: 1,
+      traceFailures: false,
+      traceOutliers: false,
+      slowRunThresholdMs: 60000,
+      expectedBands: [],
+      tags: ["wrapper", "class-sweep"],
+    };
 
-  printSummary(summary, options);
+    const specPath = path.join(tempDir, "spec.json");
+    const outputPath = options.output || path.join(tempDir, "artifact.json");
+    const reportPath = outputPath.replace(/\.json$/i, ".md");
+    const indexPath = path.join(tempDir, "index.json");
+
+    fs.writeFileSync(specPath, JSON.stringify(spec, null, 2));
+
+    execFileSync(process.execPath, [
+      ORCHESTRATOR_SCRIPT,
+      "--mode",
+      "run",
+      "--spec",
+      specPath,
+      "--output",
+      outputPath,
+      "--report",
+      reportPath,
+      "--index",
+      indexPath,
+    ], { cwd: ROOT, stdio: "pipe" });
+
+    const artifact = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+    const summary = summarizeRuns(Array.isArray(artifact.runs) ? artifact.runs : []);
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        generatedAt: artifact.generatedAt,
+        throughActNumber: options.throughActNumber,
+        seedCount: options.seedCount,
+        artifactPath: outputPath,
+        summary,
+      }, null, 2));
+      return;
+    }
+
+    printSummary(summary, options);
+    if (options.output) {
+      console.log(`\nArtifact: ${outputPath}`);
+    }
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 }
 
 main();

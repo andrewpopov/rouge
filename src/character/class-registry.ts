@@ -231,7 +231,7 @@
 
   const CLASS_PREFERRED_FAMILIES = {
     barbarian: ["Swords", "Maces", "Polearms"],
-    paladin: ["Swords", "Maces"],
+    paladin: ["Maces", "Swords"],
     amazon: ["Bows", "Crossbows", "Javelins", "Spears", "Polearms"],
     assassin: ["Swords"],
     druid: ["Staves", "Maces"],

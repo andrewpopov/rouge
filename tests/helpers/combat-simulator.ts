@@ -160,6 +160,8 @@ interface EncounterSimulationSummary {
   encounterName: string;
   zoneTitle: string;
   zoneKind: ZoneKind;
+  kind: "boss" | "elite" | "battle";
+  runs: number;
   enemyPowerScore: number;
   powerDelta: number;
   powerRatio: number;
@@ -1133,6 +1135,8 @@ function summarizeEncounterRuns(
     encounterName: entry.encounterName,
     zoneTitle: entry.zoneTitle,
     zoneKind: entry.zoneKind,
+    kind: entry.hasBoss ? "boss" : entry.hasElite ? "elite" : "battle",
+    runs: runs.length,
     enemyPowerScore,
     powerDelta: 0,
     powerRatio: 0,
@@ -1247,6 +1251,8 @@ function buildScenarioReport(context: SimulatedBuildContext, encounterSetId: str
     const summary = summarizeEncounterRuns(context.harness.content, entry, runs);
     return {
       ...summary,
+      kind: (entry.hasBoss ? "boss" : entry.hasElite ? "elite" : "battle") as "boss" | "elite" | "battle",
+      runs: runsPerEncounter,
       powerDelta: roundTo(build.powerScore - summary.enemyPowerScore),
       powerRatio: roundTo(build.powerScore / Math.max(1, summary.enemyPowerScore)),
     };

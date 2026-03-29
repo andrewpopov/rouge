@@ -148,23 +148,40 @@
   }
 
   function spawnPlayedCardFx(cardEl: HTMLElement | null | undefined): void {
-    if (!cardEl) { return; }
+    if (!cardEl || typeof cardEl.getBoundingClientRect !== "function" || typeof cardEl.cloneNode !== "function") {
+      return;
+    }
 
     const rect = cardEl.getBoundingClientRect();
     if (rect.width < 20 || rect.height < 20) { return; }
 
     const clone = cardEl.cloneNode(true) as HTMLElement;
+    if (
+      !clone ||
+      !clone.classList ||
+      !clone.style ||
+      !document.body ||
+      typeof document.body.appendChild !== "function"
+    ) {
+      return;
+    }
     clone.classList.add("fan-card--fx-clone");
-    clone.removeAttribute("data-action");
-    clone.removeAttribute("data-instance-id");
-    clone.setAttribute("aria-hidden", "true");
+    if (typeof clone.removeAttribute === "function") {
+      clone.removeAttribute("data-action");
+      clone.removeAttribute("data-instance-id");
+    }
+    if (typeof clone.setAttribute === "function") {
+      clone.setAttribute("aria-hidden", "true");
+    }
     clone.style.left = `${rect.left}px`;
     clone.style.top = `${rect.top}px`;
     clone.style.width = `${rect.width}px`;
     clone.style.height = `${rect.height}px`;
     clone.style.margin = "0";
-    clone.style.setProperty("--fan-rotate", "0deg");
-    clone.style.setProperty("--fan-lift", "0px");
+    if (typeof clone.style.setProperty === "function") {
+      clone.style.setProperty("--fan-rotate", "0deg");
+      clone.style.setProperty("--fan-lift", "0px");
+    }
     document.body.appendChild(clone);
 
     runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedRAF(() => clone.classList.add("fan-card--playing"));
@@ -325,16 +342,23 @@
     const heroSprite = allySprites[0] || null;
     const mercSprite = allySprites[1] || null;
 
+    function resolveStepTarget(step: { targetKey?: string }) {
+      if (step.targetKey === "hero") {
+        return heroSprite;
+      }
+      if (step.targetKey === "mercenary") {
+        return mercSprite;
+      }
+      if (step.targetKey?.startsWith("enemy:")) {
+        return enemySprites.find((el) => el.dataset.enemyId === step.targetKey?.slice(6)) || null;
+      }
+      return null;
+    }
+
     steps.forEach((step, index) => {
       runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedTimeout(() => {
         const actorEl = enemySprites.find((el) => el.dataset.enemyId === step.actorId) || null;
-        const targetEl = step.targetKey === "hero"
-          ? heroSprite
-          : step.targetKey === "mercenary"
-            ? mercSprite
-            : step.targetKey?.startsWith("enemy:")
-              ? enemySprites.find((el) => el.dataset.enemyId === step.targetKey?.slice(6)) || null
-              : null;
+        const targetEl = resolveStepTarget(step);
 
         if (actorEl) {
           addTempClass(actorEl, "sprite--acting", 380);

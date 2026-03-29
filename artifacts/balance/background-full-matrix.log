@@ -1,0 +1,92 @@
+
+> rogue@1.0.0 sim:batch-report
+> tsc -p ./tsconfig.runtime.json && tsc -p ./tsconfig.tests.json && node ./scripts/run-batch-sim-report.js --resume --output /Users/andrew/proj/rouge/artifacts/balance/background-full-matrix.json --class amazon,assassin,barbarian,druid,necromancer,paladin,sorceress --policy aggressive,balanced,control,bulwark --through-act 5 --probe-runs 0 --max-turns 36 --seeds 5 --stability-checks 5
+
+[1/140] Amazon / Aggressive / seed 0: run_complete, act 5, level 52
+[2/140] Amazon / Aggressive / seed 1: run_complete, act 5, level 52
+[3/140] Amazon / Aggressive / seed 2: run_complete, act 5, level 52
+
+> rogue@1.0.0 sim:batch-report
+> tsc -p ./tsconfig.runtime.json && tsc -p ./tsconfig.tests.json && node ./scripts/run-batch-sim-report.js --resume --output /Users/andrew/proj/rouge/artifacts/balance/background-full-matrix.json --class amazon,assassin,barbarian,druid,necromancer,paladin,sorceress --policy aggressive,balanced,control,bulwark --through-act 5 --probe-runs 0 --max-turns 36 --seeds 5 --stability-checks 5 --concurrency 4
+
+[4/140] Amazon / Balanced / seed 1: run_complete, act 5, level 52
+[5/140] Amazon / Balanced / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[6/140] Amazon / Aggressive / seed 3: run_complete, act 5, level 52
+[7/140] Amazon / Aggressive / seed 4: run_complete, act 5, level 52
+[8/140] Amazon / Balanced / seed 3: run_complete, act 5, level 52
+[9/140] Amazon / Balanced / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[10/140] Amazon / Control / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[11/140] Amazon / Control / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[12/140] Amazon / Control / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[13/140] Amazon / Control / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[14/140] Amazon / Balanced / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[15/140] Amazon / Control / seed 4: run_complete, act 5, level 52
+[16/140] Amazon / Bulwark / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[17/140] Amazon / Bulwark / seed 2: run_complete, act 5, level 52
+[18/140] Amazon / Bulwark / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[19/140] Amazon / Bulwark / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[20/140] Assassin / Aggressive / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[21/140] Amazon / Bulwark / seed 0: run_complete, act 5, level 52
+[22/140] Assassin / Aggressive / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[23/140] Assassin / Balanced / seed 0: run_failed, act 1, level 6 fail Catacombs / Andariel
+[24/140] Assassin / Aggressive / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[25/140] Assassin / Balanced / seed 1: run_failed, act 3, level 26 fail Durance of Hate / Mephisto
+[26/140] Assassin / Balanced / seed 3: run_failed, act 1, level 6 fail Catacombs / Andariel
+[27/140] Assassin / Balanced / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[28/140] Assassin / Aggressive / seed 1: run_complete, act 5, level 52
+[29/140] Assassin / Control / seed 1: run_failed, act 1, level 6 fail Catacombs / Andariel
+[30/140] Assassin / Balanced / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[31/140] Assassin / Aggressive / seed 4: run_complete, act 5, level 52
+[32/140] Assassin / Control / seed 4: run_failed, act 1, level 6 fail Catacombs / Andariel
+[33/140] Assassin / Control / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[34/140] Assassin / Control / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[35/140] Assassin / Bulwark / seed 2: run_failed, act 1, level 6 fail Catacombs / Andariel
+[36/140] Assassin / Bulwark / seed 0: run_failed, act 3, level 26 fail Durance of Hate / Mephisto
+[37/140] Assassin / Control / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[38/140] Assassin / Bulwark / seed 3: run_failed, act 3, level 26 fail Durance of Hate / Mephisto
+[39/140] Barbarian / Aggressive / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[40/140] Barbarian / Aggressive / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[41/140] Assassin / Bulwark / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[42/140] Barbarian / Aggressive / seed 0: run_complete, act 5, level 52
+[43/140] Barbarian / Aggressive / seed 3: run_complete, act 5, level 52
+[44/140] Barbarian / Balanced / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[45/140] Barbarian / Balanced / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[46/140] Barbarian / Balanced / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[47/140] Barbarian / Balanced / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[48/140] Barbarian / Balanced / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[49/140] Barbarian / Control / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[50/140] Barbarian / Control / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[51/140] Barbarian / Control / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[52/140] Barbarian / Control / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[53/140] Barbarian / Control / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[54/140] Barbarian / Bulwark / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[55/140] Barbarian / Bulwark / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[56/140] Barbarian / Bulwark / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[57/140] Barbarian / Bulwark / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[58/140] Barbarian / Bulwark / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[59/140] Druid / Aggressive / seed 0: run_complete, act 5, level 52
+[60/140] Druid / Aggressive / seed 1: run_complete, act 5, level 52
+[61/140] Druid / Aggressive / seed 2: run_complete, act 5, level 52
+[62/140] Druid / Aggressive / seed 3: run_complete, act 5, level 52
+[63/140] Druid / Balanced / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[64/140] Druid / Balanced / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[65/140] Druid / Aggressive / seed 4: run_complete, act 5, level 52
+[66/140] Druid / Balanced / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[67/140] Druid / Balanced / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[68/140] Druid / Control / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[69/140] Druid / Balanced / seed 4: run_complete, act 5, level 52
+[70/140] Druid / Control / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[71/140] Druid / Control / seed 2: run_complete, act 5, level 52
+[72/140] Druid / Control / seed 3: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[73/140] Druid / Control / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[74/140] Druid / Bulwark / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[75/140] Druid / Bulwark / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[76/140] Druid / Bulwark / seed 2: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[77/140] Druid / Bulwark / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[78/140] Druid / Bulwark / seed 3: run_complete, act 5, level 52
+[79/140] Necromancer / Aggressive / seed 0: run_complete, act 5, level 52
+[80/140] Necromancer / Aggressive / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[81/140] Necromancer / Aggressive / seed 2: run_complete, act 5, level 52
+[82/140] Necromancer / Aggressive / seed 4: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[83/140] Necromancer / Balanced / seed 0: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo
+[84/140] Necromancer / Balanced / seed 1: run_failed, act 4, level 33 fail Chaos Sanctuary / Diablo

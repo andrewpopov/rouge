@@ -1,6 +1,11 @@
 # Sprite Generation Backlog
 
-Last updated: March 25, 2026.
+Last updated: March 28, 2026.
+
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- Use `BLOOD_ROGUE_VISUAL_IDENTITY.md` for the broad Blood Rogue look-and-feel standard.
+- This document adds sprite-generation and import constraints on top of that broader identity.
 
 ## Scope
 
@@ -44,7 +49,7 @@ Use `--dry-run` to verify which Downloads image would be imported without moving
 
 Use this as the default art direction for every prompt unless a specific monster needs an override:
 
-- Diablo II-inspired dark-fantasy action RPG portrait, but clearly original Rouge art direction
+- Blood Rogue dark-fantasy portrait aligned with `BLOOD_ROGUE_VISUAL_IDENTITY.md`; Diablo II is reference energy, not a literal copy target
 - single subject only
 - full body or full creature visible
 - square composition, centered subject, all limbs, horns, wings, staffs, weapons, spell fire, and trailing cloth fully inside frame
@@ -61,7 +66,8 @@ Append these requirements to every generation prompt unless there is a monster-s
 
 - output `1024x1024` PNG
 - one subject only; no companions, no corpse pile, no environment props, no second figure
-- `3/4` view facing right by default
+- enemy and boss subjects should use `3/4` view facing left by default
+- player-class portraits and mercenary sprites can face right when that better matches ally-side staging
 - subject centered and scaled to fill roughly `70%` to `85%` of the canvas height
 - keep at least `48px` of empty space between the outer silhouette and every canvas edge
 - do not crop ears, horns, fingers, feet, weapons, flame tips, cloth tails, or spirit wisps
@@ -113,7 +119,7 @@ Call these out explicitly when prompting:
 Paste this footer into every prompt after the monster-specific description:
 
 ```text
-Full body visible, 3/4 view facing right, centered on a square canvas. Keep all limbs, weapons, staff tips, flames, horns, ears, cloth tails, and trailing effects fully inside frame. Subject should fill roughly 70% to 85% of the canvas height with a clean margin to every edge. Strong readable silhouette for downscaling to a 128x128 in-game portrait.
+Full body visible, 3/4 view facing left for enemy and boss subjects, centered on a square canvas. Keep all limbs, weapons, staff tips, flames, horns, ears, cloth tails, and trailing effects fully inside frame. Subject should fill roughly 70% to 85% of the canvas height with a clean margin to every edge. Strong readable silhouette for downscaling to a 128x128 in-game portrait.
 
 Hard output requirement: transparent background with real alpha. No vignette, no glow field, no painted backdrop, no floor, no fog bank outside the silhouette, no cast shadow, no ambient gradient, no border, no text, no watermark, no other characters. The file must drop directly into the game as a cutout PNG with minimal or no post-processing.
 
@@ -260,49 +266,49 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `colenzo_the_annihilator`
 - [x] `corpsefire`
 - [x] `creeping_feature`
-- [ ] `dac_farren`
-- [ ] `dark_elder`
-- [ ] `diablo`
-- [ ] `duriel`
-- [ ] `eldritch_the_rectifier`
-- [ ] `eyeback_the_unleashed`
-- [ ] `fangskin`
-- [ ] `fire_eye`
-- [ ] `frozenstein`
-- [ ] `geleb_flamefinger`
-- [ ] `griswold`
-- [ ] `hephasto_the_armorer`
-- [ ] `icehawk_riftwing`
-- [ ] `infector_of_souls`
-- [ ] `ismail_vilehand`
-- [ ] `izual`
-- [ ] `korlic`
-- [ ] `lilith`
-- [ ] `lister_the_tormentor`
-- [ ] `lord_de_seis`
-- [ ] `madawc`
-- [ ] `maffer_dragonhand`
-- [ ] `nihlathak`
-- [ ] `pandemonium_diablo`
-- [ ] `pindleskin`
-- [ ] `pitspawn_fouldog`
-- [ ] `rakanishu`
-- [ ] `sharptooth_slayer`
-- [ ] `shenk_the_overseer`
-- [ ] `snapchip_shatter`
-- [ ] `sszark_the_burning`
-- [ ] `talic`
-- [ ] `the_countess`
-- [ ] `the_cow_king`
-- [ ] `the_smith`
-- [ ] `the_summoner`
-- [ ] `thresh_socket`
-- [ ] `toorc_icefist`
-- [ ] `treehead_woodfist`
-- [ ] `uber_baal`
-- [ ] `uber_diablo`
-- [ ] `uber_duriel`
-- [ ] `uber_izual`
+- [x] `dac_farren`
+- [x] `dark_elder`
+- [x] `diablo`
+- [x] `duriel`
+- [x] `eldritch_the_rectifier`
+- [x] `eyeback_the_unleashed`
+- [x] `fangskin`
+- [x] `fire_eye`
+- [x] `frozenstein`
+- [x] `geleb_flamefinger`
+- [x] `griswold`
+- [x] `hephasto_the_armorer`
+- [x] `icehawk_riftwing`
+- [x] `infector_of_souls`
+- [x] `ismail_vilehand`
+- [x] `izual`
+- [x] `korlic`
+- [x] `lilith`
+- [x] `lister_the_tormentor`
+- [x] `lord_de_seis`
+- [x] `madawc`
+- [x] `maffer_dragonhand`
+- [x] `nihlathak`
+- [x] `pandemonium_diablo`
+- [x] `pindleskin`
+- [x] `pitspawn_fouldog`
+- [x] `rakanishu`
+- [x] `sharptooth_slayer`
+- [x] `shenk_the_overseer`
+- [x] `snapchip_shatter`
+- [x] `sszark_the_burning`
+- [x] `talic`
+- [x] `the_countess`
+- [x] `the_cow_king`
+- [x] `the_smith`
+- [x] `the_summoner`
+- [x] `thresh_socket`
+- [x] `toorc_icefist`
+- [x] `treehead_woodfist`
+- [x] `uber_baal`
+- [x] `uber_diablo`
+- [x] `uber_duriel`
+- [x] `uber_izual`
 - [ ] `ventar_the_unholy`
 - [ ] `witch_doctor_endugu`
 - [ ] `wyand_voidbringer`

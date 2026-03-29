@@ -32,7 +32,7 @@
               "Commit the reserve to casks and keep the desert line healthier between fights.",
               "rearguard_casks_stacked",
               ["sunwell_reserve_cask_line"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "support_build" }, { kind: "refill_potions", value: 1 }]
             ),
             reserveChoice(
               "sunwell_reserve_opportunity",
@@ -42,7 +42,7 @@
               "Push reserve guides deeper into the desert and keep the caravan route cleaner.",
               "guide_posts_set",
               ["sunwell_reserve_guide_posts"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -92,7 +92,7 @@
               "Push reserve lances forward behind the contract guard and keep the whole route dangerous.",
               "reserve_lances_marched",
               ["sunwell_reserve_lances"],
-              [{ kind: "mercenary_attack", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "class_point", value: 1 }, { kind: "mercenary_attack", value: 1 }]
             ),
             reserveChoice(
               "sunwell_reserve_opportunity",

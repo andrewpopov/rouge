@@ -326,11 +326,14 @@
     if (!deckChip) {
       return;
     }
-    const readouts = !appState?.combat
-      ? { selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string> }
-      : sourceEl.dataset.action === "melee-strike"
-        ? { ...buildMeleePreviewReadouts(appState.combat), hero: "", mercenary: "", enemyLine: {} as Record<string, string> }
-        : buildCardUnitPreviewReadouts(appState.combat, appState.content, sourceEl.dataset.instanceId || "");
+    let readouts = { selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string> };
+    if (appState?.combat) {
+      if (sourceEl.dataset.action === "melee-strike") {
+        readouts = { ...buildMeleePreviewReadouts(appState.combat), hero: "", mercenary: "", enemyLine: {} as Record<string, string> };
+      } else {
+        readouts = buildCardUnitPreviewReadouts(appState.combat, appState.content, sourceEl.dataset.instanceId || "");
+      }
+    }
 
     const previewTitle = sourceEl.dataset.cardTitle || sourceEl.dataset.previewTitle || "Targeted Skill";
     const previewLabel = sourceEl.dataset.previewLabel || "Effect";

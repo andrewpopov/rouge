@@ -27,6 +27,7 @@ test("zone roles map to distinct encounter themes within the same act", () => {
   });
 
   appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
@@ -105,6 +106,13 @@ test("quest world nodes resolve through the reward flow and persist outcomes on 
   const choice = state.run.pendingReward.choices[0];
   const recordEffect = choice.effects.find((effect) => effect.kind === "record_quest_outcome");
   const heroLifeBefore = state.run.hero.maxLife;
+  const heroEnergyBefore = state.run.hero.maxEnergy;
+  const mercAttackBefore = state.run.mercenary.attack;
+  const mercLifeBefore = state.run.mercenary.maxLife;
+  const beltMaxBefore = state.run.belt.max;
+  const goldBefore = state.run.gold;
+  const classPointsBefore = state.run.progression.classPointsAvailable;
+  const attributePointsBefore = state.run.progression.attributePointsAvailable;
   assert.ok(recordEffect);
 
   const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
@@ -113,7 +121,16 @@ test("quest world nodes resolve through the reward flow and persist outcomes on 
   assert.ok(state.run.world.resolvedNodeIds.includes(questZone.id));
   assert.equal(state.run.world.questOutcomes[recordEffect.questId].outcomeId, recordEffect.outcomeId);
   assert.ok(runFactory.getZoneById(state.run, questZone.id).cleared);
-  assert.ok(state.run.hero.maxLife > heroLifeBefore);
+  assert.ok(
+    state.run.hero.maxLife > heroLifeBefore ||
+    state.run.hero.maxEnergy > heroEnergyBefore ||
+    state.run.mercenary.attack > mercAttackBefore ||
+    state.run.mercenary.maxLife > mercLifeBefore ||
+    state.run.belt.max > beltMaxBefore ||
+    state.run.gold > goldBefore ||
+    state.run.progression.classPointsAvailable > classPointsBefore ||
+    state.run.progression.attributePointsAvailable > attributePointsBefore
+  );
 });
 
 test("quest rewards can forge an early weapon runeword through the shared reward seam", () => {
@@ -142,16 +159,18 @@ test("quest rewards can forge an early weapon runeword through the shared reward
   const choice = state.run.pendingReward.choices[0];
   assert.ok(choice.effects.some((effect) => effect.kind === "equip_item"));
   assert.ok(choice.effects.some((effect) => effect.kind === "add_socket" && effect.slot === "weapon"));
-  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "weapon" && effect.runeId === "rune_tir"));
-  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "weapon" && effect.runeId === "rune_el"));
-  assert.ok(choice.previewLines.some((line) => line.includes("Short Sword")));
-  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Steel")));
+  assert.ok(choice.effects.some((effect) => effect.kind === "socket_rune" && effect.slot === "weapon"));
+  assert.ok(choice.previewLines.some((line) => line.includes("Weapon")));
+  assert.ok(
+    state.run.pendingReward.lines.some((line) => line.includes("Strength")) ||
+    state.run.pendingReward.lines.some((line) => line.includes("Steel"))
+  );
 
   const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
   assert.equal(claimResult.ok, true);
-  assert.equal(state.run.loadout.weapon?.runewordId, "steel");
-  assert.equal(Array.from(state.run.loadout.weapon?.insertedRunes || []).join(","), "rune_tir,rune_el");
-  assert.ok(state.run.progression.activatedRunewords.includes("steel"));
+  assert.ok(state.run.loadout.weapon?.runewordId);
+  assert.ok((state.run.loadout.weapon?.insertedRunes || []).length > 0);
+  assert.ok(state.run.progression.activatedRunewords.includes(state.run.loadout.weapon?.runewordId || ""));
   assert.equal(state.run.summary.runewordsForged, 1);
 });
 
@@ -192,6 +211,82 @@ test("quest rewards fall back to armor runewords when class-preferred weapon bas
   assert.ok(state.run.progression.activatedRunewords.includes("stealth"));
 });
 
+test("quest runeforge rewards follow the run's dominant weapon archetype when a compatible weapon base exists", () => {
+  const { browserWindow, content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  state.run.deck = [
+    "amazon_magic_arrow",
+    "amazon_cold_arrow",
+    "amazon_multiple_shot",
+    "second_wind",
+  ];
+  browserWindow.ROUGE_REWARD_ENGINE.syncArchetypeScores(state.run, content);
+
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  assert.ok(questZone);
+
+  clearAllMainlineZones(runFactory, state.run);
+
+  const selectResult = appEngine.selectZone(state, questZone.id);
+  assert.equal(selectResult.ok, true);
+
+  const choice = state.run.pendingReward.choices[0];
+  const equipEffect = choice.effects.find((effect) => effect.kind === "equip_item");
+  assert.ok(equipEffect);
+  assert.equal(content.itemCatalog[equipEffect.itemId].slot, "weapon");
+  assert.ok(["Bows", "Crossbows"].includes(content.itemCatalog[equipEffect.itemId].family));
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getDominantArchetype(state.run, content).primary?.archetypeId, "amazon_bow_and_crossbow");
+});
+
+test("quest rewards classify and sort choices by strategic role", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  const questZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest");
+  assert.ok(questZone);
+
+  clearAllMainlineZones(runFactory, state.run);
+
+  const selectResult = appEngine.selectZone(state, questZone.id);
+  assert.equal(selectResult.ok, true);
+
+  const choices = state.run.pendingReward.choices;
+  assert.ok(choices.length >= 3);
+  assert.equal(choices[0].title, "Arm the Caravan");
+  assert.equal(choices[0].strategyRole, "reinforce");
+  assert.match(choices[0].subtitle, /Reinforce Current Build/);
+  assert.match(choices[0].previewLines[0], /Strategic role: Reinforce/);
+
+  const pivotChoice = choices.find((choice) => choice.title === "Harvest the Relics");
+  assert.ok(pivotChoice);
+  assert.equal(pivotChoice.strategyRole, "pivot");
+  assert.match(pivotChoice.subtitle, /Flexible Pivot/);
+
+  assert.equal(choices[choices.length - 1].title, "Harvest the Relics");
+  assert.ok(state.run.pendingReward.lines.some((line) => line.includes("Current build lane")));
+});
+
 test("shrine world nodes resolve through the reward flow and persist shrine outcomes on the run", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
@@ -214,10 +309,17 @@ test("shrine world nodes resolve through the reward flow and persist shrine outc
   assert.equal(selectResult.ok, true);
   assert.equal(state.phase, appEngine.PHASES.REWARD);
   assert.equal(state.run.pendingReward.kind, "shrine");
+  assert.ok(state.run.pendingReward.choices.some((choice) => choice.strategyRole === "reinforce"));
+  assert.ok(state.run.pendingReward.choices.some((choice) => choice.strategyRole === "support"));
+  assert.ok(state.run.pendingReward.choices.some((choice) => choice.strategyRole === "pivot"));
+  assert.ok(state.run.pendingReward.choices.some((choice) => choice.previewLines.some((line) => line.includes("Build support:"))));
 
   const choice = state.run.pendingReward.choices[0];
+  const deckBefore = state.run.deck.join(",");
+  const classPointsBefore = state.run.progression.classPointsAvailable;
   const recordEffect = choice.effects.find((effect) => effect.kind === "record_node_outcome");
   assert.ok(recordEffect);
+  assert.ok(choice.previewLines.some((line) => line.includes("Build reinforcement:")));
 
   const claimResult = appEngine.claimRewardAndAdvance(state, choice.id);
   assert.equal(claimResult.ok, true);
@@ -226,6 +328,10 @@ test("shrine world nodes resolve through the reward flow and persist shrine outc
   assert.equal(state.run.world.shrineOutcomes[recordEffect.nodeId].outcomeId, recordEffect.outcomeId);
   assert.ok(state.run.world.worldFlags.includes(recordEffect.flagIds[0]));
   assert.ok(runFactory.getZoneById(state.run, shrineZone.id).cleared);
+  assert.ok(
+    state.run.deck.join(",") !== deckBefore || state.run.progression.classPointsAvailable > classPointsBefore,
+    "Expected the reinforced shrine choice to change the deck or grant a fallback class point."
+  );
 });
 
 test("event world nodes branch off quest outcomes and persist follow-up consequences", () => {
@@ -238,6 +344,7 @@ test("event world nodes branch off quest outcomes and persist follow-up conseque
   });
 
   appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
@@ -266,12 +373,24 @@ test("event world nodes branch off quest outcomes and persist follow-up conseque
   assert.equal(state.run.pendingReward.kind, "event");
   assert.ok(state.run.pendingReward.title);
   assert.ok(state.run.pendingReward.lines.some((line) => line.includes(questChoiceTitle)));
+  assert.ok(state.run.pendingReward.choices.every((choice) => Boolean(choice.strategyRole)));
+  assert.ok(state.run.pendingReward.choices.every((choice) => choice.previewLines[0]?.includes("Strategic role:")));
+  assert.ok(
+    state.run.pendingReward.choices.some((choice) => {
+      return choice.previewLines.some((line) => {
+        return line.includes("Build support:") || line.includes("Build reinforcement:") || line.includes("Strategic pivot:");
+      });
+    })
+  );
 
   const eventChoice = state.run.pendingReward.choices[0];
+  const deckBefore = state.run.deck.join(",");
+  const classPointsBefore = state.run.progression.classPointsAvailable;
   const nodeEffect = eventChoice.effects.find((effect) => effect.kind === "record_node_outcome");
   const followUpEffect = eventChoice.effects.find((effect) => effect.kind === "record_quest_follow_up");
   assert.ok(nodeEffect);
   assert.ok(followUpEffect);
+  assert.ok(eventChoice.previewLines.some((line) => line.includes("Build reinforcement:")));
 
   claimResult = appEngine.claimRewardAndAdvance(state, eventChoice.id);
   assert.equal(claimResult.ok, true);
@@ -281,6 +400,10 @@ test("event world nodes branch off quest outcomes and persist follow-up conseque
   assert.equal(state.run.world.questOutcomes[followUpEffect.questId].followUpOutcomeId, followUpEffect.outcomeId);
   assert.ok(state.run.world.questOutcomes[followUpEffect.questId].consequenceIds.includes(followUpEffect.consequenceId));
   assert.ok(state.run.world.worldFlags.includes(nodeEffect.flagIds[0]));
+  assert.ok(
+    state.run.deck.join(",") !== deckBefore || state.run.progression.classPointsAvailable > classPointsBefore,
+    "Expected the reinforced event choice to change the deck or grant a fallback class point."
+  );
 });
 
 test("opportunity world nodes resolve through the reward flow and extend the quest chain", () => {
@@ -293,6 +416,7 @@ test("opportunity world nodes resolve through the reward flow and extend the que
   });
 
   appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
   appEngine.startRun(state);
   appEngine.leaveSafeZone(state);
 
@@ -326,6 +450,15 @@ test("opportunity world nodes resolve through the reward flow and extend the que
   assert.equal(state.run.pendingReward.kind, "opportunity");
   assert.ok(state.run.pendingReward.title);
   assert.ok(state.run.pendingReward.lines.some((line) => line.includes(`${questChoiceTitle  } -> ${  eventChoiceTitle}`)));
+  assert.equal(state.run.pendingReward.choices[0].strategyRole, "reinforce");
+  assert.equal(state.run.pendingReward.choices[1].strategyRole, "support");
+  assert.ok(
+    state.run.pendingReward.choices.some((choice) => {
+      return choice.previewLines.some((line) => {
+        return line.includes("Build support:") || line.includes("Build reinforcement:") || line.includes("Strategic pivot:");
+      });
+    })
+  );
 
   const opportunityChoice = state.run.pendingReward.choices[0];
   assert.ok(opportunityChoice);

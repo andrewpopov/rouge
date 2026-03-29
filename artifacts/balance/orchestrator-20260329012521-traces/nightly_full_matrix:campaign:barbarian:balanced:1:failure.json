@@ -1,0 +1,544 @@
+{
+  "mode": "combat",
+  "digest": "822bb752ddaf499b",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Chaos Sanctuary / Diablo",
+    "checkpointId": "",
+    "encounterId": "act_4_boss",
+    "runKey": "nightly_full_matrix:campaign:barbarian:balanced:1"
+  },
+  "classId": "barbarian",
+  "actNumber": 4,
+  "encounterId": "act_4_boss",
+  "policyId": "balanced",
+  "outcome": "defeat",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 261,
+          "maxLife": 466,
+          "guard": 0,
+          "energy": 8,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Desert Guard",
+          "life": 248,
+          "maxLife": 266,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 699,
+            "maxLife": 699,
+            "guard": 12,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Bulwark (35)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 5,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 5,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 264,
+            "maxLife": 264,
+            "guard": 12,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_8",
+            "cardId": "barbarian_find_potion",
+            "title": "Find Potion",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "barbarian_concentrate",
+            "title": "Concentrate",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "barbarian_howl",
+            "title": "Howl",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_4",
+            "cardId": "barbarian_sword_mastery",
+            "title": "Sword Mastery",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_16",
+            "cardId": "barbarian_berserk",
+            "title": "Berserk",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Berserk -> Cinderlord Megademon",
+        "Card: Concentrate -> Cinderlord Megademon",
+        "Card: Sword Mastery -> Cinderlord Megademon",
+        "Melee strike",
+        "Card: Find Potion",
+        "Card: Howl",
+        "Card: Berserk -> Doomtide Finger Mage",
+        "Potion -> hero",
+        "Potion -> hero",
+        "Potion -> hero",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 105,
+          "maxLife": 466,
+          "guard": 0,
+          "energy": 8,
+          "burn": 4,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Desert Guard",
+          "life": 165,
+          "maxLife": 266,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 676,
+            "maxLife": 699,
+            "guard": 29,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Apocalypse (24)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 59,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 62,
+            "maxLife": 278,
+            "guard": 44,
+            "burn": 3,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 133,
+            "maxLife": 264,
+            "guard": 48,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_12",
+            "cardId": "barbarian_iron_skin",
+            "title": "Iron Skin",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_5",
+            "cardId": "barbarian_sword_mastery",
+            "title": "Sword Mastery",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "barbarian_natural_resistance",
+            "title": "Natural Resistance",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_23",
+            "cardId": "barbarian_berserk",
+            "title": "Berserk",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "barbarian_bash",
+            "title": "Bash",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Doomtide Finger Mage hits with Extra Strong force!",
+        "Doomtide Finger Mage uses Finger Mage Doom Wave on Barbarian for 40 and Desert Guard for 42.",
+        "The Wanderer takes 3 Burn damage.",
+        "Turn 2 begins.",
+        "Desert Guard hits Diablo for 23.",
+        "Desert Guard gains 2 Guard.",
+        "Diablo begins charging Diablo Apocalypse. the whole party will take 24 fire damage next turn. Diablo gains 29 Guard.",
+        "Hellforged Megademon hits with Extra Strong force!",
+        "Hellforged Megademon uses Megademon Ember Plate on Barbarian for 43 and gains 19 Guard.",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon takes 0 Burn damage.",
+        "Cinderlord Megademon hits with Extra Strong force!",
+        "Cinderlord Megademon uses Megademon Molten Plating on Barbarian for 43 and gains 18 Guard.",
+        "Doomtide Finger Mage uses Finger Mage Infernal Litany, restoring Cinderlord Megademon for 11 and gaining 13 Guard.",
+        "The Wanderer takes 5 Burn damage.",
+        "Turn 3 begins."
+      ]
+    },
+    {
+      "turn": 3,
+      "start": {
+        "hero": {
+          "life": 105,
+          "maxLife": 466,
+          "guard": 0,
+          "energy": 8,
+          "burn": 4,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Desert Guard",
+          "life": 165,
+          "maxLife": 266,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 676,
+            "maxLife": 699,
+            "guard": 29,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Apocalypse (24)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 59,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 62,
+            "maxLife": 278,
+            "guard": 44,
+            "burn": 3,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 133,
+            "maxLife": 264,
+            "guard": 48,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_12",
+            "cardId": "barbarian_iron_skin",
+            "title": "Iron Skin",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_5",
+            "cardId": "barbarian_sword_mastery",
+            "title": "Sword Mastery",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "barbarian_natural_resistance",
+            "title": "Natural Resistance",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_23",
+            "cardId": "barbarian_berserk",
+            "title": "Berserk",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "barbarian_bash",
+            "title": "Bash",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Berserk -> Cinderlord Megademon",
+        "Card: Sword Mastery -> Doomtide Finger Mage",
+        "Card: Iron Skin -> Doomtide Finger Mage",
+        "Card: Bash -> Doomtide Finger Mage",
+        "Card: Natural Resistance",
+        "Melee strike",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 0,
+          "maxLife": 466,
+          "guard": 0,
+          "energy": 4,
+          "burn": 4,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Desert Guard",
+          "life": 165,
+          "maxLife": 266,
+          "guard": 2,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 676,
+            "maxLife": 699,
+            "guard": 29,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Apocalypse (24)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 59,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          }
+        ],
+        "hand": []
+      },
+      "log": [
+        "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+        "Iron Skin: dealt 46 to Doomtide Finger Mage. War Hammer dealt 7 crushing damage. gained 31 Guard.",
+        "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+        "Bash: dealt 49 to Doomtide Finger Mage. War Hammer dealt 7 crushing damage.",
+        "Natural Resistance: healed for 14. gained 29 Guard.",
+        "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+        "Doomtide Finger Mage falls.",
+        "Doomtide Finger Mage erupts in flame for 66 fire damage! (bypasses Guard)",
+        "Melee strike hits Doomtide Finger Mage for 23 (proficient).",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon falls.",
+        "Barbarian falls.",
+        "Cinderlord Megademon erupts in flame for 41 fire damage! (bypasses Guard)",
+        "Desert Guard hits Cinderlord Megademon for 70.",
+        "Desert Guard gains 2 Guard.",
+        "The Wanderer falls. Encounter lost."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 0,
+      "maxLife": 466,
+      "guard": 0,
+      "energy": 4,
+      "burn": 4,
+      "poison": 0,
+      "chill": 0,
+      "amplify": 0,
+      "weaken": 0,
+      "energyDrain": 0
+    },
+    "mercenary": {
+      "name": "Desert Guard",
+      "life": 165,
+      "maxLife": 266,
+      "guard": 2,
+      "nextAttackBonus": 0,
+      "markedEnemyId": ""
+    },
+    "enemies": [
+      {
+        "id": "act_4_boss_enemy_1",
+        "name": "Diablo",
+        "life": 676,
+        "maxLife": 699,
+        "guard": 29,
+        "burn": 0,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Diablo Apocalypse (24)"
+      },
+      {
+        "id": "act_4_boss_enemy_2",
+        "name": "Hellforged Megademon",
+        "life": 278,
+        "maxLife": 278,
+        "guard": 59,
+        "burn": 0,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Megademon Forge Break (32)"
+      }
+    ],
+    "hand": []
+  },
+  "recentLog": [
+    "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+    "Sword Mastery: dealt 0 to Doomtide Finger Mage. War Hammer dealt 7 crushing damage. gained 30 Guard.",
+    "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+    "Iron Skin: dealt 46 to Doomtide Finger Mage. War Hammer dealt 7 crushing damage. gained 31 Guard.",
+    "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+    "Bash: dealt 49 to Doomtide Finger Mage. War Hammer dealt 7 crushing damage.",
+    "Natural Resistance: healed for 14. gained 29 Guard.",
+    "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+    "Doomtide Finger Mage falls.",
+    "Doomtide Finger Mage erupts in flame for 66 fire damage! (bypasses Guard)",
+    "Melee strike hits Doomtide Finger Mage for 23 (proficient).",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon falls.",
+    "Barbarian falls.",
+    "Cinderlord Megademon erupts in flame for 41 fire damage! (bypasses Guard)",
+    "Desert Guard hits Cinderlord Megademon for 70.",
+    "Desert Guard gains 2 Guard.",
+    "The Wanderer falls. Encounter lost."
+  ]
+}

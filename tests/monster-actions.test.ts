@@ -13,18 +13,9 @@ function createState(harness: ReturnType<typeof createCombatHarness>) {
   });
 }
 
-function getMonsterActions(harness: ReturnType<typeof createCombatHarness>) {
-  return (harness as unknown as { content: GameContent }).content
-    ? harness
-    : harness;
-}
-
 test("resolveMonsterIntent handles resurrect_ally with dead allies", () => {
   const harness = createCombatHarness();
   const state = createState(harness);
-  const bw = (harness as unknown as Record<string, unknown>);
-  const monsterActions = (bw as unknown as { engine: { getLivingEnemies: (s: CombatState) => CombatEnemyState[] } }).engine;
-  const monsterActionsModule = (state as unknown as Record<string, unknown>);
 
   // Kill one enemy to create a dead ally
   const targetEnemy = state.enemies[1] || state.enemies[0];
@@ -36,14 +27,6 @@ test("resolveMonsterIntent handles resurrect_ally with dead allies", () => {
   if (!caster) { return; }
 
   const intent: EnemyIntent = { kind: "resurrect_ally", label: "Resurrect", value: 3, target: "hero", cooldown: 2 };
-  const chooseTarget = (s: CombatState, _rule: unknown) => s.hero;
-  const dealDamage = (s: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) => { entity.life = Math.max(0, entity.life - amount); return amount; };
-  const healEntity = (entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) => { entity.life = Math.min(entity.maxLife, entity.life + amount); return amount; };
-
-  const sandbox = Object.getPrototypeOf(harness);
-  // Access the module directly through the combat harness
-  // Use the engine's internal modules via the sandbox window
-  const result = (harness.engine as unknown as Record<string, unknown>);
 
   // Instead, we test through the combat engine's endTurn which calls resolveMonsterIntent internally
   // Let's set up a caster with resurrect_ally intent
@@ -481,9 +464,6 @@ test("processDeathTraits handles death_spawn", () => {
 
 test("rollRandomAffixes returns empty for boss variant", () => {
   const harness = createCombatHarness();
-  const bw = harness as unknown as Record<string, unknown>;
-  // Access via the engine's internal window
-  const state = createState(harness);
   // We can't directly access the module, but we can use the combat harness content
   // The TRAIT constants and rollRandomAffixes are re-exported on __ROUGE_COMBAT_MONSTER_ACTIONS
   // But since the harness doesn't expose browserWindow, let's test through encounter creation

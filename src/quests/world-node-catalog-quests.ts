@@ -96,7 +96,7 @@
                     "caravan_warded",
                     ["lost_reliquary_caravan_warded"]
                   ),
-                  { kind: "hero_max_life", value: 3 },
+                  { kind: "support_build" },
                   { kind: "hero_potion_heal", value: 2 },
                 ],
               },
@@ -159,14 +159,14 @@
                     ["lost_reliquary_fragments_sold"]
                   ),
                   { kind: "gold_bonus", value: 20 },
-                  { kind: "refill_potions", value: 1 },
+                  { kind: "pivot_build" },
                 ],
               },
               {
                 id: "keep_the_core",
                 title: "Keep the Core",
                 subtitle: "Quest Aftermath",
-                description: "Reserve the cleanest relic core for yourself and cut less of the take.",
+                description: "Reserve the cleanest relic core for yourself and turn it into a sharper personal reserve.",
                 effects: [
                   nodeOutcomeEffect("event", "lost_reliquary_aftermath", "keep_the_core", "Keep the Core", ["lost_reliquary_core_kept"]),
                   questFollowUpEffect(
@@ -177,8 +177,8 @@
                     "core_kept",
                     ["lost_reliquary_core_kept"]
                   ),
+                  { kind: "class_point", value: 1 },
                   { kind: "hero_max_energy", value: 1 },
-                  { kind: "belt_capacity", value: 1 },
                 ],
               },
             ],
@@ -188,11 +188,11 @@
           id: "arm_the_caravan",
           title: "Arm the Caravan",
           subtitle: "Quest Outcome",
-          description: "Trade relic steel for hardened escort gear and a more dangerous mercenary line.",
+          description: "Trade relic steel for hardened escort gear and a sharpened frontline striking kit.",
           effects: [
             questOutcomeEffect("lost_reliquary", "arm_the_caravan", "Arm the Caravan", ["lost_reliquary_caravan_armed"]),
+            { kind: "class_point", value: 1 },
             { kind: "mercenary_attack", value: 1 },
-            { kind: "mercenary_max_life", value: 4 },
           ],
           followUp: {
             id: "lost_reliquary_steel_caravan",
@@ -218,8 +218,8 @@
                     "lance_racks_issued",
                     ["lost_reliquary_lance_racks"]
                   ),
+                  { kind: "reinforce_build" },
                   { kind: "mercenary_attack", value: 1 },
-                  { kind: "gold_bonus", value: 10 },
                 ],
               },
               {
@@ -239,6 +239,7 @@
                     "pack_mules_plated",
                     ["lost_reliquary_pack_mules_plated"]
                   ),
+                  { kind: "hero_max_life", value: 2 },
                   { kind: "mercenary_max_life", value: 5 },
                   { kind: "refill_potions", value: 1 },
                 ],
@@ -321,11 +322,11 @@
           id: "purify_the_idol",
           title: "Purify the Idol",
           subtitle: "Quest Outcome",
-          description: "Break a blood idol and turn the fragments into cleaner arcane reserves.",
+          description: "Break a blood idol and turn the fragments into cleaner arcane reserves and harder spell follow-through.",
           effects: [
             questOutcomeEffect("smugglers_wake", "purify_the_idol", "Purify the Idol", ["smugglers_wake_idol_purified"]),
+            { kind: "class_point", value: 1 },
             { kind: "hero_max_energy", value: 1 },
-            { kind: "hero_potion_heal", value: 2 },
           ],
           followUp: {
             id: "smugglers_wake_sanctified_wake",
@@ -359,7 +360,7 @@
                 id: "bottle_the_resin",
                 title: "Bottle the Resin",
                 subtitle: "Quest Aftermath",
-                description: "Keep the cleanest residue for the hero and travel with a sharper reserve.",
+                description: "Keep the cleanest residue for the hero and travel with a sharper offensive reserve.",
                 effects: [
                   nodeOutcomeEffect("event", "smugglers_wake_aftermath", "bottle_the_resin", "Bottle the Resin", [
                     "smugglers_wake_resin_bottled",
@@ -372,8 +373,8 @@
                     "resin_bottled",
                     ["smugglers_wake_resin_bottled"]
                   ),
+                  { kind: "reinforce_build" },
                   { kind: "hero_max_energy", value: 1 },
-                  { kind: "gold_bonus", value: 10 },
                 ],
               },
             ],
@@ -421,7 +422,7 @@
                 id: "arm_the_foremen",
                 title: "Arm the Foremen",
                 subtitle: "Quest Aftermath",
-                description: "Promote the best of them into hard escorts and accept the rougher route.",
+                description: "Promote the best of them into hard escorts and let that extra edge feed your own pressure.",
                 effects: [
                   nodeOutcomeEffect("event", "smugglers_wake_aftermath", "arm_the_foremen", "Arm the Foremen", [
                     "smugglers_wake_foremen_armed",
@@ -434,8 +435,8 @@
                     "foremen_armed",
                     ["smugglers_wake_foremen_armed"]
                   ),
+                  { kind: "reinforce_build" },
                   { kind: "mercenary_attack", value: 1 },
-                  { kind: "hero_max_life", value: 3 },
                 ],
               },
             ],

@@ -397,9 +397,31 @@
     // Maces
     mace: `${ITEM_SPRITE_BASE}/mace.gif`,
     war_hammer: `${ITEM_SPRITE_BASE}/war_hammer.gif`,
+    morning_star: `${ITEM_SPRITE_BASE}/mace.gif`,
+    flail: `${ITEM_SPRITE_BASE}/mace.gif`,
+    maul: `${ITEM_SPRITE_BASE}/war_hammer.gif`,
     // Polearms
     partizan: `${ITEM_SPRITE_BASE}/partizan.gif`,
     grim_scythe: `${ITEM_SPRITE_BASE}/grim_scythe.gif`,
+    // Bows / Crossbows
+    short_bow: `${ITEM_SPRITE_BASE}/short_bow.gif`,
+    long_bow: `${ITEM_SPRITE_BASE}/long_bow.gif`,
+    composite_bow: `${ITEM_SPRITE_BASE}/composite_bow.gif`,
+    crossbow: `${ITEM_SPRITE_BASE}/crossbow.gif`,
+    ashwood_bow: `${ITEM_SPRITE_BASE}/ashwood_bow.gif`,
+    cedar_bow: `${ITEM_SPRITE_BASE}/cedar_bow.gif`,
+    stag_bow: `${ITEM_SPRITE_BASE}/stag_bow.gif`,
+    edge_bow: `${ITEM_SPRITE_BASE}/edge_bow.gif`,
+    siege_crossbow: `${ITEM_SPRITE_BASE}/siege_crossbow.gif`,
+    hydra_bow: `${ITEM_SPRITE_BASE}/hydra_bow.gif`,
+    gorgon_crossbow: `${ITEM_SPRITE_BASE}/gorgon_crossbow.gif`,
+    // Javelins / Spears
+    javelin: `${ITEM_SPRITE_BASE}/javelin.gif`,
+    spear: `${ITEM_SPRITE_BASE}/spear.gif`,
+    war_javelin: `${ITEM_SPRITE_BASE}/war_javelin.gif`,
+    war_spear: `${ITEM_SPRITE_BASE}/war_spear.gif`,
+    hyperion_javelin: `${ITEM_SPRITE_BASE}/hyperion_javelin.gif`,
+    ghost_spear: `${ITEM_SPRITE_BASE}/ghost_spear.gif`,
     // Wands
     wand: `${ITEM_SPRITE_BASE}/wand.gif`,
     yew_wand: `${ITEM_SPRITE_BASE}/yew_wand.gif`,

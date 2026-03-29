@@ -30,7 +30,7 @@
             description: "Cut a caravan sidepass through the outer tomb markers and bank it for the next clash.",
             consequenceId: "tomb_sidepass_secured",
             flagIds: ["sunwell_detour_tomb_sidepass"],
-            extraEffects: [{ kind: "refill_potions", value: 1 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "refill_potions", value: 1 }],
           },
         }),
         buildLateRouteVariant(buildDetourChoice, "sunwell_detour_opportunity", "lost_reliquary", {
@@ -92,7 +92,7 @@
             description: "Cut a quiet path through the dock stores and keep it ready for the next river fight.",
             consequenceId: "dock_sidepass_secured",
             flagIds: ["kurast_detour_dock_sidepass"],
-            extraEffects: [{ kind: "refill_potions", value: 1 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "refill_potions", value: 1 }],
           },
         }),
         buildLateRouteVariant(buildDetourChoice, "kurast_detour_opportunity", "smugglers_wake", {
@@ -154,7 +154,7 @@
             description: "Cut a relief line through the ash belts and hold it ready for the next sanctuary clash.",
             consequenceId: "ash_sidepass_secured",
             flagIds: ["hellforge_detour_ash_sidepass"],
-            extraEffects: [{ kind: "refill_potions", value: 1 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "refill_potions", value: 1 }],
           },
         }),
         buildLateRouteVariant(buildDetourChoice, "hellforge_detour_opportunity", "hellforge_claim", {
@@ -216,7 +216,7 @@
             description: "Cut a quiet sled path across the frozen switchbacks and bank it for the next clash.",
             consequenceId: "sled_sidepass_secured",
             flagIds: ["harrogath_detour_sled_sidepass"],
-            extraEffects: [{ kind: "refill_potions", value: 1 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "refill_potions", value: 1 }],
           },
         }),
         buildLateRouteVariant(buildDetourChoice, "harrogath_detour_opportunity", "harrogath_rescue", {

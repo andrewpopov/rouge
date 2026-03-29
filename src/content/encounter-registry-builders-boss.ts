@@ -29,9 +29,8 @@
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
         modifiers: [
           { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
           { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
-          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, actNumber - 1)) },
         ],
       };
     }
@@ -55,7 +54,7 @@
   }
 
   function buildAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
-    const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
+    const bossScreenValue = Math.max(4, Math.min(6, actNumber + 2));
     if (actNumber === 2) {
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.brute],
@@ -81,9 +80,8 @@
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
         modifiers: [
           { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
-          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(2, Math.min(3, actNumber - 1)) },
-          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: 1 },
         ],
       };
     }
@@ -109,10 +107,10 @@
   }
 
   function buildDrilledAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
-    const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
-    const escortBulwarkValue = Math.max(4, actNumber + 1);
-    const escortRotationValue = Math.max(2, Math.min(4, actNumber + 1));
-    const bossOnslaughtValue = Math.max(2, Math.min(4, actNumber + 1));
+    const bossScreenValue = Math.max(4, Math.min(6, actNumber + 2));
+    const escortBulwarkValue = actNumber === 4 ? Math.max(4, actNumber) : Math.max(4, actNumber + 1);
+    const escortRotationValue = actNumber === 4 ? Math.max(2, Math.min(3, actNumber)) : Math.max(2, Math.min(4, actNumber + 1));
+    const bossOnslaughtValue = actNumber === 4 ? Math.max(2, Math.min(3, actNumber)) : Math.max(2, Math.min(4, actNumber + 1));
     if (actNumber === 2) {
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteB, templateIds.brute, templateIds.support],
@@ -144,11 +142,8 @@
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
           { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: escortBulwarkValue },
-          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
-          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
-          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(4, actNumber) },
-          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: 1 },
         ],
       };
     }
@@ -179,6 +174,15 @@
 
   function buildMobilizedAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
     const drilledConfig = buildDrilledAftermathBossConfig(actNumber, templateIds);
+    if (actNumber === 4) {
+      return {
+        enemyTemplateIds: [...drilledConfig.enemyTemplateIds],
+        modifiers: [
+          ...drilledConfig.modifiers,
+          { kind: MODIFIER_KIND.COURT_RESERVES, value: Math.max(2, Math.min(4, actNumber + 1)) },
+        ],
+      };
+    }
     return {
       enemyTemplateIds: [...drilledConfig.enemyTemplateIds],
       modifiers: [
@@ -190,9 +194,9 @@
   }
 
   function buildPostedAftermathBossConfig(actNumber: number, templateIds: Record<string, string>) {
-    const bossScreenValue = Math.max(3, Math.min(5, actNumber + 1));
-    const escortRotationValue = Math.max(2, Math.min(4, actNumber + 1));
-    const bossOnslaughtValue = Math.max(2, Math.min(4, actNumber + 1));
+    const bossScreenValue = Math.max(4, Math.min(6, actNumber + 2));
+    const escortRotationValue = actNumber === 4 ? Math.max(2, Math.min(3, actNumber)) : Math.max(2, Math.min(4, actNumber + 1));
+    const bossOnslaughtValue = actNumber === 4 ? Math.max(2, Math.min(3, actNumber)) : Math.max(2, Math.min(4, actNumber + 1));
     if (actNumber === 2) {
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.brute, templateIds.support],
@@ -222,10 +226,8 @@
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
           { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
-          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: escortRotationValue },
-          { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: bossOnslaughtValue },
-          { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 3 },
+          { kind: MODIFIER_KIND.ESCORT_ROTATION, value: 1 },
         ],
       };
     }

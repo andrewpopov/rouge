@@ -106,9 +106,27 @@
   function getAvailableItemsForSlot(slot: string, actNumber: number, zone: ZoneState, run: RunState, content: GameContent) {
     const tierAllowance = zone.kind === ZONE_KIND.BOSS ? 1 : 0;
     const progressionAllowance = getProgressionTierAllowance(run, zone);
+    const preferredWeaponFamilies = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [];
+    const strategicWeaponFamilies = slot === "weapon"
+      ? runtimeWindow.ROUGE_REWARD_ENGINE?.getStrategicWeaponFamilies?.(run, content) || preferredWeaponFamilies
+      : [];
     return (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[])
       .filter((item: RuntimeItemDefinition) => item.slot === slot && item.progressionTier <= actNumber + tierAllowance + progressionAllowance)
-      .sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => left.progressionTier - right.progressionTier);
+      .sort((left: RuntimeItemDefinition, right: RuntimeItemDefinition) => {
+        const rightStrategic = Number(slot === "weapon" && strategicWeaponFamilies.includes(right.family || ""));
+        const leftStrategic = Number(slot === "weapon" && strategicWeaponFamilies.includes(left.family || ""));
+        if (rightStrategic !== leftStrategic) {
+          return rightStrategic - leftStrategic;
+        }
+
+        const rightPreferred = Number(slot === "weapon" && preferredWeaponFamilies.includes(right.family || ""));
+        const leftPreferred = Number(slot === "weapon" && preferredWeaponFamilies.includes(left.family || ""));
+        if (rightPreferred !== leftPreferred) {
+          return rightPreferred - leftPreferred;
+        }
+
+        return left.progressionTier - right.progressionTier;
+      });
   }
 
   function getPlannedRuneword(slot: string, profile: ProfileState | null, content: GameContent) {

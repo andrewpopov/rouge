@@ -222,9 +222,9 @@
       familyAllowList: ["Body Armor"],
       requiredRunes: ["rune_tal", "rune_eth"],
       bonuses: {
-        heroMaxLife: 6,
+        heroMaxLife: 8,
         heroMaxEnergy: 1,
-        heroGuardBonus: 2,
+        heroGuardBonus: 3,
       },
     },
     malice: {
@@ -248,11 +248,23 @@
         heroGuardBonus: 1,
       },
     },
+    edge: {
+      sourceId: "edge",
+      slot: "weapon",
+      familyAllowList: ["Bows", "Crossbows"],
+      requiredRunes: ["rune_tal", "rune_amn", "rune_el"],
+      bonuses: {
+        heroDamageBonus: 8,
+        heroGuardBonus: 3,
+        heroBurnBonus: 2,
+        heroMaxEnergy: 1,
+      },
+    },
     smoke: {
       sourceId: "smoke",
       slot: "armor",
       familyAllowList: ["Body Armor"],
-      requiredRunes: ["rune_nef", "rune_lum"],
+      requiredRunes: ["rune_tal", "rune_eth", "rune_lum"],
       bonuses: {
         heroMaxLife: 10,
         heroGuardBonus: 3,
@@ -296,8 +308,21 @@
       familyAllowList: ["Maces", "Scepters"],
       requiredRunes: ["rune_thul", "rune_io", "rune_nef"],
       bonuses: {
-        heroDamageBonus: 6,
-        heroGuardBonus: 1,
+        heroDamageBonus: 9,
+        heroGuardBonus: 4,
+        heroMaxLife: 6,
+      },
+    },
+    earthsong: {
+      sourceId: "earthsong",
+      slot: "weapon",
+      familyAllowList: ["Maces", "Staves"],
+      requiredRunes: ["rune_ral", "rune_sol", "rune_io"],
+      bonuses: {
+        heroDamageBonus: 5,
+        heroGuardBonus: 3,
+        heroBurnBonus: 3,
+        heroMaxLife: 2,
       },
     },
     memory: {
@@ -311,11 +336,22 @@
         heroGuardBonus: 2,
       },
     },
+    melody: {
+      sourceId: "melody",
+      slot: "weapon",
+      familyAllowList: ["Bows", "Crossbows"],
+      requiredRunes: ["rune_shael", "rune_ko", "rune_nef"],
+      bonuses: {
+        heroDamageBonus: 8,
+        heroGuardBonus: 3,
+        heroMaxEnergy: 2,
+      },
+    },
     honor: {
       sourceId: "honor",
       slot: "weapon",
       familyAllowList: ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows", "Staves"],
-      requiredRunes: ["rune_amn", "rune_el", "rune_ith"],
+      requiredRunes: ["rune_tir", "rune_el", "rune_amn"],
       bonuses: {
         heroDamageBonus: 7,
         heroGuardBonus: 2,

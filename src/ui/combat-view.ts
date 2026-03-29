@@ -380,7 +380,13 @@
         return partyTargets;
       case "curse_amplify":
       case "curse_weaken":
-        return combat.hero.alive ? ["hero"] : combat.mercenary.alive ? ["mercenary"] : [];
+        if (combat.hero.alive) {
+          return ["hero"];
+        }
+        if (combat.mercenary.alive) {
+          return ["mercenary"];
+        }
+        return [];
       default:
         break;
     }
@@ -545,7 +551,12 @@
     }
     detailParts.push(...summary.tags.slice(0, 2));
 
-    const label = summary.lineThreat ? "Line Fire" : summary.attackers > 1 ? `${summary.attackers} Incoming` : "Incoming";
+    let label = "Incoming";
+    if (summary.lineThreat) {
+      label = "Line Fire";
+    } else if (summary.attackers > 1) {
+      label = `${summary.attackers} Incoming`;
+    }
     const detail = detailParts.join(" · ") || "Pressure";
 
     return `
@@ -556,17 +567,27 @@
     `;
   }
 
-  function renderAllySprite(
-    unit: { alive: boolean; life: number; maxLife: number; guard: number; name: string },
-    figureClass: string,
-    portraitHtml: string,
-    potionAction: string,
-    potionDisabled: boolean,
-    extraStatusHtml: string,
-    incomingPressureHtml: string,
-    threatened: boolean,
-    escapeHtml: (s: string) => string
-  ): string {
+  function renderAllySprite({
+    unit,
+    figureClass,
+    portraitHtml,
+    potionAction,
+    potionDisabled,
+    extraStatusHtml,
+    incomingPressureHtml,
+    threatened,
+    escapeHtml,
+  }: {
+    unit: { alive: boolean; life: number; maxLife: number; guard: number; name: string };
+    figureClass: string;
+    portraitHtml: string;
+    potionAction: string;
+    potionDisabled: boolean;
+    extraStatusHtml: string;
+    incomingPressureHtml: string;
+    threatened: boolean;
+    escapeHtml: (s: string) => string;
+  }): string {
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const hpPct = Math.round((unit.life / unit.maxLife) * 100);
     const lowHp = hpPct > 0 && hpPct <= 25;
@@ -604,7 +625,12 @@
     const isDead = !enemy.alive;
     const isBoss = enemy.role === "boss" || enemy.templateId.endsWith("_boss");
     const isElite = !isBoss && enemy.templateId.includes("_elite");
-    const enemyTierClass = isBoss ? "sprite--boss" : isElite ? "sprite--elite" : "";
+    let enemyTierClass = "";
+    if (isBoss) {
+      enemyTierClass = "sprite--boss";
+    } else if (isElite) {
+      enemyTierClass = "sprite--elite";
+    }
     const enemyStageClass = getEnemyStageProfile(enemy);
     const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
     const enemyIcon = assets ? assets.getEnemyIcon(enemy.templateId || enemy.id) : "";
@@ -620,11 +646,12 @@
     }
     const intentPresentation = buildEnemyIntentPresentation(combat, enemy.currentIntent);
     const intentClasses = [intentTone, intentPresentation.intentClass].filter(Boolean).join(" ");
-    const threatBadge = isBoss
-      ? `<span class="sprite__threat-badge sprite__threat-badge--boss">Boss</span>`
-      : isElite
-        ? `<span class="sprite__threat-badge sprite__threat-badge--elite">Elite</span>`
-        : "";
+    let threatBadge = "";
+    if (isBoss) {
+      threatBadge = `<span class="sprite__threat-badge sprite__threat-badge--boss">Boss</span>`;
+    } else if (isElite) {
+      threatBadge = `<span class="sprite__threat-badge sprite__threat-badge--elite">Elite</span>`;
+    }
     const effectItems = [
       enemy.guard > 0 ? { css: "sprite__effect--guard", icon: assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}", value: String(enemy.guard), label: `Guard ${enemy.guard}` } : null,
       enemy.burn > 0 ? { css: "sprite__effect--burn", icon: "\u{1F525}", value: String(enemy.burn), label: `Burn ${enemy.burn}` } : null,
@@ -719,18 +746,29 @@
     return "enemy-stage--standard";
   }
 
-  function renderHandCard(
-    instance: { instanceId: string; cardId: string },
-    index: number,
-    cardCount: number,
-    card: CardDefinition,
-    effectiveCost: number,
-    previewOutcome: string,
-    stateClass: string,
-    stateLabel: string,
-    cantPlay: boolean,
-    escapeHtml: (s: string) => string
-  ): string {
+  function renderHandCard({
+    instance,
+    index,
+    cardCount,
+    card,
+    effectiveCost,
+    previewOutcome,
+    stateClass,
+    stateLabel,
+    cantPlay,
+    escapeHtml,
+  }: {
+    instance: { instanceId: string; cardId: string };
+    index: number;
+    cardCount: number;
+    card: CardDefinition;
+    effectiveCost: number;
+    previewOutcome: string;
+    stateClass: string;
+    stateLabel: string;
+    cantPlay: boolean;
+    escapeHtml: (s: string) => string;
+  }): string {
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const element = getCardElement(card);
     const isUpgraded = instance.cardId.endsWith("_plus");
@@ -919,55 +957,57 @@
       const effectiveCost = getEffectiveCardCost(combat, appState.content, instance, card);
       return effectiveCost <= combat.hero.energy;
     });
-    const headerStatus = hasOutcome
-      ? combat.outcome === COMBAT_OUTCOME.VICTORY
-        ? "Field secured"
-        : "The line has fallen"
-      : selectedEnemy
-        ? markedEnemy?.id === selectedEnemy.id
-          ? `Mercenary mark · ${selectedEnemy.name}`
-          : `Target locked · ${selectedEnemy.name}`
-        : markedEnemy
-          ? `Mercenary mark · ${markedEnemy.name}`
-        : combat.phase === COMBAT_PHASE.PLAYER
-          ? handNeedsTarget
-            ? "Choose a target"
-            : "Choose your opening line"
-          : "Enemy pressure rising";
-    const briefTitle = hasOutcome
-      ? combat.outcome === COMBAT_OUTCOME.VICTORY ? "Field Secured" : "Line Broken"
-      : selectedEnemy
-        ? `Target Locked: ${selectedEnemy.name}`
-        : markedEnemy
-          ? `Mercenary Mark: ${markedEnemy.name}`
-        : combat.phase === COMBAT_PHASE.PLAYER
-          ? "No Target Locked"
-          : "Enemy Pressure";
-    const briefCopy = hasOutcome
-      ? combat.outcome === COMBAT_OUTCOME.VICTORY
+    let headerStatus = "Enemy pressure rising";
+    if (hasOutcome) {
+      headerStatus = combat.outcome === COMBAT_OUTCOME.VICTORY ? "Field secured" : "The line has fallen";
+    } else if (selectedEnemy) {
+      headerStatus = markedEnemy?.id === selectedEnemy.id
+        ? `Mercenary mark · ${selectedEnemy.name}`
+        : `Target locked · ${selectedEnemy.name}`;
+    } else if (markedEnemy) {
+      headerStatus = `Mercenary mark · ${markedEnemy.name}`;
+    } else if (combat.phase === COMBAT_PHASE.PLAYER) {
+      headerStatus = handNeedsTarget ? "Choose a target" : "Choose your opening line";
+    }
+
+    let briefTitle = "Enemy Pressure";
+    if (hasOutcome) {
+      briefTitle = combat.outcome === COMBAT_OUTCOME.VICTORY ? "Field Secured" : "Line Broken";
+    } else if (selectedEnemy) {
+      briefTitle = `Target Locked: ${selectedEnemy.name}`;
+    } else if (markedEnemy) {
+      briefTitle = `Mercenary Mark: ${markedEnemy.name}`;
+    } else if (combat.phase === COMBAT_PHASE.PLAYER) {
+      briefTitle = "No Target Locked";
+    }
+
+    let briefCopy = "Read the enemy intents, preserve the party, and prepare your next hand.";
+    if (hasOutcome) {
+      briefCopy = combat.outcome === COMBAT_OUTCOME.VICTORY
         ? "Your war hand will stand down once the reward is claimed."
-        : "No further commands remain."
-      : selectedEnemy
-        ? `${selectedEnemyIntent}. ${selectedEnemy.life}/${selectedEnemy.maxLife} life${selectedEnemy.guard > 0 ? `, ${selectedEnemy.guard} guard` : ""}${markedEnemy?.id === selectedEnemy.id ? ", mercenary committed." : "."}`
-        : markedEnemy
-          ? `${markedEnemy.name} is marked for the mercenary. Lock a target or keep shaping the hand.`
-        : combat.phase === COMBAT_PHASE.PLAYER
-          ? "Click a monster to mark it, or use non-targeted skills to shape the opening exchange."
-          : "Read the enemy intents, preserve the party, and prepare your next hand.";
+        : "No further commands remain.";
+    } else if (selectedEnemy) {
+      const guardSuffix = selectedEnemy.guard > 0 ? `, ${selectedEnemy.guard} guard` : "";
+      const commitmentSuffix = markedEnemy?.id === selectedEnemy.id ? ", mercenary committed." : ".";
+      briefCopy = `${selectedEnemyIntent}. ${selectedEnemy.life}/${selectedEnemy.maxLife} life${guardSuffix}${commitmentSuffix}`;
+    } else if (markedEnemy) {
+      briefCopy = `${markedEnemy.name} is marked for the mercenary. Lock a target or keep shaping the hand.`;
+    } else if (combat.phase === COMBAT_PHASE.PLAYER) {
+      briefCopy = "Click a monster to mark it, or use non-targeted skills to shape the opening exchange.";
+    }
     const weaponMarkup = weaponItem
       ? `<span class="combat-command__weapon-value" style="color:${rarityColor}">${escapeHtml(weaponItem.name)}</span>`
       : `<span class="combat-command__weapon-value combat-command__weapon-value--none">No weapon equipped</span>`;
-    const deckTargetChip = hasOutcome
-      ? "No commands"
-      : selectedEnemy
-        ? `Locked · ${selectedEnemy.name}`
-        : markedEnemy
-          ? `Merc mark · ${markedEnemy.name}`
-          : handNeedsTarget && combat.phase === COMBAT_PHASE.PLAYER
-            ? "Mark a target"
-            : combat.phase === COMBAT_PHASE.PLAYER
-              ? "Hand ready"
-              : "Enemy phase";
+    let deckTargetChip = "Enemy phase";
+    if (hasOutcome) {
+      deckTargetChip = "No commands";
+    } else if (selectedEnemy) {
+      deckTargetChip = `Locked · ${selectedEnemy.name}`;
+    } else if (markedEnemy) {
+      deckTargetChip = `Merc mark · ${markedEnemy.name}`;
+    } else if (combat.phase === COMBAT_PHASE.PLAYER) {
+      deckTargetChip = handNeedsTarget ? "Mark a target" : "Hand ready";
+    }
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -992,10 +1032,13 @@
                 <div class="stage__floor"></div>
 
                 <div class="stage__allies">
-                  ${renderAllySprite(
-                    combat.hero, "sprite__figure--hero", heroPortrait, "use-potion-hero",
-                    combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || hasOutcome,
-                    [
+                  ${renderAllySprite({
+                    unit: combat.hero,
+                    figureClass: "sprite__figure--hero",
+                    portraitHtml: heroPortrait,
+                    potionAction: "use-potion-hero",
+                    potionDisabled: combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || hasOutcome,
+                    extraStatusHtml: [
                       combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : "",
                       combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : "",
                       combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : "",
@@ -1003,18 +1046,21 @@
                       combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : "",
                       combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : "",
                     ].join(""),
-                    renderIncomingPressure(incomingPressure.hero, escapeHtml),
-                    incomingPressure.hero.attackers > 0,
-                    escapeHtml
-                  )}
-                  ${renderAllySprite(
-                    combat.mercenary, "sprite__figure--merc", mercPortrait, "use-potion-mercenary",
-                    combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || hasOutcome,
-                    "",
-                    renderIncomingPressure(incomingPressure.mercenary, escapeHtml),
-                    incomingPressure.mercenary.attackers > 0,
-                    escapeHtml
-                  )}
+                    incomingPressureHtml: renderIncomingPressure(incomingPressure.hero, escapeHtml),
+                    threatened: incomingPressure.hero.attackers > 0,
+                    escapeHtml,
+                  })}
+                  ${renderAllySprite({
+                    unit: combat.mercenary,
+                    figureClass: "sprite__figure--merc",
+                    portraitHtml: mercPortrait,
+                    potionAction: "use-potion-mercenary",
+                    potionDisabled: combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || hasOutcome,
+                    extraStatusHtml: "",
+                    incomingPressureHtml: renderIncomingPressure(incomingPressure.mercenary, escapeHtml),
+                    threatened: incomingPressure.mercenary.attackers > 0,
+                    escapeHtml,
+                  })}
                 </div>
 
                 <div class="stage__enemies">
@@ -1118,7 +1164,18 @@
                   } else if (requiresTarget && selectedEnemy) {
                     stateClass = "fan-card--target-ready";
                   }
-                  return renderHandCard(instance, i, cardCount, card, effectiveCost, previewOutcome, stateClass, stateLabel, cantPlay, escapeHtml);
+                  return renderHandCard({
+                    instance,
+                    index: i,
+                    cardCount,
+                    card,
+                    effectiveCost,
+                    previewOutcome,
+                    stateClass,
+                    stateLabel,
+                    cantPlay,
+                    escapeHtml,
+                  });
                 }).join("")}
               </div>
             </div>

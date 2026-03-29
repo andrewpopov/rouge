@@ -30,7 +30,7 @@
               "Use the reserve stores to keep water couriers moving across the last hot stretch.",
               "water_couriers_staged",
               ["sunwell_relay_water_couriers"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "pivot_build" }, { kind: "gold_bonus", value: 12 }]
             ),
             relayChoice(
               "sunwell_relay_opportunity",
@@ -40,7 +40,7 @@
               "Stake the reserve route deeper into the dunes so the crossing stops wasting motion.",
               "dune_relays_marked",
               ["sunwell_relay_dune_relays"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -90,7 +90,7 @@
               "Push the reserve lances through the relay and keep the desert route dangerous.",
               "lance_dispatch_ridden",
               ["sunwell_relay_lance_dispatch"],
-              [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_energy", value: 1 }]
+              [{ kind: "class_point", value: 1 }, { kind: "mercenary_attack", value: 1 }]
             ),
             relayChoice(
               "sunwell_relay_opportunity",

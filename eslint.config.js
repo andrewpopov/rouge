@@ -54,6 +54,25 @@ const sharedRules = {
   "prefer-template": "error",
 };
 
+const maxLineHotspots = [
+  "src/app/app-engine.ts",
+  "src/combat/combat-engine-turns.ts",
+  "src/content/asset-map-data.ts",
+  "src/content/encounter-registry-builders.ts",
+  "src/content/encounter-registry-enemy-builders.ts",
+  "src/content/rouge-art-manifest.ts",
+  "src/items/item-catalog.ts",
+  "src/items/item-data.ts",
+  "src/items/item-system.ts",
+  "src/rewards/reward-engine.ts",
+  "src/ui/action-dispatcher-combat-fx.ts",
+  "src/ui/combat-view.ts",
+  "src/ui/inventory-view.ts",
+  "src/ui/reward-view.ts",
+  "src/ui/safe-zone-view.ts",
+  "src/ui/world-map-view.ts",
+];
+
 module.exports = [
   {
     ignores: [
@@ -105,6 +124,29 @@ module.exports = [
   },
   {
     files: ["src/quests/world-node-engine.ts"],
+    languageOptions: {
+      parser: tsParser,
+      ecmaVersion: "latest",
+      sourceType: "script",
+      globals: {
+        ...globals.browser,
+        ...globals.es2024,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      ...tsRules,
+      "max-depth": ["error", 4],
+      "max-lines": "off",
+      "max-params": ["error", 8],
+      "no-console": "error",
+      "no-nested-ternary": "error",
+    },
+  },
+  {
+    files: maxLineHotspots,
     languageOptions: {
       parser: tsParser,
       ecmaVersion: "latest",

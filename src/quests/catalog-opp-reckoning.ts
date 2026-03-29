@@ -31,7 +31,7 @@
               "Audit the last tomb casks and keep the reliquary descent from thinning out.",
               "tomb_casks_counted",
               ["sunwell_reckoning_tomb_casks"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "pivot_build" }, { kind: "gold_bonus", value: 12 }]
             ),
             buildReckoningChoice(
               "sunwell_reckoning_opportunity",
@@ -41,7 +41,7 @@
               "Turn the same closing line into one final desert survey before the tomb seals.",
               "last_dunes_surveyed",
               ["sunwell_reckoning_last_dunes"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -144,7 +144,7 @@
               "Use the same settled harbor line to bank the last dock fires into the wet season.",
               "last_dock_fires_sealed",
               ["kurast_reckoning_dock_fires"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -247,7 +247,7 @@
               "Use the same settled breach line to set one last ash ward over the sanctuary cut.",
               "last_ash_ward_named",
               ["hellforge_reckoning_ash_ward"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -350,7 +350,7 @@
               "Use the same settled ascent to name one last watchfire over the summit road.",
               "last_watchfires_named",
               ["harrogath_reckoning_watchfires"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },

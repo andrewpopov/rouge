@@ -24,7 +24,7 @@
           description: "Take the camp's endurance rite and steady the hero for a longer act.",
           effects: [
             nodeOutcomeEffect("shrine", "rogue_vigil_shrine", "blessing_of_grit", "Blessing of Grit", ["rogue_vigil_grit"]),
-            { kind: "hero_max_life", value: 4 },
+            { kind: "support_build" },
             { kind: "refill_potions", value: 1 },
           ],
         },
@@ -35,8 +35,8 @@
           description: "Lean into the ranged line and keep the escort dangerous.",
           effects: [
             nodeOutcomeEffect("shrine", "rogue_vigil_shrine", "blessing_of_volley", "Blessing of Volley", ["rogue_vigil_volley"]),
+            { kind: "reinforce_build" },
             { kind: "mercenary_attack", value: 1 },
-            { kind: "gold_bonus", value: 8 },
           ],
         },
       ],
@@ -57,8 +57,8 @@
           description: "Use the shrine to reclaim some focus and carry better recovery into the tombs.",
           effects: [
             nodeOutcomeEffect("shrine", "sunwell_shrine", "blessing_of_the_sun", "Blessing of the Sun", ["sunwell_focus"]),
+            { kind: "reinforce_build" },
             { kind: "hero_max_energy", value: 1 },
-            { kind: "hero_potion_heal", value: 1 },
           ],
         },
         {
@@ -90,8 +90,8 @@
           description: "Smooth the hero's reserves and keep the route cleaner under curse-heavy pressure.",
           effects: [
             nodeOutcomeEffect("shrine", "jade_shrine", "blessing_of_tides", "Blessing of Tides", ["jade_shrine_tides"]),
+            { kind: "reinforce_build" },
             { kind: "hero_max_energy", value: 1 },
-            { kind: "gold_bonus", value: 10 },
           ],
         },
         {
@@ -134,8 +134,8 @@
           description: "Turn the altar outward and let the whole line hit harder on the next stretch.",
           effects: [
             nodeOutcomeEffect("shrine", "infernal_altar", "blessing_of_warfire", "Blessing of Warfire", ["infernal_altar_warfire"]),
+            { kind: "reinforce_build" },
             { kind: "mercenary_attack", value: 1 },
-            { kind: "gold_bonus", value: 12 },
           ],
         },
       ],
@@ -171,8 +171,8 @@
             nodeOutcomeEffect("shrine", "ancients_way_shrine", "blessing_of_the_warband", "Blessing of the Warband", [
               "ancients_way_warband",
             ]),
+            { kind: "reinforce_build" },
             { kind: "mercenary_attack", value: 1 },
-            { kind: "refill_potions", value: 2 },
           ],
         },
       ],

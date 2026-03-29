@@ -123,12 +123,16 @@
       : (runeDef?.name || "Unknown Rune");
     const runeTier = Math.max(1, Math.min(9, runeDef?.progressionTier || 1));
     const colorClass = isEquipment ? getRarityColorClass(entry.equipment?.rarity) : `d2inv--rune d2inv--rune-tier-${runeTier}`;
-    const sprite = isEquipment
-      ? (itemDef ? assetMap.getItemSprite(itemDef.sourceId, entry.equipment?.rarity, entry.equipment?.slot) : null)
-      : (runeDef ? assetMap.getRuneSprite(runeDef.sourceId) : null);
-    const meta = isEquipment
-      ? toTitleCase(itemDef?.family || itemDef?.slot || "Equipment")
-      : `Tier ${runeTier} Rune`;
+    let sprite = null;
+    if (isEquipment) {
+      sprite = itemDef ? assetMap.getItemSprite(itemDef.sourceId, entry.equipment?.rarity, entry.equipment?.slot) : null;
+    } else {
+      sprite = runeDef ? assetMap.getRuneSprite(runeDef.sourceId) : null;
+    }
+    let meta = `Tier ${runeTier} Rune`;
+    if (isEquipment) {
+      meta = toTitleCase(itemDef?.family || itemDef?.slot || "Equipment");
+    }
 
     return `
       <div class="d2inv-grid-cell ${colorClass}" title="${escapeHtml(name)}">

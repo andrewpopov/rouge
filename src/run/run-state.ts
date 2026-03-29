@@ -31,6 +31,7 @@
       favoredTreeId: "",
       treeRanks: {},
       unlockedSkillIds: [],
+      archetypeScores: {},
     };
   }
 
@@ -75,6 +76,14 @@
         stock: [],
       },
       sagePurgeCount: 0,
+    };
+  }
+
+  function createDefaultGuideState(): RunGuideState {
+    return {
+      seenIntroActNumbers: [],
+      overlayKind: "",
+      targetActNumber: 0,
     };
   }
 
@@ -231,6 +240,7 @@
     createDefaultWorldState,
     createDefaultInventory,
     createDefaultTownState,
+    createDefaultGuideState,
     createDefaultSummary,
     getLevelForXp,
     getTrainingTrackForLevel,

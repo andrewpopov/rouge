@@ -57,7 +57,10 @@ type RewardChoiceEffectKind =
   | "record_quest_consequence"
   | "record_node_outcome"
   | "class_point"
-  | "attribute_point";
+  | "attribute_point"
+  | "reinforce_build"
+  | "support_build"
+  | "pivot_build";
 
 interface RewardChoiceEffect {
   kind: RewardChoiceEffectKind;
@@ -79,6 +82,7 @@ interface RewardChoiceEffect {
   rarityBonuses?: ItemBonusSet;
   weaponAffixes?: WeaponCombatProfile;
   armorAffixes?: ArmorMitigationProfile;
+  freshBase?: boolean;
 }
 
 interface RewardChoice {
@@ -89,6 +93,11 @@ interface RewardChoice {
   description: string;
   previewLines: string[];
   effects: RewardChoiceEffect[];
+  cardRewardRole?: CardRewardRole;
+  archetypeTags?: string[];
+  strategyRole?: "reinforce" | "support" | "pivot";
+  strategyArchetypeId?: string;
+  strategyArchetypeLabel?: string;
 }
 
 interface TownAction {
@@ -172,6 +181,7 @@ interface RunClassProgressionState {
   favoredTreeId: string;
   treeRanks: Record<string, number>;
   unlockedSkillIds: string[];
+  archetypeScores: Record<string, number>;
 }
 
 interface RunProgressionState {
@@ -190,6 +200,12 @@ interface RunProgressionState {
     focus: number;
     command: number;
   };
+}
+
+interface RunGuideState {
+  seenIntroActNumbers: number[];
+  overlayKind: "" | "intro" | "reward";
+  targetActNumber: number;
 }
 
 interface RunState {
@@ -235,6 +251,7 @@ interface RunState {
   activeZoneId: string;
   activeEncounterId: string;
   pendingReward: RunReward | null;
+  guide: RunGuideState;
   world: RunWorldState;
   summary: {
     encountersCleared: number;
@@ -266,6 +283,12 @@ interface RunClassTreeSummary {
   bonusLines: string[];
 }
 
+interface RunArchetypeScoreSummary {
+  archetypeId: string;
+  label: string;
+  score: number;
+}
+
 interface RunProgressionSummary {
   skillPointsAvailable: number;
   classPointsAvailable: number;
@@ -273,6 +296,13 @@ interface RunProgressionSummary {
   trainingRanks: number;
   favoredTreeId: string;
   favoredTreeName: string;
+  dominantArchetypeId: string;
+  dominantArchetypeLabel: string;
+  dominantArchetypeScore: number;
+  secondaryArchetypeId: string;
+  secondaryArchetypeLabel: string;
+  secondaryArchetypeScore: number;
+  archetypeScores: RunArchetypeScoreSummary[];
   unlockedClassSkills: number;
   nextClassUnlock: string;
   attributeSummaryLines: string[];

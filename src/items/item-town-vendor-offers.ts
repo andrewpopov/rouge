@@ -47,11 +47,22 @@
     const preferredWeaponFamilies = slot === "weapon"
       ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || []
       : [];
-    const prioritizedOptions = preferredWeaponFamilies.length > 0
-      ? options.filter((item: RuntimeItemDefinition) => preferredWeaponFamilies.includes(item.family || ""))
-      : options;
-    const optionPool = prioritizedOptions.length > 0 ? prioritizedOptions : options;
+    const strategicWeaponFamilies = slot === "weapon"
+      ? runtimeWindow.ROUGE_REWARD_ENGINE?.getStrategicWeaponFamilies?.(run, content) || preferredWeaponFamilies
+      : [];
+    const primaryStrategicWeaponFamily = strategicWeaponFamilies[0] || "";
+    let prioritizedOptions = options;
+    if (primaryStrategicWeaponFamily) {
+      prioritizedOptions = options.filter((item: RuntimeItemDefinition) => (item.family || "") === primaryStrategicWeaponFamily);
+    } else if (strategicWeaponFamilies.length > 0) {
+      prioritizedOptions = options.filter((item: RuntimeItemDefinition) => strategicWeaponFamilies.includes(item.family || ""));
+    } else if (preferredWeaponFamilies.length > 0) {
+      prioritizedOptions = options.filter((item: RuntimeItemDefinition) => preferredWeaponFamilies.includes(item.family || ""));
+    }
+    const optionPool = options;
+    const prioritizedPool = prioritizedOptions.length > 0 ? prioritizedOptions : options;
     const upgradeOptions = optionPool.filter((item: RuntimeItemDefinition) => item.progressionTier > currentTier);
+    const prioritizedUpgradeOptions = prioritizedPool.filter((item: RuntimeItemDefinition) => item.progressionTier > currentTier);
     const lateBias =
       features.advancedVendorStock ||
       features.merchantPrincipate ||
@@ -256,11 +267,15 @@
             })[0] || null
         : null;
     const primaryUpgrade =
+      prioritizedUpgradeOptions[(lateBias ? prioritizedUpgradeOptions.length - 1 : 0)] ||
       upgradeOptions[(lateBias ? upgradeOptions.length - 1 : 0)] ||
+      prioritizedPool[Math.max(0, prioritizedPool.length - 1)] ||
       optionPool[Math.max(0, optionPool.length - 1)] ||
       null;
     const secondaryUpgrade =
+      prioritizedUpgradeOptions[Math.max(0, prioritizedUpgradeOptions.length - 2)] ||
       upgradeOptions[Math.max(0, upgradeOptions.length - 2)] ||
+      prioritizedPool[Math.max(0, prioritizedPool.length - 2)] ||
       optionPool[Math.max(0, optionPool.length - 2)] ||
       null;
     const sidegrade = optionPool[(seed + (slot === "weapon" ? 0 : 1)) % optionPool.length] || null;

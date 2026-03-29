@@ -161,7 +161,6 @@ function printHumanReport(entries) {
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
-  // eslint-disable-next-line global-require, import/no-dynamic-require
   const { createAppHarness } = require(HARNESS_PATH);
   const harness = createAppHarness();
   const entries = summarizeEntries(buildAuditEntries(harness.browserWindow, options.classId));

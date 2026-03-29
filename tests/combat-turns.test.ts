@@ -2,7 +2,7 @@ export {};
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createCombatHarness } from "./helpers/browser-harness";
+import { createAppHarness, createCombatHarness } from "./helpers/browser-harness";
 
 function createState(harness: ReturnType<typeof createCombatHarness>, encounterId = "act_1_opening_skirmish") {
   return harness.engine.createCombatState({
@@ -13,6 +13,22 @@ function createState(harness: ReturnType<typeof createCombatHarness>, encounterI
   });
 }
 
+type CombatTurnsApi = {
+  getWeaponAttackBonus: (state: CombatState, cardId: string) => number;
+  getWeaponSupportBonus: (state: CombatState, cardId: string) => number;
+  applyWeaponTypedDamage: (state: CombatState, targets: CombatEnemyState[], cardId: string) => string[];
+  applyWeaponEffects: (state: CombatState, targets: CombatEnemyState[], cardId: string) => string[];
+};
+
+function createTurnsHarness() {
+  const harness = createAppHarness();
+  return {
+    content: harness.content,
+    combatEngine: harness.combatEngine,
+    turns: harness.browserWindow.__ROUGE_COMBAT_ENGINE_TURNS as CombatTurnsApi,
+  };
+}
+
 // ── healEntity ──
 
 test("healEntity heals a living entity up to maxLife", () => {
@@ -21,7 +37,6 @@ test("healEntity heals a living entity up to maxLife", () => {
   state.hero.life = 10;
   state.hero.maxLife = 50;
 
-  const healed = harness.engine.getLivingEnemies(state); // just to validate engine is accessible
   // Use the combat engine indirectly via usePotion
   state.potions = 1;
   state.hero.potionHeal = 20;
@@ -182,9 +197,6 @@ test("getFirstLivingEnemyId returns empty string when all enemies dead", () => {
 test("drawCards draws from drawPile into hand", () => {
   const harness = createCombatHarness();
   const state = createState(harness);
-  const handBefore = state.hand.length;
-  const drawBefore = state.drawPile.length;
-
   // Manually trigger card drawing via end turn -> start player turn
   // The startPlayerTurn function draws cards automatically
   state.phase = "player" as CombatPhase;
@@ -451,6 +463,175 @@ test("preferred weapon families amplify matching support skill bonuses", () => {
   assert.equal(state.hero.guard, 6);
 });
 
+test("preferred weapon family adds the same helper lift to matching attack and support bonuses", () => {
+  const { content, combatEngine, turns } = createTurnsHarness();
+  const attackConfig = {
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    weaponFamily: "Bows",
+    weaponProfile: {
+      attackDamageByProficiency: { bow: 2 },
+    },
+  };
+  const attackBaseState = combatEngine.createCombatState({
+    ...attackConfig,
+    classPreferredFamilies: [],
+  });
+  const attackPreferredState = combatEngine.createCombatState({
+    ...attackConfig,
+    classPreferredFamilies: ["Bows"],
+  });
+
+  assert.equal(
+    turns.getWeaponAttackBonus(attackPreferredState, "amazon_magic_arrow"),
+    turns.getWeaponAttackBonus(attackBaseState, "amazon_magic_arrow") + 1
+  );
+
+  const supportConfig = {
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    weaponFamily: "Swords",
+    weaponProfile: {
+      supportValueByProficiency: { masteries: 2 },
+    },
+  };
+  const supportBaseState = combatEngine.createCombatState({
+    ...supportConfig,
+    classPreferredFamilies: [],
+  });
+  const supportPreferredState = combatEngine.createCombatState({
+    ...supportConfig,
+    classPreferredFamilies: ["Swords"],
+  });
+
+  assert.equal(
+    turns.getWeaponSupportBonus(supportPreferredState, "barbarian_natural_resistance"),
+    turns.getWeaponSupportBonus(supportBaseState, "barbarian_natural_resistance") + 1
+  );
+});
+
+test("preferred weapon family increases matching typed weapon damage and weapon effects by their helper deltas", () => {
+  const { content, combatEngine, turns } = createTurnsHarness();
+  const profile = {
+    typedDamage: [{ type: "fire", amount: 2, proficiency: "bow" }],
+    effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
+  } as WeaponCombatProfile;
+  const stateConfig = {
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    weaponFamily: "Bows",
+    weaponName: "Short Bow",
+    weaponProfile: profile,
+  };
+
+  const typedBaseState = combatEngine.createCombatState({
+    ...stateConfig,
+    classPreferredFamilies: [],
+  });
+  const typedPreferredState = combatEngine.createCombatState({
+    ...stateConfig,
+    classPreferredFamilies: ["Bows"],
+  });
+  const typedBaseTarget = typedBaseState.enemies[0];
+  const typedPreferredTarget = typedPreferredState.enemies[0];
+  typedBaseTarget.guard = 0;
+  typedPreferredTarget.guard = 0;
+  const typedBaseLifeBefore = typedBaseTarget.life;
+  const typedPreferredLifeBefore = typedPreferredTarget.life;
+
+  turns.applyWeaponTypedDamage(typedBaseState, [typedBaseTarget], "amazon_magic_arrow");
+  turns.applyWeaponTypedDamage(typedPreferredState, [typedPreferredTarget], "amazon_magic_arrow");
+
+  assert.equal(
+    typedPreferredLifeBefore - typedPreferredTarget.life,
+    typedBaseLifeBefore - typedBaseTarget.life + 2
+  );
+
+  const effectBaseState = combatEngine.createCombatState({
+    ...stateConfig,
+    classPreferredFamilies: [],
+  });
+  const effectPreferredState = combatEngine.createCombatState({
+    ...stateConfig,
+    classPreferredFamilies: ["Bows"],
+  });
+  const effectBaseTarget = effectBaseState.enemies[0];
+  const effectPreferredTarget = effectPreferredState.enemies[0];
+
+  turns.applyWeaponEffects(effectBaseState, [effectBaseTarget], "amazon_magic_arrow");
+  turns.applyWeaponEffects(effectPreferredState, [effectPreferredTarget], "amazon_magic_arrow");
+
+  assert.equal(effectPreferredTarget.burn, effectBaseTarget.burn + 1);
+});
+
+test("preferred weapon family does not leak typed weapon helpers onto unrelated proficiencies", () => {
+  const { content, combatEngine, turns } = createTurnsHarness();
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    weaponFamily: "Bows",
+    classPreferredFamilies: ["Bows"],
+    weaponName: "Short Bow",
+    weaponProfile: {
+      typedDamage: [{ type: "fire", amount: 2, proficiency: "bow" }],
+      effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
+    },
+  });
+  const target = state.enemies[0];
+  target.guard = 0;
+  const lifeBefore = target.life;
+
+  assert.deepEqual(turns.applyWeaponTypedDamage(state, [target], "amazon_jab"), []);
+  assert.deepEqual(turns.applyWeaponEffects(state, [target], "amazon_jab"), []);
+  assert.equal(target.life, lifeBefore);
+  assert.equal(target.burn, 0);
+});
+
+test("preferred weapon family adds the full melee lift independently of card helper bonuses", () => {
+  const { content, combatEngine } = createTurnsHarness();
+  const stateConfig = {
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    weaponFamily: "sword",
+    weaponName: "Short Sword",
+    weaponDamageBonus: 5,
+  };
+  const baseState = combatEngine.createCombatState({
+    ...stateConfig,
+    classPreferredFamilies: [],
+  });
+  const preferredState = combatEngine.createCombatState({
+    ...stateConfig,
+    classPreferredFamilies: ["sword"],
+  });
+  const baseTarget = baseState.enemies[0];
+  const preferredTarget = preferredState.enemies[0];
+  baseTarget.guard = 0;
+  preferredTarget.guard = 0;
+  baseState.selectedEnemyId = baseTarget.id;
+  preferredState.selectedEnemyId = preferredTarget.id;
+  const baseLifeBefore = baseTarget.life;
+  const preferredLifeBefore = preferredTarget.life;
+
+  combatEngine.meleeStrike(baseState, content);
+  combatEngine.meleeStrike(preferredState, content);
+
+  assert.equal(
+    preferredLifeBefore - preferredTarget.life,
+    baseLifeBefore - baseTarget.life + 4
+  );
+});
+
 test("armor physical resistance reduces incoming direct attacks", () => {
   const harness = createCombatHarness();
   const state = harness.engine.createCombatState({
@@ -604,7 +785,6 @@ test("endTurn handles swift/extra_fast enemies acting twice", () => {
   enemy.traits = enemy.traits || [];
   (enemy.traits as string[]).push("swift");
 
-  const heroBefore = state.hero.life;
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
@@ -737,8 +917,6 @@ test("endTurn handles slow (enemy repeats intent)", () => {
   const state = createState(harness);
   const enemy = state.enemies[0];
   enemy.slow = 1;
-  const intentBefore = enemy.intentIndex;
-
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 

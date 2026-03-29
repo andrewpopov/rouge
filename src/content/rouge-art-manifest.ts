@@ -89,7 +89,50 @@
     "coldworm_the_burrower",
     "colenzo_the_annihilator",
     "corpsefire",
-    "creeping_feature"
+    "creeping_feature",
+    "dac_farren",
+    "dark_elder",
+    "diablo",
+    "duriel",
+    "eldritch_the_rectifier",
+    "eyeback_the_unleashed",
+    "fangskin",
+    "fire_eye",
+    "frozenstein",
+    "geleb_flamefinger",
+    "griswold",
+    "hephasto_the_armorer",
+    "icehawk_riftwing",
+    "infector_of_souls",
+    "ismail_vilehand",
+    "izual",
+    "korlic",
+    "lilith",
+    "lister_the_tormentor",
+    "lord_de_seis",
+    "madawc",
+    "maffer_dragonhand",
+    "nihlathak",
+    "pandemonium_diablo",
+    "pindleskin",
+    "pitspawn_fouldog",
+    "rakanishu",
+    "sharptooth_slayer",
+    "shenk_the_overseer",
+    "snapchip_shatter",
+    "sszark_the_burning",
+    "talic",
+    "the_countess",
+    "the_cow_king",
+    "the_smith",
+    "the_summoner",
+    "thresh_socket",
+    "toorc_icefist",
+    "treehead_woodfist",
+    "uber_baal",
+    "uber_diablo",
+    "uber_duriel",
+    "uber_izual"
   ],
   "portraits": [
     "amazon",
@@ -368,6 +411,139 @@
     ],
     "creeping_feature": [
       "creeping_feature.png"
+    ],
+    "dac_farren": [
+      "dac_farren.png",
+      "dac_farren__alt_1.png"
+    ],
+    "dark_elder": [
+      "dark_elder.png"
+    ],
+    "diablo": [
+      "diablo.png"
+    ],
+    "duriel": [
+      "duriel.png"
+    ],
+    "eldritch_the_rectifier": [
+      "eldritch_the_rectifier.png"
+    ],
+    "eyeback_the_unleashed": [
+      "eyeback_the_unleashed.png"
+    ],
+    "fangskin": [
+      "fangskin.png"
+    ],
+    "fire_eye": [
+      "fire_eye.png"
+    ],
+    "frozenstein": [
+      "frozenstein.png"
+    ],
+    "geleb_flamefinger": [
+      "geleb_flamefinger.png"
+    ],
+    "griswold": [
+      "griswold.png"
+    ],
+    "hephasto_the_armorer": [
+      "hephasto_the_armorer.png"
+    ],
+    "icehawk_riftwing": [
+      "icehawk_riftwing.png"
+    ],
+    "infector_of_souls": [
+      "infector_of_souls.png"
+    ],
+    "ismail_vilehand": [
+      "ismail_vilehand.png"
+    ],
+    "izual": [
+      "izual.png",
+      "izual__alt_1.png"
+    ],
+    "korlic": [
+      "korlic.png"
+    ],
+    "lilith": [
+      "lilith.png"
+    ],
+    "lister_the_tormentor": [
+      "lister_the_tormentor.png"
+    ],
+    "lord_de_seis": [
+      "lord_de_seis.png"
+    ],
+    "madawc": [
+      "madawc.png"
+    ],
+    "maffer_dragonhand": [
+      "maffer_dragonhand.png"
+    ],
+    "nihlathak": [
+      "nihlathak.png",
+      "nihlathak__alt_1.png"
+    ],
+    "pandemonium_diablo": [
+      "pandemonium_diablo.png"
+    ],
+    "pindleskin": [
+      "pindleskin.png"
+    ],
+    "pitspawn_fouldog": [
+      "pitspawn_fouldog.png"
+    ],
+    "rakanishu": [
+      "rakanishu.png"
+    ],
+    "sharptooth_slayer": [
+      "sharptooth_slayer.png"
+    ],
+    "shenk_the_overseer": [
+      "shenk_the_overseer.png"
+    ],
+    "snapchip_shatter": [
+      "snapchip_shatter.png",
+      "snapchip_shatter__alt_1.png"
+    ],
+    "sszark_the_burning": [
+      "sszark_the_burning.png"
+    ],
+    "talic": [
+      "talic.png"
+    ],
+    "the_countess": [
+      "the_countess.png"
+    ],
+    "the_cow_king": [
+      "the_cow_king.png"
+    ],
+    "the_smith": [
+      "the_smith.png"
+    ],
+    "the_summoner": [
+      "the_summoner.png"
+    ],
+    "thresh_socket": [
+      "thresh_socket.png"
+    ],
+    "toorc_icefist": [
+      "toorc_icefist.png"
+    ],
+    "treehead_woodfist": [
+      "treehead_woodfist.png"
+    ],
+    "uber_baal": [
+      "uber_baal.png"
+    ],
+    "uber_diablo": [
+      "uber_diablo.png"
+    ],
+    "uber_duriel": [
+      "uber_duriel.png"
+    ],
+    "uber_izual": [
+      "uber_izual.png"
     ]
   },
   "portraitVariants": {

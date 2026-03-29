@@ -61,12 +61,12 @@ test("doCombatAction captures snapshot, runs action, and calls syncAndRender", (
   assert.ok(state.turn >= 1, "turn should have advanced");
 });
 
-test("addTempClass adds and removes a CSS class after timeout", (_, done) => {
+test("addTempClass adds and removes a CSS class after timeout", (_context, done) => {
   const harness = createHarness();
   const { browserWindow } = harness;
   const combatFx = browserWindow.__ROUGE_ACTION_DISPATCHER_COMBAT_FX;
 
-  const fakeEl = { classList: { add: (_: string) => {}, remove: (_: string) => {} } };
+  const fakeEl = { classList: { add: (_className: string) => {}, remove: (_className: string) => {} } };
   let added = "";
   let removed = "";
   fakeEl.classList.add = (cls: string) => { added = cls; };

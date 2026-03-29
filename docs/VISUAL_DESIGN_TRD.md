@@ -2,13 +2,14 @@
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
+- Use `BLOOD_ROGUE_VISUAL_IDENTITY.md` as the canonical look-and-feel source.
 - This document is the target UI surface plan.
 
 ## 1. Purpose
 
 Define the front-door menu, character select, safe-zone/world-map surfaces, account/admin surfaces, and combat HUD as explicit UI components with clear build scope, dependencies, and acceptance criteria.
 
-This document is for implementation planning, not concept art. It should answer:
+This document is for implementation planning and acceptance criteria, not the primary home for aesthetic direction. It should answer:
 
 - what each UI component is for.
 - what needs to be built or rebuilt.

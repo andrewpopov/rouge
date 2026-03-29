@@ -54,7 +54,7 @@ export interface PowerCurveReport {
   classReports: PowerCurveClassReport[];
 }
 
-export interface PowerCurveReportOptions extends RunProgressionSimulationOptions {}
+export type PowerCurveReportOptions = RunProgressionSimulationOptions;
 
 export function getDefaultPowerBands(): Record<EncounterBandKind, PowerBandRange> {
   return {

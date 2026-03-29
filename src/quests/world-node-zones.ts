@@ -71,6 +71,15 @@
     if (effect.kind === "socket_rune") {
       return `Socket ${rune?.name || effect.runeId || "rune"} into ${slotLabel || "gear"}.`;
     }
+    if (effect.kind === "reinforce_build") {
+      return "Reinforce your current build.";
+    }
+    if (effect.kind === "support_build") {
+      return "Support your current build.";
+    }
+    if (effect.kind === "pivot_build") {
+      return "Keep a pivot path open.";
+    }
     return "";
   }
 

@@ -64,7 +64,7 @@ test("getUpgradableCardIds returns card IDs that have plus variants", () => {
   const harness = createHarness();
   const { browserWindow } = harness;
   const explorationEvents = browserWindow.ROUGE_EXPLORATION_EVENTS;
-  const { state, openingZone } = createRunState(harness);
+  const { state } = createRunState(harness);
 
   const upgradable = explorationEvents.getUpgradableCardIds(state.run, state.content);
   assert.ok(Array.isArray(upgradable), "should return an array");

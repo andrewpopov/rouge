@@ -177,7 +177,12 @@
       return `${intent.value} dmg + heal`;
     }
     if (intent.kind === "charge") {
-      const scope = intent.target === "all_allies" ? " all" : intent.target === "mercenary" ? " merc" : "";
+      let scope = "";
+      if (intent.target === "all_allies") {
+        scope = " all";
+      } else if (intent.target === "mercenary") {
+        scope = " merc";
+      }
       const damageType = intent.damageType ? ` ${intent.damageType}` : "";
       return `${intent.label} (${intent.value} dmg${scope}${damageType} next)`;
     }

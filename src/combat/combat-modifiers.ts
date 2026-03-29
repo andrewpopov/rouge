@@ -36,6 +36,37 @@
     return true;
   }
 
+  function setEnemyIntentToMatchingOrder(enemy: CombatEnemyState, orderedKinds: string[]) {
+    if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
+      return false;
+    }
+
+    for (const kind of orderedKinds) {
+      const matchingIndex = enemy.intents.findIndex((intent: EnemyIntent) => intent?.kind === kind);
+      if (matchingIndex >= 0) {
+        enemy.intentIndex = matchingIndex;
+        enemy.currentIntent = { ...enemy.intents[enemy.intentIndex] };
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function setEnemyOpenerToFirstMatchingKind(enemy: CombatEnemyState, supportedKinds: Set<string>) {
+    if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
+      return false;
+    }
+
+    const matchingIntent = enemy.intents.find((intent: EnemyIntent) => intent && supportedKinds.has(intent.kind));
+    if (!matchingIntent) {
+      return false;
+    }
+
+    enemy.intentIndex = 0;
+    enemy.currentIntent = { ...matchingIntent };
+    return true;
+  }
+
   function boostEnemyIntentValues(enemy: CombatEnemyState, supportedKinds: Set<string>, amount: number) {
     if (!enemy?.alive || !Array.isArray(enemy.intents) || enemy.intents.length === 0) {
       return false;
@@ -115,6 +146,14 @@
     INTENT.GUARD, INTENT.GUARD_ALLIES, INTENT.HEAL_ALLY,
     INTENT.HEAL_ALLIES, INTENT.HEAL_AND_GUARD, INTENT.RESURRECT_ALLY,
   ]);
+  const RITUAL_PRIORITY = [
+    INTENT.HEAL_ALLIES,
+    INTENT.HEAL_AND_GUARD,
+    INTENT.HEAL_ALLY,
+    INTENT.RESURRECT_ALLY,
+    INTENT.GUARD_ALLIES,
+    INTENT.GUARD,
+  ];
 
   const MODIFIER_KIND = {
     FORTIFIED_LINE: "fortified_line",
@@ -321,12 +360,17 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const ritualTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT || enemy.templateId.endsWith("_boss"));
         const retunedCount = ritualTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, RITUAL_INTENT_KINDS) ? 1 : 0);
+          return count + (setEnemyIntentToMatchingOrder(enemy, RITUAL_PRIORITY) ? 1 : 0);
         }, 0);
         ritualTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = ritualTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, RITUAL_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
+        ritualTargets.forEach((enemy: CombatEnemyState) => {
+          if (enemy.templateId.endsWith("_boss") && enemy.currentIntent.kind === INTENT.HEAL_AND_GUARD) {
+            enemy.currentIntent.kind = INTENT.HEAL_ALLIES;
+          }
+        });
         if (ritualTargets.length > 0 || retunedCount > 0 || boostedCount > 0) {
           appendLog(
             state,
@@ -366,11 +410,17 @@
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
         const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED || enemy.role === ENEMY_ROLE.SUPPORT);
-        const bossIntentKinds = new Set([...PRESSURE_INTENT_KINDS, ...HEALING_INTENT_KINDS, "guard", "guard_allies"]);
 
         bossTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         const boostedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
+          const openerKind = enemy.intents[enemy.intentIndex]?.kind;
+          const bossIntentKinds = new Set([
+            INTENT.GUARD,
+            INTENT.GUARD_ALLIES,
+            ...HEALING_INTENT_KINDS,
+            ...(openerKind ? [openerKind] : []),
+          ]);
           return count + (boostEnemyIntentValues(enemy, bossIntentKinds, value) ? 1 : 0);
         }, 0);
         if (bossTargets.length > 0 || backlineTargets.length > 0 || boostedCount > 0) {
@@ -385,11 +435,11 @@
       if (modifier.kind === MODIFIER_KIND.BOSS_ONSLAUGHT) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
         const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
-        const retunedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
-        }, 0);
         const boostedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, PRESSURE_INTENT_KINDS, value) ? 1 : 0);
+        }, 0);
+        const retunedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
+          return count + (setEnemyOpenerToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(
@@ -402,13 +452,19 @@
 
       if (modifier.kind === MODIFIER_KIND.BOSS_SALVO) {
         const value = Math.max(0, parseInteger(modifier.value, 0));
-        const salvoTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss") || enemy.role === ENEMY_ROLE.RANGED);
-        const retunedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
-          return count + (setEnemyIntentToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
-        }, 0);
+        const bossTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.templateId.endsWith("_boss"));
+        const rangedTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RANGED);
+        const salvoTargets = [...bossTargets, ...rangedTargets];
         const boostedCount = salvoTargets.reduce((count: number, enemy: CombatEnemyState) => {
           return count + (boostEnemyIntentValues(enemy, PRESSURE_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
+        const bossRetunedCount = bossTargets.reduce((count: number, enemy: CombatEnemyState) => {
+          return count + (setEnemyOpenerToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
+        }, 0);
+        const rangedRetunedCount = rangedTargets.reduce((count: number, enemy: CombatEnemyState) => {
+          return count + (setEnemyIntentToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
+        }, 0);
+        const retunedCount = bossRetunedCount + rangedRetunedCount;
         if (retunedCount > 0 || boostedCount > 0) {
           appendLog(
             state,

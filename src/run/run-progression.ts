@@ -19,6 +19,24 @@
     return Math.max(0, toBonusValue(run?.progression?.classProgression?.treeRanks?.[treeId]));
   }
 
+  function syncArchetypeProgression(run: RunState, content: GameContent) {
+    return runtimeWindow.ROUGE_REWARD_ENGINE?.syncArchetypeScores?.(run, content) || {};
+  }
+
+  function updateFavoredTree(run: RunState, treeId: string) {
+    const currentFavoredTreeId = run.progression?.classProgression?.favoredTreeId || "";
+    const nextRank = getTreeRank(run, treeId);
+    if (!currentFavoredTreeId || currentFavoredTreeId === treeId) {
+      run.progression.classProgression.favoredTreeId = treeId;
+      return;
+    }
+
+    const currentFavoredRank = getTreeRank(run, currentFavoredTreeId);
+    if (nextRank > currentFavoredRank) {
+      run.progression.classProgression.favoredTreeId = treeId;
+    }
+  }
+
   function getTreeUnlockedCount(run: RunState, tree: RuntimeClassTreeDefinition) {
     return (run?.progression?.classProgression?.unlockedSkillIds || []).filter((skillId: string) => {
       return tree.skills.some((skill: RuntimeClassSkillDefinition) => skill.id === skillId);
@@ -69,6 +87,7 @@
       run.progression.classProgression.unlockedSkillIds = [];
       run.progression.classProgression.favoredTreeId = "";
       run.progression.classProgression.treeRanks = {};
+      run.progression.classProgression.archetypeScores = {};
       return;
     }
 
@@ -101,6 +120,7 @@
     if (run.progression.classProgression.favoredTreeId && !normalizedTreeRanks[run.progression.classProgression.favoredTreeId]) {
       run.progression.classProgression.favoredTreeId = "";
     }
+    syncArchetypeProgression(run, content);
   }
 
   function buildProgressionBonuses(run: RunState, content: GameContent): ItemBonusSet {
@@ -125,6 +145,8 @@
 
   function getProgressionSummary(run: RunState, content: GameContent): RunProgressionSummary {
     syncUnlockedClassSkills(run, content);
+    const archetypeSummary = runtimeWindow.ROUGE_REWARD_ENGINE?.getDominantArchetype?.(run, content) || { primary: null, secondary: null };
+    const archetypeScores = runtimeWindow.ROUGE_REWARD_ENGINE?.getArchetypeScoreEntries?.(run, content) || [];
 
     const attributes = run.progression?.attributes || createDefaultAttributes();
     const training = run.progression?.training || createDefaultTraining();
@@ -166,6 +188,17 @@
       trainingRanks: getTrainingRankCount(training),
       favoredTreeId,
       favoredTreeName: favoredTree?.name || "",
+      dominantArchetypeId: archetypeSummary.primary?.archetypeId || "",
+      dominantArchetypeLabel: archetypeSummary.primary?.label || "",
+      dominantArchetypeScore: toBonusValue(archetypeSummary.primary?.score),
+      secondaryArchetypeId: archetypeSummary.secondary?.archetypeId || "",
+      secondaryArchetypeLabel: archetypeSummary.secondary?.label || "",
+      secondaryArchetypeScore: toBonusValue(archetypeSummary.secondary?.score),
+      archetypeScores: archetypeScores.map((entry: RunArchetypeScoreSummary) => ({
+        archetypeId: entry.archetypeId,
+        label: entry.label,
+        score: toBonusValue(entry.score),
+      })),
       unlockedClassSkills: Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
         ? run.progression.classProgression.unlockedSkillIds.length
         : 0,
@@ -450,7 +483,7 @@
     run.progression.classPointsSpent += 1;
     run.progression.classPointsAvailable = Math.max(0, run.progression.classPointsAvailable - 1);
     run.progression.classProgression.treeRanks[treeId] = toBonusValue(run.progression.classProgression.treeRanks?.[treeId]) + 1;
-    run.progression.classProgression.favoredTreeId = treeId;
+    updateFavoredTree(run, treeId);
     syncUnlockedClassSkills(run, content);
     return { ok: true, message: "Class progression updated." };
   }

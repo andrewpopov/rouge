@@ -326,6 +326,18 @@ interface ItemSystemApi {
 }
 
 interface RewardEngineApi {
+  annotateCardRewardMetadata(content: GameContent): void;
+  getCardRewardRole(cardId: string, content?: GameContent | null): CardRewardRole;
+  getCardArchetypeTags(cardId: string, content?: GameContent | null): string[];
+  computeArchetypeScores(run: RunState, content: GameContent): Record<string, number>;
+  syncArchetypeScores(run: RunState, content: GameContent): Record<string, number>;
+  getArchetypeScoreEntries(run: RunState, content: GameContent): RunArchetypeScoreSummary[];
+  getDominantArchetype(
+    run: RunState,
+    content: GameContent
+  ): { primary: RunArchetypeScoreSummary | null; secondary: RunArchetypeScoreSummary | null };
+  getArchetypeWeaponFamilies(archetypeId: string): string[];
+  getStrategicWeaponFamilies(run: RunState, content: GameContent): string[];
   buildRewardChoices(config: {
     content: GameContent;
     run: RunState;
@@ -336,6 +348,18 @@ interface RewardEngineApi {
   }): RewardChoice[];
   applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
   getUpgradableCardIds(run: RunState, content: GameContent): string[];
+  resolveReinforceBuildReward(
+    run: RunState,
+    content: GameContent
+  ): { effect: RewardChoiceEffect; previewLine: string };
+  resolveSupportBuildReward(
+    run: RunState,
+    content: GameContent
+  ): { effect: RewardChoiceEffect; previewLine: string };
+  resolvePivotBuildReward(
+    run: RunState,
+    content: GameContent
+  ): { effect: RewardChoiceEffect; previewLine: string };
 }
 
 interface TownServiceApi {
@@ -438,6 +462,7 @@ interface RunStateHelpersApi {
   createDefaultWorldState(): RunWorldState;
   createDefaultInventory(): RunInventoryState;
   createDefaultTownState(): RunTownState;
+  createDefaultGuideState(): RunGuideState;
   createDefaultSummary(): RunState["summary"];
   getLevelForXp(xp: unknown): number;
   getTrainingTrackForLevel(level: unknown): keyof RunProgressionState["training"];
@@ -515,6 +540,7 @@ interface AppEngineApi {
   debugSkipEncounter(state: AppState): ActionResult;
   syncEncounterOutcome(state: AppState): ActionResult;
   claimRewardAndAdvance(state: AppState, choiceId?: string): ActionResult;
+  continueActGuide(state: AppState): ActionResult;
   continueActTransition(state: AppState): ActionResult;
   returnToFrontDoor(state: AppState): void;
 }
@@ -655,6 +681,7 @@ interface AppState {
     explorationEvent: ExplorationEvent | null;
     scrollMapOpen: boolean;
     routeIntelOpen: boolean;
+    actTransitionScrollOpen: boolean;
   };
   profile: ProfileState;
   run: RunState | null;

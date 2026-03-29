@@ -72,6 +72,7 @@
         favoredTreeId: "",
         treeRanks: {},
         unlockedSkillIds: [],
+        archetypeScores: {},
       },
       training: createDefaultTraining(),
     };
@@ -95,6 +96,7 @@
       unlockedSkillIds: Array.isArray(run.progression.classProgression?.unlockedSkillIds)
         ? [...run.progression.classProgression.unlockedSkillIds]
         : [],
+      archetypeScores: { ...(run.progression.classProgression?.archetypeScores || {}) },
     };
     run.progression.training = {
       ...createDefaultTraining(),

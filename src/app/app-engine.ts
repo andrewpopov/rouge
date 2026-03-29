@@ -75,6 +75,7 @@
         explorationEvent: null,
         scrollMapOpen: false,
         routeIntelOpen: false,
+        actTransitionScrollOpen: false,
       },
       profile,
       run: null,
@@ -270,6 +271,16 @@
       return { ok: false, message: "No active run." };
     }
     runtimeWindow.ROUGE_RUN_FACTORY.recomputeZoneStatuses(state.run);
+    const introActNumber = state.run.actNumber;
+    const hasPendingIntro = state.run.guide?.overlayKind === "intro" && state.run.guide?.targetActNumber === introActNumber;
+    const shouldQueueIntro = introActNumber === 1 && !state.run.guide?.seenIntroActNumbers?.includes(introActNumber);
+    if (hasPendingIntro || shouldQueueIntro) {
+      state.run.guide.overlayKind = "intro";
+      state.run.guide.targetActNumber = introActNumber;
+      if (shouldQueueIntro) {
+        state.run.guide.seenIntroActNumbers.push(introActNumber);
+      }
+    }
     state.ui.routeIntelOpen = false;
     state.phase = PHASES.WORLD_MAP;
     state.error = "";
@@ -440,6 +451,8 @@
     }
 
     if (reward.endsAct || runFactory.actIsComplete(state.run)) {
+      state.run.guide.overlayKind = "reward";
+      state.run.guide.targetActNumber = state.run.actNumber + 1;
       state.phase = PHASES.ACT_TRANSITION;
       persistRunIfPossible(state);
       return { ok: true };
@@ -468,9 +481,32 @@
     return { ok: true };
   }
 
+  function continueActGuide(state: AppState): ActionResult {
+    if (!state.run?.guide?.overlayKind) {
+      return { ok: false, message: "No guide scroll is open." };
+    }
+
+    const overlayKind = state.run.guide.overlayKind;
+    const guideOpenOnWorldMap = state.phase === PHASES.WORLD_MAP && overlayKind === "intro";
+    const guideOpenOnActTransition = state.phase === PHASES.ACT_TRANSITION && overlayKind === "reward";
+    if (!guideOpenOnWorldMap && !guideOpenOnActTransition) {
+      return { ok: false, message: "The guide scroll is not active on this surface." };
+    }
+
+    state.run.guide.overlayKind = "";
+    state.run.guide.targetActNumber = 0;
+    state.error = "";
+    persistRunIfPossible(state);
+    return { ok: true };
+  }
+
   function continueActTransition(state: AppState): ActionResult {
     if (state.phase !== PHASES.ACT_TRANSITION || !state.run) {
       return { ok: false, message: "No act transition is active." };
+    }
+    if (state.run.guide?.overlayKind === "reward") {
+      state.run.guide.overlayKind = "";
+      state.run.guide.targetActNumber = 0;
     }
     const advanced = runtimeWindow.ROUGE_RUN_FACTORY.advanceToNextAct(state.run, state.content);
     if (!advanced) {
@@ -524,6 +560,7 @@
     debugSkipEncounter,
     syncEncounterOutcome,
     claimRewardAndAdvance,
+    continueActGuide,
     continueActTransition,
     returnToFrontDoor,
   };

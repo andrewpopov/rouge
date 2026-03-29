@@ -16,7 +16,7 @@ function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
   runFactory.recomputeZoneStatuses(run);
 }
 
-type ResolveActOneToCovenantOptions = {
+type _ResolveActOneToCovenantOptions = {
   routeChoiceIndex?: number;
   crossroadChoiceIndex?: number;
   accordChoiceIndex?: number;
@@ -64,13 +64,13 @@ function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
   }
 }
 
-function resolveActOneToCovenant(
+function _resolveActOneToCovenant(
   state: AppState,
   appEngine: AppEngineApi,
   runFactory: RunFactoryApi,
-  options: ResolveActOneToCovenantOptions | number = 0
+  options: _ResolveActOneToCovenantOptions | number = 0
 ) {
-  const normalizedOptions: ResolveActOneToCovenantOptions =
+  const normalizedOptions: _ResolveActOneToCovenantOptions =
     typeof options === "number" ? { covenantChoiceIndex: options } : options || {};
   const routeChoiceIndex = normalizedOptions.routeChoiceIndex || 0;
   const crossroadChoiceIndex = normalizedOptions.crossroadChoiceIndex || 0;
@@ -533,4 +533,3 @@ test("covenant lane outcomes can retune the act boss encounter package", () => {
   assert.ok(reward.grants.xp > 0);
   assert.ok(reward.grants.potions > 0);
 });
-

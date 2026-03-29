@@ -299,8 +299,6 @@ test("resolveCardEffect draw adds cards to hand", () => {
   const card = findOrInjectCard(state, harness.content, "draw");
   if (!card) { return; }
   state.hero.energy = 99;
-  // Before playing, note hand size (the played card will be removed)
-  const handBefore = state.hand.length;
   harness.engine.playCard(state, harness.content, card.instanceId);
   // Hand should have grown by draw value minus the 1 card played
   assert.ok(typeof state.hand.length === "number");

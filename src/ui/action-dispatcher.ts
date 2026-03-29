@@ -25,6 +25,8 @@
 
     const action = actionEl.dataset.action || "";
     switch (action) {
+      case "noop":
+        return true;
       case "auth-sign-out":
         runtimeWindow.ROGUE_AUTH?.signOut().then(() => render());
         return true;
@@ -34,7 +36,13 @@
         return true;
       case "toggle-game-menu": {
         const panel = document.getElementById("game-menu-panel");
-        if (panel) { panel.classList.toggle("game-menu__panel--open"); }
+        if (panel) {
+          const nextOpen = !panel.classList.contains("game-menu__panel--open");
+          panel.classList.toggle("game-menu__panel--open", nextOpen);
+          if (actionEl) {
+            actionEl.setAttribute("aria-expanded", nextOpen ? "true" : "false");
+          }
+        }
         return true;
       }
       case "toggle-scroll-map":
@@ -49,6 +57,36 @@
         appEngine.setSelectedClass(appState, actionEl.dataset.classId || "");
         render();
         return true;
+      case "open-bloodline-record": {
+        const modal = document.querySelector("[data-record-modal]") as HTMLElement | null;
+        if (modal) {
+          modal.hidden = false;
+        }
+        return true;
+      }
+      case "close-bloodline-record": {
+        const modal = (actionEl.closest("[data-record-modal]") as HTMLElement | null)
+          || (document.querySelector("[data-record-modal]") as HTMLElement | null);
+        if (modal) {
+          modal.hidden = true;
+        }
+        return true;
+      }
+      case "open-class-path": {
+        const modalId = actionEl.dataset.pathModalId || "";
+        const modal = modalId ? document.getElementById(modalId) as HTMLElement | null : null;
+        if (modal) {
+          modal.hidden = false;
+        }
+        return true;
+      }
+      case "close-class-path": {
+        const modal = actionEl.closest("[data-path-modal]") as HTMLElement | null;
+        if (modal) {
+          modal.hidden = true;
+        }
+        return true;
+      }
       case "select-mercenary":
         appEngine.setSelectedMercenary(appState, actionEl.dataset.mercenaryId || "");
         render();
@@ -59,6 +97,9 @@
         return true;
       case "continue-saved-run":
         appEngine.continueSavedRun(appState);
+        if (appState.run?.guide?.overlayKind && (appState.phase === appEngine.PHASES.WORLD_MAP || appState.phase === appEngine.PHASES.ACT_TRANSITION)) {
+          appEngine.continueActGuide(appState);
+        }
         render();
         return true;
       case "prompt-abandon-saved-run":
@@ -159,7 +200,6 @@
       case "select-enemy":
         if (appState.combat) {
           appState.combat.selectedEnemyId = actionEl.dataset.enemyId || "";
-          render();
         }
         return true;
       case "play-card":
@@ -231,7 +271,20 @@
         appEngine.claimRewardAndAdvance(appState, actionEl.dataset.choiceId || "");
         render();
         return true;
+      case "continue-act-guide":
+        appEngine.continueActGuide(appState);
+        render();
+        return true;
+      case "open-act-transition-scroll":
+        appState.ui.actTransitionScrollOpen = true;
+        render();
+        return true;
+      case "close-act-transition-scroll":
+        appState.ui.actTransitionScrollOpen = false;
+        render();
+        return true;
       case "continue-act-transition":
+        appState.ui.actTransitionScrollOpen = false;
         appEngine.continueActTransition(appState);
         render();
         return true;

@@ -72,6 +72,30 @@
     return runtimeWindow.ROUGE_WORLD_NODE_VARIANTS;
   }
 
+  function getStrategicWeaponFamilies(run: RunState, content: GameContent) {
+    const classPreferredFamilies = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [];
+    return runtimeWindow.ROUGE_REWARD_ENGINE?.getStrategicWeaponFamilies?.(run, content) || classPreferredFamilies;
+  }
+
+  const CHOICE_STRATEGY_LABELS = {
+    reinforce: "Reinforce Current Build",
+    support: "Support Current Build",
+    pivot: "Flexible Pivot",
+  } as const;
+
+  const CHOICE_STRATEGY_SORT_ORDER = {
+    reinforce: 0,
+    support: 1,
+    pivot: 2,
+  } as const;
+
+  const CARD_STRATEGY_WEIGHTS = {
+    engine: 12,
+    foundation: 9,
+    support: 7,
+    tech: 6,
+  } as const;
+
   function cloneEffect(effect: RewardChoiceEffect): RewardChoiceEffect {
     return {
       ...effect,
@@ -80,6 +104,265 @@
       ...(effect?.weaponAffixes ? { weaponAffixes: runtimeWindow.ROUGE_ITEM_CATALOG?.cloneWeaponProfile?.(effect.weaponAffixes) || effect.weaponAffixes } : {}),
       ...(effect?.armorAffixes ? { armorAffixes: runtimeWindow.ROUGE_ITEM_CATALOG?.cloneArmorProfile?.(effect.armorAffixes) || effect.armorAffixes } : {}),
     };
+  }
+
+  function getChoiceStrategyContext(run: RunState, content: GameContent | null) {
+    const resolvedContent = getGameContent(content);
+    const dominantArchetype = resolvedContent
+      ? runtimeWindow.ROUGE_REWARD_ENGINE?.getDominantArchetype?.(run, resolvedContent) || { primary: null, secondary: null }
+      : { primary: null, secondary: null };
+    return {
+      primary: dominantArchetype.primary || null,
+      secondary: dominantArchetype.secondary || null,
+      strategicWeaponFamilies: resolvedContent ? getStrategicWeaponFamilies(run, resolvedContent) : [],
+      preferredWeaponFamilies: runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [],
+    };
+  }
+
+  function classifyChoiceStrategy(
+    effects: RewardChoiceEffect[],
+    run: RunState,
+    content: GameContent | null = null
+  ): {
+    role: RewardChoice["strategyRole"];
+    score: number;
+    archetypeId: string;
+    archetypeLabel: string;
+    previewLine: string;
+  } {
+    const resolvedContent = getGameContent(content);
+    const itemCatalog = resolvedContent ? getItemCatalogApi() : null;
+    const rewardEngine = runtimeWindow.ROUGE_REWARD_ENGINE || null;
+    const context = getChoiceStrategyContext(run, resolvedContent);
+    const scores = {
+      reinforce: 0,
+      support: 0,
+      pivot: 0,
+    };
+
+    effects.forEach((effect: RewardChoiceEffect) => {
+      const value = Number(effect.value || 0);
+      if ((effect.kind === "add_card" || effect.kind === "upgrade_card") && resolvedContent && rewardEngine) {
+        const cardId = effect.kind === "add_card" ? effect.cardId || "" : effect.toCardId || effect.fromCardId || "";
+        const archetypeTags = rewardEngine.getCardArchetypeTags?.(cardId, resolvedContent) || [];
+        const rewardRole = rewardEngine.getCardRewardRole?.(cardId, resolvedContent) || "foundation";
+        const baseWeight = CARD_STRATEGY_WEIGHTS[rewardRole] || CARD_STRATEGY_WEIGHTS.foundation;
+        if (context.primary?.archetypeId && archetypeTags.includes(context.primary.archetypeId)) {
+          scores.reinforce += baseWeight;
+          if (rewardRole === "support" || rewardRole === "tech") {
+            scores.support += 2;
+          }
+          return;
+        }
+        if (context.secondary?.archetypeId && archetypeTags.includes(context.secondary.archetypeId)) {
+          scores.support += Math.max(4, baseWeight - 2);
+          return;
+        }
+        if (archetypeTags.length > 0) {
+          scores.pivot += Math.max(4, baseWeight - 3);
+          return;
+        }
+      }
+
+      if ((effect.kind === "equip_item" || effect.kind === "grant_item") && resolvedContent && itemCatalog) {
+        const item = itemCatalog.getItemDefinition(resolvedContent, effect.itemId || "");
+        const family = item?.family || "";
+        if (item?.slot === "weapon") {
+          if (context.strategicWeaponFamilies.includes(family)) {
+            scores.reinforce += 12;
+          } else if (context.preferredWeaponFamilies.includes(family)) {
+            scores.support += 7;
+          } else {
+            scores.pivot += 8;
+          }
+          return;
+        }
+        if (item?.slot === "armor") {
+          scores.support += 8;
+          return;
+        }
+        scores.support += 6;
+        return;
+      }
+
+      if (effect.kind === "socket_rune") {
+        if (effect.slot === "weapon") {
+          scores.reinforce += 7;
+        } else {
+          scores.support += 6;
+        }
+        return;
+      }
+
+      if (effect.kind === "add_socket") {
+        if (effect.slot === "weapon") {
+          scores.reinforce += 6;
+        } else {
+          scores.support += 5;
+        }
+        return;
+      }
+
+      if (effect.kind === "grant_rune") {
+        scores.support += 4;
+        return;
+      }
+
+      if (effect.kind === "reinforce_build") {
+        scores.reinforce += 10;
+        return;
+      }
+
+      if (effect.kind === "support_build") {
+        scores.support += 10;
+        return;
+      }
+
+      if (effect.kind === "pivot_build") {
+        scores.pivot += 10;
+        return;
+      }
+
+      if (effect.kind === "hero_max_energy") {
+        scores.support += 4 + value * 2;
+        return;
+      }
+
+      if (effect.kind === "hero_heal") {
+        scores.support += 4 + value;
+        return;
+      }
+
+      if (effect.kind === "hero_max_life") {
+        scores.support += 5 + Math.ceil(value / 2);
+        return;
+      }
+
+      if (effect.kind === "hero_potion_heal") {
+        scores.support += 4 + value;
+        return;
+      }
+
+      if (effect.kind === "mercenary_attack" || effect.kind === "mercenary_max_life") {
+        scores.support += 3 + value;
+        return;
+      }
+
+      if (effect.kind === "belt_capacity") {
+        scores.support += 5 + value;
+        return;
+      }
+
+      if (effect.kind === "refill_potions") {
+        scores.support += 4 + value;
+        return;
+      }
+
+      if (effect.kind === "gold_bonus") {
+        scores.pivot += 4 + Math.ceil(value / 4);
+        return;
+      }
+
+      if (effect.kind === "class_point") {
+        scores.reinforce += 8 + value * 2;
+        return;
+      }
+
+      if (effect.kind === "attribute_point") {
+        scores.reinforce += 5 + value * 2;
+      }
+    });
+
+    const ranked = (Object.entries(scores) as Array<[RewardChoice["strategyRole"], number]>)
+      .sort((left, right) => {
+        if (right[1] !== left[1]) {
+          return right[1] - left[1];
+        }
+        return (CHOICE_STRATEGY_SORT_ORDER[left[0] || "support"] || 0) - (CHOICE_STRATEGY_SORT_ORDER[right[0] || "support"] || 0);
+      });
+
+    const role = ranked[0]?.[0] || "support";
+    const score = ranked[0]?.[1] || 0;
+    const archetypeLabel = context.primary?.label || "";
+    const targetLabel = archetypeLabel || "your current build";
+    let previewLine = `Strategic role: Keep a flexible pivot open from ${targetLabel}.`;
+    if (role === "reinforce") {
+      previewLine = `Strategic role: Reinforce ${targetLabel}.`;
+    } else if (role === "support") {
+      previewLine = `Strategic role: Support ${targetLabel}.`;
+    }
+
+    return {
+      role,
+      score,
+      archetypeId: context.primary?.archetypeId || "",
+      archetypeLabel,
+      previewLine,
+    };
+  }
+
+  function applyChoiceStrategy(choice: RewardChoice, strategy: ReturnType<typeof classifyChoiceStrategy>) {
+    const strategyLabel = CHOICE_STRATEGY_LABELS[strategy.role || "support"];
+    choice.strategyRole = strategy.role;
+    choice.strategyArchetypeId = strategy.archetypeId;
+    choice.strategyArchetypeLabel = strategy.archetypeLabel;
+    choice.subtitle = choice.subtitle ? `${choice.subtitle} | ${strategyLabel}` : strategyLabel;
+    choice.previewLines = [strategy.previewLine, ...(choice.previewLines || []).filter(Boolean)];
+    return choice;
+  }
+
+  function sortStrategicChoices<T extends { choice: RewardChoice; strategy: ReturnType<typeof classifyChoiceStrategy> }>(choices: T[]) {
+    return [...choices].sort((left, right) => {
+      const leftOrder = CHOICE_STRATEGY_SORT_ORDER[left.strategy.role || "support"] || 0;
+      const rightOrder = CHOICE_STRATEGY_SORT_ORDER[right.strategy.role || "support"] || 0;
+      if (leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
+      if (right.strategy.score !== left.strategy.score) {
+        return right.strategy.score - left.strategy.score;
+      }
+      return left.choice.title.localeCompare(right.choice.title);
+    });
+  }
+
+  function buildStrategicChoices(
+    kind: string,
+    choiceDefinitions: WorldNodeChoiceDefinition[],
+    run: RunState,
+    content: GameContent | null = null
+  ) {
+    function resolveDynamicBuildPreview(effect: RewardChoiceEffect) {
+      if (!content) {
+        return "";
+      }
+      if (effect.kind === "reinforce_build") {
+        return runtimeWindow.ROUGE_REWARD_ENGINE?.resolveReinforceBuildReward?.(run, content)?.previewLine || "Build reinforcement: Gain 1 class point.";
+      }
+      if (effect.kind === "support_build") {
+        return runtimeWindow.ROUGE_REWARD_ENGINE?.resolveSupportBuildReward?.(run, content)?.previewLine || "Build support: Gain 3 max Life.";
+      }
+      if (effect.kind === "pivot_build") {
+        return runtimeWindow.ROUGE_REWARD_ENGINE?.resolvePivotBuildReward?.(run, content)?.previewLine || "Strategic pivot: Gain 1 class point.";
+      }
+      return "";
+    }
+
+    return sortStrategicChoices(
+      choiceDefinitions.map((choiceDefinition: WorldNodeChoiceDefinition) => {
+        const choice = buildChoice(kind, choiceDefinition);
+        if (content) {
+          const reinforcePreviewLines = choiceDefinition.effects
+            .map((effect: RewardChoiceEffect) => resolveDynamicBuildPreview(effect))
+            .filter(Boolean);
+          choice.previewLines = [...(choice.previewLines || []).filter(Boolean), ...reinforcePreviewLines];
+        }
+        const strategy = classifyChoiceStrategy(choiceDefinition.effects, run, content);
+        return {
+          choice: applyChoiceStrategy(choice, strategy),
+          strategy,
+        };
+      })
+    ).map((entry) => entry.choice);
   }
 
   function getRunePrefixLength(insertedRunes: string[], requiredRunes: string[]) {
@@ -156,7 +439,7 @@
     const itemCatalog = getItemCatalogApi();
     const currentItem = itemCatalog.getItemDefinition(content, run.loadout?.[slot]?.itemId || "");
     const preferredWeaponFamilies = slot === "weapon"
-      ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || []
+      ? getStrategicWeaponFamilies(run, content)
       : [];
     const candidates = rewardApi.getAvailableItemsForSlot(slot, actNumber, zone, run, content)
       .filter((item: RuntimeItemDefinition) => slot !== "weapon" || preferredWeaponFamilies.length === 0 || preferredWeaponFamilies.includes(item.family || ""))
@@ -181,6 +464,10 @@
         return Number(right.maxSockets || 0) - Number(left.maxSockets || 0);
       });
 
+    if (slot === "weapon" && preferredWeaponFamilies.length > 0) {
+      return candidates;
+    }
+
     if (candidates.length > 0) {
       return candidates;
     }
@@ -196,6 +483,15 @@
   ) {
     const loadoutApi = getItemLoadoutApi();
     const currentEquipment = run.loadout?.[slot] || null;
+    if (currentEquipment?.runewordId) {
+      return {
+        itemId,
+        slot,
+        socketsUnlocked: 0,
+        insertedRunes: [],
+        runewordId: "",
+      } as RunEquipmentState;
+    }
     const preserved = loadoutApi.getPreservedSlotProgression(currentEquipment, itemId, content);
     return {
       itemId,
@@ -219,15 +515,44 @@
       }
     });
 
+    let bestProject: {
+      slot: "weapon" | "armor";
+      itemId: string;
+      itemName: string;
+      runeword: RuntimeRunewordDefinition;
+      equipItemId: string;
+      requiresFreshBase: boolean;
+      socketsToAdd: number;
+      runeIdsToSocket: string[];
+      classFit: number;
+      score: number;
+    } | null = null;
+
     for (const itemId of candidateItemIds) {
       const simulatedEquipment = createQuestProjectEquipment(slot, itemId, run, content);
-      const runeword = pickQuestRunewordForEquipment(simulatedEquipment, run, actNumber, content);
+      const needsFreshBaseSimulation = Boolean(currentEquipment?.itemId) && (
+        currentEquipment.itemId !== itemId ||
+        Boolean(currentEquipment.runewordId) ||
+        (currentEquipment.insertedRunes?.length || 0) > 0
+      );
+      const projectEquipment = needsFreshBaseSimulation
+        ? ({
+            itemId,
+            slot,
+            socketsUnlocked: 0,
+            insertedRunes: [],
+            runewordId: "",
+          } as RunEquipmentState)
+        : simulatedEquipment;
+      const runeword = pickQuestRunewordForEquipment(projectEquipment, run, actNumber, content);
       if (!runeword) {
         continue;
       }
 
       const item = itemCatalog.getItemDefinition(content, itemId);
+      const currentItem = currentEquipment ? itemCatalog.getItemDefinition(content, currentEquipment.itemId) : null;
       const currentRunewordId = currentEquipment?.runewordId || "";
+      const currentRuneword = currentRunewordId ? itemCatalog.getRunewordDefinition(content, currentRunewordId) : null;
       const alreadyComplete =
         currentEquipment?.itemId === itemId &&
         currentRunewordId === runeword.id &&
@@ -238,34 +563,80 @@
       }
 
       const preferredWeaponFamilies = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(run.classId) || [];
+      const strategicWeaponFamilies = getStrategicWeaponFamilies(run, content);
+      const strategyFit = slot === "armor" ? 1 : Number(strategicWeaponFamilies.includes(item?.family || ""));
       const classFit = slot === "armor" ? 1 : Number(preferredWeaponFamilies.includes(item?.family || ""));
-      const socketsToAdd = Math.max(0, runeword.socketCount - simulatedEquipment.socketsUnlocked);
-      const runeIdsToSocket = runeword.requiredRunes.slice(simulatedEquipment.insertedRunes.length);
+      const socketsToAdd = Math.max(0, runeword.socketCount - projectEquipment.socketsUnlocked);
+      const runeIdsToSocket = runeword.requiredRunes.slice(projectEquipment.insertedRunes.length);
       const targetTier = Math.max(2, actNumber + Number(slot === "weapon"));
       const tierFit = Math.max(0, 8 - Math.abs(Number(runeword.progressionTier || 1) - targetTier) * 2);
+      const currentRunewordTier = Number(currentRuneword?.progressionTier || 0);
+      const nextRunewordTier = Number(runeword.progressionTier || 0);
+      const currentRunewordPower = currentRuneword ? getRunewordBonusScore(currentRuneword, itemCatalog.toNumber) : 0;
+      const nextRunewordPower = getRunewordBonusScore(runeword, itemCatalog.toNumber);
+      const runewordUpgrade = Boolean(currentRunewordId && currentRunewordId !== runeword.id);
+      const completedRuneword = Boolean(
+        currentRunewordId &&
+        currentEquipment?.socketsUnlocked === currentRuneword?.socketCount &&
+        (currentEquipment?.insertedRunes?.length || 0) >= (currentRuneword?.requiredRunes?.length || 0)
+      );
+      const fixesSocketBlockedUpgrade =
+        Boolean(currentRunewordId) &&
+        itemCatalog.toNumber(currentItem?.maxSockets, 0) < itemCatalog.toNumber(runeword.socketCount, 0) &&
+        itemCatalog.toNumber(item?.maxSockets, 0) >= itemCatalog.toNumber(runeword.socketCount, 0);
+      const requiresFreshBase = needsFreshBaseSimulation;
+      const alignedWeaponProject = Number(strategyFit > 0 || classFit > 0);
+      const offPlanWeaponPenalty = Number(slot === "weapon" && alignedWeaponProject === 0) * 36;
+      const weaponPriority =
+        Number(slot === "weapon") * (
+          Number(!currentRunewordId) * alignedWeaponProject * (actNumber <= 2 ? 24 : 18) +
+          Number(Boolean(currentRunewordId) && !runewordUpgrade) * 6
+        );
+      const armorCatchUpPriority =
+        Number(slot === "armor" && actNumber >= 3) * (
+          Number(runewordUpgrade) * 20 +
+          Math.max(0, nextRunewordTier - currentRunewordTier) * 6 +
+          Number(completedRuneword) * 8 +
+          6
+        );
       const score =
-        Number(!currentRunewordId) * 40 +
-        classFit * 18 +
-        Number(slot === "weapon") * 8 +
+        Number(!currentRunewordId) * 18 +
+        Number(runewordUpgrade) * 22 +
+        Number(fixesSocketBlockedUpgrade) * 24 +
+        Math.max(0, nextRunewordTier - currentRunewordTier) * 6 +
+        Math.max(0, nextRunewordPower - currentRunewordPower) * 2 +
+        strategyFit * 24 +
+        classFit * 10 +
+        weaponPriority +
+        armorCatchUpPriority +
         tierFit +
         Number(currentEquipment?.itemId !== itemId) * 4 +
         Number(runeIdsToSocket.length > 0) * 3 +
-        Number(Boolean(currentEquipment?.itemId) && currentEquipment.itemId === itemId) * 2;
+        Number(Boolean(currentEquipment?.itemId) && currentEquipment.itemId === itemId) * 2 -
+        offPlanWeaponPenalty;
 
-      return {
+      const project = {
         slot,
         itemId,
         itemName: item?.name || itemId,
         runeword,
-        equipItemId: currentEquipment?.itemId === itemId ? "" : itemId,
+        equipItemId: currentEquipment?.itemId === itemId && !requiresFreshBase ? "" : itemId,
+        requiresFreshBase,
         socketsToAdd,
         runeIdsToSocket,
         classFit,
         score,
       };
+      if (
+        !bestProject ||
+        project.score > bestProject.score ||
+        (project.score === bestProject.score && project.classFit > bestProject.classFit)
+      ) {
+        bestProject = project;
+      }
     }
 
-    return null;
+    return bestProject;
   }
 
   function buildQuestRuneforgePackage(run: RunState, zone: ZoneState, actNumber: number, content: GameContent | null = null) {
@@ -282,6 +653,7 @@
         itemName: string;
         runeword: RuntimeRunewordDefinition;
         equipItemId: string;
+        requiresFreshBase: boolean;
         socketsToAdd: number;
         runeIdsToSocket: string[];
         classFit: number;
@@ -308,6 +680,7 @@
         kind: "equip_item",
         itemId: project.equipItemId,
         rarity: itemCatalog.RARITY.WHITE,
+        freshBase: project.requiresFreshBase,
       });
     }
     for (let socketIndex = 0; socketIndex < project.socketsToAdd; socketIndex += 1) {
@@ -330,8 +703,11 @@
   function buildQuestChoices(run: RunState, zone: ZoneState, actNumber: number, definition: QuestNodeDefinition, content: GameContent | null = null) {
     const runeforgePackage = buildQuestRuneforgePackage(run, zone, actNumber, content);
     const resolvedContent = getGameContent(content);
+    const dominantArchetype = resolvedContent
+      ? runtimeWindow.ROUGE_REWARD_ENGINE?.getDominantArchetype?.(run, resolvedContent)?.primary || null
+      : null;
     return {
-      choices: definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => {
+      choices: sortStrategicChoices(definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => {
         const augmentedChoiceDefinition = runeforgePackage
           ? {
               ...choiceDefinition,
@@ -343,9 +719,19 @@
             }
           : choiceDefinition;
         const builtChoice = buildChoice("quest", augmentedChoiceDefinition);
+        const strategy = classifyChoiceStrategy(choiceDefinition.effects, run, resolvedContent);
         if (resolvedContent) {
           const slotLabels = (getItemLoadoutApi().EQUIPMENT_SLOT_LABELS || {}) as Record<string, string>;
           const gearPreviewLines = augmentedChoiceDefinition.effects.map((effect: RewardChoiceEffect) => {
+            if (effect.kind === "reinforce_build") {
+              return runtimeWindow.ROUGE_REWARD_ENGINE?.resolveReinforceBuildReward?.(run, resolvedContent)?.previewLine || "Build reinforcement: Gain 1 class point.";
+            }
+            if (effect.kind === "support_build") {
+              return runtimeWindow.ROUGE_REWARD_ENGINE?.resolveSupportBuildReward?.(run, resolvedContent)?.previewLine || "Build support: Gain 3 max Life.";
+            }
+            if (effect.kind === "pivot_build") {
+              return runtimeWindow.ROUGE_REWARD_ENGINE?.resolvePivotBuildReward?.(run, resolvedContent)?.previewLine || "Strategic pivot: Gain 1 class point.";
+            }
             if (effect.kind === "equip_item") {
               return `Equip ${getItemCatalogApi().getItemDefinition(resolvedContent, effect.itemId || "")?.name || effect.itemId || "item"}.`;
             }
@@ -365,13 +751,27 @@
           }).filter(Boolean);
           builtChoice.previewLines = [...(builtChoice.previewLines || []).filter(Boolean), ...gearPreviewLines];
         }
-        return builtChoice;
-      }),
-      extraLines: runeforgePackage ? [runeforgePackage.summaryLine] : [],
+        return {
+          choice: applyChoiceStrategy(builtChoice, strategy),
+          strategy,
+        };
+      })).map((entry) => entry.choice),
+      extraLines: [
+        ...(dominantArchetype ? [`Current build lane: ${dominantArchetype.label}.`] : []),
+        ...(runeforgePackage ? [runeforgePackage.summaryLine] : []),
+      ],
     };
   }
 
-  function buildNodeReward(run: RunState, zone: ZoneState, definition: { title: string; summary: string; grants: RewardGrants }, variant: WorldNodeRewardDefinition, choiceKind: string, contextLines: string[]) {
+  function buildNodeReward(
+    run: RunState,
+    zone: ZoneState,
+    definition: { title: string; summary: string; grants: RewardGrants },
+    variant: WorldNodeRewardDefinition,
+    choiceKind: string,
+    contextLines: string[],
+    content: GameContent | null = null
+  ) {
     return {
       zoneId: zone.id,
       zoneTitle: zone.title,
@@ -384,7 +784,7 @@
         `${zone.title} is now clear.`,
       ],
       grants: { ...definition.grants, ...(variant.grants || {}) },
-      choices: variant.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => buildChoice(choiceKind, choiceDefinition)),
+      choices: buildStrategicChoices(choiceKind, variant.choices, run, content),
       encounterNumber: 1,
       clearsZone: true,
       endsAct: false,
@@ -613,7 +1013,7 @@
           `${zone.title} is now clear.`,
         ],
         grants: { ...definition.grants },
-        choices: definition.choices.map((choiceDefinition: WorldNodeChoiceDefinition) => buildChoice("shrine", choiceDefinition)),
+        choices: buildStrategicChoices("shrine", definition.choices, run, content),
         encounterNumber: 1,
         clearsZone: true,
         endsAct: false,
@@ -627,14 +1027,14 @@
       const { eventDefinition, questRecord, followUp } = getWorldNodeVariantsApi().resolveEventFollowUp(run, actNumber);
       return buildNodeReward(run, zone, eventDefinition, followUp, "event", [
         `Earlier quest result: ${questRecord.outcomeTitle}.`,
-      ]);
+      ], content);
     }
 
     if (zone.kind === ZONE_KIND.OPPORTUNITY) {
       const resolver = (opportunityResolvers as Record<string, (typeof opportunityResolvers)[keyof typeof opportunityResolvers]>)[zone.nodeType as string];
       if (resolver) {
         const { definition, variant, contextLines } = resolver(run, actNumber);
-        return buildNodeReward(run, zone, definition, variant, "opportunity", contextLines);
+        return buildNodeReward(run, zone, definition, variant, "opportunity", contextLines, content);
       }
     }
 
@@ -642,7 +1042,7 @@
       getWorldNodeVariantsApi().resolveOpportunityVariant(run, actNumber);
     return buildNodeReward(run, zone, opportunityDefinition, variant, "opportunity", [
       `Earlier chain: ${questRecord.outcomeTitle} -> ${questRecord.followUpOutcomeTitle}.`,
-    ]);
+    ], content);
   }
 
   function applyChoice(run: RunState, reward: RunReward, choice: RewardChoice) {

@@ -4,10 +4,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness } from "./helpers/browser-harness";
 
+function createApproachHarness() {
+  const harness = createAppHarness();
+  return {
+    ...harness,
+    approachBonus: harness.browserWindow.__ROUGE_APPROACH_BONUS,
+  };
+}
+
 test("applyBonus guard bonus increases hero guard", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -23,9 +29,7 @@ test("applyBonus guard bonus increases hero guard", () => {
 });
 
 test("applyBonus damage bonus increases hero damageBonus", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -41,9 +45,7 @@ test("applyBonus damage bonus increases hero damageBonus", () => {
 });
 
 test("applyBonus energy bonus increases hero energy", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -59,9 +61,7 @@ test("applyBonus energy bonus increases hero energy", () => {
 });
 
 test("applyBonus potion bonus increases potions", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -77,9 +77,7 @@ test("applyBonus potion bonus increases potions", () => {
 });
 
 test("applyBonus guard_bonus increases hero guardBonus", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -95,9 +93,7 @@ test("applyBonus guard_bonus increases hero guardBonus", () => {
 });
 
 test("applyBonus burn_bonus increases hero burnBonus", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -113,9 +109,7 @@ test("applyBonus burn_bonus increases hero burnBonus", () => {
 });
 
 test("applyBonus draw bonus draws extra cards", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow, content, combatEngine } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { content, combatEngine, approachBonus } = createApproachHarness();
 
   const state = combatEngine.createCombatState({
     content,
@@ -131,22 +125,18 @@ test("applyBonus draw bonus draws extra cards", () => {
 });
 
 test("applyBonus with invalid combat state does not throw", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { approachBonus } = createApproachHarness();
 
   assert.doesNotThrow(() => {
     approachBonus.applyBonus(null, "guard:5");
   });
   assert.doesNotThrow(() => {
-    approachBonus.applyBonus({}, "guard:5");
+    approachBonus.applyBonus({} as never, "guard:5");
   });
 });
 
 test("pickBonus returns valid ids for all approach types", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { approachBonus } = createApproachHarness();
 
   for (const approach of ["cautious", "aggressive", "tactical"]) {
     const bonus = approachBonus.pickBonus(approach, 42);
@@ -162,9 +152,7 @@ test("pickBonus returns valid ids for all approach types", () => {
 });
 
 test("pickBonus produces different bonuses for different seeds", () => {
-  const { createAppHarness } = require("./helpers/browser-harness");
-  const { browserWindow } = createAppHarness();
-  const approachBonus = browserWindow.__ROUGE_APPROACH_BONUS;
+  const { approachBonus } = createApproachHarness();
 
   const ids = new Set<string>();
   for (let seed = 0; seed < 20; seed++) {

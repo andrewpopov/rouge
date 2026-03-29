@@ -32,7 +32,7 @@
               "Use the settled crossing to restage the final guide casks around the reliquary road.",
               "guide_casks_restored",
               ["sunwell_accord_guide_casks"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "support_build" }, { kind: "refill_potions", value: 1 }]
             ),
             buildAccordChoice(
               "sunwell_accord_opportunity",
@@ -42,7 +42,7 @@
               "Turn the same accord into one final set of waystation marks before Duriel.",
               "tomb_waystations_remarked",
               ["sunwell_accord_tomb_waystations"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -146,7 +146,7 @@
               "Turn the same accord into one final run of berth signals across the harbor edge.",
               "last_berth_signals_rehung",
               ["kurast_accord_berth_signals"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -250,7 +250,7 @@
               "Turn the same accord into one final ash-route marking run before Diablo.",
               "last_ash_routes_remarked",
               ["hellforge_accord_ash_routes"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -354,7 +354,7 @@
               "Turn the same accord into one final run of marks over the frozen switchbacks.",
               "last_switchback_marks_rehung",
               ["harrogath_accord_switchback_marks"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },

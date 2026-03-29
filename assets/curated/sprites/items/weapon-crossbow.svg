@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Crossbow">
+  <defs>
+    <linearGradient id="crossbowWood" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#9b6236"/>
+      <stop offset="55%" stop-color="#6a3d20"/>
+      <stop offset="100%" stop-color="#2c190f"/>
+    </linearGradient>
+    <linearGradient id="crossbowMetal" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#edd6ae"/>
+      <stop offset="55%" stop-color="#c99657"/>
+      <stop offset="100%" stop-color="#74461f"/>
+    </linearGradient>
+    <filter id="crossbowGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#crossbowGlow)" transform="translate(10 14)">
+    <path d="M12 28C33 8 75 8 96 28" fill="none" stroke="url(#crossbowMetal)" stroke-linecap="round" stroke-width="7"/>
+    <path d="M14 29L94 29" fill="none" stroke="#e6d8c4" stroke-linecap="round" stroke-width="2.2"/>
+    <path d="M53 24L53 85" fill="none" stroke="url(#crossbowWood)" stroke-linecap="round" stroke-width="8.4"/>
+    <path d="M53 40L82 63" fill="none" stroke="url(#crossbowWood)" stroke-linecap="round" stroke-width="9.5"/>
+    <path d="M80 61L97 81" fill="none" stroke="url(#crossbowWood)" stroke-linecap="round" stroke-width="8.4"/>
+    <path d="M32 29L74 29" fill="none" stroke="#b39979" stroke-linecap="round" stroke-width="2.1"/>
+    <path d="M30 29L91 65" fill="none" stroke="#dcccba" stroke-linecap="round" stroke-width="2.1"/>
+    <path d="M28 29L53 29" fill="none" stroke="#7d4e2a" stroke-linecap="round" stroke-width="4"/>
+    <path d="M26 29L14 22V36Z" fill="url(#crossbowMetal)"/>
+    <circle cx="53" cy="29" r="6.5" fill="#7e251f"/>
+  </g>
+</svg>

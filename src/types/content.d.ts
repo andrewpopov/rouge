@@ -69,6 +69,7 @@ type CardEffectKind =
   | "apply_stun_all"
   | "apply_paralyze"
   | "apply_paralyze_all";
+type CardRewardRole = "foundation" | "engine" | "support" | "tech";
 
 type StatusEffectKind = "burn" | "poison" | "slow" | "freeze" | "stun" | "paralyze";
 type WeaponEffectKind = "burn" | "slow" | "freeze" | "shock" | "crushing";
@@ -120,6 +121,8 @@ interface CardDefinition {
   proficiency?: string;
   skillRef?: string;
   tier?: number;
+  rewardRole?: CardRewardRole;
+  archetypeTags?: string[];
 }
 
 interface ClassCardDefinition extends CardDefinition {

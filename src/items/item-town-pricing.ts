@@ -196,7 +196,15 @@
       return null;
     }
     const plannedRuneword = getPlannedRuneword(profile, equipment.slot, content);
-    return equipment.runewordId ? null : getPreferredRunewordForEquipment(equipment, run, content, plannedRuneword?.id || "");
+    const targetRuneword = getPreferredRunewordForEquipment(equipment, run, content, plannedRuneword?.id || "");
+    if (!targetRuneword) {
+      return null;
+    }
+    const targetSatisfied =
+      equipment.runewordId === targetRuneword.id &&
+      toNumber(equipment.socketsUnlocked, 0) >= toNumber(targetRuneword.socketCount, 0) &&
+      (equipment.insertedRunes?.length || 0) >= targetRuneword.requiredRunes.length;
+    return targetSatisfied ? null : targetRuneword;
   }
 
   function getEntryPlanningMatch(entry: InventoryEntry | null, content: GameContent, profile: ProfileState | null = null) {

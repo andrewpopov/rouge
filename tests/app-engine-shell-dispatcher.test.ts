@@ -85,6 +85,19 @@ test("action dispatcher drives the outer loop from the hall through world map an
   });
   assert.equal(handled, true);
   assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
+  assert.match(root.innerHTML, /First Expedition Charter/);
+  assert.match(root.innerHTML, /continue-act-guide/);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "continue-act-guide" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.WORLD_MAP);
   assert.match(root.innerHTML, /actmap/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
@@ -192,10 +205,23 @@ test("action dispatcher drives act-transition and failed-run shell exits", () =>
   state.run.pendingReward.endsAct = true;
   state.run.acts[state.run.currentActIndex].complete = true;
   render();
-  assert.match(root.innerHTML, /After this claim the shell moves to Act Transition\./);
+  assert.match(root.innerHTML, /After this claim the shell moves to the Act Guide\./);
 
   handled = actionDispatcher.handleClick({
     target: createActionTarget({ action: "claim-reward-choice", choiceId: state.run.pendingReward.choices[0].id }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.phase, appEngine.PHASES.ACT_TRANSITION);
+  assert.match(root.innerHTML, /Act Boss Reward/);
+  assert.match(root.innerHTML, /continue-act-guide/);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "continue-act-guide" }),
     appState: state,
     appEngine,
     combatEngine,
@@ -310,4 +336,3 @@ test("action dispatcher drives runeword planning controls through the front-door
   assert.match(root.innerHTML, /Lionheart/);
   assert.equal(persistence.loadProfileFromStorage()?.meta.planning.armorRunewordId, "lionheart");
 });
-

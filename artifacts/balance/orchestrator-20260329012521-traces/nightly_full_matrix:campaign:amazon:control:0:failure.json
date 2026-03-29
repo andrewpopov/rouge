@@ -1,0 +1,589 @@
+{
+  "mode": "combat",
+  "digest": "37fd737bbdaa3444",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Chaos Sanctuary / Diablo",
+    "checkpointId": "",
+    "encounterId": "act_4_boss",
+    "runKey": "nightly_full_matrix:campaign:amazon:control:0"
+  },
+  "classId": "amazon",
+  "actNumber": 4,
+  "encounterId": "act_4_boss",
+  "policyId": "control",
+  "outcome": "defeat",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 309,
+          "maxLife": 467,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 225,
+          "maxLife": 242,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 699,
+            "maxLife": 699,
+            "guard": 12,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Bulwark (35)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 5,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 5,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 264,
+            "maxLife": 264,
+            "guard": 12,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_8",
+            "cardId": "amazon_valkyrie",
+            "title": "Valkyrie",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_30",
+            "cardId": "amazon_strafe",
+            "title": "Strafe",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_14",
+            "cardId": "amazon_multiple_shot",
+            "title": "Multiple Shot",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_10",
+            "cardId": "rally_mercenary_plus",
+            "title": "Rally Mercenary+",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_20",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Strafe",
+        "Card: Multiple Shot",
+        "Card: Exploding Arrow -> Doomtide Finger Mage",
+        "Card: Magic Arrow -> Doomtide Finger Mage",
+        "Card: Valkyrie",
+        "Melee strike",
+        "Potion -> hero",
+        "Potion -> hero",
+        "Card: Rally Mercenary+",
+        "Card: Magic Arrow -> Cinderlord Megademon",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 41,
+          "maxLife": 467,
+          "guard": 0,
+          "energy": 10,
+          "burn": 4,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 105,
+          "maxLife": 242,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 554,
+            "maxLife": 699,
+            "guard": 35,
+            "burn": 10,
+            "poison": 0,
+            "slow": 6,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Bulwark (35)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 173,
+            "maxLife": 278,
+            "guard": 47,
+            "burn": 10,
+            "poison": 0,
+            "slow": 6,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 41,
+            "maxLife": 278,
+            "guard": 35,
+            "burn": 16,
+            "poison": 0,
+            "slow": 10,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 19,
+            "maxLife": 264,
+            "guard": 0,
+            "burn": 35,
+            "poison": 0,
+            "slow": 18,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_27",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_16",
+            "cardId": "amazon_strafe",
+            "title": "Strafe",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_26",
+            "cardId": "amazon_lightning_fury",
+            "title": "Lightning Fury",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_4",
+            "cardId": "amazon_charged_strike",
+            "title": "Charged Strike",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Diablo takes 11 Burn damage.",
+        "Diablo uses Diablo Hell Bulwark and fortifies the enemy line.",
+        "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+        "Hellforged Megademon takes 0 Burn damage.",
+        "Hellforged Megademon hits with Extra Strong force!",
+        "Hellforged Megademon uses Megademon Forge Break, shattering 0 Guard and hitting Amazon for 46.",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon takes 0 Burn damage.",
+        "Cinderlord Megademon hits with Extra Strong force!",
+        "Cinderlord Megademon uses Megademon Ember Collapse on Amazon for 41 and Rogue Scout for 43.",
+        "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+        "Doomtide Finger Mage takes 1 Burn damage.",
+        "Doomtide Finger Mage hits with Extra Strong force!",
+        "Doomtide Finger Mage uses Finger Mage Doom Wave on Amazon for 40 and Rogue Scout for 42.",
+        "The Wanderer takes 5 Burn damage.",
+        "Turn 3 begins."
+      ]
+    },
+    {
+      "turn": 3,
+      "start": {
+        "hero": {
+          "life": 41,
+          "maxLife": 467,
+          "guard": 0,
+          "energy": 10,
+          "burn": 4,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 105,
+          "maxLife": 242,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 554,
+            "maxLife": 699,
+            "guard": 35,
+            "burn": 10,
+            "poison": 0,
+            "slow": 6,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Bulwark (35)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 173,
+            "maxLife": 278,
+            "guard": 47,
+            "burn": 10,
+            "poison": 0,
+            "slow": 6,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 41,
+            "maxLife": 278,
+            "guard": 35,
+            "burn": 16,
+            "poison": 0,
+            "slow": 10,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 19,
+            "maxLife": 264,
+            "guard": 0,
+            "burn": 35,
+            "poison": 0,
+            "slow": 18,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_27",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_16",
+            "cardId": "amazon_strafe",
+            "title": "Strafe",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_26",
+            "cardId": "amazon_lightning_fury",
+            "title": "Lightning Fury",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_4",
+            "cardId": "amazon_charged_strike",
+            "title": "Charged Strike",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Exploding Arrow -> Cinderlord Megademon",
+        "Card: Strafe"
+      ],
+      "end": {
+        "hero": {
+          "life": 0,
+          "maxLife": 467,
+          "guard": 0,
+          "energy": 6,
+          "burn": 4,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 105,
+          "maxLife": 242,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 533,
+            "maxLife": 699,
+            "guard": 0,
+            "burn": 16,
+            "poison": 0,
+            "slow": 10,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Bulwark (35)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 164,
+            "maxLife": 278,
+            "guard": 0,
+            "burn": 16,
+            "poison": 0,
+            "slow": 10,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_3",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_26",
+            "cardId": "amazon_lightning_fury",
+            "title": "Lightning Fury",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_4",
+            "cardId": "amazon_charged_strike",
+            "title": "Charged Strike",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_7",
+            "cardId": "amazon_strafe",
+            "title": "Strafe",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Doomtide Finger Mage hits with Extra Strong force!",
+        "Doomtide Finger Mage uses Finger Mage Doom Wave on Amazon for 40 and Rogue Scout for 42.",
+        "The Wanderer takes 5 Burn damage.",
+        "Turn 3 begins.",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Exploding Arrow: dealt 15 to Cinderlord Megademon. Cedar Bow dealt 6 fire damage. Cedar Bow applied 6 Burn. Cedar Bow applied 4 Slow. applied 7 Burn.",
+        "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon falls.",
+        "Amazon falls.",
+        "Cinderlord Megademon erupts in flame for 33 fire damage! (bypasses Guard)",
+        "Doomtide Finger Mage falls.",
+        "Doomtide Finger Mage erupts in flame for 0 fire damage! (bypasses Guard)",
+        "Strafe: dealt 118 total damage. Cedar Bow dealt 12 fire damage across 2 targets. Cedar Bow applied 6 Burn to 2 targets. Cedar Bow applied 4 Slow to 2 targets. drew 1 card.",
+        "The Wanderer falls. Encounter lost."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 0,
+      "maxLife": 467,
+      "guard": 0,
+      "energy": 6,
+      "burn": 4,
+      "poison": 0,
+      "chill": 0,
+      "amplify": 0,
+      "weaken": 0,
+      "energyDrain": 0
+    },
+    "mercenary": {
+      "name": "Rogue Scout",
+      "life": 105,
+      "maxLife": 242,
+      "guard": 0,
+      "nextAttackBonus": 0,
+      "markedEnemyId": ""
+    },
+    "enemies": [
+      {
+        "id": "act_4_boss_enemy_1",
+        "name": "Diablo",
+        "life": 533,
+        "maxLife": 699,
+        "guard": 0,
+        "burn": 16,
+        "poison": 0,
+        "slow": 10,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Diablo Hell Bulwark (35)"
+      },
+      {
+        "id": "act_4_boss_enemy_2",
+        "name": "Hellforged Megademon",
+        "life": 164,
+        "maxLife": 278,
+        "guard": 0,
+        "burn": 16,
+        "poison": 0,
+        "slow": 10,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Megademon Forge Break (32)"
+      }
+    ],
+    "hand": [
+      {
+        "instanceId": "card_3",
+        "cardId": "amazon_magic_arrow",
+        "title": "Magic Arrow",
+        "cost": 1
+      },
+      {
+        "instanceId": "card_26",
+        "cardId": "amazon_lightning_fury",
+        "title": "Lightning Fury",
+        "cost": 2
+      },
+      {
+        "instanceId": "card_4",
+        "cardId": "amazon_charged_strike",
+        "title": "Charged Strike",
+        "cost": 2
+      },
+      {
+        "instanceId": "card_7",
+        "cardId": "amazon_strafe",
+        "title": "Strafe",
+        "cost": 2
+      }
+    ]
+  },
+  "recentLog": [
+    "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+    "Doomtide Finger Mage takes 1 Burn damage.",
+    "Doomtide Finger Mage hits with Extra Strong force!",
+    "Doomtide Finger Mage uses Finger Mage Doom Wave on Amazon for 40 and Rogue Scout for 42.",
+    "The Wanderer takes 5 Burn damage.",
+    "Turn 3 begins.",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Exploding Arrow: dealt 15 to Cinderlord Megademon. Cedar Bow dealt 6 fire damage. Cedar Bow applied 6 Burn. Cedar Bow applied 4 Slow. applied 7 Burn.",
+    "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon falls.",
+    "Amazon falls.",
+    "Cinderlord Megademon erupts in flame for 33 fire damage! (bypasses Guard)",
+    "Doomtide Finger Mage falls.",
+    "Doomtide Finger Mage erupts in flame for 0 fire damage! (bypasses Guard)",
+    "Strafe: dealt 118 total damage. Cedar Bow dealt 12 fire damage across 2 targets. Cedar Bow applied 6 Burn to 2 targets. Cedar Bow applied 4 Slow to 2 targets. drew 1 card.",
+    "The Wanderer falls. Encounter lost."
+  ]
+}

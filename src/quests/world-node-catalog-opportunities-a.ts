@@ -42,8 +42,8 @@
                   "lance_column_driven",
                   ["sunwell_lance_column"]
                 ),
+                { kind: "class_point", value: 1 },
                 { kind: "mercenary_attack", value: 1 },
-                { kind: "gold_bonus", value: 12 },
               ],
             },
             {
@@ -114,8 +114,8 @@
                   "shield_train_driven",
                   ["sunwell_shield_train"]
                 ),
+                { kind: "reinforce_build" },
                 { kind: "mercenary_attack", value: 1 },
-                { kind: "mercenary_max_life", value: 4 },
               ],
             },
           ],
@@ -144,7 +144,7 @@
                   "water_train_staged",
                   ["sunwell_water_train"]
                 ),
-                { kind: "hero_potion_heal", value: 1 },
+                { kind: "support_build" },
                 { kind: "refill_potions", value: 1 },
               ],
             },
@@ -164,8 +164,8 @@
                   "outriders_pushed",
                   ["sunwell_outriders"]
                 ),
+                { kind: "reinforce_build" },
                 { kind: "mercenary_attack", value: 1 },
-                { kind: "gold_bonus", value: 10 },
               ],
             },
           ],
@@ -215,7 +215,7 @@
                   "beacon_chain_focused",
                   ["sunwell_beacon_chain_focused"]
                 ),
-                { kind: "gold_bonus", value: 12 },
+                { kind: "reinforce_build" },
                 { kind: "hero_max_energy", value: 1 },
               ],
             },
@@ -303,8 +303,8 @@
                   "lances_reserved",
                   ["sunwell_lances_reserved"]
                 ),
+                { kind: "reinforce_build" },
                 { kind: "mercenary_attack", value: 1 },
-                { kind: "refill_potions", value: 1 },
               ],
             },
             {

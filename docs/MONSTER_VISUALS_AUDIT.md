@@ -1,10 +1,15 @@
 # Monster Visuals Audit
 
-Last updated: March 24, 2026.
+Last updated: March 28, 2026.
+
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- Use `BLOOD_ROGUE_VISUAL_IDENTITY.md` for the canonical visual standard.
+- Use `SPRITE_GENERATION_BACKLOG.md` for current sprite-generation and import rules.
 
 ## Scope
 
-This document tracks the current monster-portrait pipeline used by combat and the remaining gaps before the roster feels consistently Diablo II-like while drifting into Rouge's own dark-fantasy portrait treatment.
+This document tracks the current monster-portrait pipeline used by combat and the remaining gaps before the roster feels consistent with the Blood Rogue visual identity.
 
 ## Landed In This Pass
 
@@ -12,7 +17,7 @@ This document tracks the current monster-portrait pipeline used by combat and th
 - The retired steampunk icon runtime has been deleted. Missing or intentionally-disabled monster portraits now use Diablo-inspired fallback icons.
 - The combat portrait presentation now bottom-aligns enemy sprites, uses pixel-art rendering for enemy PNGs, and adds a subtle hostile halo behind enemy figures.
 - Existing enemy and boss PNGs were repacked with `scripts/polish-monster-sprites.sh` so the visible silhouette fills more of the portrait slot.
-- `scripts/generate-monster-sprites.py` now exports first-pass monster portraits from raw Diablo II source sheets into a Rouge-specific graded style.
+- `scripts/generate-monster-sprites.py` now exports first-pass monster portraits from raw Diablo II source sheets into a Blood Rogue-aligned graded style.
 - The first generated enemy batch now covers: `baboon_demon`, `council_member`, `demon_imp`, `fallen`, `fallen_shaman`, `fetish`, `fetish_shaman`, `frog_demon`, `giant_mosquito`, `goatman`, `regurgitator`, `sand_maggot`, `sand_maggot_young`, `vampire`, `vulture_demon`, and `wraith`.
 
 ## Current Runtime Rules

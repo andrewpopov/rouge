@@ -30,7 +30,7 @@
               "Turn the last crossing into a reserve stack that keeps the reliquary road supplied.",
               "tomb_reserves_stacked",
               ["sunwell_legacy_tomb_reserves"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "support_build" }, { kind: "refill_potions", value: 1 }]
             ),
             legacyChoice(
               "sunwell_legacy_opportunity",
@@ -40,7 +40,7 @@
               "Carry the same route into one last line of desert markers before the tomb descent closes.",
               "sand_markers_scored",
               ["sunwell_legacy_sand_markers"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -142,7 +142,7 @@
               "Use the same route to close out the last signal net across the Kurast docks.",
               "last_signal_net_sealed",
               ["kurast_legacy_signal_net"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -244,7 +244,7 @@
               "Use the same breach line to mark the last safe cuts into the sanctuary.",
               "sanctuary_marks_scored",
               ["hellforge_legacy_sanctuary_marks"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -346,7 +346,7 @@
               "Use the same summit line to mark the last switchbacks into the Ancients road.",
               "last_switchbacks_marked",
               ["harrogath_legacy_last_switchbacks"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },

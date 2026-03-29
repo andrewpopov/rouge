@@ -197,6 +197,40 @@ interface UiPhaseViewApi {
   render(root: HTMLElement, appState: AppState, services: UiRenderServices): void;
 }
 
+interface ClassSelectorProfileRatings {
+  damage: number;
+  control: number;
+  survivability: number;
+  speed: number;
+  setup: number;
+}
+
+interface ClassSelectorPathGuideDefinition {
+  laneIdentity: string;
+  emphasisLine: string;
+}
+
+interface ClassSelectorGuideDefinition {
+  roleLabel: string;
+  complexity: string;
+  playstyleTags: string[];
+  profileRatings: ClassSelectorProfileRatings;
+  coreHook: string;
+  selectionPitch: string;
+  flavor: string;
+  pathGuides: Record<string, ClassSelectorPathGuideDefinition>;
+}
+
+interface ClassSelectorGuideApi {
+  getGuide(classId: string): ClassSelectorGuideDefinition | null;
+}
+
+interface ActGuideViewApi {
+  hasOverlay(run: RunState | null | undefined, phase: AppPhase): boolean;
+  buildOverlayMarkup(appState: AppState, services: UiRenderServices): string;
+  render(root: HTMLElement, appState: AppState, services: UiRenderServices): void;
+}
+
 interface FrontDoorHallViewApi {
   buildHallTabNav(activeSection: string): string;
   buildAccountOverviewMarkup(
@@ -675,6 +709,8 @@ interface Window {
   ROUGE_INVENTORY_VIEW: InventoryViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
   ROUGE_WORLD_MAP_VIEW: UiPhaseViewApi;
+  ROUGE_ACT_GUIDE_VIEW: ActGuideViewApi;
+  __ROUGE_CHARACTER_SELECT_GUIDE: ClassSelectorGuideApi;
   __ROUGE_COMBAT_VIEW_EXPLORATION: {
     getCardElement(card: CardDefinition): string;
     ELEMENT_LABELS: Record<string, string>;

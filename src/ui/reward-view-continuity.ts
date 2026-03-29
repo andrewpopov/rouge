@@ -33,12 +33,13 @@
     if (reward.endsRun) {
       resolutionLine = "This claim closes the final run and turns the next shell surface into archive review.";
     } else if (reward.endsAct) {
-      resolutionLine = `${run.actTitle} closes here, then the shell pivots into the act-transition wrapper.`;
+      resolutionLine = `${run.actTitle} closes here, then the shell pivots into the guide-scroll handoff before the act-transition wrapper.`;
     }
 
     let nextShellLabel = "World Map";
     let nextShellTone = "available";
     let nextShellCopy = "After this claim the shell moves to World Map.";
+    let guideSurfaceCopy = "";
 
     if (reward.endsRun) {
       nextShellLabel = "Run-End Review";
@@ -48,6 +49,7 @@
       nextShellLabel = "Act Transition";
       nextShellTone = "cleared";
       nextShellCopy = "After this claim the shell moves to Act Transition.";
+      guideSurfaceCopy = "After this claim the shell moves to the Act Guide.";
     }
 
     return `
@@ -76,6 +78,7 @@
             ${buildStat("Encounter", reward.encounterNumber)}
           </div>
           <p class="service-subtitle">${escapeHtml(nextShellCopy)}</p>
+          ${guideSurfaceCopy ? `<p class="service-subtitle">${escapeHtml(guideSurfaceCopy)}</p>` : ""}
         </article>
       </div>
     `;

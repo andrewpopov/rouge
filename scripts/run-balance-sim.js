@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs");
 const path = require("node:path");
 
-const ROOT = path.resolve(__dirname, "..");
-const HELPER_PATH = path.join(ROOT, "generated", "tests", "helpers", "combat-simulator.js");
+const { runOrchestratorSpec } = require("./orchestrator-wrapper-utils");
 
 function parseArgs(argv) {
   const parsed = {
@@ -13,6 +11,9 @@ function parseArgs(argv) {
     encounterSetId: "act5_endgame",
     runsPerEncounter: 16,
     encounterLimit: 0,
+    output: "",
+    resume: false,
+    stopAfter: 0,
     json: false,
   };
 
@@ -42,6 +43,20 @@ function parseArgs(argv) {
     if (arg === "--limit" && next) {
       parsed.encounterLimit = Math.max(0, Number.parseInt(next, 10) || 0);
       index += 1;
+      continue;
+    }
+    if (arg === "--output" && next) {
+      parsed.output = path.resolve(next);
+      index += 1;
+      continue;
+    }
+    if (arg === "--stop-after" && next) {
+      parsed.stopAfter = Math.max(0, Number.parseInt(next, 10) || 0);
+      index += 1;
+      continue;
+    }
+    if (arg === "--resume") {
+      parsed.resume = true;
       continue;
     }
     if (arg === "--json") {
@@ -83,24 +98,85 @@ function printHumanReport(report) {
   }
 }
 
-function main() {
-  if (!fs.existsSync(HELPER_PATH)) {
-    console.error("Missing compiled simulator helper. Run `npm run build` or `npm run sim:balance`.");
-    process.exit(1);
+function buildReport(artifact, options) {
+  const classMap = new Map();
+  for (const run of artifact.runs) {
+    if (!classMap.has(run.classId)) {
+      classMap.set(run.classId, {
+        classId: run.classId,
+        className: run.className,
+        scenarios: [],
+      });
+    }
+    classMap.get(run.classId).scenarios.push({
+      scenarioId: run.combat?.scenarioId || run.policyId,
+      label: run.combat?.scenarioLabel || run.policyLabel,
+      assumptions: run.combat?.assumptions || [],
+      build: {
+        level: run.combat?.build.level || run.finalLevel,
+        powerScore: run.combat?.build.powerScore || 0,
+        deckSize: run.combat?.build.deckSize || 0,
+        potions: run.combat?.overall.averagePotionsRemaining || 0,
+        hero: run.combat?.build.hero || run.summary.finalBuild.hero,
+        weapon: run.combat?.build.weapon || run.summary.finalBuild.weapon,
+      },
+      overall: run.combat?.overall || {
+        winRate: 0,
+        averageTurns: 0,
+        averageHeroLifePct: 0,
+        averageEnemyLifePct: 0,
+      },
+      encounters: run.combat?.encounters || [],
+    });
   }
 
-  const {
-    runBalanceSimulationReport,
-  } = require(HELPER_PATH);
+  return {
+    generatedAt: artifact.generatedAt,
+    encounterSetId: options.encounterSetId,
+    encounterSetLabel: artifact.runs[0]?.combat?.encounterSetLabel || options.encounterSetId,
+    runsPerEncounter: options.runsPerEncounter,
+    classReports: [...classMap.values()].sort((left, right) => left.className.localeCompare(right.className)),
+  };
+}
+
+function main() {
   const options = parseArgs(process.argv.slice(2));
-  const report = runBalanceSimulationReport(options);
+  const spec = {
+    experimentId: "balance_sim",
+    title: "Balance Simulation",
+    scenarioType: "combat_balance",
+    classIds: options.classIds,
+    policyIds: [],
+    scenarioIds: options.scenarioIds,
+    seedOffsets: [0],
+    throughActNumber: 5,
+    probeRuns: 0,
+    maxCombatTurns: 36,
+    concurrency: 1,
+    encounterSetId: options.encounterSetId,
+    runsPerEncounter: options.runsPerEncounter,
+    encounterLimit: options.encounterLimit,
+    traceFailures: false,
+    traceOutliers: false,
+    slowRunThresholdMs: 60000,
+    expectedBands: [],
+    tags: ["wrapper", "combat-balance"],
+  };
+
+  const result = runOrchestratorSpec(spec, {
+    mode: options.resume ? "resume" : "run",
+    output: options.output,
+    stopAfter: options.stopAfter,
+  });
+  const report = buildReport(result.artifact, options);
 
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));
-    return;
+  } else {
+    printHumanReport(report);
   }
 
-  printHumanReport(report);
+  result.cleanup();
 }
 
 main();

@@ -1,0 +1,1983 @@
+{
+  "generatedAt": "2026-03-28T06:11:16.545Z",
+  "throughActNumber": 4,
+  "probeRuns": 1,
+  "seedCount": 1,
+  "summary": [
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "runs": 1,
+      "winRate": 0,
+      "failureRate": 0,
+      "averageFinalAct": 4,
+      "averageFinalLevel": 27,
+      "averageFinalHandSize": 5,
+      "dominantArchetypes": [
+        {
+          "key": "Bow Volley",
+          "count": 1
+        }
+      ],
+      "secondaryArchetypes": [
+        {
+          "key": "Javelin Storm",
+          "count": 1
+        }
+      ],
+      "weaponFamilies": [
+        {
+          "key": "Bows",
+          "count": 1
+        }
+      ],
+      "weaponRarities": [
+        {
+          "key": "white",
+          "count": 1
+        }
+      ],
+      "runewords": [
+        {
+          "key": "Edge",
+          "count": 1
+        },
+        {
+          "key": "Stealth",
+          "count": 1
+        }
+      ],
+      "failureEncounters": [
+        {
+          "key": "none",
+          "count": 1
+        }
+      ],
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "runs": 1,
+          "averagePower": 342.95,
+          "averageDeckSize": 13,
+          "averageDamageBonus": 0,
+          "averageGuardBonus": 0,
+          "averageHandSize": 5
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "runs": 1,
+          "averagePower": 1216,
+          "averageDeckSize": 24,
+          "averageDamageBonus": 24,
+          "averageGuardBonus": 10,
+          "averageHandSize": 5
+        },
+        {
+          "checkpointId": "act_3_safe_zone",
+          "label": "Act 3 Safe Zone",
+          "actNumber": 3,
+          "runs": 1,
+          "averagePower": 1821.22,
+          "averageDeckSize": 26,
+          "averageDamageBonus": 34,
+          "averageGuardBonus": 14,
+          "averageHandSize": 5
+        },
+        {
+          "checkpointId": "act_4_safe_zone",
+          "label": "Act 4 Safe Zone",
+          "actNumber": 4,
+          "runs": 1,
+          "averagePower": 2232.43,
+          "averageDeckSize": 27,
+          "averageDamageBonus": 45,
+          "averageGuardBonus": 20,
+          "averageHandSize": 5
+        }
+      ],
+      "probes": [
+        {
+          "encounterId": "act_1_zone_burial_grounds_patrol",
+          "encounterName": "Burial Grounds Patrol",
+          "zoneTitle": "Burial Grounds",
+          "kind": "elite",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 3,
+          "averageHeroLifePct": 80,
+          "averagePowerRatio": 3.04
+        },
+        {
+          "encounterId": "act_1_boss",
+          "encounterName": "Andariel",
+          "zoneTitle": "Catacombs",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 0,
+          "averageTurns": 2,
+          "averageHeroLifePct": 0,
+          "averagePowerRatio": 0.72
+        },
+        {
+          "encounterId": "act_4_boss",
+          "encounterName": "Diablo",
+          "zoneTitle": "Chaos Sanctuary",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 5,
+          "averageHeroLifePct": 1.03,
+          "averagePowerRatio": 1.05
+        },
+        {
+          "encounterId": "act_3_boss",
+          "encounterName": "Mephisto",
+          "zoneTitle": "Durance of Hate",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 3,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 1.53
+        },
+        {
+          "encounterId": "act_3_zone_flayer_dungeon_patrol",
+          "encounterName": "Flayer Dungeon Patrol",
+          "zoneTitle": "Flayer Dungeon",
+          "kind": "elite",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 6.88
+        },
+        {
+          "encounterId": "act_2_branch_miniboss",
+          "encounterName": "Palace Champion",
+          "zoneTitle": "Halls of the Dead",
+          "kind": "elite",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 89.61,
+          "averagePowerRatio": 5.33
+        },
+        {
+          "encounterId": "act_4_zone_river_of_flame_swarm",
+          "encounterName": "River of Flame Swarm",
+          "zoneTitle": "River of Flame",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 3,
+          "averageHeroLifePct": 91.77,
+          "averagePowerRatio": 3.9
+        },
+        {
+          "encounterId": "act_3_opening_crossfire",
+          "encounterName": "Jungle Crossfire",
+          "zoneTitle": "Spider Cavern",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 6.49
+        },
+        {
+          "encounterId": "act_2_boss",
+          "encounterName": "Duriel",
+          "zoneTitle": "Tal Rasha's Chamber",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 3,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 1.39
+        },
+        {
+          "encounterId": "act_1_zone_tristram_swarm",
+          "encounterName": "Tristram Swarm",
+          "zoneTitle": "Tristram",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 7,
+          "averageHeroLifePct": 84,
+          "averagePowerRatio": 2.14
+        },
+        {
+          "encounterId": "act_2_zone_valley_of_snakes_swarm",
+          "encounterName": "Valley of Snakes Swarm",
+          "zoneTitle": "Valley of Snakes",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 4.83
+        }
+      ]
+    },
+    {
+      "classId": "druid",
+      "className": "Druid",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "runs": 1,
+      "winRate": 0,
+      "failureRate": 0,
+      "averageFinalAct": 4,
+      "averageFinalLevel": 27,
+      "averageFinalHandSize": 5,
+      "dominantArchetypes": [
+        {
+          "key": "Summoner Engine",
+          "count": 1
+        }
+      ],
+      "secondaryArchetypes": [
+        {
+          "key": "Elemental Storm",
+          "count": 1
+        }
+      ],
+      "weaponFamilies": [
+        {
+          "key": "Maces",
+          "count": 1
+        }
+      ],
+      "weaponRarities": [
+        {
+          "key": "white",
+          "count": 1
+        }
+      ],
+      "runewords": [
+        {
+          "key": "Stealth",
+          "count": 1
+        },
+        {
+          "key": "Strength",
+          "count": 1
+        }
+      ],
+      "failureEncounters": [
+        {
+          "key": "none",
+          "count": 1
+        }
+      ],
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "runs": 1,
+          "averagePower": 342.15,
+          "averageDeckSize": 13,
+          "averageDamageBonus": 0,
+          "averageGuardBonus": 0,
+          "averageHandSize": 5
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "runs": 1,
+          "averagePower": 1335.27,
+          "averageDeckSize": 24,
+          "averageDamageBonus": 17,
+          "averageGuardBonus": 14,
+          "averageHandSize": 6
+        },
+        {
+          "checkpointId": "act_3_safe_zone",
+          "label": "Act 3 Safe Zone",
+          "actNumber": 3,
+          "runs": 1,
+          "averagePower": 1982.14,
+          "averageDeckSize": 28,
+          "averageDamageBonus": 26,
+          "averageGuardBonus": 20,
+          "averageHandSize": 6
+        },
+        {
+          "checkpointId": "act_4_safe_zone",
+          "label": "Act 4 Safe Zone",
+          "actNumber": 4,
+          "runs": 1,
+          "averagePower": 2510.9,
+          "averageDeckSize": 29,
+          "averageDamageBonus": 42,
+          "averageGuardBonus": 21,
+          "averageHandSize": 5
+        }
+      ],
+      "probes": [
+        {
+          "encounterId": "act_1_zone_burial_grounds_patrol",
+          "encounterName": "Burial Grounds Patrol",
+          "zoneTitle": "Burial Grounds",
+          "kind": "elite",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 5,
+          "averageHeroLifePct": 81.82,
+          "averagePowerRatio": 3.03
+        },
+        {
+          "encounterId": "act_1_boss",
+          "encounterName": "Andariel",
+          "zoneTitle": "Catacombs",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 0,
+          "averageTurns": 2,
+          "averageHeroLifePct": 0,
+          "averagePowerRatio": 0.72
+        },
+        {
+          "encounterId": "act_4_boss",
+          "encounterName": "Diablo",
+          "zoneTitle": "Chaos Sanctuary",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 5,
+          "averageHeroLifePct": 25.6,
+          "averagePowerRatio": 1.18
+        },
+        {
+          "encounterId": "act_3_boss",
+          "encounterName": "Mephisto",
+          "zoneTitle": "Durance of Hate",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 3,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 1.67
+        },
+        {
+          "encounterId": "act_3_zone_flayer_dungeon_patrol",
+          "encounterName": "Flayer Dungeon Patrol",
+          "zoneTitle": "Flayer Dungeon",
+          "kind": "elite",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 7.48
+        },
+        {
+          "encounterId": "act_2_branch_miniboss",
+          "encounterName": "Palace Champion",
+          "zoneTitle": "Halls of the Dead",
+          "kind": "elite",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 88.57,
+          "averagePowerRatio": 5.85
+        },
+        {
+          "encounterId": "act_4_zone_river_of_flame_swarm",
+          "encounterName": "River of Flame Swarm",
+          "zoneTitle": "River of Flame",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 93.3,
+          "averagePowerRatio": 4.39
+        },
+        {
+          "encounterId": "act_3_opening_crossfire",
+          "encounterName": "Jungle Crossfire",
+          "zoneTitle": "Spider Cavern",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 7.07
+        },
+        {
+          "encounterId": "act_2_boss",
+          "encounterName": "Duriel",
+          "zoneTitle": "Tal Rasha's Chamber",
+          "kind": "boss",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 3,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 1.52
+        },
+        {
+          "encounterId": "act_1_zone_tristram_swarm",
+          "encounterName": "Tristram Swarm",
+          "zoneTitle": "Tristram",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 9,
+          "averageHeroLifePct": 72.73,
+          "averagePowerRatio": 2.13
+        },
+        {
+          "encounterId": "act_2_zone_valley_of_snakes_swarm",
+          "encounterName": "Valley of Snakes Swarm",
+          "zoneTitle": "Valley of Snakes",
+          "kind": "battle",
+          "runs": 1,
+          "winRate": 1,
+          "averageTurns": 1,
+          "averageHeroLifePct": 100,
+          "averagePowerRatio": 5.3
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "classId": "amazon",
+      "className": "Amazon",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "seedOffset": 0,
+      "outcome": "reached_checkpoint",
+      "finalActNumber": 4,
+      "finalLevel": 27,
+      "failure": null,
+      "finalBuild": {
+        "level": 27,
+        "deckSize": 27,
+        "topCards": [
+          "Charged Strike",
+          "Charged Strike",
+          "Charged Strike",
+          "Guided Arrow",
+          "Freezing Arrow"
+        ],
+        "deckProficiencies": [
+          {
+            "proficiency": "bow",
+            "count": 16
+          },
+          {
+            "proficiency": "passive",
+            "count": 6
+          },
+          {
+            "proficiency": "javelin",
+            "count": 4
+          },
+          {
+            "proficiency": "neutral",
+            "count": 1
+          }
+        ],
+        "hero": {
+          "maxLife": 389,
+          "maxEnergy": 9,
+          "handSize": 5,
+          "potionHeal": 24,
+          "damageBonus": 45,
+          "guardBonus": 20,
+          "burnBonus": 4
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "maxLife": 248,
+          "attack": 70
+        },
+        "weapon": {
+          "itemId": "item_cedar_bow",
+          "name": "Cedar Bow",
+          "family": "Bows",
+          "rarity": "white",
+          "preferredForClass": true,
+          "damageTypes": [
+            {
+              "type": "fire",
+              "amount": 7
+            }
+          ],
+          "effects": [
+            {
+              "kind": "burn",
+              "amount": 5
+            }
+          ]
+        },
+        "armor": {
+          "itemId": "item_quilted_armor",
+          "name": "Quilted Armor",
+          "rarity": "white",
+          "resistances": [
+            {
+              "type": "physical",
+              "amount": 1
+            }
+          ],
+          "immunities": []
+        },
+        "favoredTreeId": "amazon_bow_and_crossbow",
+        "favoredTreeName": "Bow and Crossbow",
+        "dominantArchetypeId": "amazon_bow_and_crossbow",
+        "dominantArchetypeLabel": "Bow Volley",
+        "dominantArchetypeScore": 187,
+        "secondaryArchetypeId": "amazon_javelin_and_spear",
+        "secondaryArchetypeLabel": "Javelin Storm",
+        "secondaryArchetypeScore": 133,
+        "archetypeScores": [
+          {
+            "archetypeId": "amazon_bow_and_crossbow",
+            "label": "Bow Volley",
+            "score": 187
+          },
+          {
+            "archetypeId": "amazon_javelin_and_spear",
+            "label": "Javelin Storm",
+            "score": 133
+          },
+          {
+            "archetypeId": "amazon_passive_and_magic",
+            "label": "Passive Tempo",
+            "score": 78
+          }
+        ],
+        "activeRunewords": [
+          "Edge",
+          "Stealth"
+        ]
+      },
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "level": 1,
+          "gold": 0,
+          "powerScore": 342.95,
+          "powerBreakdown": {
+            "offense": 4.5,
+            "defense": 66.2,
+            "sustain": 58.5,
+            "utility": 9,
+            "deck": 199.75,
+            "equipment": 0,
+            "progression": 5,
+            "resources": 0
+          },
+          "deckSize": 13,
+          "topCards": [
+            "Inner Sight",
+            "Inner Sight",
+            "Magic Arrow",
+            "Magic Arrow",
+            "Magic Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 5
+            },
+            {
+              "proficiency": "passive",
+              "count": 5
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 50,
+            "maxEnergy": 3,
+            "handSize": 5,
+            "potionHeal": 15,
+            "damageBonus": 0,
+            "guardBonus": 0,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 28,
+            "attack": 5
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 0,
+            "focus": 0,
+            "command": 0
+          },
+          "favoredTreeId": "",
+          "favoredTreeName": "",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 24,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 22,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 24
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 22
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 12
+            }
+          ],
+          "weapon": null,
+          "activeRunewords": [],
+          "runewordsForged": 0,
+          "armor": {
+            "resistances": [],
+            "immunities": []
+          },
+          "choiceCounts": {},
+          "probes": [
+            {
+              "encounterId": "act_1_boss",
+              "encounterName": "Andariel",
+              "zoneTitle": "Catacombs",
+              "kind": "boss",
+              "enemyPowerScore": 475,
+              "powerDelta": -132.05,
+              "powerRatio": 0.72,
+              "runs": 1,
+              "winRate": 0,
+              "averageTurns": 2,
+              "averageHeroLifePct": 0,
+              "averageMercenaryLifePct": 0,
+              "averageEnemyLifePct": 90.68
+            },
+            {
+              "encounterId": "act_1_zone_burial_grounds_patrol",
+              "encounterName": "Burial Grounds Patrol",
+              "zoneTitle": "Burial Grounds",
+              "kind": "elite",
+              "enemyPowerScore": 112.9,
+              "powerDelta": 230.05,
+              "powerRatio": 3.04,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 3,
+              "averageHeroLifePct": 80,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_1_zone_tristram_swarm",
+              "encounterName": "Tristram Swarm",
+              "zoneTitle": "Tristram",
+              "kind": "battle",
+              "enemyPowerScore": 160.4,
+              "powerDelta": 182.55,
+              "powerRatio": 2.14,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 7,
+              "averageHeroLifePct": 84,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "level": 7,
+          "gold": 75,
+          "powerScore": 1216,
+          "powerBreakdown": {
+            "offense": 268.2,
+            "defense": 258.2,
+            "sustain": 77.7,
+            "utility": 44.75,
+            "deck": 459.55,
+            "equipment": 57.6,
+            "progression": 50,
+            "resources": 0
+          },
+          "deckSize": 24,
+          "topCards": [
+            "Guided Arrow",
+            "Freezing Arrow",
+            "Valkyrie",
+            "Strafe",
+            "Strafe"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 2
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 154,
+            "maxEnergy": 7,
+            "handSize": 5,
+            "potionHeal": 21,
+            "damageBonus": 24,
+            "guardBonus": 10,
+            "burnBonus": 3
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 72,
+            "attack": 18
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 2,
+            "focus": 2,
+            "command": 8
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 135,
+          "secondaryArchetypeId": "amazon_passive_and_magic",
+          "secondaryArchetypeLabel": "Passive Tempo",
+          "secondaryArchetypeScore": 40,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 135
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 13
+            }
+          ],
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow"
+          },
+          "activeRunewords": [
+            "Edge"
+          ],
+          "runewordsForged": 1,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 2,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 22,
+            "quest": 1,
+            "shrine": 1,
+            "event": 1,
+            "opportunity": 2
+          },
+          "probes": [
+            {
+              "encounterId": "act_2_boss",
+              "encounterName": "Duriel",
+              "zoneTitle": "Tal Rasha's Chamber",
+              "kind": "boss",
+              "enemyPowerScore": 875.73,
+              "powerDelta": 340.27,
+              "powerRatio": 1.39,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 3,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_2_branch_miniboss",
+              "encounterName": "Palace Champion",
+              "zoneTitle": "Halls of the Dead",
+              "kind": "elite",
+              "enemyPowerScore": 228.17,
+              "powerDelta": 987.83,
+              "powerRatio": 5.33,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 89.61,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_2_zone_valley_of_snakes_swarm",
+              "encounterName": "Valley of Snakes Swarm",
+              "zoneTitle": "Valley of Snakes",
+              "kind": "battle",
+              "enemyPowerScore": 251.71,
+              "powerDelta": 964.29,
+              "powerRatio": 4.83,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        },
+        {
+          "checkpointId": "act_3_safe_zone",
+          "label": "Act 3 Safe Zone",
+          "actNumber": 3,
+          "level": 16,
+          "gold": 462,
+          "powerScore": 1821.22,
+          "powerBreakdown": {
+            "offense": 391.1,
+            "defense": 496.6,
+            "sustain": 87.3,
+            "utility": 47.75,
+            "deck": 612.87,
+            "equipment": 57.6,
+            "progression": 128,
+            "resources": 0
+          },
+          "deckSize": 26,
+          "topCards": [
+            "Charged Strike",
+            "Charged Strike",
+            "Charged Strike",
+            "Guided Arrow",
+            "Freezing Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 15
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 4
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 322,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 24,
+            "damageBonus": 34,
+            "guardBonus": 14,
+            "burnBonus": 4
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 146,
+            "attack": 39
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 3,
+            "focus": 3,
+            "command": 18
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 183,
+          "secondaryArchetypeId": "amazon_javelin_and_spear",
+          "secondaryArchetypeLabel": "Javelin Storm",
+          "secondaryArchetypeScore": 61,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 183
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 61
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 40
+            }
+          ],
+          "weapon": {
+            "itemId": "item_short_bow",
+            "name": "Short Bow",
+            "family": "Bows",
+            "rarity": "yellow"
+          },
+          "activeRunewords": [
+            "Edge",
+            "Stealth"
+          ],
+          "runewordsForged": 2,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 2,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 55,
+            "quest": 2,
+            "shrine": 2,
+            "event": 2,
+            "opportunity": 15
+          },
+          "probes": [
+            {
+              "encounterId": "act_3_boss",
+              "encounterName": "Mephisto",
+              "zoneTitle": "Durance of Hate",
+              "kind": "boss",
+              "enemyPowerScore": 1187.81,
+              "powerDelta": 633.41,
+              "powerRatio": 1.53,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 3,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_3_zone_flayer_dungeon_patrol",
+              "encounterName": "Flayer Dungeon Patrol",
+              "zoneTitle": "Flayer Dungeon",
+              "kind": "elite",
+              "enemyPowerScore": 264.85,
+              "powerDelta": 1556.37,
+              "powerRatio": 6.88,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_3_opening_crossfire",
+              "encounterName": "Jungle Crossfire",
+              "zoneTitle": "Spider Cavern",
+              "kind": "battle",
+              "enemyPowerScore": 280.41,
+              "powerDelta": 1540.81,
+              "powerRatio": 6.49,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        },
+        {
+          "checkpointId": "act_4_safe_zone",
+          "label": "Act 4 Safe Zone",
+          "actNumber": 4,
+          "level": 27,
+          "gold": 1667,
+          "powerScore": 2232.43,
+          "powerBreakdown": {
+            "offense": 529,
+            "defense": 647.1,
+            "sustain": 94.3,
+            "utility": 51.5,
+            "deck": 622.83,
+            "equipment": 63.2,
+            "progression": 224.5,
+            "resources": 0
+          },
+          "deckSize": 27,
+          "topCards": [
+            "Charged Strike",
+            "Charged Strike",
+            "Charged Strike",
+            "Guided Arrow",
+            "Freezing Arrow"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "bow",
+              "count": 16
+            },
+            {
+              "proficiency": "passive",
+              "count": 6
+            },
+            {
+              "proficiency": "javelin",
+              "count": 4
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 389,
+            "maxEnergy": 9,
+            "handSize": 5,
+            "potionHeal": 24,
+            "damageBonus": 45,
+            "guardBonus": 20,
+            "burnBonus": 4
+          },
+          "mercenary": {
+            "name": "Rogue Scout",
+            "maxLife": 248,
+            "attack": 70
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 4,
+            "focus": 4,
+            "command": 29
+          },
+          "favoredTreeId": "amazon_bow_and_crossbow",
+          "favoredTreeName": "Bow and Crossbow",
+          "dominantArchetypeId": "amazon_bow_and_crossbow",
+          "dominantArchetypeLabel": "Bow Volley",
+          "dominantArchetypeScore": 187,
+          "secondaryArchetypeId": "amazon_javelin_and_spear",
+          "secondaryArchetypeLabel": "Javelin Storm",
+          "secondaryArchetypeScore": 133,
+          "archetypeScores": [
+            {
+              "archetypeId": "amazon_bow_and_crossbow",
+              "label": "Bow Volley",
+              "score": 187
+            },
+            {
+              "archetypeId": "amazon_javelin_and_spear",
+              "label": "Javelin Storm",
+              "score": 133
+            },
+            {
+              "archetypeId": "amazon_passive_and_magic",
+              "label": "Passive Tempo",
+              "score": 78
+            }
+          ],
+          "weapon": {
+            "itemId": "item_cedar_bow",
+            "name": "Cedar Bow",
+            "family": "Bows",
+            "rarity": "white"
+          },
+          "activeRunewords": [
+            "Edge",
+            "Stealth"
+          ],
+          "runewordsForged": 2,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 4,
+            "card": 9,
+            "upgrade": 1,
+            "boon": 86,
+            "quest": 3,
+            "shrine": 3,
+            "event": 3,
+            "opportunity": 28
+          },
+          "probes": [
+            {
+              "encounterId": "act_4_boss",
+              "encounterName": "Diablo",
+              "zoneTitle": "Chaos Sanctuary",
+              "kind": "boss",
+              "enemyPowerScore": 2135.19,
+              "powerDelta": 97.24,
+              "powerRatio": 1.05,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 5,
+              "averageHeroLifePct": 1.03,
+              "averageMercenaryLifePct": 84.68,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_4_zone_river_of_flame_swarm",
+              "encounterName": "River of Flame Swarm",
+              "zoneTitle": "River of Flame",
+              "kind": "battle",
+              "enemyPowerScore": 572.52,
+              "powerDelta": 1659.91,
+              "powerRatio": 3.9,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 3,
+              "averageHeroLifePct": 91.77,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classId": "druid",
+      "className": "Druid",
+      "policyId": "aggressive",
+      "policyLabel": "Aggressive",
+      "seedOffset": 0,
+      "outcome": "reached_checkpoint",
+      "finalActNumber": 4,
+      "finalLevel": 27,
+      "failure": null,
+      "finalBuild": {
+        "level": 27,
+        "deckSize": 29,
+        "topCards": [
+          "Fury",
+          "Fury",
+          "Fury",
+          "Armageddon",
+          "Armageddon"
+        ],
+        "deckProficiencies": [
+          {
+            "proficiency": "elemental",
+            "count": 18
+          },
+          {
+            "proficiency": "summoning",
+            "count": 6
+          },
+          {
+            "proficiency": "shape_shifting",
+            "count": 4
+          },
+          {
+            "proficiency": "neutral",
+            "count": 1
+          }
+        ],
+        "hero": {
+          "maxLife": 418,
+          "maxEnergy": 8,
+          "handSize": 5,
+          "potionHeal": 24,
+          "damageBonus": 42,
+          "guardBonus": 21,
+          "burnBonus": 1
+        },
+        "mercenary": {
+          "name": "Desert Guard",
+          "maxLife": 210,
+          "attack": 57
+        },
+        "weapon": {
+          "itemId": "item_war_hammer",
+          "name": "War Hammer",
+          "family": "Maces",
+          "rarity": "white",
+          "preferredForClass": true,
+          "damageTypes": [
+            {
+              "type": "fire",
+              "amount": 7
+            }
+          ],
+          "effects": [
+            {
+              "kind": "crushing",
+              "amount": 6
+            }
+          ]
+        },
+        "armor": {
+          "itemId": "item_quilted_armor",
+          "name": "Quilted Armor",
+          "rarity": "white",
+          "resistances": [
+            {
+              "type": "physical",
+              "amount": 1
+            }
+          ],
+          "immunities": []
+        },
+        "favoredTreeId": "druid_summoning",
+        "favoredTreeName": "Summoning",
+        "dominantArchetypeId": "druid_summoning",
+        "dominantArchetypeLabel": "Summoner Engine",
+        "dominantArchetypeScore": 169,
+        "secondaryArchetypeId": "druid_elemental",
+        "secondaryArchetypeLabel": "Elemental Storm",
+        "secondaryArchetypeScore": 72,
+        "archetypeScores": [
+          {
+            "archetypeId": "druid_summoning",
+            "label": "Summoner Engine",
+            "score": 169
+          },
+          {
+            "archetypeId": "druid_elemental",
+            "label": "Elemental Storm",
+            "score": 72
+          },
+          {
+            "archetypeId": "druid_shape_shifting",
+            "label": "Shifter Bruiser",
+            "score": 14
+          }
+        ],
+        "activeRunewords": [
+          "Strength",
+          "Stealth"
+        ]
+      },
+      "checkpoints": [
+        {
+          "checkpointId": "act_1_safe_zone",
+          "label": "Act 1 Safe Zone",
+          "actNumber": 1,
+          "level": 1,
+          "gold": 0,
+          "powerScore": 342.15,
+          "powerBreakdown": {
+            "offense": 3.6,
+            "defense": 74.1,
+            "sustain": 64.9,
+            "utility": 9,
+            "deck": 185.55,
+            "equipment": 0,
+            "progression": 5,
+            "resources": 0
+          },
+          "deckSize": 13,
+          "topCards": [
+            "Raven",
+            "Raven",
+            "Werewolf",
+            "Werewolf",
+            "Poison Creeper"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "elemental",
+              "count": 6
+            },
+            {
+              "proficiency": "shape_shifting",
+              "count": 3
+            },
+            {
+              "proficiency": "summoning",
+              "count": 3
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 55,
+            "maxEnergy": 3,
+            "handSize": 5,
+            "potionHeal": 17,
+            "damageBonus": 0,
+            "guardBonus": 0,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Desert Guard",
+            "maxLife": 34,
+            "attack": 4
+          },
+          "attributes": {
+            "strength": 0,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 0,
+            "focus": 0,
+            "command": 0
+          },
+          "favoredTreeId": "",
+          "favoredTreeName": "",
+          "dominantArchetypeId": "druid_elemental",
+          "dominantArchetypeLabel": "Elemental Storm",
+          "dominantArchetypeScore": 21,
+          "secondaryArchetypeId": "druid_summoning",
+          "secondaryArchetypeLabel": "Summoner Engine",
+          "secondaryArchetypeScore": 18,
+          "archetypeScores": [
+            {
+              "archetypeId": "druid_elemental",
+              "label": "Elemental Storm",
+              "score": 21
+            },
+            {
+              "archetypeId": "druid_summoning",
+              "label": "Summoner Engine",
+              "score": 18
+            },
+            {
+              "archetypeId": "druid_shape_shifting",
+              "label": "Shifter Bruiser",
+              "score": 9
+            }
+          ],
+          "weapon": null,
+          "activeRunewords": [],
+          "runewordsForged": 0,
+          "armor": {
+            "resistances": [],
+            "immunities": []
+          },
+          "choiceCounts": {},
+          "probes": [
+            {
+              "encounterId": "act_1_boss",
+              "encounterName": "Andariel",
+              "zoneTitle": "Catacombs",
+              "kind": "boss",
+              "enemyPowerScore": 475,
+              "powerDelta": -132.85,
+              "powerRatio": 0.72,
+              "runs": 1,
+              "winRate": 0,
+              "averageTurns": 2,
+              "averageHeroLifePct": 0,
+              "averageMercenaryLifePct": 0,
+              "averageEnemyLifePct": 92.55
+            },
+            {
+              "encounterId": "act_1_zone_burial_grounds_patrol",
+              "encounterName": "Burial Grounds Patrol",
+              "zoneTitle": "Burial Grounds",
+              "kind": "elite",
+              "enemyPowerScore": 112.9,
+              "powerDelta": 229.25,
+              "powerRatio": 3.03,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 5,
+              "averageHeroLifePct": 81.82,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_1_zone_tristram_swarm",
+              "encounterName": "Tristram Swarm",
+              "zoneTitle": "Tristram",
+              "kind": "battle",
+              "enemyPowerScore": 160.4,
+              "powerDelta": 181.75,
+              "powerRatio": 2.13,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 9,
+              "averageHeroLifePct": 72.73,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        },
+        {
+          "checkpointId": "act_2_safe_zone",
+          "label": "Act 2 Safe Zone",
+          "actNumber": 2,
+          "level": 7,
+          "gold": 147,
+          "powerScore": 1335.27,
+          "powerBreakdown": {
+            "offense": 191.6,
+            "defense": 274.8,
+            "sustain": 93.7,
+            "utility": 53.25,
+            "deck": 445.92,
+            "equipment": 232,
+            "progression": 44,
+            "resources": 0
+          },
+          "deckSize": 24,
+          "topCards": [
+            "Armageddon",
+            "Hurricane",
+            "Summon Grizzly",
+            "Molten Boulder",
+            "Molten Boulder"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "elemental",
+              "count": 16
+            },
+            {
+              "proficiency": "summoning",
+              "count": 4
+            },
+            {
+              "proficiency": "shape_shifting",
+              "count": 3
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 140,
+            "maxEnergy": 7,
+            "handSize": 6,
+            "potionHeal": 26,
+            "damageBonus": 17,
+            "guardBonus": 14,
+            "burnBonus": 0
+          },
+          "mercenary": {
+            "name": "Desert Guard",
+            "maxLife": 92,
+            "attack": 24
+          },
+          "attributes": {
+            "strength": 6,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 2,
+            "focus": 2,
+            "command": 2
+          },
+          "favoredTreeId": "druid_summoning",
+          "favoredTreeName": "Summoning",
+          "dominantArchetypeId": "druid_summoning",
+          "dominantArchetypeLabel": "Summoner Engine",
+          "dominantArchetypeScore": 112,
+          "secondaryArchetypeId": "druid_elemental",
+          "secondaryArchetypeLabel": "Elemental Storm",
+          "secondaryArchetypeScore": 62,
+          "archetypeScores": [
+            {
+              "archetypeId": "druid_summoning",
+              "label": "Summoner Engine",
+              "score": 112
+            },
+            {
+              "archetypeId": "druid_elemental",
+              "label": "Elemental Storm",
+              "score": 62
+            },
+            {
+              "archetypeId": "druid_shape_shifting",
+              "label": "Shifter Bruiser",
+              "score": 10
+            }
+          ],
+          "weapon": {
+            "itemId": "item_mace",
+            "name": "Mace",
+            "family": "Maces",
+            "rarity": "brown"
+          },
+          "activeRunewords": [
+            "Strength"
+          ],
+          "runewordsForged": 1,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 4,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 20,
+            "quest": 1,
+            "shrine": 1,
+            "event": 1,
+            "opportunity": 2
+          },
+          "probes": [
+            {
+              "encounterId": "act_2_boss",
+              "encounterName": "Duriel",
+              "zoneTitle": "Tal Rasha's Chamber",
+              "kind": "boss",
+              "enemyPowerScore": 875.73,
+              "powerDelta": 459.54,
+              "powerRatio": 1.52,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 3,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_2_branch_miniboss",
+              "encounterName": "Palace Champion",
+              "zoneTitle": "Halls of the Dead",
+              "kind": "elite",
+              "enemyPowerScore": 228.17,
+              "powerDelta": 1107.1,
+              "powerRatio": 5.85,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 88.57,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_2_zone_valley_of_snakes_swarm",
+              "encounterName": "Valley of Snakes Swarm",
+              "zoneTitle": "Valley of Snakes",
+              "kind": "battle",
+              "enemyPowerScore": 251.71,
+              "powerDelta": 1083.56,
+              "powerRatio": 5.3,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        },
+        {
+          "checkpointId": "act_3_safe_zone",
+          "label": "Act 3 Safe Zone",
+          "actNumber": 3,
+          "level": 16,
+          "gold": 63,
+          "powerScore": 1982.14,
+          "powerBreakdown": {
+            "offense": 299.1,
+            "defense": 535,
+            "sustain": 96.9,
+            "utility": 59.25,
+            "deck": 636.39,
+            "equipment": 232,
+            "progression": 123.5,
+            "resources": 0
+          },
+          "deckSize": 28,
+          "topCards": [
+            "Fury",
+            "Fury",
+            "Fury",
+            "Armageddon",
+            "Hurricane"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "elemental",
+              "count": 18
+            },
+            {
+              "proficiency": "summoning",
+              "count": 5
+            },
+            {
+              "proficiency": "shape_shifting",
+              "count": 4
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 326,
+            "maxEnergy": 8,
+            "handSize": 6,
+            "potionHeal": 27,
+            "damageBonus": 26,
+            "guardBonus": 20,
+            "burnBonus": 1
+          },
+          "mercenary": {
+            "name": "Desert Guard",
+            "maxLife": 141,
+            "attack": 39
+          },
+          "attributes": {
+            "strength": 15,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 5,
+            "focus": 5,
+            "command": 5
+          },
+          "favoredTreeId": "druid_summoning",
+          "favoredTreeName": "Summoning",
+          "dominantArchetypeId": "druid_summoning",
+          "dominantArchetypeLabel": "Summoner Engine",
+          "dominantArchetypeScore": 167,
+          "secondaryArchetypeId": "druid_elemental",
+          "secondaryArchetypeLabel": "Elemental Storm",
+          "secondaryArchetypeScore": 71,
+          "archetypeScores": [
+            {
+              "archetypeId": "druid_summoning",
+              "label": "Summoner Engine",
+              "score": 167
+            },
+            {
+              "archetypeId": "druid_elemental",
+              "label": "Elemental Storm",
+              "score": 71
+            },
+            {
+              "archetypeId": "druid_shape_shifting",
+              "label": "Shifter Bruiser",
+              "score": 13
+            }
+          ],
+          "weapon": {
+            "itemId": "item_mace",
+            "name": "Mace",
+            "family": "Maces",
+            "rarity": "brown"
+          },
+          "activeRunewords": [
+            "Strength",
+            "Stealth"
+          ],
+          "runewordsForged": 2,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 4,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 53,
+            "quest": 2,
+            "shrine": 2,
+            "event": 2,
+            "opportunity": 15
+          },
+          "probes": [
+            {
+              "encounterId": "act_3_boss",
+              "encounterName": "Mephisto",
+              "zoneTitle": "Durance of Hate",
+              "kind": "boss",
+              "enemyPowerScore": 1187.81,
+              "powerDelta": 794.33,
+              "powerRatio": 1.67,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 3,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_3_zone_flayer_dungeon_patrol",
+              "encounterName": "Flayer Dungeon Patrol",
+              "zoneTitle": "Flayer Dungeon",
+              "kind": "elite",
+              "enemyPowerScore": 264.85,
+              "powerDelta": 1717.29,
+              "powerRatio": 7.48,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_3_opening_crossfire",
+              "encounterName": "Jungle Crossfire",
+              "zoneTitle": "Spider Cavern",
+              "kind": "battle",
+              "enemyPowerScore": 280.41,
+              "powerDelta": 1701.73,
+              "powerRatio": 7.07,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 100,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        },
+        {
+          "checkpointId": "act_4_safe_zone",
+          "label": "Act 4 Safe Zone",
+          "actNumber": 4,
+          "level": 27,
+          "gold": 61,
+          "powerScore": 2510.9,
+          "powerBreakdown": {
+            "offense": 475.3,
+            "defense": 669.8,
+            "sustain": 94.3,
+            "utility": 53,
+            "deck": 747.6,
+            "equipment": 216.4,
+            "progression": 254.5,
+            "resources": 0
+          },
+          "deckSize": 29,
+          "topCards": [
+            "Fury",
+            "Fury",
+            "Fury",
+            "Armageddon",
+            "Armageddon"
+          ],
+          "deckProficiencies": [
+            {
+              "proficiency": "elemental",
+              "count": 18
+            },
+            {
+              "proficiency": "summoning",
+              "count": 6
+            },
+            {
+              "proficiency": "shape_shifting",
+              "count": 4
+            },
+            {
+              "proficiency": "neutral",
+              "count": 1
+            }
+          ],
+          "hero": {
+            "maxLife": 418,
+            "maxEnergy": 8,
+            "handSize": 5,
+            "potionHeal": 24,
+            "damageBonus": 42,
+            "guardBonus": 21,
+            "burnBonus": 1
+          },
+          "mercenary": {
+            "name": "Desert Guard",
+            "maxLife": 210,
+            "attack": 57
+          },
+          "attributes": {
+            "strength": 26,
+            "dexterity": 0,
+            "vitality": 0,
+            "energy": 0
+          },
+          "training": {
+            "vitality": 9,
+            "focus": 9,
+            "command": 8
+          },
+          "favoredTreeId": "druid_summoning",
+          "favoredTreeName": "Summoning",
+          "dominantArchetypeId": "druid_summoning",
+          "dominantArchetypeLabel": "Summoner Engine",
+          "dominantArchetypeScore": 169,
+          "secondaryArchetypeId": "druid_elemental",
+          "secondaryArchetypeLabel": "Elemental Storm",
+          "secondaryArchetypeScore": 72,
+          "archetypeScores": [
+            {
+              "archetypeId": "druid_summoning",
+              "label": "Summoner Engine",
+              "score": 169
+            },
+            {
+              "archetypeId": "druid_elemental",
+              "label": "Elemental Storm",
+              "score": 72
+            },
+            {
+              "archetypeId": "druid_shape_shifting",
+              "label": "Shifter Bruiser",
+              "score": 14
+            }
+          ],
+          "weapon": {
+            "itemId": "item_war_hammer",
+            "name": "War Hammer",
+            "family": "Maces",
+            "rarity": "white"
+          },
+          "activeRunewords": [
+            "Strength",
+            "Stealth"
+          ],
+          "runewordsForged": 2,
+          "armor": {
+            "resistances": [
+              {
+                "type": "physical",
+                "amount": 1
+              }
+            ],
+            "immunities": []
+          },
+          "choiceCounts": {
+            "item": 4,
+            "card": 8,
+            "upgrade": 1,
+            "boon": 87,
+            "quest": 3,
+            "shrine": 3,
+            "event": 3,
+            "opportunity": 28
+          },
+          "probes": [
+            {
+              "encounterId": "act_4_boss",
+              "encounterName": "Diablo",
+              "zoneTitle": "Chaos Sanctuary",
+              "kind": "boss",
+              "enemyPowerScore": 2135.19,
+              "powerDelta": 375.71,
+              "powerRatio": 1.18,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 5,
+              "averageHeroLifePct": 25.6,
+              "averageMercenaryLifePct": 85.71,
+              "averageEnemyLifePct": 0
+            },
+            {
+              "encounterId": "act_4_zone_river_of_flame_swarm",
+              "encounterName": "River of Flame Swarm",
+              "zoneTitle": "River of Flame",
+              "kind": "battle",
+              "enemyPowerScore": 572.52,
+              "powerDelta": 1938.38,
+              "powerRatio": 4.39,
+              "runs": 1,
+              "winRate": 1,
+              "averageTurns": 1,
+              "averageHeroLifePct": 93.3,
+              "averageMercenaryLifePct": 100,
+              "averageEnemyLifePct": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "stability": {
+    "summary": {
+      "totalChecks": 0,
+      "mismatchCount": 0
+    },
+    "checks": []
+  }
+}

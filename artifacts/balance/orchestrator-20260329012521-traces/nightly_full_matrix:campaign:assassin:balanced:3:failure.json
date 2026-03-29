@@ -1,0 +1,746 @@
+{
+  "mode": "combat",
+  "digest": "499b89043ecf449f",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Catacombs / Andariel",
+    "checkpointId": "",
+    "encounterId": "act_1_boss",
+    "runKey": "nightly_full_matrix:campaign:assassin:balanced:3"
+  },
+  "classId": "assassin",
+  "actNumber": 1,
+  "encounterId": "act_1_boss",
+  "policyId": "balanced",
+  "outcome": "defeat",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 101,
+          "maxLife": 127,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 51,
+          "maxLife": 57,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 183,
+            "maxLife": 183,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Brood Screen (26)"
+          },
+          {
+            "id": "act_1_boss_enemy_2",
+            "name": "Goatman",
+            "life": 24,
+            "maxLife": 24,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Goatman Brace (4)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (15)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (14)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_23",
+            "cardId": "assassin_fade",
+            "title": "Fade",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_claw_mastery",
+            "title": "Claw Mastery",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_4",
+            "cardId": "assassin_fire_blast",
+            "title": "Fire Blast",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_17",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_1",
+            "cardId": "assassin_tiger_strike",
+            "title": "Tiger Strike",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Tiger Strike -> Goatman",
+        "Card: Fade",
+        "Melee strike",
+        "Potion -> hero",
+        "Card: Fists of Fire -> Huntsman Skeleton Archer",
+        "Card: Fists of Fire -> Huntsman Skeleton Archer",
+        "Card: Claw Mastery -> Huntsman Skeleton Archer",
+        "Card: Fire Blast -> Huntsman Skeleton Archer",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 119,
+          "maxLife": 127,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 2,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 26,
+          "maxLife": 57,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 176,
+            "maxLife": 183,
+            "guard": 9,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (20 poison next)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 36,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (14)"
+          },
+          {
+            "id": "summon_2_4",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          },
+          {
+            "id": "summon_2_5",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_12",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_8",
+            "cardId": "assassin_psychic_hammer",
+            "title": "Psychic Hammer",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_13",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_22",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_9",
+            "cardId": "assassin_psychic_hammer",
+            "title": "Psychic Hammer",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Huntsman Skeleton Archer falls.",
+        "Fire Blast: dealt 9 to Huntsman Skeleton Archer.",
+        "Rogue Scout hits Andariel for 7.",
+        "Andariel uses Andariel Brood Screen and fortifies the enemy line.",
+        "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+        "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Black Rain on Assassin for 1 and Rogue Scout for 1.",
+        "Black Arrow Corrupt Rogue Archer's Cursed aura amplifies damage on the Wanderer!",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 2 begins.",
+        "Rogue Scout hits Andariel for 0.",
+        "Andariel uses Andariel Brood Swarm and spawns 2 minions!",
+        "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+        "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Cull Shot on Rogue Scout for 24.",
+        "Black Arrow Corrupt Rogue Archer's Cursed aura amplifies damage on the Wanderer!",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 3 begins."
+      ]
+    },
+    {
+      "turn": 3,
+      "start": {
+        "hero": {
+          "life": 119,
+          "maxLife": 127,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 2,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 26,
+          "maxLife": 57,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 176,
+            "maxLife": 183,
+            "guard": 9,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (20 poison next)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 36,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (14)"
+          },
+          {
+            "id": "summon_2_4",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          },
+          {
+            "id": "summon_2_5",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_12",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_8",
+            "cardId": "assassin_psychic_hammer",
+            "title": "Psychic Hammer",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_13",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_22",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_9",
+            "cardId": "assassin_psychic_hammer",
+            "title": "Psychic Hammer",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Claws of Thunder -> Andariel Minion",
+        "Card: Blade Shield -> Andariel Minion",
+        "Card: Blade Shield -> Andariel Minion",
+        "Card: Psychic Hammer -> Andariel Minion",
+        "Card: Psychic Hammer -> Andariel",
+        "Melee strike",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 82,
+          "maxLife": 127,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 4,
+          "chill": 0,
+          "amplify": 4,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 57,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 149,
+            "maxLife": 183,
+            "guard": 2,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (18)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 36,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (14)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_16",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_19",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "assassin_cloak_of_shadows",
+            "title": "Cloak of Shadows",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_13",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Andariel begins charging Andariel Poison Burst. the Wanderer will take 20 poison damage next turn. Andariel gains 20 Guard.",
+        "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+        "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Black Rain on Assassin for 0 and Rogue Scout for 21.",
+        "Black Arrow Corrupt Rogue Archer's Cursed aura amplifies damage on the Wanderer!",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 4 begins.",
+        "Rogue Scout hits Andariel for 0.",
+        "Andariel takes 0 Burn damage.",
+        "Andariel uses Andariel Venom Spit on Assassin for 30 and inflicts 5 Poison!",
+        "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+        "Rogue Scout falls.",
+        "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Cull Shot on Rogue Scout for 24.",
+        "Black Arrow Corrupt Rogue Archer's Cursed aura amplifies damage on the Wanderer!",
+        "The Wanderer takes 7 Poison damage.",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 5 begins."
+      ]
+    },
+    {
+      "turn": 5,
+      "start": {
+        "hero": {
+          "life": 82,
+          "maxLife": 127,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 4,
+          "chill": 0,
+          "amplify": 4,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 57,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 149,
+            "maxLife": 183,
+            "guard": 2,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (18)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 36,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (14)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_16",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_19",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "assassin_cloak_of_shadows",
+            "title": "Cloak of Shadows",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_13",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Fists of Fire -> Andariel",
+        "Card: Fists of Fire -> Andariel",
+        "Card: Blade Shield -> Andariel",
+        "Card: Cloak of Shadows",
+        "Card: Wake of Fire",
+        "Melee strike",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 0,
+          "maxLife": 127,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 17,
+          "chill": 0,
+          "amplify": 5,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 57,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 82,
+            "maxLife": 183,
+            "guard": 0,
+            "burn": 6,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Venom Claw (21)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 36,
+            "maxLife": 36,
+            "guard": 25,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Cull Shot (16)"
+          }
+        ],
+        "hand": []
+      },
+      "log": [
+        "Andariel takes 8 Burn damage.",
+        "Andariel uses Andariel Poison Burst on Assassin for 8 and inflicts 6 Poison!",
+        "Black Arrow Corrupt Rogue Archer takes 0 Burn damage.",
+        "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+        "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Black Rain on Assassin for 31.",
+        "Black Arrow Corrupt Rogue Archer's Cursed aura amplifies damage on the Wanderer!",
+        "The Wanderer takes 15 Poison damage.",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 6 begins.",
+        "Andariel takes 7 Burn damage.",
+        "Andariel uses Andariel Venom Claw on Assassin for 31 and inflicts 8 Poison!",
+        "Black Arrow Corrupt Rogue Archer takes 0 Burn damage.",
+        "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+        "Assassin falls.",
+        "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Cull Shot on Assassin for 36.",
+        "The Wanderer falls. Encounter lost."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 0,
+      "maxLife": 127,
+      "guard": 0,
+      "energy": 6,
+      "burn": 0,
+      "poison": 17,
+      "chill": 0,
+      "amplify": 5,
+      "weaken": 0,
+      "energyDrain": 0
+    },
+    "mercenary": {
+      "name": "Rogue Scout",
+      "life": 0,
+      "maxLife": 57,
+      "guard": 0,
+      "nextAttackBonus": 0,
+      "markedEnemyId": ""
+    },
+    "enemies": [
+      {
+        "id": "act_1_boss_enemy_1",
+        "name": "Andariel",
+        "life": 82,
+        "maxLife": 183,
+        "guard": 0,
+        "burn": 6,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Andariel Venom Claw (21)"
+      },
+      {
+        "id": "act_1_boss_enemy_4",
+        "name": "Black Arrow Corrupt Rogue Archer",
+        "life": 36,
+        "maxLife": 36,
+        "guard": 25,
+        "burn": 0,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Corrupt Rogue Archer Cull Shot (16)"
+      }
+    ],
+    "hand": []
+  },
+  "recentLog": [
+    "Wake of Fire: dealt 8 total damage. applied 2 Burn to all enemies.",
+    "Melee strike hits Andariel for 6 (proficient). Short Sword dealt 3 lightning damage. Short Sword applied 2 Burn.",
+    "Andariel takes 8 Burn damage.",
+    "Andariel uses Andariel Poison Burst on Assassin for 8 and inflicts 6 Poison!",
+    "Black Arrow Corrupt Rogue Archer takes 0 Burn damage.",
+    "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+    "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Black Rain on Assassin for 31.",
+    "Black Arrow Corrupt Rogue Archer's Cursed aura amplifies damage on the Wanderer!",
+    "The Wanderer takes 15 Poison damage.",
+    "Amplify Damage active — the Wanderer takes increased damage.",
+    "Turn 6 begins.",
+    "Andariel takes 7 Burn damage.",
+    "Andariel uses Andariel Venom Claw on Assassin for 31 and inflicts 8 Poison!",
+    "Black Arrow Corrupt Rogue Archer takes 0 Burn damage.",
+    "Black Arrow Corrupt Rogue Archer hits with Extra Strong force!",
+    "Assassin falls.",
+    "Black Arrow Corrupt Rogue Archer uses Corrupt Rogue Archer Cull Shot on Assassin for 36.",
+    "The Wanderer falls. Encounter lost."
+  ]
+}

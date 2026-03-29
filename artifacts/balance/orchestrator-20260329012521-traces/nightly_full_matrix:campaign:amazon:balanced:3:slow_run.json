@@ -1,0 +1,705 @@
+{
+  "mode": "combat",
+  "digest": "449566f12b07351f",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Catacombs / Andariel",
+    "checkpointId": "",
+    "encounterId": "act_1_boss",
+    "runKey": "nightly_full_matrix:campaign:amazon:balanced:3"
+  },
+  "classId": "amazon",
+  "actNumber": 1,
+  "encounterId": "act_1_boss",
+  "policyId": "balanced",
+  "outcome": "victory",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 132,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 44,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 183,
+            "maxLife": 183,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Brood Screen (26)"
+          },
+          {
+            "id": "act_1_boss_enemy_2",
+            "name": "Goatman",
+            "life": 24,
+            "maxLife": 24,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Goatman Brace (4)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 37,
+            "maxLife": 37,
+            "guard": 21,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (14)"
+          },
+          {
+            "id": "act_1_boss_enemy_4",
+            "name": "Black Arrow Corrupt Rogue Archer",
+            "life": 35,
+            "maxLife": 35,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Corrupt Rogue Archer Black Rain (15)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_18",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "amazon_fire_arrow",
+            "title": "Fire Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_22",
+            "cardId": "amazon_valkyrie",
+            "title": "Valkyrie",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_10",
+            "cardId": "rally_mercenary_plus",
+            "title": "Rally Mercenary+",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Fire Arrow -> Goatman",
+        "Card: Exploding Arrow -> Black Arrow Corrupt Rogue Archer",
+        "Card: Valkyrie",
+        "Melee strike",
+        "Card: Magic Arrow -> Andariel",
+        "Card: Rally Mercenary+",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 106,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 46,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 136,
+            "maxLife": 183,
+            "guard": 12,
+            "burn": 2,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (20 poison next)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 37,
+            "maxLife": 37,
+            "guard": 57,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (14)"
+          },
+          {
+            "id": "summon_2_4",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          },
+          {
+            "id": "summon_2_5",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_4",
+            "cardId": "amazon_jab",
+            "title": "Jab",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "amazon_critical_strike",
+            "title": "Critical Strike",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_1",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_15",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_13",
+            "cardId": "amazon_dodge",
+            "title": "Dodge",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Magic Arrow: dealt 16 to Andariel. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn.",
+        "Rally Mercenary+: healed the mercenary for 7. drew 1 card.",
+        "Rogue Scout hits Andariel for 23.",
+        "Andariel takes 4 Burn damage.",
+        "Andariel uses Andariel Brood Screen and fortifies the enemy line.",
+        "Huntsman Skeleton Archer uses Skeleton Archer Track Shot on Rogue Scout for 0.",
+        "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+        "Huntsman Skeleton Archer uses Skeleton Archer Track Shot on Rogue Scout for 5.",
+        "Turn 2 begins.",
+        "Rogue Scout hits Andariel for 0.",
+        "Andariel takes 0 Burn damage.",
+        "Andariel uses Andariel Brood Swarm and spawns 2 minions!",
+        "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+        "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+        "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+        "Turn 3 begins."
+      ]
+    },
+    {
+      "turn": 3,
+      "start": {
+        "hero": {
+          "life": 106,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 46,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 136,
+            "maxLife": 183,
+            "guard": 12,
+            "burn": 2,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (20 poison next)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 37,
+            "maxLife": 37,
+            "guard": 57,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (14)"
+          },
+          {
+            "id": "summon_2_4",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          },
+          {
+            "id": "summon_2_5",
+            "name": "Andariel Minion",
+            "life": 21,
+            "maxLife": 21,
+            "guard": 0,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Minion Bite (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_4",
+            "cardId": "amazon_jab",
+            "title": "Jab",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "amazon_critical_strike",
+            "title": "Critical Strike",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_1",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_15",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_13",
+            "cardId": "amazon_dodge",
+            "title": "Dodge",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Jab -> Andariel Minion",
+        "Card: Magic Arrow -> Andariel Minion",
+        "Card: Exploding Arrow -> Andariel",
+        "Card: Dodge -> Andariel",
+        "Melee strike",
+        "Card: Critical Strike",
+        "Potion -> hero",
+        "Potion -> mercenary",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 83,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 4,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 23,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 44,
+            "maxLife": 183,
+            "guard": 0,
+            "burn": 14,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (18)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 37,
+            "maxLife": 37,
+            "guard": 67,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (14)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_23",
+            "cardId": "amazon_guided_arrow",
+            "title": "Guided Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_24",
+            "cardId": "amazon_freezing_arrow",
+            "title": "Freezing Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_8",
+            "cardId": "amazon_inner_sight",
+            "title": "Inner Sight",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_17",
+            "cardId": "amazon_multiple_shot",
+            "title": "Multiple Shot",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Potion used on Rogue Scout for 5.",
+        "Rogue Scout hits Andariel for 11.",
+        "Andariel takes 16 Burn damage.",
+        "Andariel begins charging Andariel Poison Burst. the Wanderer will take 20 poison damage next turn. Andariel gains 20 Guard.",
+        "Huntsman Skeleton Archer uses Skeleton Archer Track Shot on Rogue Scout for 14.",
+        "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+        "Huntsman Skeleton Archer uses Skeleton Archer Track Shot on Rogue Scout for 14.",
+        "Turn 4 begins.",
+        "Rogue Scout hits Andariel for 0.",
+        "Andariel takes 6 Burn damage.",
+        "Andariel uses Andariel Venom Spit on Amazon for 20 and inflicts 5 Poison!",
+        "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+        "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+        "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+        "The Wanderer takes 5 Poison damage.",
+        "Turn 5 begins."
+      ]
+    },
+    {
+      "turn": 5,
+      "start": {
+        "hero": {
+          "life": 83,
+          "maxLife": 134,
+          "guard": 0,
+          "energy": 6,
+          "burn": 0,
+          "poison": 4,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 23,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_1_boss_enemy_1",
+            "name": "Andariel",
+            "life": 44,
+            "maxLife": 183,
+            "guard": 0,
+            "burn": 14,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Andariel Poison Burst (18)"
+          },
+          {
+            "id": "act_1_boss_enemy_3",
+            "name": "Huntsman Skeleton Archer",
+            "life": 37,
+            "maxLife": 37,
+            "guard": 67,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Skeleton Archer Track Shot (14)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_23",
+            "cardId": "amazon_guided_arrow",
+            "title": "Guided Arrow",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_24",
+            "cardId": "amazon_freezing_arrow",
+            "title": "Freezing Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_8",
+            "cardId": "amazon_inner_sight",
+            "title": "Inner Sight",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_17",
+            "cardId": "amazon_multiple_shot",
+            "title": "Multiple Shot",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Freezing Arrow",
+        "Card: Multiple Shot",
+        "Card: Guided Arrow -> Huntsman Skeleton Archer",
+        "Card: Inner Sight -> Huntsman Skeleton Archer"
+      ],
+      "end": {
+        "hero": {
+          "life": 83,
+          "maxLife": 134,
+          "guard": 30,
+          "energy": 1,
+          "burn": 0,
+          "poison": 4,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 23,
+          "maxLife": 51,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [],
+        "hand": [
+          {
+            "instanceId": "card_21",
+            "cardId": "amazon_exploding_arrow",
+            "title": "Exploding Arrow",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "amazon_magic_arrow",
+            "title": "Magic Arrow",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Turn 4 begins.",
+        "Rogue Scout hits Andariel for 0.",
+        "Andariel takes 6 Burn damage.",
+        "Andariel uses Andariel Venom Spit on Amazon for 20 and inflicts 5 Poison!",
+        "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+        "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+        "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+        "The Wanderer takes 5 Poison damage.",
+        "Turn 5 begins.",
+        "Freezing Arrow: dealt 27 total damage. Long Bow dealt 4 fire damage across 2 targets. Long Bow applied 4 Burn to 2 targets. applied 1 Freeze to all enemies. applied 1 Slow to all enemies. gained 15 Guard.",
+        "Andariel falls.",
+        "Multiple Shot: dealt 24 total damage. Long Bow applied 4 Burn.",
+        "Guided Arrow: dealt 26 to Huntsman Skeleton Archer. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn. drew 1 card. gained 15 Guard.",
+        "Huntsman Skeleton Archer falls.",
+        "Inner Sight: dealt 19 to Huntsman Skeleton Archer. marked Huntsman Skeleton Archer for +10 mercenary damage.",
+        "Andariel cleared."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 83,
+      "maxLife": 134,
+      "guard": 30,
+      "energy": 1,
+      "burn": 0,
+      "poison": 4,
+      "chill": 0,
+      "amplify": 0,
+      "weaken": 0,
+      "energyDrain": 0
+    },
+    "mercenary": {
+      "name": "Rogue Scout",
+      "life": 23,
+      "maxLife": 51,
+      "guard": 0,
+      "nextAttackBonus": 0,
+      "markedEnemyId": ""
+    },
+    "enemies": [],
+    "hand": [
+      {
+        "instanceId": "card_21",
+        "cardId": "amazon_exploding_arrow",
+        "title": "Exploding Arrow",
+        "cost": 2
+      },
+      {
+        "instanceId": "card_2",
+        "cardId": "amazon_magic_arrow",
+        "title": "Magic Arrow",
+        "cost": 1
+      }
+    ]
+  },
+  "recentLog": [
+    "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+    "Huntsman Skeleton Archer uses Skeleton Archer Track Shot on Rogue Scout for 14.",
+    "Turn 4 begins.",
+    "Rogue Scout hits Andariel for 0.",
+    "Andariel takes 6 Burn damage.",
+    "Andariel uses Andariel Venom Spit on Amazon for 20 and inflicts 5 Poison!",
+    "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+    "Huntsman Skeleton Archer strikes again! (Extra Fast)",
+    "Huntsman Skeleton Archer uses Skeleton Archer Blindside on Amazon for 13 and gains 5 Guard.",
+    "The Wanderer takes 5 Poison damage.",
+    "Turn 5 begins.",
+    "Freezing Arrow: dealt 27 total damage. Long Bow dealt 4 fire damage across 2 targets. Long Bow applied 4 Burn to 2 targets. applied 1 Freeze to all enemies. applied 1 Slow to all enemies. gained 15 Guard.",
+    "Andariel falls.",
+    "Multiple Shot: dealt 24 total damage. Long Bow applied 4 Burn.",
+    "Guided Arrow: dealt 26 to Huntsman Skeleton Archer. Long Bow dealt 4 fire damage. Long Bow applied 4 Burn. drew 1 card. gained 15 Guard.",
+    "Huntsman Skeleton Archer falls.",
+    "Inner Sight: dealt 19 to Huntsman Skeleton Archer. marked Huntsman Skeleton Archer for +10 mercenary damage.",
+    "Andariel cleared."
+  ]
+}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Bow">
+  <defs>
+    <linearGradient id="bowBody" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#a66b3d"/>
+      <stop offset="55%" stop-color="#6c3f21"/>
+      <stop offset="100%" stop-color="#301b10"/>
+    </linearGradient>
+    <linearGradient id="bowMetal" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f2ddbd"/>
+      <stop offset="55%" stop-color="#ca9758"/>
+      <stop offset="100%" stop-color="#72431e"/>
+    </linearGradient>
+    <filter id="bowShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#bowShadow)">
+    <path d="M42 18C18 38 18 90 42 110" fill="none" stroke="url(#bowBody)" stroke-linecap="round" stroke-width="9"/>
+    <path d="M42 18L42 110" fill="none" stroke="#eadbc4" stroke-linecap="round" stroke-width="2.4"/>
+    <path d="M36 52H48" fill="none" stroke="#2b1810" stroke-linecap="round" stroke-width="6"/>
+    <path d="M46 64H102" fill="none" stroke="#9a673d" stroke-linecap="round" stroke-width="4.2"/>
+    <path d="M52 64H102" fill="none" stroke="#eadbc4" stroke-linecap="round" stroke-width="1.8"/>
+    <path d="M102 64L88 56V72Z" fill="url(#bowMetal)"/>
+    <path d="M50 64L58 59V69Z" fill="url(#bowMetal)"/>
+    <path d="M57 59L57 69" fill="none" stroke="#7c241e" stroke-linecap="round" stroke-width="2.2"/>
+    <circle cx="42" cy="64" r="4" fill="#7e251f"/>
+  </g>
+</svg>

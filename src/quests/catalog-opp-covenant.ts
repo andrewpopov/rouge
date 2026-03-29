@@ -33,7 +33,7 @@
               "Bind the last reliquary beacons into one closing ledger over the desert route.",
               "last_beacon_ledger_tallied",
               ["sunwell_covenant_beacon_ledger"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "support_build" }, { kind: "refill_potions", value: 1 }]
             ),
             buildCovenantChoice(
               "sunwell_covenant_opportunity",
@@ -43,7 +43,7 @@
               "Turn the same covenant into one final line of tomb posts before the crossing closes.",
               "last_tomb_posts_raised",
               ["sunwell_covenant_tomb_posts"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -153,7 +153,7 @@
               "Turn the same covenant into one final ring of harbor posts across the river mouth.",
               "last_harbor_posts_raised",
               ["kurast_covenant_harbor_posts"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -263,7 +263,7 @@
               "Turn the same covenant into one final ring of sanctuary posts before Diablo.",
               "last_sanctuary_posts_raised",
               ["hellforge_covenant_sanctuary_posts"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "refill_potions", value: 1 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -373,7 +373,7 @@
               "Turn the same covenant into one final ring of oath posts across the summit.",
               "last_oath_posts_raised",
               ["harrogath_covenant_oath_posts"],
-              [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },

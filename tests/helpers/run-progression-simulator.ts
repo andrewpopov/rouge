@@ -18,6 +18,18 @@ const DEFAULT_MERCENARY_BY_CLASS: Record<string, string> = {
   sorceress: "iron_wolf",
 };
 
+const POLICY_ARCHETYPE_PRIORITIES: Record<string, Record<string, string[]>> = {
+  aggressive: {
+    amazon: ["amazon_bow_and_crossbow", "amazon_javelin_and_spear"],
+    assassin: ["assassin_martial_arts", "assassin_traps"],
+    barbarian: ["barbarian_combat_skills", "barbarian_warcries"],
+    druid: ["druid_elemental", "druid_shape_shifting"],
+    necromancer: ["necromancer_poison_and_bone", "necromancer_curses"],
+    paladin: ["paladin_combat_skills", "paladin_offensive_auras"],
+    sorceress: ["sorceress_lightning", "sorceress_fire"],
+  },
+};
+
 const CARD_EFFECT_BASE_WEIGHTS: Record<CardEffectKind, number> = {
   damage: 2.2,
   damage_all: 2.8,
@@ -280,9 +292,30 @@ interface PolicyProgressSummary {
   actionCounts: Record<string, number>;
   rewardKindCounts: Record<string, number>;
   rewardEffectCounts: Record<string, number>;
+  rewardRoleCounts: Record<string, number>;
+  strategyRoleCounts: Record<string, number>;
   zoneKindCounts: Record<string, number>;
   zoneRoleCounts: Record<string, number>;
   nodeTypeCounts: Record<string, number>;
+  encounterResults: EncounterRunMetric[];
+}
+
+export interface EncounterRunMetric {
+  actNumber: number;
+  encounterId: string;
+  encounterName: string;
+  zoneTitle: string;
+  kind: "boss" | "elite" | "battle";
+  zoneKind: string;
+  zoneRole: string;
+  outcome: string;
+  turns: number;
+  heroLifePct: number;
+  mercenaryLifePct: number;
+  enemyLifePct: number;
+  heroPowerScore: number;
+  enemyPowerScore: number;
+  powerRatio: number;
 }
 
 interface ProbeEncounterSummary {
@@ -301,7 +334,7 @@ interface ProbeEncounterSummary {
   averageEnemyLifePct: number;
 }
 
-interface SafeZoneCheckpointSummary {
+export interface SafeZoneCheckpointSummary {
   checkpointId: string;
   label: string;
   actNumber: number;
@@ -339,6 +372,13 @@ interface SafeZoneCheckpointSummary {
   training: Record<string, number>;
   favoredTreeId: string;
   favoredTreeName: string;
+  dominantArchetypeId: string;
+  dominantArchetypeLabel: string;
+  dominantArchetypeScore: number;
+  secondaryArchetypeId: string;
+  secondaryArchetypeLabel: string;
+  secondaryArchetypeScore: number;
+  archetypeScores: Array<{ archetypeId: string; label: string; score: number }>;
   weapon: {
     itemId: string;
     name: string;
@@ -355,11 +395,15 @@ interface SafeZoneCheckpointSummary {
   probes: ProbeEncounterSummary[];
 }
 
-interface SimulationFailureSummary {
+export interface SimulationFailureSummary {
   actNumber: number;
   zoneTitle: string;
   encounterId: string;
   encounterName: string;
+  kind?: "boss" | "elite" | "battle";
+  zoneKind?: string;
+  zoneRole?: string;
+  nodeType?: string;
 }
 
 interface FinalBuildSummary {
@@ -397,6 +441,15 @@ interface FinalBuildSummary {
     resistances: Array<{ type: DamageType; amount: number }>;
     immunities: DamageType[];
   } | null;
+  favoredTreeId: string;
+  favoredTreeName: string;
+  dominantArchetypeId: string;
+  dominantArchetypeLabel: string;
+  dominantArchetypeScore: number;
+  secondaryArchetypeId: string;
+  secondaryArchetypeLabel: string;
+  secondaryArchetypeScore: number;
+  archetypeScores: Array<{ archetypeId: string; label: string; score: number }>;
   activeRunewords: string[];
 }
 
@@ -411,7 +464,7 @@ interface WorldProgressSummary {
   opportunityOutcomes: number;
 }
 
-interface PolicyRunSummary {
+export interface PolicyRunSummary {
   runSummary: RunState["summary"];
   zoneKindCounts: Record<string, number>;
   zoneRoleCounts: Record<string, number>;
@@ -419,6 +472,18 @@ interface PolicyRunSummary {
   rewardKindCounts: Record<string, number>;
   choiceKindCounts: Record<string, number>;
   rewardEffectCounts: Record<string, number>;
+  rewardRoleCounts: Record<string, number>;
+  strategyRoleCounts: Record<string, number>;
+  encounterResults: EncounterRunMetric[];
+  encounterMetricsByKind: Record<string, {
+    count: number;
+    winRate: number;
+    averageTurns: number;
+    averageHeroLifePct: number;
+    averageMercenaryLifePct: number;
+    averageEnemyLifePct: number;
+    averagePowerRatio: number;
+  }>;
   world: WorldProgressSummary;
   finalBuild: FinalBuildSummary;
 }
@@ -457,6 +522,72 @@ export interface RunProgressionSimulationOptions {
   seedOffset?: number;
 }
 
+export interface TrackedRandomFn extends RandomFn {
+  getState(): number;
+  getSeed(): number;
+  setState(state: number): void;
+}
+
+export interface RunProgressionContinuationContext {
+  policyId: string;
+  throughActNumber: number;
+  probeRuns: number;
+  maxCombatTurns: number;
+  seedOffset: number;
+  progress: PolicyProgressSummary;
+  checkpoints: SafeZoneCheckpointSummary[];
+  failure: SimulationFailureSummary | null;
+  lastEncounterContext: SimulationFailureSummary | null;
+}
+
+interface PolicySimulationHooks {
+  onInitialized?: (payload: {
+    state: AppState;
+    harness: ReturnType<typeof createAppHarness>;
+    policy: BuildPolicyDefinition;
+    classId: string;
+    seedOffset: number;
+    continuationContext: RunProgressionContinuationContext;
+  }) => void;
+  onCheckpoint?: (payload: {
+    state: AppState;
+    harness: ReturnType<typeof createAppHarness>;
+    policy: BuildPolicyDefinition;
+    classId: string;
+    seedOffset: number;
+    checkpoint: SafeZoneCheckpointSummary;
+    continuationContext: RunProgressionContinuationContext;
+  }) => void;
+  onEncounterStart?: (payload: {
+    state: AppState;
+    harness: ReturnType<typeof createAppHarness>;
+    policy: BuildPolicyDefinition;
+    classId: string;
+    seedOffset: number;
+    encounter: SimulationFailureSummary;
+    continuationContext: RunProgressionContinuationContext;
+  }) => void;
+  onRunFailure?: (payload: {
+    state: AppState;
+    harness: ReturnType<typeof createAppHarness>;
+    policy: BuildPolicyDefinition;
+    classId: string;
+    seedOffset: number;
+    failure: SimulationFailureSummary | null;
+    report: PolicySimulationReport;
+    continuationContext: RunProgressionContinuationContext;
+  }) => void;
+  onRunComplete?: (payload: {
+    state: AppState;
+    harness: ReturnType<typeof createAppHarness>;
+    policy: BuildPolicyDefinition;
+    classId: string;
+    seedOffset: number;
+    report: PolicySimulationReport;
+    continuationContext: RunProgressionContinuationContext;
+  }) => void;
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
@@ -483,15 +614,43 @@ function hashString(value: string) {
   return hash >>> 0;
 }
 
-function createSeededRandom(seed: number): RandomFn {
-  let state = (seed >>> 0) || 1;
-  return () => {
+export function createProgressionSimulationSeed(classId: string, policyId: string, throughActNumber: number, seedOffset: number) {
+  return hashString([classId, policyId, String(throughActNumber), String(seedOffset)].join("|"));
+}
+
+export function createTrackedRandom(seed: number, initialState?: number): TrackedRandomFn {
+  let state = (initialState ?? seed) >>> 0;
+  if (!state) {
+    state = 1;
+  }
+  const randomFn = (() => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
     return state / 0x100000000;
+  }) as TrackedRandomFn;
+  randomFn.getState = () => state >>> 0;
+  randomFn.getSeed = () => (seed >>> 0) || 1;
+  randomFn.setState = (nextState: number) => {
+    state = (nextState >>> 0) || 1;
+  };
+  return randomFn;
+}
+
+function createSeededRandom(seed: number): RandomFn {
+  return createTrackedRandom(seed);
+}
+
+export function getTrackedRandomState(randomFn: RandomFn | null | undefined) {
+  const tracked = randomFn as Partial<TrackedRandomFn> | null | undefined;
+  if (!tracked || typeof tracked.getState !== "function" || typeof tracked.getSeed !== "function") {
+    return null;
+  }
+  return {
+    seed: Number(tracked.getSeed()),
+    state: Number(tracked.getState()),
   };
 }
 
-function createQuietAppHarness() {
+export function createQuietAppHarness() {
   const originalWarn = console.warn;
   console.warn = (...args: unknown[]) => {
     const message = String(args[0] || "");
@@ -661,6 +820,92 @@ function scoreArmorProfile(profile: ArmorMitigationProfile | undefined) {
   return resistanceScore + immunityScore;
 }
 
+function scoreRunewordProgress(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState
+) {
+  const itemCatalog = harness.browserWindow.ROUGE_ITEM_CATALOG;
+  const loadout = itemCatalog.buildHydratedLoadout(run, harness.content);
+
+  function getRunewordPower(runeword: RuntimeRunewordDefinition | null) {
+    if (!runeword) {
+      return 0;
+    }
+    return Object.values(runeword.bonuses || {}).reduce((sum, value) => {
+      return sum + Math.max(0, Number(value || 0));
+    }, 0);
+  }
+
+  return (["weapon", "armor"] as const).reduce((total, slot) => {
+    const equipment = loadout[slot];
+    if (!equipment) {
+      return total;
+    }
+
+    const targetRuneword = itemCatalog.getPreferredRunewordForEquipment(equipment, run, harness.content);
+    if (!targetRuneword) {
+      return total;
+    }
+
+    const currentRuneword = itemCatalog.getRunewordDefinition(harness.content, equipment.runewordId || "");
+    const currentPower = getRunewordPower(currentRuneword);
+    const targetPower = getRunewordPower(targetRuneword);
+    const targetSocketCount = Math.max(1, Number(targetRuneword.socketCount || 0));
+    const insertedRunes = Array.isArray(equipment.insertedRunes) ? equipment.insertedRunes : [];
+    const prefixLength = insertedRunes.reduce((count: number, runeId: string, index: number) => {
+      return count === index && targetRuneword.requiredRunes[index] === runeId ? count + 1 : count;
+    }, 0);
+    const socketProgress = Math.min(targetSocketCount, Number(equipment.socketsUnlocked || 0)) / targetSocketCount;
+    const runeProgress = prefixLength / Math.max(1, targetRuneword.requiredRunes.length);
+    const upgradeGap = Math.max(0, targetPower - currentPower);
+    const isTargetComplete =
+      equipment.runewordId === targetRuneword.id &&
+      Number(equipment.socketsUnlocked || 0) >= targetSocketCount &&
+      insertedRunes.length >= targetRuneword.requiredRunes.length;
+
+    if (isTargetComplete) {
+      return total + targetPower * 5.5;
+    }
+
+    return total + targetPower * (1.2 + socketProgress + runeProgress) + upgradeGap * 3.5;
+  }, 0);
+}
+
+function scoreArchetypePlan(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  policy: BuildPolicyDefinition
+) {
+  const rewardEngine = harness.browserWindow.ROUGE_REWARD_ENGINE;
+  const entries = rewardEngine?.getArchetypeScoreEntries?.(run, harness.content) || [];
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return 0;
+  }
+
+  const primary = entries[0] || null;
+  const secondary = entries[1] || null;
+  const preferred = POLICY_ARCHETYPE_PRIORITIES[policy.id]?.[run.classId] || [];
+  const preferredEntries = entries.filter((entry) => preferred.includes(entry.archetypeId));
+  const bestPreferredScore = Number(preferredEntries[0]?.score || 0);
+  const commitmentScore = Math.max(0, Number(primary?.score || 0) - Number(secondary?.score || 0));
+
+  let total = Number(primary?.score || 0) * 0.2 + commitmentScore * 0.35;
+
+  if (preferred.length > 0) {
+    total += bestPreferredScore * 0.9;
+    if (primary && preferred.includes(primary.archetypeId)) {
+      total += preferred[0] === primary.archetypeId ? 42 : 24;
+    } else if (primary) {
+      total -= 28;
+    }
+    if (secondary && preferred.includes(secondary.archetypeId)) {
+      total += 10;
+    }
+  }
+
+  return total;
+}
+
 function scoreCard(card: CardDefinition | null | undefined, policy: BuildPolicyDefinition, matchingProficiencies: Set<string>) {
   if (!card) {
     return Number.NEGATIVE_INFINITY;
@@ -759,6 +1004,8 @@ function evaluateRunScore(
     getLoadoutTierScore(harness, scoringRun) +
     scoreWeaponProfileForDeck(weaponProfile || undefined, deckStats.proficiencyCounts) * policy.weaponWeight +
     scoreArmorProfile(armorProfile || undefined) * policy.armorWeight +
+    scoreRunewordProgress(harness, scoringRun) +
+    scoreArchetypePlan(harness, scoringRun, policy) +
     Number(scoringRun.progression?.skillPointsAvailable || 0) * policy.bankedSkillPointWeight +
     Number(scoringRun.progression?.classPointsAvailable || 0) * policy.bankedClassPointWeight +
     Number(scoringRun.progression?.attributePointsAvailable || 0) * policy.bankedAttributePointWeight
@@ -806,60 +1053,48 @@ function optimizeSafeZoneRun(
   maxIterations = 24
 ) {
   const townServices = harness.browserWindow.ROUGE_TOWN_SERVICES;
+  const isGearFollowupAction = (actionId: string, allowVendorBuys = true) => {
+    return (
+      (allowVendorBuys && actionId.startsWith("vendor_buy_")) ||
+      actionId.startsWith("inventory_equip_") ||
+      actionId.startsWith("inventory_commission_") ||
+      actionId.startsWith("inventory_socket_")
+    );
+  };
 
-  function settleVendorFollowups(targetRun: RunState, maxFollowups = 3) {
-    for (let followupIndex = 0; followupIndex < maxFollowups; followupIndex += 1) {
-      const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false });
-      const actions = townServices
-        .listActions(harness.content, targetRun, profile)
-        .filter((action: TownAction) => {
-          const actionId = action.id || "";
-          return !action.disabled && (actionId.startsWith("vendor_buy_") || actionId.startsWith("inventory_equip_"));
-        });
-
-      let bestAction: TownAction | null = null;
-      let bestDelta = 0;
-
-      actions.forEach((action: TownAction) => {
-        const clone = cloneRun(harness, targetRun);
-        const result = townServices.applyAction(clone, profile, harness.content, action.id);
-        if (!result.ok) {
-          return;
-        }
-
-        if ((action.id || "").startsWith("vendor_buy_")) {
-          const equipActions = townServices
-            .listActions(harness.content, clone, profile)
-            .filter((candidate: TownAction) => !candidate.disabled && (candidate.id || "").startsWith("inventory_equip_"));
-          let bestEquipAction: TownAction | null = null;
-          let bestEquipScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
-
-          equipActions.forEach((equipAction: TownAction) => {
-            const equipClone = cloneRun(harness, clone);
-            const equipResult = townServices.applyAction(equipClone, profile, harness.content, equipAction.id);
-            if (!equipResult.ok) {
-              return;
-            }
-            const equipScore = evaluateRunScore(harness, equipClone, policy, { assumeFullResources: false });
-            if (equipScore > bestEquipScore + 0.05) {
-              bestEquipScore = equipScore;
-              bestEquipAction = equipAction;
-            }
-          });
-
-          if (bestEquipAction) {
-            townServices.applyAction(clone, profile, harness.content, bestEquipAction.id);
-          }
-        }
-
-        const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
-        const delta = nextScore - baseScore;
-        if (delta > bestDelta) {
-          bestDelta = delta;
-          bestAction = action;
-        }
+  function findBestImmediateGearFollowup(targetRun: RunState, allowVendorBuys: boolean) {
+    const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false });
+    const actions = townServices
+      .listActions(harness.content, targetRun, profile)
+      .filter((action: TownAction) => {
+        const actionId = action.id || "";
+        return !action.disabled && isGearFollowupAction(actionId, allowVendorBuys);
       });
 
+    let bestAction: TownAction | null = null;
+    let bestDelta = 0;
+
+    actions.forEach((action: TownAction) => {
+      const clone = cloneRun(harness, targetRun);
+      const result = townServices.applyAction(clone, profile, harness.content, action.id);
+      if (!result.ok) {
+        return;
+      }
+
+      const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
+      const delta = nextScore - baseScore;
+      if (delta > bestDelta) {
+        bestDelta = delta;
+        bestAction = action;
+      }
+    });
+
+    return { bestAction, bestDelta };
+  }
+
+  function settleGearFollowups(targetRun: RunState, maxFollowups = 4, allowVendorBuys = false) {
+    for (let followupIndex = 0; followupIndex < maxFollowups; followupIndex += 1) {
+      const { bestAction, bestDelta } = findBestImmediateGearFollowup(targetRun, allowVendorBuys && followupIndex === 0);
       if (!bestAction || bestDelta <= 0.05) {
         break;
       }
@@ -887,8 +1122,10 @@ function optimizeSafeZoneRun(
         return;
       }
 
-      if ((action.id || "") === "vendor_refresh_stock" || (action.id || "").startsWith("vendor_buy_")) {
-        settleVendorFollowups(clone, 3);
+      if ((action.id || "") === "vendor_refresh_stock") {
+        settleGearFollowups(clone, 4, true);
+      } else if (isGearFollowupAction(action.id || "")) {
+        settleGearFollowups(clone, 4, false);
       }
 
       const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false });
@@ -908,8 +1145,10 @@ function optimizeSafeZoneRun(
       break;
     }
 
-    if ((bestAction.id || "") === "vendor_refresh_stock" || (bestAction.id || "").startsWith("vendor_buy_")) {
-      settleVendorFollowups(run, 3);
+    if ((bestAction.id || "") === "vendor_refresh_stock") {
+      settleGearFollowups(run, 4, true);
+    } else if (isGearFollowupAction(bestAction.id || "")) {
+      settleGearFollowups(run, 4, false);
     }
   }
 }
@@ -1087,6 +1326,8 @@ function scoreCombatStateDelta(
   const beforePressure = getThreatPressure(before);
   const afterPressure = getThreatPressure(after);
   const chargeThreat = hasChargeThreat(before);
+  const beforeSafeFromThreat = beforeShortfall <= 0;
+  const afterSafeFromThreat = afterShortfall <= 0;
 
   let score =
     (beforeEnemyLife - afterEnemyLife) * 3.4 +
@@ -1098,9 +1339,16 @@ function scoreCombatStateDelta(
     (beforeLivingEnemies - afterLivingEnemies) * 45 +
     (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.5 +
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
-    (beforeShortfall - afterShortfall) * 5 +
+    (beforeShortfall - afterShortfall) * (chargeThreat ? 14 : 7) +
     (beforePressure - afterPressure) * (chargeThreat ? 42 : 18) +
     (getHandValue(after, content, policy, matchingProficiencies) - getHandValue(before, content, policy, matchingProficiencies)) * 0.12;
+
+  if (!beforeSafeFromThreat && afterSafeFromThreat) {
+    score += chargeThreat ? 42 : 18;
+  }
+  if (chargeThreat && after.hero.guard > before.hero.guard && afterShortfall < beforeShortfall) {
+    score += 10;
+  }
 
   if (after.mercenary.markedEnemyId && !before.mercenary.markedEnemyId) {
     score += 6;
@@ -1237,7 +1485,18 @@ function chooseBestCombatAction(
 ) {
   const candidates = listCandidateActions(state, content, engine, policy, matchingProficiencies).sort((left, right) => right.score - left.score);
   const best = candidates[0] || { type: "end_turn", score: 0 };
+  const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn") || null;
+  const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null;
+  const chargeThreat = hasChargeThreat(state);
+  const threatPressure = getThreatPressure(state);
   if (best.score < 1) {
+    if (
+      bestActiveCandidate &&
+      (chargeThreat || threatPressure >= 0.45) &&
+      bestActiveCandidate.score > Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY)
+    ) {
+      return bestActiveCandidate;
+    }
     return { type: "end_turn", score: 0 } as CombatCandidateAction;
   }
   return best;
@@ -1254,6 +1513,139 @@ function executeCombatAction(action: CombatCandidateAction, state: CombatState, 
     return engine.usePotion(state, action.potionTarget);
   }
   return engine.endTurn(state);
+}
+
+function describeTraceAction(action: CombatCandidateAction, state: CombatState, content: GameContent) {
+  if (action.type === "card" && action.instanceId) {
+    const entry = state.hand.find((candidate) => candidate.instanceId === action.instanceId) || null;
+    const card = entry ? content.cardCatalog[entry.cardId] : null;
+    const target = action.targetId ? state.enemies.find((enemy) => enemy.id === action.targetId) : null;
+    return target ? `Card: ${card?.title || entry?.cardId || action.instanceId} -> ${target.name}` : `Card: ${card?.title || entry?.cardId || action.instanceId}`;
+  }
+  if (action.type === "melee") {
+    return "Melee strike";
+  }
+  if (action.type === "potion") {
+    return `Potion -> ${action.potionTarget || "hero"}`;
+  }
+  return "End turn";
+}
+
+function describeTraceIntent(intent: EnemyIntent | null | undefined) {
+  if (!intent) {
+    return "No action";
+  }
+  if (intent.kind === "charge") {
+    const scope = intent.target === "all_allies" ? " all" : intent.target === "mercenary" ? " merc" : "";
+    const damageType = intent.damageType ? ` ${intent.damageType}` : "";
+    return `${intent.label} (${intent.value}${damageType}${scope} next)`;
+  }
+  if (typeof intent.value === "number" && intent.value > 0) {
+    return `${intent.label || intent.kind} (${intent.value})`;
+  }
+  return intent.label || intent.kind || "Unknown";
+}
+
+function snapshotTraceState(state: CombatState, content: GameContent) {
+  return {
+    hero: {
+      life: state.hero.life,
+      maxLife: state.hero.maxLife,
+      guard: state.hero.guard,
+      energy: state.hero.energy,
+      burn: state.hero.heroBurn,
+      poison: state.hero.heroPoison,
+      chill: state.hero.chill,
+      amplify: state.hero.amplify,
+      weaken: state.hero.weaken,
+      energyDrain: state.hero.energyDrain,
+    },
+    mercenary: {
+      name: state.mercenary.name,
+      life: state.mercenary.life,
+      maxLife: state.mercenary.maxLife,
+      guard: state.mercenary.guard,
+      nextAttackBonus: state.mercenary.nextAttackBonus,
+      markedEnemyId: state.mercenary.markedEnemyId,
+    },
+    enemies: state.enemies
+      .filter((enemy) => enemy.alive)
+      .map((enemy) => ({
+        id: enemy.id,
+        name: enemy.name,
+        life: enemy.life,
+        maxLife: enemy.maxLife,
+        guard: enemy.guard,
+        burn: enemy.burn,
+        poison: enemy.poison,
+        slow: enemy.slow,
+        freeze: enemy.freeze,
+        stun: enemy.stun,
+        paralyze: enemy.paralyze,
+        intent: describeTraceIntent(enemy.currentIntent),
+      })),
+    hand: state.hand.map((entry) => ({
+      instanceId: entry.instanceId,
+      cardId: entry.cardId,
+      title: content.cardCatalog[entry.cardId]?.title || entry.cardId,
+      cost: Number(content.cardCatalog[entry.cardId]?.cost || 0),
+    })),
+  };
+}
+
+export function traceCombatStateWithPolicy(
+  harness: ReturnType<typeof createAppHarness>,
+  combatState: CombatState,
+  policyId: string,
+  maxCombatTurns = 36
+) {
+  const policy = getPolicyDefinitions([policyId])[0];
+  const matchingProficiencies = new Set(getMatchingWeaponProficienciesForCombatState(combatState));
+  const actionLimitPerTurn = 32;
+  const turns: Array<Record<string, unknown>> = [];
+
+  if (!combatState.randomFn) {
+    combatState.randomFn = createTrackedRandom(1);
+  }
+
+  while (!combatState.outcome && combatState.turn < maxCombatTurns) {
+    if (combatState.phase !== "player") {
+      harness.combatEngine.endTurn(combatState);
+      continue;
+    }
+
+    const turnTrace: Record<string, unknown> = {
+      turn: combatState.turn,
+      start: snapshotTraceState(combatState, harness.content),
+      actions: [] as string[],
+    };
+
+    let actionsTaken = 0;
+    while (combatState.phase === "player" && !combatState.outcome && actionsTaken < actionLimitPerTurn) {
+      const action = chooseBestCombatAction(combatState, harness.content, harness.combatEngine, policy, matchingProficiencies);
+      (turnTrace.actions as string[]).push(describeTraceAction(action, combatState, harness.content));
+      const result = executeCombatAction(action, combatState, harness.content, harness.combatEngine);
+      actionsTaken += 1;
+      if (!result.ok || action.type === "end_turn") {
+        break;
+      }
+    }
+
+    if (!combatState.outcome && combatState.phase === "player") {
+      harness.combatEngine.endTurn(combatState);
+    }
+
+    turnTrace.end = snapshotTraceState(combatState, harness.content);
+    turnTrace.log = [...combatState.log].slice(0, 16).reverse();
+    turns.push(turnTrace);
+  }
+
+  return {
+    outcome: combatState.outcome || "timeout",
+    turns,
+    finalState: snapshotTraceState(combatState, harness.content),
+    recentLog: [...combatState.log].slice(0, 24).reverse(),
+  };
 }
 
 function buildCombatStateForEncounter(
@@ -1503,6 +1895,19 @@ function buildCheckpointSummary(
     training: { ...(run.progression?.training || {}) },
     favoredTreeId: progressionSummary?.favoredTreeId || "",
     favoredTreeName: progressionSummary?.favoredTreeName || "",
+    dominantArchetypeId: progressionSummary?.dominantArchetypeId || "",
+    dominantArchetypeLabel: progressionSummary?.dominantArchetypeLabel || "",
+    dominantArchetypeScore: Number(progressionSummary?.dominantArchetypeScore || 0),
+    secondaryArchetypeId: progressionSummary?.secondaryArchetypeId || "",
+    secondaryArchetypeLabel: progressionSummary?.secondaryArchetypeLabel || "",
+    secondaryArchetypeScore: Number(progressionSummary?.secondaryArchetypeScore || 0),
+    archetypeScores: Array.isArray(progressionSummary?.archetypeScores)
+      ? progressionSummary.archetypeScores.map((entry) => ({
+          archetypeId: entry.archetypeId,
+          label: entry.label,
+          score: Number(entry.score || 0),
+        }))
+      : [],
     weapon: weaponEquipment
       ? {
           itemId: weaponEquipment.itemId,
@@ -1532,6 +1937,7 @@ function buildFinalBuildSummary(
   policy: BuildPolicyDefinition
 ): FinalBuildSummary {
   const scoringRun = createScoringRun(harness, run, true);
+  const progressionSummary = harness.runFactory.getProgressionSummary(scoringRun, harness.content);
   const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, profile);
   const weaponEquipment = getWeaponEquipment(scoringRun);
   const armorEquipment = getArmorEquipment(scoringRun);
@@ -1594,6 +2000,21 @@ function buildFinalBuildSummary(
           immunities: [...(armorProfile?.immunities || [])],
         }
       : null,
+    favoredTreeId: progressionSummary?.favoredTreeId || "",
+    favoredTreeName: progressionSummary?.favoredTreeName || "",
+    dominantArchetypeId: progressionSummary?.dominantArchetypeId || "",
+    dominantArchetypeLabel: progressionSummary?.dominantArchetypeLabel || "",
+    dominantArchetypeScore: Number(progressionSummary?.dominantArchetypeScore || 0),
+    secondaryArchetypeId: progressionSummary?.secondaryArchetypeId || "",
+    secondaryArchetypeLabel: progressionSummary?.secondaryArchetypeLabel || "",
+    secondaryArchetypeScore: Number(progressionSummary?.secondaryArchetypeScore || 0),
+    archetypeScores: Array.isArray(progressionSummary?.archetypeScores)
+      ? progressionSummary.archetypeScores.map((entry) => ({
+          archetypeId: entry.archetypeId,
+          label: entry.label,
+          score: Number(entry.score || 0),
+        }))
+      : [],
     activeRunewords,
   };
 }
@@ -1610,6 +2031,31 @@ function buildWorldProgressSummary(run: RunState): WorldProgressSummary {
     eventOutcomes: Object.keys(run.world?.eventOutcomes || {}).length,
     opportunityOutcomes: Object.keys(run.world?.opportunityOutcomes || {}).length,
   };
+}
+
+function buildEncounterMetricsByKind(encounters: EncounterRunMetric[]) {
+  const byKind: Record<string, EncounterRunMetric[]> = {};
+  encounters.forEach((entry) => {
+    const kind = entry.kind || "battle";
+    byKind[kind] = byKind[kind] || [];
+    byKind[kind].push(entry);
+  });
+
+  return Object.fromEntries(
+    Object.entries(byKind).map(([kind, entries]) => {
+      const count = Math.max(1, entries.length);
+      const wins = entries.filter((entry) => entry.outcome === "victory").length;
+      return [kind, {
+        count: entries.length,
+        winRate: roundTo(wins / count, 3),
+        averageTurns: roundTo(entries.reduce((sum, entry) => sum + Number(entry.turns || 0), 0) / count),
+        averageHeroLifePct: roundTo(entries.reduce((sum, entry) => sum + Number(entry.heroLifePct || 0), 0) / count),
+        averageMercenaryLifePct: roundTo(entries.reduce((sum, entry) => sum + Number(entry.mercenaryLifePct || 0), 0) / count),
+        averageEnemyLifePct: roundTo(entries.reduce((sum, entry) => sum + Number(entry.enemyLifePct || 0), 0) / count),
+        averagePowerRatio: roundTo(entries.reduce((sum, entry) => sum + Number(entry.powerRatio || 0), 0) / count),
+      }];
+    })
+  );
 }
 
 function buildPolicyRunSummary(
@@ -1629,6 +2075,10 @@ function buildPolicyRunSummary(
     rewardKindCounts: { ...progress.rewardKindCounts },
     choiceKindCounts: { ...progress.actionCounts },
     rewardEffectCounts: { ...progress.rewardEffectCounts },
+    rewardRoleCounts: { ...progress.rewardRoleCounts },
+    strategyRoleCounts: { ...progress.strategyRoleCounts },
+    encounterResults: progress.encounterResults.map((entry) => ({ ...entry })),
+    encounterMetricsByKind: buildEncounterMetricsByKind(progress.encounterResults),
     world: buildWorldProgressSummary(run),
     finalBuild: buildFinalBuildSummary(harness, run, profile, policy),
   };
@@ -1686,6 +2136,8 @@ function countChoice(progress: PolicyProgressSummary, reward: RunReward | null, 
     return;
   }
   incrementCount(progress.actionCounts, choice.kind || "unknown");
+  incrementCount(progress.rewardRoleCounts, choice.cardRewardRole || "none");
+  incrementCount(progress.strategyRoleCounts, choice.strategyRole || "none");
   (Array.isArray(choice.effects) ? choice.effects : []).forEach((effect) => {
     incrementCount(progress.rewardEffectCounts, effect.kind || "unknown");
   });
@@ -1739,8 +2191,9 @@ function playStateCombat(
   maxCombatTurns: number
 ) {
   if (!state.combat) {
-    return;
+    return null;
   }
+  const startingEnemyLife = state.combat.enemies.reduce((sum, enemy) => sum + Number(enemy.life || 0), 0);
   const matchingProficiencies = new Set(getMatchingWeaponProficienciesForCombatState(state.combat));
   const actionLimitPerTurn = 32;
 
@@ -1766,9 +2219,20 @@ function playStateCombat(
   if (!state.combat.outcome) {
     state.combat.outcome = "defeat";
   }
+  const remainingEnemyLife = state.combat.enemies.reduce((sum, enemy) => sum + Number(enemy.life || 0), 0);
+  return {
+    outcome: state.combat.outcome || "defeat",
+    turns: Number(state.combat.turn || 0),
+    heroLifePct: state.combat.hero.maxLife > 0 ? roundTo((Number(state.combat.hero.life || 0) / Number(state.combat.hero.maxLife || 1)) * 100) : 0,
+    mercenaryLifePct:
+      state.combat.mercenary.maxLife > 0
+        ? roundTo((Number(state.combat.mercenary.life || 0) / Number(state.combat.mercenary.maxLife || 1)) * 100)
+        : 0,
+    enemyLifePct: startingEnemyLife > 0 ? roundTo((remainingEnemyLife / startingEnemyLife) * 100) : 0,
+  };
 }
 
-function createSimulationState(
+export function createSimulationState(
   harness: ReturnType<typeof createAppHarness>,
   classId: string,
   seed: number
@@ -1790,46 +2254,196 @@ function createSimulationState(
   return state;
 }
 
-function simulatePolicyRun(
+export function createSimulationStateFromSnapshot(
   harness: ReturnType<typeof createAppHarness>,
+  serializedSnapshot: string,
+  randomSeed: number,
+  randomState?: number
+) {
+  const state = harness.appEngine.createAppState({
+    content: harness.content,
+    seedBundle: harness.seedBundle,
+    combatEngine: harness.combatEngine,
+    randomFn: createTrackedRandom(randomSeed, randomState),
+  });
+  const result = harness.appEngine.loadRunSnapshot(state, serializedSnapshot);
+  if (!result.ok || !state.run) {
+    throw new Error(result.message || "Could not restore simulation snapshot.");
+  }
+  return state;
+}
+
+function createEmptyPolicyProgressSummary(): PolicyProgressSummary {
+  return {
+    actionCounts: {},
+    rewardKindCounts: {},
+    rewardEffectCounts: {},
+    rewardRoleCounts: {},
+    strategyRoleCounts: {},
+    zoneKindCounts: {},
+    zoneRoleCounts: {},
+    nodeTypeCounts: {},
+    encounterResults: [],
+  };
+}
+
+function getPolicySimulationAssumptions() {
+  return [
+    "Uses the live run/reward/combat runtime with a full-clear route and boss-last ordering.",
+    "Reward and safe-zone choices are selected by greedy lookahead against a static power score.",
+    "Safe-zone optimization currently covers progression spending, healing, belt refills, mercenary contract actions, vendor refresh/buy/equip lines, rune socketing/commission, blacksmith evolutions, and sage purges.",
+    "Randomized town actions such as sage transforms and gambler purchases are still excluded from the optimizer.",
+  ];
+}
+
+function cloneContinuationContext(context: RunProgressionContinuationContext): RunProgressionContinuationContext {
+  return JSON.parse(JSON.stringify(context)) as RunProgressionContinuationContext;
+}
+
+function buildEncounterMetric(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  encounter: SimulationFailureSummary | null,
+  combatResult: ReturnType<typeof playStateCombat>
+): EncounterRunMetric | null {
+  if (!encounter || !combatResult) {
+    return null;
+  }
+  const overrides = harness.runFactory.createCombatOverrides(run, harness.content, null);
+  const armorProfile = harness.itemSystem.buildCombatMitigationProfile(run, harness.content) || null;
+  const weaponEquipment = getWeaponEquipment(run);
+  const weaponItemId = weaponEquipment?.itemId || "";
+  const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(weaponEquipment, harness.content) || null;
+  const weaponFamily = harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(weaponItemId, harness.content) || "";
+  const classPreferredFamilies = harness.classRegistry.getPreferredWeaponFamilies(run.classId) || [];
+  const heroPowerScore = scorePartyPower({
+    content: harness.content,
+    deckCardIds: run.deck,
+    heroState: {
+      ...overrides.heroState,
+      life: run.hero.currentLife,
+      currentLife: run.hero.currentLife,
+    },
+    mercenaryState: {
+      ...overrides.mercenaryState,
+      life: run.mercenary.currentLife,
+      currentLife: run.mercenary.currentLife,
+    },
+    weaponProfile,
+    armorProfile,
+    weaponFamily,
+    classPreferredFamilies,
+    gold: run.gold,
+    potions: run.belt.current,
+    level: run.level,
+    bankedSkillPoints: run.progression?.skillPointsAvailable || 0,
+    bankedClassPoints: run.progression?.classPointsAvailable || 0,
+    bankedAttributePoints: run.progression?.attributePointsAvailable || 0,
+    includeCurrentResources: true,
+  }).total;
+  const enemyPowerScore = scoreEncounterPowerFromDefinition(harness.content, encounter.encounterId).total;
+  return {
+    actNumber: encounter.actNumber,
+    encounterId: encounter.encounterId,
+    encounterName: encounter.encounterName,
+    zoneTitle: encounter.zoneTitle,
+    kind: encounter.kind || "battle",
+    zoneKind: encounter.zoneKind || "",
+    zoneRole: encounter.zoneRole || "",
+    outcome: String(combatResult.outcome || "defeat"),
+    turns: Number(combatResult.turns || 0),
+    heroLifePct: Number(combatResult.heroLifePct || 0),
+    mercenaryLifePct: Number(combatResult.mercenaryLifePct || 0),
+    enemyLifePct: Number(combatResult.enemyLifePct || 0),
+    heroPowerScore: roundTo(heroPowerScore),
+    enemyPowerScore: roundTo(enemyPowerScore),
+    powerRatio: roundTo(heroPowerScore / Math.max(1, enemyPowerScore)),
+  };
+}
+
+export function runProgressionPolicyFromState(
+  harness: ReturnType<typeof createAppHarness>,
+  state: AppState,
   classId: string,
   policy: BuildPolicyDefinition,
   throughActNumber: number,
   probeRuns: number,
   maxCombatTurns: number,
-  seedOffset = 0
+  seedOffset = 0,
+  continuation?: Partial<RunProgressionContinuationContext>,
+  hooks?: PolicySimulationHooks
 ): PolicySimulationReport {
-  const seed = hashString([classId, policy.id, String(throughActNumber), String(seedOffset)].join("|"));
-  const state = createSimulationState(harness, classId, seed);
   const PHASES = harness.appEngine.PHASES;
-  const checkpoints: SafeZoneCheckpointSummary[] = [];
-  const progress: PolicyProgressSummary = {
-    actionCounts: {},
-    rewardKindCounts: {},
-    rewardEffectCounts: {},
-    zoneKindCounts: {},
-    zoneRoleCounts: {},
-    nodeTypeCounts: {},
-  };
-  let failure: SimulationFailureSummary | null = null;
-  let lastEncounterContext: SimulationFailureSummary | null = null;
+  const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : [];
+  const progress = continuation?.progress
+    ? JSON.parse(JSON.stringify(continuation.progress)) as PolicyProgressSummary
+    : createEmptyPolicyProgressSummary();
+  let failure: SimulationFailureSummary | null = continuation?.failure ? { ...continuation.failure } : null;
+  let lastEncounterContext: SimulationFailureSummary | null = continuation?.lastEncounterContext
+    ? { ...continuation.lastEncounterContext }
+    : null;
 
-  optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy);
-  checkpoints.push(buildCheckpointSummary(harness, state.run as RunState, state.profile, policy, state.run!.actNumber, progress, probeRuns, maxCombatTurns));
+  const continuationContext = () => cloneContinuationContext({
+    policyId: policy.id,
+    throughActNumber,
+    probeRuns,
+    maxCombatTurns,
+    seedOffset,
+    progress,
+    checkpoints,
+    failure,
+    lastEncounterContext,
+  });
+
+  if (!continuation) {
+    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy);
+    const initialCheckpoint = buildCheckpointSummary(
+      harness,
+      state.run as RunState,
+      state.profile,
+      policy,
+      state.run!.actNumber,
+      progress,
+      probeRuns,
+      maxCombatTurns
+    );
+    checkpoints.push(initialCheckpoint);
+    hooks?.onInitialized?.({
+      state,
+      harness,
+      policy,
+      classId,
+      seedOffset,
+      continuationContext: continuationContext(),
+    });
+    hooks?.onCheckpoint?.({
+      state,
+      harness,
+      policy,
+      classId,
+      seedOffset,
+      checkpoint: initialCheckpoint,
+      continuationContext: continuationContext(),
+    });
+  } else {
+    hooks?.onInitialized?.({
+      state,
+      harness,
+      policy,
+      classId,
+      seedOffset,
+      continuationContext: continuationContext(),
+    });
+  }
 
   while (state.run) {
     if (state.phase === PHASES.SAFE_ZONE) {
       if (state.run.actNumber >= throughActNumber && throughActNumber < 5) {
-        return {
+        const report: PolicySimulationReport = {
           policyId: policy.id,
           policyLabel: policy.label,
           description: policy.description,
-          assumptions: [
-            "Uses the live run/reward/combat runtime with a full-clear route and boss-last ordering.",
-            "Reward and safe-zone choices are selected by greedy lookahead against a static power score.",
-            "Safe-zone optimization currently covers progression spending, healing, belt refills, mercenary contract actions, vendor refresh/buy/equip lines, rune socketing/commission, blacksmith evolutions, and sage purges.",
-            "Randomized town actions such as sage transforms and gambler purchases are still excluded from the optimizer.",
-          ],
+          assumptions: getPolicySimulationAssumptions(),
           outcome: "reached_checkpoint",
           finalActNumber: state.run.actNumber,
           finalLevel: state.run.level,
@@ -1837,6 +2451,16 @@ function simulatePolicyRun(
           failure: null,
           summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress),
         };
+        hooks?.onRunComplete?.({
+          state,
+          harness,
+          policy,
+          classId,
+          seedOffset,
+          report,
+          continuationContext: continuationContext(),
+        });
+        return report;
       }
 
       const leaveResult = harness.appEngine.leaveSafeZone(state);
@@ -1892,29 +2516,41 @@ function simulatePolicyRun(
           zoneTitle: selectedZone.title,
           encounterId: state.run.activeEncounterId,
           encounterName: encounter?.name || state.run.activeEncounterId,
+          kind: selectedZone.kind === "boss" ? "boss" : selectedZone.kind === "miniboss" ? "elite" : "battle",
+          zoneKind: selectedZone.kind || "",
+          zoneRole: selectedZone.zoneRole || "",
+          nodeType: selectedZone.nodeType || "",
         };
+        hooks?.onEncounterStart?.({
+          state,
+          harness,
+          policy,
+          classId,
+          seedOffset,
+          encounter: { ...lastEncounterContext },
+          continuationContext: continuationContext(),
+        });
       }
       continue;
     }
 
     if (state.phase === PHASES.ENCOUNTER) {
-      playStateCombat(harness, state, policy, maxCombatTurns);
+      const combatResult = playStateCombat(harness, state, policy, maxCombatTurns);
+      const encounterMetric = buildEncounterMetric(harness, state.run, lastEncounterContext, combatResult);
+      if (encounterMetric) {
+        progress.encounterResults.push(encounterMetric);
+      }
       const outcomeResult = harness.appEngine.syncEncounterOutcome(state);
       if (!outcomeResult.ok) {
         throw new Error(outcomeResult.message || "Could not sync encounter outcome.");
       }
       if (state.phase === PHASES.RUN_FAILED) {
         failure = lastEncounterContext;
-        return {
+        const report: PolicySimulationReport = {
           policyId: policy.id,
           policyLabel: policy.label,
           description: policy.description,
-          assumptions: [
-            "Uses the live run/reward/combat runtime with a full-clear route and boss-last ordering.",
-            "Reward and safe-zone choices are selected by greedy lookahead against a static power score.",
-            "Safe-zone optimization currently covers progression spending, healing, belt refills, mercenary contract actions, vendor refresh/buy/equip lines, rune socketing/commission, blacksmith evolutions, and sage purges.",
-            "Randomized town actions such as sage transforms and gambler purchases are still excluded from the optimizer.",
-          ],
+          assumptions: getPolicySimulationAssumptions(),
           outcome: "run_failed",
           finalActNumber: failure?.actNumber || state.run?.actNumber || 1,
           finalLevel: state.run?.level || 1,
@@ -1922,6 +2558,17 @@ function simulatePolicyRun(
           failure,
           summary: buildPolicyRunSummary(harness, state.run as RunState, state.profile, policy, progress),
         };
+        hooks?.onRunFailure?.({
+          state,
+          harness,
+          policy,
+          classId,
+          seedOffset,
+          failure,
+          report,
+          continuationContext: continuationContext(),
+        });
+        return report;
       }
       continue;
     }
@@ -1938,6 +2585,7 @@ function simulatePolicyRun(
       ].filter(Boolean) as RewardChoice[];
       let claimed = false;
       let lastClaimMessage = "";
+      let lastChoiceSummary = "";
       for (const choice of orderedChoices) {
         let attempts = 0;
         while (attempts <= ((state.run.inventory?.carried?.length || 0) + 1)) {
@@ -1948,7 +2596,9 @@ function simulatePolicyRun(
             break;
           }
           lastClaimMessage = claimResult.message || "Could not claim reward.";
+          lastChoiceSummary = `${reward.title} -> ${choice?.title || choice?.id || "choice"} (${(choice?.effects || []).map((effect) => effect.kind).join(", ")})`;
           if (!lastClaimMessage.includes("Not enough inventory space")) {
+            console.error(`Reward claim failed: ${lastClaimMessage} [${lastChoiceSummary}]`);
             break;
           }
           if (!discardLowestValueCarriedEntry(harness, state.run)) {
@@ -1961,32 +2611,47 @@ function simulatePolicyRun(
         }
       }
       if (!claimed) {
-        throw new Error(lastClaimMessage || "Could not claim reward.");
+        throw new Error(`${lastClaimMessage || "Could not claim reward."} [${lastChoiceSummary}]`);
       }
       continue;
     }
 
     if (state.phase === PHASES.ACT_TRANSITION) {
+      if (state.run?.guide?.overlayKind === "reward") {
+        const guideResult = harness.appEngine.continueActGuide(state);
+        if (!guideResult.ok) {
+          throw new Error(guideResult.message || "Could not dismiss act guide.");
+        }
+        if (state.run?.guide?.overlayKind === "reward") {
+          state.run.guide.overlayKind = "";
+          state.run.guide.targetActNumber = 0;
+        }
+      }
       const continueResult = harness.appEngine.continueActTransition(state);
       if (!continueResult.ok) {
         throw new Error(continueResult.message || "Could not continue act transition.");
       }
       optimizeSafeZoneRun(harness, state.run, state.profile, policy);
-      checkpoints.push(buildCheckpointSummary(harness, state.run, state.profile, policy, state.run.actNumber, progress, probeRuns, maxCombatTurns));
+      const checkpoint = buildCheckpointSummary(harness, state.run, state.profile, policy, state.run.actNumber, progress, probeRuns, maxCombatTurns);
+      checkpoints.push(checkpoint);
+      hooks?.onCheckpoint?.({
+        state,
+        harness,
+        policy,
+        classId,
+        seedOffset,
+        checkpoint,
+        continuationContext: continuationContext(),
+      });
       continue;
     }
 
     if (state.phase === PHASES.RUN_COMPLETE) {
-      return {
+      const report: PolicySimulationReport = {
         policyId: policy.id,
         policyLabel: policy.label,
         description: policy.description,
-        assumptions: [
-          "Uses the live run/reward/combat runtime with a full-clear route and boss-last ordering.",
-          "Reward and safe-zone choices are selected by greedy lookahead against a static power score.",
-          "Safe-zone optimization currently covers progression spending, healing, belt refills, mercenary contract actions, vendor refresh/buy/equip lines, rune socketing/commission, blacksmith evolutions, and sage purges.",
-          "Randomized town actions such as sage transforms and gambler purchases are still excluded from the optimizer.",
-        ],
+        assumptions: getPolicySimulationAssumptions(),
         outcome: "run_complete",
         finalActNumber: state.run.actNumber,
         finalLevel: state.run.level,
@@ -1994,6 +2659,16 @@ function simulatePolicyRun(
         failure: null,
         summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress),
       };
+      hooks?.onRunComplete?.({
+        state,
+        harness,
+        policy,
+        classId,
+        seedOffset,
+        report,
+        continuationContext: continuationContext(),
+      });
+      return report;
     }
 
     throw new Error(`Unsupported simulation phase: ${state.phase}`);
@@ -2002,8 +2677,206 @@ function simulatePolicyRun(
   throw new Error("Simulation exited without an active run.");
 }
 
+function simulatePolicyRun(
+  harness: ReturnType<typeof createAppHarness>,
+  classId: string,
+  policy: BuildPolicyDefinition,
+  throughActNumber: number,
+  probeRuns: number,
+  maxCombatTurns: number,
+  seedOffset = 0,
+  hooks?: PolicySimulationHooks
+): PolicySimulationReport {
+  const seed = createProgressionSimulationSeed(classId, policy.id, throughActNumber, seedOffset);
+  const state = createSimulationState(harness, classId, seed);
+  return runProgressionPolicyFromState(harness, state, classId, policy, throughActNumber, probeRuns, maxCombatTurns, seedOffset, undefined, hooks);
+}
+
 export function getRunProgressionPolicyDefinitions() {
   return Object.values(BUILD_POLICIES).map((policy) => ({ ...policy }));
+}
+
+export function runProgressionEncounterTrace(options: {
+  classId?: string;
+  policyId?: string;
+  targetActNumber?: number;
+  encounterId?: string;
+  seedOffset?: number;
+  maxCombatTurns?: number;
+} = {}) {
+  const classId = String(options.classId || "druid");
+  const targetActNumber = clamp(options.targetActNumber || 4, 1, 5);
+  const encounterId = String(options.encounterId || `act_${targetActNumber}_boss`);
+  const seedOffset = Math.max(0, options.seedOffset || 0);
+  const maxCombatTurns = Math.max(12, options.maxCombatTurns || 36);
+  const policy = getPolicyDefinitions([options.policyId || "aggressive"])[0];
+  const seed = hashString([classId, policy.id, "5", String(seedOffset)].join("|"));
+  const harness = createQuietAppHarness();
+  const state = createSimulationState(harness, classId, seed);
+  const PHASES = harness.appEngine.PHASES;
+
+  optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy);
+
+  let encounterContext: { actNumber: number; zoneTitle: string; encounterId: string; encounterName: string } | null = null;
+
+  while (state.run) {
+    if (state.phase === PHASES.SAFE_ZONE) {
+      const leaveResult = harness.appEngine.leaveSafeZone(state);
+      if (!leaveResult.ok) {
+        throw new Error(leaveResult.message || "Could not leave safe zone.");
+      }
+      continue;
+    }
+
+    if (state.phase === PHASES.WORLD_MAP) {
+      const needsTown =
+        state.run.hero.currentLife <= Math.ceil(state.run.hero.maxLife * 0.5) ||
+        state.run.belt.current <= 0 ||
+        state.run.mercenary.currentLife <= 0;
+      if (needsTown) {
+        const returnResult = harness.appEngine.returnToSafeZone(state);
+        if (returnResult.ok) {
+          optimizeSafeZoneRun(harness, state.run, state.profile, policy);
+          continue;
+        }
+      }
+
+      const reachableZones = harness.runFactory.getReachableZones(state.run);
+      if (reachableZones.length === 0) {
+        throw new Error(`No reachable zones remain in Act ${state.run.actNumber}.`);
+      }
+
+      let selectedZone: ZoneState | null = null;
+      let lastSelectMessage = "";
+      const candidates = reachableZones.slice();
+      while (candidates.length > 0 && !selectedZone) {
+        const nextZone = chooseNextZone(state.run, candidates);
+        const selectResult = harness.appEngine.selectZone(state, nextZone.id);
+        if (selectResult.ok) {
+          selectedZone = nextZone;
+          break;
+        }
+        lastSelectMessage = selectResult.message || `Could not select zone ${nextZone.id}.`;
+        const candidateIndex = candidates.findIndex((zone) => zone.id === nextZone.id);
+        if (candidateIndex >= 0) {
+          candidates.splice(candidateIndex, 1);
+        } else {
+          break;
+        }
+      }
+      if (!selectedZone) {
+        throw new Error(lastSelectMessage || `Could not select any reachable zone in Act ${state.run.actNumber}.`);
+      }
+      if (state.phase === PHASES.ENCOUNTER) {
+        const encounter = harness.content.encounterCatalog[state.run.activeEncounterId];
+        encounterContext = {
+          actNumber: state.run.actNumber,
+          zoneTitle: selectedZone.title,
+          encounterId: state.run.activeEncounterId,
+          encounterName: encounter?.name || state.run.activeEncounterId,
+        };
+        if (state.run.activeEncounterId === encounterId) {
+          break;
+        }
+      }
+      continue;
+    }
+
+    if (state.phase === PHASES.ENCOUNTER) {
+      playStateCombat(harness, state, policy, maxCombatTurns);
+      const outcomeResult = harness.appEngine.syncEncounterOutcome(state);
+      if (!outcomeResult.ok) {
+        throw new Error(outcomeResult.message || "Could not sync encounter outcome.");
+      }
+      if (state.phase === PHASES.RUN_FAILED) {
+        throw new Error(`Run failed before reaching ${encounterId}.`);
+      }
+      continue;
+    }
+
+    if (state.phase === PHASES.REWARD) {
+      const reward = state.run.pendingReward;
+      if (!reward) {
+        throw new Error("Reward phase is active without a pending reward.");
+      }
+      const primaryChoice = chooseBestRewardChoice(harness, state.run, state.profile, reward, policy);
+      const claimResult = harness.appEngine.claimRewardAndAdvance(state, primaryChoice?.id || "");
+      if (!claimResult.ok) {
+        throw new Error(claimResult.message || "Could not claim reward.");
+      }
+      continue;
+    }
+
+    if (state.phase === PHASES.ACT_TRANSITION) {
+      if (state.run?.guide?.overlayKind === "reward") {
+        const guideResult = harness.appEngine.continueActGuide(state);
+        if (!guideResult.ok) {
+          throw new Error(guideResult.message || "Could not dismiss act guide.");
+        }
+        if (state.run?.guide?.overlayKind === "reward") {
+          state.run.guide.overlayKind = "";
+          state.run.guide.targetActNumber = 0;
+        }
+      }
+      const continueResult = harness.appEngine.continueActTransition(state);
+      if (!continueResult.ok) {
+        throw new Error(continueResult.message || "Could not continue act transition.");
+      }
+      optimizeSafeZoneRun(harness, state.run, state.profile, policy);
+      continue;
+    }
+
+    if (state.phase === PHASES.RUN_COMPLETE) {
+      throw new Error(`Run completed before reaching ${encounterId}.`);
+    }
+
+    throw new Error(`Unsupported simulation phase: ${state.phase}`);
+  }
+
+  if (!state.run || state.phase !== PHASES.ENCOUNTER || state.run.activeEncounterId !== encounterId) {
+    throw new Error(`Could not reach encounter ${encounterId}.`);
+  }
+
+  const overrides = harness.runFactory.createCombatOverrides(state.run, harness.content, state.profile);
+  const combatBonuses = harness.itemSystem.buildCombatBonuses(state.run, harness.content);
+  const armorProfile = harness.itemSystem.buildCombatMitigationProfile(state.run, harness.content) || null;
+  const weaponEquipment = getWeaponEquipment(state.run);
+  const weaponItemId = weaponEquipment?.itemId || "";
+  const weaponItem = harness.browserWindow.ROUGE_ITEM_CATALOG.getItemDefinition(harness.content, weaponItemId);
+  const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(weaponEquipment, harness.content) || null;
+  const weaponFamily = harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(weaponItemId, harness.content) || "";
+  const classPreferredFamilies = harness.classRegistry.getPreferredWeaponFamilies(state.run.classId) || [];
+  const combatState = harness.combatEngine.createCombatState({
+    content: { ...harness.content, hero: overrides.heroState },
+    encounterId,
+    mercenaryId: state.run.mercenary.id,
+    heroState: overrides.heroState,
+    mercenaryState: overrides.mercenaryState,
+    starterDeck: overrides.starterDeck,
+    initialPotions: overrides.initialPotions,
+    randomFn: state.randomFn,
+    weaponFamily,
+    weaponName: weaponItem?.name || "",
+    weaponDamageBonus: Number(combatBonuses.heroDamageBonus || 0),
+    weaponProfile,
+    armorProfile,
+    classPreferredFamilies,
+  });
+  const trace = traceCombatStateWithPolicy(harness, combatState, policy.id, maxCombatTurns);
+
+  return {
+    classId,
+    policyId: policy.id,
+    policyLabel: policy.label,
+    seedOffset,
+    encounterId,
+    encounterName: encounterContext?.encounterName || encounterId,
+    zoneTitle: encounterContext?.zoneTitle || "",
+    outcome: trace.outcome,
+    turns: trace.turns,
+    finalState: trace.finalState,
+    recentLog: trace.recentLog,
+  };
 }
 
 export function runProgressionSimulationReport(options: RunProgressionSimulationOptions = {}): RunProgressionSimulationReport {

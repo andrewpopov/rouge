@@ -156,6 +156,21 @@ test("act bosses expose unique scripted mechanics by act theme", () => {
   assert.ok(baal.intents.some((intent) => intent.kind === "summon_minion"));
 });
 
+test("base boss encounters preserve the scripted boss opener while starting behind a screen", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+
+  const boss = state.enemies.find((enemy) => enemy.templateId.endsWith("_boss"));
+  assert.ok(boss);
+  assert.equal(boss.currentIntent.kind, "guard_allies");
+  assert.ok(boss.guard >= 8);
+});
+
 test("mercenary contract bonuses can add opening guard and deterministic damage bonuses", () => {
   const { content, engine } = createCombatHarness();
   const state = engine.createCombatState({

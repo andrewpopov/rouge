@@ -40,7 +40,7 @@
               "Carry the relay into the last marked crossing and stop the desert line from wasting motion.",
               "final_crossing_marked",
               ["sunwell_culmination_final_crossing"],
-              [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 12 }]
+              [{ kind: "class_point", value: 1 }, { kind: "hero_max_energy", value: 1 }]
             ),
           ],
         },
@@ -62,7 +62,7 @@
               "Carry the lance dispatch into a tighter screen over the last tomb approach.",
               "tomb_screen_readied",
               ["sunwell_culmination_tomb_screen"],
-              [{ kind: "hero_max_life", value: 3 }, { kind: "mercenary_attack", value: 1 }]
+              [{ kind: "class_point", value: 1 }, { kind: "mercenary_attack", value: 1 }]
             ),
             culminationChoice(
               "sunwell_culmination_opportunity",
@@ -95,7 +95,7 @@
               "Let the contracted guard carry the lance dispatch into a true spearline before the tomb gate.",
               "final_spearline_anchored",
               ["sunwell_culmination_final_spearline"],
-              [{ kind: "mercenary_max_life", value: 4 }, { kind: "hero_max_life", value: 3 }]
+              [{ kind: "class_point", value: 1 }, { kind: "mercenary_max_life", value: 4 }]
             ),
             culminationChoice(
               "sunwell_culmination_opportunity",

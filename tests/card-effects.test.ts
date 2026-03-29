@@ -195,7 +195,6 @@ test("draw card adds cards to hand", () => {
     return def?.effects?.some((e) => e.kind === "draw");
   });
   if (drawCard) {
-    const handBefore = state.hand.length;
     harness.engine.playCard(state, harness.content, drawCard.instanceId);
     // Hand may not grow if played card removed + draw added = same size or more
     assert.ok(typeof state.hand.length === "number");

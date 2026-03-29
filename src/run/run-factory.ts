@@ -6,6 +6,7 @@
     createDefaultAttributes,
     createDefaultClassProgression,
     createDefaultInventory,
+    createDefaultGuideState,
     createDefaultProgression,
     createDefaultSummary,
     createDefaultTownState,
@@ -110,6 +111,7 @@
         unlockedSkillIds: Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
           ? [...run.progression.classProgression.unlockedSkillIds]
           : [],
+        archetypeScores: { ...(run.progression?.classProgression?.archetypeScores || {}) },
       },
       training: {
         ...createDefaultTraining(),
@@ -125,6 +127,19 @@
       ...(run.inventory || {}),
       nextEntryId: Math.max(1, toBonusValue(run.inventory?.nextEntryId) || 1),
       carried: Array.isArray(run.inventory?.carried) ? [...run.inventory.carried] : [],
+    };
+    let overlayKind: RunGuideState["overlayKind"] = "";
+    if (run.guide?.overlayKind === "reward") {
+      overlayKind = "reward";
+    } else if (run.guide?.overlayKind === "intro") {
+      overlayKind = "intro";
+    }
+    run.guide = {
+      ...createDefaultGuideState(),
+      ...(run.guide || {}),
+      seenIntroActNumbers: Array.isArray(run.guide?.seenIntroActNumbers) ? [...run.guide.seenIntroActNumbers] : [],
+      overlayKind,
+      targetActNumber: Math.max(0, toBonusValue(run.guide?.targetActNumber)),
     };
     run.town = {
       ...createDefaultTownState(),
@@ -234,6 +249,7 @@
       activeZoneId: "",
       activeEncounterId: "",
       pendingReward: null as RunReward | null,
+      guide: createDefaultGuideState(),
       world: createDefaultWorldState(),
       summary: createDefaultSummary(),
     };

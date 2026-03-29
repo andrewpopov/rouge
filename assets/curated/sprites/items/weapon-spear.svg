@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Spear">
+  <defs>
+    <linearGradient id="spearWood" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#986238"/>
+      <stop offset="55%" stop-color="#6b401f"/>
+      <stop offset="100%" stop-color="#311d11"/>
+    </linearGradient>
+    <linearGradient id="spearMetal" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f3ddc0"/>
+      <stop offset="55%" stop-color="#cb995b"/>
+      <stop offset="100%" stop-color="#72431e"/>
+    </linearGradient>
+    <filter id="spearGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#spearGlow)" transform="translate(10 8) rotate(-31 54 56)">
+    <path d="M51 10L59 10L60 112L50 112Z" fill="url(#spearWood)"/>
+    <path d="M55 0L71 22L55 54L39 22Z" fill="url(#spearMetal)"/>
+    <path d="M55 9L63 22L55 40L47 22Z" fill="#f6ecdc" fill-opacity="0.72"/>
+    <path d="M47 44L63 44" stroke="#dbbd94" stroke-linecap="round" stroke-width="2.2"/>
+    <path d="M46 62L64 62" stroke="#dbbd94" stroke-linecap="round" stroke-width="2.2"/>
+    <path d="M46 73L64 73" stroke="#7e241e" stroke-linecap="round" stroke-width="4"/>
+    <path d="M46 78L64 78" stroke="#d6a261" stroke-linecap="round" stroke-width="2.1"/>
+  </g>
+</svg>

@@ -1,0 +1,1176 @@
+{
+  "mode": "combat",
+  "digest": "04a1a969ab0bfb22",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Durance of Hate / Mephisto",
+    "checkpointId": "",
+    "encounterId": "act_3_boss",
+    "runKey": "nightly_full_matrix:campaign:assassin:balanced:1"
+  },
+  "classId": "assassin",
+  "actNumber": 3,
+  "encounterId": "act_3_boss",
+  "policyId": "balanced",
+  "outcome": "defeat",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 246,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 11,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 40,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 451,
+            "maxLife": 451,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_2",
+            "name": "Fetish Shaman",
+            "life": 62,
+            "maxLife": 62,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Knife Stab (4)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 150,
+            "maxLife": 150,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 10,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_25",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_14",
+            "cardId": "assassin_fists_of_fire",
+            "title": "Fists of Fire",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_17",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_20",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_10",
+            "cardId": "rally_mercenary_plus",
+            "title": "Rally Mercenary+",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Wake of Fire",
+        "Card: Wake of Fire",
+        "Card: Claws of Thunder -> Fetish Shaman",
+        "Card: Claws of Thunder -> Fetish Shaman",
+        "Melee strike",
+        "Card: Fists of Fire -> Hexbound Zakarum Priest",
+        "Potion -> hero",
+        "Potion -> hero",
+        "Card: Rally Mercenary+",
+        "Card: Fire Blast -> Hexbound Zakarum Priest",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 274,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 4,
+          "amplify": 10,
+          "weaken": 0,
+          "energyDrain": 4
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 8,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 379,
+            "maxLife": 451,
+            "guard": 39,
+            "burn": 4,
+            "poison": 0,
+            "slow": 2,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 71,
+            "maxLife": 150,
+            "guard": 45,
+            "burn": 10,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 72,
+            "burn": 2,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_19",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_5",
+            "cardId": "assassin_fire_blast",
+            "title": "Fire Blast",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_16",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_23",
+            "cardId": "assassin_fade",
+            "title": "Fade",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Hexbound Zakarum Priest uses Zakarum Priest Spirit Ward and fortifies the enemy line.",
+        "Hexbound Zakarum Priest's Cursed aura amplifies damage on the Wanderer!",
+        "Hexbound Zakarum Priest's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Rogue Scout for 20 and heals 8.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman strikes again! (Swift)",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Rogue Scout for 20 and heals 6.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "The Wanderer is Chilled — draws 1 fewer card.",
+        "The Wanderer is drained — 1 less Energy this turn.",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 3 begins."
+      ]
+    },
+    {
+      "turn": 3,
+      "start": {
+        "hero": {
+          "life": 274,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 4,
+          "amplify": 10,
+          "weaken": 0,
+          "energyDrain": 4
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 8,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 379,
+            "maxLife": 451,
+            "guard": 39,
+            "burn": 4,
+            "poison": 0,
+            "slow": 2,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 71,
+            "maxLife": 150,
+            "guard": 45,
+            "burn": 10,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 72,
+            "burn": 2,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_19",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_5",
+            "cardId": "assassin_fire_blast",
+            "title": "Fire Blast",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_16",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_23",
+            "cardId": "assassin_fade",
+            "title": "Fade",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "Card: Fade",
+        "Card: Wake of Fire",
+        "Card: Wake of Fire",
+        "Melee strike",
+        "Card: Fire Blast -> Mephisto",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 245,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 8,
+          "amplify": 20,
+          "weaken": 0,
+          "energyDrain": 8
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 39,
+            "burn": 11,
+            "poison": 0,
+            "slow": 4,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 96,
+            "maxLife": 150,
+            "guard": 58,
+            "burn": 14,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 112,
+            "burn": 4,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_1",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_shadow_warrior",
+            "title": "Shadow Warrior",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_12",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Hexbound Zakarum Priest's Cursed aura amplifies damage on the Wanderer!",
+        "Hexbound Zakarum Priest's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Rogue Scout falls.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Rogue Scout for 20 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman strikes again! (Swift)",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "The Wanderer is Chilled — draws 1 fewer card.",
+        "The Wanderer is drained — 1 less Energy this turn.",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 5 begins."
+      ]
+    },
+    {
+      "turn": 5,
+      "start": {
+        "hero": {
+          "life": 245,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 8,
+          "amplify": 20,
+          "weaken": 0,
+          "energyDrain": 8
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 39,
+            "burn": 11,
+            "poison": 0,
+            "slow": 4,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 96,
+            "maxLife": 150,
+            "guard": 58,
+            "burn": 14,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 112,
+            "burn": 4,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_1",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_shadow_warrior",
+            "title": "Shadow Warrior",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_12",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Shadow Warrior",
+        "Card: Blade Shield -> Hexbound Zakarum Priest",
+        "Card: Wake of Fire",
+        "Melee strike",
+        "Card: Claws of Thunder -> Hexbound Zakarum Priest",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 157,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 12,
+          "amplify": 30,
+          "weaken": 0,
+          "energyDrain": 12
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 7,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 58,
+            "burn": 12,
+            "poison": 0,
+            "slow": 2,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 122,
+            "maxLife": 150,
+            "guard": 28,
+            "burn": 15,
+            "poison": 0,
+            "slow": 2,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 158,
+            "burn": 3,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_17",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_12",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_15",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Hexbound Zakarum Priest uses Zakarum Priest Hex Leech on Assassin for 30 and heals 9.",
+        "Hexbound Zakarum Priest's Cursed aura amplifies damage on the Wanderer!",
+        "Hexbound Zakarum Priest's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman strikes again! (Swift)",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "The Wanderer is Chilled — draws 1 fewer card.",
+        "The Wanderer is drained — 1 less Energy this turn.",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 7 begins."
+      ]
+    },
+    {
+      "turn": 7,
+      "start": {
+        "hero": {
+          "life": 157,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 12,
+          "amplify": 30,
+          "weaken": 0,
+          "energyDrain": 12
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 7,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 58,
+            "burn": 12,
+            "poison": 0,
+            "slow": 2,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 122,
+            "maxLife": 150,
+            "guard": 28,
+            "burn": 15,
+            "poison": 0,
+            "slow": 2,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 158,
+            "burn": 3,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_17",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_12",
+            "cardId": "assassin_blade_shield",
+            "title": "Blade Shield",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_15",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Blade Shield -> Hexbound Zakarum Priest",
+        "Card: Wake of Fire",
+        "Card: Wake of Fire",
+        "Card: Claws of Thunder -> Hexbound Zakarum Priest",
+        "Melee strike",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 65,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 16,
+          "amplify": 40,
+          "weaken": 0,
+          "energyDrain": 16
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 7,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 57,
+            "burn": 16,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 109,
+            "maxLife": 150,
+            "guard": 17,
+            "burn": 19,
+            "poison": 0,
+            "slow": 4,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 184,
+            "burn": 5,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_shadow_warrior",
+            "title": "Shadow Warrior",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_23",
+            "cardId": "assassin_fade",
+            "title": "Fade",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_27",
+            "cardId": "assassin_lightning_sentry",
+            "title": "Lightning Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Hexbound Zakarum Priest uses Zakarum Priest Hex Leech on Assassin for 30 and heals 9.",
+        "Hexbound Zakarum Priest's Cursed aura amplifies damage on the Wanderer!",
+        "Hexbound Zakarum Priest's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman strikes again! (Swift)",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "The Wanderer is Chilled — draws 1 fewer card.",
+        "The Wanderer is drained — 1 less Energy this turn.",
+        "Amplify Damage active — the Wanderer takes increased damage.",
+        "Turn 9 begins."
+      ]
+    },
+    {
+      "turn": 9,
+      "start": {
+        "hero": {
+          "life": 65,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 16,
+          "amplify": 40,
+          "weaken": 0,
+          "energyDrain": 16
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 7,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 57,
+            "burn": 16,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Durance Ward (29)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 109,
+            "maxLife": 150,
+            "guard": 17,
+            "burn": 19,
+            "poison": 0,
+            "slow": 4,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 184,
+            "burn": 5,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Blood Seal (8)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_shadow_warrior",
+            "title": "Shadow Warrior",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_23",
+            "cardId": "assassin_fade",
+            "title": "Fade",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_27",
+            "cardId": "assassin_lightning_sentry",
+            "title": "Lightning Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "assassin_claws_of_thunder",
+            "title": "Claws of Thunder",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Fade",
+        "Card: Shadow Warrior",
+        "Card: Lightning Sentry",
+        "Card: Claws of Thunder -> Hexbound Zakarum Priest",
+        "Melee strike",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 0,
+          "maxLife": 381,
+          "guard": 0,
+          "energy": 10,
+          "burn": 0,
+          "poison": 0,
+          "chill": 20,
+          "amplify": 49,
+          "weaken": 0,
+          "energyDrain": 20
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 0,
+          "maxLife": 192,
+          "guard": 0,
+          "nextAttackBonus": 14,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_3_boss_enemy_1",
+            "name": "Mephisto",
+            "life": 247,
+            "maxLife": 451,
+            "guard": 64,
+            "burn": 14,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Mephisto Lightning Nova (30 lightning all next)"
+          },
+          {
+            "id": "act_3_boss_enemy_3",
+            "name": "Hexbound Zakarum Priest",
+            "life": 99,
+            "maxLife": 150,
+            "guard": 0,
+            "burn": 17,
+            "poison": 0,
+            "slow": 7,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Zakarum Priest Hex Leech (21)"
+          },
+          {
+            "id": "act_3_boss_enemy_4",
+            "name": "Bloodpriest Fetish Shaman",
+            "life": 151,
+            "maxLife": 151,
+            "guard": 206,
+            "burn": 1,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Fetish Shaman Vein Lash (20)"
+          }
+        ],
+        "hand": []
+      },
+      "log": [
+        "Turn 10 begins.",
+        "Mephisto takes 0 Burn damage.",
+        "Mephisto begins charging Mephisto Lightning Nova. the whole party will take 30 lightning damage next turn. Mephisto gains 24 Guard.",
+        "Hexbound Zakarum Priest takes 8 Burn damage.",
+        "Hexbound Zakarum Priest uses Zakarum Priest Hex Leech on Assassin for 30 and heals 9.",
+        "Hexbound Zakarum Priest's Cursed aura amplifies damage on the Wanderer!",
+        "Hexbound Zakarum Priest's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+        "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+        "Bloodpriest Fetish Shaman strikes again! (Swift)",
+        "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+        "Assassin falls.",
+        "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+        "The Wanderer falls. Encounter lost."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 0,
+      "maxLife": 381,
+      "guard": 0,
+      "energy": 10,
+      "burn": 0,
+      "poison": 0,
+      "chill": 20,
+      "amplify": 49,
+      "weaken": 0,
+      "energyDrain": 20
+    },
+    "mercenary": {
+      "name": "Rogue Scout",
+      "life": 0,
+      "maxLife": 192,
+      "guard": 0,
+      "nextAttackBonus": 14,
+      "markedEnemyId": ""
+    },
+    "enemies": [
+      {
+        "id": "act_3_boss_enemy_1",
+        "name": "Mephisto",
+        "life": 247,
+        "maxLife": 451,
+        "guard": 64,
+        "burn": 14,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Mephisto Lightning Nova (30 lightning all next)"
+      },
+      {
+        "id": "act_3_boss_enemy_3",
+        "name": "Hexbound Zakarum Priest",
+        "life": 99,
+        "maxLife": 150,
+        "guard": 0,
+        "burn": 17,
+        "poison": 0,
+        "slow": 7,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Zakarum Priest Hex Leech (21)"
+      },
+      {
+        "id": "act_3_boss_enemy_4",
+        "name": "Bloodpriest Fetish Shaman",
+        "life": 151,
+        "maxLife": 151,
+        "guard": 206,
+        "burn": 1,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 0,
+        "intent": "Fetish Shaman Vein Lash (20)"
+      }
+    ],
+    "hand": []
+  },
+  "recentLog": [
+    "The Wanderer is drained — 1 less Energy this turn.",
+    "Amplify Damage active — the Wanderer takes increased damage.",
+    "Turn 10 begins.",
+    "Mephisto takes 0 Burn damage.",
+    "Mephisto begins charging Mephisto Lightning Nova. the whole party will take 30 lightning damage next turn. Mephisto gains 24 Guard.",
+    "Hexbound Zakarum Priest takes 8 Burn damage.",
+    "Hexbound Zakarum Priest uses Zakarum Priest Hex Leech on Assassin for 30 and heals 9.",
+    "Hexbound Zakarum Priest's Cursed aura amplifies damage on the Wanderer!",
+    "Hexbound Zakarum Priest's Mana Burn drains the Wanderer's energy!",
+    "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+    "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+    "Bloodpriest Fetish Shaman's Cursed aura amplifies damage on the Wanderer!",
+    "Bloodpriest Fetish Shaman's Mana Burn drains the Wanderer's energy!",
+    "Bloodpriest Fetish Shaman strikes again! (Swift)",
+    "Bloodpriest Fetish Shaman takes 0 Burn damage.",
+    "Assassin falls.",
+    "Bloodpriest Fetish Shaman uses Fetish Shaman Vein Lash on Assassin for 29 and heals 0.",
+    "The Wanderer falls. Encounter lost."
+  ]
+}

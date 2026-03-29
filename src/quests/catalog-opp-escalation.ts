@@ -30,7 +30,7 @@
             description: "Turn the late route into one harder dune push instead of another slower screen.",
             consequenceId: "dune_push_pressed",
             flagIds: ["sunwell_escalation_dune_push"],
-            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "gold_bonus", value: 12 }],
           },
         }),
         buildLateRouteVariant(buildEscalationChoice, "sunwell_escalation_opportunity", "lost_reliquary", {
@@ -92,7 +92,7 @@
             description: "Turn the late route into one harder dockside push instead of another slower river screen.",
             consequenceId: "dock_push_pressed",
             flagIds: ["kurast_escalation_dock_push"],
-            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "gold_bonus", value: 12 }],
           },
         }),
         buildLateRouteVariant(buildEscalationChoice, "kurast_escalation_opportunity", "smugglers_wake", {
@@ -154,7 +154,7 @@
             description: "Turn the late route into one harder ash-belt push instead of another slower relief line.",
             consequenceId: "ash_push_pressed",
             flagIds: ["hellforge_escalation_ash_push"],
-            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "gold_bonus", value: 12 }],
           },
         }),
         buildLateRouteVariant(buildEscalationChoice, "hellforge_escalation_opportunity", "hellforge_claim", {
@@ -216,7 +216,7 @@
             description: "Turn the late route into one harder summit watch push instead of another slower sled sweep.",
             consequenceId: "watch_push_pressed",
             flagIds: ["harrogath_escalation_watch_push"],
-            extraEffects: [{ kind: "gold_bonus", value: 12 }],
+            extraEffects: [{ kind: "reinforce_build" }, { kind: "gold_bonus", value: 12 }],
           },
         }),
         buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {

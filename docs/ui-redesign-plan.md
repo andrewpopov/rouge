@@ -1,12 +1,19 @@
 # Rouge UI Redesign Plan
 
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- Use `BLOOD_ROGUE_VISUAL_IDENTITY.md` as the canonical visual standard.
+- This document is the execution and cleanup plan for bringing the live UI into that standard.
+
 ## Problem Statement
 
 Every screen dumps ALL information at once with developer-guide prose as primary content.
 The game mechanics are solid but buried under walls of explanatory text.
 It reads like internal documentation, not a game.
 
-## Design Philosophy
+## Execution Heuristics
+
+These heuristics apply inside the Blood Rogue visual identity rather than redefining it.
 
 - **Game first, documentation second** — guides available via help/info buttons, never primary content
 - **One choice at a time** — wizard steps and focused panels, not walls
@@ -429,6 +436,6 @@ Key constraint: tests assert on specific text strings from the prose we're remov
 - The action dispatcher pattern (data-action click handling)
 - The phase machine (app-engine state transitions)
 - The buildShell pattern (for consistent page structure)
-- CSS design system (dark fantasy theme, gold accents, serif fonts)
+- CSS design system aligned with `BLOOD_ROGUE_VISUAL_IDENTITY.md`
 - Account hall (behind "Account" nav on welcome screen)
 - All existing game data and content

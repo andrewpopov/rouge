@@ -202,9 +202,9 @@
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
-        heroDamageBonus: 8,
-        heroGuardBonus: 3,
-        heroMaxLife: 8,
+        heroDamageBonus: 9,
+        heroGuardBonus: 4,
+        heroMaxLife: 10,
       },
     },
     item_maul: {
@@ -214,9 +214,9 @@
       actRequirement: 5,
       progressionTier: 7,
       bonuses: {
-        heroDamageBonus: 10,
-        heroGuardBonus: 3,
-        heroMaxLife: 10,
+        heroDamageBonus: 11,
+        heroGuardBonus: 4,
+        heroMaxLife: 12,
       },
     },
     item_partizan: {
@@ -299,6 +299,7 @@
       actRequirement: 2,
       progressionTier: 2,
       bonuses: {
+        heroDamageBonus: 1,
         heroMaxEnergy: 2,
         heroBurnBonus: 2,
       },
@@ -311,8 +312,9 @@
       progressionTier: 3,
       bonuses: {
         heroMaxEnergy: 2,
-        heroGuardBonus: 1,
-        heroBurnBonus: 1,
+        heroDamageBonus: 1,
+        heroGuardBonus: 2,
+        heroBurnBonus: 2,
       },
     },
     item_war_staff: {
@@ -323,8 +325,9 @@
       progressionTier: 5,
       bonuses: {
         heroMaxEnergy: 3,
-        heroDamageBonus: 1,
-        heroBurnBonus: 4,
+        heroDamageBonus: 3,
+        heroGuardBonus: 2,
+        heroBurnBonus: 5,
       },
     },
     item_short_bow: {
@@ -399,7 +402,8 @@
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
-        heroDamageBonus: 4,
+        heroDamageBonus: 5,
+        heroGuardBonus: 1,
         heroMaxEnergy: 1,
       },
     },
@@ -410,8 +414,32 @@
       actRequirement: 4,
       progressionTier: 4,
       bonuses: {
-        heroDamageBonus: 4,
-        heroGuardBonus: 1,
+        heroDamageBonus: 5,
+        heroGuardBonus: 2,
+      },
+    },
+    item_stag_bow: {
+      sourceId: "stag_bow",
+      slot: "weapon",
+      family: "Bows",
+      actRequirement: 5,
+      progressionTier: 6,
+      bonuses: {
+        heroDamageBonus: 6,
+        heroGuardBonus: 2,
+        heroMaxEnergy: 1,
+      },
+    },
+    item_ashwood_bow: {
+      sourceId: "ashwood_bow",
+      slot: "weapon",
+      family: "Bows",
+      actRequirement: 5,
+      progressionTier: 7,
+      bonuses: {
+        heroDamageBonus: 7,
+        heroGuardBonus: 2,
+        heroMaxEnergy: 1,
       },
     },
     item_siege_crossbow: {
@@ -454,7 +482,8 @@
       actRequirement: 5,
       progressionTier: 8,
       bonuses: {
-        heroDamageBonus: 7,
+        heroDamageBonus: 8,
+        heroGuardBonus: 2,
         heroMaxEnergy: 1,
       },
     },

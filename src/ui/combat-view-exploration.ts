@@ -287,28 +287,30 @@
               ` : ""}
 
               <div class="explore-stage__content">
-                <div class="explore-scene">
-                  <div class="explore-scene__tag">Approach Selection</div>
-                  <p class="explore-scene__prompt">${escapeHtml(approachPrompt)}</p>
-                </div>
+                <div class="explore-decision">
+                  <div class="explore-scene">
+                    <div class="explore-scene__tag">Approach Selection</div>
+                    <p class="explore-scene__prompt">${escapeHtml(approachPrompt)}</p>
+                  </div>
 
-                <div class="explore-choices">
-                  ${options.map((opt, i) => {
-                    const bonus = runtimeWindow.__ROUGE_APPROACH_BONUS.pickBonus(opt.approach, seed * 7 + i * 13);
-                    return `
-                    <button class="explore-card explore-card--${opt.approach}" data-action="begin-encounter" data-bonus="${escapeHtml(bonus.id)}">
-                      <div class="explore-card__head">
-                        <span class="explore-card__icon">${opt.icon}</span>
-                        <span class="explore-card__approach">${escapeHtml(opt.approach)}</span>
-                      </div>
-                      <div class="explore-card__title">${escapeHtml(opt.title)}</div>
-                      <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>
-                      <div class="explore-card__footer">
-                        <span class="explore-card__bonus-label">Opening Edge</span>
-                        <strong class="explore-card__bonus">${escapeHtml(bonus.label)}</strong>
-                      </div>
-                    </button>`;
-                  }).join("")}
+                  <div class="explore-choices">
+                    ${options.map((opt, i) => {
+                      const bonus = runtimeWindow.__ROUGE_APPROACH_BONUS.pickBonus(opt.approach, seed * 7 + i * 13);
+                      return `
+                      <button class="explore-card explore-card--${opt.approach}" data-action="begin-encounter" data-bonus="${escapeHtml(bonus.id)}">
+                        <div class="explore-card__head">
+                          <span class="explore-card__icon">${opt.icon}</span>
+                          <span class="explore-card__approach">${escapeHtml(opt.approach)}</span>
+                        </div>
+                        <div class="explore-card__title">${escapeHtml(opt.title)}</div>
+                        <div class="explore-card__flavor">${escapeHtml(opt.flavor)}</div>
+                        <div class="explore-card__footer">
+                          <span class="explore-card__bonus-label">Opening Edge</span>
+                          <strong class="explore-card__bonus">${escapeHtml(bonus.label)}</strong>
+                        </div>
+                      </button>`;
+                    }).join("")}
+                  </div>
                 </div>
               </div>
             </div>

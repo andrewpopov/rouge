@@ -421,6 +421,120 @@ test("culmination opportunity lanes unlock after relay and pay off the earlier q
   assert.ok(runFactory.getZoneById(state.run, culminationZone.id).cleared);
 });
 
+test("late route chains keep offering strategic reinforce lanes all the way through escalation", () => {
+  const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+
+  clearAllMainlineZones(runFactory, state.run);
+
+  let result = appEngine.selectZone(state, runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "shrine").id);
+  assert.equal(result.ok, true);
+  appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
+  aliasShrineOutcomeForCrossroad(state.run);
+
+  result = appEngine.selectZone(state, runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "quest").id);
+  assert.equal(result.ok, true);
+  appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
+
+  result = appEngine.selectZone(state, runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "event").id);
+  assert.equal(result.ok, true);
+  appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
+
+  const strategicExpectations: Array<{
+    nodeType: ZoneState["nodeType"];
+    expectedFirst: RewardChoice["strategyRole"];
+    requiredRoles: RewardChoice["strategyRole"][];
+    previewIncludes?: string;
+  }> = [
+    { nodeType: "opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"] },
+    { nodeType: "shrine_opportunity", expectedFirst: "support", requiredRoles: ["support", "pivot"] },
+    { nodeType: "crossroad_opportunity", expectedFirst: "support", requiredRoles: ["support", "pivot"] },
+    { nodeType: "reserve_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"], previewIncludes: "Build support:" },
+    { nodeType: "relay_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "pivot"], previewIncludes: "Strategic pivot:" },
+    { nodeType: "culmination_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"] },
+    { nodeType: "legacy_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"], previewIncludes: "Build support:" },
+    { nodeType: "reckoning_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "pivot"], previewIncludes: "Strategic pivot:" },
+    { nodeType: "recovery_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"], previewIncludes: "Build support:" },
+    { nodeType: "accord_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"], previewIncludes: "Build support:" },
+    { nodeType: "covenant_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce", "support"], previewIncludes: "Build support:" },
+    { nodeType: "detour_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce"] },
+    { nodeType: "escalation_opportunity", expectedFirst: "reinforce", requiredRoles: ["reinforce"] },
+  ];
+
+  for (const expectation of strategicExpectations) {
+    const zone = runFactory.getCurrentZones(state.run).find((candidate) => candidate.nodeType === expectation.nodeType);
+    assert.ok(zone, `Missing ${expectation.nodeType} zone.`);
+
+    const deckBefore = state.run.deck.join(",");
+    const classPointsBefore = state.run.progression.classPointsAvailable;
+    result = appEngine.selectZone(state, zone.id);
+    assert.equal(result.ok, true);
+    const roles = state.run.pendingReward.choices.map((choice) => choice.strategyRole);
+    assert.equal(state.run.pendingReward.choices[0].strategyRole, expectation.expectedFirst);
+    for (const role of expectation.requiredRoles) {
+      assert.ok(roles.includes(role), `Expected ${expectation.nodeType} to include ${role}. Got: ${roles.join(", ")}`);
+    }
+    if (expectation.previewIncludes) {
+      assert.ok(
+        state.run.pendingReward.choices.some((choice) => choice.previewLines.some((line) => line.includes(expectation.previewIncludes || ""))),
+        `Expected ${expectation.nodeType} to preview ${expectation.previewIncludes}.`
+      );
+    }
+    if (
+      [
+        "reserve_opportunity",
+        "relay_opportunity",
+        "legacy_opportunity",
+        "reckoning_opportunity",
+        "recovery_opportunity",
+        "accord_opportunity",
+        "covenant_opportunity",
+        "detour_opportunity",
+        "escalation_opportunity",
+      ].includes(expectation.nodeType || "")
+    ) {
+      assert.ok(
+        state.run.pendingReward.choices[0].previewLines.some((line) => line.includes("Build reinforcement:")),
+        `Expected ${expectation.nodeType} to preview build reinforcement.`
+      );
+    }
+
+    appEngine.claimRewardAndAdvance(state, state.run.pendingReward.choices[0].id);
+    if (
+      [
+        "reserve_opportunity",
+        "relay_opportunity",
+        "legacy_opportunity",
+        "reckoning_opportunity",
+        "recovery_opportunity",
+        "accord_opportunity",
+        "covenant_opportunity",
+        "detour_opportunity",
+        "escalation_opportunity",
+      ].includes(expectation.nodeType || "")
+    ) {
+      assert.ok(
+        state.run.deck.join(",") !== deckBefore || state.run.progression.classPointsAvailable > classPointsBefore,
+        `Expected ${expectation.nodeType} to change the deck or grant a fallback class point.`
+      );
+    }
+    if (expectation.nodeType === "shrine_opportunity") {
+      aliasShrineOpportunityOutcomeForReserve(state.run);
+    }
+  }
+});
+
 test("culmination mercenary route perks feed the next combat after the full post-relay route resolves", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({

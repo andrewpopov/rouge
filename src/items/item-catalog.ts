@@ -20,26 +20,26 @@
 
   const WEAPON_ATTACK_PROFILES: Record<string, Record<string, number>> = {
     Swords: { combat_skills: 1, masteries: 1, combat: 2, martial_arts: 2 },
-    Maces: { combat_skills: 2, combat: 3, masteries: 3, offensive_auras: 2, defensive_auras: 2, shape_shifting: 2, elemental: 2 },
+    Maces: { combat_skills: 2, combat: 3, masteries: 3, offensive_auras: 2, defensive_auras: 2, shape_shifting: 3, elemental: 4 },
     Polearms: { combat_skills: 2, javelin: 2 },
     Spears: { combat_skills: 1, javelin: 3 },
     Javelins: { javelin: 3 },
-    Bows: { bow: 3 },
+    Bows: { bow: 4 },
     Crossbows: { bow: 3 },
     Wands: { poison_bone: 4 },
-    Staves: { fire: 3, cold: 3, lightning: 3, elemental: 3 },
+    Staves: { fire: 3, cold: 3, lightning: 3, elemental: 4 },
   };
 
   const WEAPON_SUPPORT_PROFILES: Record<string, Record<string, number>> = {
     Swords: { masteries: 1, warcries: 1, combat: 1, offensive_auras: 1, defensive_auras: 1, shadow: 2, martial_arts: 1 },
-    Maces: { combat: 2, combat_skills: 1, masteries: 3, warcries: 3, offensive_auras: 3, defensive_auras: 3, shape_shifting: 2, elemental: 2, summoning: 2 },
+    Maces: { combat: 2, combat_skills: 1, masteries: 3, warcries: 3, offensive_auras: 3, defensive_auras: 3, shape_shifting: 3, elemental: 4, summoning: 3 },
     Polearms: { combat_skills: 1, javelin: 1, passive: 1, warcries: 1 },
     Spears: { javelin: 2, passive: 1 },
     Javelins: { javelin: 2, passive: 2 },
-    Bows: { bow: 2, passive: 2 },
+    Bows: { bow: 3, passive: 2 },
     Crossbows: { bow: 2, passive: 2 },
     Wands: { poison_bone: 3, curses: 3, summoning: 4 },
-    Staves: { fire: 2, cold: 2, lightning: 2, elemental: 3 },
+    Staves: { fire: 2, cold: 2, lightning: 2, elemental: 4, summoning: 2 },
   };
 
   const PRIMARY_WEAPON_PROFICIENCY_BY_FAMILY: Record<string, string> = {
@@ -56,11 +56,14 @@
 
   const WEAPON_DAMAGE_PROFILES: Record<string, WeaponDamageDefinition[]> = {
     Swords: [{ type: "lightning", amount: 1, proficiency: "combat_skills" }],
-    Maces: [{ type: "fire", amount: 2, proficiency: "combat" }],
+    Maces: [
+      { type: "fire", amount: 3, proficiency: "combat" },
+      { type: "fire", amount: 2, proficiency: "elemental" },
+    ],
     Polearms: [{ type: "fire", amount: 2, proficiency: "combat_skills" }],
     Spears: [{ type: "cold", amount: 2, proficiency: "javelin" }],
     Javelins: [{ type: "lightning", amount: 2, proficiency: "javelin" }],
-    Bows: [{ type: "fire", amount: 2, proficiency: "bow" }],
+    Bows: [{ type: "fire", amount: 3, proficiency: "bow" }],
     Crossbows: [{ type: "cold", amount: 2, proficiency: "bow" }],
     Wands: [{ type: "poison", amount: 4, proficiency: "poison_bone" }],
     Staves: [
@@ -71,11 +74,14 @@
   };
 
   const WEAPON_EFFECT_PROFILES: Record<string, WeaponEffectDefinition[]> = {
-    Maces: [{ kind: "crushing", amount: 2 }],
+    Maces: [
+      { kind: "crushing", amount: 3 },
+      { kind: "burn", amount: 2, proficiency: "elemental" },
+    ],
     Polearms: [{ kind: "slow", amount: 2, proficiency: "combat_skills" }, { kind: "slow", amount: 1, proficiency: "javelin" }],
     Spears: [{ kind: "slow", amount: 2, proficiency: "javelin" }],
     Javelins: [{ kind: "shock", amount: 2, proficiency: "javelin" }],
-    Bows: [{ kind: "burn", amount: 2, proficiency: "bow" }],
+    Bows: [{ kind: "burn", amount: 3, proficiency: "bow" }],
     Crossbows: [{ kind: "freeze", amount: 2, proficiency: "bow" }],
     Wands: [{ kind: "slow", amount: 2, proficiency: "curses" }],
     Staves: [
@@ -159,18 +165,39 @@
   const ARMOR_AFFIX_POOL: DamageType[] = ["physical", "fire", "cold", "lightning", "poison"];
   const ARMOR_IMMUNITY_POOL: DamageType[] = ["fire", "cold", "lightning", "poison"];
   const UNIQUE_ARMOR_IMMUNITY_CHANCE = 0.1;
+  const MARTIAL_WEAPON_FAMILIES = ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows"];
+
+  function getRarityAffixCount(rarity: string) {
+    if (rarity === RARITY.UNIQUE) {
+      return 3;
+    }
+    if (rarity === RARITY.RARE || rarity === RARITY.SET) {
+      return 2;
+    }
+    if (rarity === RARITY.MAGIC) {
+      return 1;
+    }
+    return 0;
+  }
 
   function getWeaponTierTempoBonus(family: string, progressionTier: number) {
     const tier = Math.max(1, progressionTier);
-    const genericBonus =
-      tier >= 8 ? 3 :
-      tier >= 6 ? 2 :
-      tier >= 4 ? 1 :
-      0;
-    const martialBonus =
-      ["Swords", "Maces", "Polearms", "Spears", "Javelins", "Bows", "Crossbows"].includes(family)
-        ? (tier >= 7 ? 2 : tier >= 5 ? 1 : 0)
-        : 0;
+    let genericBonus = 0;
+    if (tier >= 8) {
+      genericBonus = 3;
+    } else if (tier >= 6) {
+      genericBonus = 2;
+    } else if (tier >= 4) {
+      genericBonus = 1;
+    }
+    let martialBonus = 0;
+    if (MARTIAL_WEAPON_FAMILIES.includes(family)) {
+      if (tier >= 7) {
+        martialBonus = 2;
+      } else if (tier >= 5) {
+        martialBonus = 1;
+      }
+    }
     return genericBonus + martialBonus;
   }
 
@@ -524,12 +551,7 @@
       return undefined;
     }
 
-    const affixCount =
-      rarity === RARITY.UNIQUE ? 3 :
-      rarity === RARITY.RARE ? 2 :
-      rarity === RARITY.MAGIC ? 1 :
-      rarity === RARITY.SET ? 2 :
-      0;
+    const affixCount = getRarityAffixCount(rarity);
     if (affixCount <= 0) {
       return undefined;
     }
@@ -581,12 +603,7 @@
       return undefined;
     }
 
-    const affixCount =
-      rarity === RARITY.UNIQUE ? 3 :
-      rarity === RARITY.RARE ? 2 :
-      rarity === RARITY.MAGIC ? 1 :
-      rarity === RARITY.SET ? 2 :
-      0;
+    const affixCount = getRarityAffixCount(rarity);
     if (affixCount <= 0) {
       return undefined;
     }
@@ -626,7 +643,9 @@
 
   function toItemDefinition(seedEntry: Record<string, unknown> | null, templateId: string, template: ItemTemplateDefinition) {
     const slot = template.slot as EquipmentSlot;
-    const family = (seedEntry?.family as string) || template.family || (SLOT_FAMILY_DEFAULTS[slot] || "Gear");
+    // Gameplay systems rely on the authored template family; some seed families
+    // (for example "Amazon Weapons") are too broad for runewords and profiles.
+    const family = template.family || (seedEntry?.family as string) || (SLOT_FAMILY_DEFAULTS[slot] || "Gear");
     return {
       id: templateId,
       sourceId: template.sourceId,
@@ -862,7 +881,12 @@
       return null;
     }
 
-    const targetTier = Math.max(item.progressionTier, run?.actNumber || 1);
+    const actNumber = Math.max(1, toNumber(run?.actNumber, 1));
+    const targetTier = clamp(
+      actNumber + (actNumber >= 4 ? 2 : 1),
+      1,
+      8
+    );
     const matchingRunewords = (Object.values(content.runewordCatalog || {}) as RuntimeRunewordDefinition[]).filter((runeword) => {
         return isRunewordCompatibleWithItem(item, runeword);
       });
@@ -872,29 +896,81 @@
       return preferredRuneword;
     }
 
-    return (
-      matchingRunewords
-        .sort((left: RuntimeRunewordDefinition, right: RuntimeRunewordDefinition) => {
-          const leftPrefix = left.requiredRunes.reduce((total: number, runeId: string, index: number) => {
-            return total + (equipment.insertedRunes[index] === runeId ? 1 : 0);
-          }, 0);
-          const rightPrefix = right.requiredRunes.reduce((total: number, runeId: string, index: number) => {
-            return total + (equipment.insertedRunes[index] === runeId ? 1 : 0);
-          }, 0);
-          if (leftPrefix !== rightPrefix) {
-            return rightPrefix - leftPrefix;
-          }
+    const getRunewordPowerScore = (runeword: RuntimeRunewordDefinition) => {
+      return Object.values(runeword?.bonuses || {}).reduce((sum, value) => {
+        return sum + Math.max(0, toNumber(value, 0));
+      }, 0);
+    };
 
-          const leftTierDistance = Math.abs(toNumber(left.progressionTier, 1) - targetTier);
-          const rightTierDistance = Math.abs(toNumber(right.progressionTier, 1) - targetTier);
-          if (leftTierDistance !== rightTierDistance) {
-            return leftTierDistance - rightTierDistance;
-          }
+    const getPreferredMatchForState = (equipmentState: RunEquipmentState) => {
+      return (
+        [...matchingRunewords]
+          .sort((left: RuntimeRunewordDefinition, right: RuntimeRunewordDefinition) => {
+            const leftPrefix = left.requiredRunes.reduce((total: number, runeId: string, index: number) => {
+              return total + (equipmentState.insertedRunes[index] === runeId ? 1 : 0);
+            }, 0);
+            const rightPrefix = right.requiredRunes.reduce((total: number, runeId: string, index: number) => {
+              return total + (equipmentState.insertedRunes[index] === runeId ? 1 : 0);
+            }, 0);
+            if (leftPrefix !== rightPrefix) {
+              return rightPrefix - leftPrefix;
+            }
 
-          return toNumber(left.progressionTier, 1) - toNumber(right.progressionTier, 1);
-        })
-        .shift() || null
-    );
+            const leftTierDistance = Math.abs(toNumber(left.progressionTier, 1) - targetTier);
+            const rightTierDistance = Math.abs(toNumber(right.progressionTier, 1) - targetTier);
+            if (leftTierDistance !== rightTierDistance) {
+              return leftTierDistance - rightTierDistance;
+            }
+
+            const leftSpecificity = Math.max(0, 8 - Math.max(1, left.familyAllowList?.length || 1));
+            const rightSpecificity = Math.max(0, 8 - Math.max(1, right.familyAllowList?.length || 1));
+            if (leftSpecificity !== rightSpecificity) {
+              return rightSpecificity - leftSpecificity;
+            }
+
+            const leftPowerScore = getRunewordPowerScore(left);
+            const rightPowerScore = getRunewordPowerScore(right);
+            if (leftPowerScore !== rightPowerScore) {
+              return rightPowerScore - leftPowerScore;
+            }
+
+            return toNumber(left.progressionTier, 1) - toNumber(right.progressionTier, 1);
+          })
+          .shift() || null
+      );
+    };
+
+    const preferredMatch = getPreferredMatchForState(equipment);
+    if (!equipment.runewordId) {
+      return preferredMatch;
+    }
+
+    const blankProjectMatch = getPreferredMatchForState({
+      ...equipment,
+      insertedRunes: [],
+      runewordId: "",
+    } as RunEquipmentState);
+    const currentRuneword = getRunewordDefinition(content, equipment.runewordId);
+    if (!blankProjectMatch || !currentRuneword || blankProjectMatch.id === currentRuneword.id) {
+      return preferredMatch;
+    }
+
+    const currentTierDistance = Math.abs(toNumber(currentRuneword.progressionTier, 1) - targetTier);
+    const blankTierDistance = Math.abs(toNumber(blankProjectMatch.progressionTier, 1) - targetTier);
+    const currentPowerScore = getRunewordPowerScore(currentRuneword);
+    const blankPowerScore = getRunewordPowerScore(blankProjectMatch);
+    const currentTier = toNumber(currentRuneword.progressionTier, 1);
+    const blankTier = toNumber(blankProjectMatch.progressionTier, 1);
+
+    if (
+      blankTier > currentTier ||
+      blankTierDistance < currentTierDistance ||
+      blankPowerScore > currentPowerScore + 1
+    ) {
+      return blankProjectMatch;
+    }
+
+    return preferredMatch;
   }
 
   function getRuneRewardPool(slot: string) {

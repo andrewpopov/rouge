@@ -35,6 +35,189 @@ test("reward choices can add a new card to the run deck", () => {
   assert.equal(state.phase, appEngine.PHASES.ENCOUNTER);
 });
 
+test("favored class trees bias reward card offers toward the committed build path", { concurrency: false }, () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  state.run.actNumber = 2;
+  state.run.progression.classProgression.favoredTreeId = "amazon_bow_and_crossbow";
+  state.run.progression.classProgression.treeRanks.amazon_bow_and_crossbow = 1;
+
+  const zone = {
+    id: "reward_probe_branch",
+    title: "Reward Probe",
+    kind: "battle",
+    zoneRole: "branchBattle",
+    actNumber: 2,
+  } as ZoneState;
+
+  const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: state.run,
+    zone,
+    actNumber: 2,
+    encounterNumber: 1,
+  });
+  const cardChoice = rewardChoices.find((choice) => choice.kind === "card");
+  assert.ok(cardChoice);
+
+  const cardId = cardChoice.effects.find((effect) => effect.kind === "add_card")?.cardId;
+  assert.ok(cardId);
+  assert.equal(browserWindow.__ROUGE_SKILL_EVOLUTION.getCardTree(cardId), "bow");
+  assert.match(cardChoice.subtitle, /Bow Volley/);
+  assert.match(cardChoice.subtitle, /Engine/);
+});
+
+test("early deck identity can bias reward card offers before a favored tree is locked in", { concurrency: false }, () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  state.run.actNumber = 2;
+  state.run.deck = [
+    "amazon_jab",
+    "amazon_power_strike",
+    "amazon_charged_strike",
+    "amazon_dodge",
+    "second_wind",
+  ];
+
+  const zone = {
+    id: "reward_probe_branch",
+    title: "Reward Probe",
+    kind: "battle",
+    zoneRole: "branchBattle",
+    actNumber: 2,
+  } as ZoneState;
+
+  const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
+    content,
+    run: state.run,
+    zone,
+    actNumber: 2,
+    encounterNumber: 1,
+  });
+  const cardChoice = rewardChoices.find((choice) => choice.kind === "card");
+  assert.ok(cardChoice);
+
+  const cardId = cardChoice.effects.find((effect) => effect.kind === "add_card")?.cardId;
+  assert.ok(cardId);
+  assert.equal(browserWindow.__ROUGE_SKILL_EVOLUTION.getCardTree(cardId), "javelin");
+  assert.match(cardChoice.subtitle, /Javelin Storm/);
+  assert.match(cardChoice.subtitle, /Engine/);
+
+  const dominantArchetype = browserWindow.ROUGE_REWARD_ENGINE.getDominantArchetype(state.run, content);
+  assert.equal(dominantArchetype.primary?.archetypeId, "amazon_javelin_and_spear");
+  assert.equal(dominantArchetype.secondary?.archetypeId, "amazon_passive_and_magic");
+  assert.ok((state.run.progression.classProgression.archetypeScores.amazon_javelin_and_spear || 0) > (state.run.progression.classProgression.archetypeScores.amazon_bow_and_crossbow || 0));
+});
+
+test("archetype scoring prioritizes primary-tree commitment over support splashes", { concurrency: false }, () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "druid");
+  appEngine.startRun(state);
+
+  state.run.actNumber = 4;
+  state.run.deck = [
+    "druid_firestorm",
+    "druid_fissure",
+    "druid_volcano",
+    "druid_tornado",
+    "druid_hurricane",
+    "druid_armageddon",
+    "druid_oak_sage",
+    "druid_summon_grizzly",
+    "second_wind",
+  ];
+
+  browserWindow.ROUGE_REWARD_ENGINE.syncArchetypeScores(state.run, content);
+
+  const dominantArchetype = browserWindow.ROUGE_REWARD_ENGINE.getDominantArchetype(state.run, content);
+  const strategicFamilies = browserWindow.ROUGE_REWARD_ENGINE.getStrategicWeaponFamilies(state.run, content);
+  assert.equal(dominantArchetype.primary?.archetypeId, "druid_elemental");
+  assert.equal(dominantArchetype.secondary?.archetypeId, "druid_summoning");
+  assert.equal(strategicFamilies[0], "Staves");
+});
+
+test("reward engine annotates cards with archetype tags and reward roles", { concurrency: false }, () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  browserWindow.ROUGE_REWARD_ENGINE.annotateCardRewardMetadata(content);
+
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_magic_arrow", content), "engine");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_dodge", content), "support");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_freezing_arrow", content), "tech");
+  assert.deepEqual(
+    Array.from(browserWindow.ROUGE_REWARD_ENGINE.getCardArchetypeTags("amazon_magic_arrow", content)),
+    ["amazon_bow_and_crossbow", "amazon_passive_and_magic"]
+  );
+  assert.equal(content.cardCatalog.amazon_magic_arrow.rewardRole, "engine");
+  assert.deepEqual(Array.from(content.cardCatalog.amazon_magic_arrow.archetypeTags || []), ["amazon_bow_and_crossbow", "amazon_passive_and_magic"]);
+});
+
+test("favored tree identity stays sticky until a new tree meaningfully overtakes it", () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "barbarian");
+  appEngine.startRun(state);
+
+  state.run.progression.classPointsAvailable = 3;
+
+  let result = browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, "progression_tree_barbarian_combat_skills", content);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.favoredTreeId, "barbarian_combat_skills");
+
+  result = browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, "progression_tree_barbarian_warcries", content);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.favoredTreeId, "barbarian_combat_skills");
+
+  result = browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, "progression_tree_barbarian_warcries", content);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.favoredTreeId, "barbarian_warcries");
+});
+
 test("equipment rewards persist on the run and feed the next encounter state", () => {
   const { content, combatEngine, appEngine, itemSystem, runFactory, seedBundle } = createHarness();
   const state = appEngine.createAppState({
@@ -286,6 +469,11 @@ test("progression summaries cap tree investment and surface favored-tree detail"
   const targetTreeSummary = progressionSummary.treeSummaries.find((entry) => entry.treeId === targetTree.id);
   assert.equal(progressionSummary.favoredTreeId, targetTree.id);
   assert.equal(progressionSummary.favoredTreeName, targetTree.name);
+  assert.equal(progressionSummary.dominantArchetypeId, targetTree.id);
+  assert.ok(progressionSummary.dominantArchetypeLabel.length > 0);
+  assert.ok(progressionSummary.dominantArchetypeScore > 0);
+  assert.ok(Array.isArray(progressionSummary.archetypeScores));
+  assert.equal(progressionSummary.archetypeScores[0]?.archetypeId, targetTree.id);
   assert.ok(targetTreeSummary);
   assert.equal(targetTreeSummary.rank, targetTree.maxRank);
   assert.ok(targetTreeSummary.bonusLines.length > 0);
@@ -724,6 +912,53 @@ test("late-act economy curates stronger vendor stock and boss build pivots", () 
   assert.ok(totalClassPoints >= 2);
   assert.match(progressionChoice.title, /Mastery/);
   assert.ok(progressionChoice.previewLines.some((line) => /unlock/i.test(line)));
+});
+
+test("vendor stock shifts toward the dominant archetype weapon family", () => {
+  const { browserWindow, content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();
+  const createAmazonState = (deck: string[]) => {
+    const state = appEngine.createAppState({
+      content,
+      seedBundle,
+      combatEngine,
+      randomFn: () => 0,
+    });
+
+    appEngine.startCharacterSelect(state);
+    appEngine.setSelectedClass(state, "amazon");
+    appEngine.startRun(state);
+    state.run.currentActIndex = 1;
+    state.run.level = 4;
+    state.run.deck = [...deck];
+    browserWindow.ROUGE_REWARD_ENGINE.syncArchetypeScores(state.run, content);
+    state.run.town.vendor.stock = [];
+    runFactory.hydrateRun(state.run, content);
+    return state;
+  };
+
+  const bowState = createAmazonState([
+    "amazon_magic_arrow",
+    "amazon_cold_arrow",
+    "amazon_multiple_shot",
+    "second_wind",
+  ]);
+  const javelinState = createAmazonState([
+    "amazon_jab",
+    "amazon_power_strike",
+    "amazon_charged_strike",
+    "second_wind",
+  ]);
+
+  const getFirstWeaponFamily = (state: AppState) => {
+    const weaponEntry = state.run.town.vendor.stock.find((entry): entry is InventoryEquipmentEntry => {
+      return entry.kind === "equipment" && content.itemCatalog[entry.equipment.itemId]?.slot === "weapon";
+    });
+    assert.ok(weaponEntry);
+    return content.itemCatalog[weaponEntry.equipment.itemId].family;
+  };
+
+  assert.ok(["Bows", "Crossbows"].includes(getFirstWeaponFamily(bowState)));
+  assert.ok(["Javelins", "Spears"].includes(getFirstWeaponFamily(javelinState)));
 });
 
 test("run rewards can level the party and snapshots restore the progressed run", () => {

@@ -136,63 +136,63 @@
       }
     } else if (actNumber === 3) {
       if (boss) {
-        lifeMultiplier = 1.3;
-        lifeBonus = 12;
-        attackBonus = 2;
-        guardBonus = 1;
-        healBonus = 1;
-      } else if (elite) {
-        lifeMultiplier = 1.55;
+        lifeMultiplier = 1.38;
         lifeBonus = 18;
-        attackBonus = 4;
+        attackBonus = 2;
         guardBonus = 2;
         healBonus = 1;
+      } else if (elite) {
+        lifeMultiplier = 1.68;
+        lifeBonus = 24;
+        attackBonus = 4;
+        guardBonus = 3;
+        healBonus = 1;
       } else {
-        lifeMultiplier = 1.32;
-        lifeBonus = 10;
+        lifeMultiplier = 1.38;
+        lifeBonus = 14;
         attackBonus = 3;
         guardBonus = 1;
         healBonus = 1;
       }
     } else if (actNumber === 4) {
       if (boss) {
-        lifeMultiplier = 1.45;
-        lifeBonus = 20;
+        lifeMultiplier = 1.56;
+        lifeBonus = 28;
         attackBonus = 3;
-        guardBonus = 2;
-        healBonus = 1;
-      } else if (elite) {
-        lifeMultiplier = 1.8;
-        lifeBonus = 28;
-        attackBonus = 5;
-        guardBonus = 3;
-        healBonus = 2;
-      } else {
-        lifeMultiplier = 1.5;
-        lifeBonus = 18;
-        attackBonus = 4;
-        guardBonus = 2;
-        healBonus = 1;
-      }
-    } else if (actNumber >= 5) {
-      if (boss) {
-        lifeMultiplier = 1.6;
-        lifeBonus = 28;
-        attackBonus = 4;
         guardBonus = 3;
         healBonus = 2;
       } else if (elite) {
-        lifeMultiplier = 2.05;
+        lifeMultiplier = 2.0;
         lifeBonus = 38;
-        attackBonus = 6;
+        attackBonus = 5;
         guardBonus = 4;
         healBonus = 2;
       } else {
-        lifeMultiplier = 1.7;
-        lifeBonus = 26;
-        attackBonus = 5;
+        lifeMultiplier = 1.58;
+        lifeBonus = 24;
+        attackBonus = 4;
         guardBonus = 3;
         healBonus = 2;
+      }
+    } else if (actNumber >= 5) {
+      if (boss) {
+        lifeMultiplier = 1.74;
+        lifeBonus = 40;
+        attackBonus = 4;
+        guardBonus = 5;
+        healBonus = 3;
+      } else if (elite) {
+        lifeMultiplier = 2.28;
+        lifeBonus = 54;
+        attackBonus = 6;
+        guardBonus = 5;
+        healBonus = 3;
+      } else {
+        lifeMultiplier = 1.82;
+        lifeBonus = 34;
+        attackBonus = 5;
+        guardBonus = 4;
+        healBonus = 3;
       }
     }
 
@@ -350,27 +350,30 @@
   function buildBossIntentSet(actNumber: number, scale: EncounterRegistryEnemyScale, bossName: string, bossId: string): EnemyIntent[] {
     if (bossId === "andariel") {
       return [
+        { kind: "guard_allies", label: `${bossName} Brood Screen`, value: Math.max(16, scale.guard + 9) },
+        { kind: "summon_minion", label: `${bossName} Brood Swarm`, value: Math.max(5, scale.attack - 1), secondaryValue: 3, cooldown: 2 },
         {
           kind: "charge",
           label: `${bossName} Poison Burst`,
-          value: scale.attack + 6,
+          value: scale.attack + 5,
           target: "hero",
-          secondaryValue: Math.max(4, scale.guard + 2),
+          secondaryValue: Math.max(15, scale.guard + 9),
           damageType: "poison",
         },
-        { kind: "attack_poison", label: `${bossName} Venom Spit`, value: scale.attack + 5, target: "hero", secondaryValue: 4 },
-        { kind: "attack_poison_all", label: `${bossName} Poison Burst`, value: Math.max(7, scale.attack + 3), secondaryValue: 5 },
-        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(9, scale.attack + 6), target: "hero", secondaryValue: 7 },
+        { kind: "attack_poison", label: `${bossName} Venom Spit`, value: scale.attack + 5, target: "hero", secondaryValue: 5 },
+        { kind: "attack_poison_all", label: `${bossName} Poison Burst`, value: Math.max(7, scale.attack + 3), secondaryValue: 6 },
+        { kind: "attack_poison", label: `${bossName} Venom Claw`, value: Math.max(9, scale.attack + 6), target: "hero", secondaryValue: 8 },
       ];
     }
     if (bossId === "duriel") {
       return [
+        { kind: "guard", label: `${bossName} Carapace`, value: Math.max(13, scale.guard + 7) },
         {
           kind: "charge",
           label: `${bossName} Burrow Charge`,
           value: scale.attack + 6,
           target: "mercenary",
-          secondaryValue: Math.max(4, scale.guard + 2),
+          secondaryValue: Math.max(13, scale.guard + 8),
         },
         { kind: "sunder_attack", label: `${bossName} Burrow Charge`, value: scale.attack + 6, target: "mercenary" },
         { kind: "attack", label: `${bossName} Crushing Pincher`, value: scale.attack + 3, target: "hero" },
@@ -379,53 +382,55 @@
           label: `${bossName} Shell Ram`,
           value: scale.attack + 4,
           target: "lowest_life",
-          secondaryValue: Math.max(4, scale.guard + 2),
+          secondaryValue: Math.max(12, scale.guard + 7),
         },
       ];
     }
     if (bossId === "mephisto") {
       return [
+        { kind: "guard_allies", label: `${bossName} Durance Ward`, value: Math.max(12, scale.guard + 6) },
         {
           kind: "charge",
           label: `${bossName} Lightning Nova`,
           value: scale.attack + 4,
           target: "all_allies",
-          secondaryValue: Math.max(4, scale.guard + 1),
+          secondaryValue: Math.max(13, scale.guard + 7),
           damageType: "lightning",
         },
+        { kind: "heal_and_guard", label: `${bossName} Durance Pact`, value: Math.max(7, scale.heal + 3), secondaryValue: Math.max(11, scale.guard + 6) },
         { kind: "attack_lightning_all", label: `${bossName} Lightning Nova`, value: scale.attack + 4 },
-        { kind: "heal_allies", label: `${bossName} Durance Pact`, value: Math.max(4, scale.heal + 1) },
-        { kind: "attack_lightning", label: `${bossName} Soul Bolt`, value: scale.attack + 2, target: "hero" },
+        { kind: "attack_lightning", label: `${bossName} Soul Bolt`, value: scale.attack + 3, target: "hero" },
       ];
     }
     if (bossId === "diablo") {
       return [
+        { kind: "guard_allies", label: `${bossName} Hell Bulwark`, value: Math.max(15, scale.guard + 9) },
         {
           kind: "charge",
           label: `${bossName} Apocalypse`,
-          value: scale.attack,
+          value: Math.max(7, scale.attack - 2),
           target: "all_allies",
-          secondaryValue: Math.max(3, scale.guard),
+          secondaryValue: Math.max(16, scale.guard + 10),
           damageType: "fire",
         },
-        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: scale.attack, secondaryValue: 1 },
-        { kind: "attack_burn", label: `${bossName} Firestorm`, value: scale.attack, target: "hero", secondaryValue: 1 },
-        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: scale.attack, target: "hero" },
+        { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: Math.max(7, scale.attack - 2), secondaryValue: 1 },
+        { kind: "heal_and_guard", label: `${bossName} Infernal Resurgence`, value: Math.max(9, scale.heal + 3), secondaryValue: Math.max(15, scale.guard + 9) },
+        { kind: "sunder_attack", label: `${bossName} Hell Charge`, value: Math.max(8, scale.attack - 1), target: "hero" },
       ];
     }
     if (bossId === "baal") {
       return [
-        { kind: "teleport", label: `${bossName} Teleport Away`, value: Math.max(5, scale.guard + 3) },
-        { kind: "summon_minion", label: `${bossName} Worldstone Call`, value: Math.max(6, scale.attack - 1), secondaryValue: 2, cooldown: 3 },
+        { kind: "teleport", label: `${bossName} Teleport Away`, value: Math.max(14, scale.guard + 8) },
+        { kind: "summon_minion", label: `${bossName} Worldstone Call`, value: Math.max(7, scale.attack), secondaryValue: 3, cooldown: 2 },
+        { kind: "heal_and_guard", label: `${bossName} Frozen Host`, value: Math.max(8, scale.heal + 3), secondaryValue: Math.max(13, scale.guard + 7) },
         {
           kind: "charge",
           label: `${bossName} Rift Burst`,
           value: scale.attack + 5,
           target: "all_allies",
-          secondaryValue: Math.max(4, scale.guard + 2),
+          secondaryValue: Math.max(15, scale.guard + 8),
         },
         { kind: "attack_all", label: `${bossName} Rift Burst`, value: scale.attack + 5 },
-        { kind: "heal_and_guard", label: `${bossName} Frozen Host`, value: Math.max(5, scale.heal + 1), secondaryValue: Math.max(6, scale.guard + 2) },
       ];
     }
     if (actNumber === 1) {
@@ -515,19 +520,19 @@
 
   function getBossScaleAdjustments(bossId: string) {
     if (bossId === "andariel") {
-      return { lifeMultiplier: 1.26, attackBonus: 4, guardBonus: 0, healBonus: 0 };
+      return { lifeMultiplier: 2.55, attackBonus: 1, guardBonus: 3, healBonus: 1 };
     }
     if (bossId === "duriel") {
-      return { lifeMultiplier: 1.45, attackBonus: 2, guardBonus: 3, healBonus: 0 };
+      return { lifeMultiplier: 2.34, attackBonus: 2, guardBonus: 5, healBonus: 1 };
     }
     if (bossId === "mephisto") {
-      return { lifeMultiplier: 1.6, attackBonus: 2, guardBonus: 3, healBonus: 1 };
+      return { lifeMultiplier: 2.58, attackBonus: 2, guardBonus: 5, healBonus: 2 };
     }
     if (bossId === "diablo") {
-      return { lifeMultiplier: 1.8, attackBonus: -1, guardBonus: 1, healBonus: 1 };
+      return { lifeMultiplier: 2.88, attackBonus: -3, guardBonus: 5, healBonus: 2 };
     }
     if (bossId === "baal") {
-      return { lifeMultiplier: 2.15, attackBonus: 4, guardBonus: 6, healBonus: 2 };
+      return { lifeMultiplier: 3.28, attackBonus: 2, guardBonus: 8, healBonus: 3 };
     }
     return { lifeMultiplier: 1.2, attackBonus: 1, guardBonus: 1, healBonus: 0 };
   }

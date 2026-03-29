@@ -91,6 +91,7 @@
   function ensureClassProgression(classProgression: unknown) {
     const source = ensureObjectRecord(classProgression);
     const treeRanks = ensureObjectRecord(source.treeRanks);
+    const archetypeScores = ensureObjectRecord(source.archetypeScores);
     return {
       favoredTreeId: typeof source.favoredTreeId === "string" ? source.favoredTreeId : "",
       treeRanks: Object.fromEntries(
@@ -99,6 +100,11 @@
           .map(([treeId, rank]) => [treeId, toNumber(rank, 0)])
       ),
       unlockedSkillIds: ensureStringArray(source.unlockedSkillIds),
+      archetypeScores: Object.fromEntries(
+        Object.entries(archetypeScores)
+          .filter(([archetypeId]) => typeof archetypeId === "string" && archetypeId)
+          .map(([archetypeId, score]) => [archetypeId, toNumber(score, 0)])
+      ),
     };
   }
 

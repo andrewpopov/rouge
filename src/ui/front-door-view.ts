@@ -87,7 +87,6 @@
   function deriveWelcomeModel(appState: AppState, services: UiRenderServices) {
     const savedRunSummary = services.appEngine.getSavedRunSummary();
     const runCount = appState.profile?.runHistory?.length || 0;
-    const classCount = appState.registries.classes.length;
     const recentRuns = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory.slice(0, runtimeWindow.ROUGE_LIMITS.RECENT_RUNS_SUMMARY) : [];
     const lastRun = recentRuns[0] || null;
     const stashCount = Array.isArray(appState.profile?.stash?.entries) ? appState.profile.stash.entries.length : 0;
@@ -95,13 +94,13 @@
       + (appState.profile?.meta?.unlocks?.bossIds?.length || 0)
       + (appState.profile?.meta?.unlocks?.runewordIds?.length || 0);
 
-    return { savedRunSummary, runCount, classCount, recentRuns, lastRun, stashCount, unlockCount };
+    return { savedRunSummary, runCount, recentRuns, lastRun, stashCount, unlockCount };
   }
 
   function renderWelcomeScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
     const vm = deriveWelcomeModel(appState, services);
-    const { savedRunSummary, runCount, classCount, recentRuns, lastRun, stashCount, unlockCount } = vm;
+    const { savedRunSummary, runCount, recentRuns, lastRun, stashCount, unlockCount } = vm;
 
     const savedRunCard = savedRunSummary
       ? `<section class="panel flow-panel welcome-saved-run">
@@ -109,21 +108,22 @@
             <h2>Expedition In Progress</h2>
             ${buildBadge(savedRunSummary.phaseLabel || "Active", getPhaseTone(savedRunSummary, services.appEngine))}
           </div>
-          <div class="entity-stat-grid" style="margin:12px 0">
+          <div class="entity-stat-grid welcome-saved-run__stats">
             ${buildStat("Class", escapeHtml(savedRunSummary.className || "Unknown"))}
             ${buildStat("Level", savedRunSummary.level || 1)}
             ${buildStat("Act", escapeHtml(savedRunSummary.actTitle || "Act I"))}
             ${buildStat("Zones", savedRunSummary.zonesCleared || 0)}
           </div>
-          <div class="cta-row" style="margin-top:18px">
+          <div class="cta-row welcome-saved-run__actions">
             <button class="primary-btn" data-action="continue-saved-run">Continue Expedition</button>
             <button class="danger-link-btn" data-action="prompt-abandon-saved-run">Abandon Run</button>
           </div>
           ${appState.ui.confirmAbandonSavedRun ? `
-            <div class="panel confirm-panel" style="margin-top:14px;padding:16px 18px">
-              <p class="flow-copy" style="margin:0 0 12px">This will permanently archive the run. Are you sure?</p>
-              <div class="cta-row cta-row-tight">
-                <button class="neutral-btn" style="border-color:rgba(207,123,111,0.5);color:var(--danger)" data-action="confirm-abandon-saved-run">Yes, Abandon</button>
+            <div class="panel confirm-panel welcome-saved-run__confirm">
+              <p class="welcome-saved-run__confirm-title">Archive this expedition and reopen the hall?</p>
+              <p class="flow-copy welcome-saved-run__confirm-copy">The parked route will be written into the archive and removed from the live hall slot.</p>
+              <div class="cta-row cta-row-tight welcome-saved-run__confirm-actions">
+                <button class="neutral-btn welcome-saved-run__confirm-danger" data-action="confirm-abandon-saved-run">Yes, Abandon</button>
                 <button class="neutral-btn" data-action="cancel-abandon-saved-run">Cancel</button>
               </div>
             </div>
@@ -135,20 +135,26 @@
       ? `<nav class="welcome-menu">
           <button class="welcome-menu-item" data-action="expand-hall" data-section="vault">
             <span class="welcome-menu-icon">\u{1F4DC}</span>
-            <span class="welcome-menu-label">Recent Expeditions</span>
-            <span class="welcome-menu-detail">${lastRun ? `${escapeHtml(lastRun.className)} \u00b7 Lv.${lastRun.level} \u00b7 ${escapeHtml(lastRun.outcome)}` : `${runCount} archived`}</span>
+            <span class="welcome-menu-body">
+              <span class="welcome-menu-label">Recent Expeditions</span>
+              <span class="welcome-menu-detail">${lastRun ? `${escapeHtml(lastRun.className)} \u00b7 Lv.${lastRun.level} \u00b7 ${escapeHtml(lastRun.outcome)}` : `${runCount} archived`}</span>
+            </span>
             <span class="welcome-menu-arrow">\u203a</span>
           </button>
           <button class="welcome-menu-item" data-action="expand-hall" data-section="overview">
             <span class="welcome-menu-icon">\u2726</span>
-            <span class="welcome-menu-label">Account</span>
-            <span class="welcome-menu-detail">${runCount} run${runCount === 1 ? "" : "s"} \u00b7 ${unlockCount} unlock${unlockCount === 1 ? "" : "s"} \u00b7 ${stashCount} stash</span>
+            <span class="welcome-menu-body">
+              <span class="welcome-menu-label">Account</span>
+              <span class="welcome-menu-detail">${runCount} run${runCount === 1 ? "" : "s"} \u00b7 ${unlockCount} unlock${unlockCount === 1 ? "" : "s"} \u00b7 ${stashCount} stash</span>
+            </span>
             <span class="welcome-menu-arrow">\u203a</span>
           </button>
           <button class="welcome-menu-item" data-action="expand-hall" data-section="settings">
             <span class="welcome-menu-icon">\u2699</span>
-            <span class="welcome-menu-label">Settings</span>
-            <span class="welcome-menu-detail">Hints ${appState.profile?.meta?.settings?.showHints !== false ? "on" : "off"} \u00b7 Motion ${appState.profile?.meta?.settings?.reduceMotion ? "reduced" : "full"}</span>
+            <span class="welcome-menu-body">
+              <span class="welcome-menu-label">Settings</span>
+              <span class="welcome-menu-detail">Hints ${appState.profile?.meta?.settings?.showHints !== false ? "on" : "off"} \u00b7 Motion ${appState.profile?.meta?.settings?.reduceMotion ? "reduced" : "full"}</span>
+            </span>
             <span class="welcome-menu-arrow">\u203a</span>
           </button>
         </nav>`
@@ -183,11 +189,12 @@
     const introParagraph = runCount > 0
       ? "The black gate is still burning. Every archived run leaves another name in the ash, and every fresh draft is another march back toward the fire."
       : "Under the eclipse, the black gate calls mercenaries, rune-bearers, and doomed pilgrims to the same road. Blood Rogue begins in ash and only grows darker from there.";
-    const instructionText = savedRunSummary
-      ? "Resume your expedition from the hall below, or clear the road before drafting another hero."
-      : runCount > 0
-        ? "Choose a hero, bind your runes, and march back through five acts of blood-soaked combat."
-        : "Choose a hero, sign a mercenary contract, and fight through five acts of Diablo-inspired combat.";
+    let instructionText = "Choose a hero, sign a mercenary contract, and fight through five acts of Diablo-inspired combat.";
+    if (savedRunSummary) {
+      instructionText = "Resume your expedition from the hall below, or clear the road before drafting another hero.";
+    } else if (runCount > 0) {
+      instructionText = "Choose a hero, bind your runes, and march back through five acts of blood-soaked combat.";
+    }
     const heroActionMarkup = savedRunSummary
       ? `<p class="welcome-hero-note">A live expedition already waits in the hall below. Resume it there before drafting another contract.</p>`
       : `<div class="welcome-hero-actions">
@@ -202,16 +209,20 @@
           <img class="welcome-cover-art" src="./assets/curated/title-screen/welcome-cover-art.jpg" alt="" />
         </div>
         <div class="welcome-hero-content">
-          <p class="eyebrow">Roguelite Deckbuilder</p>
-          <h1 class="welcome-title">
-            <img class="welcome-title-logo" src="./assets/curated/title-screen/blood-rogue-logo.png" alt="Blood Rogue" />
-          </h1>
-          <p class="welcome-intro">${introParagraph}</p>
-          <p class="welcome-tagline">
-            ${instructionText}
-          </p>
-          ${heroActionMarkup}
-          ${authRow}
+          <div class="welcome-hero-copy">
+            <p class="eyebrow">Roguelite Deckbuilder</p>
+            <h1 class="welcome-title">
+              <img class="welcome-title-logo" src="./assets/curated/title-screen/blood-rogue-logo.png" alt="Blood Rogue" />
+            </h1>
+            <div class="welcome-copy-block">
+              <p class="welcome-intro">${introParagraph}</p>
+              <p class="welcome-tagline">
+                ${instructionText}
+              </p>
+            </div>
+            ${heroActionMarkup}
+            ${authRow}
+          </div>
         </div>
       </section>
       <div class="shell-body">
@@ -239,27 +250,85 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const hallView = runtimeWindow.ROUGE_FRONT_DOOR_HALL_VIEW;
     const expeditionView = runtimeWindow.ROUGE_FRONT_DOOR_EXPEDITION_VIEW;
+    const { escapeHtml } = services.renderUtils;
     const savedRunSummary = services.appEngine.getSavedRunSummary();
     const phaseTone = getPhaseTone(savedRunSummary, services.appEngine);
     const accountSummary = services.appEngine.getAccountProgressSummary(appState);
+    const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
     const stashPreviewLines = getStashPreviewLines(appState.profile, appState.content);
     const recentRunMarkup = buildRecentRunMarkup(appState.profile, services.renderUtils);
     const expeditionSection = expeditionView.buildExpeditionSectionMarkup(appState, services, savedRunSummary);
     const section = appState.ui.hallSection || "overview";
-    const tabClass = (s: string) => s !== section ? "hall-tab--hidden" : "";
+    const tabClass = (s: string) => s !== section ? "hall-section hall-section--hidden" : "hall-section";
+    const sectionMeta: Record<string, { title: string; copy: string }> = {
+      overview: {
+        title: "Hall Overview",
+        copy: "Read the state of the archive, the stash, and the live expedition without leaving the account chamber.",
+      },
+      expedition: {
+        title: "Expedition Wing",
+        copy: "Resume the parked route or open the next draft with the same account signals carried forward.",
+      },
+      progression: {
+        title: "Progression Gallery",
+        copy: "Review class-tree pressure, convergence lanes, and capstone readiness before the next march.",
+      },
+      vault: {
+        title: "Vault And Chronicle",
+        copy: "Track stored gear, archived runs, and unlock waves from the same logistics wing.",
+      },
+      settings: {
+        title: "Command Desk",
+        copy: "Tune guidance, preferred class routing, and charter pressure from one persistent control surface.",
+      },
+    };
+    const currentSectionMeta = sectionMeta[section] || sectionMeta.overview;
+    const liveExpeditionLabel = savedRunSummary ? `${savedRunSummary.className} · ${savedRunSummary.phaseLabel}` : "Hall Open";
 
     root.innerHTML = `
-      <section class="hero-banner panel" style="padding:24px 32px 0">
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
-          <button class="neutral-btn" style="padding:6px 14px;font-size:0.85rem" data-action="collapse-hall">\u2190 Back</button>
-          <div>
-            <p class="eyebrow" style="margin:0">Account Hall</p>
-            <h1 style="font-size:1.6rem;margin:0">Blood Rogue</h1>
+      <section class="hall-hero panel">
+        <div class="hall-hero__top">
+          <button class="neutral-btn hall-back-btn" data-action="collapse-hall">\u2190 Return To Cover</button>
+          <span class="hall-hero__state">${savedRunSummary ? "Live Expedition Parked" : "Archive Open"}</span>
+        </div>
+        <div class="hall-hero__body">
+          <div class="hall-hero__copy">
+            <p class="eyebrow">Account Hall</p>
+            <h1>Blood Rogue</h1>
+            <p class="hall-hero__lead">The archive remembers every march. Review the live route, stored relics, and long-horizon account pressure before you choose what the next expedition becomes.</p>
+          </div>
+          <div class="hall-hero__stats">
+            <div class="hall-hero__stat">
+              <span>Archived Runs</span>
+              <strong>${profileSummary.runHistoryCount}</strong>
+            </div>
+            <div class="hall-hero__stat">
+              <span>Unlocked Classes</span>
+              <strong>${profileSummary.unlockedClassCount}</strong>
+            </div>
+            <div class="hall-hero__stat">
+              <span>Vault Entries</span>
+              <strong>${profileSummary.stashEntries}</strong>
+            </div>
+            <div class="hall-hero__stat">
+              <span>Hall State</span>
+              <strong>${escapeHtml(liveExpeditionLabel)}</strong>
+            </div>
           </div>
         </div>
       </section>
-      <div class="shell-body">
-        ${hallView.buildHallTabNav(section)}
+      <div class="shell-body hall-shell__body">
+        <section class="panel hall-nav-shell">
+          <div class="hall-nav-shell__head">
+            <div>
+              <p class="hall-nav-shell__eyebrow">Navigator</p>
+              <h2 class="hall-nav-shell__title">${escapeHtml(currentSectionMeta.title)}</h2>
+            </div>
+            <p class="hall-nav-shell__copy">${escapeHtml(currentSectionMeta.copy)}</p>
+          </div>
+          ${hallView.buildHallTabNav(section)}
+        </section>
+        <div class="hall-section-stack">
         <div data-hall-tab="overview" class="${tabClass("overview")}">
           ${hallView.buildAccountDashboardMarkup(appState, services, savedRunSummary, phaseTone, accountSummary)}
         </div>
@@ -308,6 +377,7 @@
         </div>
         <div data-hall-tab="settings" class="${tabClass("settings")}">
           ${hallView.buildAccountControlsMarkup(appState, services, accountSummary)}
+        </div>
         </div>
       </div>
     `;

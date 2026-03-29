@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global document, HTMLImageElement */
 
 const { chromium } = require("playwright");
 const http = require("node:http");
@@ -75,7 +76,7 @@ async function tryClick(page, name, waitMs = 350) {
 
 async function shot(page, name, opts = {}) {
   const filePath = path.join(OUT_DIR, `${name}.png`);
-  await page.screenshot({ path: filePath, type: "png", fullPage: !!opts.fullPage });
+  await page.screenshot({ path: filePath, type: "png", fullPage: Boolean(opts.fullPage) });
   console.log(`  ✓ ${name}.png${opts.fullPage ? " (full page)" : ""}`);
 }
 
@@ -104,6 +105,20 @@ async function closeGameMenu(page) {
   }
   await menuToggle.click();
   await page.waitForTimeout(250);
+}
+
+async function waitForActGuideArt(page) {
+  try {
+    await page.waitForFunction(() => {
+      const poster = document.querySelector(".act-guide-scroll__poster");
+      const destination = document.querySelector(".act-guide-destination__art-img");
+      return [poster, destination].every((img) => {
+        return img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0;
+      });
+    }, { timeout: TIMEOUT * 2 });
+  } catch {
+    // Best-effort only; the shot can still proceed with the current frame.
+  }
 }
 
 function buildActTransitionFixture() {
@@ -338,7 +353,13 @@ async function captureScreenshots(baseUrl) {
 
   // Clear localStorage for a fresh start
   await page.goto(baseUrl);
-  await page.evaluate(() => { try { localStorage.clear(); } catch {} });
+  await page.evaluate(() => {
+    try {
+      localStorage.clear();
+    } catch {
+      // Ignore storage bootstrap failures in the screenshot harness.
+    }
+  });
   await page.goto(baseUrl);
   await page.waitForTimeout(600);
 
@@ -384,14 +405,18 @@ async function captureScreenshots(baseUrl) {
     if (hasInvBtn > 0) {
       await page.evaluate(() => {
         const btn = document.querySelector('[data-action="open-inventory"]');
-        if (btn) btn.click();
+        if (btn) {
+          btn.click();
+        }
       });
       await page.waitForTimeout(500);
       await shot(page, "05-inventory");
       // Close inventory via JS
       await page.evaluate(() => {
         const overlay = document.querySelector('.inv-overlay');
-        if (overlay) overlay.click();
+        if (overlay) {
+          overlay.click();
+        }
       });
       await page.waitForTimeout(400);
     } else {
@@ -417,9 +442,19 @@ async function captureScreenshots(baseUrl) {
       await page.waitForTimeout(400);
       onWorldMap = true;
     }
-  } catch {}
+  } catch {
+    // Best-effort entry into the world map for screenshot capture.
+  }
 
   if (onWorldMap) {
+    const introGuide = page.locator('[data-action="continue-act-guide"]').first();
+    if (await introGuide.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await waitForActGuideArt(page);
+      await shot(page, "06a-act-guide-intro");
+      await introGuide.click();
+      await page.waitForTimeout(500);
+    }
+
     await shot(page, "06-world-map", { fullPage: true });
 
     // ── 07. Enter first zone ──
@@ -487,6 +522,14 @@ async function captureScreenshots(baseUrl) {
     const transitionContinue = transitionPage.locator('[data-action="continue-saved-run"]').first();
     if (await transitionContinue.isVisible({ timeout: 1200 }).catch(() => false)) {
       await transitionContinue.click();
+    }
+    const guideAdvance = transitionPage.locator('[data-action="continue-act-guide"]').first();
+    if (await guideAdvance.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await guideAdvance.waitFor({ state: "visible", timeout: TIMEOUT });
+      await waitForActGuideArt(transitionPage);
+      await shot(transitionPage, "10a-act-guide-reward");
+      await guideAdvance.click();
+      await transitionPage.waitForTimeout(500);
     }
     const transitionAdvance = transitionPage.locator('[data-action="continue-act-transition"]').first();
     if (await transitionAdvance.isVisible({ timeout: 1200 }).catch(() => false)) {

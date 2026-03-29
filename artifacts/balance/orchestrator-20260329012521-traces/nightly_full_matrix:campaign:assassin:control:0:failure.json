@@ -1,0 +1,748 @@
+{
+  "mode": "combat",
+  "digest": "ce6a132e336edb83",
+  "capture": {
+    "kind": "pre_boss",
+    "label": "Chaos Sanctuary / Diablo",
+    "checkpointId": "",
+    "encounterId": "act_4_boss",
+    "runKey": "nightly_full_matrix:campaign:assassin:control:0"
+  },
+  "classId": "assassin",
+  "actNumber": 4,
+  "encounterId": "act_4_boss",
+  "policyId": "control",
+  "outcome": "defeat",
+  "turns": [
+    {
+      "turn": 1,
+      "start": {
+        "hero": {
+          "life": 341,
+          "maxLife": 449,
+          "guard": 0,
+          "energy": 22,
+          "burn": 0,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 164,
+          "maxLife": 209,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 699,
+            "maxLife": 699,
+            "guard": 12,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Bulwark (35)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 5,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 278,
+            "maxLife": 278,
+            "guard": 5,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          },
+          {
+            "id": "act_4_boss_enemy_4",
+            "name": "Doomtide Finger Mage",
+            "life": 264,
+            "maxLife": 264,
+            "guard": 12,
+            "burn": 0,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Finger Mage Doom Wave (28)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_22",
+            "cardId": "assassin_death_sentry",
+            "title": "Death Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_1",
+            "cardId": "assassin_phoenix_strike",
+            "title": "Phoenix Strike",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_21",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_16",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_5",
+            "cardId": "assassin_fire_blast",
+            "title": "Fire Blast",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_2",
+            "cardId": "assassin_phoenix_strike",
+            "title": "Phoenix Strike",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Card: Wake of Fire",
+        "Card: Wake of Fire",
+        "Card: Death Sentry",
+        "Card: Phoenix Strike -> Doomtide Finger Mage",
+        "Card: Phoenix Strike -> Doomtide Finger Mage",
+        "Card: Death Sentry",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 121,
+          "maxLife": 449,
+          "guard": 0,
+          "energy": 22,
+          "burn": 3,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 122,
+          "maxLife": 209,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 552,
+            "maxLife": 699,
+            "guard": 29,
+            "burn": 34,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 2,
+            "intent": "Diablo Apocalypse (24)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 185,
+            "maxLife": 278,
+            "guard": 19,
+            "burn": 34,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 2,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 185,
+            "maxLife": 278,
+            "guard": 18,
+            "burn": 34,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 2,
+            "intent": "Megademon Ember Collapse (29)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_28",
+            "cardId": "assassin_death_sentry",
+            "title": "Death Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "assassin_phoenix_strike",
+            "title": "Phoenix Strike",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_31",
+            "cardId": "assassin_lightning_sentry",
+            "title": "Lightning Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_shadow_warrior",
+            "title": "Shadow Warrior",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_10",
+            "cardId": "rally_mercenary_plus",
+            "title": "Rally Mercenary+",
+            "cost": 1
+          }
+        ]
+      },
+      "log": [
+        "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+        "Hellforged Megademon takes 35 Burn damage.",
+        "Hellforged Megademon hits with Extra Strong force!",
+        "Hellforged Megademon is Paralyzed — attack weakened.",
+        "Hellforged Megademon uses Megademon Ember Plate on Assassin for 21 and gains 19 Guard.",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon takes 35 Burn damage.",
+        "Cinderlord Megademon hits with Extra Strong force!",
+        "Cinderlord Megademon is Paralyzed — attack weakened.",
+        "Cinderlord Megademon uses Megademon Molten Plating on Assassin for 21 and gains 18 Guard.",
+        "Doomtide Finger Mage's lightning arc zaps the Wanderer for 2!",
+        "Doomtide Finger Mage falls.",
+        "Doomtide Finger Mage erupts in flame for 66 fire damage! (bypasses Guard)",
+        "Doomtide Finger Mage takes 75 Burn damage.",
+        "The Wanderer takes 4 Burn damage.",
+        "Turn 3 begins."
+      ]
+    },
+    {
+      "turn": 3,
+      "start": {
+        "hero": {
+          "life": 121,
+          "maxLife": 449,
+          "guard": 0,
+          "energy": 22,
+          "burn": 3,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 122,
+          "maxLife": 209,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 552,
+            "maxLife": 699,
+            "guard": 29,
+            "burn": 34,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 2,
+            "intent": "Diablo Apocalypse (24)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 185,
+            "maxLife": 278,
+            "guard": 19,
+            "burn": 34,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 2,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 185,
+            "maxLife": 278,
+            "guard": 18,
+            "burn": 34,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 2,
+            "intent": "Megademon Ember Collapse (29)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_28",
+            "cardId": "assassin_death_sentry",
+            "title": "Death Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_3",
+            "cardId": "assassin_phoenix_strike",
+            "title": "Phoenix Strike",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_31",
+            "cardId": "assassin_lightning_sentry",
+            "title": "Lightning Sentry",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_6",
+            "cardId": "assassin_shadow_warrior",
+            "title": "Shadow Warrior",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_10",
+            "cardId": "rally_mercenary_plus",
+            "title": "Rally Mercenary+",
+            "cost": 1
+          }
+        ]
+      },
+      "actions": [
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 3,
+          "maxLife": 449,
+          "guard": 0,
+          "energy": 22,
+          "burn": 6,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 89,
+          "maxLife": 209,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 392,
+            "maxLife": 699,
+            "guard": 28,
+            "burn": 32,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Charge (25)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 137,
+            "maxLife": 278,
+            "guard": 19,
+            "burn": 32,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 160,
+            "maxLife": 278,
+            "guard": 18,
+            "burn": 32,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_18",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "assassin_cloak_of_shadows",
+            "title": "Cloak of Shadows",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_17",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_8",
+            "cardId": "assassin_burst_of_speed",
+            "title": "Burst of Speed",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_26",
+            "cardId": "assassin_phoenix_strike",
+            "title": "Phoenix Strike",
+            "cost": 2
+          }
+        ]
+      },
+      "log": [
+        "Turn 4 begins.",
+        "Rogue Scout hits Diablo for 61.",
+        "Diablo takes 33 Burn damage.",
+        "Diablo uses Diablo Infernal Resurgence, restoring Cinderlord Megademon for 24 and gaining 28 Guard.",
+        "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+        "Hellforged Megademon takes 33 Burn damage.",
+        "Hellforged Megademon hits with Extra Strong force!",
+        "Hellforged Megademon is Paralyzed — attack weakened.",
+        "Hellforged Megademon uses Megademon Ember Plate on Assassin for 21 and gains 19 Guard.",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon takes 33 Burn damage.",
+        "Cinderlord Megademon hits with Extra Strong force!",
+        "Cinderlord Megademon is Paralyzed — attack weakened.",
+        "Cinderlord Megademon uses Megademon Molten Plating on Assassin for 21 and gains 18 Guard.",
+        "The Wanderer takes 7 Burn damage.",
+        "Turn 5 begins."
+      ]
+    },
+    {
+      "turn": 5,
+      "start": {
+        "hero": {
+          "life": 3,
+          "maxLife": 449,
+          "guard": 0,
+          "energy": 22,
+          "burn": 6,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 89,
+          "maxLife": 209,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 392,
+            "maxLife": 699,
+            "guard": 28,
+            "burn": 32,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Diablo Hell Charge (25)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 137,
+            "maxLife": 278,
+            "guard": 19,
+            "burn": 32,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Forge Break (32)"
+          },
+          {
+            "id": "act_4_boss_enemy_3",
+            "name": "Cinderlord Megademon",
+            "life": 160,
+            "maxLife": 278,
+            "guard": 18,
+            "burn": 32,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 0,
+            "intent": "Megademon Ember Collapse (29)"
+          }
+        ],
+        "hand": [
+          {
+            "instanceId": "card_18",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_11",
+            "cardId": "assassin_cloak_of_shadows",
+            "title": "Cloak of Shadows",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_17",
+            "cardId": "assassin_wake_of_fire",
+            "title": "Wake of Fire",
+            "cost": 2
+          },
+          {
+            "instanceId": "card_8",
+            "cardId": "assassin_burst_of_speed",
+            "title": "Burst of Speed",
+            "cost": 1
+          },
+          {
+            "instanceId": "card_26",
+            "cardId": "assassin_phoenix_strike",
+            "title": "Phoenix Strike",
+            "cost": 2
+          }
+        ]
+      },
+      "actions": [
+        "Potion -> hero",
+        "Potion -> hero",
+        "Potion -> hero",
+        "Potion -> hero",
+        "Card: Wake of Fire",
+        "Card: Phoenix Strike -> Cinderlord Megademon",
+        "Card: Wake of Fire",
+        "Card: Phoenix Strike -> Cinderlord Megademon",
+        "Card: Phoenix Strike -> Cinderlord Megademon",
+        "Card: Death Sentry",
+        "Melee strike",
+        "Card: Burst of Speed",
+        "Card: Wake of Fire",
+        "Card: Phoenix Strike -> Cinderlord Megademon",
+        "Card: Cloak of Shadows",
+        "Card: Death Sentry",
+        "End turn"
+      ],
+      "end": {
+        "hero": {
+          "life": 0,
+          "maxLife": 449,
+          "guard": 0,
+          "energy": 2,
+          "burn": 6,
+          "poison": 0,
+          "chill": 0,
+          "amplify": 0,
+          "weaken": 0,
+          "energyDrain": 0
+        },
+        "mercenary": {
+          "name": "Rogue Scout",
+          "life": 89,
+          "maxLife": 209,
+          "guard": 0,
+          "nextAttackBonus": 0,
+          "markedEnemyId": ""
+        },
+        "enemies": [
+          {
+            "id": "act_4_boss_enemy_1",
+            "name": "Diablo",
+            "life": 199,
+            "maxLife": 699,
+            "guard": 0,
+            "burn": 85,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 3,
+            "intent": "Diablo Hell Charge (25)"
+          },
+          {
+            "id": "act_4_boss_enemy_2",
+            "name": "Hellforged Megademon",
+            "life": 82,
+            "maxLife": 278,
+            "guard": 0,
+            "burn": 86,
+            "poison": 0,
+            "slow": 0,
+            "freeze": 0,
+            "stun": 0,
+            "paralyze": 4,
+            "intent": "Megademon Forge Break (32)"
+          }
+        ],
+        "hand": []
+      },
+      "log": [
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Wake of Fire: dealt 36 total damage. applied 18 Burn to all enemies.",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Phoenix Strike: dealt 26 to Cinderlord Megademon. applied 20 Burn. gained 19 Guard. drew 1 card.",
+        "Cloak of Shadows: healed for 6. gained 14 Guard.",
+        "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+        "Cinderlord Megademon falls.",
+        "Cinderlord Megademon erupts in flame for 69 fire damage! (bypasses Guard)",
+        "Death Sentry: dealt 57 total damage. applied 2 Paralyze to all enemies.",
+        "Rogue Scout hits Diablo for 61.",
+        "Diablo takes 86 Burn damage.",
+        "Diablo is Paralyzed — attack weakened.",
+        "Assassin falls.",
+        "Diablo uses Diablo Hell Charge, shattering 107 Guard and hitting Assassin for 11.",
+        "The Wanderer falls. Encounter lost."
+      ]
+    }
+  ],
+  "finalState": {
+    "hero": {
+      "life": 0,
+      "maxLife": 449,
+      "guard": 0,
+      "energy": 2,
+      "burn": 6,
+      "poison": 0,
+      "chill": 0,
+      "amplify": 0,
+      "weaken": 0,
+      "energyDrain": 0
+    },
+    "mercenary": {
+      "name": "Rogue Scout",
+      "life": 89,
+      "maxLife": 209,
+      "guard": 0,
+      "nextAttackBonus": 0,
+      "markedEnemyId": ""
+    },
+    "enemies": [
+      {
+        "id": "act_4_boss_enemy_1",
+        "name": "Diablo",
+        "life": 199,
+        "maxLife": 699,
+        "guard": 0,
+        "burn": 85,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 3,
+        "intent": "Diablo Hell Charge (25)"
+      },
+      {
+        "id": "act_4_boss_enemy_2",
+        "name": "Hellforged Megademon",
+        "life": 82,
+        "maxLife": 278,
+        "guard": 0,
+        "burn": 86,
+        "poison": 0,
+        "slow": 0,
+        "freeze": 0,
+        "stun": 0,
+        "paralyze": 4,
+        "intent": "Megademon Forge Break (32)"
+      }
+    ],
+    "hand": []
+  },
+  "recentLog": [
+    "Burst of Speed: gained 17 Guard. drew 2 cards.",
+    "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Wake of Fire: dealt 36 total damage. applied 18 Burn to all enemies.",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Phoenix Strike: dealt 26 to Cinderlord Megademon. applied 20 Burn. gained 19 Guard. drew 1 card.",
+    "Cloak of Shadows: healed for 6. gained 14 Guard.",
+    "Hellforged Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon's lightning arc zaps the Wanderer for 2!",
+    "Cinderlord Megademon falls.",
+    "Cinderlord Megademon erupts in flame for 69 fire damage! (bypasses Guard)",
+    "Death Sentry: dealt 57 total damage. applied 2 Paralyze to all enemies.",
+    "Rogue Scout hits Diablo for 61.",
+    "Diablo takes 86 Burn damage.",
+    "Diablo is Paralyzed — attack weakened.",
+    "Assassin falls.",
+    "Diablo uses Diablo Hell Charge, shattering 107 Guard and hitting Assassin for 11.",
+    "The Wanderer falls. Encounter lost."
+  ]
+}

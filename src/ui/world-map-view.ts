@@ -423,9 +423,10 @@
   function render(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const vm = deriveWorldMapModel(appState, services);
     const {
-      run, reachableZoneIds, mapZones, actMapFile, positions, scrollOpen, routeIntelOpen, progressPct,
+      run, currentZones, reachableZoneIds, mapZones, actMapFile, positions, scrollOpen, routeIntelOpen, progressPct,
       availableZones, reachableAvailableZones, nextZone, resolvedSpecialNodes, branchCount, battleRoutesCleared, atlasCards,
     } = vm;
 
@@ -439,12 +440,20 @@
 
     const nextZoneLabel = nextZone ? nextZone.title : "No route currently open";
     const nextZoneFamily = getNodeFamilyLabel(nextZone);
-    const nextZoneStatus = nextZone
-      ? nextZone.status === "available"
-        ? nextZone.encountersCleared > 0 && !nextZone.cleared ? "Continue Route" : "Enter Route"
-        : "Resolved"
-      : "Awaiting route state";
+    let nextZoneStatus = "Awaiting route state";
+    if (nextZone) {
+      if (nextZone.status !== "available") {
+        nextZoneStatus = "Resolved";
+      } else if (nextZone.encountersCleared > 0 && !nextZone.cleared) {
+        nextZoneStatus = "Continue Route";
+      } else {
+        nextZoneStatus = "Enter Route";
+      }
+    }
     const openRouteCount = reachableAvailableZones.length;
+    const bossZone = currentZones.find((zone) => zone.kind === ZONE_KIND.BOSS) || null;
+    const focusPos = (nextZone && positions.get(nextZone.id)) || townPos;
+    const bossPos = (bossZone && positions.get(bossZone.id)) || [92, 76];
     const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), nextZone?.id === z.id, escapeHtml, positions)).join("");
     const edges = buildSvgEdges(mapZones, positions, run.actNumber);
 
@@ -483,9 +492,16 @@
               <div class="actmap__panel-head actmap__panel-head--board">
                 <div>
                   <div class="actmap__panel-eyebrow">Trail Overview</div>
-                  <h2 class="actmap__panel-title">Route Board</h2>
+                  <h2 class="actmap__panel-title">Campaign Board</h2>
                 </div>
-                <div class="actmap__panel-copy">Follow the live route first; side forks and resolved paths recede behind it.</div>
+                <div class="actmap__panel-copy">The live breach burns brightest. Side forks stay visible, but the boss road keeps the strongest pull.</div>
+              </div>
+
+              <div class="actmap__board-strip">
+                <span class="actmap__board-chip actmap__board-chip--live">Live Route · ${escapeHtml(nextZoneLabel)}</span>
+                <span class="actmap__board-chip">Boss Gate · ${escapeHtml(run.bossName)}</span>
+                <span class="actmap__board-chip">Open Paths · ${openRouteCount}</span>
+                <span class="actmap__board-chip">Branches · ${resolvedSpecialNodes}/${branchCount}</span>
               </div>
 
               <div class="actmap__canvas ${scrollOpen ? "actmap__canvas--scroll" : ""}">
@@ -494,7 +510,10 @@
                      alt="${escapeHtml(run.actTitle)}"
                      draggable="false" />
 
-                <div class="actmap__main-map">
+                <div
+                  class="actmap__main-map"
+                  style="--focus-x:${focusPos[0]}%;--focus-y:${focusPos[1]}%;--boss-x:${bossPos[0]}%;--boss-y:${bossPos[1]}%;"
+                >
                   <svg class="actmap__edges">
                     ${edges}
                   </svg>
@@ -579,6 +598,18 @@
 
         </div>
       </div>
+      ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+        copy:
+          "World-map routing now keeps the same archive, charter, mastery, and convergence pressure visible beside the act board instead of hiding the account layer between towns.",
+      })}
+      ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+        copy:
+          "Route picks can now be weighed against the same charter and convergence drilldowns that remain visible in town, rewards, and the hall.",
+        charterFollowThrough:
+          "If charter pressure outranks the next route, retreat to town and resolve loadout or stash posture before committing the board.",
+        convergenceFollowThrough:
+          "If convergence pressure outranks the next route, review the account progression wing before pushing deeper into the act.",
+      })}
     `;
   }
 

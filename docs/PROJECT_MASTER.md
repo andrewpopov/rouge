@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: March 27, 2026.
+Last updated: March 28, 2026.
 
 ## Purpose
 
@@ -155,18 +155,28 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 
 ### 2. Product-direction guidance
 
+- [docs/BLOOD_ROGUE_VISUAL_IDENTITY.md](/Users/andrew/proj/rouge/docs/BLOOD_ROGUE_VISUAL_IDENTITY.md)
 - [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md)
 - [docs/ROADMAP_EPICS.md](/Users/andrew/proj/rouge/docs/ROADMAP_EPICS.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
+- [docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md)
+- [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md)
+- [docs/CLASS_STRATEGY_GUIDE_SYSTEM.md](/Users/andrew/proj/rouge/docs/CLASS_STRATEGY_GUIDE_SYSTEM.md)
+- [docs/strategy-guides/README.md](/Users/andrew/proj/rouge/docs/strategy-guides/README.md)
 - [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md)
 - [docs/CLASS_REWARD_TIERS.md](/Users/andrew/proj/rouge/docs/CLASS_REWARD_TIERS.md)
 - [docs/CLASS_CAPSTONES.md](/Users/andrew/proj/rouge/docs/CLASS_CAPSTONES.md)
 - [docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md](/Users/andrew/proj/rouge/docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md)
 - [docs/VISUAL_DESIGN_TRD.md](/Users/andrew/proj/rouge/docs/VISUAL_DESIGN_TRD.md)
+- [docs/ui-redesign-plan.md](/Users/andrew/proj/rouge/docs/ui-redesign-plan.md)
 - [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md)
 
 These capture intended Diablo II structure and next execution targets. They are product-direction truth, not automatic runtime truth.
+
+Use [docs/CLASS_STRATEGY_GUIDE_SYSTEM.md](/Users/andrew/proj/rouge/docs/CLASS_STRATEGY_GUIDE_SYSTEM.md) plus [docs/strategy-guides/README.md](/Users/andrew/proj/rouge/docs/strategy-guides/README.md) as the internal source set for future player-facing class guides and build explainers.
+
+Use [docs/BLOOD_ROGUE_VISUAL_IDENTITY.md](/Users/andrew/proj/rouge/docs/BLOOD_ROGUE_VISUAL_IDENTITY.md) as the canonical source for look, feel, and "what good looks like" during visual reviews. `VISUAL_DESIGN_TRD.md` and `ui-redesign-plan.md` should support that standard, not redefine it.
 
 Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md) as the engineering bridge between the live repo and the target loop.
 

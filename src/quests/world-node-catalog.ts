@@ -23,7 +23,7 @@
         effects: [
           nodeOutcomeEffect("shrine", "rogue_vigil_shrine", "blessing_of_beacons", "Blessing of Beacons", ["rogue_vigil_beacons"]),
           { kind: "hero_max_energy", value: 1 },
-          { kind: "gold_bonus", value: 6 },
+          { kind: "gold_bonus", value: 10 },
         ],
       },
     ],
@@ -82,7 +82,7 @@
           nodeOutcomeEffect("shrine", "ancients_way_shrine", "blessing_of_watchfires", "Blessing of Watchfires", [
             "ancients_way_watchfires",
           ]),
-          { kind: "hero_potion_heal", value: 1 },
+          { kind: "attribute_point", value: 1 },
           { kind: "mercenary_attack", value: 1 },
         ],
       },

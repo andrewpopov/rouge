@@ -62,6 +62,37 @@
     return { ok: true, message: `${getEntryLabel(entry, content)} equipped.` };
   }
 
+  function equipInventoryEntryFresh(run: RunState, entryId: string, content: GameContent, targetLoadoutSlot?: LoadoutSlotKey) {
+    const entry = findCarriedEntry(run, entryId);
+    if (!entry || entry.kind !== "equipment") {
+      return { ok: false, message: "That equipment entry is not available." };
+    }
+
+    const nextEquipment = cloneEquipmentState(entry.equipment);
+    const loadoutKey = targetLoadoutSlot || resolveLoadoutKey(nextEquipment.slot, run);
+    const currentEquipment = run.loadout[loadoutKey];
+    nextEquipment.socketsUnlocked = 0;
+    nextEquipment.insertedRunes = [];
+    nextEquipment.runewordId = "";
+
+    removeCarriedEntry(run, entryId);
+    if (currentEquipment) {
+      ensureEquipmentEntryId(run, currentEquipment);
+      const unequippedEquipment = buildBareEquipment(currentEquipment, content);
+      if (unequippedEquipment) {
+        run.inventory.carried.push({
+          entryId: unequippedEquipment.entryId,
+          kind: "equipment",
+          equipment: unequippedEquipment,
+        });
+      }
+    }
+
+    run.loadout[loadoutKey] = nextEquipment;
+    syncRunewordTracking(run, content);
+    return { ok: true, message: `${getEntryLabel(entry, content)} equipped as a fresh base.` };
+  }
+
   function unequipSlot(run: RunState, slot: LoadoutSlotKey, content: GameContent) {
     const equipment = run.loadout?.[slot] || null;
     if (!equipment) {
@@ -207,7 +238,9 @@
         if (!entry) {
           return { ok: false, message: "Reward item could not be created." };
         }
-        const equipResult = equipInventoryEntry(run, entry.entryId, content);
+        const equipResult = effect.freshBase
+          ? equipInventoryEntryFresh(run, entry.entryId, content)
+          : equipInventoryEntry(run, entry.entryId, content);
         if (!equipResult.ok) {
           return equipResult;
         }

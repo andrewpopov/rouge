@@ -1,0 +1,8 @@
+{
+  "startedAt": "2026-03-29T01:25:21.079Z",
+  "pid": 50863,
+  "cwd": "/Users/andrew/proj/rouge",
+  "suite": "nightly_full_matrix",
+  "output": "/Users/andrew/proj/rouge/artifacts/balance/orchestrator-20260329012521.json",
+  "log": "/Users/andrew/proj/rouge/artifacts/balance/orchestrator-20260329012521.log"
+}

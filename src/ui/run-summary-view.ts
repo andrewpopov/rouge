@@ -22,10 +22,12 @@
     title: string,
     eyebrow: string,
     stats: Array<{ label: string; value: string | number }>,
-    escapeHtml: (value: unknown) => string
+    escapeHtml: (value: unknown) => string,
+    options: { className?: string } = {}
   ): string {
+    const cardClass = options.className ? ` run-summary-card--${options.className}` : "";
     return `
-      <article class="run-summary-card">
+      <article class="run-summary-card${cardClass}">
         <div class="run-summary-card__head">
           <span class="run-summary-label">${escapeHtml(eyebrow)}</span>
           <strong class="run-summary-card__title">${escapeHtml(title)}</strong>
@@ -60,11 +62,12 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
+    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const run = appState.run;
     const victory = appState.phase === services.appEngine.PHASES.RUN_COMPLETE;
     const profileSummary = services.appEngine.getProfileSummary(appState);
     const notice = common.renderNotice(appState, services.renderUtils);
-    const title = victory ? `${run.className} Conquers The World` : `${run.className} Has Fallen`;
+    const title = victory ? `${run.className} Victorious` : `${run.className} Has Fallen`;
     const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
     const backdropSrc = getBackdrop(run);
     const actsCleared = Math.max(Number(run.summary?.actsCleared) || 0, 0);
@@ -82,8 +85,9 @@
         <div class="run-summary-shell">
           <header class="run-summary-header">
             <div class="run-summary-header__copy">
-              <p class="run-summary-header__eyebrow">${escapeHtml(victory ? "Victory" : "Defeat")}</p>
+              <p class="run-summary-header__eyebrow">Expedition Summary</p>
               <h1 class="run-summary-header__title">${escapeHtml(title)}</h1>
+              <p class="run-summary-header__act">${escapeHtml(`${victory ? "Victory" : "Defeat"} · ${run.actTitle}`)}</p>
               <p class="run-summary-header__lede">${escapeHtml(getOutcomeCopy(run, victory))}</p>
             </div>
 
@@ -120,43 +124,65 @@
                 <strong class="run-summary-figure__headline">${escapeHtml(victory ? "The expedition returns in glory." : "The expedition is sealed in ash.")}</strong>
                 <p class="run-summary-figure__text">${escapeHtml(getFigureCopy(run, victory))}</p>
               </div>
+
+              <div class="run-summary-figure__trail">
+                ${renderStat("Zones", zonesCleared, escapeHtml)}
+                ${renderStat("Bosses", bossesDefeated, escapeHtml)}
+                ${renderStat("Gold", `${run.gold}g`, escapeHtml)}
+                ${renderStat("Runewords", run.summary.runewordsForged, escapeHtml)}
+              </div>
             </aside>
 
             <div class="run-summary-report">
               <div class="run-summary-report__head">
                 <div>
-                  <span class="run-summary-label">Expedition Summary</span>
-                  <h2 class="run-summary-report__title">${escapeHtml(victory ? "Outcome" : "Outcome")}</h2>
+                  <span class="run-summary-label">Hall Record</span>
+                  <h2 class="run-summary-report__title">What Returns From The Road</h2>
                 </div>
-                <strong class="run-summary-report__tag">${escapeHtml(run.actTitle)}</strong>
+                <strong class="run-summary-report__tag">${escapeHtml(victory ? "Chronicle Sealed" : "Ash Recorded")}</strong>
               </div>
 
               <div class="run-summary-card-grid">
-                ${renderSummaryCard("Outcome", "Expedition Summary", [
-                  { label: "Result", value: victory ? "Victory" : "Defeat" },
+                ${renderSummaryCard("Trail Record", "Final Count", [
+                  { label: "Outcome", value: victory ? "Victory" : "Defeat" },
                   { label: "Acts", value: actsCleared },
+                  { label: "Bosses", value: bossesDefeated },
                   { label: "Zones", value: zonesCleared },
                   { label: "Encounters", value: encountersCleared },
-                ], escapeHtml)}
-                ${renderSummaryCard("Hero", "Bloodline", [
+                  { label: "Final Gold", value: `${run.gold}g` },
+                ], escapeHtml, { className: "wide" })}
+                ${renderSummaryCard("Bloodline", "Hero Record", [
                   { label: "Class", value: run.className },
                   { label: "Level", value: run.level },
                   { label: "XP Gained", value: run.summary.xpGained },
                   { label: "Deck Size", value: run.deck.length },
                 ], escapeHtml)}
-                ${renderSummaryCard("Loot", "Spoils", [
-                  { label: "Gold", value: run.summary.goldGained },
-                  { label: "Runewords", value: run.summary.runewordsForged },
-                  { label: "Unique Finds", value: uniqueItemsFound },
-                  { label: "Final Gold", value: run.gold },
-                ], escapeHtml)}
-                ${renderSummaryCard("Training", "Growth", [
+                ${renderSummaryCard("Growth", "Lasting Gain", [
                   { label: "Skill Pts", value: run.summary.skillPointsEarned },
                   { label: "Class Pts", value: run.summary.classPointsEarned },
                   { label: "Attr Pts", value: run.summary.attributePointsEarned },
                   { label: "Training Ranks", value: run.summary.trainingRanksGained },
                 ], escapeHtml)}
+                ${renderSummaryCard("Recovered Cache", "Spoils", [
+                  { label: "Gold", value: run.summary.goldGained },
+                  { label: "Runewords", value: run.summary.runewordsForged },
+                  { label: "Unique Finds", value: uniqueItemsFound },
+                  { label: "Encounters", value: encountersCleared },
+                ], escapeHtml, { className: "muted" })}
               </div>
+
+              ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+                copy:
+                  "The archive review now keeps the same account-meta board live, so the run-end read connects directly back to hall, town, rewards, and route planning.",
+              })}
+              ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+                copy:
+                  "Run-end review now carries the same charter and convergence drilldowns, so the account-side lesson is visible before you reopen the hall.",
+                charterFollowThrough:
+                  "If charter pressure still leads at run end, settle the hall or vault before launching the next expedition.",
+                convergenceFollowThrough:
+                  "If convergence pressure now leads, revisit the account focus before locking the next run path.",
+              })}
 
               <div class="run-summary-report__footer">
                 <details class="run-summary-intel">

@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs");
 const path = require("node:path");
 
-const ROOT = path.resolve(__dirname, "..");
-const HELPER_PATH = path.join(ROOT, "generated", "tests", "helpers", "run-progression-simulator.js");
+const { buildSeedOffsets, runOrchestratorSpec } = require("./orchestrator-wrapper-utils");
 
 function parseArgs(argv) {
   const parsed = {
@@ -14,6 +12,10 @@ function parseArgs(argv) {
     probeRuns: 0,
     maxCombatTurns: 36,
     seedCount: 8,
+    output: "",
+    resume: false,
+    stopAfter: 0,
+    concurrency: 1,
     json: false,
   };
 
@@ -50,6 +52,25 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === "--output" && next) {
+      parsed.output = path.resolve(next);
+      index += 1;
+      continue;
+    }
+    if (arg === "--stop-after" && next) {
+      parsed.stopAfter = Math.max(0, Number.parseInt(next, 10) || 0);
+      index += 1;
+      continue;
+    }
+    if (arg === "--resume") {
+      parsed.resume = true;
+      continue;
+    }
+    if (arg === "--concurrency" && next) {
+      parsed.concurrency = Math.max(1, Number.parseInt(next, 10) || 1);
+      index += 1;
+      continue;
+    }
     if (arg === "--json") {
       parsed.json = true;
     }
@@ -58,48 +79,45 @@ function parseArgs(argv) {
   return parsed;
 }
 
-function summarizeSeedRuns(reportBySeed) {
+function summarizeRuns(runs) {
   const summary = [];
 
-  for (const seedRun of reportBySeed) {
-    for (const classReport of seedRun.report.classReports) {
-      for (const policyReport of classReport.policyReports) {
-        let entry = summary.find((candidate) => candidate.classId === classReport.classId && candidate.policyId === policyReport.policyId);
-        if (!entry) {
-          entry = {
-            classId: classReport.classId,
-            className: classReport.className,
-            policyId: policyReport.policyId,
-            policyLabel: policyReport.policyLabel,
-            runs: 0,
-            wins: 0,
-            failures: 0,
-            reachedAct5: 0,
-            averageFinalAct: 0,
-            averageFinalLevel: 0,
-            outcomes: [],
-          };
-          summary.push(entry);
-        }
-
-        entry.runs += 1;
-        entry.wins += policyReport.outcome === "run_complete" ? 1 : 0;
-        entry.failures += policyReport.outcome === "run_failed" ? 1 : 0;
-        entry.reachedAct5 += policyReport.finalActNumber >= 5 ? 1 : 0;
-        entry.averageFinalAct += policyReport.finalActNumber;
-        entry.averageFinalLevel += policyReport.finalLevel;
-        entry.outcomes.push({
-          seedOffset: seedRun.seedOffset,
-          outcome: policyReport.outcome,
-          finalActNumber: policyReport.finalActNumber,
-          finalLevel: policyReport.finalLevel,
-          failure: policyReport.failure,
-        });
-      }
+  for (const run of runs) {
+    let entry = summary.find((candidate) => candidate.classId === run.classId && candidate.policyId === run.policyId);
+    if (!entry) {
+      entry = {
+        classId: run.classId,
+        className: run.className,
+        policyId: run.policyId,
+        policyLabel: run.policyLabel,
+        runs: 0,
+        wins: 0,
+        failures: 0,
+        reachedAct5: 0,
+        averageFinalAct: 0,
+        averageFinalLevel: 0,
+        outcomes: [],
+      };
+      summary.push(entry);
     }
+
+    entry.runs += 1;
+    entry.wins += run.outcome === "run_complete" ? 1 : 0;
+    entry.failures += run.outcome === "run_failed" ? 1 : 0;
+    entry.reachedAct5 += run.finalActNumber >= 5 ? 1 : 0;
+    entry.averageFinalAct += Number(run.finalActNumber || 0);
+    entry.averageFinalLevel += Number(run.finalLevel || 0);
+    entry.outcomes.push({
+      seedOffset: run.seedOffset,
+      outcome: run.outcome,
+      finalActNumber: run.finalActNumber,
+      finalLevel: run.finalLevel,
+      failure: run.failure,
+    });
   }
 
   summary.forEach((entry) => {
+    entry.outcomes.sort((left, right) => left.seedOffset - right.seedOffset);
     entry.winRate = Number((entry.wins / Math.max(1, entry.runs)).toFixed(3));
     entry.failureRate = Number((entry.failures / Math.max(1, entry.runs)).toFixed(3));
     entry.averageFinalAct = Number((entry.averageFinalAct / Math.max(1, entry.runs)).toFixed(2));
@@ -124,56 +142,47 @@ function printHumanReport(summary, seedCount, throughActNumber) {
   }
 }
 
-function printSeedProgress(seedOffset, seedCount, report) {
-  const classLines = [];
-  for (const classReport of report.classReports) {
-    for (const policyReport of classReport.policyReports) {
-      const failureLabel = policyReport.failure
-        ? ` fail ${policyReport.failure.zoneTitle} / ${policyReport.failure.encounterName}`
-        : "";
-      classLines.push(
-        `${classReport.className} / ${policyReport.policyLabel}: ${policyReport.outcome}, act ${policyReport.finalActNumber}, level ${policyReport.finalLevel}${failureLabel}`
-      );
-    }
-  }
-
-  console.log(`seed ${seedOffset + 1}/${seedCount}`);
-  classLines.forEach((line) => console.log(`  ${line}`));
-}
-
 function main() {
-  if (!fs.existsSync(HELPER_PATH)) {
-    console.error("Missing compiled progression simulator helper. Run `npm run build` or `npm run sim:progression-sweep`.");
-    process.exit(1);
-  }
-
-  const { runProgressionSimulationReport } = require(HELPER_PATH);
   const options = parseArgs(process.argv.slice(2));
-  const reportBySeed = Array.from({ length: options.seedCount }, (_, seedOffset) => {
-    const report = runProgressionSimulationReport({
-      classIds: options.classIds,
-      policyIds: options.policyIds,
-      throughActNumber: options.throughActNumber,
-      probeRuns: options.probeRuns,
-      maxCombatTurns: options.maxCombatTurns,
-      seedOffset,
-    });
-    if (!options.json) {
-      printSeedProgress(seedOffset, options.seedCount, report);
-    }
-    return {
-      seedOffset,
-      report,
-    };
+  const spec = {
+    experimentId: "progression_rng_sweep",
+    title: "Progression RNG Sweep",
+    scenarioType: options.probeRuns > 0 ? "checkpoint_probe" : "campaign",
+    classIds: options.classIds,
+    policyIds: options.policyIds,
+    seedOffsets: buildSeedOffsets(options.seedCount),
+    throughActNumber: options.throughActNumber,
+    probeRuns: options.probeRuns,
+    maxCombatTurns: options.maxCombatTurns,
+    concurrency: options.concurrency,
+    traceFailures: true,
+    traceOutliers: false,
+    slowRunThresholdMs: 60000,
+    expectedBands: [],
+    tags: ["wrapper", "rng-sweep"],
+  };
+
+  const result = runOrchestratorSpec(spec, {
+    mode: options.resume ? "resume" : "run",
+    output: options.output,
+    stopAfter: options.stopAfter,
   });
-  const summary = summarizeSeedRuns(reportBySeed);
+  const summary = summarizeRuns(result.artifact.runs);
+  const payload = {
+    generatedAt: result.artifact.generatedAt,
+    artifactPath: options.output || "",
+    seedCount: options.seedCount,
+    throughActNumber: options.throughActNumber,
+    summary,
+  };
 
   if (options.json) {
-    console.log(JSON.stringify({ seedCount: options.seedCount, throughActNumber: options.throughActNumber, summary }, null, 2));
-    return;
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    printHumanReport(summary, options.seedCount, options.throughActNumber);
   }
 
-  printHumanReport(summary, options.seedCount, options.throughActNumber);
+  result.cleanup();
 }
 
 main();

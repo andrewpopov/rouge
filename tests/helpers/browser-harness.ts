@@ -111,11 +111,13 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/front-door-hall-view-archive.js",
   "src/ui/front-door-hall-view.js",
   "src/ui/front-door-view.js",
+  "src/ui/character-select-guide-data.js",
   "src/ui/character-select-view.js",
   "src/ui/safe-zone-operations-view-markup.js",
   "src/ui/safe-zone-operations-view.js",
   "src/ui/inventory-view.js",
   "src/ui/safe-zone-view.js",
+  "src/ui/act-guide-view.js",
   "src/ui/world-map-view.js",
   "src/ui/approach-bonus.js",
   "src/ui/combat-view-exploration.js",
@@ -163,7 +165,12 @@ const WORLD_NODE_RUNTIME_FILES = [
   "src/quests/world-node-engine.js",
 ];
 
-const ASSET_MAP_FILES = ["src/content/combat-backgrounds.js", "src/content/asset-map-data.js", "src/content/asset-map.js"];
+const ASSET_MAP_FILES = [
+  "src/content/combat-backgrounds.js",
+  "src/content/rouge-art-manifest.js",
+  "src/content/asset-map-data.js",
+  "src/content/asset-map.js",
+];
 
 const CONTENT_HELPER_RUNTIME_FILES = [
   ...SHARED_RUNTIME_FILES,
@@ -253,20 +260,19 @@ class FakeElement {
   }
 
   get classList() {
-    const self = this;
     return {
-      add(cls: string) { self._classList.add(cls); },
-      remove(cls: string) { self._classList.delete(cls); },
-      toggle(cls: string, force?: boolean) {
+      add: (cls: string) => { this._classList.add(cls); },
+      remove: (cls: string) => { this._classList.delete(cls); },
+      toggle: (cls: string, force?: boolean) => {
         if (force === undefined) {
-          if (self._classList.has(cls)) { self._classList.delete(cls); } else { self._classList.add(cls); }
+          if (this._classList.has(cls)) { this._classList.delete(cls); } else { this._classList.add(cls); }
         } else if (force) {
-          self._classList.add(cls);
+          this._classList.add(cls);
         } else {
-          self._classList.delete(cls);
+          this._classList.delete(cls);
         }
       },
-      contains(cls: string) { return self._classList.has(cls); },
+      contains: (cls: string) => this._classList.has(cls),
     };
   }
 

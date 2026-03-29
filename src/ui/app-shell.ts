@@ -39,23 +39,92 @@
     "act_transition", "run_complete", "run_failed",
   ]);
 
-  function buildGameMenu(appState: AppState): string {
+  function getRunPhaseCommandLabel(phase: string): string {
+    switch (phase) {
+      case "safe_zone":
+        return "Town Preparations";
+      case "world_map":
+        return "Route Board";
+      case "encounter":
+        return "Battlefield";
+      case "reward":
+        return "Spoils Claim";
+      case "act_transition":
+        return "Act Handoff";
+      case "run_complete":
+        return "Victory Record";
+      case "run_failed":
+        return "Fallen Record";
+      default:
+        return "Expedition";
+    }
+  }
+
+  function buildGameMenu(appState: AppState, renderUtils: RenderUtilsApi): string {
     const debug = appState.profile?.meta?.settings?.debugMode;
     const debugEnabled = debug?.enabled ?? false;
+    const run = appState.run;
+    const escapeHtml = renderUtils.escapeHtml;
+    const currentAct = run?.acts?.[run.currentActIndex] || null;
+    const phaseLabel = getRunPhaseCommandLabel(appState.phase);
+    const returnDisabled = appState.phase === "safe_zone";
 
     return `<div class="game-menu">
-      <button class="game-menu__toggle" data-action="toggle-game-menu">\u2630</button>
+      <button class="game-menu__toggle" data-action="toggle-game-menu" aria-controls="game-menu-panel" aria-expanded="false" aria-label="Open camp command">
+        <span class="game-menu__toggle-glyph">\u2630</span>
+      </button>
       <div class="game-menu__panel" id="game-menu-panel">
+        <div class="game-menu__header">
+          <p class="game-menu__eyebrow">Camp Command</p>
+          <h2 class="game-menu__title">${escapeHtml(run?.className || "Blood Rogue")}</h2>
+          <p class="game-menu__copy">${escapeHtml(phaseLabel)}${run ? ` · ${run.actTitle}` : ""}</p>
+        </div>
+        ${run ? `
+          <div class="game-menu__stats">
+            <div class="game-menu__stat">
+              <span>Town</span>
+              <strong>${escapeHtml(run.safeZoneName)}</strong>
+            </div>
+            <div class="game-menu__stat">
+              <span>Boss</span>
+              <strong>${escapeHtml(currentAct?.boss?.name || run.bossName || "Unknown")}</strong>
+            </div>
+          </div>
+        ` : ""}
         <div class="game-menu__section">
-          <button class="game-menu__item" data-action="open-inventory">\u{1F392} Inventory</button>
-          <button class="game-menu__item" data-action="return-safe-zone">\u2190 Return to Town</button>
-          <button class="game-menu__item game-menu__item--danger" data-action="prompt-abandon-saved-run">\u2717 Abandon Run</button>
+          <button class="game-menu__item game-menu__item--primary" data-action="open-inventory">
+            <span class="game-menu__item-icon">\u{1F392}</span>
+            <span class="game-menu__item-copy">
+              <span class="game-menu__item-label">Open Inventory</span>
+              <span class="game-menu__item-detail">Review carried gear, sockets, and runes.</span>
+            </span>
+          </button>
+          <button class="game-menu__item" data-action="return-safe-zone" ${returnDisabled ? "disabled" : ""}>
+            <span class="game-menu__item-icon">\u2190</span>
+            <span class="game-menu__item-copy">
+              <span class="game-menu__item-label">Return To Town</span>
+              <span class="game-menu__item-detail">${escapeHtml(returnDisabled ? "You are already in camp." : `Step back to ${run?.safeZoneName || "town"} before pushing farther.`)}</span>
+            </span>
+          </button>
+          <button class="game-menu__item game-menu__item--danger" data-action="prompt-abandon-saved-run">
+            <span class="game-menu__item-icon">\u2717</span>
+            <span class="game-menu__item-copy">
+              <span class="game-menu__item-label">Abandon Run</span>
+              <span class="game-menu__item-detail">Archive this expedition and reopen the hall.</span>
+            </span>
+          </button>
         </div>
         <div class="game-menu__section">
           <button class="game-menu__item ${debugEnabled ? "game-menu__item--active" : ""}"
             data-action="toggle-profile-setting"
             data-setting-key="debugMode.enabled"
-            data-setting-value="${String(!debugEnabled)}">\u{1F41E} Debug ${debugEnabled ? "ON" : "OFF"}</button>
+            data-setting-value="${String(!debugEnabled)}">
+            <span class="game-menu__item-icon">\u{1F41E}</span>
+            <span class="game-menu__item-copy">
+              <span class="game-menu__item-label">Debug ${debugEnabled ? "On" : "Off"}</span>
+              <span class="game-menu__item-detail">Developer-only pressure controls for route testing.</span>
+            </span>
+          </button>
         </div>
       </div>
     </div>`;
@@ -93,6 +162,9 @@
         break;
       case services.appEngine.PHASES.WORLD_MAP:
         runtimeWindow.ROUGE_WORLD_MAP_VIEW.render(root, appState, services);
+        if (runtimeWindow.ROUGE_ACT_GUIDE_VIEW?.hasOverlay?.(appState.run, appState.phase)) {
+          root.innerHTML += runtimeWindow.ROUGE_ACT_GUIDE_VIEW.buildOverlayMarkup(appState, services);
+        }
         break;
       case services.appEngine.PHASES.ENCOUNTER:
         runtimeWindow.ROUGE_COMBAT_VIEW.render(root, appState, services);
@@ -102,6 +174,9 @@
         break;
       case services.appEngine.PHASES.ACT_TRANSITION:
         runtimeWindow.ROUGE_ACT_TRANSITION_VIEW.render(root, appState, services);
+        if (runtimeWindow.ROUGE_ACT_GUIDE_VIEW?.hasOverlay?.(appState.run, appState.phase)) {
+          root.innerHTML += runtimeWindow.ROUGE_ACT_GUIDE_VIEW.buildOverlayMarkup(appState, services);
+        }
         break;
       case services.appEngine.PHASES.RUN_COMPLETE:
       case services.appEngine.PHASES.RUN_FAILED:
@@ -117,7 +192,7 @@
     }
 
     if (RUN_PHASES.has(appState.phase)) {
-      root.innerHTML = buildGameMenu(appState) + root.innerHTML;
+      root.innerHTML = buildGameMenu(appState, services.renderUtils) + root.innerHTML;
     }
 
     if (appState.ui.inventoryOpen && appState.run && RUN_PHASES.has(appState.phase)) {

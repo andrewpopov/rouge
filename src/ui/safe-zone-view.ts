@@ -418,18 +418,18 @@
   function buildServiceActionCard(action: TownAction, themeKey: string, escapeHtml: (s: string) => string): string {
     const tone = getServiceCardTone(action, themeKey);
     const previewLines = (action.previewLines || []).slice(0, 3);
-    const badgeLabel =
-      action.cost > 0
-        ? `${action.cost}g`
-        : action.actionLabel === "—"
-          ? "Closed"
-          : action.actionLabel;
-    const footerLabel =
-      action.cost > 0
-        ? `${action.actionLabel} • ${action.cost}g`
-        : action.actionLabel === "—"
-          ? "Unavailable"
-          : action.actionLabel;
+    let badgeLabel = action.actionLabel;
+    if (action.cost > 0) {
+      badgeLabel = `${action.cost}g`;
+    } else if (action.actionLabel === "—") {
+      badgeLabel = "Closed";
+    }
+    let footerLabel = action.actionLabel;
+    if (action.cost > 0) {
+      footerLabel = `${action.actionLabel} • ${action.cost}g`;
+    } else if (action.actionLabel === "—") {
+      footerLabel = "Unavailable";
+    }
 
     return `
       <button class="merchant-service-card merchant-service-card--tone-${escapeHtml(tone)} ${action.disabled ? "merchant-service-card--disabled" : ""}"
@@ -946,7 +946,7 @@
 
     const mapSrc = `./assets/curated/town-maps/act${run.actNumber > 5 ? 1 : run.actNumber}.webp`;
     const nextZoneLabel = routeSnapshot.nextZone?.title || "World Map";
-    const townIntro = `${run.safeZoneName} still holds beneath the blood sky. Take stock of your allies, mend your kit, and decide how the road will open toward ${nextZoneLabel}.`;
+    const townIntro = `${run.safeZoneName} still holds beneath the blood sky. Settle your affairs, choose a guide, and decide how the road will open toward ${nextZoneLabel}.`;
     const statusBar = `
       <div class="town-status">
         <div class="town-status__card">
@@ -983,11 +983,16 @@
           ${statusBar}
         </div>
         <div class="town-map-shell">
-          <div class="town-map-container">
+          <div class="town-map-container" style="--town-map-image:url('${mapSrc}')">
             <img class="town-map-bg" src="${mapSrc}"
                  alt="${escapeHtml(run.safeZoneName)}" draggable="false"
                  onerror="this.style.display='none'" />
             <div class="town-npc-layer">
+              <div class="town-map-plaque">
+                <span class="town-map-plaque__label">Camp Stage</span>
+                <strong class="town-map-plaque__title">Choose a guide or open the gate.</strong>
+                <span class="town-map-plaque__trail">Trail to ${escapeHtml(nextZoneLabel)}</span>
+              </div>
               ${npcIcons}
               <button class="town-inv-btn" data-action="open-inventory" title="Open Inventory">
                 \u{1F392} Inventory
@@ -1000,7 +1005,6 @@
               </button>
             </div>
           </div>
-          <p class="town-map-note">Choose a guide in camp or step through the gate when the trail is set.</p>
         </div>
       </div>
       ${npcOverlay}
