@@ -125,6 +125,24 @@
     return true;
   }
 
+  function isRunewordCompatibleWithItemFamily(
+    item: RuntimeItemDefinition | null,
+    runeword: RuntimeRunewordDefinition | null,
+    content: GameContent
+  ) {
+    if (!item || !runeword || item.slot !== runeword.slot) {
+      return false;
+    }
+    if (Array.isArray(runeword.familyAllowList) && runeword.familyAllowList.length > 0 && !runeword.familyAllowList.includes(item.family)) {
+      return false;
+    }
+    return (Object.values(content.itemCatalog || {}) as RuntimeItemDefinition[]).some((candidate) => {
+      return candidate.slot === item.slot &&
+        candidate.family === item.family &&
+        toNumber(candidate.maxSockets, 0) >= toNumber(runeword.socketCount, 0);
+    });
+  }
+
   function isRunewordCompatibleWithEquipment(
     equipment: RunEquipmentState | null | undefined,
     runeword: RuntimeRunewordDefinition | null | undefined,
@@ -266,7 +284,7 @@
       8
     );
     const matchingRunewords = (Object.values(content.runewordCatalog || {}) as RuntimeRunewordDefinition[]).filter((runeword) => {
-      return isRunewordCompatibleWithItem(item, runeword);
+      return isRunewordCompatibleWithItemFamily(item, runeword, content);
     });
 
     const preferredRuneword = getRunewordDefinition(content, preferredRunewordId);
@@ -371,6 +389,7 @@
     getRuneDefinition,
     getRunewordDefinition,
     isRunewordCompatibleWithItem,
+    isRunewordCompatibleWithItemFamily,
     isRunewordCompatibleWithEquipment,
     isRuneAllowedInSlot,
     resolveRunewordId,

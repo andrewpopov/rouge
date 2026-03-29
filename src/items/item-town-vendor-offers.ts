@@ -8,6 +8,7 @@
     getAccountEconomyFeatures,
     getPlannedRuneword,
     getPlannedRunewordArchiveState,
+    getTargetRunewordForEquipment,
     hasOpenPlanningCharter,
   } = runtimeWindow.__ROUGE_ITEM_TOWN_PRICING;
   type PlanningSlot = "weapon" | "armor";
@@ -135,7 +136,12 @@
               return toNumber(right.maxSockets, 0) - toNumber(left.maxSockets, 0);
             })[0] || null
         : null;
-    const plannedRuneword = getPlannedRuneword(profile, slot, content);
+    const accountPlannedRuneword = getPlannedRuneword(profile, slot, content);
+    const plannedRuneword = accountPlannedRuneword || getTargetRunewordForEquipment(currentEquipment, run, content, profile);
+    const preferredPlanningFamily =
+      !accountPlannedRuneword && slot === "weapon"
+        ? runtimeWindow.ROUGE_ITEM_CATALOG.getItemDefinition(content, currentEquipment?.itemId || "")?.family || ""
+        : "";
     const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
     const chronicleOffer =
       features.chronicleExchange && (run.actNumber >= 4 || planningArchiveState.unfulfilled || hasOpenPlanningCharter(profile, content))
@@ -144,7 +150,8 @@
               if (!plannedRuneword) {
                 return toNumber(item.maxSockets, 0) >= 3;
               }
-              return isRunewordCompatibleWithItem(item, plannedRuneword);
+              return isRunewordCompatibleWithItem(item, plannedRuneword) &&
+                (!preferredPlanningFamily || item.family === preferredPlanningFamily);
             })
             .sort((left, right) => {
               const rightSocketDelta = toNumber(right.maxSockets, 0);
@@ -160,7 +167,8 @@
         ? [...upgradeOptions, ...options]
             .filter((item) => {
               if (plannedRuneword) {
-                return isRunewordCompatibleWithItem(item, plannedRuneword);
+                return isRunewordCompatibleWithItem(item, plannedRuneword) &&
+                  (!preferredPlanningFamily || item.family === preferredPlanningFamily);
               }
               return toNumber(item.maxSockets, 0) >= 4;
             })
@@ -180,7 +188,10 @@
     const planningOffer =
       plannedRuneword
         ? [...upgradeOptions, ...options]
-            .filter((item) => isRunewordCompatibleWithItem(item, plannedRuneword))
+            .filter((item) => {
+              return isRunewordCompatibleWithItem(item, plannedRuneword) &&
+                (!preferredPlanningFamily || item.family === preferredPlanningFamily);
+            })
             .sort((left, right) => {
               if (planningArchiveState.unfulfilled) {
                 const rightSocketsReady = Number(toNumber(right.maxSockets, 0) >= toNumber(plannedRuneword.socketCount, 0));
@@ -217,7 +228,9 @@
         ? [...upgradeOptions, ...options]
             .filter((item) => {
               if (plannedRuneword) {
-                return isRunewordCompatibleWithItem(item, plannedRuneword) && toNumber(item.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword.socketCount, 0));
+                return isRunewordCompatibleWithItem(item, plannedRuneword) &&
+                  (!preferredPlanningFamily || item.family === preferredPlanningFamily) &&
+                  toNumber(item.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword.socketCount, 0));
               }
               return toNumber(item.maxSockets, 0) >= 4;
             })
@@ -234,7 +247,8 @@
         ? [...upgradeOptions, ...options]
             .filter((item) => {
               if (plannedRuneword) {
-                return isRunewordCompatibleWithItem(item, plannedRuneword);
+                return isRunewordCompatibleWithItem(item, plannedRuneword) &&
+                  (!preferredPlanningFamily || item.family === preferredPlanningFamily);
               }
               return toNumber(item.maxSockets, 0) >= 4;
             })
@@ -256,7 +270,9 @@
         ? [...upgradeOptions, ...options]
             .filter((item) => {
               if (plannedRuneword) {
-                return isRunewordCompatibleWithItem(item, plannedRuneword) && toNumber(item.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword.socketCount, 0));
+                return isRunewordCompatibleWithItem(item, plannedRuneword) &&
+                  (!preferredPlanningFamily || item.family === preferredPlanningFamily) &&
+                  toNumber(item.maxSockets, 0) >= Math.max(4, toNumber(plannedRuneword.socketCount, 0));
               }
               return toNumber(item.maxSockets, 0) >= 4;
             })

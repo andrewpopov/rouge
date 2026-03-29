@@ -4,6 +4,7 @@
   const { getAccountEconomyFeatures, getPlannedRunewordArchiveState } = itemTown;
   const {
     buildHydratedLoadout,
+    getItemDefinition,
     getPreferredRunewordForEquipment,
     isRunewordCompatibleWithItem,
     toNumber,
@@ -202,25 +203,45 @@
     profile: ProfileState | null,
     content: GameContent
   ) {
+    const loadout = buildHydratedLoadout(run, content);
     const planningPriority: Array<"weapon" | "armor"> = ["weapon", "armor"];
     for (const slot of planningPriority) {
-      const plannedRuneword = getPlannedRuneword(slot, profile, content);
+      const currentEquipment = loadout[slot];
+      const accountPlannedRuneword = getPlannedRuneword(slot, profile, content);
+      const liveTargetRuneword = currentEquipment ? getPreferredRunewordForEquipment(currentEquipment, run, content) : null;
+      const plannedRuneword = accountPlannedRuneword || liveTargetRuneword;
+      const preferredPlanningFamily =
+        !accountPlannedRuneword && slot === "weapon"
+          ? getItemDefinition(content, currentEquipment?.itemId || "")?.family || ""
+          : "";
       const planningArchiveState = getPlannedRunewordArchiveState(profile, slot, content);
       const planningCharter = getPlanningCharterSummary(profile, slot, content);
+      const hasLiveTargetProject = Boolean(
+        currentEquipment &&
+        liveTargetRuneword &&
+        (
+          currentEquipment.runewordId !== liveTargetRuneword.id ||
+          toNumber(currentEquipment.socketsUnlocked, 0) < toNumber(liveTargetRuneword.socketCount, 0) ||
+          (currentEquipment.insertedRunes?.length || 0) < liveTargetRuneword.requiredRunes.length
+        )
+      );
       const shouldFocus =
         Boolean(plannedRuneword) &&
         (
           planningArchiveState.unfulfilled ||
           toNumber(planningCharter?.completedRunCount, 0) > 0 ||
           Boolean(planningCharter?.hasReadyBase) ||
-          toNumber(planningCharter?.preparedBaseCount, 0) > 0
+          toNumber(planningCharter?.preparedBaseCount, 0) > 0 ||
+          hasLiveTargetProject
         );
       if (!plannedRuneword || !shouldFocus) {
         continue;
       }
       const slotIsEmpty = !run.loadout?.[slot];
       const matches = equipmentTable.filter((entry) => {
-        return entry.item.slot === slot && isRunewordCompatibleWithItem(entry.item, plannedRuneword);
+        return entry.item.slot === slot &&
+          isRunewordCompatibleWithItem(entry.item, plannedRuneword) &&
+          (!preferredPlanningFamily || entry.item.family === preferredPlanningFamily);
       });
       if (matches.length > 0 && slotIsEmpty) {
         return matches;

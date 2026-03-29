@@ -367,6 +367,70 @@ test("isRunewordCompatibleWithItem checks slot, sockets, and family allow list",
   assert.equal(catalog.isRunewordCompatibleWithItem(sword, null), false);
 });
 
+test("preferred runeword planning can target future family bases beyond the current socket cap", () => {
+  const { content, catalog } = createRunFixture();
+
+  const shortSword = catalog.normalizeEquipmentState(
+    {
+      itemId: "item_short_sword",
+      socketsUnlocked: 2,
+      insertedRunes: ["rune_tir", "rune_el"],
+      runewordId: "steel",
+      rarity: catalog.RARITY.RARE,
+      rarityKind: "rare",
+    },
+    "weapon",
+    content
+  );
+  assert.ok(shortSword);
+
+  const actTwoRun = { actNumber: 2 } as RunState;
+  const actThreeRun = { actNumber: 3 } as RunState;
+  const actFourRun = { actNumber: 4 } as RunState;
+  const actFiveRun = { actNumber: 5 } as RunState;
+
+  assert.equal(catalog.getPreferredRunewordForEquipment(shortSword, actTwoRun, content)?.id, "malice");
+  assert.equal(catalog.getPreferredRunewordForEquipment(shortSword, actThreeRun, content)?.id, "honor");
+  assert.equal(catalog.getPreferredRunewordForEquipment(shortSword, actFourRun, content)?.id, "pattern");
+  assert.equal(catalog.getPreferredRunewordForEquipment(shortSword, actFiveRun, content)?.id, "passion");
+});
+
+test("planning-focused loot uses the live run target when no account runeword charter is pinned", () => {
+  const { browserWindow, content, run, catalog } = createRunFixture();
+  const loot = browserWindow.__ROUGE_ITEM_SYSTEM_LOOT;
+  const pricing = browserWindow.__ROUGE_ITEM_TOWN_PRICING;
+
+  run.classId = "assassin";
+  run.actNumber = 3;
+  run.level = 20;
+  run.loadout.weapon = catalog.normalizeEquipmentState(
+    {
+      itemId: "item_short_sword",
+      socketsUnlocked: 2,
+      insertedRunes: ["rune_tir", "rune_el"],
+      runewordId: "steel",
+      rarity: catalog.RARITY.RARE,
+      rarityKind: "rare",
+    },
+    "weapon",
+    content
+  );
+  assert.ok(run.loadout.weapon);
+
+  const targetRuneword = pricing.getTargetRunewordForEquipment(run.loadout.weapon, run, content, null);
+  assert.equal(targetRuneword?.id, "honor");
+
+  const equipmentTable = loot.getEquipmentTableEntries(run, null, run.actNumber, content, null);
+  const focusedTable = loot.getPlanningFocusedEquipmentTable(equipmentTable, run, null, content);
+  const focusedWeaponEntries = focusedTable.filter((entry) => entry.item.slot === "weapon");
+
+  assert.ok(focusedTable.length > 0);
+  assert.ok(focusedWeaponEntries.length > 0);
+  assert.ok(focusedWeaponEntries.some((entry) => entry.item.id === "item_long_sword"));
+  assert.ok(focusedWeaponEntries.every((entry) => entry.item.family === "Swords"));
+  assert.ok(focusedWeaponEntries.every((entry) => entry.item.maxSockets >= Number(targetRuneword?.socketCount || 0)));
+});
+
 test("isRuneAllowedInSlot validates rune placement by slot", () => {
   const { content, catalog } = createRunFixture();
 

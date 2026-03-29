@@ -3,7 +3,24 @@
   const { clamp, parseInteger } = runtimeWindow.ROUGE_UTILS;
   const monsterActions = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
   const { TRAIT } = monsterActions;
-  const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
+  const DEFAULT_ATTACK_INTENT_KINDS = new Set<EnemyIntentKind>([
+    "attack",
+    "attack_all",
+    "attack_and_guard",
+    "drain_attack",
+    "sunder_attack",
+    "attack_burn",
+    "attack_burn_all",
+    "attack_lightning",
+    "attack_lightning_all",
+    "attack_poison",
+    "attack_poison_all",
+    "attack_chill",
+    "drain_energy",
+  ]);
+  const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS || {
+    ATTACK_INTENT_KINDS: DEFAULT_ATTACK_INTENT_KINDS,
+  };
   const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
   const { COMBAT_PHASE, COMBAT_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const neutralWeaponScaling = {
@@ -33,6 +50,124 @@
 
   const THORNS_DAMAGE = 2;
   const REGENERATION_AMOUNT = 2;
+  const MAX_ACTIVE_MINIONS = 3;
+  const DEFAULT_TEMPORARY_MINION_DURATION = 3;
+
+  type MinionTemplateDefinition = {
+    id: string;
+    name: string;
+    skillLabel: string;
+    actionKind: CombatMinionActionKind;
+    targetRule: CombatMinionTargetRule;
+    persistent: boolean;
+  };
+
+  const MINION_TEMPLATES: Record<string, MinionTemplateDefinition> = {
+    necromancer_skeleton: {
+      id: "necromancer_skeleton",
+      name: "Skeleton",
+      skillLabel: "Rusty Slash",
+      actionKind: "attack",
+      targetRule: "selected_enemy",
+      persistent: true,
+    },
+    necromancer_clay_golem: {
+      id: "necromancer_clay_golem",
+      name: "Clay Golem",
+      skillLabel: "Mud Guard",
+      actionKind: "attack_guard_party",
+      targetRule: "selected_enemy",
+      persistent: true,
+    },
+    necromancer_skeletal_mage: {
+      id: "necromancer_skeletal_mage",
+      name: "Skeletal Mage",
+      skillLabel: "Toxic Bolt",
+      actionKind: "attack_poison",
+      targetRule: "lowest_life",
+      persistent: true,
+    },
+    necromancer_blood_golem: {
+      id: "necromancer_blood_golem",
+      name: "Blood Golem",
+      skillLabel: "Siphon Maw",
+      actionKind: "attack_heal_hero",
+      targetRule: "selected_enemy",
+      persistent: true,
+    },
+    necromancer_revive: {
+      id: "necromancer_revive",
+      name: "Revived Horror",
+      skillLabel: "Grave Pummel",
+      actionKind: "attack",
+      targetRule: "selected_enemy",
+      persistent: true,
+    },
+    druid_raven: {
+      id: "druid_raven",
+      name: "Raven",
+      skillLabel: "Pecking Mark",
+      actionKind: "attack_mark",
+      targetRule: "lowest_life",
+      persistent: true,
+    },
+    druid_poison_creeper: {
+      id: "druid_poison_creeper",
+      name: "Poison Creeper",
+      skillLabel: "Venom Lash",
+      actionKind: "attack_poison",
+      targetRule: "lowest_life",
+      persistent: true,
+    },
+    druid_oak_sage: {
+      id: "druid_oak_sage",
+      name: "Oak Sage",
+      skillLabel: "Vital Bloom",
+      actionKind: "heal_party",
+      targetRule: "all_enemies",
+      persistent: true,
+    },
+    druid_heart_of_wolverine: {
+      id: "druid_heart_of_wolverine",
+      name: "Heart of Wolverine",
+      skillLabel: "Pack Fury",
+      actionKind: "buff_mercenary_guard_party",
+      targetRule: "all_enemies",
+      persistent: true,
+    },
+    druid_grizzly: {
+      id: "druid_grizzly",
+      name: "Grizzly",
+      skillLabel: "Mauling Swipe",
+      actionKind: "attack_guard_party",
+      targetRule: "selected_enemy",
+      persistent: true,
+    },
+    assassin_wake_of_fire: {
+      id: "assassin_wake_of_fire",
+      name: "Wake of Fire",
+      skillLabel: "Flame Sweep",
+      actionKind: "attack_all_burn",
+      targetRule: "all_enemies",
+      persistent: false,
+    },
+    assassin_lightning_sentry: {
+      id: "assassin_lightning_sentry",
+      name: "Lightning Sentry",
+      skillLabel: "Static Volley",
+      actionKind: "attack_all_paralyze",
+      targetRule: "all_enemies",
+      persistent: false,
+    },
+    assassin_death_sentry: {
+      id: "assassin_death_sentry",
+      name: "Death Sentry",
+      skillLabel: "Death Pulse",
+      actionKind: "attack_all_paralyze",
+      targetRule: "all_enemies",
+      persistent: false,
+    },
+  };
 
   function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
@@ -45,6 +180,279 @@
 
   function getFirstLivingEnemyId(state: CombatState) {
     return getLivingEnemies(state)[0]?.id || "";
+  }
+
+  function getActiveMinions(state: CombatState) {
+    return Array.isArray(state.minions) ? state.minions : [];
+  }
+
+  function getMinionTemplate(templateId: string) {
+    return MINION_TEMPLATES[templateId] || null;
+  }
+
+  function getMinionDuration(effect: CardEffect, template: MinionTemplateDefinition) {
+    if (template.persistent) {
+      return 0;
+    }
+    return Math.max(1, parseInteger(effect.duration, DEFAULT_TEMPORARY_MINION_DURATION));
+  }
+
+  function getMinionPrimaryValue(effect: CardEffect) {
+    return Math.max(0, parseInteger(effect.value, 0));
+  }
+
+  function getMinionSecondaryValue(effect: CardEffect) {
+    return Math.max(0, parseInteger(effect.secondaryValue, 0));
+  }
+
+  function getMinionReinforcementValue(amount: number) {
+    return Math.max(1, Math.ceil(Math.max(1, amount) / 2));
+  }
+
+  function buildMinionActionSummary(actionKind: CombatMinionActionKind, power: number, secondaryValue: number) {
+    if (actionKind === "attack") {
+      return `${power} strike/phase`;
+    }
+    if (actionKind === "attack_mark") {
+      return `${power} strike + Mark ${secondaryValue}`;
+    }
+    if (actionKind === "attack_poison") {
+      return `${power} strike + Poison ${secondaryValue}`;
+    }
+    if (actionKind === "attack_guard_party") {
+      return `${power} strike + Guard ${secondaryValue}`;
+    }
+    if (actionKind === "attack_heal_hero") {
+      return `${power} strike + Heal ${secondaryValue}`;
+    }
+    if (actionKind === "heal_party") {
+      return `Heal party ${power}`;
+    }
+    if (actionKind === "buff_mercenary_guard_party") {
+      return `Merc +${power} + Guard ${secondaryValue}`;
+    }
+    if (actionKind === "attack_all_burn") {
+      return `${power} line + Burn ${secondaryValue}`;
+    }
+    if (actionKind === "attack_all_paralyze") {
+      return `${power} line + Paralyze ${secondaryValue}`;
+    }
+    return `${power} skill`;
+  }
+
+  function getMinionSkillSummary(minion: CombatMinionState) {
+    return buildMinionActionSummary(minion.actionKind, minion.power, minion.secondaryValue);
+  }
+
+  function getSummonPreview(state: CombatState | null, effect: CardEffect) {
+    const template = getMinionTemplate(String(effect.minionId || ""));
+    if (!template) {
+      return "Summon";
+    }
+    const power = getMinionPrimaryValue(effect);
+    const secondaryValue = getMinionSecondaryValue(effect);
+    const existing = state ? getActiveMinions(state).find((minion) => minion.templateId === template.id) : null;
+    const hasOpenSlot = !state || existing || getActiveMinions(state).length < MAX_ACTIVE_MINIONS;
+    const lead = existing ? `Reinforce ${template.name}` : `Summon ${template.name}`;
+    const durationSegment = template.persistent ? "Persistent" : `${getMinionDuration(effect, template)} turns`;
+    const actionSegment = buildMinionActionSummary(template.actionKind, power, secondaryValue);
+    if (!hasOpenSlot) {
+      return `${lead} · limit ${MAX_ACTIVE_MINIONS}/${MAX_ACTIVE_MINIONS}`;
+    }
+    return `${lead} · ${actionSegment}${durationSegment ? ` · ${durationSegment}` : ""}`;
+  }
+
+  function summonMinion(state: CombatState, effect: CardEffect) {
+    const template = getMinionTemplate(String(effect.minionId || ""));
+    if (!template) {
+      return "the summon fizzles.";
+    }
+
+    const power = getMinionPrimaryValue(effect);
+    const secondaryValue = getMinionSecondaryValue(effect);
+    const duration = getMinionDuration(effect, template);
+    const existing = getActiveMinions(state).find((minion) => minion.templateId === template.id);
+
+    if (existing) {
+      existing.power += getMinionReinforcementValue(power);
+      if (secondaryValue > 0) {
+        existing.secondaryValue += getMinionReinforcementValue(secondaryValue);
+      }
+      if (!existing.persistent) {
+        existing.remainingTurns = Math.max(existing.remainingTurns, duration) + 1;
+      }
+      return `${existing.name} is reinforced (${getMinionSkillSummary(existing)}${existing.persistent ? "" : `, ${existing.remainingTurns} turns`}).`;
+    }
+
+    if (getActiveMinions(state).length >= MAX_ACTIVE_MINIONS) {
+      return `${template.name} cannot enter the field. Minion limit reached (${MAX_ACTIVE_MINIONS}).`;
+    }
+
+    const minion: CombatMinionState = {
+      id: `minion_${state.turn}_${state.minions.length + 1}_${template.id}`,
+      templateId: template.id,
+      name: template.name,
+      skillLabel: template.skillLabel,
+      actionKind: template.actionKind,
+      targetRule: template.targetRule,
+      power,
+      secondaryValue,
+      remainingTurns: duration,
+      persistent: template.persistent,
+    };
+    state.minions.push(minion);
+    return `${minion.name} joins the field (${getMinionSkillSummary(minion)}${minion.persistent ? "" : `, ${minion.remainingTurns} turns`}).`;
+  }
+
+  function chooseMinionTarget(state: CombatState, minion: CombatMinionState) {
+    const livingEnemies = getLivingEnemies(state);
+    if (livingEnemies.length === 0) {
+      return null;
+    }
+    if (minion.targetRule === "lowest_life") {
+      return livingEnemies
+        .slice()
+        .sort((left: CombatEnemyState, right: CombatEnemyState) => {
+          if (left.life !== right.life) {
+            return left.life - right.life;
+          }
+          return left.guard - right.guard;
+        })[0] || null;
+    }
+    const selected = livingEnemies.find((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId);
+    return selected || livingEnemies[0] || null;
+  }
+
+  function resolveMinionAction(state: CombatState, minion: CombatMinionState) {
+    const actionLabel = `${minion.name} uses ${minion.skillLabel}`;
+    if (minion.actionKind === "attack") {
+      const target = chooseMinionTarget(state, minion);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, minion.power);
+      appendLog(state, `${actionLabel} on ${target.name} for ${dealt}.`);
+      return;
+    }
+
+    if (minion.actionKind === "attack_mark") {
+      const target = chooseMinionTarget(state, minion);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, minion.power);
+      state.mercenary.markedEnemyId = target.id;
+      state.mercenary.markBonus = Math.max(state.mercenary.markBonus, minion.secondaryValue);
+      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and marks it for +${minion.secondaryValue} mercenary damage.`);
+      return;
+    }
+
+    if (minion.actionKind === "attack_poison") {
+      const target = chooseMinionTarget(state, minion);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, minion.power);
+      target.poison = Math.max(0, target.poison + minion.secondaryValue);
+      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and applies ${minion.secondaryValue} Poison.`);
+      return;
+    }
+
+    if (minion.actionKind === "attack_guard_party") {
+      const target = chooseMinionTarget(state, minion);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, minion.power);
+      applyGuard(state.hero, minion.secondaryValue);
+      if (state.mercenary.alive) {
+        applyGuard(state.mercenary, minion.secondaryValue);
+      }
+      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and grants ${minion.secondaryValue} Guard to the party.`);
+      return;
+    }
+
+    if (minion.actionKind === "attack_heal_hero") {
+      const target = chooseMinionTarget(state, minion);
+      if (!target) {
+        return;
+      }
+      const dealt = dealDamage(state, target, minion.power);
+      const healed = healEntity(state.hero, minion.secondaryValue);
+      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and heals the Wanderer for ${healed}.`);
+      return;
+    }
+
+    if (minion.actionKind === "heal_party") {
+      const heroHealed = healEntity(state.hero, minion.power);
+      const mercHealed = state.mercenary.alive ? healEntity(state.mercenary, minion.power) : 0;
+      appendLog(state, `${actionLabel}, healing the party for ${heroHealed + mercHealed}.`);
+      return;
+    }
+
+    if (minion.actionKind === "buff_mercenary_guard_party") {
+      state.mercenary.nextAttackBonus = Math.max(0, state.mercenary.nextAttackBonus + minion.power);
+      applyGuard(state.hero, minion.secondaryValue);
+      if (state.mercenary.alive) {
+        applyGuard(state.mercenary, minion.secondaryValue);
+      }
+      appendLog(state, `${actionLabel}, granting the mercenary +${minion.power} attack and ${minion.secondaryValue} Guard to the party.`);
+      return;
+    }
+
+    if (minion.actionKind === "attack_all_burn") {
+      const livingEnemies = getLivingEnemies(state);
+      if (livingEnemies.length === 0) {
+        return;
+      }
+      let totalDamage = 0;
+      livingEnemies.forEach((enemy: CombatEnemyState) => {
+        totalDamage += dealDamage(state, enemy, minion.power);
+        if (enemy.alive) {
+          enemy.burn = Math.max(0, enemy.burn + minion.secondaryValue);
+        }
+      });
+      appendLog(state, `${actionLabel}, scorching the line for ${totalDamage} total damage and ${minion.secondaryValue} Burn.`);
+      return;
+    }
+
+    if (minion.actionKind === "attack_all_paralyze") {
+      const livingEnemies = getLivingEnemies(state);
+      if (livingEnemies.length === 0) {
+        return;
+      }
+      let totalDamage = 0;
+      livingEnemies.forEach((enemy: CombatEnemyState) => {
+        totalDamage += dealDamage(state, enemy, minion.power);
+        if (enemy.alive) {
+          enemy.paralyze = Math.max(0, enemy.paralyze + Math.max(1, minion.secondaryValue));
+        }
+      });
+      appendLog(state, `${actionLabel}, blasting the line for ${totalDamage} total damage and ${Math.max(1, minion.secondaryValue)} Paralyze.`);
+    }
+  }
+
+  function resolveMinionPhase(state: CombatState) {
+    const minionsToAct = [...getActiveMinions(state)];
+    if (minionsToAct.length === 0) {
+      return;
+    }
+
+    for (let index = 0; index < minionsToAct.length; index += 1) {
+      const minion = minionsToAct[index];
+      resolveMinionAction(state, minion);
+      if (!minion.persistent) {
+        minion.remainingTurns = Math.max(0, minion.remainingTurns - 1);
+        if (minion.remainingTurns <= 0) {
+          appendLog(state, `${minion.name} fades from the field.`);
+        }
+      }
+      if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
+        state.selectedEnemyId = getFirstLivingEnemyId(state);
+      }
+    }
+
+    state.minions = getActiveMinions(state).filter((minion: CombatMinionState) => minion.persistent || minion.remainingTurns > 0);
   }
 
   function hasTrait(enemy: CombatEnemyState, trait: MonsterTraitKind) {
@@ -741,6 +1149,10 @@
 
     discardHand(state);
     state.phase = COMBAT_PHASE.ENEMY;
+    resolveMinionPhase(state);
+    if (checkOutcome(state)) {
+      return { ok: true, message: "Encounter resolved." };
+    }
     resolveMercenaryAction(state);
     if (checkOutcome(state)) {
       return { ok: true, message: "Encounter resolved." };
@@ -801,6 +1213,7 @@
   }
 
   runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS = {
+    MAX_ACTIVE_MINIONS,
     healEntity,
     applyGuard,
     dealDamage,
@@ -808,6 +1221,10 @@
     checkOutcome,
     getLivingEnemies,
     getFirstLivingEnemyId,
+    getActiveMinions,
+    getMinionTemplate,
+    getMinionSkillSummary,
+    getSummonPreview,
     appendLog,
     drawCards,
     discardHand,
@@ -816,9 +1233,11 @@
     applyWeaponTypedDamage,
     applyWeaponEffects,
     meleeStrike,
+    summonMinion,
     startPlayerTurn,
     endTurn,
     usePotion,
+    resolveMinionPhase,
     resolveMercenaryAction,
     resolveEnemyAction,
     advanceEnemyIntents,

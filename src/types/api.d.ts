@@ -44,6 +44,7 @@ interface CombatWeaponScalingApi {
 }
 
 interface CombatTurnsApi {
+  MAX_ACTIVE_MINIONS: number;
   healEntity(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number): number;
   applyGuard(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number): number;
   dealDamage(
@@ -61,6 +62,17 @@ interface CombatTurnsApi {
   checkOutcome(state: CombatState): boolean;
   getLivingEnemies(state: CombatState): CombatEnemyState[];
   getFirstLivingEnemyId(state: CombatState): string;
+  getActiveMinions(state: CombatState): CombatMinionState[];
+  getMinionTemplate(templateId: string): {
+    id: string;
+    name: string;
+    skillLabel: string;
+    actionKind: CombatMinionActionKind;
+    targetRule: CombatMinionTargetRule;
+    persistent: boolean;
+  } | null;
+  getMinionSkillSummary(minion: CombatMinionState): string;
+  getSummonPreview(state: CombatState | null, effect: CardEffect): string;
   appendLog(state: CombatState, message: string): void;
   drawCards(state: CombatState, count: number): number;
   discardHand(state: CombatState): void;
@@ -69,9 +81,11 @@ interface CombatTurnsApi {
   applyWeaponTypedDamage(state: CombatState, targets: CombatEnemyState[], cardId: string): string[];
   applyWeaponEffects(state: CombatState, targets: CombatEnemyState[], cardId: string): string[];
   meleeStrike(state: CombatState, content: GameContent): ActionResult;
+  summonMinion(state: CombatState, effect: CardEffect): string;
   startPlayerTurn(state: CombatState): void;
   endTurn(state: CombatState): ActionResult;
   usePotion(state: CombatState, targetId: "hero" | "mercenary"): ActionResult;
+  resolveMinionPhase(state: CombatState): void;
   resolveMercenaryAction(state: CombatState): void;
   resolveEnemyAction(state: CombatState, enemy: CombatEnemyState): void;
   advanceEnemyIntents(state: CombatState): void;
@@ -139,6 +153,7 @@ interface CombatViewRenderersApi {
     threatened: boolean;
     escapeHtml: (s: string) => string;
   }): string;
+  renderMinionRack(minions: CombatMinionState[], escapeHtml: (s: string) => string): string;
   renderEnemySprite(
     combat: CombatState,
     enemy: CombatEnemyState,
@@ -390,6 +405,11 @@ interface ItemCatalogApi {
   isRunewordCompatibleWithItem(
     item: RuntimeItemDefinition | null | undefined,
     runeword: RuntimeRunewordDefinition | null | undefined
+  ): boolean;
+  isRunewordCompatibleWithItemFamily(
+    item: RuntimeItemDefinition | null | undefined,
+    runeword: RuntimeRunewordDefinition | null | undefined,
+    content: GameContent
   ): boolean;
   isRunewordCompatibleWithEquipment(
     equipment: RunEquipmentState | null | undefined,
@@ -794,6 +814,7 @@ interface RewardEngineApi {
     run: RunState,
     content: GameContent
   ): { primary: RunArchetypeScoreSummary | null; secondary: RunArchetypeScoreSummary | null };
+  getArchetypeCatalog(classId?: string): Record<string, Record<string, RewardEngineArchetypeCatalogEntry>>;
   getArchetypeWeaponFamilies(archetypeId: string): string[];
   getStrategicWeaponFamilies(run: RunState, content: GameContent): string[];
   buildRewardChoices(config: {
@@ -834,6 +855,14 @@ interface RewardBuildResolution {
   previewLine: string;
 }
 
+interface RewardEngineArchetypeCatalogEntry {
+  archetypeId: string;
+  label: string;
+  primaryTrees: string[];
+  supportTrees: string[];
+  weaponFamilies: string[];
+}
+
 interface RewardEngineArchetypesApi {
   CARD_ROLE_LABELS: Record<CardRewardRole, string>;
   CARD_ROLE_SCORE_WEIGHTS: Record<CardRewardRole, number>;
@@ -851,6 +880,7 @@ interface RewardEngineArchetypesApi {
     run: RunState,
     content: GameContent
   ): { primary: RunArchetypeScoreSummary | null; secondary: RunArchetypeScoreSummary | null };
+  getArchetypeCatalog(classId?: string): Record<string, Record<string, RewardEngineArchetypeCatalogEntry>>;
   getArchetypeWeaponFamilies(archetypeId: string): string[];
   getStrategicWeaponFamilies(run: RunState, content: GameContent): string[];
   getRewardPathPreference(run: RunState, content: GameContent): RewardPathPreference | null;

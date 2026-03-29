@@ -212,8 +212,8 @@
       familyAllowList: ["Swords"],
       requiredRunes: ["rune_tir", "rune_el"],
       bonuses: {
-        heroDamageBonus: 4,
-        heroGuardBonus: 1,
+        heroDamageBonus: 6,
+        heroGuardBonus: 2,
         mercenaryAttack: 1,
       },
     },
@@ -358,6 +358,18 @@
         heroDamageBonus: 7,
         heroGuardBonus: 2,
         mercenaryAttack: 2,
+      },
+    },
+    pattern: {
+      sourceId: "pattern",
+      slot: "weapon",
+      familyAllowList: ["Swords"],
+      requiredRunes: ["rune_ort", "rune_dol"],
+      bonuses: {
+        heroDamageBonus: 6,
+        heroGuardBonus: 4,
+        heroMaxEnergy: 2,
+        heroMaxLife: 6,
       },
     },
     lionheart: {
