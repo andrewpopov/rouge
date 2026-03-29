@@ -6,13 +6,33 @@
   const { ATTACK_INTENT_KINDS } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
   const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
   const { COMBAT_PHASE, COMBAT_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
+  const neutralWeaponScaling = {
+    getCardProficiency: (_cardId: string) => "",
+    hasPreferredWeaponFamily: (_state: CombatState) => false,
+    getWeaponAttackBonus: (_state: CombatState, _cardId: string) => 0,
+    getWeaponSupportBonus: (_state: CombatState, _cardId: string) => 0,
+    getWeaponTypedDamageAmount: (_state: CombatState, entry: WeaponDamageDefinition) => Math.max(1, parseInteger(entry?.amount, 1)),
+    getWeaponEffectAmount: (_state: CombatState, effect: WeaponEffectDefinition) => Math.max(1, parseInteger(effect?.amount, 1)),
+    getMeleeDamage: (state: CombatState) => {
+      const baseDamage = Math.max(1, state.weaponDamageBonus || 0);
+      if (state.hero.weaken > 0) {
+        return Math.max(1, Math.floor(baseDamage * 0.7));
+      }
+      return baseDamage;
+    },
+  };
+  const {
+    getCardProficiency,
+    hasPreferredWeaponFamily,
+    getWeaponAttackBonus,
+    getWeaponSupportBonus,
+    getWeaponTypedDamageAmount,
+    getWeaponEffectAmount,
+    getMeleeDamage,
+  } = runtimeWindow.__ROUGE_COMBAT_WEAPON_SCALING || neutralWeaponScaling;
 
   const THORNS_DAMAGE = 2;
   const REGENERATION_AMOUNT = 2;
-  const PREFERRED_WEAPON_CARD_BONUS = 1;
-  const WEAPON_SUPPORT_BASELINE_BONUS = 1;
-  const PREFERRED_WEAPON_EFFECT_BONUS = 1;
-  const PREFERRED_WEAPON_MELEE_BONUS = 4;
 
   function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
@@ -202,56 +222,6 @@
     return before - entity.life;
   }
 
-  function getCardProficiency(cardId: string) {
-    return runtimeWindow.__ROUGE_SKILL_EVOLUTION?.getCardProficiency?.(cardId) ||
-      runtimeWindow.__ROUGE_SKILL_EVOLUTION?.getCardTree?.(cardId) ||
-      "";
-  }
-
-  function hasPreferredWeaponFamily(state: CombatState) {
-    const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
-    return preferred.includes(state.weaponFamily || "");
-  }
-
-  function getWeaponProfileBonus(
-    entries: Record<string, number> | null | undefined,
-    cardId: string
-  ) {
-    const proficiency = getCardProficiency(cardId);
-    if (!proficiency) {
-      return 0;
-    }
-    const baseBonus = Math.max(0, parseInteger(entries?.[proficiency], 0));
-    if (baseBonus <= 0) {
-      return 0;
-    }
-    return baseBonus;
-  }
-
-  function normalizeWeaponAttackValue(value: number) {
-    const normalized = Math.max(0, parseInteger(value, 0));
-    if (normalized <= 0) {
-      return 0;
-    }
-    return Math.max(1, Math.ceil(normalized / 2));
-  }
-
-  function getWeaponAttackBonus(state: CombatState, cardId: string) {
-    const baseBonus = normalizeWeaponAttackValue(getWeaponProfileBonus(state.weaponProfile?.attackDamageByProficiency, cardId));
-    if (baseBonus <= 0) {
-      return 0;
-    }
-    return baseBonus + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_CARD_BONUS : 0);
-  }
-
-  function getWeaponSupportBonus(state: CombatState, cardId: string) {
-    const baseBonus = getWeaponProfileBonus(state.weaponProfile?.supportValueByProficiency, cardId);
-    if (baseBonus <= 0) {
-      return 0;
-    }
-    return baseBonus + WEAPON_SUPPORT_BASELINE_BONUS + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_CARD_BONUS : 0);
-  }
-
   function weaponProfileEntryMatchesUse(proficiency: string | undefined, cardId: string) {
     if (!proficiency || !cardId) {
       return true;
@@ -273,12 +243,7 @@
       return null;
     }
 
-    const rawAmount = Math.max(1, parseInteger(damageEntry.amount, 1));
-    const baseAmount = cardId ? normalizeWeaponAttackValue(rawAmount) : rawAmount;
-    const preferredBonus = hasPreferredWeaponFamily(state)
-      ? (cardId ? PREFERRED_WEAPON_CARD_BONUS : 0) + PREFERRED_WEAPON_EFFECT_BONUS
-      : 0;
-    const amount = Math.max(1, baseAmount + preferredBonus);
+    const amount = getWeaponTypedDamageAmount(state, damageEntry, cardId);
     const dealt = damageEntry.type === "poison"
       ? dealLifeDamage(state, target, amount)
       : dealDamage(state, target, amount, damageEntry.type);
@@ -320,10 +285,7 @@
       return null;
     }
 
-    const amount = Math.max(
-      1,
-      parseInteger(effect.amount, 1) + (hasPreferredWeaponFamily(state) ? PREFERRED_WEAPON_EFFECT_BONUS : 0)
-    );
+    const amount = getWeaponEffectAmount(state, effect);
     if (effect.kind === "burn") {
       target.burn = Math.max(0, target.burn + amount);
       return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
@@ -712,14 +674,8 @@
     if (state.meleeUsed) {
       return { ok: false, message: "Melee already used this turn." };
     }
-    const baseDamage = Math.max(1, state.weaponDamageBonus || 0);
-    const preferred = Array.isArray(state.classPreferredFamilies) ? state.classPreferredFamilies : [];
-    const familyMatch = preferred.includes(state.weaponFamily || "");
-    let damage = familyMatch ? baseDamage + PREFERRED_WEAPON_MELEE_BONUS : baseDamage;
-    // Weaken: hero deals -30% damage
-    if (state.hero.weaken > 0) {
-      damage = Math.max(1, Math.floor(damage * 0.7));
-    }
+    const familyMatch = hasPreferredWeaponFamily(state);
+    const damage = getMeleeDamage(state);
     const target = state.enemies.find((e: CombatEnemyState) => e.id === state.selectedEnemyId && e.alive) || getLivingEnemies(state)[0];
     if (!target) {
       return { ok: false, message: "No living enemy." };
