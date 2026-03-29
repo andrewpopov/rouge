@@ -359,6 +359,46 @@ interface WorldNodeEngineApi {
   applyChoice(run: RunState, reward: RunReward, choice: RewardChoice): ActionResult;
 }
 
+interface WorldNodeQuestChoiceBuildResult {
+  choices: RewardChoice[];
+  extraLines: string[];
+}
+
+interface WorldNodeResolvedOpportunity {
+  definition: WorldNodeRewardDefinition;
+  variant: WorldNodeRewardDefinition;
+  contextLines: string[];
+}
+
+interface WorldNodeChoiceStrategyApi {
+  buildStrategicChoices(
+    kind: string,
+    choiceDefinitions: WorldNodeChoiceDefinition[],
+    run: RunState,
+    content?: GameContent | null
+  ): RewardChoice[];
+  buildQuestChoices(
+    run: RunState,
+    zone: ZoneState,
+    actNumber: number,
+    definition: QuestNodeDefinition,
+    content?: GameContent | null
+  ): WorldNodeQuestChoiceBuildResult;
+}
+
+interface WorldNodeRuneforgeApi {
+  buildQuestRuneforgePackage(
+    run: RunState,
+    zone: ZoneState,
+    actNumber: number,
+    content?: GameContent | null
+  ): { summaryLine: string; descriptionLine: string; effects: RewardChoiceEffect[] } | null;
+}
+
+interface WorldNodeOpportunityResolversApi {
+  resolveOpportunityNode(nodeType: string, run: RunState, actNumber: number): WorldNodeResolvedOpportunity | null;
+}
+
 interface WorldNodeOutcomeOptions {
   isShrineOpportunityNodeId?: ((nodeId: string) => boolean) | null;
 }

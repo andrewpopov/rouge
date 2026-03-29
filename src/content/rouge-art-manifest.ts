@@ -133,7 +133,9 @@
     "uber_diablo",
     "uber_duriel",
     "uber_izual",
-    "ventar_the_unholy"
+    "ventar_the_unholy",
+    "witch_doctor_endugu",
+    "wyand_voidbringer"
   ],
   "portraits": [
     "amazon",
@@ -548,6 +550,12 @@
     ],
     "ventar_the_unholy": [
       "ventar_the_unholy.png"
+    ],
+    "witch_doctor_endugu": [
+      "witch_doctor_endugu.png"
+    ],
+    "wyand_voidbringer": [
+      "wyand_voidbringer.png"
     ]
   },
   "portraitVariants": {

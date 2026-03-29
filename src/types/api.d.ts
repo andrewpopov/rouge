@@ -25,6 +25,179 @@ interface CombatEngineApi {
   getFirstLivingEnemyId(state: CombatState): string;
 }
 
+interface CombatWeaponScalingPolicy {
+  preferredWeaponCardBonus: number;
+  weaponSupportBaselineBonus: number;
+  preferredWeaponEffectBonus: number;
+  preferredWeaponMeleeBonus: number;
+}
+
+interface CombatWeaponScalingApi {
+  WEAPON_SCALING_POLICY: CombatWeaponScalingPolicy;
+  getCardProficiency(cardId: string): string;
+  hasPreferredWeaponFamily(state: CombatState): boolean;
+  getWeaponAttackBonus(state: CombatState, cardId: string): number;
+  getWeaponSupportBonus(state: CombatState, cardId: string): number;
+  getWeaponTypedDamageAmount(state: CombatState, entry: WeaponDamageDefinition, cardId: string): number;
+  getWeaponEffectAmount(state: CombatState, effect: WeaponEffectDefinition): number;
+  getMeleeDamage(state: CombatState): number;
+}
+
+interface CombatTurnsApi {
+  healEntity(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number): number;
+  applyGuard(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number): number;
+  dealDamage(
+    state: CombatState,
+    entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+    amount: number,
+    damageType?: DamageType
+  ): number;
+  dealDirectDamage(
+    state: CombatState,
+    entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+    amount: number,
+    damageType?: DamageType
+  ): number;
+  checkOutcome(state: CombatState): boolean;
+  getLivingEnemies(state: CombatState): CombatEnemyState[];
+  getFirstLivingEnemyId(state: CombatState): string;
+  appendLog(state: CombatState, message: string): void;
+  drawCards(state: CombatState, count: number): number;
+  discardHand(state: CombatState): void;
+  getWeaponAttackBonus(state: CombatState, cardId: string): number;
+  getWeaponSupportBonus(state: CombatState, cardId: string): number;
+  applyWeaponTypedDamage(state: CombatState, targets: CombatEnemyState[], cardId: string): string[];
+  applyWeaponEffects(state: CombatState, targets: CombatEnemyState[], cardId: string): string[];
+  meleeStrike(state: CombatState, content: GameContent): ActionResult;
+  startPlayerTurn(state: CombatState): void;
+  endTurn(state: CombatState): ActionResult;
+  usePotion(state: CombatState, targetId: "hero" | "mercenary"): ActionResult;
+  resolveMercenaryAction(state: CombatState): void;
+  resolveEnemyAction(state: CombatState, enemy: CombatEnemyState): void;
+  advanceEnemyIntents(state: CombatState): void;
+  _shuffleInPlace<T>(items: T[], randomFn: RandomFn): T[];
+}
+
+interface CombatMercenaryApi {
+  chooseMercenaryTarget(state: CombatState): CombatEnemyState | null;
+  resolveMercenaryAction(
+    state: CombatState,
+    appendLog: (state: CombatState, message: string) => void,
+    dealDamage: (state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) => number,
+    applyGuard: (entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number) => number,
+    getFirstLivingEnemyId: (state: CombatState) => string,
+  ): void;
+}
+
+interface CombatCardEffectsApi {
+  resolveCardEffect(state: CombatState, effect: CardEffect, targetEnemy: CombatEnemyState | null, cardId: string): string;
+  summarizeCardEffect(card: CardDefinition, segments: string[]): string;
+}
+
+interface IncomingPressureSummary {
+  attackers: number;
+  damage: number;
+  tags: string[];
+  lineThreat: boolean;
+}
+
+interface CombatViewPreviewApi {
+  getEffectiveCardCost(
+    combat: CombatState,
+    content: GameContent,
+    instance: { cardId: string },
+    card: CardDefinition
+  ): number;
+  buildCardPreviewOutcome(
+    combat: CombatState,
+    instance: { cardId: string },
+    card: CardDefinition,
+    selectedEnemy: CombatEnemyState | null
+  ): string;
+  buildMeleePreviewOutcome(combat: CombatState, selectedEnemy: CombatEnemyState | null): string;
+  derivePreviewScopes(card: CardDefinition): string[];
+  describePreviewScopes(scopes: string[]): string;
+  summarizePreviewOutcome(previewOutcome: string): string;
+}
+
+interface CombatViewPressureApi {
+  buildEmptyPressureSummary(): IncomingPressureSummary;
+  buildIncomingPressure(combat: CombatState): { hero: IncomingPressureSummary; mercenary: IncomingPressureSummary };
+  buildEnemyIntentPresentation(combat: CombatState, intent: EnemyIntent | null): { targetLabel: string; intentClass: string };
+  renderIncomingPressure(summary: IncomingPressureSummary, escapeHtml: (s: string) => string): string;
+}
+
+interface CombatViewRenderersApi {
+  renderAllySprite(config: {
+    unit: { alive: boolean; life: number; maxLife: number; guard: number; name: string };
+    figureClass: string;
+    portraitHtml: string;
+    potionAction: string;
+    potionDisabled: boolean;
+    extraStatusHtml: string;
+    incomingPressureHtml: string;
+    threatened: boolean;
+    escapeHtml: (s: string) => string;
+  }): string;
+  renderEnemySprite(
+    combat: CombatState,
+    enemy: CombatEnemyState,
+    isSelected: boolean,
+    isMarked: boolean,
+    hasOutcome: boolean,
+    intentDesc: string,
+    escapeHtml: (s: string) => string
+  ): string;
+  renderHandCard(config: {
+    instance: { instanceId: string; cardId: string };
+    index: number;
+    cardCount: number;
+    card: CardDefinition;
+    effectiveCost: number;
+    previewOutcome: string;
+    stateClass: string;
+    stateLabel: string;
+    cantPlay: boolean;
+    escapeHtml: (s: string) => string;
+  }): string;
+  renderCombatLogPanel(combat: CombatState, escapeHtml: (s: string) => string): string;
+}
+
+interface CharacterSelectViewDetailsApi {
+  PROFILE_RATING_ORDER: Array<keyof ClassSelectorProfileRatings>;
+  PROFILE_RATING_LABELS: Record<keyof ClassSelectorProfileRatings, string>;
+  humanize(id: string): string;
+  buildLineup(entries: ClassDefinition[], selectedClassId: string | null | undefined): ClassDefinition[];
+  buildSelectorChip(label: string, modifier: string, escapeHtml: (s: unknown) => string): string;
+  buildStatBar(label: string, value: number, max: number, escapeHtml: (s: unknown) => string): string;
+  buildSupportChip(label: string, value: string | number, escapeHtml: (s: unknown) => string): string;
+  buildProfileRating(label: string, value: number, escapeHtml: (s: unknown) => string): string;
+  buildTreeCard(
+    tree: RuntimeClassTreeDefinition,
+    treeGuide: ClassSelectorPathGuideDefinition | null,
+    escapeHtml: (s: unknown) => string,
+    buildBadge: (label: string, tone: string) => string
+  ): string;
+  buildTreeDetailModal(
+    tree: RuntimeClassTreeDefinition,
+    classGuide: {
+      className: string;
+      deckProfileLabel: string;
+      roleLabel: string;
+      complexity: string;
+      selectionPitch: string;
+      flavor: string;
+      coreHook: string;
+      attributeSummaryMarkup: string;
+      vitalsMarkup: string;
+      weaponBadgesMarkup: string;
+      pathGuide: ClassSelectorPathGuideDefinition | null;
+    },
+    escapeHtml: (s: unknown) => string,
+    buildBadge: (label: string, tone: string) => string
+  ): string;
+}
+
 interface CombatModifiersApi {
   INTENT: Record<string, string>;
   MODIFIER_KIND: Record<string, string>;
@@ -360,6 +533,68 @@ interface RewardEngineApi {
     run: RunState,
     content: GameContent
   ): { effect: RewardChoiceEffect; previewLine: string };
+}
+
+interface RewardPathPreference {
+  source: "tracked" | "favored" | "emerging";
+  treeId: string;
+  label: string;
+  score: number;
+  primaryTrees: string[];
+  supportTrees: string[];
+}
+
+interface RewardBuildResolution {
+  effect: RewardChoiceEffect;
+  previewLine: string;
+}
+
+interface RewardEngineArchetypesApi {
+  CARD_ROLE_LABELS: Record<CardRewardRole, string>;
+  CARD_ROLE_SCORE_WEIGHTS: Record<CardRewardRole, number>;
+  SUPPORT_ROLE_PRIORITY: Record<CardRewardRole, number>;
+  getDeckProfileId(content: GameContent, classId: string): string;
+  getCardTree(cardId: string): string;
+  annotateCardRewardMetadata(content: GameContent): void;
+  getCardRewardRole(cardId: string, content?: GameContent | null): CardRewardRole;
+  getCardArchetypeTags(cardId: string, content?: GameContent | null): string[];
+  getArchetypeLabels(archetypeTags: string[]): string[];
+  computeArchetypeScores(run: RunState, content: GameContent): Record<string, number>;
+  syncArchetypeScores(run: RunState, content: GameContent): Record<string, number>;
+  getArchetypeScoreEntries(run: RunState, content: GameContent): RunArchetypeScoreSummary[];
+  getDominantArchetype(
+    run: RunState,
+    content: GameContent
+  ): { primary: RunArchetypeScoreSummary | null; secondary: RunArchetypeScoreSummary | null };
+  getArchetypeWeaponFamilies(archetypeId: string): string[];
+  getStrategicWeaponFamilies(run: RunState, content: GameContent): string[];
+  getRewardPathPreference(run: RunState, content: GameContent): RewardPathPreference | null;
+}
+
+interface RewardEngineBuilderApi {
+  buildRewardChoices(config: {
+    content: GameContent;
+    run: RunState;
+    zone: ZoneState;
+    actNumber: number;
+    encounterNumber: number;
+    profile?: ProfileState | null;
+  }): RewardChoice[];
+  getUpgradableCardIds(run: RunState, content: GameContent): string[];
+  resolveReinforceBuildReward(run: RunState, content: GameContent): RewardBuildResolution;
+  resolveSupportBuildReward(run: RunState, content: GameContent): RewardBuildResolution;
+  resolvePivotBuildReward(run: RunState, content: GameContent): RewardBuildResolution;
+}
+
+interface RewardEngineBuilderStrategiesApi {
+  getClassPoolForZone(content: GameContent, classId: string, zoneRole: string, actNumber: number): string[];
+  resolveReinforceBuildReward(run: RunState, content: GameContent): RewardBuildResolution;
+  resolveSupportBuildReward(run: RunState, content: GameContent): RewardBuildResolution;
+  resolvePivotBuildReward(run: RunState, content: GameContent): RewardBuildResolution;
+}
+
+interface RewardEngineApplyApi {
+  applyChoice(run: RunState, choice: RewardChoice, content: GameContent): ActionResult;
 }
 
 interface TownServiceApi {

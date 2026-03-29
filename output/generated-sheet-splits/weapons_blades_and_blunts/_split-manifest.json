@@ -1,0 +1,271 @@
+{
+  "sheet": "/Users/andrew/Downloads/ChatGPT Image Mar 29, 2026, 09_54_35 AM.png",
+  "batchId": "weapons_blades_and_blunts",
+  "description": "Swords and blunt weapons. Use for the first equipment sheet pass.",
+  "category": "item",
+  "grid": {
+    "cols": 5,
+    "rows": 4,
+    "cellWidth": 204,
+    "cellHeight": 256,
+    "offsetX": 0,
+    "offsetY": 0,
+    "gutterX": 0,
+    "gutterY": 0
+  },
+  "trim": true,
+  "keyColor": "#00FF00",
+  "extent": [
+    128,
+    128
+  ],
+  "outputs": [
+    {
+      "label": "short_sword",
+      "row": 0,
+      "col": 0,
+      "box": [
+        0,
+        0,
+        204,
+        256
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/short_sword.png",
+      "empty": false
+    },
+    {
+      "label": "scimitar",
+      "row": 0,
+      "col": 1,
+      "box": [
+        204,
+        0,
+        408,
+        256
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/scimitar.png",
+      "empty": false
+    },
+    {
+      "label": "sabre",
+      "row": 0,
+      "col": 2,
+      "box": [
+        408,
+        0,
+        612,
+        256
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/sabre.png",
+      "empty": false
+    },
+    {
+      "label": "long_sword",
+      "row": 0,
+      "col": 3,
+      "box": [
+        612,
+        0,
+        816,
+        256
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/long_sword.png",
+      "empty": false
+    },
+    {
+      "label": "falchion",
+      "row": 0,
+      "col": 4,
+      "box": [
+        816,
+        0,
+        1020,
+        256
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/falchion.png",
+      "empty": false
+    },
+    {
+      "label": "crystal_sword",
+      "row": 1,
+      "col": 0,
+      "box": [
+        0,
+        256,
+        204,
+        512
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/crystal_sword.png",
+      "empty": false
+    },
+    {
+      "label": "bastard_sword",
+      "row": 1,
+      "col": 1,
+      "box": [
+        204,
+        256,
+        408,
+        512
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/bastard_sword.png",
+      "empty": false
+    },
+    {
+      "label": "broad_sword",
+      "row": 1,
+      "col": 2,
+      "box": [
+        408,
+        256,
+        612,
+        512
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/broad_sword.png",
+      "empty": false
+    },
+    {
+      "label": "war_sword",
+      "row": 1,
+      "col": 3,
+      "box": [
+        612,
+        256,
+        816,
+        512
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/war_sword.png",
+      "empty": false
+    },
+    {
+      "label": "rune_sword",
+      "row": 1,
+      "col": 4,
+      "box": [
+        816,
+        256,
+        1020,
+        512
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/rune_sword.png",
+      "empty": false
+    },
+    {
+      "label": "legend_sword",
+      "row": 2,
+      "col": 0,
+      "box": [
+        0,
+        512,
+        204,
+        768
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/legend_sword.png",
+      "empty": false
+    },
+    {
+      "label": "zweihander",
+      "row": 2,
+      "col": 1,
+      "box": [
+        204,
+        512,
+        408,
+        768
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/zweihander.png",
+      "empty": false
+    },
+    {
+      "label": "balrog_blade",
+      "row": 2,
+      "col": 2,
+      "box": [
+        408,
+        512,
+        612,
+        768
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/balrog_blade.png",
+      "empty": false
+    },
+    {
+      "label": "colossus_blade",
+      "row": 2,
+      "col": 3,
+      "box": [
+        612,
+        512,
+        816,
+        768
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/colossus_blade.png",
+      "empty": false
+    },
+    {
+      "label": "mace",
+      "row": 2,
+      "col": 4,
+      "box": [
+        816,
+        512,
+        1020,
+        768
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/mace.png",
+      "empty": false
+    },
+    {
+      "label": "morning_star",
+      "row": 3,
+      "col": 0,
+      "box": [
+        0,
+        768,
+        204,
+        1024
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/morning_star.png",
+      "empty": false
+    },
+    {
+      "label": "flail",
+      "row": 3,
+      "col": 1,
+      "box": [
+        204,
+        768,
+        408,
+        1024
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/flail.png",
+      "empty": false
+    },
+    {
+      "label": "war_hammer",
+      "row": 3,
+      "col": 2,
+      "box": [
+        408,
+        768,
+        612,
+        1024
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/war_hammer.png",
+      "empty": false
+    },
+    {
+      "label": "maul",
+      "row": 3,
+      "col": 3,
+      "box": [
+        612,
+        768,
+        816,
+        1024
+      ],
+      "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/maul.png",
+      "empty": false
+    }
+  ]
+}

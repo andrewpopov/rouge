@@ -328,5 +328,6 @@ If a screenshot and this document disagree, update the screen toward this docume
 - `VISUAL_DESIGN_TRD.md`: screen/component scope, structure, and acceptance criteria
 - `ui-redesign-plan.md`: execution order and cleanup priorities
 - `SPRITE_GENERATION_BACKLOG.md`: art import workflow and sprite-specific generation constraints
+- `NON_CHARACTER_ART_BACKLOG.md`: item, rune, and scenic-background batch generation workflow
 
 Keep visual identity guidance here instead of restating it differently across multiple docs.

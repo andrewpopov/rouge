@@ -15,7 +15,8 @@
       },
       coreHook: "Keeps pressure clean from range, then pivots into bows, javelins, or passive efficiency before the fight can close in.",
       selectionPitch: "Pick Amazon for safe ranged pressure, flexible weapon routes, and reliable act-by-act control.",
-      flavor: "Versatile ranged warrior who commands javelin and bow with deadly precision.",
+      flavor: "A road-hardened huntress who keeps the fight at javelin point long before it can touch her.",
+      footerFlavor: "Raised for roads where hesitation kills, the Amazon reads weather, distance, and weakness in the same glance. She hunts like a commander at range, thinning the fight before anything living reaches her line.",
       pathGuides: {
         amazon_bow_and_crossbow: {
           laneIdentity: "The safest Amazon lane, built around steady ranged pressure and repeatable backline clears.",
@@ -44,7 +45,8 @@
       },
       coreHook: "Rewards planning turns ahead, lining up setup with payoff instead of spending tempo the moment it appears.",
       selectionPitch: "Pick Assassin for traps, burst turns, and a sharper tactical rhythm than the heavier bloodlines.",
-      flavor: "Shadow operative blending martial arts, traps, and psychic discipline.",
+      flavor: "A killer of prepared angles, equal parts trapwire, discipline, and sudden violence.",
+      footerFlavor: "The Assassin is not a brawler but a planner who treats every turn like a trap half-sprung. She prefers a fight already decided by discipline, timing, and the exact moment the enemy realizes it is too late.",
       pathGuides: {
         assassin_martial_arts: {
           laneIdentity: "The hardest Assassin lane to pilot, built around surviving until charge and payoff turns finally line up.",
@@ -73,7 +75,8 @@
       },
       coreHook: "Wins by staying on the front foot without turning every attack into an overextension against telegraphed boss turns.",
       selectionPitch: "Pick Barbarian for blunt frontline pressure, louder survivability, and the cleanest brute-force run.",
-      flavor: "Relentless frontline fighter who overwhelms with raw strength and war shouts.",
+      flavor: "A war-scarred bruiser who turns pain, iron, and roar into forward momentum.",
+      footerFlavor: "The Barbarian comes from a world where survival is loud, physical, and witnessed at arm's length. He steps into danger like it owes him an answer, then keeps swinging until the road remembers his name.",
       pathGuides: {
         barbarian_combat_skills: {
           laneIdentity: "The default-feeling Barbarian lane, built around proactive hits backed by just enough defense to keep swinging.",
@@ -102,7 +105,8 @@
       },
       coreHook: "Changes run texture more than any other class, shifting between spell payoff, bruiser chaining, and board-building engines.",
       selectionPitch: "Pick Druid for adaptable pacing, summoned support, and the widest shift between defense and aggression.",
-      flavor: "Shape-shifting guardian who channels elemental fury and summons nature's allies.",
+      flavor: "A keeper of feral bargains, shifting between fang, storm, and patient living engines.",
+      footerFlavor: "The Druid walks as if storm, fang, and root have all agreed to lend him their patience. He is not one fighter but several, choosing the shape of the fight before the enemy understands which wild answered.",
       pathGuides: {
         druid_elemental: {
           laneIdentity: "The payoff-driven Druid lane, built around surviving until the larger elemental turns finally take over.",
@@ -131,7 +135,8 @@
       },
       coreHook: "Turns time itself into leverage, using curses, setup, and engines to decide when the real damage finally lands.",
       selectionPitch: "Pick Necromancer for curses, attrition, and the most oppressive battlefield control in the roster.",
-      flavor: "Master of death who curses foes, shatters bone, and raises undead armies.",
+      flavor: "A grave tactician who wins by curse, collapse, and the fear of what rises next.",
+      footerFlavor: "The Necromancer enters a battle like a scholar entering a sealed crypt: calm, prepared, and already thinking three deaths ahead. He bends fear, rot, and obedience into order until the field belongs more to his design than to the living on it.",
       pathGuides: {
         necromancer_curses: {
           laneIdentity: "The most tactical Necromancer lane, built around weakening the enemy until long fights become yours.",
@@ -160,7 +165,8 @@
       },
       coreHook: "Turns aura timing into fight structure, balancing safe attacks with enough payoff to actually finish the job.",
       selectionPitch: "Pick Paladin for disciplined defense, aura support, and steady tempo through dangerous encounters.",
-      flavor: "Holy warrior who radiates auras of might and protection in combat.",
+      flavor: "A vow-bound vanguard who brings order to chaos through steel, faith, and timed auras.",
+      footerFlavor: "The Paladin bears himself like judgment given armor and a measured stride. He does not rush chaos; he closes around it with faith, steel, and the certainty that some vows are stronger than panic.",
       pathGuides: {
         paladin_combat_skills: {
           laneIdentity: "The intuitive Paladin lane, built around repeated frontline attacks that stay safe through aura support.",
@@ -189,7 +195,8 @@
       },
       coreHook: "Lives on hand texture, energy pacing, and reaching the turn where spell engines finally overwhelm the board.",
       selectionPitch: "Pick Sorceress for explosive spell scaling, elemental control, and the highest ceiling for burst damage.",
-      flavor: "Elemental prodigy who unleashes devastating cold, fire, and lightning spells.",
+      flavor: "An elemental savant who survives the thin early turns for one overwhelming answer.",
+      footerFlavor: "The Sorceress is brilliant enough to feel fragile early and terrifying later, a bloodline built around surviving until the sky answers back. She fights with the confidence of someone who knows control is only the prelude to annihilation.",
       pathGuides: {
         sorceress_cold: {
           laneIdentity: "The safest Sorceress lane, built around denial and the discipline to convert control into lethal.",

@@ -1,6 +1,6 @@
 # Sprite Generation Backlog
 
-Last updated: March 28, 2026.
+Last updated: March 29, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -24,6 +24,8 @@ Excluded:
 - UI icons
 - town or world-map background scenes
 - NPC placement art baked into zone backdrops
+
+Those non-character surfaces now live in [NON_CHARACTER_ART_BACKLOG.md](/Users/andrew/proj/rouge/docs/NON_CHARACTER_ART_BACKLOG.md).
 
 ## Import Workflow
 
@@ -310,5 +312,5 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `uber_duriel`
 - [x] `uber_izual`
 - [x] `ventar_the_unholy`
-- [ ] `witch_doctor_endugu`
-- [ ] `wyand_voidbringer`
+- [x] `witch_doctor_endugu`
+- [x] `wyand_voidbringer`

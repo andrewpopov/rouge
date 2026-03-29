@@ -218,6 +218,7 @@ interface ClassSelectorGuideDefinition {
   coreHook: string;
   selectionPitch: string;
   flavor: string;
+  footerFlavor: string;
   pathGuides: Record<string, ClassSelectorPathGuideDefinition>;
 }
 
@@ -578,12 +579,10 @@ interface Window {
   __ROUGE_MONSTER_TRAITS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_MONSTER_ACTIONS: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_COMBAT_MERCENARY: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_COMBAT_ENGINE_TURNS: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  __ROUGE_CARD_EFFECTS: Record<string, any>;
+  __ROUGE_COMBAT_MERCENARY: CombatMercenaryApi;
+  __ROUGE_COMBAT_WEAPON_SCALING: CombatWeaponScalingApi;
+  __ROUGE_COMBAT_ENGINE_TURNS: CombatTurnsApi;
+  __ROUGE_CARD_EFFECTS: CombatCardEffectsApi;
   __ROUGE_APPROACH_BONUS: {
     pickBonus(approach: string, seed: number): { id: string; label: string };
     applyBonus(combat: CombatState, bonusId: string): void;
@@ -592,6 +591,10 @@ interface Window {
   __ROUGE_EXPLORATION_EVENT_TEMPLATES: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_REWARD_ENGINE_PROGRESSION: Record<string, any>;
+  __ROUGE_REWARD_ENGINE_ARCHETYPES: RewardEngineArchetypesApi;
+  __ROUGE_REWARD_ENGINE_BUILDER_STRATEGIES: RewardEngineBuilderStrategiesApi;
+  __ROUGE_REWARD_ENGINE_BUILDER: RewardEngineBuilderApi;
+  __ROUGE_REWARD_ENGINE_APPLY: RewardEngineApplyApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_APP_ENGINE_RUN: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -621,6 +624,9 @@ interface Window {
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
+  __ROUGE_COMBAT_VIEW_PREVIEW: CombatViewPreviewApi;
+  __ROUGE_COMBAT_VIEW_PRESSURE: CombatViewPressureApi;
+  __ROUGE_COMBAT_VIEW_RENDERERS: CombatViewRenderersApi;
   __ROUGE_ZONE_FLAVOR: { getZoneFlavor(eventId: string, zoneTitle: string): string | null; resolveZoneEnv(zoneTitle: string): string | null };
   __ROUGE_OPP_HELPERS: {
     nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds?: string[]): RewardChoiceEffect;
@@ -659,6 +665,9 @@ interface Window {
   ROUGE_WORLD_NODE_OUTCOMES: WorldNodeOutcomesApi;
   ROUGE_WORLD_NODE_ZONES: WorldNodeZonesApi;
   ROUGE_WORLD_NODE_VARIANTS: WorldNodeVariantsApi;
+  __ROUGE_WORLD_NODE_ENGINE_CHOICE_STRATEGY: WorldNodeChoiceStrategyApi;
+  __ROUGE_WORLD_NODE_ENGINE_RUNEFORGE: WorldNodeRuneforgeApi;
+  __ROUGE_WORLD_NODE_ENGINE_OPPORTUNITY_RESOLVERS: WorldNodeOpportunityResolversApi;
   ROUGE_WORLD_NODES: WorldNodeEngineApi;
   ROUGE_CHARM_DATA: CharmDataApi;
   ROUGE_CHARM_SYSTEM: CharmSystemApi;
@@ -705,12 +714,47 @@ interface Window {
   ROUGE_ASSET_MAP: AssetMapApi;
   __ROUGE_COMBAT_BG: { getCombatBackground(zoneTitle: string): string };
   ROUGE_FRONT_DOOR_VIEW: UiPhaseViewApi;
+  __ROUGE_CHARACTER_SELECT_VIEW_DETAILS: CharacterSelectViewDetailsApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
   ROUGE_INVENTORY_VIEW: InventoryViewApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
   ROUGE_WORLD_MAP_VIEW: UiPhaseViewApi;
   ROUGE_ACT_GUIDE_VIEW: ActGuideViewApi;
   __ROUGE_CHARACTER_SELECT_GUIDE: ClassSelectorGuideApi;
+  __ROUGE_CHARACTER_SELECT_VIEW_DETAILS: {
+    PROFILE_RATING_ORDER: Array<keyof ClassSelectorProfileRatings>;
+    PROFILE_RATING_LABELS: Record<keyof ClassSelectorProfileRatings, string>;
+    humanize(id: string): string;
+    buildLineup(entries: ClassDefinition[], selectedClassId: string | null | undefined): ClassDefinition[];
+    buildSelectorChip(label: string, modifier: string, escapeHtml: (s: unknown) => string): string;
+    buildStatBar(label: string, value: number, max: number, escapeHtml: (s: unknown) => string): string;
+    buildSupportChip(label: string, value: string | number, escapeHtml: (s: unknown) => string): string;
+    buildProfileRating(label: string, value: number, escapeHtml: (s: unknown) => string): string;
+    buildTreeCard(
+      tree: RuntimeClassTreeDefinition,
+      treeGuide: ClassSelectorPathGuideDefinition | null,
+      escapeHtml: (s: unknown) => string,
+      buildBadge: (label: string, tone: string) => string
+    ): string;
+    buildTreeDetailModal(
+      tree: RuntimeClassTreeDefinition,
+      classGuide: {
+        className: string;
+        deckProfileLabel: string;
+        roleLabel: string;
+        complexity: string;
+        selectionPitch: string;
+        flavor: string;
+        coreHook: string;
+        attributeSummaryMarkup: string;
+        vitalsMarkup: string;
+        weaponBadgesMarkup: string;
+        pathGuide: ClassSelectorPathGuideDefinition | null;
+      },
+      escapeHtml: (s: unknown) => string,
+      buildBadge: (label: string, tone: string) => string
+    ): string;
+  };
   __ROUGE_COMBAT_VIEW_EXPLORATION: {
     getCardElement(card: CardDefinition): string;
     ELEMENT_LABELS: Record<string, string>;

@@ -3,49 +3,11 @@ export {};
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
-
-function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
-  const zones = runFactory.getCurrentZones(run);
-  const mainlineZones = zones.filter(
-    (z: ZoneState) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
-  );
-  for (const z of mainlineZones) {
-    z.encountersCleared = z.encounterTotal;
-    z.cleared = true;
-  }
-  runFactory.recomputeZoneStatuses(run);
-}
-
-/**
- * When act 1 falls back to act 2 crossroad/reserve definitions, those definitions
- * expect act 2's shrine ID and shrine-opportunity ID.  After naturally resolving
- * act 1's shrine and shrine-opportunity, copy the outcome records under the keys
- * that the downstream definitions actually reference so the route chain test
- * verifies mechanics end-to-end without hard-coding specific content strings.
- */
-function aliasShrineOutcomeForCrossroad(run: RunState) {
-  const world = run.world;
-  if (!world) { return; }
-  // Find the existing shrine outcome (act 1 stores it under its own nodeId)
-  const existingShrineKey = Object.keys(world.shrineOutcomes || {})[0];
-  if (existingShrineKey && existingShrineKey !== "sunwell_shrine") {
-    world.shrineOutcomes["sunwell_shrine"] = { ...world.shrineOutcomes[existingShrineKey] };
-  }
-}
-
-function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
-  const world = run.world;
-  if (!world) { return; }
-  // Find the shrine-opportunity outcome that doesn't match the reserve's expected ID
-  const existingKeys = Object.keys(world.opportunityOutcomes || {});
-  const _shrineOppKey = existingKeys.find(
-    (key) => key !== "sunwell_shrine_opportunity" && key.includes("vigil") || key.includes("shrine_opportunity")
-  );
-  // The act-1 shrine opportunity uses id "rogue_vigil_route_opportunity" — alias it
-  if (world.opportunityOutcomes["rogue_vigil_route_opportunity"] && !world.opportunityOutcomes["sunwell_shrine_opportunity"]) {
-    world.opportunityOutcomes["sunwell_shrine_opportunity"] = { ...world.opportunityOutcomes["rogue_vigil_route_opportunity"] };
-  }
-}
+import {
+  aliasShrineOpportunityOutcomeForReserve,
+  aliasShrineOutcomeForCrossroad,
+  clearAllMainlineZones,
+} from "./helpers/world-node-route-fixtures";
 
 test("crossroad opportunity lanes unlock after both shrine and event paths resolve and pay off both states together", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();

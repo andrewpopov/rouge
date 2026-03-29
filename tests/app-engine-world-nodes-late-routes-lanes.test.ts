@@ -3,35 +3,11 @@ export {};
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
-
-function clearAllMainlineZones(runFactory: RunFactoryApi, run: RunState) {
-  const zones = runFactory.getCurrentZones(run);
-  const mainlineZones = zones.filter(
-    (z: ZoneState) => z.kind === "battle" && (z.zoneRole === "opening" || (z.zoneRole || "").startsWith("mainline_")) && !z.zoneRole?.startsWith("side_")
-  );
-  for (const z of mainlineZones) {
-    z.encountersCleared = z.encounterTotal;
-    z.cleared = true;
-  }
-  runFactory.recomputeZoneStatuses(run);
-}
-
-function aliasShrineOutcomeForCrossroad(run: RunState) {
-  const world = run.world;
-  if (!world) { return; }
-  const existingShrineKey = Object.keys(world.shrineOutcomes || {})[0];
-  if (existingShrineKey && existingShrineKey !== "sunwell_shrine") {
-    world.shrineOutcomes["sunwell_shrine"] = { ...world.shrineOutcomes[existingShrineKey] };
-  }
-}
-
-function aliasShrineOpportunityOutcomeForReserve(run: RunState) {
-  const world = run.world;
-  if (!world) { return; }
-  if (world.opportunityOutcomes["rogue_vigil_route_opportunity"] && !world.opportunityOutcomes["sunwell_shrine_opportunity"]) {
-    world.opportunityOutcomes["sunwell_shrine_opportunity"] = { ...world.opportunityOutcomes["rogue_vigil_route_opportunity"] };
-  }
-}
+import {
+  aliasShrineOpportunityOutcomeForReserve,
+  aliasShrineOutcomeForCrossroad,
+  clearAllMainlineZones,
+} from "./helpers/world-node-route-fixtures";
 
 test("legacy mercenary route perks feed the next combat after the full post-culmination route resolves", () => {
   const { content, combatEngine, appEngine, runFactory, seedBundle } = createHarness();

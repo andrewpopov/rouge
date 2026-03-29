@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import zlib from "node:zlib";
 
 import { createAppHarness } from "./browser-harness";
-import { runBalanceSimulationReport } from "./combat-simulator";
+import { runBalanceSimulationReport, type BalanceSimulationReport } from "./combat-simulator";
 import {
   createQuietAppHarness,
   createProgressionSimulationSeed,
@@ -1134,6 +1134,10 @@ function buildCombatEncounterMetrics(encounters: Array<{
 }
 
 function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRunTask): BalanceRunRecord {
+  type CombatBalanceClassReport = BalanceSimulationReport["classReports"][number];
+  type CombatBalanceScenarioReport = CombatBalanceClassReport["scenarios"][number];
+  type CombatBalanceEncounterReport = CombatBalanceScenarioReport["encounters"][number];
+
   const simulationReport = runBalanceSimulationReport({
     classIds: [task.classId],
     scenarioIds: [task.policyId],
@@ -1141,8 +1145,8 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     runsPerEncounter: Math.max(1, Number(spec.runsPerEncounter || 16)),
     encounterLimit: Math.max(0, Number(spec.encounterLimit || 0)),
   });
-  const classReport = simulationReport.classReports[0] as any;
-  const scenarioReport = classReport?.scenarios?.[0] as any;
+  const classReport = simulationReport.classReports[0] as CombatBalanceClassReport | undefined;
+  const scenarioReport = classReport?.scenarios?.[0] as CombatBalanceScenarioReport | undefined;
   if (!classReport || !scenarioReport) {
     throw new Error(`Combat balance simulation produced no result for ${task.classId} / ${task.policyId}.`);
   }
@@ -1190,7 +1194,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     activeRunewords: [],
   } as PolicyRunSummary["finalBuild"];
 
-  const encounterResults = (scenarioReport.encounters || []).map((encounter: any) => ({
+  const encounterResults = (scenarioReport.encounters || []).map((encounter: CombatBalanceEncounterReport) => ({
     actNumber: Number(scenarioReport.build.actNumber || spec.throughActNumber || 5),
     encounterId: encounter.encounterId,
     encounterName: encounter.encounterName,
@@ -1272,7 +1276,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
         notes: [...(scenarioReport.build.notes || [])],
       },
       overall: { ...scenarioReport.overall },
-      encounters: (scenarioReport.encounters || []).map((encounter: any) => ({ ...encounter })),
+      encounters: (scenarioReport.encounters || []).map((encounter: CombatBalanceEncounterReport) => ({ ...encounter })),
     },
   };
 }

@@ -184,6 +184,7 @@ Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION
 
 - [docs/MONSTER-IMPLEMENTATION-GUIDE.md](/Users/andrew/proj/rouge/docs/MONSTER-IMPLEMENTATION-GUIDE.md)
 - [docs/SPRITE_GENERATION_BACKLOG.md](/Users/andrew/proj/rouge/docs/SPRITE_GENERATION_BACKLOG.md)
+- [docs/NON_CHARACTER_ART_BACKLOG.md](/Users/andrew/proj/rouge/docs/NON_CHARACTER_ART_BACKLOG.md)
 - [docs/ATTRIBUTION.md](/Users/andrew/proj/rouge/docs/ATTRIBUTION.md)
 - [artifacts/balance/latest.md](/Users/andrew/proj/rouge/artifacts/balance/latest.md)
 
