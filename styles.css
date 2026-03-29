@@ -2350,6 +2350,7 @@ button.entity-card:disabled {
 
 .campfire-selection-shell__support-card {
   align-content: start;
+  margin-top: -18px;
 }
 
 .campfire-selection-shell__support-block {
@@ -3036,6 +3037,10 @@ button.entity-card:disabled {
 
   .campfire-selection-shell__comparison-band {
     grid-template-columns: 1fr;
+  }
+
+  .campfire-selection-shell__support-card {
+    margin-top: 0;
   }
 
   .campfire-selection-shell__ratings,

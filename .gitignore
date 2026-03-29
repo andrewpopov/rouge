@@ -18,6 +18,7 @@ logs/
 playwright-report/
 test-results/
 artifacts/quality/
+artifacts/balance/
 
 # Source asset dumps (keep curated runtime assets only)
 assets/raw/

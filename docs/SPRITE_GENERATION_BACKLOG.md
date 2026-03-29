@@ -309,6 +309,6 @@ This is the order I recommend for one-by-one generation so we establish the visu
 - [x] `uber_diablo`
 - [x] `uber_duriel`
 - [x] `uber_izual`
-- [ ] `ventar_the_unholy`
+- [x] `ventar_the_unholy`
 - [ ] `witch_doctor_endugu`
 - [ ] `wyand_voidbringer`

@@ -132,7 +132,8 @@
     "uber_baal",
     "uber_diablo",
     "uber_duriel",
-    "uber_izual"
+    "uber_izual",
+    "ventar_the_unholy"
   ],
   "portraits": [
     "amazon",
@@ -544,6 +545,9 @@
     ],
     "uber_izual": [
       "uber_izual.png"
+    ],
+    "ventar_the_unholy": [
+      "ventar_the_unholy.png"
     ]
   },
   "portraitVariants": {
