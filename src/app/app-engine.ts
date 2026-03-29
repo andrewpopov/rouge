@@ -96,14 +96,6 @@
     }
   }
 
-  function selectClass(state: AppState, classId: string): void {
-    setSelectedClass(state, classId);
-  }
-
-  function selectMercenary(state: AppState, mercenaryId: string): void {
-    setSelectedMercenary(state, mercenaryId);
-  }
-
   function setRunHistoryReviewIndex(state: AppState, historyIndex: number): void {
     state.ui.reviewedHistoryIndex = clampRunHistoryReviewIndex(state, historyIndex);
   }
@@ -529,8 +521,6 @@
   runtimeWindow.ROUGE_APP_ENGINE = {
     PHASES,
     createAppState,
-    selectClass,
-    selectMercenary,
     setSelectedClass,
     setSelectedMercenary,
     startCharacterSelect,

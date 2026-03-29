@@ -3,7 +3,7 @@
   const { RUNE_REWARD_POOLS } = runtimeWindow.ROUGE_ITEM_DATA;
   const { clamp, toNumber, uniquePush } = runtimeWindow.ROUGE_UTILS;
   const fallbackClone = <T>(value: T): T => {
-    if (value == null) {
+    if (value === null || value === undefined) {
       return value;
     }
     return JSON.parse(JSON.stringify(value)) as T;

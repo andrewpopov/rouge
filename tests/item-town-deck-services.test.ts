@@ -21,6 +21,36 @@ function createRunState() {
   return { state, content, deckServices, browserWindow };
 }
 
+function cloneRun(run: RunState): RunState {
+  return JSON.parse(JSON.stringify(run)) as RunState;
+}
+
+function findGamblerOutcome(options: {
+  actionId: string;
+  gold: number;
+  mutateRun?: (run: RunState) => void;
+  predicate: (result: ActionResult, run: RunState, baseDeckSize: number) => boolean;
+  maxSeed?: number;
+}) {
+  const { state, content, deckServices } = createRunState();
+  const baseRun = cloneRun(state.run);
+  const maxSeed = options.maxSeed || 5000;
+
+  for (let seed = 1; seed <= maxSeed; seed += 1) {
+    const run = cloneRun(baseRun);
+    run.seed = seed;
+    run.gold = options.gold;
+    options.mutateRun?.(run);
+    const baseDeckSize = run.deck.length;
+    const result = deckServices.applyGamblerAction(run, content, options.actionId);
+    if (options.predicate(result, run, baseDeckSize)) {
+      return { result, run, baseDeckSize, seed };
+    }
+  }
+
+  assert.fail(`No matching gambler outcome found for ${options.actionId} within ${maxSeed} seeds.`);
+}
+
 // ── Blacksmith ──
 
 test("buildBlacksmithActions returns at least one action", () => {
@@ -256,4 +286,46 @@ test("applyGamblerAction is deterministic for the same run state", () => {
   assert.equal(firstResult.message, secondResult.message);
   assert.equal(first.state.run.gold, second.state.run.gold);
   assert.equal(JSON.stringify(Array.from(first.state.run.deck)), JSON.stringify(Array.from(second.state.run.deck)));
+});
+
+test("applyGamblerAction bronze can resolve to a refund without growing the deck", () => {
+  const outcome = findGamblerOutcome({
+    actionId: "gambler_mystery_bronze",
+    gold: 999,
+    predicate(result, run, baseDeckSize) {
+      return result.ok && result.message.includes("pouch of") && run.deck.length === baseDeckSize;
+    },
+  });
+
+  assert.ok(outcome.result.message.includes("Better luck next time."));
+  assert.equal(outcome.run.deck.length, outcome.baseDeckSize);
+});
+
+test("applyGamblerAction silver can fall through to the tier-one consolation card branch", () => {
+  const outcome = findGamblerOutcome({
+    actionId: "gambler_mystery_silver",
+    gold: 999,
+    predicate(result, run, baseDeckSize) {
+      return result.ok && result.message.includes("Not quite what you hoped for.") && run.deck.length === baseDeckSize + 1;
+    },
+  });
+
+  assert.ok(outcome.result.message.includes("Gamble reveals:"));
+  assert.equal(outcome.run.deck.length, outcome.baseDeckSize + 1);
+});
+
+test("applyGamblerAction gold can resolve to the empty-box refund branch without growing the deck", () => {
+  const outcome = findGamblerOutcome({
+    actionId: "gambler_mystery_gold",
+    gold: 9999,
+    mutateRun(run) {
+      run.actNumber = 3;
+    },
+    predicate(result, run, baseDeckSize) {
+      return result.ok && result.message.includes("empty box") && run.deck.length === baseDeckSize;
+    },
+  });
+
+  assert.ok(outcome.result.message.includes("gambler smirks"));
+  assert.equal(outcome.run.deck.length, outcome.baseDeckSize);
 });

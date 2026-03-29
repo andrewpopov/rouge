@@ -642,6 +642,92 @@ interface ItemSystemRewardsApi {
   ): boolean;
 }
 
+interface ItemSystemEquipmentTableEntry {
+  kind: "equipment";
+  id: string;
+  item: RuntimeItemDefinition;
+  weight: number;
+  dropRate: number;
+}
+
+interface ItemSystemRuneTableEntry {
+  kind: "rune";
+  id: string;
+  rune: RuntimeRuneDefinition;
+  weight: number;
+  dropRate: number;
+}
+
+interface ItemSystemEquipmentDrop {
+  kind: "equipment";
+  id: string;
+  tableDropRate: number;
+  rarity: string;
+  rarityBonuses: ItemBonusSet;
+  weaponAffixes?: WeaponCombatProfile;
+  armorAffixes?: ArmorMitigationProfile;
+}
+
+interface ItemSystemRuneDrop {
+  kind: "rune";
+  id: string;
+  tableDropRate: number;
+}
+
+type ItemSystemExtraDrop = ItemSystemEquipmentDrop | ItemSystemRuneDrop;
+
+interface ItemSystemLootApi {
+  createSeededRandom(seed: number): RandomFn;
+  formatPercent(value: number): string;
+  getLootSeed(run: RunState, zone: ZoneState | null, actNumber: number, encounterNumber: number): number;
+  getTargetItemTier(run: RunState, zone: ZoneState | null, actNumber: number, content: GameContent): number;
+  getZoneDropCount(zone: ZoneState | null, actNumber: number): number;
+  getEquipmentTableEntries(
+    run: RunState,
+    zone: ZoneState | null,
+    actNumber: number,
+    content: GameContent,
+    profile?: ProfileState | null
+  ): ItemSystemEquipmentTableEntry[];
+  getPlanningFocusedEquipmentTable(
+    equipmentTable: ItemSystemEquipmentTableEntry[],
+    run: RunState,
+    profile: ProfileState | null,
+    content: GameContent
+  ): ItemSystemEquipmentTableEntry[];
+  getRuneTableEntries(
+    run: RunState,
+    zone: ZoneState | null,
+    actNumber: number,
+    content: GameContent
+  ): ItemSystemRuneTableEntry[];
+  getGuaranteedRuneDropCount(zone: ZoneState | null, run: RunState, content: GameContent): number;
+  buildZoneLootTable(config: {
+    content: GameContent;
+    run: RunState;
+    zone: ZoneState | null;
+    actNumber: number;
+    encounterNumber: number;
+    profile?: ProfileState | null;
+  }): Array<{
+    kind: "equipment" | "rune";
+    id: string;
+    weight: number;
+    dropRate: number;
+  }>;
+}
+
+interface ItemSystemChoiceApi {
+  buildEquipmentChoice(config: {
+    content: GameContent;
+    run: RunState;
+    zone: ZoneState | null;
+    actNumber: number;
+    encounterNumber: number;
+    profile?: ProfileState | null;
+  }): RewardChoice | null;
+}
+
 interface ItemTownApi {
   getAccountEconomyFeatures(profile?: ProfileState | null): AccountEconomyFeatures;
   getPlannedRunewordId(profile: ProfileState | null | undefined, slot: "weapon" | "armor", content?: GameContent | null): string;
@@ -962,8 +1048,6 @@ interface AppEngineApi {
     combatEngine: CombatEngineApi;
     randomFn?: RandomFn;
   }): AppState;
-  selectClass(state: AppState, classId: string): void;
-  selectMercenary(state: AppState, mercenaryId: string): void;
   setSelectedClass(state: AppState, classId: string): void;
   setSelectedMercenary(state: AppState, mercenaryId: string): void;
   startCharacterSelect(state: AppState): void;

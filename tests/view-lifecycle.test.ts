@@ -39,6 +39,39 @@ test("managedRAF falls back to managedTimeout in non-browser environment", () =>
   assert.equal(rafCalled, false);
 });
 
+test("registerCleanup tracks disposable work and cleanup runs it once", () => {
+  const { browserWindow } = createHarness();
+  const lifecycle = browserWindow.ROUGE_VIEW_LIFECYCLE;
+
+  lifecycle.cleanup();
+  let cleaned = 0;
+  lifecycle.registerCleanup(() => { cleaned += 1; });
+  assert.equal(lifecycle.pendingCount(), 1);
+
+  lifecycle.cleanup();
+  assert.equal(cleaned, 1);
+  assert.equal(lifecycle.pendingCount(), 0);
+
+  lifecycle.cleanup();
+  assert.equal(cleaned, 1);
+});
+
+test("registerCleanup can unregister a pending disposable before cleanup", () => {
+  const { browserWindow } = createHarness();
+  const lifecycle = browserWindow.ROUGE_VIEW_LIFECYCLE;
+
+  lifecycle.cleanup();
+  let cleaned = 0;
+  const unregister = lifecycle.registerCleanup(() => { cleaned += 1; });
+  assert.equal(lifecycle.pendingCount(), 1);
+
+  unregister();
+  assert.equal(lifecycle.pendingCount(), 0);
+
+  lifecycle.cleanup();
+  assert.equal(cleaned, 0);
+});
+
 test("cleanup is idempotent when called with no pending timers", () => {
   const { browserWindow } = createHarness();
   const lifecycle = browserWindow.ROUGE_VIEW_LIFECYCLE;

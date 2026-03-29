@@ -455,7 +455,7 @@ async function captureScreenshots(baseUrl) {
       await page.waitForTimeout(500);
     }
 
-    await shot(page, "06-world-map", { fullPage: true });
+    await shot(page, "06-world-map");
 
     // ── 07. Enter first zone ──
     if (await tryClick(page, /Blood Moor/i, 400)) {

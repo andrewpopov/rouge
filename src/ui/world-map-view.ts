@@ -133,6 +133,10 @@
     5: new Set(["Nihlathak's Temple"]),
   };
 
+  const EDGE_NODE_PADDING_PX = 4;
+  const worldMapEdgeObservers = new WeakMap<HTMLElement, ResizeObserver>();
+  const worldMapEdgeObserverReleases = new WeakMap<HTMLElement, () => void>();
+
   /**
    * Gate-only prerequisite edges that should not be drawn visually.
    * Key = zone title, value = set of prerequisite zone titles to skip drawing.
@@ -142,6 +146,13 @@
     "Tristram": new Set(["Dark Wood"]),
     "Nihlathak's Temple": new Set(["Frozen River"]),
   };
+
+  const TOP_LABEL_ZONE_TITLES = new Set([
+    "Den of Evil",
+    "Burial Grounds",
+    "Tristram",
+    "Forgotten Tower",
+  ]);
 
   /**
    * Look up measured positions for each zone, falling back to
@@ -226,7 +237,48 @@
    * Build SVG edge paths connecting zones based on prerequisite chains.
    * Each zone draws an edge from each of its prerequisites.
    */
-  function buildSvgEdges(zones: ZoneState[], positions: Map<string, [number, number]>, actNumber: number): string {
+  function trimSegmentToNodeEdges(
+    from: [number, number],
+    to: [number, number],
+    startRadiusPx: number,
+    endRadiusPx: number
+  ): { x1: number; y1: number; x2: number; y2: number } {
+    const dx = to[0] - from[0];
+    const dy = to[1] - from[1];
+    const distance = Math.hypot(dx, dy);
+    if (distance <= 0.01) {
+      return { x1: from[0], y1: from[1], x2: to[0], y2: to[1] };
+    }
+
+    const startTrim = Math.min(startRadiusPx + EDGE_NODE_PADDING_PX, distance / 2);
+    const endTrim = Math.min(endRadiusPx + EDGE_NODE_PADDING_PX, distance / 2);
+    const ux = dx / distance;
+    const uy = dy / distance;
+
+    return {
+      x1: from[0] + ux * startTrim,
+      y1: from[1] + uy * startTrim,
+      x2: to[0] - ux * endTrim,
+      y2: to[1] - uy * endTrim,
+    };
+  }
+
+  function buildSvgEdgeLine(
+    from: [number, number],
+    to: [number, number],
+    startRadiusPx: number,
+    endRadiusPx: number,
+    cls: string
+  ): string {
+    const trimmed = trimSegmentToNodeEdges(from, to, startRadiusPx, endRadiusPx);
+    return `<line x1="${trimmed.x1}" y1="${trimmed.y1}" x2="${trimmed.x2}" y2="${trimmed.y2}" class="map-edge ${cls}" />`;
+  }
+
+  function buildSvgEdges(
+    zones: ZoneState[],
+    nodeGeometry: Map<string, { center: [number, number]; radius: number }>,
+    actNumber: number,
+  ): string {
     const zoneById = new Map(zones.map((z) => [z.id, z]));
     const townEdgeSet = TOWN_EDGE_ZONES[actNumber];
     const lines: string[] = [];
@@ -234,9 +286,9 @@
     // Town → opening edge
     const opening = zones.find((z) => z.zoneRole === "opening");
     if (opening) {
-      const fp = positions.get("town");
-      const tp = positions.get(opening.id);
-      if (fp && tp) {
+      const fromNode = nodeGeometry.get("town");
+      const toNode = nodeGeometry.get(opening.id);
+      if (fromNode && toNode) {
         let cls: string;
         if (opening.status === "cleared") {
           cls = "edge--cleared";
@@ -245,19 +297,19 @@
         } else {
           cls = "edge--locked";
         }
-        lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
+        lines.push(buildSvgEdgeLine(fromNode.center, toNode.center, fromNode.radius, toNode.radius, cls));
       }
     }
 
     // Every zone draws edges from its prerequisites
     for (const zone of zones) {
-      const tp = positions.get(zone.id);
-      if (!tp) { continue; }
+      const toNode = nodeGeometry.get(zone.id);
+      if (!toNode) { continue; }
 
       // Zones in TOWN_EDGE_ZONES draw their edge from town instead of prerequisite
       if (townEdgeSet?.has(zone.title)) {
-        const fp = positions.get("town");
-        if (fp) {
+        const fromNode = nodeGeometry.get("town");
+        if (fromNode) {
           const allPrereqsCleared = (zone.prerequisites || []).every((pid) => zoneById.get(pid)?.status === "cleared");
           const active = allPrereqsCleared && zone.status === "available";
           const bothCleared = allPrereqsCleared && zone.status === "cleared";
@@ -269,7 +321,7 @@
           } else {
             cls = "edge--locked";
           }
-          lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
+          lines.push(buildSvgEdgeLine(fromNode.center, toNode.center, fromNode.radius, toNode.radius, cls));
         }
         continue;
       }
@@ -277,8 +329,8 @@
       const hiddenSet = HIDDEN_EDGES[zone.title];
       for (const prereqId of zone.prerequisites || []) {
         const prereq = zoneById.get(prereqId);
-        const fp = positions.get(prereqId);
-        if (!fp || !prereq) { continue; }
+        const fromNode = nodeGeometry.get(prereqId);
+        if (!fromNode || !prereq) { continue; }
 
         // Skip gate-only edges that shouldn't be drawn visually
         if (hiddenSet?.has(prereq.title)) { continue; }
@@ -294,10 +346,104 @@
           cls = "edge--locked";
         }
 
-        lines.push(`<line x1="${fp[0]}%" y1="${fp[1]}%" x2="${tp[0]}%" y2="${tp[1]}%" class="map-edge ${cls}" />`);
+        lines.push(buildSvgEdgeLine(fromNode.center, toNode.center, fromNode.radius, toNode.radius, cls));
       }
     }
     return lines.join("");
+  }
+
+  function collectWaypointGeometry(
+    root: HTMLElement,
+    canvas: HTMLElement
+  ): Map<string, { center: [number, number]; radius: number }> {
+    const canvasRect = canvas.getBoundingClientRect();
+    const geometry = new Map<string, { center: [number, number]; radius: number }>();
+
+    root.querySelectorAll<HTMLElement>(".waypoint[data-waypoint-id]").forEach((waypoint) => {
+      const waypointId = waypoint.dataset.waypointId;
+      const icon = waypoint.querySelector<HTMLElement>(".waypoint__icon");
+      if (!waypointId || !icon) { return; }
+
+      const iconRect = icon.getBoundingClientRect();
+      geometry.set(waypointId, {
+        center: [
+          iconRect.left - canvasRect.left + iconRect.width / 2,
+          iconRect.top - canvasRect.top + iconRect.height / 2,
+        ],
+        radius: Math.min(iconRect.width, iconRect.height) / 2,
+      });
+    });
+
+    return geometry;
+  }
+
+  function buildInitialWaypointGeometry(
+    positions: Map<string, [number, number]>,
+    zones: ZoneState[],
+  ): Map<string, { center: [number, number]; radius: number }> {
+    const geometry = new Map<string, { center: [number, number]; radius: number }>();
+    const townPos = positions.get("town");
+    if (townPos) {
+      geometry.set("town", { center: townPos, radius: 0 });
+    }
+
+    for (const zone of zones) {
+      const pos = positions.get(zone.id);
+      if (!pos) { continue; }
+      geometry.set(zone.id, { center: pos, radius: 0 });
+    }
+
+    return geometry;
+  }
+
+  function syncWorldMapEdges(
+    root: HTMLElement,
+    zones: ZoneState[],
+    actNumber: number
+  ): void {
+    if (typeof (root as unknown as Element).querySelector !== "function") { return; }
+    const canvas = root.querySelector<HTMLElement>(".actmap__canvas");
+    const edgeSvg = root.querySelector<SVGSVGElement>(".actmap__edges");
+    if (!canvas || !edgeSvg) { return; }
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    if (width <= 0 || height <= 0) { return; }
+
+    edgeSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    edgeSvg.setAttribute("preserveAspectRatio", "none");
+    edgeSvg.innerHTML = buildSvgEdges(zones, collectWaypointGeometry(root, canvas), actNumber);
+  }
+
+  function attachWorldMapEdgeObserver(
+    root: HTMLElement,
+    zones: ZoneState[],
+    actNumber: number
+  ): void {
+    if (typeof (root as unknown as Element).querySelector !== "function") { return; }
+    const previousObserver = worldMapEdgeObservers.get(root);
+    previousObserver?.disconnect();
+    const previousRelease = worldMapEdgeObserverReleases.get(root);
+    previousRelease?.();
+    worldMapEdgeObservers.delete(root);
+    worldMapEdgeObserverReleases.delete(root);
+
+    const canvas = root.querySelector<HTMLElement>(".actmap__canvas");
+    if (!canvas) { return; }
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => syncWorldMapEdges(root, zones, actNumber));
+      observer.observe(canvas);
+      worldMapEdgeObservers.set(root, observer);
+      const unregisterCleanup = runtimeWindow.ROUGE_VIEW_LIFECYCLE.registerCleanup(() => {
+        observer.disconnect();
+        worldMapEdgeObservers.delete(root);
+        worldMapEdgeObserverReleases.delete(root);
+      });
+      worldMapEdgeObserverReleases.set(root, unregisterCleanup);
+    }
+
+    runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedRAF(() => syncWorldMapEdges(root, zones, actNumber));
   }
 
   function buildWaypointNode(
@@ -324,18 +470,22 @@
     const ariaLabel = !canClick ? `aria-label="${escapeHtml(zone.title)} — ${zone.status === "cleared" ? "cleared" : "locked"}"` : "";
 
     const kindClass = zone.kind !== "battle" ? `waypoint--${zone.kind}` : "";
-
+    const labelPlacementClass = TOP_LABEL_ZONE_TITLES.has(zone.title) ? "waypoint--label-top" : "";
     const priorityClass = isPriority ? "waypoint--priority" : "";
+    const progressMarkup = zone.encounterTotal > 0 && zone.status !== "cleared"
+      ? `<span class="waypoint__progress">${zone.encountersCleared}/${zone.encounterTotal}</span>`
+      : "";
+    const labelMarkup = `<span class="waypoint__label">${escapeHtml(zone.title)}</span>`;
+    const titleBlockMarkup = labelPlacementClass
+      ? `<span class="waypoint__caption">${labelMarkup}${progressMarkup}</span>`
+      : `${labelMarkup}${progressMarkup}`;
 
     return `
-      <${tag} class="waypoint ${statusClass} ${kindClass} ${priorityClass}" ${action} ${ariaLabel}
+      <${tag} class="waypoint ${statusClass} ${kindClass} ${labelPlacementClass} ${priorityClass}" data-waypoint-id="${escapeHtml(zone.id)}" ${action} ${ariaLabel}
            style="left:${pos[0]}%;top:${pos[1]}%">
         <span class="waypoint__icon">${icon}</span>
-        <span class="waypoint__label">${escapeHtml(zone.title)}</span>
+        ${titleBlockMarkup}
         ${zone.status === "cleared" ? `<span class="waypoint__check">\u2713</span>` : ""}
-        ${zone.encounterTotal > 0 && zone.status !== "cleared"
-          ? `<span class="waypoint__progress">${zone.encountersCleared}/${zone.encounterTotal}</span>`
-          : ""}
       </${tag}>
     `;
   }
@@ -435,7 +585,7 @@
 
     const townPos = positions.get("town") || [8, 44];
     const townWaypoint = `
-      <div class="waypoint waypoint--town" style="left:${townPos[0]}%;top:${townPos[1]}%">
+      <div class="waypoint waypoint--town" data-waypoint-id="town" style="left:${townPos[0]}%;top:${townPos[1]}%">
         <span class="waypoint__icon">\u{1F3E0}</span>
         <span class="waypoint__label">${escapeHtml(run.safeZoneName)}</span>
       </div>
@@ -461,7 +611,7 @@
     const focusPos = (nextZone && positions.get(nextZone.id)) || townPos;
     const bossPos = (bossZone && positions.get(bossZone.id)) || [92, 76];
     const waypoints = mapZones.map((z) => buildWaypointNode(z, reachableZoneIds.has(z.id), nextZone?.id === z.id, escapeHtml, positions)).join("");
-    const edges = buildSvgEdges(mapZones, positions, run.actNumber);
+    const initialEdgeMarkup = buildSvgEdges(mapZones, buildInitialWaypointGeometry(positions, mapZones), run.actNumber);
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -520,9 +670,7 @@
                   class="actmap__main-map"
                   style="--focus-x:${focusPos[0]}%;--focus-y:${focusPos[1]}%;--boss-x:${bossPos[0]}%;--boss-y:${bossPos[1]}%;"
                 >
-                  <svg class="actmap__edges">
-                    ${edges}
-                  </svg>
+                  <svg class="actmap__edges" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">${initialEdgeMarkup}</svg>
 
                   ${townWaypoint}
                   ${waypoints}
@@ -642,6 +790,8 @@
         </div>
       </details>
     `;
+
+    attachWorldMapEdgeObserver(root, mapZones, run.actNumber);
   }
 
   runtimeWindow.ROUGE_WORLD_MAP_VIEW = {

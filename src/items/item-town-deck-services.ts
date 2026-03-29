@@ -54,6 +54,42 @@
     return candidates[Math.max(0, Math.min(candidates.length - 1, index))] || candidates[0] || null;
   }
 
+  function listGamblerCardIds(
+    content: GameContent,
+    predicate: (card: CardDefinition) => boolean
+  ): string[] {
+    return Object.values(content.cardCatalog)
+      .filter(predicate)
+      .map((card) => card.id);
+  }
+
+  function grantGamblerRefund(run: RunState, refund: number, message: string): ActionResult {
+    run.gold += refund;
+    return { ok: true, message };
+  }
+
+  function grantGamblerCard(
+    run: RunState,
+    content: GameContent,
+    candidateCardIds: string[],
+    randomFn: RandomFn,
+    buildSuccessMessage: (cardTitle: string, cardId: string) => string,
+    buildFallbackResult: () => ActionResult
+  ): ActionResult | null {
+    if (candidateCardIds.length === 0) {
+      return null;
+    }
+
+    const cardId = pickRandomValue(candidateCardIds, randomFn);
+    if (!cardId) {
+      return buildFallbackResult();
+    }
+
+    run.deck.push(cardId);
+    const card = content.cardCatalog[cardId];
+    return { ok: true, message: buildSuccessMessage(card?.title || cardId, cardId) };
+  }
+
   // ── Blacksmith: evolution + generic upgrades ──
 
   function buildBlacksmithActions(run: RunState, content: GameContent): TownAction[] {
@@ -403,104 +439,87 @@
     const roll = randomFn();
 
     if (tierId === "bronze") {
+      const refund = Math.floor(cost * 0.4);
+      const buildRefundResult = () => grantGamblerRefund(run, refund, `Gamble reveals: a pouch of ${refund} gold. Better luck next time.`);
       if (roll < 0.5) {
-        // Random tier-1 card from any class
-        const tier1Cards = Object.values(content.cardCatalog)
-          .filter((card) => (card.tier || 0) === 1)
-          .map((card) => card.id);
-        if (tier1Cards.length > 0) {
-          const cardId = pickRandomValue(tier1Cards, randomFn);
-          if (!cardId) {
-            return { ok: true, message: `Gamble reveals: a pouch of ${Math.floor(cost * 0.4)} gold. Better luck next time.` };
-          }
-          run.deck.push(cardId);
-          const card = content.cardCatalog[cardId];
-          return { ok: true, message: `Gamble reveals: ${card?.title || cardId}! Added to your deck.` };
+        const result = grantGamblerCard(
+          run,
+          content,
+          listGamblerCardIds(content, (card) => (card.tier || 0) === 1),
+          randomFn,
+          (cardTitle) => `Gamble reveals: ${cardTitle}! Added to your deck.`,
+          buildRefundResult
+        );
+        if (result) {
+          return result;
         }
       }
-      // Gold refund (partial)
-      const refund = Math.floor(cost * 0.4);
-      run.gold += refund;
-      return { ok: true, message: `Gamble reveals: a pouch of ${refund} gold. Better luck next time.` };
+      return buildRefundResult();
     }
 
     if (tierId === "silver") {
+      const refund = Math.floor(cost * 0.5);
+      const buildRefundResult = () => grantGamblerRefund(run, refund, `Gamble reveals: a sack of ${refund} gold.`);
       if (roll < 0.55) {
-        // Random tier-2 class card
-        const tier2Cards = Object.values(content.cardCatalog)
-          .filter((card) => (card.tier || 0) === 2)
-          .map((card) => card.id);
-        if (tier2Cards.length > 0) {
-          const cardId = pickRandomValue(tier2Cards, randomFn);
-          if (!cardId) {
-            return { ok: true, message: `Gamble reveals: a sack of ${Math.floor(cost * 0.5)} gold.` };
-          }
-          run.deck.push(cardId);
-          const card = content.cardCatalog[cardId];
-          return { ok: true, message: `Gamble reveals: ${card?.title || cardId}! Added to your deck.` };
+        const result = grantGamblerCard(
+          run,
+          content,
+          listGamblerCardIds(content, (card) => (card.tier || 0) === 2),
+          randomFn,
+          (cardTitle) => `Gamble reveals: ${cardTitle}! Added to your deck.`,
+          buildRefundResult
+        );
+        if (result) {
+          return result;
         }
       }
       if (roll < 0.75) {
-        // Decent gold refund
-        const refund = Math.floor(cost * 0.5);
-        run.gold += refund;
-        return { ok: true, message: `Gamble reveals: a sack of ${refund} gold.` };
+        return buildRefundResult();
       }
-      // Tier-1 card consolation
-      const tier1Cards = Object.values(content.cardCatalog)
-        .filter((card) => (card.tier || 0) === 1)
-        .map((card) => card.id);
-      if (tier1Cards.length > 0) {
-        const cardId = pickRandomValue(tier1Cards, randomFn);
-        if (!cardId) {
-          return { ok: true, message: "Gamble reveals: dust. The gambler shrugs." };
-        }
-        run.deck.push(cardId);
-        const card = content.cardCatalog[cardId];
-        return { ok: true, message: `Gamble reveals: ${card?.title || cardId}. Not quite what you hoped for.` };
+      const result = grantGamblerCard(
+        run,
+        content,
+        listGamblerCardIds(content, (card) => (card.tier || 0) === 1),
+        randomFn,
+        (cardTitle) => `Gamble reveals: ${cardTitle}. Not quite what you hoped for.`,
+        () => ({ ok: true, message: "Gamble reveals: dust. The gambler shrugs." })
+      );
+      if (result) {
+        return result;
       }
       return { ok: true, message: "Gamble reveals: dust. The gambler shrugs." };
     }
 
     if (tierId === "gold") {
+      const refund = Math.floor(cost * 0.35);
+      const buildRefundResult = () => grantGamblerRefund(run, refund, `Gamble reveals: ${refund} gold and an empty box. The gambler smirks.`);
       if (roll < 0.4) {
-        // Random tier-3 or tier-4 card (rare)
-        const rareCards = Object.values(content.cardCatalog)
-          .filter((card) => (card.tier || 0) >= 3)
-          .map((card) => card.id);
-        if (rareCards.length > 0) {
-          const cardId = pickRandomValue(rareCards, randomFn);
-          if (!cardId) {
-            const refund = Math.floor(cost * 0.35);
-            run.gold += refund;
-            return { ok: true, message: `Gamble reveals: ${refund} gold and an empty box. The gambler smirks.` };
-          }
-          run.deck.push(cardId);
-          const card = content.cardCatalog[cardId];
-          return { ok: true, message: `Gamble reveals: ${card?.title || cardId}! A rare find. Added to your deck.` };
+        const result = grantGamblerCard(
+          run,
+          content,
+          listGamblerCardIds(content, (card) => (card.tier || 0) >= 3),
+          randomFn,
+          (cardTitle) => `Gamble reveals: ${cardTitle}! A rare find. Added to your deck.`,
+          buildRefundResult
+        );
+        if (result) {
+          return result;
         }
       }
       if (roll < 0.65) {
-        // Tier-2 card
-        const tier2Cards = Object.values(content.cardCatalog)
-          .filter((card) => (card.tier || 0) === 2)
-          .map((card) => card.id);
-        if (tier2Cards.length > 0) {
-          const cardId = pickRandomValue(tier2Cards, randomFn);
-          if (!cardId) {
-            const refund = Math.floor(cost * 0.35);
-            run.gold += refund;
-            return { ok: true, message: `Gamble reveals: ${refund} gold and an empty box. The gambler smirks.` };
-          }
-          run.deck.push(cardId);
-          const card = content.cardCatalog[cardId];
-          return { ok: true, message: `Gamble reveals: ${card?.title || cardId}. Added to your deck.` };
+        const result = grantGamblerCard(
+          run,
+          content,
+          listGamblerCardIds(content, (card) => (card.tier || 0) === 2),
+          randomFn,
+          (cardTitle) => `Gamble reveals: ${cardTitle}. Added to your deck.`,
+          buildRefundResult
+        );
+        if (result) {
+          return result;
         }
       }
-      // Gold refund
-      const refund = Math.floor(cost * 0.35);
-      run.gold += refund;
-      return { ok: true, message: `Gamble reveals: ${refund} gold and an empty box. The gambler smirks.` };
+      return buildRefundResult();
     }
 
     return { ok: false, message: "Unknown gamble tier." };

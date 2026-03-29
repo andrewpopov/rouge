@@ -103,12 +103,12 @@
         "weapon-spear"
       ]
     },
-    "armor_body": {
+    "armor_body_early_and_mid": {
       "category": "item",
       "priority": "high",
-      "description": "Body armor silhouettes from early cloth to late hell plate.",
+      "description": "Early and mid-tier body armor silhouettes.",
       "cols": 5,
-      "rows": 4,
+      "rows": 2,
       "extent": "128x128",
       "trim": true,
       "keyColor": "#00FF00",
@@ -122,7 +122,19 @@
         "chain_mail",
         "ring_mail",
         "splint_mail",
-        "plate_mail",
+        "plate_mail"
+      ]
+    },
+    "armor_body_late_and_elite": {
+      "category": "item",
+      "priority": "high",
+      "description": "Late and elite body armor silhouettes.",
+      "cols": 5,
+      "rows": 2,
+      "extent": "128x128",
+      "trim": true,
+      "keyColor": "#00FF00",
+      "labels": [
         "field_plate",
         "gothic_plate",
         "full_plate_mail",

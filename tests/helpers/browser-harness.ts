@@ -76,6 +76,8 @@ const ITEM_RUNTIME_FILES = [
   "src/items/item-town-deck-services.js",
   "src/items/item-town.js",
   "src/items/item-system-rewards.js",
+  "src/items/item-system-loot.js",
+  "src/items/item-system-choice.js",
   "src/items/item-system.js",
 ];
 

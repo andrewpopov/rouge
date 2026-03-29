@@ -91,6 +91,7 @@ Practical note from the first live equipment pass:
 
 - dense mixed long-weapon sheets are risky when the generator snaps back to `1024 x 1024`
 - bows/crossbows and polearms/throwing weapons should be split into separate sheets rather than forcing one oversized mixed batch
+- body armor also wants smaller sheets; a `5 x 4` armor grid at `1024 x 1024` caused repeated vertical bleed between rows
 
 ## Shared Prompt Rules
 
@@ -230,14 +231,21 @@ Cell order:
   `battle_staff`, `gnarled_staff`, `war_staff`,
   `weapon-bow`, `weapon-crossbow`, `weapon-javelin`, `weapon-spear`
 
-`armor_body`
+`armor_body_early_and_mid`
 
 - priority: high
-- grid: `5 x 4`
-- recommended canvas: `3072 x 3072`
+- grid: `5 x 2`
+- recommended canvas: `2560 x 1024`
 - labels:
   `quilted_armor`, `leather_armor`, `ghost_armor`, `breast_plate`, `light_plate`,
-  `scale_mail`, `chain_mail`, `ring_mail`, `splint_mail`, `plate_mail`,
+  `scale_mail`, `chain_mail`, `ring_mail`, `splint_mail`, `plate_mail`
+
+`armor_body_late_and_elite`
+
+- priority: high
+- grid: `5 x 2`
+- recommended canvas: `2560 x 1024`
+- labels:
   `field_plate`, `gothic_plate`, `full_plate_mail`, `mage_plate`, `ancient_armor`,
   `ornate_plate`, `boneweave`, `chaos_armor`, `hellforge_plate`, `archon_plate`
 

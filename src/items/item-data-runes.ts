@@ -212,7 +212,8 @@
       familyAllowList: ["Swords"],
       requiredRunes: ["rune_tir", "rune_el"],
       bonuses: {
-        heroDamageBonus: 3,
+        heroDamageBonus: 4,
+        heroGuardBonus: 1,
         mercenaryAttack: 1,
       },
     },

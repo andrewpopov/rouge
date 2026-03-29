@@ -340,6 +340,7 @@ interface AppShellRenderConfig {
 interface ViewLifecycleApi {
   managedTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout>;
   managedRAF(fn: FrameRequestCallback): number;
+  registerCleanup(fn: () => void): () => void;
   cleanup(): void;
   pendingCount(): number;
 }
@@ -612,6 +613,8 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_SKILL_EVOLUTION: Record<string, any>;
   __ROUGE_ITEM_SYSTEM_REWARDS: ItemSystemRewardsApi;
+  __ROUGE_ITEM_SYSTEM_LOOT: ItemSystemLootApi;
+  __ROUGE_ITEM_SYSTEM_CHOICE: ItemSystemChoiceApi;
   ROUGE_ITEM_TOWN: ItemTownApi;
   ROUGE_ITEM_SYSTEM: ItemSystemApi;
   ROUGE_REWARD_ENGINE: RewardEngineApi;
