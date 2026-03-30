@@ -4,7 +4,7 @@
     collectDetourPathStates,
     collectEscalationPathStates,
     collectOpportunityChoiceStates,
-  } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
+  } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
 
   const {
     pushError,

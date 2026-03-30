@@ -7,6 +7,17 @@ import {
   scorePartyPower,
   scoreWeaponProfile,
 } from "./balance-power-score";
+import {
+  ATTACK_INTENT_KINDS,
+  SIMULATION_SCORING_WEIGHTS,
+} from "./run-progression-simulator-core";
+import {
+  getEnemyStatusScore,
+  getHeroDebuffScore,
+  getIncomingThreat,
+  getThreatPressure,
+  hasChargeThreat,
+} from "./run-progression-simulator-combat";
 
 const DEFAULT_CLASS_IDS = ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"] as const;
 
@@ -20,64 +31,7 @@ const DEFAULT_MERCENARY_BY_CLASS: Record<string, string> = {
   sorceress: "iron_wolf",
 };
 
-const STATUS_WEIGHTS = {
-  burn: 1.5,
-  poison: 1.5,
-  slow: 2.5,
-  freeze: 3.5,
-  stun: 4.0,
-  paralyze: 4.0,
-};
-
-const HERO_DEBUFF_WEIGHTS = {
-  heroBurn: 1.5,
-  heroPoison: 1.5,
-  chill: 1.5,
-  amplify: 2.0,
-  weaken: 2.0,
-  energyDrain: 1.5,
-};
-
-const CARD_EFFECT_WEIGHTS: Record<CardEffectKind, number> = {
-  damage: 2.2,
-  damage_all: 2.8,
-  gain_guard_self: 1.3,
-  gain_guard_party: 1.6,
-  heal_hero: 1.6,
-  heal_mercenary: 0.8,
-  draw: 3.0,
-  mark_enemy_for_mercenary: 3.0,
-  buff_mercenary_next_attack: 2.0,
-  apply_burn: 2.0,
-  apply_burn_all: 2.5,
-  apply_poison: 2.0,
-  apply_poison_all: 2.5,
-  apply_slow: 2.2,
-  apply_slow_all: 2.8,
-  apply_freeze: 2.6,
-  apply_freeze_all: 3.0,
-  apply_stun: 2.8,
-  apply_stun_all: 3.2,
-  apply_paralyze: 2.8,
-  apply_paralyze_all: 3.2,
-  summon_minion: 3.6,
-};
-
-const ATTACK_INTENT_KINDS = new Set<EnemyIntentKind>([
-  "attack",
-  "attack_all",
-  "attack_and_guard",
-  "drain_attack",
-  "sunder_attack",
-  "attack_burn",
-  "attack_burn_all",
-  "attack_lightning",
-  "attack_lightning_all",
-  "attack_poison",
-  "attack_poison_all",
-  "attack_chill",
-  "drain_energy",
-]);
+const CARD_EFFECT_WEIGHTS = SIMULATION_SCORING_WEIGHTS.cardEffectBase;
 
 interface RewardPackageDefinition {
   heroMaxLife: number;
@@ -856,68 +810,6 @@ function cloneCombatState(state: CombatState) {
   return clone;
 }
 
-function getEnemyStatusScore(state: CombatState) {
-  return state.enemies.reduce((sum, enemy) => {
-    return (
-      sum +
-      enemy.burn * STATUS_WEIGHTS.burn +
-      enemy.poison * STATUS_WEIGHTS.poison +
-      enemy.slow * STATUS_WEIGHTS.slow +
-      enemy.freeze * STATUS_WEIGHTS.freeze +
-      enemy.stun * STATUS_WEIGHTS.stun +
-      enemy.paralyze * STATUS_WEIGHTS.paralyze
-    );
-  }, 0);
-}
-
-function getHeroDebuffScore(state: CombatState) {
-  return (
-    state.hero.heroBurn * HERO_DEBUFF_WEIGHTS.heroBurn +
-    state.hero.heroPoison * HERO_DEBUFF_WEIGHTS.heroPoison +
-    state.hero.chill * HERO_DEBUFF_WEIGHTS.chill +
-    state.hero.amplify * HERO_DEBUFF_WEIGHTS.amplify +
-    state.hero.weaken * HERO_DEBUFF_WEIGHTS.weaken +
-    state.hero.energyDrain * HERO_DEBUFF_WEIGHTS.energyDrain
-  );
-}
-
-function getIncomingThreat(state: CombatState) {
-  return state.enemies.reduce((sum, enemy) => {
-    if (!enemy.alive || !enemy.currentIntent) {
-      return sum;
-    }
-    const intent = enemy.currentIntent;
-    if (ATTACK_INTENT_KINDS.has(intent.kind)) {
-      const aoeMultiplier =
-        intent.kind === "attack_all" || intent.kind === "attack_burn_all" || intent.kind === "attack_lightning_all" || intent.kind === "attack_poison_all"
-          ? 1.35
-          : 1;
-      const statusBonus =
-        intent.kind === "attack_burn" || intent.kind === "attack_burn_all" || intent.kind === "attack_poison" || intent.kind === "attack_poison_all" || intent.kind === "attack_chill"
-          ? 2
-          : intent.kind === "drain_energy"
-            ? 1
-            : 0;
-      return sum + (Number(intent.value || 0) + statusBonus) * aoeMultiplier;
-    }
-    if (intent.kind === "charge") {
-      const aoeMultiplier = intent.target === "all_allies" ? 1.25 : 1;
-      return sum + Number(intent.value || 0) * aoeMultiplier;
-    }
-    if (intent.kind === "curse_amplify" || intent.kind === "curse_weaken") {
-      return sum + 3;
-    }
-    return sum;
-  }, 0);
-}
-
-function hasChargeThreat(state: CombatState) {
-  return state.enemies.some((enemy) => enemy.alive && enemy.currentIntent?.kind === "charge");
-}
-
-function getThreatPressure(state: CombatState) {
-  return getIncomingThreat(state) / Math.max(1, state.hero.life + state.hero.guard);
-}
 
 function getHandValue(state: CombatState, content: GameContent) {
   return state.hand.reduce((sum, entry) => {

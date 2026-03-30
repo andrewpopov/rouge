@@ -7,6 +7,7 @@
 
   const TAB_CHARACTER = "character";
   const TAB_INVENTORY = "inventory";
+  const FIELD_SATCHEL_ART = "assets/curated/sprites/items/field_satchel.png";
 
   const SLOT_GLYPHS: Record<string, string> = {
     helm: "\u25B3",
@@ -64,6 +65,22 @@
         <div class="d2inv-tip__type">${escapeHtml(item.family || item.slot)}</div>
         ${bonusLines.map((line: string) => `<div class="d2inv-tip__stat">${escapeHtml(line)}</div>`).join("")}
         <div class="d2inv-tip__socket">${escapeHtml(socketLine)}</div>
+      </div>
+    `;
+  }
+
+  function buildRuneTooltip(rune: RuntimeRuneDefinition | null, escapeHtml: (s: string) => string): string {
+    if (!rune) { return ""; }
+    const { describeBonusSet } = runtimeWindow.ROUGE_RUN_STATE;
+    const bonusLines = describeBonusSet(rune.bonuses);
+    const allowedSlots = (rune.allowedSlots || []).map((slot) => toTitleCase(slot)).join(", ");
+    return `
+      <div class="d2inv-tip d2inv-tip--rune">
+        <div class="d2inv-tip__name">${escapeHtml(rune.name)}</div>
+        <div class="d2inv-tip__type">Tier ${rune.progressionTier} Rune</div>
+        <div class="d2inv-tip__stat">${escapeHtml(rune.summary)}</div>
+        ${bonusLines.map((line: string) => `<div class="d2inv-tip__stat">${escapeHtml(line)}</div>`).join("")}
+        <div class="d2inv-tip__socket">${escapeHtml(`Fits: ${allowedSlots || "Weapon, Armor"}`)}</div>
       </div>
     `;
   }
@@ -145,6 +162,144 @@
           <button class="d2inv-grid-cell__use" data-action="use-town-action"
                   data-town-action-id="inventory_equip_${entry.entryId}">Equip</button>
         ` : ""}
+      </div>
+    `;
+  }
+
+  function buildPackSlotCell(
+    entry: InventoryEntry | null,
+    slotIndex: number,
+    content: GameContent,
+    selectedEntryId: string,
+    escapeHtml: (s: string) => string
+  ): string {
+    if (!entry) {
+      return `
+        <div class="d2inv-pack-slot d2inv-pack-slot--empty" aria-hidden="true">
+          <span class="d2inv-pack-slot__index">${slotIndex + 1}</span>
+          <span class="d2inv-pack-slot__empty">Empty</span>
+        </div>
+      `;
+    }
+
+    const isEquipment = entry.kind === ENTRY_KIND.EQUIPMENT;
+    const itemDef = isEquipment ? runtimeWindow.ROUGE_ITEM_CATALOG.getItemDefinition(content, entry.equipment?.itemId || "") : null;
+    const runeDef = !isEquipment ? runtimeWindow.ROUGE_ITEM_CATALOG.getRuneDefinition(content, entry.runeId || "") : null;
+    const name = isEquipment ? (itemDef?.name || "Unknown") : (runeDef?.name || "Unknown Rune");
+    const meta = isEquipment
+      ? toTitleCase(itemDef?.family || itemDef?.slot || "Equipment")
+      : `Tier ${Math.max(1, runeDef?.progressionTier || 1)} Rune`;
+    const sprite = isEquipment
+      ? (itemDef ? runtimeWindow.ROUGE_ASSET_MAP.getItemSprite(itemDef.sourceId, entry.equipment?.rarity, entry.equipment?.slot) : null)
+      : (runeDef ? runtimeWindow.ROUGE_ASSET_MAP.getRuneSprite(runeDef.sourceId) : null);
+    const rarityClass = isEquipment
+      ? getRarityColorClass(entry.equipment?.rarity)
+      : `d2inv--rune d2inv--rune-tier-${Math.max(1, Math.min(9, runeDef?.progressionTier || 1))}`;
+    const selectedClass = entry.entryId === selectedEntryId ? "d2inv-pack-slot--selected" : "";
+    const tooltipMarkup = isEquipment
+      ? buildEquipmentTooltip(entry.equipment, content, escapeHtml)
+      : buildRuneTooltip(runeDef, escapeHtml);
+
+    return `
+      <button class="d2inv-pack-slot ${rarityClass} ${selectedClass}"
+              data-action="select-inventory-entry"
+              data-entry-id="${escapeHtml(entry.entryId)}"
+              title="${escapeHtml(name)}">
+        <span class="d2inv-pack-slot__index">${slotIndex + 1}</span>
+        <span class="d2inv-pack-slot__meta">${escapeHtml(meta)}</span>
+        ${sprite
+          ? `<img class="d2inv-pack-slot__sprite" src="${escapeHtml(sprite)}" alt="${escapeHtml(name)}">`
+          : `<span class="d2inv-pack-slot__name">${escapeHtml(name)}</span>`}
+        <span class="d2inv-pack-slot__label">${escapeHtml(name)}</span>
+        ${tooltipMarkup}
+      </button>
+    `;
+  }
+
+  function buildInventoryEntryDetailMarkup(
+    entry: InventoryEntry | null,
+    content: GameContent,
+    escapeHtml: (s: string) => string
+  ): string {
+    if (!entry) {
+      return "";
+    }
+
+    const { describeBonusSet, describeWeaponProfile, describeArmorProfile } = runtimeWindow.ROUGE_RUN_STATE;
+    const isEquipment = entry.kind === ENTRY_KIND.EQUIPMENT;
+    if (isEquipment) {
+      const equipment = entry.equipment;
+      const itemDef = runtimeWindow.ROUGE_ITEM_CATALOG.getItemDefinition(content, equipment?.itemId || "");
+      if (!itemDef || !equipment) {
+        return "";
+      }
+      const combinedBonuses = { ...itemDef.bonuses };
+      if (equipment.rarityBonuses) {
+        Object.entries(equipment.rarityBonuses).forEach(([key, value]: [string, number]) => {
+          (combinedBonuses as Record<string, number>)[key] = ((combinedBonuses as Record<string, number>)[key] || 0) + value;
+        });
+      }
+      const bonusLines = [
+        ...describeBonusSet(combinedBonuses),
+        ...describeWeaponProfile(buildEquipmentWeaponProfile(equipment, content)),
+        ...describeArmorProfile(buildEquipmentArmorProfile(equipment, content)),
+      ];
+      const rarityLabel = getRarityLabel(equipment.rarity);
+      const runeCount = equipment.insertedRunes.length;
+      const runewordDef = equipment.runewordId ? runtimeWindow.ROUGE_ITEM_CATALOG.getRunewordDefinition(content, equipment.runewordId) : null;
+
+      return `
+        <div class="d2inv-pack-detail ${getRarityColorClass(equipment.rarity)}">
+          <div class="d2inv-pack-detail__head">
+            <div>
+              <span class="d2inv-pack-detail__eyebrow">${escapeHtml(toTitleCase(itemDef.family || itemDef.slot))}</span>
+              <strong class="d2inv-pack-detail__name">${escapeHtml(rarityLabel ? `${rarityLabel} ${itemDef.name}` : itemDef.name)}</strong>
+            </div>
+            <button class="d2inv-pack-detail__close" data-action="clear-inventory-detail" title="Clear detail">×</button>
+          </div>
+          <p class="d2inv-pack-detail__summary">${escapeHtml(itemDef.summary)}</p>
+          <div class="d2inv-pack-detail__chips">
+            <span class="d2inv-pack-detail__chip">Tier ${itemDef.progressionTier}</span>
+            <span class="d2inv-pack-detail__chip">${escapeHtml(toTitleCase(itemDef.slot))}</span>
+            <span class="d2inv-pack-detail__chip">${runeCount}/${equipment.socketsUnlocked} sockets</span>
+            ${runewordDef ? `<span class="d2inv-pack-detail__chip">${escapeHtml(runewordDef.name)}</span>` : ""}
+          </div>
+          ${bonusLines.length > 0
+            ? `<ul class="d2inv-pack-detail__lines">${bonusLines.map((line: string) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
+            : `<p class="d2inv-pack-detail__summary">No additional combat bonuses are recorded on this piece.</p>`
+          }
+          <div class="d2inv-pack-detail__actions">
+            <button class="d2inv-pack-detail__action" data-action="use-town-action" data-town-action-id="inventory_equip_${escapeHtml(entry.entryId)}">Equip To Loadout</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const runeDef = runtimeWindow.ROUGE_ITEM_CATALOG.getRuneDefinition(content, entry.runeId || "");
+    if (!runeDef) {
+      return "";
+    }
+    const bonusLines = runtimeWindow.ROUGE_RUN_STATE.describeBonusSet(runeDef.bonuses);
+    const allowedSlots = (runeDef.allowedSlots || []).map((slot) => toTitleCase(slot)).join(", ");
+
+    return `
+      <div class="d2inv-pack-detail d2inv-pack-detail--rune">
+        <div class="d2inv-pack-detail__head">
+          <div>
+            <span class="d2inv-pack-detail__eyebrow">Rune Detail</span>
+            <strong class="d2inv-pack-detail__name">${escapeHtml(runeDef.name)}</strong>
+          </div>
+          <button class="d2inv-pack-detail__close" data-action="clear-inventory-detail" title="Clear detail">×</button>
+        </div>
+        <p class="d2inv-pack-detail__summary">${escapeHtml(runeDef.summary)}</p>
+        <div class="d2inv-pack-detail__chips">
+          <span class="d2inv-pack-detail__chip">Tier ${runeDef.progressionTier}</span>
+          <span class="d2inv-pack-detail__chip">${escapeHtml(`Fits ${allowedSlots || "Weapon, Armor"}`)}</span>
+        </div>
+        ${bonusLines.length > 0
+          ? `<ul class="d2inv-pack-detail__lines">${bonusLines.map((line: string) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
+          : `<p class="d2inv-pack-detail__summary">No additional rune bonuses are recorded.</p>`
+        }
       </div>
     `;
   }
@@ -372,6 +527,48 @@
     `;
   }
 
+  function buildPackStageMarkup(
+    appState: AppState,
+    vm: ReturnType<typeof deriveInventoryModel>,
+    content: GameContent,
+    escapeHtml: (s: string) => string
+  ): string {
+    const { run } = vm;
+    const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY;
+    const carried = run.inventory?.carried || [];
+    const slots = Array.from({ length: capacity }, (_, index) => buildPackSlotCell(carried[index] || null, index, content, appState.ui.inventoryDetailEntryId || "", escapeHtml)).join("");
+    const selectedEntry = carried.find((entry) => entry.entryId === appState.ui.inventoryDetailEntryId) || null;
+
+    return `
+      <div class="d2inv-pack-stage">
+        <div class="d2inv-pack-stage__visual">
+          <div class="d2inv-pack-stage__satchel" aria-hidden="true">
+            <img
+              class="d2inv-pack-stage__satchel-art"
+              src="${escapeHtml(FIELD_SATCHEL_ART)}"
+              alt=""
+              loading="lazy"
+              onerror="this.style.display='none'"
+            >
+          </div>
+          <div class="d2inv-pack-stage__copy">
+            <strong class="d2inv-pack-stage__headline">${carried.length > 0 ? "The satchel is ready for the road." : "The satchel is still light."}</strong>
+            <p class="d2inv-pack-stage__text">${carried.length > 0
+              ? "Carry only what deserves a place on the march. Click a slot to pin its full detail."
+              : "Buy gear, lift bound steel from the loadout, or carry runes before leaving the fire."}</p>
+          </div>
+        </div>
+
+        <div class="d2inv-pack-board">
+          <div class="d2inv-pack-board__grid">
+            ${slots}
+          </div>
+          ${buildInventoryEntryDetailMarkup(selectedEntry, content, escapeHtml)}
+        </div>
+      </div>
+    `;
+  }
+
   function buildInventoryHeader(services: UiRenderServices, activeTab: string, vm: ReturnType<typeof deriveInventoryModel>): string {
     const { escapeHtml } = services.renderUtils;
     const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY;
@@ -396,7 +593,7 @@
           ${buildSummaryChip("Pack", `${carried}/${capacity}`, escapeHtml)}
         </div>
 
-        <button class="d2inv__close" data-action="close-inventory">Close</button>
+        <button class="d2inv__close" data-action="close-inventory" aria-label="Close Inventory">×</button>
       </div>
     `;
   }
@@ -495,6 +692,7 @@
     const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY;
     const carried = run.inventory?.carried || [];
     const emptyCount = Math.max(0, capacity - carried.length);
+    const packBodyMarkup = buildPackStageMarkup(appState, vm, content, escapeHtml);
 
     return `
       <div class="d2inv__body d2inv__body--inventory">
@@ -542,9 +740,11 @@
             <div class="d2inv__panel-head">
               <div>
                 <div class="d2inv__panel-label">
-                  Carried Inventory <span class="d2inv__count">${carried.length}/${capacity}</span>
+                  Pack Contents <span class="d2inv__count">${carried.length}/${capacity}</span>
                 </div>
-                <p class="d2inv__panel-copy">Equip what deserves a place on the road. Empty cells mark how much burden the pack can still bear.</p>
+                <p class="d2inv__panel-copy">${carried.length > 0
+                  ? "Equip what deserves a place on the road. Empty cells mark how much burden the pack can still bear."
+                  : "Nothing is stowed yet. Use this space for weapons, armor, and runes you actually want to march with."}</p>
               </div>
               <div class="d2inv__gold">
                 <span class="d2inv__gold-icon">\u{1FA99}</span>
@@ -552,10 +752,7 @@
               </div>
             </div>
 
-            <div class="d2inv-grid">
-              ${carried.map((entry: InventoryEntry) => buildGridCell(entry, content, escapeHtml)).join("")}
-              ${Array.from({ length: emptyCount }, () => `<div class="d2inv-grid-cell d2inv-grid-cell--empty"></div>`).join("")}
-            </div>
+            ${packBodyMarkup}
           </section>
 
           ${buildCharmPouchMarkup(appState, escapeHtml)}

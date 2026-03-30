@@ -22,6 +22,7 @@ import {
   type ArchetypeCommitCheckpoint,
   type ArchetypeCommitmentMode,
   type BuildPolicyDefinition,
+  type CheckpointProbeProfile,
   type PolicyProgressSummary,
   type PolicyRunSummary,
   type PolicySimulationHooks,
@@ -176,6 +177,10 @@ function updateArchetypeCommitmentProgress(
   }
 
   if (!checkpoint) {
+    return
+  }
+
+  if (checkpoint.checkpointKind === "pre_boss") {
     return
   }
 
@@ -429,7 +434,8 @@ export function runProgressionPolicyFromState(
   seedOffset = 0,
   continuation?: Partial<RunProgressionContinuationContext>,
   hooks?: PolicySimulationHooks,
-  archetypePlanInput?: Partial<RunArchetypeSimulationPlan> | null
+  archetypePlanInput?: Partial<RunArchetypeSimulationPlan> | null,
+  checkpointProbeProfile: CheckpointProbeProfile = "default"
 ): PolicySimulationReport {
   const PHASES = harness.appEngine.PHASES
   const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : []
@@ -443,6 +449,21 @@ export function runProgressionPolicyFromState(
   const archetypePlan = continuation?.archetypePlan
     ? buildArchetypeSimulationPlan(harness, classId, continuation.archetypePlan)
     : buildArchetypeSimulationPlan(harness, classId, archetypePlanInput)
+  let blockedTownRecoverySignature = ""
+
+  const getTownRecoverySignature = () => {
+    if (!state.run) {
+      return ""
+    }
+    return [
+      state.run.actNumber,
+      Number(state.run.hero.currentLife || 0),
+      Number(state.run.hero.maxLife || 0),
+      Number(state.run.belt.current || 0),
+      Number(state.run.mercenary.currentLife || 0),
+      Number(state.run.gold || 0),
+    ].join("|")
+  }
 
   const continuationContext = () => cloneContinuationContext({
     policyId: policy.id,
@@ -457,10 +478,43 @@ export function runProgressionPolicyFromState(
     archetypePlan: archetypePlan ? JSON.parse(JSON.stringify(archetypePlan)) as RunArchetypeSimulationPlan : null,
   })
 
+  const reportOperation = (
+    stage: "started" | "completed",
+    operation:
+      | "optimize_safe_zone"
+      | "build_checkpoint"
+      | "sync_encounter_outcome"
+      | "choose_reward"
+      | "claim_reward"
+      | "leave_safe_zone"
+      | "return_to_safe_zone"
+      | "select_zone"
+      | "continue_act_transition",
+    elapsedMs: number,
+    detail = ""
+  ) => {
+    hooks?.onOperationProgress?.({
+      classId,
+      policy,
+      seedOffset,
+      stage,
+      operation,
+      actNumber: Number(state.run?.actNumber || failure?.actNumber || 0),
+      phase: String(state.phase || ""),
+      elapsedMs,
+      detail,
+    })
+  }
+
   if (!continuation) {
     syncCommittedArchetypePreference(state, archetypePlan)
     updateArchetypeCommitmentLock(state, archetypePlan)
+    reportOperation("started", "optimize_safe_zone", 0, "initial")
+    const optimizeStartedAt = Date.now()
     optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, 24, archetypePlan)
+    reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "initial")
+    reportOperation("started", "build_checkpoint", 0, "initial")
+    const checkpointStartedAt = Date.now()
     const initialCheckpoint = buildCheckpointSummary(
       harness,
       state.run as RunState,
@@ -470,8 +524,12 @@ export function runProgressionPolicyFromState(
       progress,
       probeRuns,
       maxCombatTurns,
-      archetypePlan
+      archetypePlan,
+      {
+        probeProfile: checkpointProbeProfile,
+      }
     )
+    reportOperation("completed", "build_checkpoint", Date.now() - checkpointStartedAt, "initial")
     updateArchetypeCommitmentProgress(harness, state.run as RunState, initialCheckpoint, archetypePlan)
     checkpoints.push(initialCheckpoint)
     hooks?.onInitialized?.({
@@ -490,6 +548,12 @@ export function runProgressionPolicyFromState(
       seedOffset,
       checkpoint: initialCheckpoint,
       continuationContext: continuationContext(),
+    })
+    hooks?.onCheckpointLite?.({
+      policy,
+      classId,
+      seedOffset,
+      checkpoint: initialCheckpoint,
     })
   } else {
     syncCommittedArchetypePreference(state, archetypePlan)
@@ -531,7 +595,10 @@ export function runProgressionPolicyFromState(
         return report
       }
 
+      reportOperation("started", "leave_safe_zone", 0, `act ${state.run.actNumber}`)
+      const leaveStartedAt = Date.now()
       const leaveResult = harness.appEngine.leaveSafeZone(state)
+      reportOperation("completed", "leave_safe_zone", Date.now() - leaveStartedAt, leaveResult.ok ? `act ${state.run?.actNumber || 0}` : leaveResult.message || "failed")
       if (!leaveResult.ok) {
         throw new Error(leaveResult.message || "Could not leave safe zone.")
       }
@@ -543,14 +610,30 @@ export function runProgressionPolicyFromState(
         state.run.hero.currentLife <= Math.ceil(state.run.hero.maxLife * 0.5) ||
         state.run.belt.current <= 0 ||
         state.run.mercenary.currentLife <= 0
-      if (needsTown) {
+      const townRecoverySignature = getTownRecoverySignature()
+      if (!needsTown) {
+        blockedTownRecoverySignature = ""
+      }
+      if (needsTown && blockedTownRecoverySignature === townRecoverySignature) {
+        reportOperation("completed", "return_to_safe_zone", 0, "skipped repeat town recovery")
+      }
+      if (needsTown && blockedTownRecoverySignature !== townRecoverySignature) {
+        reportOperation("started", "return_to_safe_zone", 0, `act ${state.run.actNumber}`)
+        const returnStartedAt = Date.now()
         const returnResult = harness.appEngine.returnToSafeZone(state)
+        reportOperation("completed", "return_to_safe_zone", Date.now() - returnStartedAt, returnResult.ok ? `act ${state.run?.actNumber || 0}` : returnResult.message || "failed")
         if (returnResult.ok) {
           syncCommittedArchetypePreference(state, archetypePlan)
           updateArchetypeCommitmentLock(state, archetypePlan)
+          reportOperation("started", "optimize_safe_zone", 0, "town return")
+          const optimizeStartedAt = Date.now()
           optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan)
+          reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "town return")
+          const postRecoverySignature = getTownRecoverySignature()
+          blockedTownRecoverySignature = postRecoverySignature === townRecoverySignature ? postRecoverySignature : ""
           continue
         }
+        blockedTownRecoverySignature = townRecoverySignature
       }
 
       const reachableZones = harness.runFactory.getReachableZones(state.run)
@@ -562,11 +645,14 @@ export function runProgressionPolicyFromState(
       const candidates = reachableZones.slice()
       while (candidates.length > 0 && !selectedZone) {
         const nextZone = chooseNextZone(state.run, candidates)
+        reportOperation("started", "select_zone", 0, nextZone.title)
+        const selectStartedAt = Date.now()
         const selectResult = harness.appEngine.selectZone(state, nextZone.id)
-        if (selectResult.ok) {
-          selectedZone = nextZone
-          countSelectedZone(progress, selectedZone)
-          break
+        reportOperation("completed", "select_zone", Date.now() - selectStartedAt, selectResult.ok ? nextZone.title : selectResult.message || nextZone.title)
+      if (selectResult.ok) {
+        selectedZone = nextZone
+        countSelectedZone(progress, selectedZone)
+        break
         }
         lastSelectMessage = selectResult.message || `Could not select zone ${nextZone.id}.`
         const candidateIndex = candidates.findIndex((zone) => zone.id === nextZone.id)
@@ -581,6 +667,51 @@ export function runProgressionPolicyFromState(
       }
       if (state.phase === PHASES.ENCOUNTER) {
         const encounter = harness.content.encounterCatalog[state.run.activeEncounterId]
+        if (selectedZone.kind === "boss") {
+          reportOperation("started", "build_checkpoint", 0, `act ${state.run.actNumber} pre-boss`)
+          const checkpointStartedAt = Date.now()
+          const preBossCheckpoint = buildCheckpointSummary(
+            harness,
+            state.run,
+            state.profile,
+            policy,
+            state.run.actNumber,
+            progress,
+            probeRuns,
+            maxCombatTurns,
+            archetypePlan,
+            {
+              checkpointKind: "pre_boss",
+              checkpointId: `act_${state.run.actNumber}_pre_boss`,
+              label: `Act ${state.run.actNumber} Pre-Boss`,
+              probeEntries: [
+                {
+                  encounterId: state.run.activeEncounterId,
+                  encounterName: encounter?.name || state.run.activeEncounterId,
+                  zoneTitle: selectedZone.title,
+                  kind: "boss",
+                },
+              ],
+            }
+          )
+          reportOperation("completed", "build_checkpoint", Date.now() - checkpointStartedAt, `act ${state.run.actNumber} pre-boss`)
+          checkpoints.push(preBossCheckpoint)
+          hooks?.onCheckpointLite?.({
+            policy,
+            classId,
+            seedOffset,
+            checkpoint: preBossCheckpoint,
+          })
+          hooks?.onCheckpoint?.({
+            state,
+            harness,
+            policy,
+            classId,
+            seedOffset,
+            checkpoint: preBossCheckpoint,
+            continuationContext: continuationContext(),
+          })
+        }
         lastEncounterContext = {
           actNumber: state.run.actNumber,
           zoneTitle: selectedZone.title,
@@ -591,6 +722,12 @@ export function runProgressionPolicyFromState(
           zoneRole: selectedZone.zoneRole || "",
           nodeType: selectedZone.nodeType || "",
         }
+        hooks?.onEncounterStartLite?.({
+          policy,
+          classId,
+          seedOffset,
+          encounter: { ...lastEncounterContext },
+        })
         hooks?.onEncounterStart?.({
           state,
           harness,
@@ -605,12 +742,41 @@ export function runProgressionPolicyFromState(
     }
 
     if (state.phase === PHASES.ENCOUNTER) {
-      const combatResult = playStateCombat(harness, state, policy, maxCombatTurns)
+      const currentEncounterContext = lastEncounterContext ? { ...lastEncounterContext } : null
+      const combatResult = playStateCombat(
+        harness,
+        state,
+        policy,
+        maxCombatTurns,
+        hooks?.onEncounterProgress && currentEncounterContext
+          ? {
+              onProgress: (progressEvent) => {
+                hooks.onEncounterProgress?.({
+                  classId,
+                  policy,
+                  seedOffset,
+                  encounter: currentEncounterContext,
+                  stage: progressEvent.stage,
+                  turn: progressEvent.turn,
+                  actionIndex: progressEvent.actionIndex,
+                  candidateCount: progressEvent.candidateCount,
+                  bestScore: progressEvent.bestScore,
+                  stepElapsedMs: progressEvent.stepElapsedMs,
+                  encounterElapsedMs: progressEvent.encounterElapsedMs,
+                  detail: progressEvent.detail,
+                })
+              },
+            }
+          : undefined
+      )
       const encounterMetric = buildEncounterMetric(harness, state.run, lastEncounterContext, combatResult)
       if (encounterMetric) {
         progress.encounterResults.push(encounterMetric)
       }
+      reportOperation("started", "sync_encounter_outcome", 0, lastEncounterContext?.encounterName || "")
+      const syncStartedAt = Date.now()
       const outcomeResult = harness.appEngine.syncEncounterOutcome(state)
+      reportOperation("completed", "sync_encounter_outcome", Date.now() - syncStartedAt, lastEncounterContext?.encounterName || "")
       if (!outcomeResult.ok) {
         throw new Error(outcomeResult.message || "Could not sync encounter outcome.")
       }
@@ -649,7 +815,15 @@ export function runProgressionPolicyFromState(
         throw new Error("Reward phase is active without a pending reward.")
       }
       syncCommittedArchetypePreference(state, archetypePlan)
+      reportOperation("started", "choose_reward", 0, reward.title)
+      const chooseRewardStartedAt = Date.now()
       const primaryChoice = chooseBestRewardChoice(harness, state.run, state.profile, reward, policy, archetypePlan)
+      reportOperation(
+        "completed",
+        "choose_reward",
+        Date.now() - chooseRewardStartedAt,
+        `${reward.title} -> ${primaryChoice?.title || primaryChoice?.id || "none"}`
+      )
       const orderedChoices = [
         primaryChoice,
         ...((Array.isArray(reward.choices) ? reward.choices : []).filter((choice) => choice.id !== primaryChoice?.id)),
@@ -660,7 +834,17 @@ export function runProgressionPolicyFromState(
       for (const choice of orderedChoices) {
         let attempts = 0
         while (attempts <= ((state.run.inventory?.carried?.length || 0) + 1)) {
+          reportOperation("started", "claim_reward", 0, `${reward.title} -> ${choice?.title || choice?.id || "choice"}`)
+          const claimStartedAt = Date.now()
           const claimResult = harness.appEngine.claimRewardAndAdvance(state, choice?.id || "")
+          reportOperation(
+            "completed",
+            "claim_reward",
+            Date.now() - claimStartedAt,
+            claimResult.ok
+              ? `${reward.title} -> ${choice?.title || choice?.id || "choice"}`
+              : claimResult.message || `${reward.title} -> ${choice?.title || choice?.id || "choice"}`
+          )
           if (claimResult.ok) {
             countChoice(progress, reward, choice)
             updateArchetypeCommitmentLock(state, archetypePlan, true)
@@ -699,13 +883,21 @@ export function runProgressionPolicyFromState(
           state.run.guide.targetActNumber = 0
         }
       }
+      reportOperation("started", "continue_act_transition", 0, `act ${state.run?.actNumber || 0}`)
+      const continueStartedAt = Date.now()
       const continueResult = harness.appEngine.continueActTransition(state)
+      reportOperation("completed", "continue_act_transition", Date.now() - continueStartedAt, continueResult.ok ? `act ${state.run?.actNumber || 0}` : continueResult.message || "failed")
       if (!continueResult.ok) {
         throw new Error(continueResult.message || "Could not continue act transition.")
       }
       syncCommittedArchetypePreference(state, archetypePlan)
       updateArchetypeCommitmentLock(state, archetypePlan)
+      reportOperation("started", "optimize_safe_zone", 0, "act transition")
+      const optimizeStartedAt = Date.now()
       optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan)
+      reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "act transition")
+      reportOperation("started", "build_checkpoint", 0, `act ${state.run.actNumber}`)
+      const checkpointStartedAt = Date.now()
       const checkpoint = buildCheckpointSummary(
         harness,
         state.run,
@@ -715,10 +907,20 @@ export function runProgressionPolicyFromState(
         progress,
         probeRuns,
         maxCombatTurns,
-        archetypePlan
+        archetypePlan,
+        {
+          probeProfile: checkpointProbeProfile,
+        }
       )
+      reportOperation("completed", "build_checkpoint", Date.now() - checkpointStartedAt, `act ${state.run.actNumber}`)
       updateArchetypeCommitmentProgress(harness, state.run, checkpoint, archetypePlan)
       checkpoints.push(checkpoint)
+      hooks?.onCheckpointLite?.({
+        policy,
+        classId,
+        seedOffset,
+        checkpoint,
+      })
       hooks?.onCheckpoint?.({
         state,
         harness,
@@ -771,7 +973,8 @@ function simulatePolicyRun(
   maxCombatTurns: number,
   seedOffset = 0,
   hooks?: PolicySimulationHooks,
-  archetypePlan?: Partial<RunArchetypeSimulationPlan> | null
+  archetypePlan?: Partial<RunArchetypeSimulationPlan> | null,
+  checkpointProbeProfile: CheckpointProbeProfile = "default"
 ): PolicySimulationReport {
   const seed = createProgressionSimulationSeed(classId, policy.id, throughActNumber, seedOffset)
   const state = createSimulationState(harness, classId, seed)
@@ -786,7 +989,8 @@ function simulatePolicyRun(
     seedOffset,
     undefined,
     hooks,
-    archetypePlan
+    archetypePlan,
+    checkpointProbeProfile
   )
 }
 
@@ -961,6 +1165,7 @@ export function runProgressionSimulationReport(options: RunProgressionSimulation
   const probeRuns = Math.max(0, options.probeRuns ?? 3)
   const maxCombatTurns = Math.max(12, options.maxCombatTurns || 36)
   const seedOffset = Math.max(0, options.seedOffset || 0)
+  const checkpointProbeProfile = options.checkpointProbeProfile || "default"
   const archetypePlan = options.targetArchetypeId
     ? {
         targetArchetypeId: options.targetArchetypeId,
@@ -984,7 +1189,18 @@ export function runProgressionSimulationReport(options: RunProgressionSimulation
       className: classDefinition.name,
       policyReports: policies.map((policy) => {
         const harness = createQuietAppHarness()
-        return simulatePolicyRun(harness, classId, policy, throughActNumber, probeRuns, maxCombatTurns, seedOffset, undefined, archetypePlan)
+        return simulatePolicyRun(
+          harness,
+          classId,
+          policy,
+          throughActNumber,
+          probeRuns,
+          maxCombatTurns,
+          seedOffset,
+          undefined,
+          archetypePlan,
+          checkpointProbeProfile
+        )
       }),
     }
   })

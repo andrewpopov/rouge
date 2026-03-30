@@ -60,6 +60,10 @@
     const vm = deriveCombatViewModel(appState, services);
     const { COMBAT_PHASE, COMBAT_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
     const { run, combat, selectedEnemy, markedEnemy, phaseText, zoneName, zoneEnv, encounterNum, encounterTotal, cardCount, drawPileCount, discardPileCount, weaponItem, rarityColor, canMelee, hasOutcome } = vm;
+    const activeMinions = Array.isArray(combat.minions) ? combat.minions : [];
+    const minionRackMarkup = activeMinions.length > 0
+      ? renderers.renderMinionRack(activeMinions, escapeHtml, "command")
+      : "";
     const incomingPressure = !hasOutcome && combat.phase === COMBAT_PHASE.PLAYER
       ? pressure.buildIncomingPressure(combat)
       : { hero: pressure.buildEmptyPressureSummary(), mercenary: pressure.buildEmptyPressureSummary() };
@@ -179,7 +183,6 @@
                       escapeHtml,
                     })}
                   </div>
-                  ${renderers.renderMinionRack(combat.minions || [], escapeHtml)}
                 </div>
 
                 <div class="stage__enemies">
@@ -234,6 +237,7 @@
                     <strong class="combat-command__resource-value">\u{1F4B0} ${run.gold}</strong>
                   </div>
                 </div>
+                ${minionRackMarkup ? `<div class="combat-command__support-row">${minionRackMarkup}</div>` : ""}
               </div>
             </div>
 

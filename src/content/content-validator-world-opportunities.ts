@@ -1,6 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window & {
-    ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES?: ContentValidatorWorldOpportunitiesApi;
+    __ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES?: ContentValidatorWorldOpportunitiesApi;
   };
 
   const {
@@ -39,7 +39,7 @@
     validateEscalationOpportunityFamily(options);
   }
 
-  runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES = {
+  runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES = {
     validateGrants,
     validateKnownStringIds,
     validateLateRouteOpportunityFamilies,

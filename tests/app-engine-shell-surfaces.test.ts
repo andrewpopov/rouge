@@ -243,21 +243,15 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   });
   assert.match(root.innerHTML, /Town Districts/);
   assert.match(root.innerHTML, /Departure Board/);
-  assert.match(root.innerHTML, /Town Ledger/);
-  assert.match(root.innerHTML, /Run State Vs Profile State/);
-  assert.match(root.innerHTML, /Progression Board/);
-  assert.match(root.innerHTML, /Account Signals/);
-  assert.match(root.innerHTML, /Prep Comparison Board/);
-  assert.match(root.innerHTML, /Before Or After Desk/);
-  assert.match(root.innerHTML, /Recovery Reset/);
-  assert.match(root.innerHTML, /Market Reset/);
-  assert.match(root.innerHTML, /Live Account Bonuses/);
-  assert.match(root.innerHTML, /Account Progression Focus/);
-  assert.match(root.innerHTML, /World Ledger/);
+  assert.match(root.innerHTML, /Camp Overview/);
+  assert.match(root.innerHTML, /Prep Desk/);
   assert.match(root.innerHTML, /Loadout Bench/);
-  assert.match(root.innerHTML, /Service Drilldowns/);
+  assert.match(root.innerHTML, /Camp Services/);
   assert.match(root.innerHTML, /Ready To Leave Town\?/);
   assert.match(root.innerHTML, /Mercenary Barracks/);
+  assert.doesNotMatch(root.innerHTML, /Account Signals/);
+  assert.doesNotMatch(root.innerHTML, /Prep Comparison Board/);
+  assert.doesNotMatch(root.innerHTML, /World Ledger/);
 
   appEngine.leaveSafeZone(state);
   appEngine.returnToFrontDoor(state);
@@ -432,10 +426,12 @@ test("safe-zone shell turns priority town prep actions into before-or-after read
   const townActions = browserWindow.ROUGE_TOWN_SERVICES.listActions(content, state.run, state.profile);
   const healerAction = townActions.find((action) => action.id === "healer_restore_party");
   const quartermasterAction = townActions.find((action) => action.id === "quartermaster_refill_belt");
+  const quartermasterSurgeryLocked = townActions.find((action) => action.id === "quartermaster_deck_surgery_locked");
   const progressionAction = townActions.find((action) => action.id === "progression_spend_vitality");
   const marketAction = townActions.find((action) => action.id === "vendor_refresh_stock");
   assert.ok(healerAction);
   assert.ok(quartermasterAction);
+  assert.ok(quartermasterSurgeryLocked);
   assert.ok(progressionAction);
   assert.ok(marketAction);
 
@@ -445,7 +441,7 @@ test("safe-zone shell turns priority town prep actions into before-or-after read
     bootState: { status: "ready", error: "" },
   });
 
-  assert.match(root.innerHTML, /Before Or After Desk/);
+  assert.match(root.innerHTML, /Prep Desk/);
   assert.match(
     root.innerHTML,
     new RegExp(
@@ -465,6 +461,7 @@ test("safe-zone shell turns priority town prep actions into before-or-after read
       `Projected market reset: gold ${state.run.gold} -&gt; ${state.run.gold - marketAction.cost}, refresh ${state.run.town.vendor.refreshCount} -&gt; ${state.run.town.vendor.refreshCount + 1}, stock rerolls after the fee\\.`
     )
   );
+  assert.match(root.innerHTML, /Deck Surgery/);
 });
 
 test("world-map and reward shell render node-specific quest and aftermath guidance", () => {

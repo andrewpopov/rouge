@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { toNumber } = runtimeWindow.ROUGE_UTILS;
+  const { ZONE_NAME } = runtimeWindow.ROUGE_CONSTANTS;
 
   function humanizeId(id: string): string {
     return String(id || "")
@@ -80,7 +81,7 @@
       lastPlayedClass?.name || (profileSummary.lastPlayedClassId ? humanizeId(profileSummary.lastPlayedClassId) : "No archived run yet");
     const selectedMercenaryLabel = selectedMercenary?.name || "Choose a companion";
     const deckProfileId = selectedClassId ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getDeckProfileId?.(appState.content, selectedClassId) || "Unset" : "Unset";
-    const townName = appState.run?.safeZoneName || "Forsaken Palisade";
+    const townName = appState.run?.safeZoneName || ZONE_NAME.FORSAKEN_PALISADE;
     const routeLabel = appState.run?.actTitle || "Blackwood Route";
     const hallBlocked = Boolean(profileSummary.hasActiveRun);
     const draftReady = Boolean(selectedClassId && selectedMercenary?.name);
@@ -443,8 +444,8 @@
     return `
       <section class="panel flow-panel" id="town-prep-outcomes">
         <div class="panel-head">
-          <h2>Before Or After Desk</h2>
-          <p>Town now turns the highest-value prep actions into explicit before-or-after reads, so recovery, belt, build, and market or contract changes are visible before you commit gold or points.</p>
+          <h2>Prep Desk</h2>
+          <p>Preview the highest-value camp decisions before you commit gold or points: healing, belt refill, training, and the next market or contract move.</p>
         </div>
         <div class="feature-grid feature-grid-wide mutation-delta-grid">
           ${buildRecoveryOutcomeCard(run, derivedParty, healerAction, renderUtils)}

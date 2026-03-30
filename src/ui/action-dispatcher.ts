@@ -128,10 +128,22 @@
         return true;
       case "switch-inv-tab":
         appState.ui.inventoryTab = actionEl.dataset.invTab || "inventory";
+        if (appState.ui.inventoryTab !== "inventory") {
+          appState.ui.inventoryDetailEntryId = "";
+        }
+        render();
+        return true;
+      case "select-inventory-entry":
+        appState.ui.inventoryDetailEntryId = actionEl.dataset.entryId || "";
+        render();
+        return true;
+      case "clear-inventory-detail":
+        appState.ui.inventoryDetailEntryId = "";
         render();
         return true;
       case "close-inventory":
         appState.ui.inventoryOpen = false;
+        appState.ui.inventoryDetailEntryId = "";
         render();
         return true;
       case "leave-safe-zone":

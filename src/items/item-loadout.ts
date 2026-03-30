@@ -149,6 +149,8 @@
         refreshCount: 0,
         stock: [] as InventoryEntry[],
       },
+      sagePurgeCount: 0,
+      quartermasterDeckSurgeryUsed: false,
     };
   }
 

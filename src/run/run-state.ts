@@ -76,6 +76,7 @@
         stock: [],
       },
       sagePurgeCount: 0,
+      quartermasterDeckSurgeryUsed: false,
     };
   }
 

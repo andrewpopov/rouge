@@ -24,12 +24,9 @@
   const mercenaryModule = runtimeWindow.__ROUGE_COMBAT_MERCENARY;
   const { COMBAT_PHASE, COMBAT_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const neutralWeaponScaling = {
-    getCardProficiency: (_cardId: string) => "",
     hasPreferredWeaponFamily: (_state: CombatState) => false,
     getWeaponAttackBonus: (_state: CombatState, _cardId: string) => 0,
     getWeaponSupportBonus: (_state: CombatState, _cardId: string) => 0,
-    getWeaponTypedDamageAmount: (_state: CombatState, entry: WeaponDamageDefinition) => Math.max(1, parseInteger(entry?.amount, 1)),
-    getWeaponEffectAmount: (_state: CombatState, effect: WeaponEffectDefinition) => Math.max(1, parseInteger(effect?.amount, 1)),
     getMeleeDamage: (state: CombatState) => {
       const baseDamage = Math.max(1, state.weaponDamageBonus || 0);
       if (state.hero.weaken > 0) {
@@ -39,135 +36,45 @@
     },
   };
   const {
-    getCardProficiency,
     hasPreferredWeaponFamily,
     getWeaponAttackBonus,
     getWeaponSupportBonus,
-    getWeaponTypedDamageAmount,
-    getWeaponEffectAmount,
     getMeleeDamage,
   } = runtimeWindow.__ROUGE_COMBAT_WEAPON_SCALING || neutralWeaponScaling;
 
+  const neutralMinionModule = {
+    MAX_ACTIVE_MINIONS: 0,
+    getActiveMinions: (_state: CombatState): CombatMinionState[] => [],
+    getMinionTemplate: (_templateId: string): null => null,
+    getMinionDuration: (_effect: CardEffect, _template: unknown): number => 0,
+    getMinionPrimaryValue: (_effect: CardEffect): number => 0,
+    getMinionSecondaryValue: (_effect: CardEffect): number => 0,
+    getMinionReinforcementValue: (value: number): number => value,
+    getMinionSkillSummary: (_minion: CombatMinionState): string => "",
+    getSummonPreview: (_state: CombatState | null, _effect: CardEffect): string => "",
+    buildMinionActionSummary: (
+      _actionKind: CombatMinionActionKind,
+      _power: number,
+      _secondaryValue: number
+    ): string => "",
+  };
+  const minionModule = runtimeWindow.__ROUGE_COMBAT_MINIONS || neutralMinionModule;
+  const {
+    MAX_ACTIVE_MINIONS,
+    getActiveMinions,
+    getMinionTemplate,
+    getMinionDuration,
+    getMinionPrimaryValue,
+    getMinionSecondaryValue,
+    getMinionReinforcementValue,
+    getMinionSkillSummary,
+    getSummonPreview,
+  } = minionModule;
+  const weaponEffectsModule = runtimeWindow.__ROUGE_COMBAT_WEAPON_EFFECTS;
+  const { applyWeaponTypedDamage, applyWeaponEffects } = weaponEffectsModule;
+
   const THORNS_DAMAGE = 2;
   const REGENERATION_AMOUNT = 2;
-  const MAX_ACTIVE_MINIONS = 3;
-  const DEFAULT_TEMPORARY_MINION_DURATION = 3;
-
-  type MinionTemplateDefinition = {
-    id: string;
-    name: string;
-    skillLabel: string;
-    actionKind: CombatMinionActionKind;
-    targetRule: CombatMinionTargetRule;
-    persistent: boolean;
-  };
-
-  const MINION_TEMPLATES: Record<string, MinionTemplateDefinition> = {
-    necromancer_skeleton: {
-      id: "necromancer_skeleton",
-      name: "Skeleton",
-      skillLabel: "Rusty Slash",
-      actionKind: "attack",
-      targetRule: "selected_enemy",
-      persistent: true,
-    },
-    necromancer_clay_golem: {
-      id: "necromancer_clay_golem",
-      name: "Clay Golem",
-      skillLabel: "Mud Guard",
-      actionKind: "attack_guard_party",
-      targetRule: "selected_enemy",
-      persistent: true,
-    },
-    necromancer_skeletal_mage: {
-      id: "necromancer_skeletal_mage",
-      name: "Skeletal Mage",
-      skillLabel: "Toxic Bolt",
-      actionKind: "attack_poison",
-      targetRule: "lowest_life",
-      persistent: true,
-    },
-    necromancer_blood_golem: {
-      id: "necromancer_blood_golem",
-      name: "Blood Golem",
-      skillLabel: "Siphon Maw",
-      actionKind: "attack_heal_hero",
-      targetRule: "selected_enemy",
-      persistent: true,
-    },
-    necromancer_revive: {
-      id: "necromancer_revive",
-      name: "Revived Horror",
-      skillLabel: "Grave Pummel",
-      actionKind: "attack",
-      targetRule: "selected_enemy",
-      persistent: true,
-    },
-    druid_raven: {
-      id: "druid_raven",
-      name: "Raven",
-      skillLabel: "Pecking Mark",
-      actionKind: "attack_mark",
-      targetRule: "lowest_life",
-      persistent: true,
-    },
-    druid_poison_creeper: {
-      id: "druid_poison_creeper",
-      name: "Poison Creeper",
-      skillLabel: "Venom Lash",
-      actionKind: "attack_poison",
-      targetRule: "lowest_life",
-      persistent: true,
-    },
-    druid_oak_sage: {
-      id: "druid_oak_sage",
-      name: "Oak Sage",
-      skillLabel: "Vital Bloom",
-      actionKind: "heal_party",
-      targetRule: "all_enemies",
-      persistent: true,
-    },
-    druid_heart_of_wolverine: {
-      id: "druid_heart_of_wolverine",
-      name: "Heart of Wolverine",
-      skillLabel: "Pack Fury",
-      actionKind: "buff_mercenary_guard_party",
-      targetRule: "all_enemies",
-      persistent: true,
-    },
-    druid_grizzly: {
-      id: "druid_grizzly",
-      name: "Grizzly",
-      skillLabel: "Mauling Swipe",
-      actionKind: "attack_guard_party",
-      targetRule: "selected_enemy",
-      persistent: true,
-    },
-    assassin_wake_of_fire: {
-      id: "assassin_wake_of_fire",
-      name: "Wake of Fire",
-      skillLabel: "Flame Sweep",
-      actionKind: "attack_all_burn",
-      targetRule: "all_enemies",
-      persistent: false,
-    },
-    assassin_lightning_sentry: {
-      id: "assassin_lightning_sentry",
-      name: "Lightning Sentry",
-      skillLabel: "Static Volley",
-      actionKind: "attack_all_paralyze",
-      targetRule: "all_enemies",
-      persistent: false,
-    },
-    assassin_death_sentry: {
-      id: "assassin_death_sentry",
-      name: "Death Sentry",
-      skillLabel: "Death Pulse",
-      actionKind: "attack_all_paralyze",
-      targetRule: "all_enemies",
-      persistent: false,
-    },
-  };
 
   function appendLog(state: CombatState, message: string) {
     state.log.unshift(message);
@@ -180,86 +87,6 @@
 
   function getFirstLivingEnemyId(state: CombatState) {
     return getLivingEnemies(state)[0]?.id || "";
-  }
-
-  function getActiveMinions(state: CombatState) {
-    return Array.isArray(state.minions) ? state.minions : [];
-  }
-
-  function getMinionTemplate(templateId: string) {
-    return MINION_TEMPLATES[templateId] || null;
-  }
-
-  function getMinionDuration(effect: CardEffect, template: MinionTemplateDefinition) {
-    if (template.persistent) {
-      return 0;
-    }
-    return Math.max(1, parseInteger(effect.duration, DEFAULT_TEMPORARY_MINION_DURATION));
-  }
-
-  function getMinionPrimaryValue(effect: CardEffect) {
-    return Math.max(0, parseInteger(effect.value, 0));
-  }
-
-  function getMinionSecondaryValue(effect: CardEffect) {
-    return Math.max(0, parseInteger(effect.secondaryValue, 0));
-  }
-
-  function getMinionReinforcementValue(amount: number) {
-    return Math.max(1, Math.ceil(Math.max(1, amount) / 2));
-  }
-
-  function buildMinionActionSummary(actionKind: CombatMinionActionKind, power: number, secondaryValue: number) {
-    if (actionKind === "attack") {
-      return `${power} strike/phase`;
-    }
-    if (actionKind === "attack_mark") {
-      return `${power} strike + Mark ${secondaryValue}`;
-    }
-    if (actionKind === "attack_poison") {
-      return `${power} strike + Poison ${secondaryValue}`;
-    }
-    if (actionKind === "attack_guard_party") {
-      return `${power} strike + Guard ${secondaryValue}`;
-    }
-    if (actionKind === "attack_heal_hero") {
-      return `${power} strike + Heal ${secondaryValue}`;
-    }
-    if (actionKind === "heal_party") {
-      return `Heal party ${power}`;
-    }
-    if (actionKind === "buff_mercenary_guard_party") {
-      return `Merc +${power} + Guard ${secondaryValue}`;
-    }
-    if (actionKind === "attack_all_burn") {
-      return `${power} line + Burn ${secondaryValue}`;
-    }
-    if (actionKind === "attack_all_paralyze") {
-      return `${power} line + Paralyze ${secondaryValue}`;
-    }
-    return `${power} skill`;
-  }
-
-  function getMinionSkillSummary(minion: CombatMinionState) {
-    return buildMinionActionSummary(minion.actionKind, minion.power, minion.secondaryValue);
-  }
-
-  function getSummonPreview(state: CombatState | null, effect: CardEffect) {
-    const template = getMinionTemplate(String(effect.minionId || ""));
-    if (!template) {
-      return "Summon";
-    }
-    const power = getMinionPrimaryValue(effect);
-    const secondaryValue = getMinionSecondaryValue(effect);
-    const existing = state ? getActiveMinions(state).find((minion) => minion.templateId === template.id) : null;
-    const hasOpenSlot = !state || existing || getActiveMinions(state).length < MAX_ACTIVE_MINIONS;
-    const lead = existing ? `Reinforce ${template.name}` : `Summon ${template.name}`;
-    const durationSegment = template.persistent ? "Persistent" : `${getMinionDuration(effect, template)} turns`;
-    const actionSegment = buildMinionActionSummary(template.actionKind, power, secondaryValue);
-    if (!hasOpenSlot) {
-      return `${lead} · limit ${MAX_ACTIVE_MINIONS}/${MAX_ACTIVE_MINIONS}`;
-    }
-    return `${lead} · ${actionSegment}${durationSegment ? ` · ${durationSegment}` : ""}`;
   }
 
   function summonMinion(state: CombatState, effect: CardEffect) {
@@ -628,139 +455,6 @@
       handleDefeat(state, entity);
     }
     return before - entity.life;
-  }
-
-  function weaponProfileEntryMatchesUse(proficiency: string | undefined, cardId: string) {
-    if (!proficiency || !cardId) {
-      return true;
-    }
-    return proficiency === getCardProficiency(cardId);
-  }
-
-  function weaponEffectMatchesCard(effect: WeaponEffectDefinition, cardId: string) {
-    return weaponProfileEntryMatchesUse(effect.proficiency, cardId);
-  }
-
-  function applyWeaponTypedDamageToEnemy(
-    state: CombatState,
-    target: CombatEnemyState,
-    damageEntry: WeaponDamageDefinition,
-    cardId: string
-  ) {
-    if (!target?.alive) {
-      return null;
-    }
-
-    const amount = getWeaponTypedDamageAmount(state, damageEntry, cardId);
-    const dealt = damageEntry.type === "poison"
-      ? dealLifeDamage(state, target, amount)
-      : dealDamage(state, target, amount, damageEntry.type);
-    return { type: damageEntry.type, amount, dealt, targetName: target.name };
-  }
-
-  function summarizeWeaponTypedDamage(
-    state: CombatState,
-    damageEntry: WeaponDamageDefinition,
-    results: Array<{ type: WeaponDamageType; amount: number; dealt: number; targetName: string }>
-  ) {
-    if (results.length === 0) {
-      return "";
-    }
-    const totalDamage = results.reduce((sum, result) => sum + result.dealt, 0);
-    if (totalDamage <= 0) {
-      return "";
-    }
-    const weaponLabel = state.weaponName || "Weapon";
-    return `${weaponLabel} dealt ${totalDamage} ${damageEntry.type} damage${results.length > 1 ? ` across ${results.length} targets` : ""}.`;
-  }
-
-  function applyWeaponTypedDamage(state: CombatState, targets: CombatEnemyState[], cardId: string) {
-    const typedDamageEntries = Array.isArray(state.weaponProfile?.typedDamage)
-      ? state.weaponProfile.typedDamage.filter((damageEntry) => weaponProfileEntryMatchesUse(damageEntry.proficiency, cardId))
-      : [];
-    return typedDamageEntries
-      .map((damageEntry) => {
-        const results = targets
-          .map((target) => applyWeaponTypedDamageToEnemy(state, target, damageEntry, cardId))
-          .filter(Boolean) as Array<{ type: WeaponDamageType; amount: number; dealt: number; targetName: string }>;
-        return summarizeWeaponTypedDamage(state, damageEntry, results);
-      })
-      .filter(Boolean);
-  }
-
-  function applyWeaponEffectToEnemy(state: CombatState, target: CombatEnemyState, effect: WeaponEffectDefinition) {
-    if (!target?.alive) {
-      return null;
-    }
-
-    const amount = getWeaponEffectAmount(state, effect);
-    if (effect.kind === "burn") {
-      target.burn = Math.max(0, target.burn + amount);
-      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
-    }
-    if (effect.kind === "slow") {
-      target.slow = Math.max(0, target.slow + amount);
-      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
-    }
-    if (effect.kind === "freeze") {
-      target.freeze = Math.max(0, target.freeze + amount);
-      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
-    }
-    if (effect.kind === "shock") {
-      target.paralyze = Math.max(0, target.paralyze + amount);
-      return { kind: effect.kind, amount, guardBroken: 0, lifeBroken: 0, targetName: target.name };
-    }
-    if (effect.kind === "crushing") {
-      const guardBroken = Math.min(target.guard, amount);
-      target.guard = Math.max(0, target.guard - guardBroken);
-      const lifeBroken = dealLifeDamage(state, target, amount - guardBroken);
-      return { kind: effect.kind, amount, guardBroken, lifeBroken, targetName: target.name };
-    }
-    return null;
-  }
-
-  function summarizeWeaponEffect(
-    state: CombatState,
-    effect: WeaponEffectDefinition,
-    results: Array<{ kind: WeaponEffectKind; amount: number; guardBroken: number; lifeBroken: number; targetName: string }>
-  ) {
-    if (results.length === 0) {
-      return "";
-    }
-
-    const weaponLabel = state.weaponName || "Weapon";
-    if (effect.kind === "crushing") {
-      const totalGuard = results.reduce((sum, result) => sum + result.guardBroken, 0);
-      const totalLife = results.reduce((sum, result) => sum + result.lifeBroken, 0);
-      const segments = [];
-      if (totalGuard > 0) {
-        segments.push(`shattered ${totalGuard} Guard`);
-      }
-      if (totalLife > 0) {
-        segments.push(`dealt ${totalLife} crushing damage`);
-      }
-      if (segments.length === 0) {
-        return "";
-      }
-      return `${weaponLabel} ${segments.join(" and ")}${results.length > 1 ? ` across ${results.length} targets` : ""}.`;
-    }
-
-    const statusLabel = effect.kind === "shock"
-      ? "Shock"
-      : effect.kind.charAt(0).toUpperCase() + effect.kind.slice(1);
-    return `${weaponLabel} applied ${results[0].amount} ${statusLabel}${results.length > 1 ? ` to ${results.length} targets` : ""}.`;
-  }
-
-  function applyWeaponEffects(state: CombatState, targets: CombatEnemyState[], cardId: string) {
-    const effects = Array.isArray(state.weaponProfile?.effects) ? state.weaponProfile.effects.filter((effect) => weaponEffectMatchesCard(effect, cardId)) : [];
-    return effects
-      .map((effect) => {
-        const results = targets
-          .map((target) => applyWeaponEffectToEnemy(state, target, effect))
-          .filter(Boolean) as Array<{ kind: WeaponEffectKind; amount: number; guardBroken: number; lifeBroken: number; targetName: string }>;
-        return summarizeWeaponEffect(state, effect, results);
-      })
-      .filter(Boolean);
   }
 
   function checkOutcome(state: CombatState) {
@@ -1218,6 +912,7 @@
     applyGuard,
     dealDamage,
     dealDirectDamage,
+    dealLifeDamage,
     checkOutcome,
     getLivingEnemies,
     getFirstLivingEnemyId,

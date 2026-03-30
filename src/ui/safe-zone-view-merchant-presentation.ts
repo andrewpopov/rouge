@@ -175,6 +175,9 @@
     if (action.id === "sage_identify") {
       return "\u272A";
     }
+    if (action.id.startsWith("quartermaster_deck_surgery_")) {
+      return "\u2702";
+    }
     if (action.id.startsWith("sage_purge_")) {
       return "\u2715";
     }
@@ -419,15 +422,11 @@
 
   function buildNpcServiceLayout(
     npc: SafeZoneNpcViewModel,
-    gold: number,
     themeKey: string,
     escapeHtml: (s: string) => string
   ): string {
     const sections = buildNpcServiceSections(npc, themeKey);
     const overview = getServiceOverview(themeKey);
-    const readyCount = npc.actions.filter((action) => !action.disabled).length;
-    const freeCount = npc.actions.filter((action) => action.cost <= 0 && !action.disabled).length;
-    const lockedCount = Math.max(0, npc.actions.length - readyCount);
 
     return `
       <div class="merchant-service-shell">
@@ -436,28 +435,6 @@
             <p class="merchant-service-intel__eyebrow">${escapeHtml(overview.label)}</p>
             <h4 class="merchant-service-intel__title">${escapeHtml(npc.name)} keeps this desk under watch.</h4>
             <p class="merchant-service-intel__body">${escapeHtml(overview.copy)}</p>
-          </div>
-          <div class="merchant-service-intel__stats">
-            <div class="merchant-service-intel__stat">
-              <span>Actions</span>
-              <strong>${npc.actions.length}</strong>
-            </div>
-            <div class="merchant-service-intel__stat">
-              <span>Ready</span>
-              <strong>${readyCount}</strong>
-            </div>
-            <div class="merchant-service-intel__stat">
-              <span>Free</span>
-              <strong>${freeCount}</strong>
-            </div>
-            <div class="merchant-service-intel__stat">
-              <span>Locked</span>
-              <strong>${lockedCount}</strong>
-            </div>
-            <div class="merchant-service-intel__stat">
-              <span>Gold</span>
-              <strong>${gold}g</strong>
-            </div>
           </div>
         </section>
         ${sections.map((section) => buildServiceSection(section, themeKey, escapeHtml)).join("")}

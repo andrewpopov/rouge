@@ -66,6 +66,34 @@ test("power calibration report supports real progression checkpoint probes", () 
   assert.ok(bossSample);
   assert.equal(bossSample?.policyId, "aggressive");
   assert.ok(Number(bossSample?.actNumber || 0) >= 1);
+  assert.equal(bossSample?.checkpointKind, "pre_boss");
   assert.ok((bossSample?.bossAdjustedPowerScore || 0) >= (bossSample?.buildPowerScore || 0));
   assert.ok((bossSample?.analysisPowerRatio || 0) >= (bossSample?.powerRatio || 0));
+});
+
+test("power calibration pressure probes expand progression checkpoint coverage", () => {
+  const baseReport = runPowerCalibrationReport({
+    source: "progression",
+    classIds: ["barbarian"],
+    policyIds: ["aggressive"],
+    throughActNumber: 3,
+    probeRuns: 1,
+    seedOffsets: [0],
+    determinismChecks: 1,
+  });
+  const pressureReport = runPowerCalibrationReport({
+    source: "progression",
+    classIds: ["barbarian"],
+    policyIds: ["aggressive"],
+    throughActNumber: 3,
+    probeRuns: 1,
+    seedOffsets: [0],
+    determinismChecks: 1,
+    checkpointProbeProfile: "pressure",
+  });
+
+  assert.equal(pressureReport.checkpointProbeProfile, "pressure");
+  assert.ok(pressureReport.overall.sampleCount > baseReport.overall.sampleCount);
+  assert.ok(pressureReport.kinds.battle.sampleCount >= baseReport.kinds.battle.sampleCount);
+  assert.ok(pressureReport.samples.some((sample) => sample.checkpointKind === "safe_zone" && sample.kind === "battle"));
 });

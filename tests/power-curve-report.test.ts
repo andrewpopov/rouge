@@ -27,8 +27,10 @@ test("power curve report grades checkpoint probes against target bands", () => {
     probeCount
   );
 
-  const act2BossProbe = policyReport.checkpoints[1].probes.find((probe) => probe.kind === "boss");
-  assert.ok(act2BossProbe);
-  assert.ok((act2BossProbe?.powerRatio || 0) > 0);
-  assert.match(act2BossProbe?.status || "", /^(below_target|on_target|above_target)$/);
+  const preBossCheckpoint = policyReport.checkpoints.find((checkpoint) => /Pre-Boss/.test(checkpoint.label));
+  const bossProbe = preBossCheckpoint?.probes.find((probe) => probe.kind === "boss");
+  assert.ok(preBossCheckpoint);
+  assert.ok(bossProbe);
+  assert.ok((bossProbe?.powerRatio || 0) > 0);
+  assert.match(bossProbe?.status || "", /^(below_target|on_target|above_target)$/);
 });

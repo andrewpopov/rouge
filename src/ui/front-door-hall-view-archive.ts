@@ -106,29 +106,7 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList } = services.renderUtils;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const archiveSummary = accountSummary.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
-      latestClassId: "",
-      latestClassName: "",
-      latestOutcome: "",
-      latestCompletedAt: "",
-      highestLevel: profileSummary.highestLevel,
-      highestActsCleared: profileSummary.highestActCleared,
-      highestGoldGained: 0,
-      highestLoadoutTier: 0,
-      runewordArchiveCount: 0,
-      featureUnlockCount: 0,
-      favoredTreeId: "",
-      favoredTreeName: "",
-      planningArchiveCount: 0,
-      planningCompletionCount: 0,
-      planningMissCount: 0,
-      recentFeatureIds: [],
-      recentPlannedRunewordIds: [],
-    };
+    const archiveSummary = accountSummary.archive || common.createDefaultArchiveSummary(profileSummary);
     const latestOutcomeLabel = archiveSummary.latestOutcome ? getLabelFromId(archiveSummary.latestOutcome) : "Awaiting";
     const recentFeatureLabels = (archiveSummary.recentFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
     const recentPlannedRunewordLabels = (archiveSummary.recentPlannedRunewordIds || []).map((runewordId) => getRunewordLabel(appState, runewordId));
@@ -242,20 +220,7 @@
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
     const trees = Array.isArray(accountSummary.trees) ? accountSummary.trees : [];
     const focusedTree = trees.find((tree) => tree.isFocused) || trees[0] || null;
-    const review = accountSummary.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const review = accountSummary.review || common.createDefaultReviewSummary();
 
     return `
       <section class="panel flow-panel" id="hall-capstones">

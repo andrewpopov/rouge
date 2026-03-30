@@ -1,8 +1,10 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const registryWindow = runtimeWindow as Window & Record<string, unknown>;
   const { normalizeActPool, groupByRole, buildActEncounterSet, buildZoneEncounterSet } =
-    runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS;
+    registryWindow.__ROUGE_ENCOUNTER_REGISTRY_BUILDERS as EncounterRegistryBuildersApi;
   const { slugify: slugifyZone } = runtimeWindow.ROUGE_UTILS;
+  const { ZONE_NAME } = runtimeWindow.ROUGE_CONSTANTS;
 
   const LEGACY_ZONE_NAME_BY_DISPLAY_TITLE: Record<string, string> = {
     "Blighted Moors": "Blood Moor",
@@ -17,9 +19,9 @@
     "Iron Cells": "Jail",
     "Black Chapel": "Cathedral",
     "Abbey Vault": "Catacombs",
-    "Black Pit": "Den of Evil",
+    [ZONE_NAME.BLACK_PIT]: ZONE_NAME.DEN_OF_EVIL,
     "Graveyard Ridge": "Burial Grounds",
-    "Ashfall Hamlet": "Tristram",
+    [ZONE_NAME.ASHFALL_HAMLET]: ZONE_NAME.TRISTRAM,
     "Ruined Watchtower": "Forgotten Tower",
     "Shale Flats": "Rocky Waste",
     "Dust Hills": "Dry Hills",

@@ -62,7 +62,6 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { escapeHtml } = services.renderUtils;
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
-    const accountSummary = services.appEngine.getAccountProgressSummary(appState);
     const run = appState.run;
     const victory = appState.phase === services.appEngine.PHASES.RUN_COMPLETE;
     const profileSummary = services.appEngine.getProfileSummary(appState);
@@ -126,10 +125,10 @@
               </div>
 
               <div class="run-summary-figure__trail">
-                ${renderStat("Zones", zonesCleared, escapeHtml)}
-                ${renderStat("Bosses", bossesDefeated, escapeHtml)}
-                ${renderStat("Gold", `${run.gold}g`, escapeHtml)}
-                ${renderStat("Runewords", run.summary.runewordsForged, escapeHtml)}
+                ${renderStat("Class", run.className, escapeHtml)}
+                ${renderStat("Level", run.level, escapeHtml)}
+                ${renderStat("XP Gained", run.summary.xpGained, escapeHtml)}
+                ${renderStat("Deck Size", run.deck.length, escapeHtml)}
               </div>
             </aside>
 
@@ -151,12 +150,6 @@
                   { label: "Encounters", value: encountersCleared },
                   { label: "Final Gold", value: `${run.gold}g` },
                 ], escapeHtml, { className: "wide" })}
-                ${renderSummaryCard("Bloodline", "Hero Record", [
-                  { label: "Class", value: run.className },
-                  { label: "Level", value: run.level },
-                  { label: "XP Gained", value: run.summary.xpGained },
-                  { label: "Deck Size", value: run.deck.length },
-                ], escapeHtml)}
                 ${renderSummaryCard("Growth", "Lasting Gain", [
                   { label: "Skill Pts", value: run.summary.skillPointsEarned },
                   { label: "Class Pts", value: run.summary.classPointsEarned },
@@ -170,19 +163,6 @@
                   { label: "Encounters", value: encountersCleared },
                 ], escapeHtml, { className: "muted" })}
               </div>
-
-              ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
-                copy:
-                  "The archive review now keeps the same account-meta board live, so the run-end read connects directly back to hall, town, rewards, and route planning.",
-              })}
-              ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
-                copy:
-                  "Run-end review now carries the same charter and convergence drilldowns, so the account-side lesson is visible before you reopen the hall.",
-                charterFollowThrough:
-                  "If charter pressure still leads at run end, settle the hall or vault before launching the next expedition.",
-                convergenceFollowThrough:
-                  "If convergence pressure now leads, revisit the account focus before locking the next run path.",
-              })}
 
               <div class="run-summary-report__footer">
                 <details class="run-summary-intel">

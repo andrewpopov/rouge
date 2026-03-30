@@ -23,7 +23,28 @@ export interface SimulatedCombatResult {
   enemyLifePct: number
 }
 
-function getIncomingThreat(state: CombatState) {
+export interface CombatSimulationHooks {
+  slowStepThresholdMs?: number
+  onProgress?: (payload: {
+    stage:
+      | "turn_start"
+      | "action_select_started"
+      | "action_selected"
+      | "action_executed"
+      | "end_turn_started"
+      | "end_turn_completed"
+      | "combat_complete"
+    turn: number
+    actionIndex: number
+    candidateCount: number
+    bestScore: number
+    stepElapsedMs: number
+    encounterElapsedMs: number
+    detail?: string
+  }) => void
+}
+
+export function getIncomingThreat(state: CombatState) {
   return state.enemies.reduce((sum, enemy) => {
     if (!enemy.alive || !enemy.currentIntent) {
       return sum
@@ -57,15 +78,15 @@ function getIncomingThreat(state: CombatState) {
   }, 0)
 }
 
-function hasChargeThreat(state: CombatState) {
+export function hasChargeThreat(state: CombatState) {
   return state.enemies.some((enemy) => enemy.alive && enemy.currentIntent?.kind === "charge")
 }
 
-function getThreatPressure(state: CombatState) {
+export function getThreatPressure(state: CombatState) {
   return getIncomingThreat(state) / Math.max(1, state.hero.life + state.hero.guard)
 }
 
-function getEnemyStatusScore(state: CombatState) {
+export function getEnemyStatusScore(state: CombatState) {
   return state.enemies.reduce((sum, enemy) => {
     return (
       sum +
@@ -79,7 +100,7 @@ function getEnemyStatusScore(state: CombatState) {
   }, 0)
 }
 
-function getHeroDebuffScore(state: CombatState) {
+export function getHeroDebuffScore(state: CombatState) {
   return (
     state.hero.heroBurn * SIMULATION_SCORING_WEIGHTS.heroDebuff.heroBurn +
     state.hero.heroPoison * SIMULATION_SCORING_WEIGHTS.heroDebuff.heroPoison +
@@ -164,7 +185,13 @@ function getPriorityEnemyTargets(state: CombatState) {
 }
 
 function cloneCombatState(state: CombatState) {
-  const clone = JSON.parse(JSON.stringify(state)) as CombatState
+  // The action scorer clones combat state repeatedly; keep the clone cheap by
+  // omitting the ever-growing log and reattaching the RNG callback afterward.
+  const clone = structuredClone({
+    ...state,
+    log: [],
+    randomFn: undefined,
+  }) as CombatState
   clone.randomFn = state.randomFn
   return clone
 }
@@ -370,6 +397,44 @@ function chooseBestCombatAction(
     return { type: "end_turn", score: 0 } as CombatCandidateAction
   }
   return best
+}
+
+function chooseBestCombatActionWithStats(
+  state: CombatState,
+  content: GameContent,
+  engine: CombatEngineApi,
+  policy: BuildPolicyDefinition,
+  matchingProficiencies: Set<string>
+) {
+  const candidates = listCandidateActions(state, content, engine, policy, matchingProficiencies).sort((left, right) => right.score - left.score)
+  const best = candidates[0] || { type: "end_turn", score: 0 }
+  const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn") || null
+  const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null
+  const chargeThreat = hasChargeThreat(state)
+  const threatPressure = getThreatPressure(state)
+  if (best.score < 1) {
+    if (
+      bestActiveCandidate &&
+      (chargeThreat || threatPressure >= 0.45) &&
+      bestActiveCandidate.score > Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY)
+    ) {
+      return {
+        action: bestActiveCandidate,
+        candidateCount: candidates.length,
+        bestScore: Number(bestActiveCandidate.score || 0),
+      }
+    }
+    return {
+      action: { type: "end_turn", score: 0 } as CombatCandidateAction,
+      candidateCount: candidates.length,
+      bestScore: 0,
+    }
+  }
+  return {
+    action: best,
+    candidateCount: candidates.length,
+    bestScore: Number(best.score || 0),
+  }
 }
 
 function executeCombatAction(action: CombatCandidateAction, state: CombatState, content: GameContent, engine: CombatEngineApi) {
@@ -601,7 +666,8 @@ export function playStateCombat(
   harness: AppHarness,
   state: AppState,
   policy: BuildPolicyDefinition,
-  maxCombatTurns: number
+  maxCombatTurns: number,
+  hooks?: CombatSimulationHooks
 ): SimulatedCombatResult | null {
   if (!state.combat) {
     return null
@@ -609,29 +675,147 @@ export function playStateCombat(
   const startingEnemyLife = state.combat.enemies.reduce((sum, enemy) => sum + Number(enemy.life || 0), 0)
   const matchingProficiencies = new Set(getMatchingWeaponProficienciesForCombatState(state.combat))
   const actionLimitPerTurn = 32
+  const encounterStartedAt = Date.now()
+  const slowStepThresholdMs = Math.max(250, Number(hooks?.slowStepThresholdMs || 1500))
 
   while (!state.combat.outcome && state.combat.turn < maxCombatTurns) {
     if (state.combat.phase !== "player") {
+      const shouldLogStart = Number(state.combat.turn || 0) === 0
+      if (shouldLogStart) {
+        hooks?.onProgress?.({
+          stage: "end_turn_started",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: 0,
+          candidateCount: 0,
+          bestScore: 0,
+          stepElapsedMs: 0,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: `phase ${state.combat.phase}`,
+        })
+      }
+      const endTurnStartedAt = Date.now()
       harness.combatEngine.endTurn(state.combat)
+      const endTurnElapsedMs = Date.now() - endTurnStartedAt
+      if (shouldLogStart || endTurnElapsedMs >= slowStepThresholdMs) {
+        hooks?.onProgress?.({
+          stage: "end_turn_completed",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: 0,
+          candidateCount: 0,
+          bestScore: 0,
+          stepElapsedMs: endTurnElapsedMs,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: `phase ${state.combat.phase}`,
+        })
+      }
       continue
     }
     let actionsTaken = 0
+    if (Number(state.combat.turn || 0) === 0 || Number(state.combat.turn || 0) % 5 === 0) {
+      hooks?.onProgress?.({
+        stage: "turn_start",
+        turn: Number(state.combat.turn || 0),
+        actionIndex: 0,
+        candidateCount: 0,
+        bestScore: 0,
+        stepElapsedMs: 0,
+        encounterElapsedMs: Date.now() - encounterStartedAt,
+        detail: `energy ${state.combat.hero.energy} hand ${state.combat.hand.length}`,
+      })
+    }
     while (state.combat.phase === "player" && !state.combat.outcome && actionsTaken < actionLimitPerTurn) {
-      const action = chooseBestCombatAction(state.combat, harness.content, harness.combatEngine, policy, matchingProficiencies)
-      const result = executeCombatAction(action, state.combat, harness.content, harness.combatEngine)
+      const shouldLogAction = Number(state.combat.turn || 0) === 0 && actionsTaken === 0
+      if (shouldLogAction) {
+        hooks?.onProgress?.({
+          stage: "action_select_started",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: actionsTaken,
+          candidateCount: 0,
+          bestScore: 0,
+          stepElapsedMs: 0,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: `energy ${state.combat.hero.energy} hand ${state.combat.hand.length}`,
+        })
+      }
+      const chooseStartedAt = Date.now()
+      const choice = chooseBestCombatActionWithStats(state.combat, harness.content, harness.combatEngine, policy, matchingProficiencies)
+      const chooseElapsedMs = Date.now() - chooseStartedAt
+      if (shouldLogAction || chooseElapsedMs >= slowStepThresholdMs) {
+        hooks?.onProgress?.({
+          stage: "action_selected",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: actionsTaken,
+          candidateCount: choice.candidateCount,
+          bestScore: roundTo(choice.bestScore, 2),
+          stepElapsedMs: chooseElapsedMs,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: `action ${choice.action.type}`,
+        })
+      }
+      const executeStartedAt = Date.now()
+      const result = executeCombatAction(choice.action, state.combat, harness.content, harness.combatEngine)
+      const executeElapsedMs = Date.now() - executeStartedAt
+      if (shouldLogAction || executeElapsedMs >= slowStepThresholdMs) {
+        hooks?.onProgress?.({
+          stage: "action_executed",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: actionsTaken,
+          candidateCount: choice.candidateCount,
+          bestScore: roundTo(choice.bestScore, 2),
+          stepElapsedMs: executeElapsedMs,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: `${choice.action.type} ok=${result.ok ? "yes" : "no"}`,
+        })
+      }
       actionsTaken += 1
-      if (!result.ok || action.type === "end_turn") {
+      if (!result.ok || choice.action.type === "end_turn") {
         break
       }
     }
     if (!state.combat.outcome && state.combat.phase === "player") {
+      const endTurnStartedAt = Date.now()
+      if (Number(state.combat.turn || 0) === 0) {
+        hooks?.onProgress?.({
+          stage: "end_turn_started",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: actionsTaken,
+          candidateCount: 0,
+          bestScore: 0,
+          stepElapsedMs: 0,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: "player phase fallback",
+        })
+      }
       harness.combatEngine.endTurn(state.combat)
+      const endTurnElapsedMs = Date.now() - endTurnStartedAt
+      if (Number(state.combat.turn || 0) === 0 || endTurnElapsedMs >= slowStepThresholdMs) {
+        hooks?.onProgress?.({
+          stage: "end_turn_completed",
+          turn: Number(state.combat.turn || 0),
+          actionIndex: actionsTaken,
+          candidateCount: 0,
+          bestScore: 0,
+          stepElapsedMs: endTurnElapsedMs,
+          encounterElapsedMs: Date.now() - encounterStartedAt,
+          detail: `phase ${state.combat.phase}`,
+        })
+      }
     }
   }
 
   if (!state.combat.outcome) {
     state.combat.outcome = "defeat"
   }
+  hooks?.onProgress?.({
+    stage: "combat_complete",
+    turn: Number(state.combat.turn || 0),
+    actionIndex: 0,
+    candidateCount: 0,
+    bestScore: 0,
+    stepElapsedMs: 0,
+    encounterElapsedMs: Date.now() - encounterStartedAt,
+    detail: `outcome ${state.combat.outcome || "defeat"}`,
+  })
   const remainingEnemyLife = state.combat.enemies.reduce((sum, enemy) => sum + Number(enemy.life || 0), 0)
   return {
     outcome: state.combat.outcome || "defeat",

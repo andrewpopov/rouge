@@ -84,21 +84,17 @@ test("safe-zone shell exposes departure, build, and drilldown operations through
   assert.match(root.innerHTML, /Departure Board/);
   assert.match(root.innerHTML, /Recommended next route: Blighted Moors is already open on the map\./);
   assert.match(root.innerHTML, /Recovery still available: hero 9 Life, mercenary 7 Life, belt 2 charges\./);
-  assert.match(root.innerHTML, /Prep Comparison Board/);
-  assert.match(root.innerHTML, /Recover First/);
+  assert.match(root.innerHTML, /Prep Desk/);
   assert.match(root.innerHTML, /Loadout Bench/);
   assert.match(root.innerHTML, /Build Carry-Through/);
-  assert.match(root.innerHTML, /World Ledger/);
-  assert.match(root.innerHTML, /Quest · The Search For Cain: The road is mapped \(Act 1\)/);
-  assert.match(root.innerHTML, /Shrine · Old Cairn: Blessing taken \(Act 1\)/);
-  assert.match(root.innerHTML, /Aftermath · Ash Trail: Scouts routed \(Act 1\)/);
-  assert.match(root.innerHTML, /Opportunity · Moonlit Cache: Cache opened \(Act 1\)/);
-  assert.match(root.innerHTML, /Service Drilldowns/);
-  assert.match(root.innerHTML, /Recovery Triage/);
-  assert.match(root.innerHTML, /Build Spend Board/);
-  assert.match(root.innerHTML, /Trade And Stash Pressure/);
-  assert.match(root.innerHTML, /Mercenary Contract Desk/);
+  assert.match(root.innerHTML, /Camp Services/);
+  assert.match(root.innerHTML, /Healing Desk/);
+  assert.match(root.innerHTML, /Training Desk/);
+  assert.match(root.innerHTML, /Trade Desk/);
+  assert.match(root.innerHTML, /Mercenary Desk/);
   assert.match(root.innerHTML, /Ready To Leave Town\?/);
+  assert.doesNotMatch(root.innerHTML, /Account Signals/);
+  assert.doesNotMatch(root.innerHTML, /World Ledger/);
 });
 
 test("safe-zone operations module exposes a reusable model and standalone markup contract", () => {
@@ -117,8 +113,23 @@ test("safe-zone operations module exposes a reusable model and standalone markup
   assert.match(model.readinessIssues.join(" "), /Hero is missing 9 Life\./);
   assert.match(model.readinessIssues.join(" "), /Mercenary is missing 7 Life\./);
   assert.match(model.readinessIssues.join(" "), /Belt can still recover 2 charges\./);
-  assert.match(markup, /Town Economy/);
+  assert.match(markup, /Camp Services/);
   assert.match(markup, /Build Carry-Through/);
-  assert.match(markup, /Service Drilldowns/);
+  assert.match(markup, /Trade Desk/);
   assert.match(markup, /Ready To Leave Town\?/);
+  assert.doesNotMatch(markup, /Account Signals/);
+});
+
+test("safe-zone operations reveals debug-only ledger sections when debug mode is enabled", () => {
+  const { state, browserWindow } = createSafeZoneFixture();
+  const services = browserWindow.ROUGE_UI_COMMON.getServices();
+  state.profile.meta.settings.debugMode.enabled = true;
+
+  const markup = browserWindow.ROUGE_SAFE_ZONE_OPERATIONS_VIEW.buildOperationsMarkup(state, services);
+
+  assert.match(markup, /Debug Ledger/);
+  assert.match(markup, /Account Signals/);
+  assert.match(markup, /Prep Comparison Board/);
+  assert.match(markup, /Live Account Bonuses/);
+  assert.match(markup, /World Ledger/);
 });

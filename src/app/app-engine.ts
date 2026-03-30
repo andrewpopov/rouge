@@ -71,6 +71,7 @@
         townFocus: "",
         inventoryOpen: false,
         inventoryTab: "",
+        inventoryDetailEntryId: "",
         exploring: false,
         explorationEvent: null,
         scrollMapOpen: false,

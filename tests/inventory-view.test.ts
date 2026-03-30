@@ -43,6 +43,7 @@ test("buildInventoryMarkup renders inventory tab with carried items grid", () =>
 
   assert.ok(markup.includes("d2inv"), "should have inventory container");
   assert.ok(markup.includes("switch-inv-tab"), "should have tab switcher buttons");
+  assert.ok(markup.includes("d2inv-pack-board__grid"), "should render the pack slot board");
 });
 
 test("buildInventoryMarkup character tab includes stat grid with life and attributes", () => {

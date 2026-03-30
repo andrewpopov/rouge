@@ -42,6 +42,7 @@ interface RunVendorState {
 interface RunTownState {
   vendor: RunVendorState;
   sagePurgeCount: number;
+  quartermasterDeckSurgeryUsed: boolean;
 }
 
 interface ItemTemplateDefinition {

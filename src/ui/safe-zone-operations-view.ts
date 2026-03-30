@@ -155,6 +155,7 @@
     };
     const operations = model || createOperationsModel(appState, services);
     const { escapeHtml, buildBadge, buildStat, buildStringList } = services.renderUtils;
+    const debugEnabled = appState.profile?.meta?.settings?.debugMode?.enabled ?? false;
     const {
       run,
       derivedParty,
@@ -203,6 +204,112 @@
     const departureBriefingMarkup = opsMarkup.buildDepartureBriefingMarkup(run, routeSnapshot, derivedParty, worldOutcomeCount, services.renderUtils);
     const loadoutBenchMarkup = opsMarkup.buildLoadoutBenchMarkup(run, appState.content, services.renderUtils);
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
+    const debugLedgerMarkup = debugEnabled
+      ? `
+        <section class="panel flow-panel town-debug-ledger" id="town-debug-ledger">
+          <div class="panel-head">
+            <h2>Debug Ledger</h2>
+            <p>Internal run, profile, and account continuity surfaces kept available for tuning, QA, and balance review.</p>
+          </div>
+          <div class="front-door-snapshot-grid">
+            <article class="feature-card">
+              <strong>Run State</strong>
+              <div class="entity-stat-grid">
+                ${buildStat("Gold", run.gold)}
+                ${buildStat("Deck", run.deck.length)}
+                ${buildStat("Belt", `${run.belt.current}/${run.belt.max}`)}
+                ${buildStat("Carried", carriedEntries)}
+              </div>
+              <p>Run-local inventory, route progress, town economy, loadout, and world outcomes all remain tied to the current expedition.</p>
+            </article>
+            <article class="feature-card">
+              <strong>Profile State</strong>
+              <div class="entity-stat-grid">
+                ${buildStat("Stash", stashEntries)}
+                ${buildStat("Archives", profileSummary.runHistoryCount)}
+                ${buildStat("Preferred", preferredClassName)}
+                ${buildStat("Highest Lv", profileSummary.highestLevel || 1)}
+              </div>
+              <p>${escapeHtml(`Profile stash, run history, class preference, and account hooks stay account-owned even while town is active. Highest act ${profileSummary.highestActCleared}, lifetime gold ${profileSummary.totalGoldCollected}.`)}</p>
+            </article>
+            <article class="feature-card">
+              <strong>Progression Board</strong>
+              <div class="entity-stat-grid">
+                ${buildStat("Skill Pts", run.progression.skillPointsAvailable)}
+                ${buildStat("Class Pts", run.progression.classPointsAvailable)}
+                ${buildStat("Attr Pts", run.progression.attributePointsAvailable)}
+                ${buildStat("Training", trainingRanks)}
+              </div>
+              <p>${escapeHtml(`Training ranks: Vitality ${run.progression.training.vitality}, Focus ${run.progression.training.focus}, Command ${run.progression.training.command}.`)}</p>
+              <p>${escapeHtml(`Unlocked class skills ${run.progression.classProgression.unlockedSkillIds.length}, boss trophies ${run.progression.bossTrophies.length}.`)}</p>
+            </article>
+            <article class="feature-card">
+              <strong>Account Signals</strong>
+              <div class="entity-stat-grid">
+                ${buildStat("Unlocks", profileSummary.unlockedClassCount + profileSummary.unlockedBossCount + profileSummary.unlockedRunewordCount)}
+                ${buildStat("Features", profileSummary.townFeatureCount)}
+                ${buildStat("Tutorials", `${profileSummary.completedTutorialCount}/${profileSummary.seenTutorialCount}`)}
+                ${buildStat("Next Hint", nextTutorialLabel)}
+              </div>
+              ${buildStringList(
+                [
+                  `Unlocked classes ${profileSummary.unlockedClassCount}, boss trophies ${profileSummary.unlockedBossCount}, runewords ${profileSummary.unlockedRunewordCount}.`,
+                  `Tutorials completed ${profileSummary.completedTutorialCount} of ${profileSummary.seenTutorialCount}, with ${Math.max(0, profileSummary.seenTutorialCount - profileSummary.completedTutorialCount)} still pending.`,
+                  `Focused tree ${accountSummary.focusedTreeTitle || "Unset"}, next milestone ${accountSummary.nextMilestoneTitle || "all cleared"}.`,
+                  `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
+                  `Town features online: ${(appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId)).slice(0, runtimeWindow.ROUGE_LIMITS.TOWN_FEATURES_PREVIEW).join(", ") || "none yet"}.`,
+                ],
+                "log-list reward-list ledger-list"
+              )}
+            </article>
+          </div>
+        </section>
+
+        ${opsMarkup.buildPrepComparisonMarkup(operations, appState, services)}
+
+        ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "Town keeps the same account-meta board live beside run-local prep, so archive pressure, charter staging, mastery focus, and convergence readiness stay readable before you leave again.",
+        })}
+        ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
+          copy:
+            "Town can now compare departure prep against account-side charter and convergence pressure without hiding the run-local service picture.",
+          charterFollowThrough:
+            "If charter pressure is louder than departure pressure, stay in town and use stash, vendor, or loadout actions before reopening the route.",
+          convergenceFollowThrough:
+            "If convergence pressure is ready, review the progression focus here before you spend gold or depart again.",
+        })}
+
+        <div class="panel-head">
+          <h2>Account Progression Focus</h2>
+          <p>Town now exposes the live archive, economy, and mastery lanes that are shaping vendor pressure, archive retention, and reward pivots. Focus changes still route through the account seam, not the shell.</p>
+        </div>
+        ${common.buildAccountTreeReviewMarkup(accountSummary, services.renderUtils)}
+
+        <div class="feature-grid feature-grid-wide town-operations-grid">
+          <article class="feature-card">
+            <strong>World Ledger</strong>
+            <div class="entity-stat-grid">
+              ${buildStat("Quest", questOutcomeCount)}
+              ${buildStat("Shrine", shrineOutcomeCount)}
+              ${buildStat("Aftermath", eventOutcomeCount)}
+              ${buildStat("Opportunity", opportunityOutcomeCount)}
+            </div>
+            ${worldLedgerMarkup}
+          </article>
+          <article class="feature-card">
+            <strong>Town Economy</strong>
+            <div class="entity-stat-grid">
+              ${buildStat("Vendor", vendorStock)}
+              ${buildStat("Refresh", vendorRefreshes)}
+              ${buildStat("Carried", carriedEntries)}
+              ${buildStat("Stash", stashEntries)}
+            </div>
+            <p>Vendor stock, carried inventory, and profile stash all resolve through town actions here instead of leaking into map or combat UI.</p>
+          </article>
+        </div>
+      `
+      : "";
     return `
       <article class="panel battle-panel" id="town-departure">
         <div class="panel-head">
@@ -238,70 +345,11 @@
             </div>
             <p>${escapeHtml(`${run.mercenary.name} is under contract as your ${run.mercenary.role.toLowerCase()}.`)}</p>
           </article>
-        </div>
-
-        <div class="panel-head">
-          <h2>Run State Vs Profile State</h2>
-          <p>The town shell separates what belongs to this expedition from what belongs to your account without pushing those rules into the view layer.</p>
-        </div>
-        <div class="front-door-snapshot-grid">
-          <article class="feature-card">
-            <strong>Run State</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Gold", run.gold)}
-              ${buildStat("Deck", run.deck.length)}
-              ${buildStat("Belt", `${run.belt.current}/${run.belt.max}`)}
-              ${buildStat("Carried", carriedEntries)}
-            </div>
-            <p>Run-local inventory, route progress, town economy, loadout, and world outcomes all remain tied to the current expedition.</p>
-          </article>
-          <article class="feature-card">
-            <strong>Profile State</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Stash", stashEntries)}
-              ${buildStat("Archives", profileSummary.runHistoryCount)}
-              ${buildStat("Preferred", preferredClassName)}
-              ${buildStat("Highest Lv", profileSummary.highestLevel || 1)}
-            </div>
-            <p>${escapeHtml(`Profile stash, run history, class preference, and account hooks stay account-owned even while town is active. Highest act ${profileSummary.highestActCleared}, lifetime gold ${profileSummary.totalGoldCollected}.`)}</p>
-          </article>
-          <article class="feature-card">
-            <strong>Progression Board</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Skill Pts", run.progression.skillPointsAvailable)}
-              ${buildStat("Class Pts", run.progression.classPointsAvailable)}
-              ${buildStat("Attr Pts", run.progression.attributePointsAvailable)}
-              ${buildStat("Training", trainingRanks)}
-            </div>
-            <p>${escapeHtml(`Training ranks: Vitality ${run.progression.training.vitality}, Focus ${run.progression.training.focus}, Command ${run.progression.training.command}.`)}</p>
-            <p>${escapeHtml(`Unlocked class skills ${run.progression.classProgression.unlockedSkillIds.length}, boss trophies ${run.progression.bossTrophies.length}.`)}</p>
-          </article>
           <article class="feature-card">
             <strong>Departure Checklist</strong>
             ${departureBriefingMarkup}
           </article>
-          <article class="feature-card">
-            <strong>Account Signals</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Unlocks", profileSummary.unlockedClassCount + profileSummary.unlockedBossCount + profileSummary.unlockedRunewordCount)}
-              ${buildStat("Features", profileSummary.townFeatureCount)}
-              ${buildStat("Tutorials", `${profileSummary.completedTutorialCount}/${profileSummary.seenTutorialCount}`)}
-              ${buildStat("Next Hint", nextTutorialLabel)}
-            </div>
-            ${buildStringList(
-              [
-                `Unlocked classes ${profileSummary.unlockedClassCount}, boss trophies ${profileSummary.unlockedBossCount}, runewords ${profileSummary.unlockedRunewordCount}.`,
-                `Tutorials completed ${profileSummary.completedTutorialCount} of ${profileSummary.seenTutorialCount}, with ${Math.max(0, profileSummary.seenTutorialCount - profileSummary.completedTutorialCount)} still pending.`,
-                `Focused tree ${accountSummary.focusedTreeTitle || "Unset"}, next milestone ${accountSummary.nextMilestoneTitle || "all cleared"}.`,
-                `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
-                `Town features online: ${(appState.profile?.meta?.unlocks?.townFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId)).slice(0, runtimeWindow.ROUGE_LIMITS.TOWN_FEATURES_PREVIEW).join(", ") || "none yet"}.`,
-              ],
-              "log-list reward-list ledger-list"
-            )}
-          </article>
         </div>
-
-        ${opsMarkup.buildPrepComparisonMarkup(operations, appState, services)}
 
         ${
           commonWithPrep.buildTownPrepOutcomeMarkup?.(
@@ -318,25 +366,6 @@
             services.renderUtils
           ) || ""
         }
-
-        ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
-          copy:
-            "Town keeps the same account-meta board live beside run-local prep, so archive pressure, charter staging, mastery focus, and convergence readiness stay readable before you leave again.",
-        })}
-        ${common.buildAccountMetaDrilldownMarkup(appState, accountSummary, services.renderUtils, {
-          copy:
-            "Town can now compare departure prep against account-side charter and convergence pressure without hiding the run-local service picture.",
-          charterFollowThrough:
-            "If charter pressure is louder than departure pressure, stay in town and use stash, vendor, or loadout actions before reopening the route.",
-          convergenceFollowThrough:
-            "If convergence pressure is ready, review the progression focus here before you spend gold or depart again.",
-        })}
-
-        <div class="panel-head">
-          <h2>Account Progression Focus</h2>
-          <p>Town now exposes the live archive, economy, and mastery lanes that are shaping vendor pressure, archive retention, and reward pivots. Focus changes still route through the account seam, not the shell.</p>
-        </div>
-        ${common.buildAccountTreeReviewMarkup(accountSummary, services.renderUtils)}
 
         <div class="panel-head">
           <h2>Loadout Bench</h2>
@@ -365,35 +394,15 @@
             </div>
             <p>${escapeHtml(`Current loadout summary: ${derivedParty.loadoutLines.join(" / ") || "No equipment equipped yet."}`)}</p>
           </article>
-          <article class="feature-card">
-            <strong>World Ledger</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Quest", questOutcomeCount)}
-              ${buildStat("Shrine", shrineOutcomeCount)}
-              ${buildStat("Aftermath", eventOutcomeCount)}
-              ${buildStat("Opportunity", opportunityOutcomeCount)}
-            </div>
-            ${worldLedgerMarkup}
-          </article>
-          <article class="feature-card">
-            <strong>Town Economy</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Vendor", vendorStock)}
-              ${buildStat("Refresh", vendorRefreshes)}
-              ${buildStat("Carried", carriedEntries)}
-              ${buildStat("Stash", stashEntries)}
-            </div>
-            <p>Vendor stock, carried inventory, and profile stash all resolve through town actions here instead of leaking into map or combat UI.</p>
-          </article>
         </div>
 
         <div class="panel-head">
-          <h2>Service Drilldowns</h2>
-          <p>The hub now surfaces the most important prep comparisons directly: recovery, spend pressure, trade pressure, companion status, and whether it is actually time to leave town.</p>
+          <h2>Camp Services</h2>
+          <p>Use this plain-language view when you want to see the desks that matter before you leave: healing, training, trade, mercenary support, and the final departure check.</p>
         </div>
         <div class="feature-grid feature-grid-wide" id="town-drilldowns">
           ${buildServiceDrilldownCard(
-            "Recovery Triage",
+            "Healing Desk",
             missingHeroLife > 0 || missingMercenaryLife > 0 || missingBelt > 0 ? "Action Available" : "Stable",
             missingHeroLife > 0 || missingMercenaryLife > 0 || missingBelt > 0 ? "available" : "cleared",
             [
@@ -403,14 +412,14 @@
               { label: "Actions", value: healerActions.length + quartermasterActions.length },
             ],
             [
-              `Recovery actions: ${common.getPreviewLabel(recoveryActionTitles, "none queued")}.`,
+              `Recovery options: ${common.getPreviewLabel(recoveryActionTitles, "none queued")}.`,
               `Hero missing ${missingHeroLife} Life, mercenary missing ${missingMercenaryLife}, belt missing ${missingBelt} charge${missingBelt === 1 ? "" : "s"}.`,
-              "Use recovery before departure when preserving route momentum matters more than banking gold.",
+              "Use this desk first if you want a safer opening fight on the road.",
             ],
             services.renderUtils
           )}
           ${buildServiceDrilldownCard(
-            "Build Spend Board",
+            "Training Desk",
             spendablePointCount > 0 ? "Spend Pending" : "Spent Clean",
             spendablePointCount > 0 ? "available" : "cleared",
             [
@@ -420,31 +429,31 @@
               { label: "Training", value: trainingRanks },
             ],
             [
-              `Training actions: ${common.getPreviewLabel(progressionActionTitles, "no spend actions")}.`,
+              `Training options: ${common.getPreviewLabel(progressionActionTitles, "no spend actions")}.`,
               `Unlocked class skills ${run.progression.classProgression.unlockedSkillIds.length}, boss trophies ${run.progression.bossTrophies.length}.`,
-              "Town only explains the spend pressure here. Progression ownership stays with the run systems.",
+              "Spend points here if you already know your next build step before leaving camp.",
             ],
             services.renderUtils
           )}
           ${buildServiceDrilldownCard(
-            "Trade And Stash Pressure",
+            "Trade Desk",
             tradeActionTitles.length > 0 ? `${tradeActionTitles.length} live` : "Quiet",
             tradeActionTitles.length > 0 ? "available" : "cleared",
             [
               { label: "Vendor", value: vendorStock },
               { label: "Carried", value: carriedEntries },
               { label: "Stash", value: stashEntries },
-              { label: "Charters", value: planning.plannedRunewordCount },
+              { label: "Refresh", value: vendorRefreshes },
             ],
             [
               `Trade actions: ${common.getPreviewLabel(tradeActionTitles, "no open trade pressure")}.`,
-              `Planning charters: ${planningLabels.join(" / ") || "none active"}.`,
-              "Review this lane before leaving when you want to pivot bases, socket pressure, or stash custody ahead of the next route.",
+              `Inventory pressure: ${carriedEntries} carried, ${stashEntries} stashed, ${vendorStock} offers on the board.`,
+              "Sell, stash, or refresh here before you reopen the road.",
             ],
             services.renderUtils
           )}
           ${buildServiceDrilldownCard(
-            "Mercenary Contract Desk",
+            "Mercenary Desk",
             mercenaryActions.length > 0 ? "Contract Open" : "Contract Stable",
             mercenaryActions.length > 0 ? companionTone : "cleared",
             [
@@ -454,9 +463,9 @@
               { label: "Actions", value: mercenaryActions.length },
             ],
             [
-              `Contract actions: ${common.getPreviewLabel(mercenaryActionTitles, "no contract changes")}.`,
+              `Contract options: ${common.getPreviewLabel(mercenaryActionTitles, "no contract changes")}.`,
               `${run.mercenary.name} currently projects ${derivedParty.mercenary.attack} attack into the next combat.`,
-              "Revives and contract swaps remain town actions; this panel only clarifies the pressure before departure.",
+              "Revive or adjust the contract here before you leave if you want mercenary support online.",
             ],
             services.renderUtils
           )}
@@ -474,6 +483,7 @@
             services.renderUtils
           )}
         </div>
+        ${debugLedgerMarkup}
       </article>
     `;
   }

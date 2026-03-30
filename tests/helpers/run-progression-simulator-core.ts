@@ -386,7 +386,11 @@ export interface ProbeEncounterSummary {
   averageEnemyLifePct: number
 }
 
+export type CheckpointProbeProfile = "default" | "pressure"
+export type RunCheckpointKind = "safe_zone" | "pre_boss"
+
 export interface SafeZoneCheckpointSummary {
+  checkpointKind: RunCheckpointKind
   checkpointId: string
   label: string
   actNumber: number
@@ -602,6 +606,7 @@ export interface RunProgressionSimulationOptions {
   probeRuns?: number
   maxCombatTurns?: number
   seedOffset?: number
+  checkpointProbeProfile?: CheckpointProbeProfile
   targetArchetypeId?: string
   commitmentMode?: ArchetypeCommitmentMode
   commitAct?: number
@@ -636,6 +641,12 @@ export interface PolicySimulationHooks {
     seedOffset: number
     continuationContext: RunProgressionContinuationContext
   }) => void
+  onCheckpointLite?: (payload: {
+    policy: BuildPolicyDefinition
+    classId: string
+    seedOffset: number
+    checkpoint: SafeZoneCheckpointSummary
+  }) => void
   onCheckpoint?: (payload: {
     state: AppState
     harness: AppHarness
@@ -645,6 +656,12 @@ export interface PolicySimulationHooks {
     checkpoint: SafeZoneCheckpointSummary
     continuationContext: RunProgressionContinuationContext
   }) => void
+  onEncounterStartLite?: (payload: {
+    policy: BuildPolicyDefinition
+    classId: string
+    seedOffset: number
+    encounter: SimulationFailureSummary
+  }) => void
   onEncounterStart?: (payload: {
     state: AppState
     harness: AppHarness
@@ -653,6 +670,47 @@ export interface PolicySimulationHooks {
     seedOffset: number
     encounter: SimulationFailureSummary
     continuationContext: RunProgressionContinuationContext
+  }) => void
+  onEncounterProgress?: (payload: {
+    classId: string
+    policy: BuildPolicyDefinition
+    seedOffset: number
+    encounter: SimulationFailureSummary
+    stage:
+      | "turn_start"
+      | "action_select_started"
+      | "action_selected"
+      | "action_executed"
+      | "end_turn_started"
+      | "end_turn_completed"
+      | "combat_complete"
+    turn: number
+    actionIndex: number
+    candidateCount: number
+    bestScore: number
+    stepElapsedMs: number
+    encounterElapsedMs: number
+    detail?: string
+  }) => void
+  onOperationProgress?: (payload: {
+    classId: string
+    policy: BuildPolicyDefinition
+    seedOffset: number
+    stage: "started" | "completed"
+    operation:
+      | "optimize_safe_zone"
+      | "build_checkpoint"
+      | "sync_encounter_outcome"
+      | "choose_reward"
+      | "claim_reward"
+      | "leave_safe_zone"
+      | "return_to_safe_zone"
+      | "select_zone"
+      | "continue_act_transition"
+    actNumber: number
+    phase: string
+    elapsedMs: number
+    detail?: string
   }) => void
   onRunFailure?: (payload: {
     state: AppState

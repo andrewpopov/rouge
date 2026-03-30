@@ -10,11 +10,13 @@ import {
   type AppHarness,
   type ArchetypeLaneMetrics,
   type BuildPolicyDefinition,
+  type CheckpointProbeProfile,
   type EncounterRunMetric,
   type FinalBuildSummary,
   type PolicyProgressSummary,
   type PolicyRunSummary,
   type ProbeEncounterSummary,
+  type RunCheckpointKind,
   type RunArchetypeSimulationPlan,
   type SafeZoneCheckpointSummary,
   type SimulationFailureSummary,
@@ -46,7 +48,50 @@ function buildArchetypeCommitmentSnapshot(
   }
 }
 
-function getActProbeEncounters(harness: AppHarness, actNumber: number) {
+type CheckpointProbeEntry = {
+  encounterId: string
+  encounterName: string
+  zoneTitle: string
+  kind: "boss" | "elite" | "battle"
+}
+
+interface CheckpointSummaryOptions {
+  checkpointKind?: RunCheckpointKind
+  checkpointId?: string
+  label?: string
+  probeProfile?: CheckpointProbeProfile
+  probeEntries?: CheckpointProbeEntry[]
+}
+
+type ProbeCandidate = CheckpointProbeEntry & {
+  zoneRole: string
+  nodeType: string
+  enemyPowerScore: number
+}
+
+function isSideZoneRole(zoneRole: string) {
+  return zoneRole === "branchBattle" || zoneRole === "branchMiniboss" || zoneRole.startsWith("side_")
+}
+
+function dedupeProbeEntries(entries: Array<CheckpointProbeEntry | null | undefined>) {
+  const seen = new Set<string>()
+  const deduped: CheckpointProbeEntry[] = []
+  entries.forEach((entry) => {
+    if (!entry || seen.has(entry.encounterId)) {
+      return
+    }
+    seen.add(entry.encounterId)
+    deduped.push(entry)
+  })
+  return deduped
+}
+
+function getActProbeEncounters(
+  harness: AppHarness,
+  actNumber: number,
+  checkpointKind: RunCheckpointKind = "safe_zone",
+  probeProfile: CheckpointProbeProfile = "default"
+) {
   const act = harness.seedBundle.zones.acts?.find((entry: ActSeed) => entry.act === actNumber) || null
   if (!act) {
     return []
@@ -75,20 +120,63 @@ function getActProbeEncounters(harness: AppHarness, actNumber: number) {
       }
       const hasBoss = zone.kind === "boss" || encounter.enemies.some((enemy) => enemy.templateId.endsWith("_boss"))
       const hasElite = zone.kind === "miniboss" || encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"))
+      const enemyPowerScore = scoreEncounterPowerFromDefinition(harness.content, encounterId).total
       return {
         encounterId,
         encounterName: encounter.name,
         zoneTitle: zone.title,
         kind: hasBoss ? ("boss" as const) : hasElite ? ("elite" as const) : ("battle" as const),
+        zoneRole: String(zone.zoneRole || ""),
+        nodeType: String(zone.nodeType || ""),
+        enemyPowerScore,
       }
     })
-  }).filter(Boolean) as Array<{ encounterId: string; encounterName: string; zoneTitle: string; kind: "boss" | "elite" | "battle" }>
+  }).filter(Boolean) as ProbeCandidate[]
 
   const uniqueById = Array.from(new Map(entries.map((entry) => [entry.encounterId, entry])).values())
   const boss = uniqueById.find((entry) => entry.kind === "boss") || null
-  const elite = uniqueById.find((entry) => entry.kind === "elite") || null
-  const battle = [...uniqueById].reverse().find((entry) => entry.kind === "battle") || null
-  return [boss, elite, battle].filter(Boolean) as Array<{ encounterId: string; encounterName: string; zoneTitle: string; kind: "boss" | "elite" | "battle" }>
+  if (checkpointKind === "pre_boss") {
+    return boss ? [boss] : []
+  }
+
+  const eliteCandidates = uniqueById
+    .filter((entry) => entry.kind === "elite")
+    .sort((left, right) => {
+      return (
+        right.enemyPowerScore - left.enemyPowerScore ||
+        Number(isSideZoneRole(right.zoneRole)) - Number(isSideZoneRole(left.zoneRole)) ||
+        left.encounterId.localeCompare(right.encounterId)
+      )
+    })
+  const battleCandidates = uniqueById
+    .filter((entry) => entry.kind === "battle")
+    .sort((left, right) => {
+      return (
+        right.enemyPowerScore - left.enemyPowerScore ||
+        Number(isSideZoneRole(right.zoneRole)) - Number(isSideZoneRole(left.zoneRole)) ||
+        left.encounterId.localeCompare(right.encounterId)
+      )
+    })
+
+  const defaultElite = uniqueById.find((entry) => entry.kind === "elite") || null
+  const defaultBattle = [...uniqueById].reverse().find((entry) => entry.kind === "battle") || null
+  if (probeProfile !== "pressure") {
+    return [defaultElite, defaultBattle].filter(Boolean) as CheckpointProbeEntry[]
+  }
+
+  const sideElite = eliteCandidates.find((entry) => isSideZoneRole(entry.zoneRole)) || null
+  const sideBattle = battleCandidates.find((entry) => isSideZoneRole(entry.zoneRole)) || null
+  const hardestElite = eliteCandidates[0] || null
+  const hardestBattle = battleCandidates[0] || null
+
+  return dedupeProbeEntries([
+    hardestElite,
+    sideElite,
+    defaultElite,
+    hardestBattle,
+    sideBattle,
+    defaultBattle,
+  ])
 }
 
 function summarizeProbeRuns(
@@ -126,8 +214,10 @@ export function buildCheckpointSummary(
   progress: PolicyProgressSummary,
   probeRuns: number,
   maxCombatTurns: number,
-  archetypePlan?: RunArchetypeSimulationPlan | null
+  archetypePlan?: RunArchetypeSimulationPlan | null,
+  options: CheckpointSummaryOptions = {}
 ): SafeZoneCheckpointSummary {
+  const checkpointKind = options.checkpointKind || "safe_zone"
   const scoringRun = createScoringRun(harness, run, true)
   const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, profile)
   const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(getWeaponEquipment(scoringRun), harness.content) || null
@@ -170,7 +260,7 @@ export function buildCheckpointSummary(
   }
   const partyPower = scorePartyPower(partyPowerInput)
   const bossAdjustedPower = scoreBossAdjustedPartyPower(partyPowerInput)
-  const probeEntries = getActProbeEncounters(harness, actNumber)
+  const probeEntries = options.probeEntries || getActProbeEncounters(harness, actNumber, checkpointKind, options.probeProfile || "default")
   const probeRunBase = createScoringRun(harness, run, true)
   const probes = probeRuns > 0 ? probeEntries.map((entry, index) => {
     const runs = Array.from({ length: probeRuns }, (_, probeIndex) => {
@@ -181,8 +271,9 @@ export function buildCheckpointSummary(
   }) : []
 
   return {
-    checkpointId: `act_${actNumber}_safe_zone`,
-    label: `Act ${actNumber} Safe Zone`,
+    checkpointKind,
+    checkpointId: options.checkpointId || `act_${actNumber}_${checkpointKind}`,
+    label: options.label || (checkpointKind === "pre_boss" ? `Act ${actNumber} Pre-Boss` : `Act ${actNumber} Safe Zone`),
     actNumber,
     level: run.level,
     gold: run.gold,

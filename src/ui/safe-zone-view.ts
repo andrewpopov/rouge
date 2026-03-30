@@ -1,6 +1,8 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const { ZONE_NAME } = runtimeWindow.ROUGE_CONSTANTS;
+
   type VendorClass = "healer" | "quartermaster" | "blacksmith" | "vendor" | "gambler" | "mercenary" | "sage" | "stash" | "travel";
 
   const VENDOR_CLASS = {
@@ -165,7 +167,7 @@
     const townFocus = appState.ui.townFocus;
 
     const cainRescued = run.actNumber >= 2 || (run.acts || []).some((act) =>
-      (act.zones || []).some((zone) => zone.title === "Ashfall Hamlet" && zone.cleared)
+      (act.zones || []).some((zone) => zone.title === ZONE_NAME.ASHFALL_HAMLET && zone.cleared)
     );
 
     const npcEntries = ACT_NPC_LAYOUTS[run.actNumber] || ACT_NPC_LAYOUTS[1];
@@ -249,6 +251,7 @@
       </div>
     `;
     const operationsMarkup = operationsApi.buildOperationsMarkup(appState, services, operations);
+    const debugEnabled = appState.profile?.meta?.settings?.debugMode?.enabled ?? false;
     const townLedgerActionCount = [
       healerActions,
       quartermasterActions,
@@ -271,12 +274,13 @@
       mercenaryActions.length > 0,
     ].filter(Boolean).length;
     const townLedgerJumpRow = `
-      <nav class="town-operations-jump-row" aria-label="Town ledger sections">
+      <nav class="town-operations-jump-row" aria-label="Camp overview sections">
         <a class="neutral-btn" href="#town-departure">Departure Board</a>
-        <a class="neutral-btn" href="#town-loadout">Loadout Bench</a>
         <a class="neutral-btn" href="#town-prep-outcomes">Prep Desk</a>
-        <a class="neutral-btn" href="#town-drilldowns">Service Drilldowns</a>
+        <a class="neutral-btn" href="#town-loadout">Loadout Bench</a>
+        <a class="neutral-btn" href="#town-drilldowns">Camp Services</a>
         <a class="neutral-btn" href="#town-districts">Town Districts</a>
+        ${debugEnabled ? '<a class="neutral-btn" href="#town-debug-ledger">Debug Ledger</a>' : ""}
       </nav>
     `;
 
@@ -323,46 +327,46 @@
         <summary class="town-operations-toggle">
           <span class="town-operations-toggle__chevron" aria-hidden="true">\u25B8</span>
           <span class="town-operations-toggle__copy">
-            <span class="town-operations-toggle__eyebrow">Town Ledger</span>
-            <span class="town-operations-toggle__title">Departure, loadout, services, and district details</span>
-            <span class="town-operations-toggle__hint">Open the long-form town ledger when you want the full prep picture before leaving camp.</span>
+            <span class="town-operations-toggle__eyebrow">Camp Overview</span>
+            <span class="town-operations-toggle__title">Departure, loadout, camp services, and district details</span>
+            <span class="town-operations-toggle__hint">Open the clean camp summary when the hotspot map is not enough and you want the full prep picture before leaving.</span>
           </span>
           <span class="town-operations-toggle__stats" aria-hidden="true">
             <span class="town-operations-toggle__stat">
               <strong>${townLedgerActionCount}</strong>
-              <span>live actions</span>
+              <span>open desks</span>
             </span>
             <span class="town-operations-toggle__stat">
               <strong>${townLedgerPrepIssueCount}</strong>
-              <span>prep checks</span>
+              <span>prep tasks</span>
             </span>
             <span class="town-operations-toggle__stat">
               <strong>${townDistrictCount}</strong>
-              <span>district wings</span>
+              <span>districts</span>
             </span>
           </span>
         </summary>
         <div class="town-operations-surface">
           <header class="town-operations-hero">
             <div class="town-operations-hero__copy">
-              <p class="eyebrow">Town Ledger</p>
+              <p class="eyebrow">Camp Overview</p>
               <h2>Review the camp before you step back onto the road.</h2>
               <p>
-                This is the full town view: departure board, loadout bench, prep comparisons, and every district action in one place.
+                This is the clean camp view: departure board, prep desk, loadout bench, and every service lane in one place.
                 Use it when the map is not enough and you want the whole expedition picture at once.
               </p>
             </div>
-            <div class="town-operations-summary" aria-label="Town ledger summary">
+            <div class="town-operations-summary" aria-label="Camp overview summary">
               <article class="town-operations-summary__card">
                 <span class="town-operations-summary__label">Next Trail</span>
                 <strong class="town-operations-summary__value">${escapeHtml(nextZoneLabel)}</strong>
               </article>
               <article class="town-operations-summary__card">
-                <span class="town-operations-summary__label">Live Actions</span>
+                <span class="town-operations-summary__label">Open Desks</span>
                 <strong class="town-operations-summary__value">${townLedgerActionCount}</strong>
               </article>
               <article class="town-operations-summary__card">
-                <span class="town-operations-summary__label">Prep Checks</span>
+                <span class="town-operations-summary__label">Prep Tasks</span>
                 <strong class="town-operations-summary__value">${townLedgerPrepIssueCount}</strong>
               </article>
             </div>

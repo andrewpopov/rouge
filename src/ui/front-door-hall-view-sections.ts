@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { toNumber } = runtimeWindow.ROUGE_UTILS;
+  const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
 
   function formatTimestamp(timestamp: string, includeYear = false): string {
     const parsed = new Date(timestamp);
@@ -17,11 +18,21 @@
     });
   }
 
-  function getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string {
-    if (outcome === "completed") {
+  function getPhaseTone(savedRunSummary: SavedRunSummary | null, appEngine: AppEngineApi): string {
+    if (savedRunSummary?.phase === appEngine.PHASES.RUN_COMPLETE) {
       return "cleared";
     }
-    if (outcome === "failed") {
+    if (savedRunSummary?.phase === appEngine.PHASES.RUN_FAILED) {
+      return "locked";
+    }
+    return "available";
+  }
+
+  function getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string {
+    if (outcome === RUN_OUTCOME.COMPLETED) {
+      return "cleared";
+    }
+    if (outcome === RUN_OUTCOME.FAILED) {
       return "locked";
     }
     return "available";
@@ -176,36 +187,8 @@
       ? runtimeWindow.ROUGE_FRONT_DOOR_EXPEDITION_VIEW.getSavedRunPhaseGuidance(savedRunSummary, services.appEngine)
       : null;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const stashSummary = accountSummary.stash || {
-      entryCount: profileSummary.stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
-    const archiveSummary = accountSummary.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
-      latestClassId: "",
-      latestClassName: "",
-      latestOutcome: "",
-      latestCompletedAt: "",
-      highestLevel: profileSummary.highestLevel,
-      highestActsCleared: profileSummary.highestActCleared,
-      highestGoldGained: 0,
-      highestLoadoutTier: 0,
-      runewordArchiveCount: 0,
-      featureUnlockCount: 0,
-      favoredTreeId: "",
-      favoredTreeName: "",
-      planningArchiveCount: 0,
-      recentFeatureIds: [] as string[],
-    };
+    const stashSummary = accountSummary.stash || common.createDefaultStashSummary(profileSummary.stashEntries);
+    const archiveSummary = accountSummary.archive || common.createDefaultArchiveSummary(profileSummary);
     const stashEntries = stashSummary.entryCount;
     const runHistoryCount = archiveSummary.entryCount;
     const stashEquipmentCount = stashSummary.equipmentCount;
@@ -384,16 +367,10 @@
     phaseTone: string,
     accountSummary: ProfileAccountSummary
   ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat } = services.renderUtils;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const archiveSummary = accountSummary.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: 0,
-      latestClassName: "",
-      latestOutcome: "",
-    };
+    const archiveSummary = accountSummary.archive || common.createDefaultArchiveSummary(profileSummary);
     const unlocks = appState.profile?.meta?.unlocks || { classIds: [] as string[], bossIds: [] as string[], runewordIds: [] as string[] };
     const unlockTotal = (unlocks.classIds?.length || 0) + (unlocks.bossIds?.length || 0) + (unlocks.runewordIds?.length || 0);
     const stashEntries = accountSummary.stash?.entryCount || 0;
@@ -454,6 +431,7 @@
 
   runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS = {
     formatTimestamp,
+    getPhaseTone,
     getRunOutcomeTone,
     getSettingLabel,
     getLabelFromId,

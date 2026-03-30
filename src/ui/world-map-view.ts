@@ -1,6 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
+  const { ZONE_KIND, ZONE_NAME } = runtimeWindow.ROUGE_CONSTANTS;
 
   const ZONE_KIND_ICONS: Record<string, string> = {
     battle: "\u2694",
@@ -45,9 +45,9 @@
       "Black Chapel":      [25, 80],
       "Abbey Vault":       [10, 80],
       // Side branches (directly above their parent mainline zone)
-      "Black Pit":         [19, 12],
+      [ZONE_NAME.BLACK_PIT]:         [19, 12],
       "Graveyard Ridge":   [33, 12],
-      "Ashfall Hamlet":    [46, 12],
+      [ZONE_NAME.ASHFALL_HAMLET]:    [46, 12],
       "Ruined Watchtower": [86, 12],
     },
     2: {
@@ -143,14 +143,14 @@
    * The prerequisite still gates entry; we just don't draw the line.
    */
   const HIDDEN_EDGES: Record<string, Set<string>> = {
-    "Ashfall Hamlet": new Set(["Gloamwood"]),
+    [ZONE_NAME.ASHFALL_HAMLET]: new Set(["Gloamwood"]),
     "Mourning Temple": new Set(["Icebound River"]),
   };
 
   const TOP_LABEL_ZONE_TITLES = new Set([
-    "Black Pit",
+    ZONE_NAME.BLACK_PIT,
     "Graveyard Ridge",
-    "Ashfall Hamlet",
+    ZONE_NAME.ASHFALL_HAMLET,
     "Ruined Watchtower",
     "Collapsed Cisterns",
     "Buried Tomb Entries",

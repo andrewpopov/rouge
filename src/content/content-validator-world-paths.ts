@@ -424,7 +424,7 @@
     return includesRequiredValues(variantDefinition?.requiresFlagIds, pathState.flagIds);
   }
 
-  runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_PATHS = {
+  runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS = {
     collectEffectFlagIds,
     collectActReferenceState,
     collectActPathStates,

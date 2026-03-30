@@ -8,7 +8,7 @@
     buildEliteIntentSet,
     ELITE_MODIFIER_MAP,
     findFamilyOverride,
-  } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
+  } = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
   const { TRAIT } = runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS;
 
   function uniqueById(entries: EnemyPoolEntryRef[]) {
@@ -125,10 +125,10 @@
         attackBonus = 1;
         guardBonus = 1;
       } else if (elite) {
-        lifeMultiplier = 1.2;
-        lifeBonus = 6;
-        attackBonus = 1;
-        guardBonus = 1;
+        lifeMultiplier = 1.3;
+        lifeBonus = 10;
+        attackBonus = 2;
+        guardBonus = 2;
       } else {
         lifeMultiplier = 1.1;
         lifeBonus = 3;
@@ -142,10 +142,10 @@
         guardBonus = 2;
         healBonus = 1;
       } else if (elite) {
-        lifeMultiplier = 1.68;
-        lifeBonus = 24;
-        attackBonus = 4;
-        guardBonus = 3;
+        lifeMultiplier = 1.82;
+        lifeBonus = 30;
+        attackBonus = 5;
+        guardBonus = 4;
         healBonus = 1;
       } else {
         lifeMultiplier = 1.38;
@@ -162,10 +162,10 @@
         guardBonus = 3;
         healBonus = 2;
       } else if (elite) {
-        lifeMultiplier = 2.0;
-        lifeBonus = 38;
-        attackBonus = 5;
-        guardBonus = 4;
+        lifeMultiplier = 2.18;
+        lifeBonus = 46;
+        attackBonus = 6;
+        guardBonus = 5;
         healBonus = 2;
       } else {
         lifeMultiplier = 1.58;
@@ -182,10 +182,10 @@
         guardBonus = 5;
         healBonus = 3;
       } else if (elite) {
-        lifeMultiplier = 2.28;
-        lifeBonus = 54;
-        attackBonus = 6;
-        guardBonus = 5;
+        lifeMultiplier = 2.42;
+        lifeBonus = 64;
+        attackBonus = 7;
+        guardBonus = 6;
         healBonus = 3;
       } else {
         lifeMultiplier = 1.82;
@@ -685,7 +685,7 @@
     };
   }
 
-  runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS = {
+  runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS = {
     normalizeActPool,
     groupByRole,
     getElitePackages,

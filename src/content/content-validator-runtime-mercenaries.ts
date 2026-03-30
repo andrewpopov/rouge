@@ -1,6 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { collectEffectFlagIds } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
+  const { collectEffectFlagIds } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
 
   const ALLOWED_MERCENARY_BEHAVIORS = new Set([
     "mark_hunter",

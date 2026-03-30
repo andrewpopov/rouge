@@ -65,7 +65,7 @@
     if (variant === "boss") {
       return { traits: [], lifeBonus: 0, attackBonus: 0, guardBonus: 0 };
     }
-    const builderData = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
+    const builderData = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA;
     const packages: { profileId: string }[] = builderData.ACT_ELITE_PACKAGES[actNumber] || [];
     const profiles: Record<string, { lifeBonus: number; attackBonus: number; guardBonus: number }> = builderData.ELITE_AFFIX_PROFILES;
     const modifierMap: Record<string, MonsterTraitKind> = builderData.ELITE_MODIFIER_MAP;

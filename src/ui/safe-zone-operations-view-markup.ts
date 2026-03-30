@@ -20,31 +20,9 @@
       missingMercenaryLife,
       missingBelt,
     } = model;
-    const stashSummary = accountSummary.stash || {
-      entryCount: stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
+    const stashSummary = accountSummary.stash || common.createDefaultStashSummary(stashEntries);
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
-    const review = accountSummary.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const review = accountSummary.review || common.createDefaultReviewSummary();
     const equippedCount = Object.values(run.loadout || {}).filter(Boolean).length;
     const plannedWeaponLabel = planning.weaponRunewordId ? appState.content.runewordCatalog?.[planning.weaponRunewordId]?.name || planning.weaponRunewordId : "Unset";
     const plannedArmorLabel = planning.armorRunewordId ? appState.content.runewordCatalog?.[planning.armorRunewordId]?.name || planning.armorRunewordId : "Unset";

@@ -1,8 +1,8 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window & {
-    ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT?: ContentValidatorRuntimeContentApi;
+    __ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT?: ContentValidatorRuntimeContentApi;
   };
-  const { collectEffectFlagIds } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
+  const { collectEffectFlagIds } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
   const { validateMercenaryCatalog } = runtimeWindow.__ROUGE_CV_RUNTIME_MERCENARIES;
 
   const ALLOWED_INTENT_KINDS = new Set([
@@ -551,7 +551,7 @@
     };
   }
 
-  runtimeWindow.ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT = {
+  runtimeWindow.__ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT = {
     validateRuntimeContent,
   };
 })();

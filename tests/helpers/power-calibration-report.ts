@@ -7,13 +7,19 @@ import {
 } from "./combat-simulator";
 import { getDefaultPowerBands, type PowerBandRange } from "./power-curve-report";
 import {
+  createProgressionSimulationSeed,
+  createQuietAppHarness,
+  createSimulationState,
+  runProgressionPolicyFromState,
   runProgressionSimulationReport,
   type RunProgressionSimulationOptions,
   type RunProgressionSimulationReport,
 } from "./run-progression-simulator";
+import { getPolicyDefinitions } from "./run-progression-simulator-core";
 
 type EncounterBandKind = "boss" | "elite" | "battle";
 type PowerCalibrationSource = "synthetic" | "progression";
+type CheckpointProbeProfile = NonNullable<RunProgressionSimulationOptions["checkpointProbeProfile"]>
 
 const DEFAULT_CLASS_IDS = ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"];
 const DEFAULT_SCENARIO_IDS = ["mainline_rewarded"];
@@ -34,6 +40,7 @@ export interface PowerCalibrationSample {
   scenarioLabel: string;
   policyId: string;
   policyLabel: string;
+  checkpointKind: "synthetic" | "safe_zone" | "pre_boss";
   checkpointId: string;
   checkpointLabel: string;
   actNumber: number;
@@ -122,6 +129,7 @@ export interface PowerCalibrationReport {
   policyIds: string[];
   seedOffsets: number[];
   encounterSetIds: string[];
+  checkpointProbeProfile: CheckpointProbeProfile;
   runsPerEncounter: number;
   encounterLimit: number;
   throughActNumber: number;
@@ -146,10 +154,12 @@ export interface PowerCalibrationReportOptions extends BalanceSimulationOptions,
   determinismChecks?: number;
   bucketRanges?: PowerCalibrationBucketRange[];
   seedOffsets?: number[];
+  verboseProgress?: boolean;
   onProgress?: (event: PowerCalibrationProgressEvent) => void;
 }
 
 export interface PowerCalibrationProgressEvent {
+  status: "started" | "encounter" | "checkpoint" | "combat" | "operation" | "completed";
   source: PowerCalibrationSource;
   passIndex: number;
   totalPasses: number;
@@ -161,6 +171,7 @@ export interface PowerCalibrationProgressEvent {
   seedOffset: number;
   encounterSetId: string;
   elapsedMs: number;
+  detail?: string;
 }
 
 const DEFAULT_ENCOUNTER_SET_IDS = ["act5_all"];
@@ -250,6 +261,7 @@ function normalizeSyntheticSamples(reports: Array<{ encounterSetId: string; repo
               scenarioLabel: scenario.label,
               policyId: "",
               policyLabel: "",
+              checkpointKind: "synthetic",
               checkpointId: "",
               checkpointLabel: "",
               actNumber: 0,
@@ -310,6 +322,7 @@ function normalizeProgressionSamples(reports: Array<{ seedOffset: number; report
                 scenarioLabel: "",
                 policyId: policyReport.policyId,
                 policyLabel: policyReport.policyLabel,
+                checkpointKind: checkpoint.checkpointKind,
                 checkpointId: checkpoint.checkpointId,
                 checkpointLabel: checkpoint.label,
                 actNumber: Number(checkpoint.actNumber || 0),
@@ -448,6 +461,7 @@ function runCalibrationSamples(options: PowerCalibrationReportOptions, passIndex
   if (source === "progression") {
     const policyIds = options.policyIds && options.policyIds.length > 0 ? options.policyIds : DEFAULT_POLICY_IDS;
     const seedOffsets = options.seedOffsets && options.seedOffsets.length > 0 ? options.seedOffsets : [Number(options.seedOffset || 0)];
+    const checkpointProbeProfile = options.checkpointProbeProfile || "default";
     const reports: Array<{ seedOffset: number; report: RunProgressionSimulationReport }> = [];
     const totalUnits = seedOffsets.length * classIds.length * policyIds.length;
     let completedUnits = 0;
@@ -455,17 +469,154 @@ function runCalibrationSamples(options: PowerCalibrationReportOptions, passIndex
     seedOffsets.forEach((seedOffset) => {
       classIds.forEach((classId) => {
         policyIds.forEach((policyId) => {
-          const report = runProgressionSimulationReport({
-            classIds: [classId],
-            policyIds: [policyId],
-            throughActNumber: options.throughActNumber,
-            probeRuns: options.probeRuns ?? options.runsPerEncounter,
-            maxCombatTurns: options.maxCombatTurns,
+          const harness = createQuietAppHarness();
+          const classDefinition = harness.classRegistry.getClassDefinition(harness.seedBundle, classId);
+          if (!classDefinition) {
+            throw new Error(`Unknown class: ${classId}`);
+          }
+          const policy = getPolicyDefinitions([policyId])[0];
+          if (!policy) {
+            throw new Error(`Unknown policy: ${policyId}`);
+          }
+          options.onProgress?.({
+            status: "started",
+            source,
+            passIndex,
+            totalPasses,
+            completedUnits,
+            totalUnits,
+            classId,
+            scenarioId: "",
+            policyId,
             seedOffset,
+            encounterSetId: "progression_checkpoints",
+            elapsedMs: Date.now() - startedAt,
           });
+          const seed = createProgressionSimulationSeed(classId, policy.id, Number(options.throughActNumber || 5), seedOffset);
+          const state = createSimulationState(harness, classId, seed);
+          const policyReport = runProgressionPolicyFromState(
+            harness,
+            state,
+            classId,
+            policy,
+            Number(options.throughActNumber || 5),
+            Number(options.probeRuns ?? options.runsPerEncounter ?? 3),
+            Number(options.maxCombatTurns || 36),
+            seedOffset,
+            undefined,
+            {
+              onEncounterStartLite: ({ encounter }) => {
+                options.onProgress?.({
+                  status: "encounter",
+                  source,
+                  passIndex,
+                  totalPasses,
+                  completedUnits,
+                  totalUnits,
+                  classId,
+                  scenarioId: "",
+                  policyId,
+                  seedOffset,
+                  encounterSetId: "progression_checkpoints",
+                  elapsedMs: Date.now() - startedAt,
+                  detail: `act ${encounter.actNumber} ${encounter.kind} ${encounter.zoneTitle} / ${encounter.encounterName}`,
+                });
+              },
+              onEncounterProgress: ({ encounter, stage, turn, actionIndex, candidateCount, bestScore, stepElapsedMs, encounterElapsedMs, detail }) => {
+                if (!options.verboseProgress) {
+                  return
+                }
+                options.onProgress?.({
+                  status: "combat",
+                  source,
+                  passIndex,
+                  totalPasses,
+                  completedUnits,
+                  totalUnits,
+                  classId,
+                  scenarioId: "",
+                  policyId,
+                  seedOffset,
+                  encounterSetId: "progression_checkpoints",
+                  elapsedMs: Date.now() - startedAt,
+                  detail: [
+                    `act ${encounter.actNumber}`,
+                    encounter.zoneTitle,
+                    encounter.encounterName,
+                    `turn ${turn}`,
+                    `action ${actionIndex}`,
+                    stage,
+                    candidateCount > 0 ? `candidates ${candidateCount}` : "",
+                    bestScore !== 0 ? `score ${bestScore}` : "",
+                    stepElapsedMs > 0 ? `step ${stepElapsedMs}ms` : "",
+                    encounterElapsedMs > 0 ? `combat ${encounterElapsedMs}ms` : "",
+                    detail || "",
+                  ].filter(Boolean).join(" | "),
+                });
+              },
+              onOperationProgress: ({ stage, operation, actNumber, phase, elapsedMs, detail }) => {
+                if (!options.verboseProgress) {
+                  return
+                }
+                options.onProgress?.({
+                  status: "operation",
+                  source,
+                  passIndex,
+                  totalPasses,
+                  completedUnits,
+                  totalUnits,
+                  classId,
+                  scenarioId: "",
+                  policyId,
+                  seedOffset,
+                  encounterSetId: "progression_checkpoints",
+                  elapsedMs: Date.now() - startedAt,
+                  detail: [
+                    `act ${actNumber}`,
+                    phase,
+                    operation,
+                    stage,
+                    elapsedMs > 0 ? `${elapsedMs}ms` : "",
+                    detail || "",
+                  ].filter(Boolean).join(" | "),
+                });
+              },
+              onCheckpointLite: ({ checkpoint }) => {
+                options.onProgress?.({
+                  status: "checkpoint",
+                  source,
+                  passIndex,
+                  totalPasses,
+                  completedUnits,
+                  totalUnits,
+                  classId,
+                  scenarioId: "",
+                  policyId,
+                  seedOffset,
+                  encounterSetId: "progression_checkpoints",
+                  elapsedMs: Date.now() - startedAt,
+                  detail: `act ${checkpoint.actNumber} level ${checkpoint.level}`,
+                });
+              },
+            },
+            undefined,
+            checkpointProbeProfile
+          );
+          const report: RunProgressionSimulationReport = {
+            generatedAt: new Date().toISOString(),
+            throughActNumber: Number(options.throughActNumber || 5),
+            classReports: [
+              {
+                classId,
+                className: classDefinition.name,
+                policyReports: [policyReport],
+              },
+            ],
+          };
           reports.push({ seedOffset, report });
           completedUnits += 1;
           options.onProgress?.({
+            status: "completed",
             source,
             passIndex,
             totalPasses,
@@ -494,6 +645,20 @@ function runCalibrationSamples(options: PowerCalibrationReportOptions, passIndex
   encounterSetIds.forEach((encounterSetId) => {
     classIds.forEach((classId) => {
       scenarioIds.forEach((scenarioId) => {
+        options.onProgress?.({
+          status: "started",
+          source,
+          passIndex,
+          totalPasses,
+          completedUnits,
+          totalUnits,
+          classId,
+          scenarioId,
+          policyId: "",
+          seedOffset: 0,
+          encounterSetId,
+          elapsedMs: Date.now() - startedAt,
+        });
         const report = runBalanceSimulationReport({
           classIds: [classId],
           scenarioIds: [scenarioId],
@@ -504,6 +669,7 @@ function runCalibrationSamples(options: PowerCalibrationReportOptions, passIndex
         reports.push({ encounterSetId, report });
         completedUnits += 1;
         options.onProgress?.({
+          status: "completed",
           source,
           passIndex,
           totalPasses,
@@ -545,6 +711,7 @@ export function runPowerCalibrationReport(options: PowerCalibrationReportOptions
       ? options.encounterSetIds
       : DEFAULT_ENCOUNTER_SET_IDS
     : ["progression_checkpoints"];
+  const checkpointProbeProfile = source === "progression" ? options.checkpointProbeProfile || "default" : "default";
   const bucketRanges = options.bucketRanges && options.bucketRanges.length > 0
     ? options.bucketRanges
     : getDefaultPowerCalibrationBuckets();
@@ -574,6 +741,7 @@ export function runPowerCalibrationReport(options: PowerCalibrationReportOptions
     policyIds,
     seedOffsets,
     encounterSetIds,
+    checkpointProbeProfile,
     runsPerEncounter: Math.max(1, Number(options.runsPerEncounter || 0) || 3),
     encounterLimit: Math.max(0, Number(options.encounterLimit || 0)),
     throughActNumber: Math.max(1, Number(options.throughActNumber || 5)),

@@ -2,6 +2,7 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const { toNumber: getBonusValue } = runtimeWindow.ROUGE_UTILS;
+  const { DECK_SURGERY_ZONES } = runtimeWindow.ROUGE_CONSTANTS;
 
   function getCombatBonuses(run: RunState, content: GameContent) {
     return runtimeWindow.ROUGE_RUN_FACTORY?.buildCombatBonuses?.(run, content) || {};
@@ -82,6 +83,98 @@
       actionLabel: cost <= 0 ? "Full" : "Refill",
       disabled,
     };
+  }
+
+  function hasQuartermasterDeckSurgeryUnlock(run: RunState) {
+    return (run.acts || []).some((act) =>
+      (act.zones || []).some((zone) =>
+        zone.cleared && DECK_SURGERY_ZONES.has(zone.title)
+      )
+    );
+  }
+
+  function buildQuartermasterDeckSurgeryActions(run: RunState, content: GameContent): TownAction[] {
+    const unlocked = hasQuartermasterDeckSurgeryUnlock(run);
+    if (!unlocked) {
+      return [{
+        id: "quartermaster_deck_surgery_locked",
+        category: "service",
+        title: "Deck Surgery",
+        subtitle: "Camp Upgrade",
+        description: "Clear Black Pit or Ashfall Hamlet to unlock a one-time deck cut at the quartermaster bench.",
+        previewLines: [
+          "Unlocks after the Den of Evil or Tristram route equivalent is cleared.",
+          "Once unlocked, the quartermaster can excise one card per expedition.",
+        ],
+        cost: 0,
+        actionLabel: "Locked",
+        disabled: true,
+      }];
+    }
+
+    if (run.town.quartermasterDeckSurgeryUsed) {
+      return [{
+        id: "quartermaster_deck_surgery_spent",
+        category: "service",
+        title: "Deck Surgery Spent",
+        subtitle: "One-Time Cut",
+        description: "The quartermaster has already excised one card from this expedition's deck manifest.",
+        previewLines: [
+          "One deck cut per expedition.",
+          `Current deck size: ${run.deck.length}.`,
+        ],
+        cost: 0,
+        actionLabel: "Spent",
+        disabled: true,
+      }];
+    }
+
+    if (run.deck.length <= 5) {
+      return [{
+        id: "quartermaster_deck_surgery_none",
+        category: "service",
+        title: "Deck Surgery",
+        subtitle: "Deck Too Tight",
+        description: "Your deck is already at the minimum size for safe field cuts.",
+        previewLines: [
+          `Deck size: ${run.deck.length}. Minimum: 5.`,
+          "The quartermaster will not cut deeper than that.",
+        ],
+        cost: 0,
+        actionLabel: "Locked",
+        disabled: true,
+      }];
+    }
+
+    const seen = new Set<string>();
+    const actions: TownAction[] = [];
+    for (const cardId of run.deck) {
+      if (seen.has(cardId)) {
+        continue;
+      }
+      seen.add(cardId);
+      const card = content.cardCatalog[cardId];
+      if (!card) {
+        continue;
+      }
+      const copyCount = run.deck.filter((entryId) => entryId === cardId).length;
+      actions.push({
+        id: `quartermaster_deck_surgery_${cardId}`,
+        category: "service",
+        title: `Excise ${card.title}`,
+        subtitle: "Deck Surgery",
+        description: `Once this expedition, the quartermaster can cut one copy of ${card.title} from your deck manifest. Deck size: ${run.deck.length} -> ${run.deck.length - 1}.`,
+        previewLines: [
+          `${card.text}`,
+          `Deck holds ${copyCount} cop${copyCount === 1 ? "y" : "ies"} of ${card.title}.`,
+          "One quartermaster cut per expedition.",
+        ],
+        cost: 0,
+        actionLabel: "Excise",
+        disabled: false,
+      });
+    }
+    return actions;
   }
 
   function getMercenaryActionCost(run: RunState, mercenaryId: string) {
@@ -232,6 +325,7 @@
     return [
       buildHealerAction(run, content),
       buildQuartermasterAction(run),
+      ...buildQuartermasterDeckSurgeryActions(run, content),
       ...progressionActions,
       ...itemActions,
       ...blacksmithActions,
@@ -275,6 +369,28 @@
       run.gold -= cost;
       run.belt.current = run.belt.max;
       return { ok: true, message: "Belt refilled." };
+    }
+
+    if (actionId.startsWith("quartermaster_deck_surgery_")) {
+      const cardId = actionId.replace("quartermaster_deck_surgery_", "");
+      if (!hasQuartermasterDeckSurgeryUnlock(run)) {
+        return { ok: false, message: "Clear Black Pit or Ashfall Hamlet before the quartermaster can offer deck surgery." };
+      }
+      if (run.town.quartermasterDeckSurgeryUsed) {
+        return { ok: false, message: "The quartermaster has already used this deck cut for the current expedition." };
+      }
+      if (run.deck.length <= 5) {
+        return { ok: false, message: "Deck is at minimum size." };
+      }
+      const deckIndex = run.deck.indexOf(cardId);
+      if (deckIndex < 0) {
+        return { ok: false, message: "Card not found in deck." };
+      }
+
+      run.deck.splice(deckIndex, 1);
+      run.town.quartermasterDeckSurgeryUsed = true;
+      const card = content.cardCatalog[cardId];
+      return { ok: true, message: `${card?.title || cardId} excised from the deck manifest.` };
     }
 
     if (actionId.startsWith("progression_spend_")) {

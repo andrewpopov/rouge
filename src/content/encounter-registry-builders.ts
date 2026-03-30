@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const registryWindow = runtimeWindow as Window & Record<string, unknown>;
   const {
     normalizeActPool,
     groupByRole,
@@ -8,22 +9,26 @@
     buildEnemyTemplate,
     buildEliteTemplate,
     buildBossTemplate,
-  } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS;
+  } = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS;
   const {
     buildCovenantBossConfig,
     buildAftermathBossConfig,
     buildDrilledAftermathBossConfig,
     buildMobilizedAftermathBossConfig,
     buildPostedAftermathBossConfig,
-  } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS;
+  } = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS;
   const {
     getFlavor,
     pickEntry,
     pickEscortTemplate,
     makeEncounter,
     buildZoneEncounterSet,
-  } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES;
+  } = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES;
   const { MODIFIER_KIND } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
+
+  function when<T>(condition: boolean, entries: T[]): T[] {
+    return condition ? entries : [];
+  }
 
   function buildActEncounterSet({ actSeed, bossEntry, groupedEntries }: { actSeed: ActSeed; bossEntry: BossEntry | null | undefined; groupedEntries: EncounterRegistryGroupedEntries }) {
     const actNumber = actSeed.act;
@@ -137,9 +142,11 @@
     const bossAddIds = flavor.bossAdds || ["brute", "support"];
     const bossEscortOne = pickEscortTemplate(bossAddIds[0], rangedA.templateId, supportA.templateId, bruteA.templateId);
     const bossEnemyTemplateIds =
-      actNumber >= 4
-        ? [bossA.templateId, eliteA.templateId, eliteC.templateId, eliteD.templateId]
-        : [bossA.templateId, bossEscortOne, eliteB.templateId, eliteD.templateId];
+      actNumber === 4
+        ? [bossA.templateId, eliteA.templateId, eliteD.templateId, bruteA.templateId]
+        : actNumber >= 5
+          ? [bossA.templateId, eliteA.templateId, eliteC.templateId, eliteD.templateId]
+          : [bossA.templateId, bossEscortOne, eliteB.templateId, eliteD.templateId];
     const covenantBossConfig = buildCovenantBossConfig(actNumber, {
       boss: bossA.templateId,
       eliteA: eliteA.templateId,
@@ -248,53 +255,85 @@
         branchBattleIds[1],
         `${flavor.branchBattleLabel} Ambush`,
         `${flavor.branchBattleDescription} This branch leans harder on ranged pressure and guarded fronts.`,
-        [eliteB.templateId, rangedA.templateId, rangedB.templateId],
-        [{ kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 }]
+        actNumber >= 3
+          ? [eliteB.templateId, rangedA.templateId, rangedB.templateId, supportA.templateId]
+          : [eliteB.templateId, rangedA.templateId, rangedB.templateId],
+        [
+          { kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 },
+          ...when(actNumber >= 2, [{ kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) }]),
+          ...when(actNumber >= 4, [{ kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, Math.min(4, actNumber)) }]),
+        ]
       ),
       [branchBattleIds[2]]: makeEncounter(
         branchBattleIds[2],
         `${flavor.branchBattleLabel} Bulwark`,
         `${flavor.branchBattleDescription} Durable fronts and recovery support drag the branch into attrition.`,
-        [bruteA.templateId, bruteB.templateId, supportB.templateId],
+        actNumber >= 3
+          ? [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportB.templateId]
+          : [bruteA.templateId, bruteB.templateId, supportB.templateId],
         [
           { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
           { kind: MODIFIER_KIND.BOSS_ONSLAUGHT, value: 1 },
           { kind: MODIFIER_KIND.BOSS_SALVO, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(2, actNumber) }]),
         ]
       ),
       [branchBattleIds[3]]: makeEncounter(
         branchBattleIds[3],
         `${flavor.branchBattleLabel} Counterpush`,
         `${flavor.branchBattleDescription} An elite support package turns the branch into a live counterattack.`,
-        [eliteC.templateId, supportA.templateId, raiderA.templateId],
-        [{ kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]
+        actNumber >= 2
+          ? [eliteC.templateId, supportA.templateId, raiderA.templateId, rangedA.templateId]
+          : [eliteC.templateId, supportA.templateId, raiderA.templateId],
+        [
+          { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) }]),
+        ]
       ),
       [branchBattleIds[4]]: makeEncounter(
         branchBattleIds[4],
         `${flavor.branchBattleLabel} Siege`,
         `${flavor.branchBattleDescription} A fourth elite package keeps the branch identity from collapsing into one repeated escort script.`,
-        [eliteD.templateId, bruteA.templateId, supportA.templateId],
-        [{ kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(3, actNumber + 1) }]
+        actNumber >= 3
+          ? [eliteD.templateId, bruteA.templateId, supportA.templateId, rangedA.templateId]
+          : [eliteD.templateId, bruteA.templateId, supportA.templateId],
+        [
+          { kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(3, actNumber + 1) },
+          ...when(actNumber >= 2, [{ kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]),
+        ]
       ),
       [branchBattleIds[5]]: makeEncounter(
         branchBattleIds[5],
         `${flavor.branchBattleLabel} Breach`,
         `${flavor.branchBattleDescription} A drilled breach team opens on line-breaking charges instead of another slower front-line trade.`,
-        [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
-        [{ kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
+        actNumber >= 4
+          ? [eliteA.templateId, eliteB.templateId, bruteA.templateId, supportA.templateId]
+          : [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
+        [
+          { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 }]),
+        ]
       ),
       [branchMinibossIds[0]]: makeEncounter(
         branchMinibossIds[0],
         `${flavor.branchMinibossLabel} Champion`,
         flavor.branchMinibossDescription,
-        actNumber >= 3 ? [eliteA.templateId, eliteB.templateId, supportB.templateId] : [eliteA.templateId, supportB.templateId, bruteA.templateId]
+        actNumber >= 3 ? [eliteA.templateId, eliteB.templateId, supportB.templateId] : [eliteA.templateId, supportB.templateId, bruteA.templateId],
+        [
+          ...when(actNumber >= 2, [{ kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 }]),
+          ...when(actNumber >= 4, [{ kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(2, actNumber - 1) }]),
+        ]
       ),
       [branchMinibossIds[1]]: makeEncounter(
         branchMinibossIds[1],
         `${flavor.branchMinibossLabel} Retinue`,
         `${flavor.branchMinibossDescription} A second elite escort package keeps the branch from collapsing into one repeated script.`,
         [eliteB.templateId, eliteC.templateId, bruteA.templateId],
-        [{ kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) }]
+        [
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]),
+          ...when(actNumber >= 5, [{ kind: MODIFIER_KIND.COURT_RESERVES, value: 1 }]),
+        ]
       ),
       [branchMinibossIds[2]]: makeEncounter(
         branchMinibossIds[2],
@@ -304,6 +343,8 @@
         [
           { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) },
           { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber)) }]),
+          ...when(actNumber >= 5, [{ kind: MODIFIER_KIND.SNIPER_NEST, value: 1 }]),
         ]
       ),
       [branchMinibossIds[3]]: makeEncounter(
@@ -314,6 +355,8 @@
         [
           { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
           { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.WAR_DRUMS, value: 1 }]),
+          ...when(actNumber >= 4, [{ kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) }]),
         ]
       ),
       [branchMinibossIds[4]]: makeEncounter(
@@ -321,14 +364,22 @@
         `${flavor.branchMinibossLabel} Phalanx`,
         `${flavor.branchMinibossDescription} A drilled elite front advances with brute escorts instead of leaning on another support pocket.`,
         [eliteA.templateId, bruteA.templateId, bruteB.templateId, supportA.templateId],
-        [{ kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) }]
+        [
+          { kind: MODIFIER_KIND.PHALANX_MARCH, value: Math.max(3, actNumber) },
+          ...when(actNumber >= 2, [{ kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(2, actNumber) }]),
+          ...when(actNumber >= 4, [{ kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 }]),
+        ]
       ),
       [branchMinibossIds[5]]: makeEncounter(
         branchMinibossIds[5],
         `${flavor.branchMinibossLabel} Conclave`,
         `${flavor.branchMinibossDescription} A warding conclave opens on recovery rites and shield calls instead of another straight escort rush.`,
         [eliteA.templateId, supportA.templateId, supportB.templateId, rangedA.templateId],
-        [{ kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) }]
+        [
+          { kind: MODIFIER_KIND.RITUAL_CADENCE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          ...when(actNumber >= 2, [{ kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) }]),
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber)) }]),
+        ]
       ),
       [consequenceBranchBattleId]: makeEncounter(
         consequenceBranchBattleId,
@@ -338,6 +389,7 @@
         [
           { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
           { kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]),
         ]
       ),
       [consequenceDetourBranchBattleId]: makeEncounter(
@@ -348,6 +400,7 @@
         [
           { kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(3, actNumber + 1) },
           { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]),
         ]
       ),
       [consequenceGuidedDetourBranchBattleId]: makeEncounter(
@@ -358,6 +411,7 @@
         [
           { kind: MODIFIER_KIND.FORTIFIED_LINE, value: Math.max(2, actNumber) },
           { kind: MODIFIER_KIND.TRIAGE_SCREEN, value: Math.max(2, Math.min(4, actNumber + 1)) },
+          ...when(actNumber >= 4, [{ kind: MODIFIER_KIND.COURT_RESERVES, value: 1 }]),
         ]
       ),
       [consequenceSignalDetourBranchBattleId]: makeEncounter(
@@ -368,6 +422,7 @@
         [
           { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
           { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, actNumber) },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]),
         ]
       ),
       [consequenceMobilizedDetourBranchBattleId]: makeEncounter(
@@ -379,6 +434,7 @@
           { kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber) },
           { kind: MODIFIER_KIND.SNIPER_NEST, value: Math.max(2, actNumber) },
           { kind: MODIFIER_KIND.COURT_RESERVES, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.TRIAGE_COMMAND, value: 1 }]),
         ]
       ),
       [consequenceBranchMinibossId]: makeEncounter(
@@ -389,6 +445,7 @@
         [
           { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
           { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(2, actNumber - 1) }]),
         ]
       ),
       [consequenceEscalationMinibossId]: makeEncounter(
@@ -399,6 +456,7 @@
         [
           { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 },
+          ...when(actNumber >= 2, [{ kind: MODIFIER_KIND.WAR_DRUMS, value: 1 }]),
         ]
       ),
       [consequenceBreachEscalationMinibossId]: makeEncounter(
@@ -409,6 +467,7 @@
         [
           { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.ELITE_ONSLAUGHT, value: 1 }]),
         ]
       ),
       [consequenceDirectedEscalationMinibossId]: makeEncounter(
@@ -419,6 +478,7 @@
         [
           { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
+          ...when(actNumber >= 3, [{ kind: MODIFIER_KIND.SNIPER_NEST, value: 1 }]),
         ]
       ),
       [consequenceMobilizedEscalationMinibossId]: makeEncounter(
@@ -430,6 +490,7 @@
           { kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
           { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 },
           { kind: MODIFIER_KIND.COURT_RESERVES, value: 1 },
+          ...when(actNumber >= 4, [{ kind: MODIFIER_KIND.WAR_DRUMS, value: 1 }]),
         ]
       ),
       [bossId]: makeEncounter(
@@ -438,8 +499,11 @@
         flavor.bossDescription,
         bossEnemyTemplateIds,
         [
-          { kind: MODIFIER_KIND.BOSS_SCREEN, value: actNumber === 1 ? 6 : Math.max(5, Math.min(8, actNumber + 3)) },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(4, actNumber + 1) },
+          {
+            kind: MODIFIER_KIND.BOSS_SCREEN,
+            value: actNumber === 1 ? 6 : actNumber === 4 ? 6 : Math.max(5, Math.min(8, actNumber + 3)),
+          },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: actNumber === 4 ? 3 : Math.max(4, actNumber + 1) },
         ]
       ),
       [consequenceBossId]: makeEncounter(
@@ -462,7 +526,7 @@
         `${flavor.bossDescription} Earlier route guidance carries through the full aftermath and turns the boss into a directed closing court instead of a generic late-route collapse.`,
         aftermathBossConfig.enemyTemplateIds,
         actNumber === 4
-          ? [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_BULWARK, value: Math.max(3, actNumber) }]
+          ? [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 }]
           : [...aftermathBossConfig.modifiers, { kind: MODIFIER_KIND.ESCORT_COMMAND, value: 1 }]
       ),
       [consequenceSignaledAftermathBossId]: makeEncounter(
@@ -509,5 +573,5 @@
     };
   }
 
-  runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS = { normalizeActPool, groupByRole, buildActEncounterSet, buildZoneEncounterSet };
+  registryWindow.__ROUGE_ENCOUNTER_REGISTRY_BUILDERS = { normalizeActPool, groupByRole, buildActEncounterSet, buildZoneEncounterSet };
 })();

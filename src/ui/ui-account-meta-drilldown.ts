@@ -4,6 +4,7 @@
   const {
     getTownFeatureLabel,
     createDefaultPlanningSummary,
+    createDefaultReviewSummary,
     getPlanningCharterStageLines,
   } = runtimeWindow.ROUGE_UI_ACCOUNT_META;
 
@@ -84,20 +85,7 @@
       "Review the progression wing before the next run-side decision if convergence pressure now outranks a fresh draft.";
     const planning = accountSummary?.planning || createDefaultPlanningSummary();
     const planningOverview = planning.overview || createDefaultPlanningSummary().overview;
-    const review = accountSummary?.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const review = accountSummary?.review || createDefaultReviewSummary();
     const convergences = Array.isArray(accountSummary?.convergences) ? accountSummary.convergences : [];
     const nextConvergence =
       convergences.find((convergence) => convergence.id === review.nextConvergenceId) ||
@@ -260,20 +248,7 @@
     const trees = Array.isArray(accountSummary?.trees) ? accountSummary.trees : [];
     const focusedTree = trees.find((tree) => tree.isFocused) || trees[0] || null;
     const nextMilestone = getNextAccountTreeMilestone(focusedTree);
-    const review = accountSummary?.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const review = accountSummary?.review || createDefaultReviewSummary();
     const convergences = Array.isArray(accountSummary?.convergences) ? accountSummary.convergences : [];
 
     if (trees.length === 0) {

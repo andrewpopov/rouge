@@ -14,29 +14,7 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const archiveSummary = accountSummary.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
-      latestClassId: "",
-      latestClassName: "",
-      latestOutcome: "",
-      latestCompletedAt: "",
-      highestLevel: profileSummary.highestLevel,
-      highestActsCleared: profileSummary.highestActCleared,
-      highestGoldGained: 0,
-      highestLoadoutTier: 0,
-      runewordArchiveCount: 0,
-      featureUnlockCount: 0,
-      favoredTreeId: "",
-      favoredTreeName: "",
-      planningArchiveCount: 0,
-      planningCompletionCount: 0,
-      planningMissCount: 0,
-      recentFeatureIds: [],
-      recentPlannedRunewordIds: [],
-    };
+    const archiveSummary = accountSummary.archive || common.createDefaultArchiveSummary(profileSummary);
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const unlocks = appState.profile?.meta?.unlocks || {
       classIds: [],
@@ -151,39 +129,8 @@
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, buildStringList, escapeHtml } = services.renderUtils;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const stashSummary = accountSummary.stash || {
-      entryCount: profileSummary.stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
-    const archiveSummary = accountSummary.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
-      latestClassId: "",
-      latestClassName: "",
-      latestOutcome: "",
-      latestCompletedAt: "",
-      highestLevel: profileSummary.highestLevel,
-      highestActsCleared: profileSummary.highestActCleared,
-      highestGoldGained: 0,
-      highestLoadoutTier: 0,
-      runewordArchiveCount: 0,
-      featureUnlockCount: 0,
-      favoredTreeId: "",
-      favoredTreeName: "",
-      planningArchiveCount: 0,
-      planningCompletionCount: 0,
-      planningMissCount: 0,
-      recentFeatureIds: [],
-      recentPlannedRunewordIds: [],
-    };
+    const stashSummary = accountSummary.stash || common.createDefaultStashSummary(profileSummary.stashEntries);
+    const archiveSummary = accountSummary.archive || common.createDefaultArchiveSummary(profileSummary);
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const stashEntries = Array.isArray(appState.profile?.stash?.entries) ? appState.profile.stash.entries : [];
     const equipmentEntries = stashEntries.filter((entry): entry is InventoryEquipmentEntry => entry.kind === "equipment");

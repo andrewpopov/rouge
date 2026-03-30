@@ -153,6 +153,62 @@
     };
   }
 
+  function createDefaultArchiveSummary(profileSummary: ProfileSummary): ProfileArchiveSummary {
+    return {
+      entryCount: profileSummary.runHistoryCount,
+      completedCount: profileSummary.completedRuns,
+      failedCount: profileSummary.failedRuns,
+      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
+      latestClassId: "",
+      latestClassName: "",
+      latestOutcome: "",
+      latestCompletedAt: "",
+      highestLevel: profileSummary.highestLevel,
+      highestActsCleared: profileSummary.highestActCleared,
+      highestGoldGained: 0,
+      highestLoadoutTier: 0,
+      runewordArchiveCount: 0,
+      featureUnlockCount: 0,
+      favoredTreeId: "",
+      favoredTreeName: "",
+      planningArchiveCount: 0,
+      planningCompletionCount: 0,
+      planningMissCount: 0,
+      recentFeatureIds: [],
+      recentPlannedRunewordIds: [],
+    };
+  }
+
+  function createDefaultStashSummary(stashEntries: number): ProfileStashSummary {
+    return {
+      entryCount: stashEntries,
+      equipmentCount: 0,
+      runeCount: 0,
+      socketReadyEquipmentCount: 0,
+      socketedRuneCount: 0,
+      runewordEquipmentCount: 0,
+      itemIds: [],
+      runeIds: [],
+    };
+  }
+
+  function createDefaultReviewSummary(): ProfileAccountReviewSummary {
+    return {
+      capstoneCount: 0,
+      unlockedCapstoneCount: 0,
+      blockedCapstoneCount: 0,
+      readyCapstoneCount: 0,
+      nextCapstoneId: "",
+      nextCapstoneTitle: "",
+      convergenceCount: 0,
+      unlockedConvergenceCount: 0,
+      blockedConvergenceCount: 0,
+      availableConvergenceCount: 0,
+      nextConvergenceId: "",
+      nextConvergenceTitle: "",
+    };
+  }
+
   function getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[] {
     const normalizedPlanning = planning || null;
     const buildStageLine = (slotLabel: string, runewordId: string, charter?: ProfilePlanningCharterSummary) => {
@@ -227,54 +283,10 @@
       completedTutorialCount: 0,
       dismissedTutorialCount: 0,
     };
-    const archive = accountSummary?.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: 0,
-      latestClassId: "",
-      latestClassName: "",
-      latestOutcome: "",
-      latestCompletedAt: "",
-      highestLevel: profileSummary.highestLevel,
-      highestActsCleared: profileSummary.highestActCleared,
-      highestGoldGained: 0,
-      highestLoadoutTier: 0,
-      runewordArchiveCount: 0,
-      featureUnlockCount: 0,
-      favoredTreeId: "",
-      favoredTreeName: "",
-      planningArchiveCount: 0,
-      planningCompletionCount: 0,
-      planningMissCount: 0,
-      recentFeatureIds: [],
-      recentPlannedRunewordIds: [],
-    };
+    const archive = accountSummary?.archive || createDefaultArchiveSummary(profileSummary);
     const planning = accountSummary?.planning || createDefaultPlanningSummary();
-    const stash = accountSummary?.stash || {
-      entryCount: profileSummary.stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
-    const review = accountSummary?.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const stash = accountSummary?.stash || createDefaultStashSummary(profileSummary.stashEntries);
+    const review = accountSummary?.review || createDefaultReviewSummary();
     const focusedTree = (Array.isArray(accountSummary?.trees) ? accountSummary.trees : []).find((tree) => tree.isFocused) || accountSummary?.trees?.[0] || null;
     const nextMilestone = getNextAccountTreeMilestone(focusedTree);
     const convergences = Array.isArray(accountSummary?.convergences) ? accountSummary.convergences : [];
@@ -424,6 +436,9 @@
     getTownFeatureLabel,
     getTutorialLabel,
     createDefaultPlanningSummary,
+    createDefaultArchiveSummary,
+    createDefaultStashSummary,
+    createDefaultReviewSummary,
     getPlanningCharterStageLines,
     buildAccountMetaContinuityMarkup,
     // Patched by ui-account-meta-drilldown.ts after load

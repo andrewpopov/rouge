@@ -26,10 +26,10 @@
     }
     if (actNumber === 4) {
       return {
-        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
           { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 1 },
           { kind: MODIFIER_KIND.WAR_DRUMS, value: 1 },
         ],
       };
@@ -77,10 +77,9 @@
     }
     if (actNumber === 4) {
       return {
-        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteC, templateIds.eliteD],
+        enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: 5 },
           { kind: MODIFIER_KIND.ESCORT_ROTATION, value: 1 },
         ],
       };
@@ -141,8 +140,8 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: 5 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 1 },
           { kind: MODIFIER_KIND.ESCORT_ROTATION, value: 1 },
         ],
       };
@@ -179,7 +178,7 @@
         enemyTemplateIds: [...drilledConfig.enemyTemplateIds],
         modifiers: [
           ...drilledConfig.modifiers,
-          { kind: MODIFIER_KIND.COURT_RESERVES, value: Math.max(2, Math.min(4, actNumber + 1)) },
+          { kind: MODIFIER_KIND.COURT_RESERVES, value: 2 },
         ],
       };
     }
@@ -225,8 +224,8 @@
       return {
         enemyTemplateIds: [templateIds.boss, templateIds.eliteA, templateIds.eliteD, templateIds.brute],
         modifiers: [
-          { kind: MODIFIER_KIND.BOSS_SCREEN, value: bossScreenValue },
-          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 3 },
+          { kind: MODIFIER_KIND.BOSS_SCREEN, value: 5 },
+          { kind: MODIFIER_KIND.ESCORT_BULWARK, value: 2 },
           { kind: MODIFIER_KIND.ESCORT_ROTATION, value: 1 },
         ],
       };
@@ -254,7 +253,7 @@
     };
   }
 
-  runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS = {
+  runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS = {
     buildCovenantBossConfig,
     buildAftermathBossConfig,
     buildDrilledAftermathBossConfig,

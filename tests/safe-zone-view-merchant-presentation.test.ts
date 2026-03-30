@@ -12,7 +12,6 @@ interface MerchantPresentationApi {
   getMerchantActionIcon(action: TownAction): string;
   buildNpcServiceLayout(
     npc: SafeZoneNpcViewModel,
-    gold: number,
     themeKey: string,
     escapeHtml: (value: string) => string
   ): string;
@@ -145,7 +144,6 @@ test("merchant presentation layouts group cain and healer services into their th
         }),
       ],
     }),
-    77,
     "cain",
     escapeHtml
   );
@@ -154,8 +152,6 @@ test("merchant presentation layouts group cain and healer services into their th
   assert.match(cainMarkup, /Consult/);
   assert.match(cainMarkup, /Rites/);
   assert.match(cainMarkup, /Bloodline Training/);
-  assert.match(cainMarkup, /Actions/);
-  assert.match(cainMarkup, /77g/);
   assert.match(cainMarkup, /merchant-service-card__preview/);
 
   const healerMarkup = presentation.buildNpcServiceLayout(
@@ -188,7 +184,6 @@ test("merchant presentation layouts group cain and healer services into their th
         }),
       ],
     }),
-    18,
     "healer",
     escapeHtml
   );

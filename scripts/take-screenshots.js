@@ -80,6 +80,26 @@ async function shot(page, name, opts = {}) {
   console.log(`  ✓ ${name}.png${opts.fullPage ? " (full page)" : ""}`);
 }
 
+async function shotLocator(locator, name) {
+  const filePath = path.join(OUT_DIR, `${name}.png`);
+  await locator.screenshot({ path: filePath, type: "png" });
+  console.log(`  ✓ ${name}.png`);
+}
+
+async function resetScroll(page) {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    const scrollers = Array.from(document.querySelectorAll("*")).filter((node) => {
+      if (!(node instanceof HTMLElement)) { return false; }
+      return node.scrollHeight > node.clientHeight + 8;
+    });
+    for (const scroller of scrollers) {
+      scroller.scrollTop = 0;
+    }
+  });
+  await page.waitForTimeout(120);
+}
+
 async function openGameMenu(page) {
   const debugToggle = page.locator('[data-setting-key="debugMode.enabled"]').first();
   if (await debugToggle.isVisible().catch(() => false)) {
@@ -384,17 +404,14 @@ async function captureScreenshots(baseUrl) {
   }
   await shot(page, "03-town");
 
-  // ── 04. Vendor ──
-  if (await tryClick(page, /Gheed/i, 400)) {
-    await shot(page, "04-vendor");
-    await tryClick(page, /Leave/, 300);
-  }
-
-  // ── 04b. Town NPC overlays ──
+  // ── 04. Town service desks ──
   try {
-    await captureTownNpcOverlay(page, "mercenary", "12-kashya-mercenaries");
-    await captureTownNpcOverlay(page, "blacksmith", "13-charsi-blacksmith");
-    await captureTownNpcOverlay(page, "stash", "14-stash-empty");
+    await captureTownNpcOverlay(page, "vendor", "04-vendor");
+    await captureTownNpcOverlay(page, "healer", "04a-healer-quartermaster");
+    await captureTownNpcOverlay(page, "blacksmith", "04b-blacksmith");
+    await captureTownNpcOverlay(page, "mercenary", "04c-mercenary-captain");
+    await captureTownNpcOverlay(page, "stash", "04d-stash-vault");
+    await captureTownNpcOverlay(page, "travel", "04e-travel-gate");
   } catch (e) {
     console.log("  ⚠ Town NPC overlay capture error:", e.message);
   }
@@ -448,22 +465,31 @@ async function captureScreenshots(baseUrl) {
 
   if (onWorldMap) {
     const introGuide = page.locator('[data-action="continue-act-guide"]').first();
-    if (await introGuide.isVisible({ timeout: 1200 }).catch(() => false)) {
+    const introGuideShell = page.locator(".act-guide-shell").first();
+    if (await introGuideShell.isVisible({ timeout: 1200 }).catch(() => false)) {
       await waitForActGuideArt(page);
-      await shot(page, "06a-act-guide-intro");
+      await resetScroll(page);
+      await shotLocator(introGuideShell, "06a-act-guide-intro");
       await introGuide.click();
       await page.waitForTimeout(500);
     }
 
+    await resetScroll(page);
     await shot(page, "06-world-map");
 
     // ── 07. Enter first zone ──
-    if (await tryClick(page, /Blood Moor/i, 400)) {
+    if (await tryClick(page, /Blighted Moors|Blood Moor/i, 400)) {
       await shot(page, "07-encounter-choices");
 
       // ── 08. Combat ──
       if (await tryClick(page, /Charge Forward|Scout Ahead|Follow the Trail/i, 600)) {
-        await shot(page, "08-combat");
+        const combatShell = page.locator(".combat-shell").first();
+        await resetScroll(page);
+        if (await combatShell.isVisible({ timeout: 1200 }).catch(() => false)) {
+          await shotLocator(combatShell, "08-combat");
+        } else {
+          await shot(page, "08-combat");
+        }
 
         // ── 09. Reward ──
         try {

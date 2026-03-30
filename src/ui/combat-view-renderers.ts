@@ -99,14 +99,18 @@
     `;
   }
 
-  function renderMinionRack(minions: CombatMinionState[], escapeHtml: (s: string) => string): string {
+  function renderMinionRack(
+    minions: CombatMinionState[],
+    escapeHtml: (s: string) => string,
+    variant: "stage" | "command" = "stage"
+  ): string {
     const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
     const maxMinions = turns?.MAX_ACTIVE_MINIONS || 3;
     const activeMinions = Array.isArray(minions) ? minions : [];
     return `
-      <div class="minion-rack ${activeMinions.length === 0 ? "minion-rack--empty" : ""}">
+      <div class="minion-rack minion-rack--${variant} ${activeMinions.length === 0 ? "minion-rack--empty" : ""}">
         <div class="minion-rack__head">
-          <span class="minion-rack__label">Minions</span>
+          <span class="minion-rack__label">${variant === "command" ? "Summons" : "Minions"}</span>
           <span class="minion-rack__count">${activeMinions.length}/${maxMinions}</span>
         </div>
         <div class="minion-rack__list">

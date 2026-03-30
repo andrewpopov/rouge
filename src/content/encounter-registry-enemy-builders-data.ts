@@ -302,9 +302,9 @@
     icevein: "cold_enchanted",
   };
 
-  const monsterFamilies = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES;
+  const monsterFamilies = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES;
 
-  runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA = {
+  runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA = {
     ROLE_KEYWORDS,
     ROLE_STATS,
     ELITE_AFFIX_PROFILES,

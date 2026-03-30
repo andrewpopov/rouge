@@ -277,7 +277,7 @@
     return null;
   }
 
-  runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES = {
+  runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES = {
     MONSTER_FAMILY_OVERRIDES,
     findFamilyOverride,
   };

@@ -3,7 +3,7 @@
   const {
     groupByRole,
     buildEnemyTemplate,
-  } = runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS;
+  } = runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS;
   const { MODIFIER_KIND } = runtimeWindow.ROUGE_COMBAT_MODIFIERS;
 
   const ACT_FLAVOR = {
@@ -184,7 +184,7 @@
     return { enemyCatalog, encounterCatalog, encounterIds };
   }
 
-  runtimeWindow.ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES = {
+  runtimeWindow.__ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES = {
     ACT_FLAVOR,
     getFlavor,
     pickEntry,

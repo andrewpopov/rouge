@@ -132,6 +132,9 @@ interface UiAccountMetaApi {
   getTownFeatureLabel(featureId: string): string;
   getTutorialLabel(tutorialId: string): string;
   createDefaultPlanningSummary(): ProfilePlanningSummary;
+  createDefaultArchiveSummary(profileSummary: ProfileSummary): ProfileArchiveSummary;
+  createDefaultStashSummary(stashEntries: number): ProfileStashSummary;
+  createDefaultReviewSummary(): ProfileAccountReviewSummary;
   getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[];
   buildAccountMetaContinuityMarkup(
     appState: AppState,
@@ -167,6 +170,9 @@ interface UiCommonApi {
   getTownFeatureLabel(featureId: string): string;
   getTutorialLabel(tutorialId: string): string;
   createDefaultPlanningSummary(): ProfilePlanningSummary;
+  createDefaultArchiveSummary(profileSummary: ProfileSummary): ProfileArchiveSummary;
+  createDefaultStashSummary(stashEntries: number): ProfileStashSummary;
+  createDefaultReviewSummary(): ProfileAccountReviewSummary;
   getPlanningCharterStageLines(planning: ProfilePlanningSummary | null, content: GameContent | null): string[];
   buildAccountMetaContinuityMarkup(
     appState: AppState,
@@ -446,6 +452,14 @@ interface RougeConstants {
     EQUIPMENT: "equipment";
     RUNE: "rune";
   };
+  ZONE_NAME: {
+    readonly BLACK_PIT: "Black Pit";
+    readonly ASHFALL_HAMLET: "Ashfall Hamlet";
+    readonly DEN_OF_EVIL: "Den of Evil";
+    readonly TRISTRAM: "Tristram";
+    readonly FORSAKEN_PALISADE: "Forsaken Palisade";
+  };
+  DECK_SURGERY_ZONES: Set<string>;
 }
 
 interface RogueAuthUser {
@@ -482,17 +496,17 @@ interface Window {
   ROUGE_COMBAT_MODIFIERS: CombatModifiersApi;
   ROUGE_SEED_LOADER: SeedLoaderApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES: Record<string, any>;
+  __ROUGE_ENCOUNTER_REGISTRY_MONSTER_FAMILIES: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA: Record<string, any>;
-  ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
+  __ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS_DATA: Record<string, any>;
+  __ROUGE_ENCOUNTER_REGISTRY_ENEMY_BUILDERS: EncounterRegistryEnemyBuildersApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS: Record<string, any>;
+  __ROUGE_ENCOUNTER_REGISTRY_BUILDERS_BOSS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES: Record<string, any>;
-  ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;
-  ROUGE_CONTENT_VALIDATOR_WORLD_PATHS: ContentValidatorWorldPathsApi;
-  ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES: ContentValidatorWorldOpportunitiesApi;
+  __ROUGE_ENCOUNTER_REGISTRY_BUILDERS_ZONES: Record<string, any>;
+  __ROUGE_ENCOUNTER_REGISTRY_BUILDERS: EncounterRegistryBuildersApi;
+  __ROUGE_CONTENT_VALIDATOR_WORLD_PATHS: ContentValidatorWorldPathsApi;
+  __ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES: ContentValidatorWorldOpportunitiesApi;
   __ROUGE_CVWO_HELPERS: {
     pushError(errors: string[], message: string): void;
     validateStringIdList(values: unknown, label: string, errors: string[]): void;
@@ -524,7 +538,7 @@ interface Window {
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_CV_RUNTIME_MERCENARIES: Record<string, any>;
-  ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
+  __ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_CV_WORLD_CATALOG_SECTIONS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -585,6 +599,8 @@ interface Window {
   __ROUGE_COMBAT_MONSTER_ACTIONS: Record<string, any>;
   __ROUGE_COMBAT_MERCENARY: CombatMercenaryApi;
   __ROUGE_COMBAT_WEAPON_SCALING: CombatWeaponScalingApi;
+  __ROUGE_COMBAT_MINIONS: CombatMinionsApi;
+  __ROUGE_COMBAT_WEAPON_EFFECTS: CombatWeaponEffectsApi;
   __ROUGE_COMBAT_ENGINE_TURNS: CombatTurnsApi;
   __ROUGE_CARD_EFFECTS: CombatCardEffectsApi;
   __ROUGE_APPROACH_BONUS: {

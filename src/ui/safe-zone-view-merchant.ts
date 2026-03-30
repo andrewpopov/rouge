@@ -10,7 +10,6 @@
       getMerchantActionIcon(action: TownAction): string;
       buildNpcServiceLayout(
         npc: SafeZoneNpcViewModel,
-        gold: number,
         themeKey: string,
         escapeHtml: (value: string) => string
       ): string;
@@ -249,7 +248,7 @@
       .join("");
     const isVendorStock = npc.actions.some((action) => action.id === "vendor_refresh_stock");
     const isEmptyOverlay = npc.actions.length === 0;
-    let actionCards = buildNpcServiceLayout(npc, gold, themeKey, escapeHtml);
+    let actionCards = buildNpcServiceLayout(npc, themeKey, escapeHtml);
     if (isEmptyOverlay) {
       actionCards = buildEmptyOverlayState(npc, themeKey, escapeHtml);
     } else if (isVendorStock) {

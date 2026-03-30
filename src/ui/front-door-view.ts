@@ -1,42 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
-
-  function formatTimestamp(timestamp: string, includeYear = false): string {
-    const parsed = new Date(timestamp);
-    if (Number.isNaN(parsed.getTime())) {
-      return timestamp;
-    }
-
-    return parsed.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      ...(includeYear ? { year: "numeric" } : {}),
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
-
-  function getPhaseTone(savedRunSummary: SavedRunSummary | null, appEngine: AppEngineApi): string {
-    if (savedRunSummary?.phase === appEngine.PHASES.RUN_COMPLETE) {
-      return "cleared";
-    }
-    if (savedRunSummary?.phase === appEngine.PHASES.RUN_FAILED) {
-      return "locked";
-    }
-    return "available";
-  }
-
-  function getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string {
-    const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
-    if (outcome === RUN_OUTCOME.COMPLETED) {
-      return "cleared";
-    }
-    if (outcome === RUN_OUTCOME.FAILED) {
-      return "locked";
-    }
-    return "available";
-  }
+  const { formatTimestamp, getPhaseTone, getRunOutcomeTone } = runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS;
 
   function getStashPreviewLines(profile: ProfileState, content: GameContent): string[] {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_ENTRIES) : [];

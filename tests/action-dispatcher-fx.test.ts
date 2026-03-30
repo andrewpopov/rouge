@@ -139,6 +139,27 @@ test("switch-inv-tab action changes the inventory tab", () => {
   assert.equal(state.ui.inventoryTab, "character");
 });
 
+test("select-inventory-entry pins the clicked pack item", () => {
+  const harness = createHarness();
+  const { actionDispatcher, appEngine, combatEngine, content, createActionTarget, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+
+  actionDispatcher.handleClick({
+    target: createActionTarget({ action: "select-inventory-entry", entryId: "entry_7" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render: () => {},
+    syncCombatResultAndRender: () => {},
+  });
+  assert.equal(state.ui.inventoryDetailEntryId, "entry_7");
+});
+
 test("toggle-scroll-map flips scrollMapOpen state", () => {
   const harness = createHarness();
   const { actionDispatcher, appEngine, combatEngine, content, createActionTarget, seedBundle } = harness;

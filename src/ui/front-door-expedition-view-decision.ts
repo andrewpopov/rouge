@@ -1,108 +1,31 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { toNumber } = runtimeWindow.ROUGE_UTILS;
   const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
-
-  function formatTimestamp(timestamp: string, includeYear = false): string {
-    const parsed = new Date(timestamp);
-    if (Number.isNaN(parsed.getTime())) {
-      return timestamp;
-    }
-
-    return parsed.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      ...(includeYear ? { year: "numeric" } : {}),
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
-
-  function getPhaseTone(savedRunSummary: SavedRunSummary | null, appEngine: AppEngineApi): string {
-    if (savedRunSummary?.phase === appEngine.PHASES.RUN_COMPLETE) {
-      return "cleared";
-    }
-    if (savedRunSummary?.phase === appEngine.PHASES.RUN_FAILED) {
-      return "locked";
-    }
-    return "available";
-  }
-
-  function getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string {
-    if (outcome === RUN_OUTCOME.COMPLETED) {
-      return "cleared";
-    }
-    if (outcome === RUN_OUTCOME.FAILED) {
-      return "locked";
-    }
-    return "available";
-  }
-
-  function getLabelFromId(id: string): string {
-    return String(id || "")
-      .replace(/[_-]+/g, " ")
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-      .join(" ");
-  }
-
-  function getClassName(appState: AppState, classId: string): string {
-    return appState.registries.classes.find((entry) => entry.id === classId)?.name || classId;
-  }
-
-  function getRunewordLabel(appState: AppState, runewordId: string): string {
-    return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
-  }
-
-  function getCapstoneReviewTone(review: {
-    readyCapstoneCount: number;
-    unlockedCapstoneCount: number;
-    capstoneCount: number;
-  }): string {
-    if (review.readyCapstoneCount > 0) {
-      return "available";
-    }
-    if (review.unlockedCapstoneCount >= review.capstoneCount && review.capstoneCount > 0) {
-      return "cleared";
-    }
-    return "locked";
-  }
-
-  function getArchiveReviewState(appState: AppState, accountSummary: ProfileAccountSummary) {
-    const common = runtimeWindow.ROUGE_UI_COMMON;
-    const historyEntries = Array.isArray(appState.profile?.runHistory) ? appState.profile.runHistory : [];
-    const reviewedHistoryIndex = Math.min(
-      Math.max(0, toNumber(appState.ui.reviewedHistoryIndex, 0)),
-      Math.max(0, historyEntries.length - 1)
-    );
-    const reviewedHistoryEntry = historyEntries[reviewedHistoryIndex] || null;
-    const reviewedRunewordLabels = (reviewedHistoryEntry?.activeRunewordIds || []).map((runewordId) => {
-      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
-    });
-    const reviewedPlannedRunewordLabels = [reviewedHistoryEntry?.plannedWeaponRunewordId, reviewedHistoryEntry?.plannedArmorRunewordId]
-      .filter(Boolean)
-      .map((runewordId) => appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId));
-    const reviewedCompletedPlannedRunewordLabels = (reviewedHistoryEntry?.completedPlannedRunewordIds || []).map((runewordId) => {
-      return appState.content.runewordCatalog?.[runewordId]?.name || getLabelFromId(runewordId);
-    });
-    const reviewedFeatureLabels = (reviewedHistoryEntry?.newFeatureIds || []).map((featureId) => common.getTownFeatureLabel(featureId));
-    const reviewedFavoredTreeLabel = reviewedHistoryEntry
-      ? reviewedHistoryEntry.favoredTreeName || getLabelFromId(reviewedHistoryEntry.favoredTreeId || "unknown_tree")
-      : "No archive yet";
-
-    return {
-      historyEntries,
-      reviewedHistoryIndex,
-      reviewedHistoryEntry,
-      reviewedRunewordLabels,
-      reviewedPlannedRunewordLabels,
-      reviewedCompletedPlannedRunewordLabels,
-      reviewedFeatureLabels,
-      reviewedFavoredTreeLabel,
-      runHistoryCapacity: accountSummary.runHistoryCapacity,
-    };
-  }
+  const hallViewSections = runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS || {
+    formatTimestamp: (value: string | number | null | undefined, _includeTime?: boolean) =>
+      value == null ? "" : String(value),
+    getPhaseTone: () => "locked",
+    getRunOutcomeTone: () => "locked",
+    getLabelFromId: (id: string | number | null | undefined) => (id == null ? "" : String(id)),
+    getClassName: (_appState: AppState, classId: string | null | undefined) => (classId == null ? "" : String(classId)),
+    getRunewordLabel: (_appState: AppState, runewordId: string | null | undefined) =>
+      runewordId == null ? "" : String(runewordId),
+    getCapstoneReviewTone: () => "locked",
+    getArchiveReviewState: () => ({
+      reviewedHistoryEntry: false,
+      reviewedHistoryIndex: 0,
+    }),
+  };
+  const {
+    formatTimestamp,
+    getPhaseTone,
+    getRunOutcomeTone,
+    getLabelFromId,
+    getClassName,
+    getRunewordLabel,
+    getCapstoneReviewTone,
+    getArchiveReviewState,
+  } = hallViewSections;
 
   function buildHallNavigatorMarkup(
     appState: AppState,
@@ -110,6 +33,7 @@
     savedRunSummary: SavedRunSummary | null,
     accountSummary: ProfileAccountSummary
   ): string {
+    const common = runtimeWindow.ROUGE_UI_COMMON;
     const { buildBadge, buildStat, escapeHtml } = services.renderUtils;
     const resumeGuidance = savedRunSummary
       ? runtimeWindow.ROUGE_FRONT_DOOR_EXPEDITION_VIEW.getSavedRunPhaseGuidance(savedRunSummary, services.appEngine)
@@ -120,30 +44,8 @@
       reduceMotion: false,
       compactMode: false,
     };
-    const stashSummary = accountSummary.stash || {
-      entryCount: profileSummary.stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
-    const review = accountSummary.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const stashSummary = accountSummary.stash || common.createDefaultStashSummary(profileSummary.stashEntries);
+    const review = accountSummary.review || common.createDefaultReviewSummary();
     const unlocks = appState.profile?.meta?.unlocks || {
       classIds: [],
       bossIds: [],
@@ -291,55 +193,11 @@
       ? runtimeWindow.ROUGE_FRONT_DOOR_EXPEDITION_VIEW.getSavedRunPhaseGuidance(savedRunSummary, services.appEngine)
       : null;
     const profileSummary = accountSummary.profile || services.appEngine.getProfileSummary(appState);
-    const stashSummary = accountSummary.stash || {
-      entryCount: profileSummary.stashEntries,
-      equipmentCount: 0,
-      runeCount: 0,
-      socketReadyEquipmentCount: 0,
-      socketedRuneCount: 0,
-      runewordEquipmentCount: 0,
-      itemIds: [],
-      runeIds: [],
-    };
-    const archiveSummary = accountSummary.archive || {
-      entryCount: profileSummary.runHistoryCount,
-      completedCount: profileSummary.completedRuns,
-      failedCount: profileSummary.failedRuns,
-      abandonedCount: Math.max(0, profileSummary.runHistoryCount - profileSummary.completedRuns - profileSummary.failedRuns),
-      latestClassId: "",
-      latestClassName: "",
-      latestOutcome: "",
-      latestCompletedAt: "",
-      highestLevel: profileSummary.highestLevel,
-      highestActsCleared: profileSummary.highestActCleared,
-      highestGoldGained: 0,
-      highestLoadoutTier: 0,
-      runewordArchiveCount: 0,
-      featureUnlockCount: 0,
-      favoredTreeId: "",
-      favoredTreeName: "",
-      planningArchiveCount: 0,
-      planningCompletionCount: 0,
-      planningMissCount: 0,
-      recentFeatureIds: [],
-      recentPlannedRunewordIds: [],
-    };
+    const stashSummary = accountSummary.stash || common.createDefaultStashSummary(profileSummary.stashEntries);
+    const archiveSummary = accountSummary.archive || common.createDefaultArchiveSummary(profileSummary);
     const planning: ProfilePlanningSummary = accountSummary.planning || common.createDefaultPlanningSummary();
     const planningOverview = planning.overview;
-    const review = accountSummary.review || {
-      capstoneCount: 0,
-      unlockedCapstoneCount: 0,
-      blockedCapstoneCount: 0,
-      readyCapstoneCount: 0,
-      nextCapstoneId: "",
-      nextCapstoneTitle: "",
-      convergenceCount: 0,
-      unlockedConvergenceCount: 0,
-      blockedConvergenceCount: 0,
-      availableConvergenceCount: 0,
-      nextConvergenceId: "",
-      nextConvergenceTitle: "",
-    };
+    const review = accountSummary.review || common.createDefaultReviewSummary();
     const convergences = Array.isArray(accountSummary.convergences) ? accountSummary.convergences : [];
     const nextConvergence =
       convergences.find((convergence) => convergence.id === review.nextConvergenceId) ||
@@ -350,6 +208,12 @@
     const plannedRunewordLabels = [planning.weaponRunewordId, planning.armorRunewordId]
       .filter(Boolean)
       .map((runewordId) => getRunewordLabel(appState, runewordId));
+    const latestOutcomeLabel = archiveSummary.latestOutcome
+      ? String(archiveSummary.latestOutcome)
+          .replaceAll("_", " ")
+          .toLowerCase()
+          .replace(/\b\w/g, (segment) => segment.toUpperCase())
+      : "Awaiting";
     let convergenceTone = "locked";
     if (review.availableConvergenceCount > 0) {
       convergenceTone = "available";
@@ -430,7 +294,7 @@
               )}
             </div>
             <div class="entity-stat-grid">
-              ${buildStat("Outcome", archiveSummary.latestOutcome ? getLabelFromId(archiveSummary.latestOutcome) : "Awaiting")}
+              ${buildStat("Outcome", latestOutcomeLabel)}
               ${buildStat("Recent Features", archiveSummary.recentFeatureIds.length)}
               ${buildStat("Charter Echoes", archiveSummary.recentPlannedRunewordIds.length)}
               ${buildStat("Last Logged", archiveSummary.latestCompletedAt ? formatTimestamp(archiveSummary.latestCompletedAt, true) : "Awaiting")}

@@ -359,15 +359,11 @@ test("front-door account hall renders richer unlock, vault, archive-signal, and 
   assert.match(root.innerHTML, /Vault Logistics/);
   assert.match(root.innerHTML, /Archive Signal Board/);
   assert.match(root.innerHTML, /Capstone Watch/);
-  assert.match(root.innerHTML, /Boss gallery: The Briar Matron\./);
-  assert.match(root.innerHTML, /Runeword codex: Steel, White\./);
-  assert.match(root.innerHTML, /Vault loadout watch: Short Sword\./);
-  assert.match(root.innerHTML, /Rune reserve: El\./);
-  assert.match(root.innerHTML, /Recent feature burst: Economy Ledger, War College\./);
-  assert.match(root.innerHTML, /Recent charter pressure: White, Lionheart(?:, Steel)?\./);
-  assert.match(root.innerHTML, /Weapon charter staging: White -&gt; 0 ready, 0 prepared, best base not parked yet\./);
-  assert.match(root.innerHTML, /Armor charter staging: Lionheart -&gt; 0 ready, 0 prepared, best base not parked yet\./);
-  assert.match(root.innerHTML, /Next vault push: Hunt Bases\. Pinned charters still lack a compatible parked base: White and Lionheart\./);
+  assert.match(root.innerHTML, /Boss Trophy Gallery/);
+  assert.match(root.innerHTML, /Runeword Codex/);
+  assert.match(root.innerHTML, /Recent Unlock Wave/);
+  assert.match(root.innerHTML, /Socket And Base Watch/);
+  assert.match(root.innerHTML, /Charter Forecast/);
   assert.match(root.innerHTML, /Next capstone:/);
 });
 
@@ -464,12 +460,14 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
   state.run.summary.bossesDefeated = 1;
   state.run.summary.goldGained = Math.max(state.run.summary.goldGained, 77);
   state.run.summary.runewordsForged = Math.max(state.run.summary.runewordsForged, 1);
+  state.profile.meta.settings.debugMode.enabled = true;
 
   appShell.render(root, {
     appState: state,
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
+  assert.match(root.innerHTML, /Debug Ledger/);
   assert.match(root.innerHTML, /Prep Comparison Board/);
   assert.match(root.innerHTML, /Live Account Bonuses/);
   assert.match(root.innerHTML, /Next Prep Step/);

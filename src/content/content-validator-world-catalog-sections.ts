@@ -9,13 +9,13 @@
     getOpportunityVariantSpecificity,
     getShrineOpportunityVariantRequirementSignature,
     getShrineOpportunityVariantSpecificity,
-  } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
+  } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
   const {
     validateGrants,
     validateKnownStringIds,
     validateRewardDefinition,
     validateStringIdList,
-  } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES;
+  } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES;
 
   const MIN_CROSSROAD_OPPORTUNITY_VARIANTS = 3;
   const MIN_SHRINE_OPPORTUNITY_VARIANTS = 3;

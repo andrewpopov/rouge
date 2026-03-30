@@ -17,6 +17,7 @@ interface ArchiveReviewState {
 
 interface HallViewSectionsApi {
   formatTimestamp(timestamp: string, includeYear?: boolean): string;
+  getPhaseTone(savedRunSummary: SavedRunSummary | null, appEngine: AppEngineApi): string;
   getRunOutcomeTone(outcome: RunHistoryEntry["outcome"]): string;
   getSettingLabel(enabled: boolean, positiveLabel: string, negativeLabel: string): string;
   getLabelFromId(id: string): string;

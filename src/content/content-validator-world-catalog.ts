@@ -6,14 +6,14 @@
     doesVariantMatchPath,
     getOpportunityVariantRequirementSignature,
     getOpportunityVariantSpecificity,
-  } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
+  } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
   const {
     validateGrants,
     validateKnownStringIds,
     validateLateRouteOpportunityFamilies,
     validateRewardDefinition,
     validateStringIdList,
-  } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES;
+  } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_OPPORTUNITIES;
   const {
     validateCrossroadOpportunitySection,
     validateShrineOpportunitySection,

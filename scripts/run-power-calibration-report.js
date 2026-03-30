@@ -19,8 +19,11 @@ function parseArgs(argv) {
     throughActNumber: 5,
     probeRuns: 3,
     maxCombatTurns: 36,
+    checkpointProbeProfile: "default",
     output: "",
     progressLog: "",
+    statusFile: "",
+    verboseProgress: false,
     json: false,
   };
 
@@ -77,6 +80,11 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === "--probe-profile" && next) {
+      parsed.checkpointProbeProfile = next === "pressure" ? "pressure" : "default";
+      index += 1;
+      continue;
+    }
     if (arg === "--max-turns" && next) {
       parsed.maxCombatTurns = Math.max(12, Number.parseInt(next, 10) || parsed.maxCombatTurns);
       index += 1;
@@ -95,6 +103,15 @@ function parseArgs(argv) {
     if (arg === "--progress-log" && next) {
       parsed.progressLog = path.resolve(next);
       index += 1;
+      continue;
+    }
+    if (arg === "--status-file" && next) {
+      parsed.statusFile = path.resolve(next);
+      index += 1;
+      continue;
+    }
+    if (arg === "--verbose-progress") {
+      parsed.verboseProgress = true;
       continue;
     }
     if (arg === "--json") {
@@ -140,10 +157,23 @@ function formatProgressLine(event) {
   if (event.encounterSetId && event.encounterSetId !== "progression_checkpoints") {
     unitParts.push(event.encounterSetId);
   }
+  if (event.detail) {
+    unitParts.push(event.detail);
+  }
+  const statusLabel =
+    event.status === "started"
+      ? `start ${event.completedUnits + 1}/${event.totalUnits}`
+      : event.status === "completed"
+        ? `done ${event.completedUnits}/${event.totalUnits}`
+        : event.status === "combat"
+          ? `combat ${event.completedUnits + 1}/${event.totalUnits}`
+          : event.status === "operation"
+            ? `op ${event.completedUnits + 1}/${event.totalUnits}`
+        : event.status;
   return [
     `[${new Date().toISOString()}]`,
     `pass ${event.passIndex}/${event.totalPasses}`,
-    `unit ${event.completedUnits}/${event.totalUnits}`,
+    statusLabel,
     unitParts.join(" | "),
     `elapsed ${formatDuration(event.elapsedMs)}`,
   ].filter(Boolean).join(" ");
@@ -151,6 +181,24 @@ function formatProgressLine(event) {
 
 function writeProgressLine(progressLogPath, line) {
   fs.appendFileSync(progressLogPath, `${line}\n`, "utf8");
+}
+
+function writeLifecycleLine(progressLogPath, label, detail = "") {
+  if (!progressLogPath) {
+    return;
+  }
+  const suffix = detail ? ` ${detail}` : "";
+  writeProgressLine(progressLogPath, `[${new Date().toISOString()}] ${label}${suffix}`);
+}
+
+function writeStatusFile(statusFilePath, payload) {
+  if (!statusFilePath) {
+    return;
+  }
+  fs.mkdirSync(path.dirname(statusFilePath), { recursive: true });
+  const tmpPath = `${statusFilePath}.tmp`;
+  fs.writeFileSync(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  fs.renameSync(tmpPath, statusFilePath);
 }
 
 function printKindSummary(summary) {
@@ -178,10 +226,95 @@ function main() {
   const progressLogPath = options.progressLog || (options.output
     ? options.output.replace(/\.json$/i, ".progress.log")
     : "");
+  const statusFilePath = options.statusFile || (options.output
+    ? options.output.replace(/\.json$/i, ".status.json")
+    : "");
+  const calibrationStartedAt = new Date().toISOString();
+  const baseStatus = {
+    pid: process.pid,
+    source: options.source,
+    classIds: options.classIds,
+    scenarioIds: options.scenarioIds,
+    policyIds: options.policyIds,
+    seedOffsets: options.seedOffsets,
+    encounterSetIds: options.encounterSetIds,
+    throughActNumber: options.throughActNumber,
+    probeRuns: options.probeRuns,
+    checkpointProbeProfile: options.checkpointProbeProfile,
+    runsPerEncounter: options.runsPerEncounter,
+    determinismChecks: options.determinismChecks,
+    output: options.output || "",
+    progressLog: progressLogPath || "",
+    startedAt: calibrationStartedAt,
+  };
+  function updateStatus(partial) {
+    writeStatusFile(statusFilePath, {
+      ...baseStatus,
+      updatedAt: new Date().toISOString(),
+      ...partial,
+    });
+  }
+  let finished = false;
   if (progressLogPath) {
     fs.mkdirSync(path.dirname(progressLogPath), { recursive: true });
-    writeProgressLine(progressLogPath, `[${new Date().toISOString()}] calibration start source=${options.source}`);
+    writeLifecycleLine(progressLogPath, "calibration start", `source=${options.source}`);
   }
+  updateStatus({
+    state: "running",
+    finished: false,
+    message: "calibration started",
+  });
+  process.on("exit", (code) => {
+    if (!finished) {
+      writeLifecycleLine(progressLogPath, "calibration exit", `code=${code}`);
+      updateStatus({
+        state: code === 0 ? "exited" : "crashed",
+        finished: true,
+        exitCode: code,
+        message: `process exited before clean completion (code=${code})`,
+      });
+    }
+  });
+  process.on("SIGINT", () => {
+    writeLifecycleLine(progressLogPath, "calibration signal", "SIGINT");
+    updateStatus({
+      state: "signaled",
+      finished: true,
+      signal: "SIGINT",
+      message: "received SIGINT",
+    });
+    process.exit(130);
+  });
+  process.on("SIGTERM", () => {
+    writeLifecycleLine(progressLogPath, "calibration signal", "SIGTERM");
+    updateStatus({
+      state: "signaled",
+      finished: true,
+      signal: "SIGTERM",
+      message: "received SIGTERM",
+    });
+    process.exit(143);
+  });
+  process.on("uncaughtException", (error) => {
+    writeLifecycleLine(progressLogPath, "calibration uncaughtException", error?.stack || String(error));
+    updateStatus({
+      state: "crashed",
+      finished: true,
+      errorType: "uncaughtException",
+      message: error?.stack || String(error),
+    });
+    process.exit(1);
+  });
+  process.on("unhandledRejection", (reason) => {
+    writeLifecycleLine(progressLogPath, "calibration unhandledRejection", reason?.stack || String(reason));
+    updateStatus({
+      state: "crashed",
+      finished: true,
+      errorType: "unhandledRejection",
+      message: reason?.stack || String(reason),
+    });
+    process.exit(1);
+  });
   const progressOptions = {
     ...options,
     onProgress: (event) => {
@@ -189,6 +322,14 @@ function main() {
       if (progressLogPath) {
         writeProgressLine(progressLogPath, line);
       }
+      updateStatus({
+        state: "running",
+        finished: false,
+        message: line,
+        lastEvent: event,
+        completedUnits: event.completedUnits,
+        totalUnits: event.totalUnits,
+      });
       console.error(line);
     },
   };
@@ -199,11 +340,20 @@ function main() {
     fs.writeFileSync(options.output, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   }
   if (progressLogPath) {
-    writeProgressLine(
+    writeLifecycleLine(
       progressLogPath,
-      `[${new Date().toISOString()}] calibration complete samples=${report.overall.sampleCount} runs=${report.overall.runCount} elapsed=${formatDuration(Date.now() - startedAt)}`
+      "calibration complete",
+      `samples=${report.overall.sampleCount} runs=${report.overall.runCount} elapsed=${formatDuration(Date.now() - startedAt)}`
     );
   }
+  updateStatus({
+    state: "completed",
+    finished: true,
+    exitCode: 0,
+    message: "calibration completed",
+    overall: report.overall,
+  });
+  finished = true;
 
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));

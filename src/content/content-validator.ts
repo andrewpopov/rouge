@@ -1,6 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { validateRuntimeContent } = runtimeWindow.ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT;
+  const { validateRuntimeContent } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT;
   const { validateWorldNodeCatalog } = runtimeWindow.__ROUGE_CV_WORLD_CATALOG;
 
   function pushError(errors: string[], message: string) { errors.push(message); }

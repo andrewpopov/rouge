@@ -67,6 +67,21 @@
     RUNE: "rune" as const,
   };
 
+  const ZONE_NAME = {
+    BLACK_PIT: "Black Pit" as const,
+    ASHFALL_HAMLET: "Ashfall Hamlet" as const,
+    DEN_OF_EVIL: "Den of Evil" as const,
+    TRISTRAM: "Tristram" as const,
+    FORSAKEN_PALISADE: "Forsaken Palisade" as const,
+  };
+
+  const DECK_SURGERY_ZONES = new Set([
+    ZONE_NAME.BLACK_PIT,
+    ZONE_NAME.ASHFALL_HAMLET,
+    ZONE_NAME.DEN_OF_EVIL,
+    ZONE_NAME.TRISTRAM,
+  ]);
+
   runtimeWindow.ROUGE_LIMITS = LIMITS;
   runtimeWindow.ROUGE_CONSTANTS = {
     COMBAT_PHASE,
@@ -75,5 +90,7 @@
     ZONE_KIND,
     ENEMY_ROLE,
     ENTRY_KIND,
+    ZONE_NAME,
+    DECK_SURGERY_ZONES,
   };
 })();
