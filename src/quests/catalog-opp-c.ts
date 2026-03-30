@@ -7,10 +7,10 @@
     5: {
       kind: "opportunity",
       id: "harrogath_route_opportunity",
-      title: "Harrogath Route Opportunity",
-      zoneTitle: "Harrogath Opportunity",
-      description: "The Harrogath rescue still leaves one more warcamp opening after the aftermath is resolved.",
-      summary: "A third route node now cashes out the Harrogath chain.",
+      title: "Frosthaven Route Opportunity",
+      zoneTitle: "Frosthaven Opportunity",
+      description: "The Frosthaven rescue still leaves one more warcamp opening after the aftermath is resolved.",
+      summary: "A third route node now cashes out the Frosthaven chain.",
       grants: { gold: 12, xp: 14, potions: 0 },
       requiresQuestId: "harrogath_rescue",
       variants: [
@@ -68,7 +68,7 @@
         {
           id: "captains_warband",
           title: "Captain's Warband",
-          description: "With the Harrogath captain under contract, the warband blessing turns the oath line into a drilled summit warband.",
+          description: "With the Frosthaven captain under contract, the warband blessing turns the oath line into a drilled summit warband.",
           summary: "A captain's contract and shrine-backed oath path create a stronger summit warband.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFollowUpOutcomeIds: ["carry_the_banner", "share_the_oath"],

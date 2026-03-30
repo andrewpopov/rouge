@@ -131,7 +131,7 @@
               "smugglers_wake",
               "count_the_river_tallies",
               "Count the River Tallies",
-              "Settle the last river tallies before the Durance route closes over Kurast.",
+              "Settle the last river tallies before the Sanctum route closes over Idol Reach.",
               "river_tallies_counted",
               ["kurast_reckoning_river_tallies"],
               [{ kind: "gold_bonus", value: 12 }, { kind: "hero_max_energy", value: 1 }]
@@ -151,8 +151,8 @@
         {
           id: "pilot_channel_reckoning",
           title: "Pilot Channel Reckoning",
-          description: "Pilot caches and the cleared Durance channel turn the reckoning lane into a true river account instead of a generic tally.",
-          summary: "The pilot reserve and the Durance-channel culmination now settle together after the harbor route closes.",
+          description: "Pilot caches and the cleared Sanctum channel turn the reckoning lane into a true river account instead of a generic tally.",
+          summary: "The pilot reserve and the Sanctum-channel culmination now settle together after the harbor route closes.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: ["kurast_reserve_pilot_caches", "kurast_culmination_durance_channel"],
           choices: [
@@ -161,7 +161,7 @@
               "smugglers_wake",
               "balance_the_pilot_ledgers",
               "Balance the Pilot Ledgers",
-              "Use the pilot caches and clean channel to settle the last ledgers over the Durance mouth.",
+              "Use the pilot caches and clean channel to settle the last ledgers over the Sanctum mouth.",
               "pilot_ledgers_balanced",
               ["kurast_reckoning_pilot_ledgers"],
               [{ kind: "hero_max_energy", value: 1 }, { kind: "gold_bonus", value: 14 }]
@@ -304,7 +304,7 @@
               "hellforge_claim",
               "count_the_sanctuary_screens",
               "Count the Sanctuary Screens",
-              "Use the same screened line to settle the last sanctuary screens before Diablo.",
+              "Use the same screened line to settle the last sanctuary screens before the Cinder Tyrant.",
               "sanctuary_screens_counted",
               ["hellforge_reckoning_sanctuary_screens"],
               [{ kind: "hero_potion_heal", value: 1 }, { kind: "belt_capacity", value: 1 }]
@@ -407,7 +407,7 @@
               "harrogath_rescue",
               "raise_the_last_summit_torches",
               "Raise the Last Summit Torches",
-              "Use the same guard line to raise the last summit torches before the Worldstone push.",
+              "Use the same guard line to raise the last summit torches before the Ruin Crown push.",
               "last_summit_torches_raised",
               ["harrogath_reckoning_summit_torches"],
               [{ kind: "hero_potion_heal", value: 1 }, { kind: "gold_bonus", value: 12 }]

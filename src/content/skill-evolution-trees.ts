@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  // ── Skill tree assignment: which D2 tree does each card belong to? ──
+  // ── Skill tree assignment: which class tree does each card belong to? ──
   // This also seeds explicit card proficiencies used by weapon scaling.
 
   const CARD_TREE_MAP: Record<string, string> = {

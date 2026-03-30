@@ -9,7 +9,7 @@ Documentation note:
 
 ## How Evolution Works
 
-Cards evolve along their D2 skill tree. A tier-1 card can be taken to the **blacksmith** and evolved into its tier-2 successor, which can later evolve into tier-3, and so on. Evolution **replaces** the card in your deck -- deck size never increases from an evolution.
+Cards evolve along their class tree. A tier-1 card can be taken to the **blacksmith** and evolved into its tier-2 successor, which can later evolve into tier-3, and so on. Evolution **replaces** the card in your deck -- deck size never increases from an evolution.
 
 Rules:
 - Each card has at most **one** evolution target.

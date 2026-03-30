@@ -213,6 +213,16 @@
     return buildPath ? `${buildPath.label} ${roleLabel}` : `${roleLabel} Skill`;
   }
 
+  function countCardsInTrees(run: RunState, trees: string[] = []) {
+    if (!Array.isArray(trees) || trees.length === 0) {
+      return 0;
+    }
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((sum: number, cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      return treeId && trees.includes(treeId) ? sum + 1 : sum;
+    }, 0);
+  }
+
   function getUpgradableCardIds(run: RunState, content: GameContent) {
     const seen = new Set();
     return run.deck.filter((cardId: string) => {
@@ -362,8 +372,14 @@
     const zonePool = content.rewardPools?.zoneRoleCards?.[zone.zoneRole] || [];
     const bossPool = content.rewardPools?.bossCards || [];
     const upgradableCardIds = getUpgradableCardIds(run, content);
+    const primaryCardCount = countCardsInTrees(run, buildPath?.primaryTrees || []);
+    const supportCardCount = countCardsInTrees(run, buildPath?.supportTrees || []);
+    const needsPrimaryReinforcement = Boolean(buildPath) && (primaryCardCount < 4 || primaryCardCount < supportCardCount);
     const preferredUpgradeCandidates = upgradableCardIds.filter((cardId: string) => {
       const tree = archetypes.getCardTree(cardId);
+      if (needsPrimaryReinforcement) {
+        return buildPath?.primaryTrees?.includes(tree);
+      }
       return buildPath?.primaryTrees?.includes(tree) || buildPath?.supportTrees?.includes(tree);
     });
     const upgradeSource = preferredUpgradeCandidates.length > 0 ? preferredUpgradeCandidates : upgradableCardIds;
@@ -439,14 +455,18 @@
     const secondCardPool = zone.kind === ZONE_KIND.BOSS ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool];
     const canOfferSecondaryCard = zone.kind === ZONE_KIND.BOSS ? !hardCapCards : !softCapCards;
     if (choices.length < 3 && canOfferSecondaryCard) {
+      const secondaryPrimaryTrees = buildPath?.primaryTrees || [];
+      const secondarySupportTrees = buildPath?.supportTrees || [];
+      const supportPreferredTrees = needsPrimaryReinforcement ? secondaryPrimaryTrees : (secondarySupportTrees.length > 0 ? secondarySupportTrees : secondaryPrimaryTrees);
+      const supportFallbackTrees = needsPrimaryReinforcement ? secondarySupportTrees : secondaryPrimaryTrees;
       let secondCardId = pickRoleScopedCardId(
         secondCardPool,
         seed + 5,
         usedCardIds,
         content,
         "support",
-        buildPath?.supportTrees || buildPath?.primaryTrees || [],
-        buildPath?.primaryTrees || []
+        supportPreferredTrees,
+        supportFallbackTrees
       );
       if (!secondCardId) {
         secondCardId = pickRoleScopedCardId(
@@ -455,8 +475,19 @@
           usedCardIds,
           content,
           "tech",
-          buildPath?.primaryTrees || buildPath?.supportTrees || [],
-          buildPath?.supportTrees || []
+          secondaryPrimaryTrees,
+          secondarySupportTrees
+        );
+      }
+      if (!secondCardId && needsPrimaryReinforcement) {
+        secondCardId = pickRoleScopedCardId(
+          secondCardPool,
+          seed + 7,
+          usedCardIds,
+          content,
+          "foundation",
+          secondaryPrimaryTrees,
+          secondarySupportTrees
         );
       }
       if (!secondCardId) {
@@ -466,8 +497,8 @@
           usedCardIds,
           content,
           "support",
-          buildPath?.supportTrees || buildPath?.primaryTrees || [],
-          buildPath?.primaryTrees || []
+          supportPreferredTrees,
+          supportFallbackTrees
         );
       }
       if (secondCardId) {

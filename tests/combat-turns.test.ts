@@ -387,14 +387,14 @@ test("typed weapon damage applies as a separate packet on matching attack cards"
   assert.ok(state.log.some((line: string) => /fire damage/i.test(line)));
 });
 
-test("weapon proficiency bonuses do not apply to unrelated attack skills", () => {
+test("weapon proficiency bonuses do not apply to attacks with other proficiencies", () => {
   const harness = createCombatHarness();
   const state = harness.engine.createCombatState({
     content: harness.content,
     encounterId: "act_1_opening_skirmish",
     mercenaryId: "rogue_scout",
     randomFn: () => 0,
-    starterDeck: ["amazon_jab"],
+    starterDeck: ["barbarian_bash"],
     weaponName: "Short Bow",
     weaponProfile: {
       attackDamageByProficiency: { bow: 2 },
@@ -403,13 +403,13 @@ test("weapon proficiency bonuses do not apply to unrelated attack skills", () =>
   });
   const target = state.enemies[0];
   target.guard = 0;
-  const card = state.hand.find((entry) => entry.cardId === "amazon_jab");
+  const card = state.hand.find((entry) => entry.cardId === "barbarian_bash");
   assert.ok(card);
   const lifeBefore = target.life;
 
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
 
-  assert.equal(lifeBefore - target.life, 8);
+  assert.equal(lifeBefore - target.life, 9);
   assert.equal(target.burn, 0);
 });
 

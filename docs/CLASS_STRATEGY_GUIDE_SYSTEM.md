@@ -1,6 +1,6 @@
 # Class Strategy Guide System
 
-Last updated: March 28, 2026.
+Last updated: March 29, 2026.
 
 ## Purpose
 
@@ -33,10 +33,12 @@ Keep these layers separate:
   - `artifacts/balance/latest.md`
   - `docs/IMPLEMENTATION_PROGRESS.md`
 - Strategy design truth:
+  - `docs/CLASS_IDENTITY_PATHS.md`
   - `docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md`
   - `docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md`
 - Guide-source truth:
   - this document
+  - `docs/CLASS_IDENTITY_PATHS.md`
   - `docs/strategy-guides/README.md`
   - `docs/strategy-guides/*.md`
 
@@ -50,6 +52,7 @@ If there is a conflict:
 
 Maintain these files:
 
+- `docs/CLASS_IDENTITY_PATHS.md`
 - `docs/strategy-guides/README.md`
 - `docs/strategy-guides/amazon.md`
 - `docs/strategy-guides/assassin.md`
@@ -116,6 +119,7 @@ Document what the eventual player-facing guide should emphasize:
 ## Maintenance Rules
 
 - Keep archetype names aligned with `src/rewards/reward-engine.ts`.
+- If a lane is named in these docs, it should also exist in the archetype-aware balance suites as a committed lane target unless it is explicitly marked as a support or sub-lane.
 - Prefer stable language over card-by-card lists when the exact card pool may still move.
 - Only mention exact cards when they are central to the identity and likely to stay there.
 - Call out uncertainty honestly if an archetype is intended but not yet fully validated in the simulator.
@@ -136,9 +140,11 @@ Document what the eventual player-facing guide should emphasize:
 
 ## Current Status
 
-As of March 28, 2026:
+As of March 29, 2026:
 
 - the reward engine has live archetype tags and archetype score tracking
 - reward screens now bias toward tracked archetype identity
 - progression summaries and simulator outputs now expose dominant and secondary archetypes
+- the balance orchestrator now supports both natural convergence suites and committed archetype suites
+- named lanes can now be validated as full build targets instead of only being described in strategy docs
 - the next step is to keep the per-class strategy source docs current as class balance and archetype support continue to improve

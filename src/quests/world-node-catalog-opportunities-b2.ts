@@ -50,7 +50,7 @@
               id: "temper_the_reserve_flame",
               title: "Temper the Reserve Flame",
               subtitle: "Route Opportunity",
-              description: "Keep the warfire controlled and turn it into steadier infernal stamina for the push to Diablo.",
+              description: "Keep the warfire controlled and turn it into steadier infernal stamina for the push to the Cinder Tyrant.",
               effects: [
                 nodeOutcomeEffect(
                   "opportunity",
@@ -184,7 +184,7 @@
         {
           id: "hellward_phalanx",
           title: "Hellward Phalanx",
-          description: "With a Templar Vanguard or Pandemonium Scout under contract, the iron blessing becomes a disciplined hellward phalanx.",
+          description: "With an Ashen Bulwark or Ashen Scout under contract, the iron blessing becomes a disciplined hellward phalanx.",
           summary: "A contracted infernal specialist and shrine-backed plating route create a harder phalanx.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFollowUpOutcomeIds: ["set_the_rivets", "quench_the_plating"],

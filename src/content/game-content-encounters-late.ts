@@ -364,7 +364,7 @@
       },
       {
         id: "harrogath_escalation_worldstone_host",
-        title: "Worldstone Escalation Host",
+        title: "Ruin Crown Escalation Host",
         zoneRole: "branchMiniboss",
         requiredFlagIds: ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge"],
         encounterId: "act_5_miniboss_escalation",
@@ -398,7 +398,7 @@
       },
       {
         id: "harrogath_aftermath_worldstone_host",
-        title: "Worldstone Aftermath Host",
+        title: "Ruin Crown Aftermath Host",
         zoneRole: "boss",
         requiredFlagIds: ["harrogath_detour_hidden_sleds", "harrogath_escalation_worldstone_surge", "harrogath_covenant_ancients_ledger"],
         encounterId: "act_5_boss_aftermath",

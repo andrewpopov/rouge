@@ -391,6 +391,7 @@
       potions: Math.max(0, parseInteger(initialPotions, 0)),
       hero: createHero(content, heroState),
       mercenary: createMercenary(content, mercenaryId, mercenaryState),
+      minions: [] as CombatMinionState[],
       enemies: encounter.enemies.map((enemyEntry: EncounterEnemyEntry) => createEnemy(content, enemyEntry)),
       drawPile: [] as CardInstance[],
       discardPile: [] as CardInstance[],

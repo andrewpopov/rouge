@@ -111,10 +111,12 @@
 
   function buildMerchantCard(action: TownAction, escapeHtml: (s: string) => string): string {
     const canAfford = !action.disabled;
+    const isGamblerCard = action.category === "gambler" || action.id.startsWith("gambler_");
     return `
-      <button class="merchant-card ${action.disabled ? "merchant-card--disabled" : ""}"
+      <button class="merchant-card ${isGamblerCard ? "merchant-card--gambler" : ""} ${action.disabled ? "merchant-card--disabled" : ""}"
               data-action="use-town-action" data-town-action-id="${escapeHtml(action.id)}">
         <div class="merchant-card__icon">${getMerchantActionIcon(action)}</div>
+        ${isGamblerCard ? `<div class="merchant-card__badge merchant-card__badge--gambler">Risk / Reward</div>` : ""}
         <div class="merchant-card__name">${escapeHtml(action.title)}</div>
         ${action.subtitle ? `<div class="merchant-card__sub">${escapeHtml(action.subtitle)}</div>` : ""}
         ${action.description ? `<div class="merchant-card__desc">${escapeHtml(action.description)}</div>` : ""}
@@ -150,9 +152,24 @@
   function buildVendorSection(title: string, actions: TownAction[], content: GameContent, escapeHtml: (s: string) => string): string {
     return `
       <div class="merchant-section">
-        <div class="merchant-section__title">${title}</div>
+        <div class="merchant-section__head merchant-section__head--stock">
+          <div class="merchant-section__title">${title}<span class="merchant-section__inline-count">${actions.length}</span></div>
+        </div>
         <div class="merchant-section__grid">
           ${actions.map((action) => buildVendorItemCard(action, content, escapeHtml)).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function buildVendorActionSection(title: string, actions: TownAction[], escapeHtml: (s: string) => string): string {
+    return `
+      <div class="merchant-section">
+        <div class="merchant-section__head merchant-section__head--stock">
+          <div class="merchant-section__title">${title}<span class="merchant-section__inline-count">${actions.length}</span></div>
+        </div>
+        <div class="merchant-grid merchant-grid--section">
+          ${actions.map((action) => buildMerchantCard(action, escapeHtml)).join("")}
         </div>
       </div>
     `;
@@ -162,8 +179,13 @@
     const refreshAction = actions.find((action) => action.id === "vendor_refresh_stock");
     const buyActions = actions.filter((action) => action.id.startsWith("vendor_buy"));
     const consignActions = actions.filter((action) => action.id.startsWith("vendor_consign"));
+    const gamblerActions = actions.filter((action) => action.category === "gambler" || action.id.startsWith("gambler_"));
     const otherActions = actions.filter((action) =>
-      action.id !== "vendor_refresh_stock" && !action.id.startsWith("vendor_buy") && !action.id.startsWith("vendor_consign")
+      action.id !== "vendor_refresh_stock" &&
+      !action.id.startsWith("vendor_buy") &&
+      !action.id.startsWith("vendor_consign") &&
+      action.category !== "gambler" &&
+      !action.id.startsWith("gambler_")
     );
 
     const equipmentBuys = buyActions.filter((action) => action.previewLines.some((line) => line.startsWith("Equipment stock")));
@@ -175,7 +197,10 @@
         <div class="merchant-refresh">
           <div class="merchant-refresh__info">
             <span class="merchant-refresh__icon">\u21BB</span>
-            <span class="merchant-refresh__label">${escapeHtml(refreshAction.title)}</span>
+            <div class="merchant-refresh__copy">
+              <span class="merchant-refresh__eyebrow">Stock Rotation</span>
+              <span class="merchant-refresh__label">${escapeHtml(refreshAction.title)}</span>
+            </div>
           </div>
           <button class="merchant-refresh__btn ${refreshAction.disabled ? "merchant-refresh__btn--disabled" : ""}"
                   data-action="use-town-action" data-town-action-id="${escapeHtml(refreshAction.id)}"
@@ -193,6 +218,9 @@
     }
     if (runeBuys.length > 0) {
       html += buildVendorSection("\u2726 Runes", runeBuys, content, escapeHtml);
+    }
+    if (gamblerActions.length > 0) {
+      html += buildVendorActionSection("\u{1F3B2} Gambling", gamblerActions, escapeHtml);
     }
     if (consignActions.length > 0) {
       html += buildVendorSection("\u26B0 Stash Consignment", consignActions, content, escapeHtml);

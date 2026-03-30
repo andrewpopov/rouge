@@ -189,7 +189,7 @@
     const introParagraph = runCount > 0
       ? "The black gate is still burning. Every archived run leaves another name in the ash, and every fresh draft is another march back toward the fire."
       : "Under the eclipse, the black gate calls mercenaries, rune-bearers, and doomed pilgrims to the same road. Blood Rogue begins in ash and only grows darker from there.";
-    let instructionText = "Choose a hero, sign a mercenary contract, and fight through five acts of Diablo-inspired combat.";
+    let instructionText = "Choose a hero, sign a mercenary contract, and fight through five chapters of blood-soaked combat.";
     if (savedRunSummary) {
       instructionText = "Resume your expedition from the hall below, or clear the road before drafting another hero.";
     } else if (runCount > 0) {
@@ -342,7 +342,7 @@
               ? "Resolve the parked expedition first, then reopen character draft once the hall is clear."
               : "Open character draft once the hall signal is settled.",
             draftFollowThrough:
-              "Pin the class shell and mercenary contract here, then carry that exact launch plan into Rogue Encampment.",
+              "Pin the class shell and mercenary contract here, then carry that exact launch plan into Forsaken Palisade.",
             townFollowThrough:
               "The first town pass should confirm recovery, supply, stash pressure, and departure before the map opens.",
           })}

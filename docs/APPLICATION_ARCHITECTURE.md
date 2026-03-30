@@ -13,7 +13,7 @@ Documentation note:
 
 This document answers one question:
 
-- how do we grow the current party-combat prototype into the full Diablo II-inspired run loop without losing the working architecture.
+- how do we grow the current party-combat prototype into the full Blood Rogue run loop without losing the working architecture.
 
 It defines:
 

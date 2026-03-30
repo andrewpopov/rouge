@@ -26,7 +26,7 @@ function deriveArtifactPaths(basePath) {
 }
 
 function buildRunKey(spec, run) {
-  return `${spec.experimentId}:${spec.scenarioType}:${run.classId}:${run.policyId}:${run.seedOffset}`;
+  return `${spec.experimentId}:${spec.scenarioType}:${run.classId}:${run.policyId}:${run.seedOffset}${run.targetArchetypeId ? `:${run.targetArchetypeId}` : ""}`;
 }
 
 function buildEmptyFinalBuild(run = {}) {
@@ -62,6 +62,7 @@ function buildEmptyFinalBuild(run = {}) {
     secondaryArchetypeScore: Number(finalBuild.secondaryArchetypeScore || 0),
     archetypeScores: Array.isArray(finalBuild.archetypeScores) ? finalBuild.archetypeScores : [],
     activeRunewords: Array.isArray(finalBuild.activeRunewords) ? finalBuild.activeRunewords : [],
+    archetypeCommitment: finalBuild.archetypeCommitment || null,
   };
 }
 
@@ -221,6 +222,10 @@ function migrateLegacyWrapperArtifact(spec, artifactPath) {
     policyId: run.policyId,
     policyLabel: run.policyLabel || run.policyId,
     seedOffset: Number(run.seedOffset || 0),
+    targetArchetypeId: String(run.targetArchetypeId || ""),
+    targetArchetypeLabel: String(run.targetArchetypeLabel || ""),
+    targetBand: run.targetBand || "",
+    commitmentMode: run.commitmentMode || "natural",
     outcome: run.outcome || "run_failed",
     finalActNumber: Number(run.finalActNumber || 0),
     finalLevel: Number(run.finalLevel || 0),
@@ -231,6 +236,7 @@ function migrateLegacyWrapperArtifact(spec, artifactPath) {
     summary: normalizeLegacySummary(run),
     snapshots: {},
     traces: [],
+    archetypeEvaluation: run.archetypeEvaluation || run.summary?.archetypeCommitment || null,
   }));
 
   const migrated = {

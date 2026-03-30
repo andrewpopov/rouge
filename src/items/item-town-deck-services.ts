@@ -171,7 +171,7 @@
     return { ok: true, message: `${sourceName} evolved into ${targetName}.` };
   }
 
-  // ── Sage (Deckard Cain): purge + transform ──
+  // ── Camp Sage: purge + transform ──
 
   function getSagePurgeCount(run: RunState): number {
     return run.town.sagePurgeCount || 0;
@@ -275,7 +275,7 @@
       category: "sage",
       title: "Identify Evolution Paths",
       subtitle: "Consult",
-      description: "Deckard Cain reveals which cards in your deck can be evolved at the blacksmith.",
+      description: "The camp sage reveals which cards in your deck can be evolved at the blacksmith.",
       previewLines: identifyLines,
       cost: 0,
       actionLabel: "Identify",
@@ -287,7 +287,7 @@
 
   function applySageAction(run: RunState, content: GameContent, actionId: string): ActionResult {
     if (actionId === "sage_identify") {
-      return { ok: true, message: "Cain examines your deck and reveals the evolution paths." };
+      return { ok: true, message: "The camp sage examines your deck and reveals the evolution paths." };
     }
 
     if (actionId.startsWith("sage_purge_")) {

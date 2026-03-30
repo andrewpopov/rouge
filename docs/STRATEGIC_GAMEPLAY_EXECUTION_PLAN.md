@@ -39,7 +39,7 @@ The big live problems are:
 
 1. Early weak runs are still too safe.
 2. Quest and route rewards are too generically life/gold/mercenary-heavy.
-3. Bosses are more interesting than before, but too much of the strategic burden still sits on Diablo.
+3. Bosses are more interesting than before, but too much of the strategic burden still sits on the Cinder Tyrant.
 4. Build identity exists, but class fantasy and weapon fantasy do not always align.
 5. Hand size and draw shaping exist mechanically, but not yet as major strategic axes.
 
@@ -52,7 +52,7 @@ We want a Rouge run to feel like this:
 - The player starts discovering what the run wants to be.
 - Early picks create momentum toward a lane.
 - Weak or unfocused runs can fail before Act II.
-- Beating Andariel should feel earned, not automatic.
+- Beating the Briar Matron should feel earned, not automatic.
 
 ### Act II-III
 
@@ -210,11 +210,11 @@ Bosses should generally survive long enough for:
 
 For competent or optimized builds:
 
-- Andariel: roughly `5-7` turns
-- Duriel: roughly `6-8` turns
-- Mephisto: roughly `7-9` turns
-- Diablo: roughly `8-11` turns
-- Baal: roughly `9-12` turns
+- The Briar Matron: roughly `5-7` turns
+- The Sepulcher Devourer: roughly `6-8` turns
+- The Idol Patriarch: roughly `7-9` turns
+- The Cinder Tyrant: roughly `8-11` turns
+- The Siege Tyrant: roughly `9-12` turns
 
 For weak or unfocused builds:
 
@@ -231,16 +231,16 @@ For weak or unfocused builds:
 
 ### Specific boss asks
 
-- Andariel:
+- The Briar Matron:
   - tests early sustain, poison handling, and whether the deck can survive a longer opener
   - should not die before the player sees meaningful variance
-- Duriel:
+- The Sepulcher Devourer:
   - tests guard, frontline durability, and mercenary protection
-- Mephisto:
+- The Idol Patriarch:
   - tests backline pressure, lightning mitigation, and recovery after spike turns
-- Diablo:
+- The Cinder Tyrant:
   - tests late-game consistency, telegraph respect, and burst survival
-- Baal:
+- The Siege Tyrant:
   - tests anti-disruption planning, add handling, and consistency over a long fight
 
 ## 5. Make elites the mid-run exams
@@ -264,7 +264,7 @@ Elites and minibosses should punish one-dimensional decks earlier.
 
 ### Success check
 
-By Act II-III, bad archetype construction should already be visible in elite outcomes, not only at Diablo.
+By Act II-III, bad archetype construction should already be visible in elite outcomes, not only at the Cinder Tyrant.
 
 ## 6. Push weapon families into archetype identity
 
@@ -323,8 +323,8 @@ Armor should become a matchup and planning choice.
 
 Players should more often say:
 
-- “I need poison answer armor before Andariel”
-- “I want lightning safety before Mephisto”
+- “I need poison answer armor before the Briar Matron”
+- “I want lightning safety before the Idol Patriarch”
 - “I can risk lower armor because this build wants hand size”
 
 ## 8. Treat runes and runewords as strategy projects
@@ -427,7 +427,7 @@ Make early runs punish weak decisions more consistently.
 
 ### Required modifications
 
-- sharpen Act I elite and miniboss asks, not only Andariel
+- sharpen Act I elite and miniboss asks, not only the Briar Matron
 - reduce how safely sturdy classes coast into Act II on weak policies
 - add more early pressure around:
   - deck inefficiency
@@ -534,7 +534,7 @@ This is the recommended immediate implementation sequence.
 1. Add `archetype tags` and `archetypeScore` to cards, runewords, and quest packages.
 2. Refactor reward generation into `engine/support/tech` roles.
 3. Write `2-3` intended archetypes for each class in implementation-grade detail.
-4. Rebuild Act I elites and Andariel around longer fights and clearer asks.
+4. Rebuild Act I elites and the Briar Matron around longer fights and clearer asks.
 5. Add simulator output for:
    - dominant archetype
    - support archetype

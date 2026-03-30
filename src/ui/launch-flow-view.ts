@@ -80,8 +80,8 @@
       lastPlayedClass?.name || (profileSummary.lastPlayedClassId ? humanizeId(profileSummary.lastPlayedClassId) : "No archived run yet");
     const selectedMercenaryLabel = selectedMercenary?.name || "Choose a companion";
     const deckProfileId = selectedClassId ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getDeckProfileId?.(appState.content, selectedClassId) || "Unset" : "Unset";
-    const townName = appState.run?.safeZoneName || "Rogue Encampment";
-    const routeLabel = appState.run?.actTitle || "Act I Route";
+    const townName = appState.run?.safeZoneName || "Forsaken Palisade";
+    const routeLabel = appState.run?.actTitle || "Blackwood Route";
     const hallBlocked = Boolean(profileSummary.hasActiveRun);
     const draftReady = Boolean(selectedClassId && selectedMercenary?.name);
 
@@ -264,7 +264,7 @@
         `Projected recovery: hero ${heroBefore} -> ${heroAfter}, mercenary ${mercenaryBefore} -> ${mercenaryAfter}, gold ${run.gold} -> ${projectedGold}.`,
         ...(healerAction?.previewLines || ["Party already restored.", "No recovery spend is needed."]),
         run.mercenary.currentLife > 0
-          ? "Akara restores the living party without touching route, stash, or progression state."
+          ? "The camp healer restores the living party without touching route, stash, or progression state."
           : "A fallen mercenary still needs the contract desk after this recovery pass.",
       ],
       renderUtils,

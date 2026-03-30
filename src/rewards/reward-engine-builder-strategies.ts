@@ -117,6 +117,44 @@
     return classPool.length > 0 ? classPool : (content.rewardPools?.profileCards?.[profileId] || []);
   }
 
+  function filterCardsByPathPriority(
+    cardIds: string[],
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>,
+    mode: "primary" | "support"
+  ) {
+    if (!buildPath) {
+      return [...cardIds];
+    }
+
+    const primaryMatches = cardIds.filter((cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      return Boolean(treeId) && buildPath.primaryTrees.includes(treeId);
+    });
+    const supportMatches = cardIds.filter((cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      return Boolean(treeId) && buildPath.supportTrees.includes(treeId);
+    });
+
+    if (mode === "primary") {
+      if (primaryMatches.length > 0) {
+        return primaryMatches;
+      }
+      if (supportMatches.length > 0) {
+        return supportMatches;
+      }
+      return [...cardIds];
+    }
+
+    if (supportMatches.length > 0) {
+      return supportMatches;
+    }
+    if (primaryMatches.length > 0) {
+      return primaryMatches;
+    }
+    return [...cardIds];
+  }
+
   function resolveReinforceBuildReward(run: RunState, content: GameContent) {
     archetypes.annotateCardRewardMetadata(content);
     const buildPath = archetypes.getRewardPathPreference(run, content);
@@ -128,7 +166,12 @@
     }
 
     const matchingUpgrades = sortReinforceCandidates(
-      getUpgradableCardIds(run, content).filter((cardId: string) => archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)),
+      filterCardsByPathPriority(
+        getUpgradableCardIds(run, content).filter((cardId: string) => archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)),
+        content,
+        buildPath,
+        "primary"
+      ),
       content,
       buildPath
     );
@@ -145,8 +188,13 @@
 
     const usedCardIds = new Set(Array.isArray(run.deck) ? run.deck : []);
     const addCandidates = sortReinforceCandidates(
-      getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content)
-        .filter((cardId: string) => archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)),
+      filterCardsByPathPriority(
+        getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content)
+          .filter((cardId: string) => archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)),
+        content,
+        buildPath,
+        "primary"
+      ),
       content,
       buildPath
     );
@@ -176,13 +224,18 @@
     }
 
     const matchingUpgrades = sortSupportCandidates(
-      getUpgradableCardIds(run, content).filter((cardId: string) => {
-        if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
-          return false;
-        }
-        const role = archetypes.getCardRewardRole(cardId, content);
-        return role === "support" || role === "tech" || role === "foundation";
-      }),
+      filterCardsByPathPriority(
+        getUpgradableCardIds(run, content).filter((cardId: string) => {
+          if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
+            return false;
+          }
+          const role = archetypes.getCardRewardRole(cardId, content);
+          return role === "support" || role === "tech" || role === "foundation";
+        }),
+        content,
+        buildPath,
+        "support"
+      ),
       content,
       buildPath
     );
@@ -199,13 +252,18 @@
 
     const usedCardIds = new Set(Array.isArray(run.deck) ? run.deck : []);
     const addCandidates = sortSupportCandidates(
-      getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
-        if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
-          return false;
-        }
-        const role = archetypes.getCardRewardRole(cardId, content);
-        return role === "support" || role === "tech" || role === "foundation";
-      }),
+      filterCardsByPathPriority(
+        getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
+          if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
+            return false;
+          }
+          const role = archetypes.getCardRewardRole(cardId, content);
+          return role === "support" || role === "tech" || role === "foundation";
+        }),
+        content,
+        buildPath,
+        "support"
+      ),
       content,
       buildPath
     );

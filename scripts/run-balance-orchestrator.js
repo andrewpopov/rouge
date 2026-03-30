@@ -26,6 +26,10 @@ function parseArgs(argv) {
     classIds: [],
     policyIds: [],
     scenarioIds: [],
+    targetArchetypeId: "",
+    commitmentMode: "",
+    commitAct: 0,
+    commitCheckpoint: "",
     throughActNumber: 0,
     probeRuns: -1,
     maxCombatTurns: 0,
@@ -117,6 +121,26 @@ function parseArgs(argv) {
     }
     if (arg === "--scenario" && next) {
       parsed.scenarioIds = next.split(",").map((value) => value.trim()).filter(Boolean);
+      index += 1;
+      continue;
+    }
+    if (arg === "--archetype" && next) {
+      parsed.targetArchetypeId = next.trim();
+      index += 1;
+      continue;
+    }
+    if (arg === "--commitment-mode" && next) {
+      parsed.commitmentMode = next.trim();
+      index += 1;
+      continue;
+    }
+    if (arg === "--commit-act" && next) {
+      parsed.commitAct = Math.max(0, Number.parseInt(next, 10) || 0);
+      index += 1;
+      continue;
+    }
+    if (arg === "--commit-checkpoint" && next) {
+      parsed.commitCheckpoint = next.trim();
       index += 1;
       continue;
     }
@@ -214,6 +238,18 @@ function applyOverrides(spec, parsed) {
   }
   if (parsed.scenarioIds.length > 0) {
     next.scenarioIds = [...parsed.scenarioIds];
+  }
+  if (parsed.targetArchetypeId) {
+    next.targetArchetypeId = parsed.targetArchetypeId;
+  }
+  if (parsed.commitmentMode) {
+    next.commitmentMode = parsed.commitmentMode;
+  }
+  if (parsed.commitAct > 0) {
+    next.commitAct = parsed.commitAct;
+  }
+  if (parsed.commitCheckpoint) {
+    next.commitCheckpoint = parsed.commitCheckpoint;
   }
   if (parsed.throughActNumber > 0) {
     next.throughActNumber = parsed.throughActNumber;

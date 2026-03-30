@@ -446,7 +446,7 @@
   const encounterCatalog = {
     blood_moor_raiders: {
       id: "blood_moor_raiders",
-      name: "Blood Moor Raiders",
+      name: "Blighted Moor Raiders",
       description: "Two Fallen cutthroats rush the line while a shaman keeps them in the fight.",
       enemies: [
         { id: "fallen_a", templateId: "fallen_cutthroat" },
@@ -456,7 +456,7 @@
     },
     burial_grounds: {
       id: "burial_grounds",
-      name: "Burial Grounds",
+      name: "Graveyard Ridge",
       description: "A brute anchors the front while skeletal ranged pressure picks at weak targets.",
       enemies: [
         { id: "grave_brute", templateId: "grave_brute" },
@@ -466,7 +466,7 @@
     },
     catacombs_gate: {
       id: "catacombs_gate",
-      name: "Catacombs Gate",
+      name: "Abbey Vault Gate",
       description: "A larger pack shows the target state: hero and mercenary against a mixed encounter group.",
       enemies: [
         { id: "knight", templateId: "corrupted_knight" },

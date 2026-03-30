@@ -421,7 +421,7 @@
     if (bossId === "baal") {
       return [
         { kind: "teleport", label: `${bossName} Teleport Away`, value: Math.max(14, scale.guard + 8) },
-        { kind: "summon_minion", label: `${bossName} Worldstone Call`, value: Math.max(7, scale.attack), secondaryValue: 3, cooldown: 2 },
+        { kind: "summon_minion", label: `${bossName} Ruin Crown Call`, value: Math.max(7, scale.attack), secondaryValue: 3, cooldown: 2 },
         { kind: "heal_and_guard", label: `${bossName} Frozen Host`, value: Math.max(8, scale.heal + 3), secondaryValue: Math.max(13, scale.guard + 7) },
         {
           kind: "charge",
@@ -674,7 +674,7 @@
       guard: scale.guard + 1 + adjustments.guardBonus,
       heal: scale.heal + 1 + adjustments.healBonus,
     };
-    const bossName = bossEntry?.name || actSeed.boss.name;
+    const bossName = actSeed.boss.name || bossEntry?.name;
     return {
       templateId: `act_${actNumber}_${actSeed.boss.id}_boss`,
       name: bossName,

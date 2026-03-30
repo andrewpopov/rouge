@@ -59,7 +59,7 @@
           choice: {
             outcomeId: "drive_the_chamber_surge",
             title: "Drive the Chamber Surge",
-            description: "Spend the legacy, reckoning, and covenant lines on one direct chamber surge before Duriel.",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct chamber surge before the Sepulcher Devourer.",
             consequenceId: "chamber_surge_driven",
             flagIds: ["sunwell_escalation_chamber_surge"],
             extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_life", value: 3 }],
@@ -70,9 +70,9 @@
     3: {
       kind: "opportunity",
       id: "kurast_escalation_opportunity",
-      title: "Durance Escalation",
-      zoneTitle: "Durance Escalation",
-      description: "After the harbor covenant closes, Kurast can also sharpen into a harsher escalation that spends the late gains on a direct durance push.",
+      title: "Sanctum Escalation",
+      zoneTitle: "Sanctum Escalation",
+      description: "After the harbor covenant closes, Idol Reach can also sharpen into a harsher escalation that spends the late gains on a direct durance push.",
       summary: "The post-covenant route now fans back out into a higher-risk harbor escalation lane.",
       grants: { gold: 10, xp: 12, potions: 0 },
       requiresQuestId: "smugglers_wake",
@@ -83,7 +83,7 @@
         buildLateRouteVariant(buildEscalationChoice, "kurast_escalation_opportunity", "smugglers_wake", {
           id: "dock_escalation",
           title: "Dock Escalation",
-          description: "Even without a truer spellward line, Kurast can still spend the late route on one final dock push.",
+          description: "Even without a truer spellward line, Idol Reach can still spend the late route on one final dock push.",
           summary: "A fallback escalation opens after the covenant resolves.",
           grants: { gold: 6, xp: 8, potions: 0 },
           choice: {
@@ -113,15 +113,15 @@
         }),
         buildLateRouteVariant(buildEscalationChoice, "kurast_escalation_opportunity", "smugglers_wake", {
           id: "durance_escalation",
-          title: "Durance Escalation",
+          title: "Sanctum Escalation",
           description: "The spellward ledger turns the escalation into a full durance surge that changes how the next elite line behaves.",
           summary: "A full harbor late-route close can now be spent on one sharper durance surge instead of another cautious setup.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: ["kurast_legacy_last_spellward", "kurast_reckoning_harbor_seals", "kurast_covenant_spellward_ledger"],
           choice: {
             outcomeId: "drive_the_durance_surge",
-            title: "Drive the Durance Surge",
-            description: "Spend the legacy, reckoning, and covenant lines on one direct durance surge before Mephisto.",
+            title: "Drive the Sanctum Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct durance surge before the Idol Patriarch.",
             consequenceId: "durance_surge_driven",
             flagIds: ["kurast_escalation_durance_surge"],
             extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_energy", value: 1 }],
@@ -183,7 +183,7 @@
           choice: {
             outcomeId: "drive_the_sanctuary_surge",
             title: "Drive the Sanctuary Surge",
-            description: "Spend the legacy, reckoning, and covenant lines on one direct sanctuary surge before Diablo.",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct sanctuary surge before the Cinder Tyrant.",
             consequenceId: "sanctuary_surge_driven",
             flagIds: ["hellforge_escalation_sanctuary_surge"],
             extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_life", value: 3 }],
@@ -194,9 +194,9 @@
     5: {
       kind: "opportunity",
       id: "harrogath_escalation_opportunity",
-      title: "Worldstone Escalation",
-      zoneTitle: "Worldstone Escalation",
-      description: "After the summit covenant closes, Harrogath can also sharpen into a harsher escalation that spends the late gains on a direct Worldstone surge.",
+      title: "Ruin Crown Escalation",
+      zoneTitle: "Ruin Crown Escalation",
+      description: "After the summit covenant closes, Frosthaven can also sharpen into a harsher escalation that spends the late gains on a direct Ruin Crown surge.",
       summary: "The post-covenant route now fans back out into a higher-risk summit escalation lane.",
       grants: { gold: 12, xp: 14, potions: 0 },
       requiresQuestId: "harrogath_rescue",
@@ -207,7 +207,7 @@
         buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {
           id: "watch_escalation",
           title: "Watch Escalation",
-          description: "Even without a truer summit line, Harrogath can still spend the late route on one final watch push.",
+          description: "Even without a truer summit line, Frosthaven can still spend the late route on one final watch push.",
           summary: "A fallback escalation opens after the covenant resolves.",
           grants: { gold: 6, xp: 8, potions: 0 },
           choice: {
@@ -222,7 +222,7 @@
         buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {
           id: "oath_escalation",
           title: "Oath Escalation",
-          description: "Legacy guard ranks and oath rations turn the escalation lane into a true Worldstone breach instead of one more summit probe.",
+          description: "Legacy guard ranks and oath rations turn the escalation lane into a true Ruin Crown breach instead of one more summit probe.",
           summary: "The legacy and reckoning lanes now sharpen the summit into a direct strike route.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: ["harrogath_legacy_last_guard_ranks", "harrogath_reckoning_oath_rations"],
@@ -237,15 +237,15 @@
         }),
         buildLateRouteVariant(buildEscalationChoice, "harrogath_escalation_opportunity", "harrogath_rescue", {
           id: "worldstone_escalation",
-          title: "Worldstone Escalation",
-          description: "The Ancients ledger turns the escalation into a full Worldstone surge that changes how the next elite line behaves.",
-          summary: "A full summit late-route close can now be spent on one sharper Worldstone surge instead of another cautious setup.",
+          title: "Ruin Crown Escalation",
+          description: "The Ancients ledger turns the escalation into a full Ruin Crown surge that changes how the next elite line behaves.",
+          summary: "A full summit late-route close can now be spent on one sharper Ruin Crown surge instead of another cautious setup.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: ["harrogath_legacy_last_guard_ranks", "harrogath_reckoning_oath_rations", "harrogath_covenant_ancients_ledger"],
           choice: {
             outcomeId: "drive_the_worldstone_surge",
-            title: "Drive the Worldstone Surge",
-            description: "Spend the legacy, reckoning, and covenant lines on one direct Worldstone surge before Baal.",
+            title: "Drive the Ruin Crown Surge",
+            description: "Spend the legacy, reckoning, and covenant lines on one direct Ruin Crown surge before the Siege Tyrant.",
             consequenceId: "worldstone_surge_driven",
             flagIds: ["harrogath_escalation_worldstone_surge"],
             extraEffects: [{ kind: "mercenary_attack", value: 1 }, { kind: "hero_max_life", value: 4 }],

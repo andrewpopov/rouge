@@ -22,163 +22,160 @@
   "acts": [
     {
       "act": 1,
-      "name": "The Sightless Eye",
-      "town": "Rogue Encampment",
+      "name": "The Blackwood Covenant",
+      "town": "Forsaken Palisade",
       "boss": {
         "id": "andariel",
-        "name": "Andariel",
-        "zone": "Catacombs"
+        "name": "The Briar Matron",
+        "zone": "Abbey Vault"
       },
       "mainlineZones": [
-        "Rogue Encampment",
-        "Blood Moor",
-        "Cold Plains",
-        "Stony Field",
-        "The Underground Passage",
-        "Dark Wood",
-        "Black Marsh",
-        "Tamoe Highland",
-        "Outer Cloister",
-        "Barracks",
-        "Jail",
+        "Forsaken Palisade",
+        "Blighted Moors",
+        "Pale Fields",
+        "Cairn Field",
+        "Hollow Passage",
+        "Gloamwood",
+        "Drowning Marsh",
+        "Monastery Gate",
+        "Outer Abbey",
+        "Gate Barracks",
+        "Iron Cells",
         "Inner Cloister",
-        "Cathedral"
+        "Black Chapel"
       ],
       "sideBranches": [
-        { "name": "Den of Evil", "from": "Blood Moor", "encounters": 5, "kind": "battle", "description": "A cave teeming with demons. Clear every last one." },
-        { "name": "Burial Grounds", "from": "Cold Plains", "encounters": 3, "kind": "miniboss", "description": "Blood Raven lurks among the risen dead." },
-        { "name": "Tristram", "from": "Stony Field", "gatedBy": "Dark Wood", "encounters": 4, "kind": "battle", "description": "The ruins of Tristram. Rescue Deckard Cain." },
-        { "name": "Forgotten Tower", "from": "Black Marsh", "encounters": 5, "kind": "miniboss", "description": "The Countess hoards runes in her crumbling tower." }
+        { "name": "Black Pit", "from": "Blighted Moors", "encounters": 5, "kind": "battle", "description": "A blasphemous sinkhole where the first warped things still breed." },
+        { "name": "Graveyard Ridge", "from": "Pale Fields", "encounters": 3, "kind": "miniboss", "description": "A grave ridge where the dead answer a red-lit call." },
+        { "name": "Ashfall Hamlet", "from": "Cairn Field", "gatedBy": "Gloamwood", "encounters": 4, "kind": "battle", "description": "The burned remains of a hamlet where the camp sage was last seen." },
+        { "name": "Ruined Watchtower", "from": "Drowning Marsh", "encounters": 5, "kind": "miniboss", "description": "An old signal tower where blood-ledgers and contraband still linger." }
       ],
       "sideZones": [
-        "Burial Grounds",
-        "Tristram"
+        "Graveyard Ridge",
+        "Ashfall Hamlet"
       ]
     },
     {
       "act": 2,
-      "name": "The Secret of the Vizjerei",
-      "town": "Lut Gholein",
+      "name": "The Sunken Sepulchers",
+      "town": "Oasis Refuge",
       "boss": {
         "id": "duriel",
-        "name": "Duriel",
-        "zone": "Tal Rasha's Chamber"
+        "name": "The Sepulcher Devourer",
+        "zone": "Royal Sepulcher"
       },
       "mainlineZones": [
-        "Lut Gholein",
-        "Rocky Waste",
-        "Dry Hills",
-        "Far Oasis",
-        "Lost City",
-        "Harem",
-        "The Palace Cellar",
-        "Arcane Sanctuary",
-        "Canyon of the Magi",
-        "Tal Rasha's Tomb"
+        "Oasis Refuge",
+        "Shale Flats",
+        "Dust Hills",
+        "Salt Oasis",
+        "Sunken Archives",
+        "Veiled Court",
+        "Lower Court",
+        "Star Archive",
+        "Sandscript Canyon",
+        "Royal Vault"
       ],
       "sideBranches": [
-        { "name": "Sewers", "from": "Rocky Waste", "encounters": 4, "kind": "battle", "description": "Dark tunnels beneath the city." },
-        { "name": "Halls of the Dead", "from": "Dry Hills", "encounters": 3, "kind": "miniboss", "description": "Ancient burial halls guarded by the undead." },
-        { "name": "Maggot Lair", "from": "Far Oasis", "encounters": 4, "kind": "battle", "description": "A writhing nest of insectoid horrors." },
-        { "name": "Valley of Snakes", "from": "Lost City", "encounters": 3, "kind": "battle", "description": "Serpentine temple deep in the desert." }
+        { "name": "Collapsed Cisterns", "from": "Shale Flats", "encounters": 4, "kind": "battle", "description": "Broken waterworks and burial runoff beneath the refuge road." },
+        { "name": "Buried Tomb Entries", "from": "Dust Hills", "encounters": 3, "kind": "miniboss", "description": "A cluster of grave doors half-swallowed by the dunes." },
+        { "name": "Worm-Tunnels", "from": "Salt Oasis", "encounters": 4, "kind": "battle", "description": "A living tunnel network cut through the desert's dead weight." },
+        { "name": "Serpent Vaults", "from": "Sunken Archives", "encounters": 3, "kind": "battle", "description": "A sealed reliquary watched by coiled guardians and venom priests." }
       ],
       "sideZones": [
-        "Sewers",
-        "Halls of the Dead",
-        "Maggot Lair",
-        "Valley of Snakes"
+        "Collapsed Cisterns",
+        "Buried Tomb Entries",
+        "Worm-Tunnels",
+        "Serpent Vaults"
       ]
     },
     {
       "act": 3,
-      "name": "The Infernal Gate",
-      "town": "Kurast Docks",
+      "name": "The River of Idols",
+      "town": "Rotting Dock Refuge",
       "boss": {
         "id": "mephisto",
-        "name": "Mephisto",
-        "zone": "Durance of Hate"
+        "name": "The Idol Patriarch",
+        "zone": "Corrupted Sanctum"
       },
       "mainlineZones": [
-        "Kurast Docks",
-        "Spider Forest",
-        "Great Marsh",
-        "Flayer Jungle",
-        "Lower Kurast",
-        "Kurast Bazaar",
-        "Upper Kurast",
-        "Kurast Causeway",
-        "Travincal"
+        "Rotting Dock Refuge",
+        "Widowwood",
+        "Fever Marsh",
+        "Hunter Canopy",
+        "River Quarter",
+        "Idol Market",
+        "Flooded Processional",
+        "Temple Stairs",
+        "Idol Court"
       ],
       "sideBranches": [
-        { "name": "Spider Cavern", "from": "Spider Forest", "encounters": 4, "kind": "battle", "description": "Arachnid-infested caverns." },
-        { "name": "Flayer Dungeon", "from": "Flayer Jungle", "encounters": 4, "kind": "miniboss", "description": "The Flayer shaman lurks below." },
-        { "name": "Kurast Sewers", "from": "Kurast Bazaar", "encounters": 3, "kind": "battle", "description": "Flooded sewers beneath Kurast." }
+        { "name": "Spider Hollows", "from": "Widowwood", "encounters": 4, "kind": "battle", "description": "Low wet caverns webbed over by idol-fed broodmothers." },
+        { "name": "Hunter Village", "from": "Hunter Canopy", "encounters": 4, "kind": "miniboss", "description": "A knife-quiet village where masks, nets, and sacrificial drums still hang." },
+        { "name": "Drowned Causeway", "from": "Idol Market", "encounters": 3, "kind": "battle", "description": "A half-submerged processional road leading toward the inner shrines." }
       ],
       "sideZones": [
-        "Spider Cavern",
-        "Flayer Dungeon",
-        "Sewers"
+        "Spider Hollows",
+        "Hunter Village",
+        "Drowned Causeway"
       ]
     },
     {
       "act": 4,
-      "name": "The Harrowing",
-      "town": "Pandemonium Fortress",
+      "name": "The Ashen Gate",
+      "town": "Ruined Sanctuary",
       "boss": {
         "id": "diablo",
-        "name": "Diablo",
-        "zone": "Chaos Sanctuary"
+        "name": "The Cinder Tyrant",
+        "zone": "Ashen Throne"
       },
       "mainlineZones": [
-        "Pandemonium Fortress",
-        "Outer Steppes",
-        "Plains of Despair",
-        "City of the Damned",
-        "River of Flame"
+        "Ruined Sanctuary",
+        "Burning Causeway",
+        "Chained Bastion",
+        "Demon Forge",
+        "Black Gate"
       ],
       "sideBranches": [],
       "sideZones": []
     },
     {
       "act": 5,
-      "name": "Lord of Destruction",
-      "town": "Harrogath",
+      "name": "The Frost Siege Charter",
+      "town": "Frosthaven Keep",
       "boss": {
         "id": "baal",
-        "name": "Baal",
-        "zone": "The Worldstone Chamber"
+        "name": "The Siege Tyrant",
+        "zone": "Crown of Ruin"
       },
       "mainlineZones": [
-        "Harrogath",
-        "Bloody Foothills",
-        "Frigid Highlands",
-        "Arreat Plateau",
-        "Crystalline Passage",
-        "Glacial Trail",
-        "Frozen Tundra",
-        "The Ancients' Way",
-        "Arreat Summit",
-        "Worldstone Keep",
-        "Throne of Destruction"
+        "Frosthaven Keep",
+        "Siege Walls",
+        "Watchfire Ridge",
+        "Tombs of the Fallen",
+        "Ancient Halls",
+        "Glacial Tunnels",
+        "Frost Scar",
+        "The Ascent",
+        "Summit Gate",
+        "Summit Citadel",
+        "Citadel Core"
       ],
       "sideBranches": [
-        { "name": "Frozen River", "from": "Crystalline Passage", "encounters": 3, "kind": "battle", "description": "An icy cavern beneath the mountains." },
-        { "name": "Drifter Cavern", "from": "Glacial Trail", "encounters": 3, "kind": "battle", "description": "A freezing cave of wandering undead." },
-        { "name": "Nihlathak's Temple", "from": "Harrogath", "gatedBy": "Frozen River", "encounters": 5, "kind": "miniboss", "description": "Nihlathak's icy stronghold, unlocked after clearing the Frozen River." },
-        { "name": "Halls of Anguish", "from": "Nihlathak's Temple", "encounters": 3, "kind": "battle", "description": "The first hall beneath Nihlathak's Temple." },
-        { "name": "Halls of Pain", "from": "Halls of Anguish", "encounters": 3, "kind": "battle", "description": "Deeper into the frozen halls of torment." },
-        { "name": "Halls of Vaught", "from": "Halls of Pain", "encounters": 1, "kind": "boss", "description": "Nihlathak awaits in the deepest hall." }
+        { "name": "Icebound River", "from": "Ancient Halls", "encounters": 3, "kind": "battle", "description": "A buried river route frozen beneath the siege roads." },
+        { "name": "White Drift Cavern", "from": "Glacial Tunnels", "encounters": 3, "kind": "battle", "description": "A wind-carved cave where abandoned sled lines vanish under the snow." },
+        { "name": "Mourning Temple", "from": "Frosthaven Keep", "gatedBy": "Icebound River", "encounters": 5, "kind": "miniboss", "description": "A sealed mountain shrine reopened only after the river crossing is secured." },
+        { "name": "Sorrow Halls", "from": "Mourning Temple", "encounters": 3, "kind": "battle", "description": "The first echoing chambers beneath the old mountain shrine." },
+        { "name": "Ruin Halls", "from": "Sorrow Halls", "encounters": 3, "kind": "battle", "description": "A deeper run of frozen corridors where the old oath-line broke." },
+        { "name": "Oathbreaker Vault", "from": "Ruin Halls", "encounters": 1, "kind": "boss", "description": "The traitor's vault at the end of the buried shrine chain." }
       ],
       "sideZones": [
-        "Nihlathak's Temple",
-        "Halls of Anguish",
-        "Halls of Pain",
-        "Halls of Vaught",
-        "Abaddon",
-        "Pit of Acheron",
-        "Frozen River",
-        "Drifter Cavern",
-        "Icy Cellar"
+        "Mourning Temple",
+        "Sorrow Halls",
+        "Ruin Halls",
+        "Oathbreaker Vault",
+        "Icebound River",
+        "White Drift Cavern"
       ]
     }
   ]

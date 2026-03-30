@@ -148,35 +148,38 @@
                 <div class="stage__floor"></div>
 
                 <div class="stage__allies">
-                  ${renderers.renderAllySprite({
-                    unit: combat.hero,
-                    figureClass: "sprite__figure--hero",
-                    portraitHtml: heroPortrait,
-                    potionAction: "use-potion-hero",
-                    potionDisabled: combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || hasOutcome,
-                    extraStatusHtml: [
-                      combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : "",
-                      combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : "",
-                      combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : "",
-                      combat.hero.amplify > 0 ? `<div class="sprite__status sprite__status--amplify">\u{1F53A} Amp ${combat.hero.amplify}t</div>` : "",
-                      combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : "",
-                      combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : "",
-                    ].join(""),
-                    incomingPressureHtml: pressure.renderIncomingPressure(incomingPressure.hero, escapeHtml),
-                    threatened: incomingPressure.hero.attackers > 0,
-                    escapeHtml,
-                  })}
-                  ${renderers.renderAllySprite({
-                    unit: combat.mercenary,
-                    figureClass: "sprite__figure--merc",
-                    portraitHtml: mercPortrait,
-                    potionAction: "use-potion-mercenary",
-                    potionDisabled: combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || hasOutcome,
-                    extraStatusHtml: "",
-                    incomingPressureHtml: pressure.renderIncomingPressure(incomingPressure.mercenary, escapeHtml),
-                    threatened: incomingPressure.mercenary.attackers > 0,
-                    escapeHtml,
-                  })}
+                  <div class="stage__ally-core">
+                    ${renderers.renderAllySprite({
+                      unit: combat.hero,
+                      figureClass: "sprite__figure--hero",
+                      portraitHtml: heroPortrait,
+                      potionAction: "use-potion-hero",
+                      potionDisabled: combat.potions <= 0 || combat.hero.life >= combat.hero.maxLife || hasOutcome,
+                      extraStatusHtml: [
+                        combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : "",
+                        combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : "",
+                        combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : "",
+                        combat.hero.amplify > 0 ? `<div class="sprite__status sprite__status--amplify">\u{1F53A} Amp ${combat.hero.amplify}t</div>` : "",
+                        combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : "",
+                        combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : "",
+                      ].join(""),
+                      incomingPressureHtml: pressure.renderIncomingPressure(incomingPressure.hero, escapeHtml),
+                      threatened: incomingPressure.hero.attackers > 0,
+                      escapeHtml,
+                    })}
+                    ${renderers.renderAllySprite({
+                      unit: combat.mercenary,
+                      figureClass: "sprite__figure--merc",
+                      portraitHtml: mercPortrait,
+                      potionAction: "use-potion-mercenary",
+                      potionDisabled: combat.potions <= 0 || !combat.mercenary.alive || combat.mercenary.life >= combat.mercenary.maxLife || hasOutcome,
+                      extraStatusHtml: "",
+                      incomingPressureHtml: pressure.renderIncomingPressure(incomingPressure.mercenary, escapeHtml),
+                      threatened: incomingPressure.mercenary.attackers > 0,
+                      escapeHtml,
+                    })}
+                  </div>
+                  ${renderers.renderMinionRack(combat.minions || [], escapeHtml)}
                 </div>
 
                 <div class="stage__enemies">

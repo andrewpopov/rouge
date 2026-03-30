@@ -45,7 +45,7 @@
     const labels: Record<number, string> = {
       1: `${npcName}'s caravan waits at the camp's edge, ready for the road east.`,
       2: `${npcName}'s ship rocks gently at the dock. The sea route lies open.`,
-      3: `${npcName} keeps the ship moored and ready at the Kurast docks.`,
+      3: `${npcName} keeps the ship moored and ready at the refuge docks.`,
     };
     return labels[actNumber] || `${npcName} stands ready for the journey ahead.`;
   }
@@ -54,47 +54,47 @@
 
   const ACT_NPC_LAYOUTS: Record<number, NpcEntry[]> = {
     1: [
-      { id: "healer", name: "Akara", role: "Priestess", icon: NPC_ICONS.healer, posX: 80, posY: 53, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
-      { id: "blacksmith", name: "Charsi", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 43, posY: 28, vendorClasses: [VC.BLACKSMITH] },
-      { id: "vendor", name: "Gheed", role: "Vendor & Gambler", icon: NPC_ICONS.vendor, posX: 23, posY: 48, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
-      { id: "mercenary", name: "Kashya", role: "Mercenary Captain", icon: NPC_ICONS.mercenary, posX: 60, posY: 50, vendorClasses: [VC.MERCENARY] },
+      { id: "healer", name: "Mireya", role: "Remedy Keeper", icon: NPC_ICONS.healer, posX: 80, posY: 53, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
+      { id: "blacksmith", name: "Braska", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 43, posY: 28, vendorClasses: [VC.BLACKSMITH] },
+      { id: "vendor", name: "Murn", role: "Broker & Gambler", icon: NPC_ICONS.vendor, posX: 23, posY: 48, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary", name: "Veyra", role: "Contract Captain", icon: NPC_ICONS.mercenary, posX: 60, posY: 50, vendorClasses: [VC.MERCENARY] },
       { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 50, posY: 40, vendorClasses: [VC.STASH] },
-      { id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 45, posY: 45, vendorClasses: [VC.SAGE], requiresCainRescue: true },
-      { id: "travel", name: "Warriv", role: "Caravan Leader", icon: NPC_ICONS.travel, posX: 45, posY: 53, vendorClasses: [VC.TRAVEL] },
+      { id: "cain", name: "Corven Vale", role: "Camp Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 45, posY: 45, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "travel", name: "Dagan", role: "Caravan Master", icon: NPC_ICONS.travel, posX: 45, posY: 53, vendorClasses: [VC.TRAVEL] },
     ],
     2: [
-      { id: "healer", name: "Fara", role: "Healer & Smith", icon: NPC_ICONS.healer, posX: 50, posY: 36, vendorClasses: [VC.HEALER, VC.QUARTERMASTER, VC.BLACKSMITH] },
-      { id: "vendor", name: "Elzix", role: "Vendor & Gambler", icon: NPC_ICONS.vendor, posX: 26, posY: 26, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
-      { id: "mercenary", name: "Greiz", role: "Mercenary Captain", icon: NPC_ICONS.mercenary, posX: 43, posY: 17, vendorClasses: [VC.MERCENARY] },
+      { id: "healer", name: "Samira", role: "Healer & Smith", icon: NPC_ICONS.healer, posX: 50, posY: 36, vendorClasses: [VC.HEALER, VC.QUARTERMASTER, VC.BLACKSMITH] },
+      { id: "vendor", name: "Khezir", role: "Broker & Gambler", icon: NPC_ICONS.vendor, posX: 26, posY: 26, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary", name: "Vorrik", role: "Contract Captain", icon: NPC_ICONS.mercenary, posX: 43, posY: 17, vendorClasses: [VC.MERCENARY] },
       { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 57, posY: 42, vendorClasses: [VC.STASH] },
-      { id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 60, posY: 50, vendorClasses: [VC.SAGE], requiresCainRescue: true },
-      { id: "travel", name: "Meshif", role: "Ship Captain", icon: NPC_ICONS.travel, posX: 82, posY: 57, vendorClasses: [VC.TRAVEL] },
-      { id: "atma", name: "Atma", role: "Healer", icon: NPC_ICONS.healer, posX: 70, posY: 37, vendorClasses: [VC.HEALER] },
-      { id: "lysander", name: "Lysander", role: "Trade", icon: NPC_ICONS.vendor, posX: 47, posY: 47, vendorClasses: [VC.VENDOR] },
+      { id: "cain", name: "Corven Vale", role: "Camp Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 60, posY: 50, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "travel", name: "Salek", role: "Ship Captain", icon: NPC_ICONS.travel, posX: 82, posY: 57, vendorClasses: [VC.TRAVEL] },
+      { id: "atma", name: "Naima", role: "Healer", icon: NPC_ICONS.healer, posX: 70, posY: 37, vendorClasses: [VC.HEALER] },
+      { id: "lysander", name: "Sabir", role: "Trade Broker", icon: NPC_ICONS.vendor, posX: 47, posY: 47, vendorClasses: [VC.VENDOR] },
     ],
     3: [
-      { id: "healer", name: "Ormus", role: "Healer", icon: NPC_ICONS.healer, posX: 35, posY: 43, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
-      { id: "blacksmith", name: "Hratli", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 83, posY: 55, vendorClasses: [VC.BLACKSMITH] },
-      { id: "vendor", name: "Alkor", role: "Gambler & Vendor", icon: NPC_ICONS.vendor, posX: 48, posY: 12, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
-      { id: "mercenary", name: "Asheara", role: "Mercenary Captain", icon: NPC_ICONS.mercenary, posX: 14, posY: 18, vendorClasses: [VC.MERCENARY] },
+      { id: "healer", name: "Sevran", role: "Healer", icon: NPC_ICONS.healer, posX: 35, posY: 43, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
+      { id: "blacksmith", name: "Brenn", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 83, posY: 55, vendorClasses: [VC.BLACKSMITH] },
+      { id: "vendor", name: "Vasko", role: "Gambler & Broker", icon: NPC_ICONS.vendor, posX: 48, posY: 12, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary", name: "Ilya", role: "Contract Captain", icon: NPC_ICONS.mercenary, posX: 14, posY: 18, vendorClasses: [VC.MERCENARY] },
       { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 48, posY: 40, vendorClasses: [VC.STASH] },
-      { id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 46, posY: 49, vendorClasses: [VC.SAGE], requiresCainRescue: true },
-      { id: "travel", name: "Meshif", role: "Ship Captain", icon: NPC_ICONS.travel, posX: 10, posY: 60, vendorClasses: [VC.TRAVEL] },
+      { id: "cain", name: "Corven Vale", role: "Camp Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 46, posY: 49, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "travel", name: "Salek", role: "Ship Captain", icon: NPC_ICONS.travel, posX: 10, posY: 60, vendorClasses: [VC.TRAVEL] },
     ],
     4: [
-      { id: "healer", name: "Jamella", role: "Healer & Vendor", icon: NPC_ICONS.healer, posX: 50, posY: 65, vendorClasses: [VC.HEALER, VC.QUARTERMASTER, VC.VENDOR, VC.GAMBLER] },
-      { id: "blacksmith", name: "Halbu", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 70, posY: 50, vendorClasses: [VC.BLACKSMITH] },
-      { id: "mercenary", name: "Tyrael", role: "Mercenary Captain", icon: NPC_ICONS.mercenary, posX: 40, posY: 15, vendorClasses: [VC.MERCENARY] },
+      { id: "healer", name: "Serapha", role: "Healer & Broker", icon: NPC_ICONS.healer, posX: 50, posY: 65, vendorClasses: [VC.HEALER, VC.QUARTERMASTER, VC.VENDOR, VC.GAMBLER] },
+      { id: "blacksmith", name: "Dorn", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 70, posY: 50, vendorClasses: [VC.BLACKSMITH] },
+      { id: "mercenary", name: "Aurel", role: "Warden Captain", icon: NPC_ICONS.mercenary, posX: 40, posY: 15, vendorClasses: [VC.MERCENARY] },
       { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 27, posY: 26, vendorClasses: [VC.STASH] },
-      { id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 33, posY: 28, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "cain", name: "Corven Vale", role: "Camp Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 33, posY: 28, vendorClasses: [VC.SAGE], requiresCainRescue: true },
     ],
     5: [
-      { id: "healer", name: "Malah", role: "Healer", icon: NPC_ICONS.healer, posX: 63, posY: 21, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
-      { id: "blacksmith", name: "Larzuk", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 79, posY: 54, vendorClasses: [VC.BLACKSMITH] },
-      { id: "vendor", name: "Anya", role: "Gambler & Vendor", icon: NPC_ICONS.vendor, posX: 35, posY: 55, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
-      { id: "mercenary", name: "Qual-Kehk", role: "Mercenary Captain", icon: NPC_ICONS.mercenary, posX: 36, posY: 38, vendorClasses: [VC.MERCENARY] },
+      { id: "healer", name: "Ysra", role: "Healer", icon: NPC_ICONS.healer, posX: 63, posY: 21, vendorClasses: [VC.HEALER, VC.QUARTERMASTER] },
+      { id: "blacksmith", name: "Torv", role: "Blacksmith", icon: NPC_ICONS.blacksmith, posX: 79, posY: 54, vendorClasses: [VC.BLACKSMITH] },
+      { id: "vendor", name: "Elska", role: "Gambler & Broker", icon: NPC_ICONS.vendor, posX: 35, posY: 55, vendorClasses: [VC.VENDOR, VC.GAMBLER] },
+      { id: "mercenary", name: "Hadrik", role: "Contract Captain", icon: NPC_ICONS.mercenary, posX: 36, posY: 38, vendorClasses: [VC.MERCENARY] },
       { id: "stash", name: "Stash", role: "Profile Vault", icon: NPC_ICONS.stash, posX: 67, posY: 53, vendorClasses: [VC.STASH] },
-      { id: "cain", name: "Deckard Cain", role: "Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 40, posY: 50, vendorClasses: [VC.SAGE], requiresCainRescue: true },
+      { id: "cain", name: "Corven Vale", role: "Camp Sage \u2014 Training", icon: NPC_ICONS.cain, posX: 40, posY: 50, vendorClasses: [VC.SAGE], requiresCainRescue: true },
     ],
   };
 
@@ -130,7 +130,7 @@
       [VC.VENDOR]: "Vendor stock is empty.",
       [VC.GAMBLER]: "The gambler has nothing to offer.",
       [VC.MERCENARY]: "No mercenary actions available.",
-      [VC.SAGE]: "Cain has no services available.",
+      [VC.SAGE]: "The camp sage has no services available.",
       [VC.STASH]: "The stash is empty.",
     };
     const primaryClass = classes[0];
@@ -165,7 +165,7 @@
     const townFocus = appState.ui.townFocus;
 
     const cainRescued = run.actNumber >= 2 || (run.acts || []).some((act) =>
-      (act.zones || []).some((zone) => zone.title === "Tristram" && zone.cleared)
+      (act.zones || []).some((zone) => zone.title === "Ashfall Hamlet" && zone.cleared)
     );
 
     const npcEntries = ACT_NPC_LAYOUTS[run.actNumber] || ACT_NPC_LAYOUTS[1];

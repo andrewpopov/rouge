@@ -1,6 +1,6 @@
 # Class Strategy Guide Sources
 
-Last updated: March 28, 2026.
+Last updated: March 29, 2026.
 
 ## Purpose
 
@@ -13,6 +13,8 @@ Use these files to answer:
 - what early choices seed each path
 - what gear or rune projects support the path
 - what boss problems the build must solve
+
+For a roster-level summary of what each class path is supposed to mean, use [docs/CLASS_IDENTITY_PATHS.md](/Users/andrew/proj/rouge/docs/CLASS_IDENTITY_PATHS.md).
 
 ## Current Live Archetype Source
 
@@ -32,6 +34,9 @@ Current tracked lanes:
 
 - For current runtime behavior, verify against code and balance artifacts first.
 - For class identity and future guide writing, start with the relevant class doc here.
+- For lane viability, use the archetype-aware balance suites:
+  - natural convergence: `npm run sim:orchestrate -- --suite archetype_convergence`
+  - committed lanes: `npm run sim:orchestrate -- --suite committed_archetype_campaign`
 - For system-level strategy direction, use:
   - [docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md)
   - [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md)

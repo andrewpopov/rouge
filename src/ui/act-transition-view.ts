@@ -2,11 +2,11 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const ACT_POSTER_MAP: Record<number, string> = {
-    1: "./assets/curated/act-maps/act1-the-sightless-eye.png",
-    2: "./assets/curated/act-maps/act2-the-secret-of-the-vizjerei.png",
-    3: "./assets/curated/act-maps/act3-the-infernal-gate.png",
-    4: "./assets/curated/act-maps/act4-the-harrowing.png",
-    5: "./assets/curated/act-maps/act5-lord-of-destruction.png",
+    1: "./assets/curated/act-maps/act1-the-blackwood-covenant.png",
+    2: "./assets/curated/act-maps/act2-the-sunken-sepulchers.png",
+    3: "./assets/curated/act-maps/act3-the-river-of-idols.png",
+    4: "./assets/curated/act-maps/act4-the-ashen-gate.png",
+    5: "./assets/curated/act-maps/act5-the-frost-siege-charter.png",
   };
 
   const TOWN_ART_MAP: Record<number, string> = {
@@ -46,13 +46,13 @@
   function getDestinationBrief(clearedActNumber: number, nextTown: string): string {
     switch (clearedActNumber) {
       case 1:
-        return `${nextTown} waits beyond the wastes. Caravans gather under torchlight for the desert crossing.`;
+        return `${nextTown} waits beyond the badlands. The next charter opens under torchlight and dust.`;
       case 2:
-        return `${nextTown} rots behind gilded walls and river fog. The chase turns south into corrupted trade routes.`;
+        return `${nextTown} rots beneath river fog and idol smoke. The hunt turns south into drowned processions and shrine roads.`;
       case 3:
-        return `${nextTown} stands at the lip of damnation. The fortress will not hold unless you do.`;
+        return `${nextTown} stands at the lip of the ash war. The last refuge beyond the river is already burning.`;
       case 4:
-        return `${nextTown} is the final mustering ground. Snow, siege fire, and the Worldstone road are all that remain.`;
+        return `${nextTown} is the final mustering ground. Snow, siege fire, and the last ascent are all that remain.`;
       default:
         return `${nextTown} is the next refuge, but the road only darkens from here.`;
     }
@@ -77,43 +77,39 @@
     const cutscenes: Record<number, ActCutscene> = {
       1: {
         lines: [
-          `${bossName}, Maiden of Anguish, lies broken in the catacombs beneath the monastery.`,
-          "The corruption that poisoned the Sisterhood of the Sightless Eye has been cut at its source.",
-          "But darker forces stir in the east. The Dark Wanderer moves toward the desert, and the trail of destruction follows.",
-          `The Rogues speak of a port city, ${nextTown}, where answers may lie among the ancient Vizjerei tombs.`,
-          "The caravan departs at dawn.",
+          `${bossName} lies broken beneath the abbey vault.`,
+          "The blackwood covenant is cut open, but the road east is already marked in older blood.",
+          `A sepulcher charter recovered from the vault points the expedition toward ${nextTown}.`,
+          "The caravan leaves before the ash on the page can dry.",
         ],
-        closing: "The road east awaits.",
+        closing: "The desert road opens.",
       },
       2: {
         lines: [
-          `${bossName}, the Pain Lord, has been shattered in the depths of Tal Rasha's tomb.`,
-          "The true tomb is unsealed, but too late. The Dark Wanderer has already freed Baal from his ancient prison.",
-          "Two of the three Prime Evils now walk the mortal world. Mephisto, Lord of Hatred, awaits in the jungles of Kehjistan.",
-          `A ship departs for ${nextTown}. The corruption there runs deep, and the Zakarum priests have fallen to shadow.`,
-          "There is no time to rest.",
+          `${bossName} is buried at the heart of the royal sepulcher.`,
+          "The tomb road is won, but the trail does not end in sand.",
+          `A waterlogged charter now names ${nextTown}, where drowned processions and idol fires swallow the riverbank.`,
+          "The sea road opens before the dunes can settle.",
         ],
-        closing: "The jungle calls.",
+        closing: "The river calls.",
       },
       3: {
         lines: [
-          `${bossName}, Lord of Hatred, has been cast back into the Burning Hells.`,
-          "His soulstone is destroyed, but the damage is done. Diablo has reached the Pandemonium Fortress.",
-          "The gates between Hell and the mortal world hang by a thread.",
-          `The portal to ${nextTown} stands open. Beyond it lies the last bastion before Hell itself.`,
-          "Only the brave or the mad would step through.",
+          `${bossName} falls in the drowned sanctum.`,
+          "The river idols go dark, but the war beyond them has already begun.",
+          `A scorched charter points past the last shrine toward ${nextTown}, where the ash gate stands open.`,
+          "Only the stubborn keep walking when the road ahead already burns.",
         ],
-        closing: "Hell awaits beyond the gate.",
+        closing: "Ash waits beyond the gate.",
       },
       4: {
         lines: [
-          `${bossName}, Lord of Terror, has been vanquished in the heart of his own domain.`,
-          "But the war is not over. Baal marches on Mount Arreat, seeking the Worldstone itself.",
-          "If he corrupts it, all of creation will be unmade.",
-          `The Barbarian homeland of ${nextTown} is the last stand. The ancient guardians prepare for war.`,
-          "This ends at the summit.",
+          `${bossName} is cast down at the Ashen Throne.`,
+          "The breach is closed, but the last charter points north into siege weather and mountain fire.",
+          `The road now climbs toward ${nextTown}, where the final ascent and the ruin crown wait.`,
+          "What remains will be settled in snow and iron.",
         ],
-        closing: "The mountain trembles.",
+        closing: "The mountain must hold.",
       },
     };
 
@@ -229,7 +225,12 @@
               <div class="act-transition-scroll-drop">
                 <div class="act-transition-scroll-drop__copy">
                   <p class="act-transition-scroll-drop__text">${escapeHtml(scrollDropCopy)}</p>
-                  <button class="secondary-btn act-transition-scroll-drop__btn" data-action="open-act-transition-scroll">Open Scroll</button>
+                  <button
+                    class="act-transition-scroll-drop__seal"
+                    data-action="open-act-transition-scroll"
+                    aria-label="Open Scroll"
+                    title="Open Scroll"
+                  >📜</button>
                 </div>
               </div>
               <div class="cutscene__narrative">

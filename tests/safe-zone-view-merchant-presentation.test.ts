@@ -41,8 +41,8 @@ function buildTownAction(overrides: Partial<TownAction> = {}): TownAction {
 function buildNpc(overrides: Partial<SafeZoneNpcViewModel> = {}): SafeZoneNpcViewModel {
   return {
     id: "healer",
-    name: "Akara",
-    role: "Priestess",
+    name: "Mireya",
+    role: "Remedy Keeper",
     icon: "\u2764",
     actions: [],
     emptyLabel: "The desk is quiet.",
@@ -55,7 +55,7 @@ test("merchant presentation helpers resolve theme keys, labels, and icons across
   const presentation = browserWindow.__ROUGE_SAFE_ZONE_VIEW_MERCHANT_PRESENTATION as unknown as MerchantPresentationApi;
 
   assert.equal(presentation.toTitleCase("profile_vault"), "Profile Vault");
-  assert.equal(presentation.toPortraitKey("Deckard Cain"), "deckard-cain");
+  assert.equal(presentation.toPortraitKey("Corven Vale"), "deckard-cain");
   assert.equal(
     presentation.getNpcThemeKey(buildNpc({
       id: "camp_broker",
@@ -116,7 +116,7 @@ test("merchant presentation layouts group cain and healer services into their th
   const cainMarkup = presentation.buildNpcServiceLayout(
     buildNpc({
       id: "cain",
-      name: "Deckard Cain",
+      name: "Corven Vale",
       role: "Keeper Of Rites",
       icon: "\u272A",
       actions: [
@@ -225,7 +225,7 @@ test("merchant presentation empty-state copy stays theme specific for stash and 
   const travelMarkup = presentation.buildEmptyOverlayState(
     buildNpc({
       id: "travel",
-      name: "Warriv",
+      name: "Dagan",
       role: "Roadmaster",
       icon: "\u2693",
       emptyLabel: "The caravan is ready when you are.",

@@ -99,5 +99,5 @@ test("buildInventoryMarkup shows mercenary stats when mercenary is alive", () =>
 
   const markup = browserWindow.ROUGE_INVENTORY_VIEW.buildInventoryMarkup(state, services);
 
-  assert.ok(markup.includes("Rogue Scout") || markup.includes("rogue") || markup.includes("Mercenary") || markup.includes("merc"), "should show mercenary info");
+  assert.ok(markup.includes("Blackwood Hunter") || markup.includes("hunter") || markup.includes("Mercenary") || markup.includes("merc"), "should show mercenary info");
 });

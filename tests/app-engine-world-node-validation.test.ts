@@ -711,7 +711,7 @@ test("boss rewards transition into the next act instead of ending the run early"
   appEngine.continueActTransition(state);
   assert.equal(state.phase, appEngine.PHASES.SAFE_ZONE);
   assert.equal(state.run.currentActIndex, 1);
-  assert.equal(state.run.safeZoneName, "Lut Gholein");
+  assert.equal(state.run.safeZoneName, "Oasis Refuge");
   assert.equal(state.run.hero.currentLife, state.run.hero.maxLife);
   assert.equal(state.run.belt.current, state.run.belt.max);
 

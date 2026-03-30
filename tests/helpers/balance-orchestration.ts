@@ -20,6 +20,19 @@ import {
 
 const DEFAULT_CLASS_IDS = ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"] as const;
 const DEFAULT_POLICY_IDS = ["aggressive", "balanced", "control", "bulwark"] as const;
+const FLAGSHIP_ARCHETYPE_BY_CLASS: Record<string, string> = {
+  amazon: "amazon_bow_and_crossbow",
+  assassin: "assassin_martial_arts",
+  barbarian: "barbarian_combat_skills",
+  druid: "druid_elemental",
+  necromancer: "necromancer_poison_and_bone",
+  paladin: "paladin_combat_skills",
+  sorceress: "sorceress_fire",
+};
+
+type BalanceCommitmentMode = "natural" | "committed";
+type BalanceCommitCheckpoint = "act_start" | "first_safe_zone" | "first_reward";
+type BalanceArchetypeTargetBand = "flagship" | "secondary";
 
 export type BalanceScenarioType =
   | "campaign"
@@ -60,6 +73,10 @@ export interface BalanceExperimentSpec {
   traceOutliers?: boolean;
   slowRunThresholdMs?: number;
   tags?: string[];
+  targetArchetypeId?: string;
+  commitmentMode?: BalanceCommitmentMode;
+  commitAct?: number;
+  commitCheckpoint?: BalanceCommitCheckpoint;
 }
 
 export interface BalanceRunKey {
@@ -68,6 +85,7 @@ export interface BalanceRunKey {
   classId: string;
   policyId: string;
   seedOffset: number;
+  targetArchetypeId?: string;
 }
 
 export interface BalanceRunTask {
@@ -75,6 +93,14 @@ export interface BalanceRunTask {
   classId: string;
   policyId: string;
   seedOffset: number;
+  targetArchetypeId?: string;
+  targetArchetypeLabel?: string;
+  targetBand?: BalanceArchetypeTargetBand;
+}
+
+export interface BalanceArchetypeCatalogEntry extends RewardEngineArchetypeCatalogEntry {
+  classId: string;
+  targetBand: BalanceArchetypeTargetBand;
 }
 
 export interface BalanceSnapshotTokenEnvelope {
@@ -131,6 +157,10 @@ export interface BalanceRunRecord {
   policyId: string;
   policyLabel: string;
   seedOffset: number;
+  targetArchetypeId: string;
+  targetArchetypeLabel: string;
+  targetBand: BalanceArchetypeTargetBand | "";
+  commitmentMode: BalanceCommitmentMode;
   outcome: string;
   finalActNumber: number;
   finalLevel: number;
@@ -141,6 +171,7 @@ export interface BalanceRunRecord {
   summary: PolicyRunSummary;
   snapshots: Record<string, BalanceSnapshotReference>;
   traces: BalanceTraceReference[];
+  archetypeEvaluation: PolicyRunSummary["archetypeCommitment"] | null;
   combat?: {
     scenarioId: string;
     scenarioLabel: string;
@@ -225,6 +256,10 @@ export interface BalanceAggregateGroupSummary {
   className: string;
   policyId: string;
   policyLabel: string;
+  targetArchetypeId: string;
+  targetArchetypeLabel: string;
+  targetBand: BalanceArchetypeTargetBand | "";
+  commitmentMode: BalanceCommitmentMode;
   runs: number;
   winRate: number;
   failureRate: number;
@@ -233,6 +268,42 @@ export interface BalanceAggregateGroupSummary {
   averageFinalAct: number;
   averageFinalLevel: number;
   averageDurationMs: number;
+}
+
+export interface BalanceNaturalConvergenceSummary {
+  classId: string;
+  className: string;
+  policyId: string;
+  policyLabel: string;
+  archetypeId: string;
+  archetypeLabel: string;
+  runs: number;
+  convergenceRate: number;
+  averageCommitAct: number;
+  averageFinalLaneIntegrity: number;
+}
+
+export interface BalanceCommittedLaneSummary {
+  classId: string;
+  className: string;
+  policyId: string;
+  policyLabel: string;
+  targetArchetypeId: string;
+  targetArchetypeLabel: string;
+  targetBand: BalanceArchetypeTargetBand;
+  runs: number;
+  clearRate: number;
+  committedByCheckpointRate: number;
+  identityDriftRate: number;
+  averageLaneIntegrityAct2: number;
+  averageLaneIntegrityAct3: number;
+  averageLaneIntegrityAct4: number;
+  averageLaneIntegrityFinal: number;
+  averageBossTurns: number;
+  commonEndWeapons: string[];
+  commonRunewords: string[];
+  commonFailureEncounters: string[];
+  laneHealth: "healthy" | "playable but weak" | "identity drift" | "not viable";
 }
 
 export interface BalanceAggregateReport {
@@ -267,6 +338,10 @@ export interface BalanceAggregateReport {
   strategyRoleCounts: Record<string, number>;
   rewardRoleCounts: Record<string, number>;
   groups: BalanceAggregateGroupSummary[];
+  archetypes: {
+    naturalConvergence: BalanceNaturalConvergenceSummary[];
+    committedLanes: BalanceCommittedLaneSummary[];
+  };
 }
 
 export interface BalanceArtifact {
@@ -337,6 +412,7 @@ function buildEmptyFinalBuild(): PolicyRunSummary["finalBuild"] {
     secondaryArchetypeScore: 0,
     archetypeScores: [],
     activeRunewords: [],
+    archetypeCommitment: null,
   };
 }
 
@@ -364,6 +440,7 @@ function buildEmptySummary(): PolicyRunSummary {
       opportunityOutcomes: 0,
     },
     finalBuild: buildEmptyFinalBuild(),
+    archetypeCommitment: null,
   };
 }
 
@@ -391,6 +468,10 @@ export function createSyntheticBalanceRunRecord(
     policyId: task.policyId,
     policyLabel: task.policyId,
     seedOffset: task.seedOffset,
+    targetArchetypeId: task.targetArchetypeId || "",
+    targetArchetypeLabel: task.targetArchetypeLabel || "",
+    targetBand: task.targetBand || "",
+    commitmentMode: spec.commitmentMode || "natural",
     outcome: options.outcome || "run_failed",
     finalActNumber: 0,
     finalLevel: 0,
@@ -410,6 +491,7 @@ export function createSyntheticBalanceRunRecord(
     summary,
     snapshots: {},
     traces: [],
+    archetypeEvaluation: null,
   };
 }
 
@@ -421,6 +503,8 @@ function roundTo(value: number, digits = 3) {
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
+
+let cachedArchetypeCatalog: Record<string, Record<string, BalanceArchetypeCatalogEntry>> | null = null;
 
 function digestString(value: string) {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -445,7 +529,63 @@ function getPolicyDefinition(policyId: string) {
 }
 
 function buildRunKeyString(runKey: BalanceRunKey) {
-  return `${runKey.experimentId}:${runKey.scenarioType}:${runKey.classId}:${runKey.policyId}:${runKey.seedOffset}`;
+  const target = runKey.targetArchetypeId ? `:${runKey.targetArchetypeId}` : "";
+  return `${runKey.experimentId}:${runKey.scenarioType}:${runKey.classId}:${runKey.policyId}:${runKey.seedOffset}${target}`;
+}
+
+export function getBalanceArchetypeCatalog(): Record<string, Record<string, BalanceArchetypeCatalogEntry>> {
+  if (cachedArchetypeCatalog) {
+    return clone(cachedArchetypeCatalog);
+  }
+  const harness = createQuietAppHarness();
+  const rawCatalog = harness.browserWindow.ROUGE_REWARD_ENGINE
+    ?.getArchetypeCatalog?.() || {};
+  cachedArchetypeCatalog = Object.fromEntries(
+    Object.entries(rawCatalog).map(([classId, entries]) => [
+      classId,
+      Object.fromEntries(
+        Object.entries(entries || {}).map(([archetypeId, entry]) => [
+          archetypeId,
+          {
+            classId,
+            archetypeId,
+            label: String(entry.label || archetypeId),
+            primaryTrees: [...(entry.primaryTrees || [])],
+            supportTrees: [...(entry.supportTrees || [])],
+            weaponFamilies: [...(entry.weaponFamilies || [])],
+            targetBand: FLAGSHIP_ARCHETYPE_BY_CLASS[classId] === archetypeId ? "flagship" : "secondary",
+          },
+        ])
+      ),
+    ])
+  );
+  return clone(cachedArchetypeCatalog);
+}
+
+function getCommittedTaskArchetypes(spec: BalanceExperimentSpec, classId: string): BalanceArchetypeCatalogEntry[] {
+  const classCatalog = getBalanceArchetypeCatalog()[classId] || {};
+  const entries = Object.values(classCatalog);
+  if (spec.targetArchetypeId) {
+    return entries.filter((entry) => entry.archetypeId === spec.targetArchetypeId);
+  }
+  return entries.sort((left, right) => {
+    const bandOrder = left.targetBand === right.targetBand ? 0 : left.targetBand === "flagship" ? -1 : 1;
+    return bandOrder || left.label.localeCompare(right.label);
+  });
+}
+
+function buildTaskArchetypePlan(spec: BalanceExperimentSpec, task: BalanceRunTask) {
+  if (spec.commitmentMode !== "committed" || !task.targetArchetypeId) {
+    return null;
+  }
+  return {
+    targetArchetypeId: task.targetArchetypeId,
+    targetArchetypeLabel: task.targetArchetypeLabel || task.targetArchetypeId,
+    targetBand: task.targetBand || "secondary",
+    commitmentMode: spec.commitmentMode,
+    commitAct: Number(spec.commitAct || 2),
+    commitCheckpoint: spec.commitCheckpoint || "first_safe_zone",
+  };
 }
 
 function mergeCounts(target: Record<string, number>, source: Record<string, number> | null | undefined) {
@@ -670,10 +810,51 @@ export function getBalanceExperimentCatalog(): Record<string, BalanceExperimentS
       traceFailures: false,
       traceOutliers: false,
       slowRunThresholdMs: 60000,
+      commitmentMode: "natural",
       expectedBands: [
         { metricId: "overall.off_archetype_weapon_rate", label: "Final off-archetype weapon rate", max: 0.45, severity: "soft" },
       ],
       tags: ["baseline", "archetype"],
+    },
+    committed_archetype_campaign: {
+      experimentId: "committed_archetype_campaign",
+      title: "Committed Archetype Campaign",
+      scenarioType: "campaign",
+      classIds: [...DEFAULT_CLASS_IDS],
+      policyIds: ["aggressive"],
+      seedOffsets: [0, 1, 2, 3, 4],
+      throughActNumber: 5,
+      probeRuns: 0,
+      maxCombatTurns: 36,
+      concurrency: 4,
+      traceFailures: true,
+      traceOutliers: true,
+      slowRunThresholdMs: 60000,
+      commitmentMode: "committed",
+      commitAct: 2,
+      commitCheckpoint: "first_safe_zone",
+      expectedBands: [],
+      tags: ["baseline", "archetype", "committed"],
+    },
+    committed_archetype_boss_probe: {
+      experimentId: "committed_archetype_boss_probe",
+      title: "Committed Archetype Boss Probe",
+      scenarioType: "boss_probe",
+      classIds: [...DEFAULT_CLASS_IDS],
+      policyIds: ["aggressive"],
+      seedOffsets: [0, 1, 2, 3, 4],
+      throughActNumber: 5,
+      probeRuns: 1,
+      maxCombatTurns: 48,
+      concurrency: 4,
+      traceFailures: false,
+      traceOutliers: true,
+      slowRunThresholdMs: 60000,
+      commitmentMode: "committed",
+      commitAct: 2,
+      commitCheckpoint: "first_safe_zone",
+      expectedBands: [],
+      tags: ["baseline", "boss", "archetype", "committed"],
     },
     quest_strategy_pressure: {
       experimentId: "quest_strategy_pressure",
@@ -755,19 +936,29 @@ export function buildBalanceRunTasks(spec: BalanceExperimentSpec): BalanceRunTas
       ? (spec.scenarioIds && spec.scenarioIds.length > 0 ? spec.scenarioIds : spec.policyIds)
       : spec.policyIds;
   spec.classIds.forEach((classId) => {
+    const archetypeTargets =
+      spec.commitmentMode === "committed"
+        ? getCommittedTaskArchetypes(spec, classId)
+        : [null];
     policyIds.forEach((policyId) => {
-      spec.seedOffsets.forEach((seedOffset) => {
-        tasks.push({
-          runKey: {
-            experimentId: spec.experimentId,
-            scenarioType: spec.scenarioType,
+      archetypeTargets.forEach((targetEntry) => {
+        spec.seedOffsets.forEach((seedOffset) => {
+          tasks.push({
+            runKey: {
+              experimentId: spec.experimentId,
+              scenarioType: spec.scenarioType,
+              classId,
+              policyId,
+              seedOffset,
+              targetArchetypeId: targetEntry?.archetypeId,
+            },
             classId,
             policyId,
             seedOffset,
-          },
-          classId,
-          policyId,
-          seedOffset,
+            targetArchetypeId: targetEntry?.archetypeId,
+            targetArchetypeLabel: targetEntry?.label,
+            targetBand: targetEntry?.targetBand,
+          });
         });
       });
     });
@@ -916,12 +1107,257 @@ export function traceFromBalanceSnapshotToken(token: string, maxCombatTurns?: nu
   };
 }
 
+function getCheckpointLaneIntegrity(record: BalanceRunRecord, actNumber: number) {
+  return Number(
+    record.checkpoints.find((checkpoint) => checkpoint.actNumber === actNumber)?.archetypeCommitment?.laneMetrics?.laneIntegrity || 0
+  );
+}
+
+function summarizeTopCounts(counts: Record<string, number>, limit = 3) {
+  return Object.entries(counts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, limit)
+    .map(([key]) => key);
+}
+
+function getFinalArchetypeScoreShare(record: BalanceRunRecord) {
+  const entries = Array.isArray(record.summary.finalBuild?.archetypeScores) ? record.summary.finalBuild.archetypeScores : [];
+  const total = entries.reduce((sum, entry) => sum + Number(entry.score || 0), 0);
+  const dominantId = String(record.summary.finalBuild?.dominantArchetypeId || "");
+  if (!dominantId || total <= 0) {
+    return 0;
+  }
+  return Number(entries.find((entry) => entry.archetypeId === dominantId)?.score || 0) / total;
+}
+
+function getNaturalCommitAct(record: BalanceRunRecord) {
+  const finalDominant = String(record.summary.finalBuild?.dominantArchetypeId || "");
+  if (!finalDominant) {
+    return 0;
+  }
+  return Number(record.checkpoints.find((checkpoint) => checkpoint.dominantArchetypeId === finalDominant)?.actNumber || 0);
+}
+
+function classifyLaneHealth(
+  targetBand: BalanceArchetypeTargetBand,
+  clearRate: number,
+  committedByCheckpointRate: number,
+  identityDriftRate: number,
+  averageLaneIntegrityFinal: number
+): BalanceCommittedLaneSummary["laneHealth"] {
+  const clearFloor = targetBand === "flagship" ? 0.6 : 0.35;
+  if (clearRate >= clearFloor && committedByCheckpointRate >= 0.7 && identityDriftRate <= 0.35 && averageLaneIntegrityFinal >= 0.65) {
+    return "healthy";
+  }
+  if (averageLaneIntegrityFinal < 0.5 || committedByCheckpointRate < 0.5) {
+    return "identity drift";
+  }
+  if (clearRate >= Math.max(0.2, clearFloor - 0.2)) {
+    return "playable but weak";
+  }
+  return "not viable";
+}
+
+function buildNaturalConvergenceSummaries(records: BalanceRunRecord[]): BalanceNaturalConvergenceSummary[] {
+  const groups = new Map<string, {
+    classId: string;
+    className: string;
+    policyId: string;
+    policyLabel: string;
+    archetypeId: string;
+    archetypeLabel: string;
+    runs: number;
+    commitActTotal: number;
+    finalIntegrityTotal: number;
+  }>();
+
+  records
+    .filter((record) => record.commitmentMode === "natural")
+    .forEach((record) => {
+      const archetypeId = String(record.summary.finalBuild?.dominantArchetypeId || "");
+      if (!archetypeId) {
+        return;
+      }
+      const archetypeLabel = String(record.summary.finalBuild?.dominantArchetypeLabel || archetypeId);
+      const key = `${record.classId}:${record.policyId}:${archetypeId}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          classId: record.classId,
+          className: record.className,
+          policyId: record.policyId,
+          policyLabel: record.policyLabel,
+          archetypeId,
+          archetypeLabel,
+          runs: 0,
+          commitActTotal: 0,
+          finalIntegrityTotal: 0,
+        });
+      }
+      const group = groups.get(key)!;
+      group.runs += 1;
+      group.commitActTotal += getNaturalCommitAct(record);
+      group.finalIntegrityTotal += getFinalArchetypeScoreShare(record);
+    });
+
+  const totalsByClassPolicy = new Map<string, number>();
+  records
+    .filter((record) => record.commitmentMode === "natural")
+    .forEach((record) => {
+      const key = `${record.classId}:${record.policyId}`;
+      totalsByClassPolicy.set(key, (totalsByClassPolicy.get(key) || 0) + 1);
+    });
+
+  return [...groups.values()]
+    .map((group) => {
+      const totalForLanePool = Math.max(1, Number(totalsByClassPolicy.get(`${group.classId}:${group.policyId}`) || 0));
+      return {
+        classId: group.classId,
+        className: group.className,
+        policyId: group.policyId,
+        policyLabel: group.policyLabel,
+        archetypeId: group.archetypeId,
+        archetypeLabel: group.archetypeLabel,
+        runs: group.runs,
+        convergenceRate: roundTo(group.runs / totalForLanePool),
+        averageCommitAct: roundTo(group.commitActTotal / Math.max(1, group.runs)),
+        averageFinalLaneIntegrity: roundTo(group.finalIntegrityTotal / Math.max(1, group.runs)),
+      };
+    })
+    .sort((left, right) =>
+      left.className.localeCompare(right.className) ||
+      left.policyLabel.localeCompare(right.policyLabel) ||
+      right.convergenceRate - left.convergenceRate ||
+      left.archetypeLabel.localeCompare(right.archetypeLabel)
+    );
+}
+
+function buildCommittedLaneSummaries(records: BalanceRunRecord[]): BalanceCommittedLaneSummary[] {
+  const groups = new Map<string, {
+    classId: string;
+    className: string;
+    policyId: string;
+    policyLabel: string;
+    targetArchetypeId: string;
+    targetArchetypeLabel: string;
+    targetBand: BalanceArchetypeTargetBand;
+    runs: number;
+    clears: number;
+    committedByCheckpoint: number;
+    driftRateTotal: number;
+    laneIntegrityAct2: number;
+    laneIntegrityAct3: number;
+    laneIntegrityAct4: number;
+    laneIntegrityFinal: number;
+    bossTurnsTotal: number;
+    bossTurnsCount: number;
+    endWeapons: Record<string, number>;
+    runewords: Record<string, number>;
+    failures: Record<string, number>;
+  }>();
+
+  records
+    .filter((record) => record.commitmentMode === "committed" && record.targetArchetypeId)
+    .forEach((record) => {
+      const key = `${record.classId}:${record.policyId}:${record.targetArchetypeId}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          classId: record.classId,
+          className: record.className,
+          policyId: record.policyId,
+          policyLabel: record.policyLabel,
+          targetArchetypeId: record.targetArchetypeId,
+          targetArchetypeLabel: record.targetArchetypeLabel,
+          targetBand: (record.targetBand || "secondary") as BalanceArchetypeTargetBand,
+          runs: 0,
+          clears: 0,
+          committedByCheckpoint: 0,
+          driftRateTotal: 0,
+          laneIntegrityAct2: 0,
+          laneIntegrityAct3: 0,
+          laneIntegrityAct4: 0,
+          laneIntegrityFinal: 0,
+          bossTurnsTotal: 0,
+          bossTurnsCount: 0,
+          endWeapons: {},
+          runewords: {},
+          failures: {},
+        });
+      }
+      const group = groups.get(key)!;
+      const evaluation = record.archetypeEvaluation;
+      group.runs += 1;
+      group.clears += record.outcome === "run_complete" ? 1 : 0;
+      group.committedByCheckpoint += evaluation?.committedByCheckpoint ? 1 : 0;
+      group.driftRateTotal += Number(evaluation?.driftRateAfterCommit || 0);
+      group.laneIntegrityAct2 += getCheckpointLaneIntegrity(record, 2);
+      group.laneIntegrityAct3 += getCheckpointLaneIntegrity(record, 3);
+      group.laneIntegrityAct4 += getCheckpointLaneIntegrity(record, 4);
+      group.laneIntegrityFinal += Number(evaluation?.laneIntegrity || 0);
+      const bossTurns = Number(record.summary.encounterMetricsByKind?.boss?.averageTurns || 0);
+      if (bossTurns > 0) {
+        group.bossTurnsTotal += bossTurns;
+        group.bossTurnsCount += 1;
+      }
+      const weaponLabel = String(record.summary.finalBuild?.weapon?.name || "");
+      if (weaponLabel) {
+        group.endWeapons[weaponLabel] = (group.endWeapons[weaponLabel] || 0) + 1;
+      }
+      (record.summary.finalBuild?.activeRunewords || []).forEach((runewordId) => {
+        group.runewords[runewordId] = (group.runewords[runewordId] || 0) + 1;
+      });
+      if (record.failure?.encounterName) {
+        const failureLabel = `${record.failure.zoneTitle} / ${record.failure.encounterName}`;
+        group.failures[failureLabel] = (group.failures[failureLabel] || 0) + 1;
+      }
+    });
+
+  return [...groups.values()]
+    .map((group) => {
+      const runs = Math.max(1, group.runs);
+      const clearRate = roundTo(group.clears / runs);
+      const committedByCheckpointRate = roundTo(group.committedByCheckpoint / runs);
+      const identityDriftRate = roundTo(group.driftRateTotal / runs);
+      const averageLaneIntegrityFinal = roundTo(group.laneIntegrityFinal / runs);
+      return {
+        classId: group.classId,
+        className: group.className,
+        policyId: group.policyId,
+        policyLabel: group.policyLabel,
+        targetArchetypeId: group.targetArchetypeId,
+        targetArchetypeLabel: group.targetArchetypeLabel,
+        targetBand: group.targetBand,
+        runs: group.runs,
+        clearRate,
+        committedByCheckpointRate,
+        identityDriftRate,
+        averageLaneIntegrityAct2: roundTo(group.laneIntegrityAct2 / runs),
+        averageLaneIntegrityAct3: roundTo(group.laneIntegrityAct3 / runs),
+        averageLaneIntegrityAct4: roundTo(group.laneIntegrityAct4 / runs),
+        averageLaneIntegrityFinal,
+        averageBossTurns: group.bossTurnsCount > 0 ? roundTo(group.bossTurnsTotal / group.bossTurnsCount) : 0,
+        commonEndWeapons: summarizeTopCounts(group.endWeapons),
+        commonRunewords: summarizeTopCounts(group.runewords),
+        commonFailureEncounters: summarizeTopCounts(group.failures),
+        laneHealth: classifyLaneHealth(group.targetBand, clearRate, committedByCheckpointRate, identityDriftRate, averageLaneIntegrityFinal),
+      };
+    })
+    .sort((left, right) =>
+      left.className.localeCompare(right.className) ||
+      left.policyLabel.localeCompare(right.policyLabel) ||
+      left.targetArchetypeLabel.localeCompare(right.targetArchetypeLabel)
+    );
+}
+
 export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records: BalanceRunRecord[]): BalanceAggregateReport {
   const groups = new Map<string, {
     classId: string;
     className: string;
     policyId: string;
     policyLabel: string;
+    targetArchetypeId: string;
+    targetArchetypeLabel: string;
+    targetBand: BalanceArchetypeTargetBand | "";
+    commitmentMode: BalanceCommitmentMode;
     runs: number;
     wins: number;
     failures: number;
@@ -946,13 +1382,17 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
   let combatWinRateTotal = 0;
 
   records.forEach((record) => {
-    const key = `${record.classId}:${record.policyId}`;
+    const key = `${record.classId}:${record.policyId}:${record.targetArchetypeId || "natural"}:${record.commitmentMode}`;
     if (!groups.has(key)) {
       groups.set(key, {
         classId: record.classId,
         className: record.className,
         policyId: record.policyId,
         policyLabel: record.policyLabel,
+        targetArchetypeId: record.targetArchetypeId,
+        targetArchetypeLabel: record.targetArchetypeLabel,
+        targetBand: record.targetBand,
+        commitmentMode: record.commitmentMode,
         runs: 0,
         wins: 0,
         failures: 0,
@@ -1020,6 +1460,10 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
         className: group.className,
         policyId: group.policyId,
         policyLabel: group.policyLabel,
+        targetArchetypeId: group.targetArchetypeId,
+        targetArchetypeLabel: group.targetArchetypeLabel,
+        targetBand: group.targetBand,
+        commitmentMode: group.commitmentMode,
         runs: group.runs,
         winRate: roundTo(group.wins / Math.max(1, group.runs)),
         failureRate: roundTo(group.failures / Math.max(1, group.runs)),
@@ -1029,11 +1473,35 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
         averageFinalLevel: roundTo(group.finalLevelTotal / Math.max(1, group.runs)),
         averageDurationMs: roundTo(group.durationTotal / Math.max(1, group.runs)),
       }))
-      .sort((left, right) => left.className.localeCompare(right.className) || left.policyLabel.localeCompare(right.policyLabel)),
+      .sort((left, right) =>
+        left.className.localeCompare(right.className) ||
+        left.policyLabel.localeCompare(right.policyLabel) ||
+        left.targetArchetypeLabel.localeCompare(right.targetArchetypeLabel)
+      ),
+    archetypes: {
+      naturalConvergence: buildNaturalConvergenceSummaries(records),
+      committedLanes: buildCommittedLaneSummaries(records),
+    },
   };
 }
 
 function resolveMetricValue(report: BalanceAggregateReport, metricId: string): number | null {
+  const averageSummaries = <T extends { runs: number }>(
+    entries: T[],
+    selector: (entry: T) => number
+  ) => {
+    if (!entries.length) {
+      return null;
+    }
+    const totalRuns = entries.reduce((sum, entry) => sum + Math.max(1, Number(entry.runs || 0)), 0);
+    if (totalRuns <= 0) {
+      return null;
+    }
+    return roundTo(
+      entries.reduce((sum, entry) => sum + selector(entry) * Math.max(1, Number(entry.runs || 0)), 0) / totalRuns
+    );
+  };
+
   if (metricId === "overall.win_rate") { return report.overall.winRate; }
   if (metricId === "overall.failure_rate") { return report.overall.failureRate; }
   if (metricId === "overall.act2_rate") { return report.overall.act2Rate; }
@@ -1074,6 +1542,62 @@ function resolveMetricValue(report: BalanceAggregateReport, metricId: string): n
       return null;
     }
     return roundTo(Number(report.strategyRoleCounts[strategyId] || 0) / total);
+  }
+
+  const naturalConvergenceMatch = metricId.match(
+    /^convergence\.([a-z_]+)(?:\.([a-z_]+))?\.([a-z0-9_]+)\.(rate|commit_act|final_lane_integrity)$/
+  );
+  if (naturalConvergenceMatch) {
+    const [, classId, policyId, archetypeId, field] = naturalConvergenceMatch;
+    const matches = report.archetypes.naturalConvergence.filter(
+      (entry) =>
+        entry.classId === classId &&
+        entry.archetypeId === archetypeId &&
+        (!policyId || entry.policyId === policyId)
+    );
+    if (!matches.length) {
+      return null;
+    }
+    if (field === "rate") {
+      return averageSummaries(matches, (entry) => entry.convergenceRate);
+    }
+    if (field === "commit_act") {
+      return averageSummaries(matches, (entry) => entry.averageCommitAct);
+    }
+    if (field === "final_lane_integrity") {
+      return averageSummaries(matches, (entry) => entry.averageFinalLaneIntegrity);
+    }
+  }
+
+  const committedLaneMatch = metricId.match(
+    /^lane\.([a-z_]+)(?:\.([a-z_]+))?\.([a-z0-9_]+)\.(clear_rate|commit_rate|identity_drift_rate|final_lane_integrity|boss_turns)$/
+  );
+  if (committedLaneMatch) {
+    const [, classId, policyId, archetypeId, field] = committedLaneMatch;
+    const matches = report.archetypes.committedLanes.filter(
+      (entry) =>
+        entry.classId === classId &&
+        entry.targetArchetypeId === archetypeId &&
+        (!policyId || entry.policyId === policyId)
+    );
+    if (!matches.length) {
+      return null;
+    }
+    if (field === "clear_rate") {
+      return averageSummaries(matches, (entry) => entry.clearRate);
+    }
+    if (field === "commit_rate") {
+      return averageSummaries(matches, (entry) => entry.committedByCheckpointRate);
+    }
+    if (field === "identity_drift_rate") {
+      return averageSummaries(matches, (entry) => entry.identityDriftRate);
+    }
+    if (field === "final_lane_integrity") {
+      return averageSummaries(matches, (entry) => entry.averageLaneIntegrityFinal);
+    }
+    if (field === "boss_turns") {
+      return averageSummaries(matches, (entry) => entry.averageBossTurns);
+    }
   }
 
   return null;
@@ -1169,8 +1693,33 @@ export function buildBalanceMarkdownReport(artifact: BalanceArtifact) {
 
   lines.push("", "## Groups");
   artifact.aggregate.groups.forEach((group) => {
-    lines.push(`- ${group.className} / ${group.policyLabel}: ${(group.winRate * 100).toFixed(1)}% win, Act V ${(group.act5Rate * 100).toFixed(1)}%, avg level ${group.averageFinalLevel.toFixed(2)}`);
+    const targetSuffix = group.targetArchetypeLabel ? ` / ${group.targetArchetypeLabel}` : "";
+    lines.push(`- ${group.className} / ${group.policyLabel}${targetSuffix}: ${(group.winRate * 100).toFixed(1)}% win, Act V ${(group.act5Rate * 100).toFixed(1)}%, avg level ${group.averageFinalLevel.toFixed(2)}`);
   });
+
+  if (artifact.aggregate.archetypes.naturalConvergence.length > 0) {
+    lines.push("", "## Natural Convergence");
+    artifact.aggregate.archetypes.naturalConvergence.forEach((entry) => {
+      lines.push(
+        `- ${entry.className} / ${entry.policyLabel} -> ${entry.archetypeLabel}: ${(entry.convergenceRate * 100).toFixed(1)}% convergence, avg commit act ${entry.averageCommitAct.toFixed(2)}, final integrity ${entry.averageFinalLaneIntegrity.toFixed(2)}`
+      );
+    });
+  }
+
+  if (artifact.aggregate.archetypes.committedLanes.length > 0) {
+    lines.push("", "## Committed Lanes");
+    artifact.aggregate.archetypes.committedLanes.forEach((entry) => {
+      const endWeapons = entry.commonEndWeapons.length > 0 ? entry.commonEndWeapons.join(", ") : "none";
+      const runewords = entry.commonRunewords.length > 0 ? entry.commonRunewords.join(", ") : "none";
+      const failures = entry.commonFailureEncounters.length > 0 ? entry.commonFailureEncounters.join(", ") : "none";
+      lines.push(
+        `- ${entry.className} / ${entry.targetArchetypeLabel}: ${(entry.clearRate * 100).toFixed(1)}% clear, ${(entry.committedByCheckpointRate * 100).toFixed(1)}% committed by checkpoint, final integrity ${entry.averageLaneIntegrityFinal.toFixed(2)}, boss turns ${entry.averageBossTurns.toFixed(2)}, health ${entry.laneHealth}`
+      );
+      lines.push(`  end weapons: ${endWeapons}`);
+      lines.push(`  runewords: ${runewords}`);
+      lines.push(`  common failures: ${failures}`);
+    });
+  }
 
   if (artifact.bands.length > 0) {
     lines.push("", "## Bands");
@@ -1300,6 +1849,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     secondaryArchetypeScore: 0,
     archetypeScores: [],
     activeRunewords: [],
+    archetypeCommitment: null,
   } as PolicyRunSummary["finalBuild"];
 
   const encounterResults = (scenarioReport.encounters || []).map((encounter: CombatBalanceEncounterReport) => ({
@@ -1343,6 +1893,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
       opportunityOutcomes: 0,
     },
     finalBuild,
+    archetypeCommitment: null,
   };
 
   return {
@@ -1354,6 +1905,10 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     policyId: task.policyId,
     policyLabel: scenarioReport.label || task.policyId,
     seedOffset: task.seedOffset,
+    targetArchetypeId: task.targetArchetypeId || "",
+    targetArchetypeLabel: task.targetArchetypeLabel || "",
+    targetBand: task.targetBand || "",
+    commitmentMode: spec.commitmentMode || "natural",
     outcome: "simulation_complete",
     finalActNumber: Number(scenarioReport.build.actNumber || 0),
     finalLevel: Number(scenarioReport.build.level || 0),
@@ -1364,6 +1919,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     summary,
     snapshots: {},
     traces: [],
+    archetypeEvaluation: null,
     combat: {
       scenarioId: scenarioReport.scenarioId || task.policyId,
       scenarioLabel: scenarioReport.label || task.policyId,
@@ -1444,6 +2000,7 @@ export function executeBalanceRunTask(
   };
 
   const policy = getPolicyDefinition(task.policyId);
+  const archetypePlan = buildTaskArchetypePlan(spec, task);
   const snapshots: Record<string, BalanceSnapshotReference> = {};
   let lastEncounterSnapshot: BalanceSnapshotReference | null = null;
 
@@ -1540,7 +2097,8 @@ export function executeBalanceRunTask(
       spec.maxCombatTurns,
       task.seedOffset,
       envelope.simulation?.continuationContext || undefined,
-      hooks
+      hooks,
+      archetypePlan
     );
   } else {
     const harness = createQuietAppHarness();
@@ -1557,7 +2115,8 @@ export function executeBalanceRunTask(
       spec.maxCombatTurns,
       task.seedOffset,
       undefined,
-      hooks
+      hooks,
+      archetypePlan
     );
   }
   const durationMs = Date.now() - startedAt;
@@ -1571,6 +2130,10 @@ export function executeBalanceRunTask(
     policyId: task.policyId,
     policyLabel: report.policyLabel,
     seedOffset: task.seedOffset,
+    targetArchetypeId: task.targetArchetypeId || "",
+    targetArchetypeLabel: task.targetArchetypeLabel || "",
+    targetBand: task.targetBand || "",
+    commitmentMode: spec.commitmentMode || "natural",
     outcome: report.outcome,
     finalActNumber: Number(report.finalActNumber || 0),
     finalLevel: Number(report.finalLevel || 0),
@@ -1581,6 +2144,7 @@ export function executeBalanceRunTask(
     summary: clone(report.summary),
     snapshots,
     traces: [],
+    archetypeEvaluation: clone(report.summary?.archetypeCommitment || null),
   };
 
   const tracePayloads: BalanceRunExecutionResult["tracePayloads"] = [];

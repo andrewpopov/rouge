@@ -10,10 +10,10 @@ Documentation note:
 ## Core Loop
 
 - Everyone keeps a shared attack/defense starter shell.
-- Each class adds high-fidelity Diablo II class expression on top of that shell.
+- Each class adds high-fidelity Blood Rogue class expression on top of that shell.
 - The deck remains the dominant turn-by-turn action surface.
 - Signature class skills live on a fixed skill bar, not in the draw pile.
-- Skill points are spent on canonical Diablo II class trees.
+- Skill points are spent on Blood Rogue class trees.
 - Gear, mercenaries, and meta progression amplify the build but should not replace hand play.
 
 ## Recommended Runtime Model

@@ -183,7 +183,7 @@
                 id: "pay_the_crew",
                 title: "Pay the Crew",
                 subtitle: "Quest Aftermath",
-                description: "Spend more of the bargain on the people carrying you to Diablo.",
+                description: "Spend more of the bargain on the people carrying you to the Cinder Tyrant.",
                 effects: [
                   nodeOutcomeEffect("event", "hellforge_claim_aftermath", "pay_the_crew", "Pay the Crew", [
                     "hellforge_claim_crew_paid",
@@ -208,9 +208,9 @@
     5: {
       kind: "quest",
       id: "harrogath_rescue",
-      title: "Harrogath Rescue",
-      zoneTitle: "Harrogath Rescue",
-      description: "A trapped scouting party can be rescued, armed, or stripped for supplies before the Worldstone approach.",
+      title: "Frosthaven Rescue",
+      zoneTitle: "Frosthaven Rescue",
+      description: "A trapped scouting party can be rescued, armed, or stripped for supplies before the Ruin Crown approach.",
       summary: "A late-run rescue event offers a final route-side decision.",
       grants: { gold: 14, xp: 16, potions: 0 },
       choices: [
@@ -228,7 +228,7 @@
             id: "harrogath_rescue_war_camp_muster",
             title: "War Camp Muster",
             description: "The rescued scouts can either hold the rear or be pushed straight into the climb.",
-            summary: "The saved party creates a second war-camp choice before Baal.",
+            summary: "The saved party creates a second war-camp choice before the Siege Tyrant.",
             grants: { gold: 10, xp: 14, potions: 0 },
             choices: [
               {
@@ -342,7 +342,7 @@
           id: "swear_the_oath",
           title: "Swear the Oath",
           subtitle: "Quest Outcome",
-          description: "Bind yourself to Harrogath's defense and push both stamina and focus upward.",
+          description: "Bind yourself to Frosthaven's defense and push both stamina and focus upward.",
           effects: [
             questOutcomeEffect("harrogath_rescue", "swear_the_oath", "Swear the Oath", ["harrogath_rescue_oath_sworn"]),
             { kind: "hero_max_life", value: 8 },

@@ -80,7 +80,7 @@
       title: "Jade Shrine",
       zoneTitle: "Jade Shrine",
       description: "A jungle shrine offers either disciplined reserves or a better-fed route cache.",
-      summary: "A Kurast shrine trades a short detour for a permanent run edge.",
+      summary: "A Idol Reach shrine trades a short detour for a permanent run edge.",
       grants: { gold: 8, xp: 10, potions: 0 },
       choices: [
         {
@@ -195,7 +195,7 @@
       id: "smugglers_wake_aftermath",
       title: "Dockside Aftermath",
       zoneTitle: "Dockside Aftermath",
-      description: "The Kurast deal continues to echo through the route after the first transaction settles.",
+      description: "The Idol Reach deal continues to echo through the route after the first transaction settles.",
       summary: "Your dockside choice opens a second, outcome-specific event.",
       grants: { gold: 10, xp: 10, potions: 0 },
       requiresQuestId: "smugglers_wake",
@@ -213,8 +213,8 @@
     5: {
       kind: "event",
       id: "harrogath_rescue_aftermath",
-      title: "Harrogath Aftermath",
-      zoneTitle: "Harrogath Aftermath",
+      title: "Frosthaven Aftermath",
+      zoneTitle: "Frosthaven Aftermath",
       description: "The rescue decision feeds directly into one more war-camp or supply-line consequence.",
       summary: "Your final act quest now opens a second route-side choice.",
       grants: { gold: 12, xp: 14, potions: 0 },

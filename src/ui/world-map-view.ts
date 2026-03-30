@@ -13,11 +13,11 @@
 
   function getActMapFilename(actNumber: number): string {
     const names: Record<number, string> = {
-      1: "act1-the-sightless-eye",
-      2: "act2-the-secret-of-the-vizjerei",
-      3: "act3-the-infernal-gate",
-      4: "act4-the-harrowing",
-      5: "act5-lord-of-destruction",
+      1: "act1-the-blackwood-covenant",
+      2: "act2-the-sunken-sepulchers",
+      3: "act3-the-river-of-idols",
+      4: "act4-the-ashen-gate",
+      5: "act5-the-frost-siege-charter",
     };
     return names[actNumber] || names[1];
   }
@@ -30,97 +30,97 @@
     1: {
       // Mainline (left→right across the middle)
       "town":              [7, 44],
-      "Blood Moor":        [19, 44],
-      "Cold Plains":       [33, 44],
-      "Stony Field":       [46, 44],
-      "The Underground Passage": [58, 44],
-      "Dark Wood":         [72, 44],
-      "Black Marsh":       [86, 44],
+      "Blighted Moors":    [19, 44],
+      "Pale Fields":       [33, 44],
+      "Cairn Field":       [46, 44],
+      "Hollow Passage":    [58, 44],
+      "Gloamwood":         [72, 44],
+      "Drowning Marsh":    [86, 44],
       // Monastery wrap (right→left along bottom)
-      "Tamoe Highland":    [93, 68],
-      "Outer Cloister":    [80, 82],
-      "Barracks":          [64, 80],
-      "Jail":              [50, 80],
+      "Monastery Gate":    [93, 68],
+      "Outer Abbey":       [80, 82],
+      "Gate Barracks":     [64, 80],
+      "Iron Cells":        [50, 80],
       "Inner Cloister":    [37, 80],
-      "Cathedral":         [25, 80],
-      "Catacombs":         [10, 80],
+      "Black Chapel":      [25, 80],
+      "Abbey Vault":       [10, 80],
       // Side branches (directly above their parent mainline zone)
-      "Den of Evil":       [19, 18],
-      "Burial Grounds":    [33, 18],
-      "Tristram":          [46, 18],
-      "Forgotten Tower":   [86, 18],
+      "Black Pit":         [19, 12],
+      "Graveyard Ridge":   [33, 12],
+      "Ashfall Hamlet":    [46, 12],
+      "Ruined Watchtower": [86, 12],
     },
     2: {
       // Mainline (left→right across the middle)
       "town":              [8, 46],
-      "Rocky Waste":       [22, 46],
-      "Dry Hills":         [34, 46],
-      "Far Oasis":         [47, 46],
-      "Lost City":         [63, 46],
-      "Valley of Snakes":  [79, 46],
+      "Shale Flats":       [22, 46],
+      "Dust Hills":        [34, 46],
+      "Salt Oasis":        [47, 46],
+      "Sunken Archives":   [63, 46],
+      "Serpent Vaults":    [79, 46],
       // Monastery-style wrap (left→right along bottom)
-      "Harem":             [16, 76],
-      "The Palace Cellar": [30, 76],
-      "Arcane Sanctuary":  [44, 76],
-      "Canyon of the Magi": [59, 76],
-      "Tal Rasha's Tomb":  [76, 76],
-      "Tal Rasha's Chamber": [90, 76],
+      "Veiled Court":      [16, 76],
+      "Lower Court":       [30, 76],
+      "Star Archive":      [44, 76],
+      "Sandscript Canyon": [59, 76],
+      "Royal Vault":       [76, 76],
+      "Royal Sepulcher":   [90, 76],
       // Side branches (upper row)
-      "Sewers":            [8, 16],
-      "Halls of the Dead": [38, 18],
-      "Maggot Lair":       [56, 22],
+      "Collapsed Cisterns": [8, 12],
+      "Buried Tomb Entries": [38, 13],
+      "Worm-Tunnels":      [56, 15],
     },
     3: {
       // Upper mainline (left→right)
       "town":              [7, 38],
-      "Spider Forest":     [24, 38],
-      "Great Marsh":       [42, 28],
-      "Flayer Jungle":     [60, 38],
-      "Lower Kurast":      [78, 38],
+      "Widowwood":         [24, 38],
+      "Fever Marsh":       [42, 28],
+      "Hunter Canopy":     [60, 38],
+      "River Quarter":     [78, 38],
       // Lower mainline (right→left)
-      "Kurast Bazaar":     [72, 72],
-      "Upper Kurast":      [52, 72],
-      "Kurast Causeway":   [35, 72],
-      "Travincal":         [20, 72],
-      "Durance of Hate":   [7, 74],
+      "Idol Market":       [72, 72],
+      "Flooded Processional": [52, 72],
+      "Temple Stairs":     [35, 72],
+      "Idol Court":        [20, 72],
+      "Corrupted Sanctum": [7, 74],
       // Side branches
-      "Spider Cavern":     [24, 14],
-      "Flayer Dungeon":    [62, 13],
-      "Kurast Sewers":     [62, 86],
+      "Spider Hollows":    [24, 10],
+      "Hunter Village":    [62, 10],
+      "Drowned Causeway":  [62, 86],
     },
     4: {
       // Single row (left→right)
       "town":              [8, 65],
-      "Outer Steppes":     [24, 65],
-      "Plains of Despair": [40, 65],
-      "City of the Damned": [56, 65],
-      "River of Flame":    [74, 65],
-      "Chaos Sanctuary":   [92, 65],
+      "Burning Causeway":  [24, 65],
+      "Chained Bastion":   [40, 65],
+      "Demon Forge":       [56, 65],
+      "Black Gate":        [74, 65],
+      "Ashen Throne":      [92, 65],
     },
     5: {
       // Top row (left→right)
       "town":              [6, 26],
-      "Bloody Foothills":  [22, 26],
-      "Frigid Highlands":  [42, 26],
-      "Arreat Plateau":    [62, 26],
-      "Crystalline Passage": [84, 26],
+      "Siege Walls":       [22, 26],
+      "Watchfire Ridge":   [42, 26],
+      "Tombs of the Fallen": [62, 26],
+      "Ancient Halls":     [84, 26],
       // Bottom row (right→left)
-      "Glacial Trail":     [90, 66],
-      "Frozen Tundra":     [58, 72],
-      "The Ancients' Way": [32, 72],
-      "Arreat Summit":     [10, 72],
+      "Glacial Tunnels":   [90, 66],
+      "Frost Scar":        [58, 72],
+      "The Ascent":        [32, 72],
+      "Summit Gate":       [10, 72],
       // Lowest row (left→right)
-      "Worldstone Keep":   [24, 90],
-      "Throne of Destruction": [48, 90],
-      "The Worldstone Chamber": [72, 88],
+      "Summit Citadel":    [24, 90],
+      "Citadel Core":      [48, 90],
+      "Crown of Ruin":     [72, 88],
       // Side branches
-      "Frozen River":        [84, 10],
-      "Drifter Cavern":      [90, 50],
-      // Nihlathak's Temple chain (from Harrogath, gated by Frozen River)
-      "Nihlathak's Temple":  [22, 48],
-      "Halls of Anguish":    [42, 48],
-      "Halls of Pain":       [62, 48],
-      "Halls of Vaught":     [82, 48],
+      "Icebound River":      [84, 8],
+      "White Drift Cavern":  [90, 50],
+      // Mourning Temple chain (from Frosthaven Keep, gated by Icebound River)
+      "Mourning Temple":     [22, 48],
+      "Sorrow Halls":        [42, 48],
+      "Ruin Halls":          [62, 48],
+      "Oathbreaker Vault":   [82, 48],
     },
   };
 
@@ -129,8 +129,8 @@
    * their prerequisite (thematically the player returns to town first).
    */
   const TOWN_EDGE_ZONES: Record<number, Set<string>> = {
-    2: new Set(["Harem", "Sewers"]),
-    5: new Set(["Nihlathak's Temple"]),
+    2: new Set(["Veiled Court", "Collapsed Cisterns"]),
+    5: new Set(["Mourning Temple"]),
   };
 
   const EDGE_NODE_PADDING_PX = 4;
@@ -143,15 +143,21 @@
    * The prerequisite still gates entry; we just don't draw the line.
    */
   const HIDDEN_EDGES: Record<string, Set<string>> = {
-    "Tristram": new Set(["Dark Wood"]),
-    "Nihlathak's Temple": new Set(["Frozen River"]),
+    "Ashfall Hamlet": new Set(["Gloamwood"]),
+    "Mourning Temple": new Set(["Icebound River"]),
   };
 
   const TOP_LABEL_ZONE_TITLES = new Set([
-    "Den of Evil",
-    "Burial Grounds",
-    "Tristram",
-    "Forgotten Tower",
+    "Black Pit",
+    "Graveyard Ridge",
+    "Ashfall Hamlet",
+    "Ruined Watchtower",
+    "Collapsed Cisterns",
+    "Buried Tomb Entries",
+    "Worm-Tunnels",
+    "Spider Hollows",
+    "Hunter Village",
+    "Icebound River",
   ]);
 
   /**

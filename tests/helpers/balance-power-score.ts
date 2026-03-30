@@ -20,6 +20,7 @@ const CARD_EFFECT_WEIGHTS: Record<CardEffectKind, number> = {
   apply_stun_all: 3.2,
   apply_paralyze: 2.8,
   apply_paralyze_all: 3.2,
+  summon_minion: 3.6,
 };
 
 const WEAPON_PROFICIENCIES_BY_FAMILY: Record<string, string[]> = {
@@ -79,6 +80,15 @@ export interface PartyPowerScore extends ScoreBreakdown {
   proficiencyCounts: Record<string, number>;
   matchingProficiencyCount: number;
   preferredFamilyMatch: boolean;
+}
+
+export interface BossReadinessScore {
+  total: number;
+  offense: number;
+  durability: number;
+  sustain: number;
+  control: number;
+  tempo: number;
 }
 
 export interface EncounterUnitPowerScore extends ScoreBreakdown {
@@ -194,6 +204,149 @@ function scaleBreakdown(breakdown: ScoreBreakdown, factor: number): ScoreBreakdo
 function getCurrentValue(entity: { life?: number; currentLife?: number; maxLife: number }) {
   const current = Number(entity.currentLife ?? entity.life ?? entity.maxLife);
   return Math.max(0, current);
+}
+
+function getBossCardContribution(effect: CardEffect) {
+  const value = Number(effect.value || 0);
+  switch (effect.kind) {
+    case "damage":
+      return { offense: value * 1.05, durability: 0, sustain: 0, control: 0, tempo: 0 };
+    case "damage_all":
+      return { offense: value * 0.8, durability: 0, sustain: 0, control: 0, tempo: 0 };
+    case "gain_guard_self":
+      return { offense: 0, durability: value * 1.9, sustain: 0, control: 0, tempo: 0 };
+    case "gain_guard_party":
+      return { offense: 0, durability: value * 2.2, sustain: 0, control: 0, tempo: 0 };
+    case "heal_hero":
+      return { offense: 0, durability: 0, sustain: value * 2.2, control: 0, tempo: 0 };
+    case "heal_mercenary":
+      return { offense: 0, durability: 0, sustain: value * 1.3, control: 0, tempo: 0 };
+    case "draw":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 1.4, tempo: value * 2.2 };
+    case "mark_enemy_for_mercenary":
+      return { offense: value * 0.7, durability: 0, sustain: 0, control: 0, tempo: value * 1.2 };
+    case "buff_mercenary_next_attack":
+      return { offense: value * 0.9, durability: 0, sustain: 0, control: 0, tempo: value * 0.7 };
+    case "apply_burn":
+      return { offense: value * 1.4, durability: 0, sustain: 0, control: 0, tempo: 0 };
+    case "apply_burn_all":
+      return { offense: value * 1.0, durability: 0, sustain: 0, control: 0, tempo: 0 };
+    case "apply_poison":
+      return { offense: value * 1.4, durability: 0, sustain: 0, control: 0, tempo: 0 };
+    case "apply_poison_all":
+      return { offense: value * 1.0, durability: 0, sustain: 0, control: 0, tempo: 0 };
+    case "apply_slow":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 2.8, tempo: 0 };
+    case "apply_slow_all":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 1.9, tempo: 0 };
+    case "apply_freeze":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 3.5, tempo: 0 };
+    case "apply_freeze_all":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 2.2, tempo: 0 };
+    case "apply_stun":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 3.7, tempo: 0 };
+    case "apply_stun_all":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 2.4, tempo: 0 };
+    case "apply_paralyze":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 3.8, tempo: 0 };
+    case "apply_paralyze_all":
+      return { offense: 0, durability: 0, sustain: 0, control: value * 2.5, tempo: 0 };
+    case "summon_minion":
+      return { offense: value * 0.5, durability: value * 0.7, sustain: 0, control: value * 1.4, tempo: 0 };
+    default:
+      return { offense: 0, durability: 0, sustain: 0, control: 0, tempo: 0 };
+  }
+}
+
+function scoreDeckBossReadiness(deckCardIds: string[], content: GameContent, matchingProficiencies: string[]) {
+  const scoredCards = deckCardIds
+    .map((cardId) => {
+      const card = content.cardCatalog[cardId];
+      const proficiencyMultiplier =
+        card?.proficiency && matchingProficiencies.includes(card.proficiency) ? 1.18 : 1;
+      const base = (card?.effects || []).reduce(
+        (sum, effect) => {
+          const contribution = getBossCardContribution(effect);
+          sum.offense += contribution.offense;
+          sum.durability += contribution.durability;
+          sum.sustain += contribution.sustain;
+          sum.control += contribution.control;
+          sum.tempo += contribution.tempo;
+          return sum;
+        },
+        { offense: 0, durability: 0, sustain: 0, control: 0, tempo: 0 }
+      );
+      const tierBonus = Number(card?.tier || 1) * 1.6;
+      base.tempo += card?.target === "none" ? 1 : 0;
+      base.control += tierBonus * 0.35;
+      base.offense += tierBonus * 0.45;
+      base.tempo -= Number(card?.cost || 0) * 1.1;
+      return {
+        total:
+          (base.offense + base.durability + base.sustain + base.control + base.tempo) * proficiencyMultiplier,
+        offense: base.offense * proficiencyMultiplier,
+        durability: base.durability * proficiencyMultiplier,
+        sustain: base.sustain * proficiencyMultiplier,
+        control: base.control * proficiencyMultiplier,
+        tempo: base.tempo * proficiencyMultiplier,
+      };
+    })
+    .sort((left, right) => right.total - left.total);
+
+  const aggregate = scoredCards.reduce(
+    (sum, card, index) => {
+      const factor = index < 10 ? 1 : 0.55;
+      sum.offense += card.offense * factor;
+      sum.durability += card.durability * factor;
+      sum.sustain += card.sustain * factor;
+      sum.control += card.control * factor;
+      sum.tempo += card.tempo * factor;
+      return sum;
+    },
+    { offense: 0, durability: 0, sustain: 0, control: 0, tempo: 0 }
+  );
+
+  return {
+    offense: roundTo(aggregate.offense),
+    durability: roundTo(aggregate.durability),
+    sustain: roundTo(aggregate.sustain),
+    control: roundTo(aggregate.control),
+    tempo: roundTo(aggregate.tempo),
+    total: roundTo(
+      aggregate.offense +
+        aggregate.durability +
+        aggregate.sustain +
+        aggregate.control +
+        aggregate.tempo
+    ),
+  };
+}
+
+function scoreWeaponBossReadiness(profile: WeaponCombatProfile | undefined) {
+  if (!profile) {
+    return { offense: 0, control: 0, tempo: 0, total: 0 };
+  }
+  const attackScore = Object.values(profile.attackDamageByProficiency || {}).reduce((sum, value) => sum + Number(value || 0), 0) * 1.05;
+  const typedDamageScore = (profile.typedDamage || []).reduce((sum, entry) => sum + Number(entry.amount || 0), 0) * 1.15;
+  const supportScore = Object.values(profile.supportValueByProficiency || {}).reduce((sum, value) => sum + Number(value || 0), 0) * 1.3;
+  const effectScore = (profile.effects || []).reduce((sum, entry) => {
+    const amount = Number(entry.amount || 0);
+    switch (entry.kind) {
+      case "freeze":
+      case "shock":
+        return sum + amount * 3.2;
+      case "burn":
+        return sum + amount * 1.5;
+      default:
+        return sum + amount * 1.2;
+    }
+  }, 0);
+  return {
+    offense: roundTo(attackScore + typedDamageScore * 0.75),
+    control: roundTo(supportScore + effectScore),
+    tempo: roundTo(supportScore * 0.65),
+    total: roundTo(attackScore + typedDamageScore * 0.75 + supportScore + effectScore + supportScore * 0.65),
+  };
 }
 
 export function getMatchingProficienciesForWeapon(weaponFamily = "", weaponProfile?: WeaponCombatProfile | null) {
@@ -393,6 +546,58 @@ export function scorePartyPower(input: PartyPowerScoreInput): PartyPowerScore {
     proficiencyCounts: deckScore.proficiencyCounts,
     matchingProficiencyCount: deckScore.matchingProficiencyCount,
     preferredFamilyMatch,
+  };
+}
+
+export function scoreBossReadiness(input: PartyPowerScoreInput): BossReadinessScore {
+  const preferredFamilyMatch = (input.classPreferredFamilies || []).includes(input.weaponFamily || "");
+  const matchingProficiencies = getMatchingProficienciesForWeapon(input.weaponFamily || "", input.weaponProfile || undefined);
+  const deckBoss = scoreDeckBossReadiness(input.deckCardIds, input.content, matchingProficiencies);
+  const armorScore = scoreArmorProfile(input.armorProfile || undefined);
+  const weaponBoss = scoreWeaponBossReadiness(input.weaponProfile || undefined);
+
+  const heroMaxLife = Number(input.heroState.maxLife || 0);
+  const heroMaxEnergy = Number(input.heroState.maxEnergy || 0);
+  const heroHandSizeBonus = Math.max(0, Number(input.heroState.handSize || 5) - 5);
+  const heroPotionHeal = Number(input.heroState.potionHeal || 0);
+  const heroDamageBonus = Number(input.heroState.damageBonus || 0);
+  const heroGuardBonus = Number(input.heroState.guardBonus || 0);
+  const heroBurnBonus = Number(input.heroState.burnBonus || 0);
+  const mercenaryMaxLife = Number(input.mercenaryState.maxLife || 0);
+  const mercenaryAttack = Number(input.mercenaryState.attack || 0);
+  const potions = Number(input.potions || 0);
+
+  const offense = roundTo(
+    deckBoss.offense + weaponBoss.offense + heroDamageBonus * 4.5 + heroBurnBonus * 1.8 + mercenaryAttack * 0.35
+  );
+  const durability = roundTo(
+    deckBoss.durability + heroMaxLife * 0.42 + heroGuardBonus * 4.6 + mercenaryMaxLife * 0.22 + armorScore * 0.82
+  );
+  const sustain = roundTo(deckBoss.sustain + heroPotionHeal * 3.4 + potions * 4.1);
+  const control = roundTo(deckBoss.control + weaponBoss.control + heroMaxEnergy * 1.1);
+  const tempoBase = deckBoss.tempo + weaponBoss.tempo + heroHandSizeBonus * 8.5 + (preferredFamilyMatch ? 12 : 0);
+  const resources = input.includeCurrentResources
+    ? getCurrentValue(input.heroState) * 0.24 + getCurrentValue(input.mercenaryState) * 0.12
+    : 0;
+  const tempo = roundTo(tempoBase + resources);
+
+  return {
+    total: roundTo(offense + durability + sustain + control + tempo),
+    offense,
+    durability,
+    sustain,
+    control,
+    tempo,
+  };
+}
+
+export function scoreBossAdjustedPartyPower(input: PartyPowerScoreInput) {
+  const basePower = scorePartyPower(input);
+  const bossReadiness = scoreBossReadiness(input);
+  return {
+    basePower,
+    bossReadiness,
+    total: roundTo(basePower.total + bossReadiness.total * 0.42),
   };
 }
 

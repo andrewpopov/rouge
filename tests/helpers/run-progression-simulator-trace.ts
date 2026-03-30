@@ -1,25 +1,50 @@
-import { scoreEncounterPowerFromDefinition, scorePartyPower } from "./balance-power-score"
+import {
+  scoreBossAdjustedPartyPower,
+  scoreEncounterPowerFromDefinition,
+  scorePartyPower,
+} from "./balance-power-score"
 import { simulateEncounterWithRun, type SimulatedCombatResult } from "./run-progression-simulator-combat"
 import {
   hashString,
   roundTo,
   type AppHarness,
+  type ArchetypeLaneMetrics,
   type BuildPolicyDefinition,
   type EncounterRunMetric,
   type FinalBuildSummary,
   type PolicyProgressSummary,
   type PolicyRunSummary,
   type ProbeEncounterSummary,
+  type RunArchetypeSimulationPlan,
   type SafeZoneCheckpointSummary,
   type SimulationFailureSummary,
   type WorldProgressSummary,
 } from "./run-progression-simulator-core"
 import {
+  buildArchetypeLaneMetrics,
   buildDeckStats,
   createScoringRun,
   getArmorEquipment,
   getWeaponEquipment,
 } from "./run-progression-simulator-scoring"
+
+function buildArchetypeCommitmentSnapshot(
+  archetypePlan: RunArchetypeSimulationPlan | null | undefined,
+  laneMetrics: ArchetypeLaneMetrics | null
+) {
+  if (!archetypePlan?.targetArchetypeId) {
+    return null
+  }
+  return {
+    targetArchetypeId: archetypePlan.targetArchetypeId,
+    targetArchetypeLabel: archetypePlan.targetArchetypeLabel,
+    targetBand: archetypePlan.targetBand,
+    commitmentMode: archetypePlan.commitmentMode,
+    commitmentLocked: archetypePlan.commitmentLocked,
+    commitmentSatisfied: archetypePlan.commitmentSatisfied,
+    laneMetrics,
+  }
+}
 
 function getActProbeEncounters(harness: AppHarness, actNumber: number) {
   const act = harness.seedBundle.zones.acts?.find((entry: ActSeed) => entry.act === actNumber) || null
@@ -100,7 +125,8 @@ export function buildCheckpointSummary(
   actNumber: number,
   progress: PolicyProgressSummary,
   probeRuns: number,
-  maxCombatTurns: number
+  maxCombatTurns: number,
+  archetypePlan?: RunArchetypeSimulationPlan | null
 ): SafeZoneCheckpointSummary {
   const scoringRun = createScoringRun(harness, run, true)
   const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, profile)
@@ -111,7 +137,10 @@ export function buildCheckpointSummary(
   const deckStats = buildDeckStats(harness, scoringRun, policy)
   const progressionSummary = harness.runFactory.getProgressionSummary(scoringRun, harness.content)
   const activeRunewords = harness.itemSystem.getActiveRunewords(scoringRun, harness.content) || []
-  const partyPower = scorePartyPower({
+  const laneMetrics = archetypePlan?.targetArchetypeId
+    ? buildArchetypeLaneMetrics(harness, scoringRun, archetypePlan.targetArchetypeId)
+    : null
+  const partyPowerInput = {
     content: harness.content,
     deckCardIds: scoringRun.deck,
     heroState: {
@@ -138,7 +167,9 @@ export function buildCheckpointSummary(
     bankedClassPoints: Number(scoringRun.progression?.classPointsAvailable || 0),
     bankedAttributePoints: Number(scoringRun.progression?.attributePointsAvailable || 0),
     includeCurrentResources: false,
-  })
+  }
+  const partyPower = scorePartyPower(partyPowerInput)
+  const bossAdjustedPower = scoreBossAdjustedPartyPower(partyPowerInput)
   const probeEntries = getActProbeEncounters(harness, actNumber)
   const probeRunBase = createScoringRun(harness, run, true)
   const probes = probeRuns > 0 ? probeEntries.map((entry, index) => {
@@ -156,6 +187,8 @@ export function buildCheckpointSummary(
     level: run.level,
     gold: run.gold,
     powerScore: partyPower.total,
+    bossReadinessScore: bossAdjustedPower.bossReadiness.total,
+    bossAdjustedPowerScore: bossAdjustedPower.total,
     powerBreakdown: {
       offense: partyPower.offense,
       defense: partyPower.defense,
@@ -222,6 +255,7 @@ export function buildCheckpointSummary(
     },
     choiceCounts: { ...progress.actionCounts },
     probes,
+    archetypeCommitment: buildArchetypeCommitmentSnapshot(archetypePlan || null, laneMetrics),
   }
 }
 
@@ -229,7 +263,8 @@ function buildFinalBuildSummary(
   harness: AppHarness,
   run: RunState,
   profile: ProfileState,
-  policy: BuildPolicyDefinition
+  policy: BuildPolicyDefinition,
+  archetypePlan?: RunArchetypeSimulationPlan | null
 ): FinalBuildSummary {
   const scoringRun = createScoringRun(harness, run, true)
   const progressionSummary = harness.runFactory.getProgressionSummary(scoringRun, harness.content)
@@ -243,6 +278,9 @@ function buildFinalBuildSummary(
   const activeRunewords = harness.itemSystem.getActiveRunewords(scoringRun, harness.content) || []
   const deckStats = buildDeckStats(harness, scoringRun, policy)
   const preferredFamilies = harness.classRegistry.getPreferredWeaponFamilies(scoringRun.classId) || []
+  const laneMetrics = archetypePlan?.targetArchetypeId
+    ? buildArchetypeLaneMetrics(harness, scoringRun, archetypePlan.targetArchetypeId)
+    : null
 
   return {
     level: scoringRun.level,
@@ -311,6 +349,28 @@ function buildFinalBuildSummary(
         }))
       : [],
     activeRunewords,
+    archetypeCommitment: archetypePlan?.targetArchetypeId
+      ? {
+          targetArchetypeId: archetypePlan.targetArchetypeId,
+          targetArchetypeLabel: archetypePlan.targetArchetypeLabel,
+          targetBand: archetypePlan.targetBand,
+          commitmentMode: archetypePlan.commitmentMode,
+          commitmentLocked: archetypePlan.commitmentLocked,
+          commitmentSatisfied: archetypePlan.commitmentSatisfied,
+          committedByCheckpoint: archetypePlan.committedByCheckpoint,
+          committedAtCheckpointId: archetypePlan.committedAtCheckpointId,
+          driftRateAfterCommit: archetypePlan.postCommitCheckpointCount > 0
+            ? roundTo(archetypePlan.driftCountAfterCommit / archetypePlan.postCommitCheckpointCount, 3)
+            : 0,
+          driftCountAfterCommit: archetypePlan.driftCountAfterCommit,
+          postCommitCheckpointCount: archetypePlan.postCommitCheckpointCount,
+          fallbackDebtCardCount: archetypePlan.fallbackDebtCardCount,
+          fallbackDebtWeight: archetypePlan.fallbackDebtWeight,
+          fallbackWeaponDebt: archetypePlan.fallbackWeaponDebt,
+          exitedFallbackGear: archetypePlan.exitedFallbackGear,
+          laneIntegrity: Number(laneMetrics?.laneIntegrity || 0),
+        }
+      : null,
   }
 }
 
@@ -358,8 +418,10 @@ export function buildPolicyRunSummary(
   run: RunState,
   profile: ProfileState,
   policy: BuildPolicyDefinition,
-  progress: PolicyProgressSummary
+  progress: PolicyProgressSummary,
+  archetypePlan?: RunArchetypeSimulationPlan | null
 ): PolicyRunSummary {
+  const finalBuild = buildFinalBuildSummary(harness, run, profile, policy, archetypePlan || null)
   return {
     runSummary: {
       ...run.summary,
@@ -375,7 +437,8 @@ export function buildPolicyRunSummary(
     encounterResults: progress.encounterResults.map((entry) => ({ ...entry })),
     encounterMetricsByKind: buildEncounterMetricsByKind(progress.encounterResults),
     world: buildWorldProgressSummary(run),
-    finalBuild: buildFinalBuildSummary(harness, run, profile, policy),
+    finalBuild,
+    archetypeCommitment: finalBuild.archetypeCommitment,
   }
 }
 

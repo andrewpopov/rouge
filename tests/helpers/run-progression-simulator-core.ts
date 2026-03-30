@@ -58,6 +58,7 @@ export const SIMULATION_SCORING_WEIGHTS = {
     apply_stun_all: 3.2,
     apply_paralyze: 2.8,
     apply_paralyze_all: 3.2,
+    summon_minion: 3.6,
   } as Record<CardEffectKind, number>,
   status: {
     burn: 1.5,
@@ -149,6 +150,7 @@ export const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
     bankedAttributePointWeight: 3.5,
     cardEffectMultipliers: {
       draw: 1.1,
+      summon_minion: 1.1,
       mark_enemy_for_mercenary: 1.05,
       buff_mercenary_next_attack: 1.05,
     },
@@ -181,6 +183,7 @@ export const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
     cardEffectMultipliers: {
       damage: 1.3,
       damage_all: 1.25,
+      summon_minion: 1.05,
       apply_burn: 1.1,
       apply_burn_all: 1.1,
       mark_enemy_for_mercenary: 1.2,
@@ -227,6 +230,7 @@ export const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
     bankedAttributePointWeight: 3.8,
     cardEffectMultipliers: {
       draw: 1.25,
+      summon_minion: 1.2,
       apply_burn: 1.3,
       apply_burn_all: 1.35,
       apply_poison: 1.25,
@@ -274,6 +278,7 @@ export const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
     cardEffectMultipliers: {
       gain_guard_self: 1.35,
       gain_guard_party: 1.4,
+      summon_minion: 1.15,
       heal_hero: 1.3,
       heal_mercenary: 1.25,
       mark_enemy_for_mercenary: 1.15,
@@ -311,6 +316,48 @@ export interface EncounterRunMetric {
   powerRatio: number
 }
 
+export type ArchetypeCommitmentMode = "natural" | "committed"
+export type ArchetypeCommitCheckpoint = "act_start" | "first_safe_zone" | "first_reward"
+export type ArchetypeTargetBand = "flagship" | "secondary"
+
+export interface ArchetypeLaneMetrics {
+  targetArchetypeId: string
+  targetArchetypeLabel: string
+  deckAlignment: number
+  weaponAlignment: number
+  scoreAlignment: number
+  laneIntegrity: number
+  offLaneCardCount: number
+  offLaneCardWeight: number
+  alignedWeapon: boolean
+}
+
+export interface ArchetypeLaneIntegrityCheckpoint {
+  checkpointId: string
+  actNumber: number
+  laneIntegrity: number
+}
+
+export interface RunArchetypeSimulationPlan {
+  targetArchetypeId: string
+  targetArchetypeLabel: string
+  targetBand: ArchetypeTargetBand
+  commitmentMode: ArchetypeCommitmentMode
+  commitAct: number
+  commitCheckpoint: ArchetypeCommitCheckpoint
+  commitmentLocked: boolean
+  commitmentSatisfied: boolean
+  committedByCheckpoint: boolean
+  committedAtCheckpointId: string
+  postCommitCheckpointCount: number
+  driftCountAfterCommit: number
+  fallbackDebtCardCount: number
+  fallbackDebtWeight: number
+  fallbackWeaponDebt: boolean
+  exitedFallbackGear: boolean
+  laneIntegrityByCheckpoint: ArchetypeLaneIntegrityCheckpoint[]
+}
+
 export interface PolicyProgressSummary {
   actionCounts: Record<string, number>
   rewardKindCounts: Record<string, number>
@@ -346,6 +393,8 @@ export interface SafeZoneCheckpointSummary {
   level: number
   gold: number
   powerScore: number
+  bossReadinessScore: number
+  bossAdjustedPowerScore: number
   powerBreakdown: {
     offense: number
     defense: number
@@ -398,6 +447,15 @@ export interface SafeZoneCheckpointSummary {
   }
   choiceCounts: Record<string, number>
   probes: ProbeEncounterSummary[]
+  archetypeCommitment: {
+    targetArchetypeId: string
+    targetArchetypeLabel: string
+    targetBand: ArchetypeTargetBand
+    commitmentMode: ArchetypeCommitmentMode
+    commitmentLocked: boolean
+    commitmentSatisfied: boolean
+    laneMetrics: ArchetypeLaneMetrics | null
+  } | null
 }
 
 export interface SimulationFailureSummary {
@@ -456,6 +514,24 @@ export interface FinalBuildSummary {
   secondaryArchetypeScore: number
   archetypeScores: Array<{ archetypeId: string; label: string; score: number }>
   activeRunewords: string[]
+  archetypeCommitment: {
+    targetArchetypeId: string
+    targetArchetypeLabel: string
+    targetBand: ArchetypeTargetBand
+    commitmentMode: ArchetypeCommitmentMode
+    commitmentLocked: boolean
+    commitmentSatisfied: boolean
+    committedByCheckpoint: boolean
+    committedAtCheckpointId: string
+    driftRateAfterCommit: number
+    driftCountAfterCommit: number
+    postCommitCheckpointCount: number
+    fallbackDebtCardCount: number
+    fallbackDebtWeight: number
+    fallbackWeaponDebt: boolean
+    exitedFallbackGear: boolean
+    laneIntegrity: number
+  } | null
 }
 
 export interface WorldProgressSummary {
@@ -491,6 +567,7 @@ export interface PolicyRunSummary {
   }>
   world: WorldProgressSummary
   finalBuild: FinalBuildSummary
+  archetypeCommitment: FinalBuildSummary["archetypeCommitment"]
 }
 
 export interface PolicySimulationReport {
@@ -525,6 +602,10 @@ export interface RunProgressionSimulationOptions {
   probeRuns?: number
   maxCombatTurns?: number
   seedOffset?: number
+  targetArchetypeId?: string
+  commitmentMode?: ArchetypeCommitmentMode
+  commitAct?: number
+  commitCheckpoint?: ArchetypeCommitCheckpoint
 }
 
 export interface TrackedRandomFn extends RandomFn {
@@ -543,6 +624,7 @@ export interface RunProgressionContinuationContext {
   checkpoints: SafeZoneCheckpointSummary[]
   failure: SimulationFailureSummary | null
   lastEncounterContext: SimulationFailureSummary | null
+  archetypePlan: RunArchetypeSimulationPlan | null
 }
 
 export interface PolicySimulationHooks {

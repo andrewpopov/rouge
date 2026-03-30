@@ -16,9 +16,9 @@ Every vendor should have a single clear purpose. The player walks up, sees what 
 
 ### Upgrades Over Accumulation
 
-Inspired by Monster Train's merchant model and Diablo II's skill synergy system: the late game should reward upgrading and combining existing cards, not stockpiling new ones. A tight 12-card deck with upgraded synergies should outperform a bloated 25-card deck with scattered effects.
+Inspired by Monster Train's merchant model and classic ARPG-style skill synergy systems: the late game should reward upgrading and combining existing cards, not stockpiling new ones. A tight 12-card deck with upgraded synergies should outperform a bloated 25-card deck with scattered effects.
 
-Core mechanic: **skill tree stacking**. Higher-tier spells from the same D2 skill tree should upgrade onto lower-tier cards rather than adding new cards to the deck. Investing in `Fire Ball` when you already have `Fire Bolt` should transform `Fire Bolt` into `Fire Ball`, not add a second card. This mirrors D2's synergy system where leveling related skills strengthens the whole tree, and it naturally keeps decks lean.
+Core mechanic: **skill tree stacking**. Higher-tier spells from the same class tree should upgrade onto lower-tier cards rather than adding new cards to the deck. Investing in `Fire Ball` when you already have `Fire Bolt` should transform `Fire Bolt` into `Fire Ball`, not add a second card. This mirrors classic synergy-driven ARPG progression where leveling related skills strengthens the whole tree, and it naturally keeps decks lean.
 
 ### Gold Is Tension
 
@@ -53,7 +53,7 @@ Every vendor interaction should cost enough gold to create real trade-offs. Heal
 
 **Core mechanic: Skill Tree Stacking**
 
-When the player brings a card that has a higher-tier version in the same D2 skill tree, the blacksmith can **evolve** it instead of applying a generic upgrade. This is the primary deck-thinning and power-scaling mechanic.
+When the player brings a card that has a higher-tier version in the same class tree, the blacksmith can **evolve** it instead of applying a generic upgrade. This is the primary deck-thinning and power-scaling mechanic.
 
 Evolution examples:
 
@@ -120,7 +120,7 @@ Outcome weights should favor middling results. The gambler should feel like a tr
 **Design notes**:
 - Expensive by design. Gambling twice in one town should strain most gold reserves.
 - Mystery cards bypass the normal reward-pool filtering: you might get a card from a tree you haven't invested in, which is part of the risk.
-- Equipment outcomes follow the D2 gambling fantasy: pay for an unidentified item, it could be magic, rare, or junk.
+- Equipment outcomes follow the classic cursed-market fantasy: pay for an unidentified item, and it could be magic, rare, or junk.
 - The gambler is the only vendor where the player can get cards from uninvested trees. This is a feature, not a bug: it creates splashy moments and occasional build pivots.
 - Acts 1-2 should only offer Bronze and Silver. Gold tier unlocks in Act 3+.
 
@@ -135,7 +135,7 @@ Outcome weights should favor middling results. The gambler should feel like a tr
 - Merc power comes from the hire choice, route quest perks, and gear (if we add merc equipment later).
 - Revive cost should scale with act to stay meaningful.
 
-### Sage (Deckard Cain)
+### Camp Sage (Corven Vale)
 
 **Intent**: Deck surgery. Remove cards, transform cards, identify upgrade paths.
 
@@ -151,8 +151,8 @@ Outcome weights should favor middling results. The gambler should feel like a tr
 - Purging is the single most important service in a deckbuilder. Removing starter `Strike` and `Guard` cards to increase draw consistency is a core skill-expression.
 - Escalating purge cost (50, 75, 100, 125...) mirrors Monster Train's model and prevents infinite thinning.
 - Transform is the gamble-lite option: cheaper than the gambler, but you lose the card you had.
-- Identify is free to encourage visiting Cain. It teaches the player about the evolution system and surfaces what the blacksmith can do.
-- Cain should **not** sell cards. His value is in deck manipulation, not deck expansion.
+- Identify is free to encourage visiting the camp sage. It teaches the player about the evolution system and surfaces what the blacksmith can do.
+- The camp sage should **not** sell cards. His value is in deck manipulation, not deck expansion.
 
 ### Stash
 
@@ -165,11 +165,11 @@ Outcome weights should favor middling results. The gambler should feel like a tr
 - Cards should not be stashable across runs (they are run-scoped).
 - Could later support a "sideboard" mechanic: swap cards between active deck and a small bench. But this is not v1.
 
-### Travel (Warriv, Meshif)
+### Travel (Dagan, Salek)
 
 **Intent**: Flavor and act transition.
 
-**Interaction**: None in v1. Exists for atmosphere and D2 fidelity.
+**Interaction**: None in v1. Exists for atmosphere and campaign continuity.
 
 **Future potential**: Could sell "shortcut" map items that skip zones on the world map, at the cost of missed rewards. Low priority.
 
@@ -192,7 +192,7 @@ This is the central mechanic that ties vendors to the card progression system.
 
 ### How It Works
 
-D2's skill system grants synergy bonuses: investing in `Fire Bolt` makes `Fire Ball` stronger. In Rouge, this translates to a card evolution chain where lower-tier cards physically transform into higher-tier cards.
+Classic synergy-driven ARPG skill systems grant bonuses across related abilities: investing in `Fire Bolt` makes `Fire Ball` stronger. In Rouge, this translates to a card evolution chain where lower-tier cards physically transform into higher-tier cards.
 
 ```
 Tier 1          Tier 2          Tier 3
@@ -207,7 +207,7 @@ Bash       -->  Concentrate --> Berserk
 1. **Deck stays lean.** Evolution replaces cards instead of adding them. A player who evolves aggressively ends up with a tight, powerful deck.
 2. **Rewards tree commitment.** You can only evolve along a tree you've invested in. Spreading across all three trees means shallow evolution. Committing deep into one tree means reaching tier-3 evolutions.
 3. **Creates blacksmith tension.** Do you evolve `Fire Bolt` into `Fire Ball` (more damage, same slot) or apply two generic upgrades to `Fire Bolt` (cheaper, keeps flexibility)?
-4. **Mirrors D2 fantasy.** Players who loved maxing `Frozen Orb` and its synergies get the same feeling of watching a skill grow through investment.
+4. **Reinforces the Blood Rogue fantasy.** Players who love deep elemental or weapon specialization get the same feeling of watching a signature skill grow through investment.
 5. **Natural difficulty curve.** Early acts are about choosing a tree direction. Mid acts are about evolving your core cards. Late acts are about perfecting a tight combo deck with tier-3 cards and generic upgrades stacked on top.
 
 ### Synergy Bonuses (Passive)
@@ -249,7 +249,7 @@ The player should rarely have enough gold to do more than one major action per t
 
 ## Relationship to CARD_ECONOMY_SPEC
 
-`CARD_ECONOMY_SPEC.md` currently describes vendors (Akara, Charsi) selling cards directly. This document supersedes that model:
+`CARD_ECONOMY_SPEC.md` currently describes vendors (Mireya, Braska) selling cards directly. This document supersedes that model:
 
 - **Vendors no longer sell cards directly.** Card acquisition comes from combat rewards and the gambler only.
 - **Blacksmith replaces the "card shop" concept** with upgrade/evolution services.

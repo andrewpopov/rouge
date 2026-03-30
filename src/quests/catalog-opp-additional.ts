@@ -118,7 +118,7 @@
       {
         id: "quenched_bulwark",
         title: "Quenched Bulwark",
-        description: "The cinder screen and quenched plating let you build a real ash bulwark before Diablo.",
+        description: "The cinder screen and quenched plating let you build a real ash bulwark before the Cinder Tyrant.",
         summary: "A cooled-forge path now opens a stronger infernal-route bulwark.",
         grants: { gold: 8, xp: 10, potions: 0 },
         requiresPrimaryOutcomeIds: ["temper_the_armor"],

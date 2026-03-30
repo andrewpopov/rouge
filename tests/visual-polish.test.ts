@@ -130,7 +130,7 @@ test("safe-zone merchant helper renders extracted overlay markup directly", () =
   const overlay = browserWindow.__ROUGE_SAFE_ZONE_VIEW_MERCHANT.buildNpcOverlay(
     {
       id: "vendor",
-      name: "Gheed",
+      name: "Murn",
       role: "Vendor & Gambler",
       icon: "\u2696",
       actions: operations.vendorActions,

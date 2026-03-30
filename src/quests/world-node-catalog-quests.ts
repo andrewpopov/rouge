@@ -254,7 +254,7 @@
       id: "smugglers_wake",
       title: "Smuggler's Wake",
       zoneTitle: "Smuggler's Wake",
-      description: "A Kurast dockside deal can fund the run, strengthen the escort, or refit the hero for deeper temple pressure.",
+      description: "A Idol Reach dockside deal can fund the run, strengthen the escort, or refit the hero for deeper temple pressure.",
       summary: "A dockside contact offers a quest resolution instead of a fight.",
       grants: { gold: 10, xp: 12, potions: 0 },
       choices: [

@@ -24,7 +24,7 @@ In scope:
 - character select presentation.
 - act safe-zone hotspot scenes.
 - world-map traversal surfaces.
-- icon system and D2-inspired menu art direction.
+- icon system and gothic menu art direction.
 - account, authentication, and admin-facing UI surfaces.
 - combat HUD layout and visual hierarchy.
 - menu/control layout.
@@ -144,7 +144,7 @@ Purpose:
 
 Build:
 - Create a dedicated start/menu layout separate from the combat HUD.
-- Use a D2-inspired composition: framed hero area, carved-panel navigation, icon-first menu options, and atmospheric background art.
+- Use a gothic expedition composition: framed hero area, carved-panel navigation, icon-first menu options, and atmospheric background art.
 - Support desktop and mobile variants without turning the menu into generic app chrome.
 - Define a reserved area for account state and admin visibility.
 
@@ -165,7 +165,7 @@ Required destinations:
 
 Icon and art direction:
 - Every top-level destination gets a distinct icon.
-- Icons should feel Diablo-inspired: carved sigils, reliquaries, tomes, banners, seals, braziers, or weapon crests.
+- Icons should feel carved, ritualistic, and gothic: sigils, reliquaries, tomes, banners, seals, braziers, or weapon crests.
 - Menu framing should use gothic stone, iron, parchment, ember, and shrine-like accents rather than modern flat app tabs.
 
 Build:
@@ -547,7 +547,7 @@ UI implications:
 ## 13. Acceptance Checklist
 
 - Action menu is visually and structurally separated into action groups.
-- Main menu has icon-first D2-inspired navigation for all top-level destinations.
+- Main menu has icon-first gothic navigation for all top-level destinations.
 - `Legacy` replaces `Unlocks` as the player-facing progression destination label.
 - Account supports Google OAuth states cleanly.
 - Admin routes and user-management surfaces are defined separately from player UI.
@@ -568,7 +568,7 @@ Deliver in the first implementation slice:
 - add a dedicated front-door/menu layout.
 - build icon-led destination cards for `Start Game`, `Run History`, `Legacy`, and `Account`.
 - reserve an auth-aware `Admin` entry that only renders for admins.
-- establish the D2-inspired menu art treatment and icon language.
+- establish the gothic menu art treatment and icon language.
 - define signed-out and signed-in account states with Google OAuth entry points.
 
 Then deliver:

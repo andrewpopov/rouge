@@ -9,7 +9,7 @@
       id: "sunwell_covenant_opportunity",
       title: "Reliquary Covenant",
       zoneTitle: "Reliquary Covenant",
-      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the reliquary can still be bound into one final covenant before Duriel.",
+      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the reliquary can still be bound into one final covenant before the Sepulcher Devourer.",
       summary: "The act now has a post-branch convergence lane that pays off every desert late route together.",
       grants: { gold: 12, xp: 14, potions: 0 },
       requiresQuestId: "lost_reliquary",
@@ -70,7 +70,7 @@
               "lost_reliquary",
               "seal_the_reliquary_rolls",
               "Seal the Reliquary Rolls",
-              "Use the same covenant to seal the last reliquary rolls before Duriel.",
+              "Use the same covenant to seal the last reliquary rolls before the Sepulcher Devourer.",
               "reliquary_rolls_sealed",
               ["sunwell_covenant_reliquary_rolls"],
               [{ kind: "hero_max_energy", value: 1 }, { kind: "belt_capacity", value: 1 }]
@@ -119,7 +119,7 @@
       id: "kurast_covenant_opportunity",
       title: "Harbor Covenant",
       zoneTitle: "Harbor Covenant",
-      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the harbor can still be bound into one final covenant before Mephisto.",
+      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the harbor can still be bound into one final covenant before the Idol Patriarch.",
       summary: "The act now has a post-branch convergence lane that pays off every harbor late route together.",
       grants: { gold: 12, xp: 14, potions: 0 },
       requiresQuestId: "smugglers_wake",
@@ -132,7 +132,7 @@
           id: "dock_covenant",
           title: "Dock Covenant",
           description: "Even without a sharper spellward close, the harbor can still settle into one final covenant once every late route is spent.",
-          summary: "A fallback covenant lane appears once every Kurast late route has resolved.",
+          summary: "A fallback covenant lane appears once every Idol Reach late route has resolved.",
           grants: { gold: 6, xp: 8, potions: 0 },
           choices: [
             buildCovenantChoice(
@@ -140,7 +140,7 @@
               "smugglers_wake",
               "tally_the_last_tide_ledgers",
               "Tally the Last Tide Ledgers",
-              "Bind the last tide ledgers into one closing harbor account before the Durance push.",
+              "Bind the last tide ledgers into one closing harbor account before the Sanctum push.",
               "last_tide_ledgers_tallied",
               ["kurast_covenant_tide_ledgers"],
               [{ kind: "gold_bonus", value: 12 }, { kind: "hero_max_energy", value: 1 }]
@@ -180,7 +180,7 @@
               "smugglers_wake",
               "seal_the_shadow_ledgers",
               "Seal the Shadow Ledgers",
-              "Use the same covenant to seal the last shadow ledgers before Mephisto.",
+              "Use the same covenant to seal the last shadow ledgers before the Idol Patriarch.",
               "shadow_ledgers_sealed",
               ["kurast_covenant_shadow_ledgers"],
               [{ kind: "hero_potion_heal", value: 1 }, { kind: "belt_capacity", value: 1 }]
@@ -191,7 +191,7 @@
           id: "channel_covenant",
           title: "Channel Covenant",
           description: "Legacy, reckoning, recovery, and accord all converge into a true harbor covenant instead of one more channel bind.",
-          summary: "Every Kurast late-route payoff now closes together into one final harbor covenant.",
+          summary: "Every Idol Reach late-route payoff now closes together into one final harbor covenant.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: [
             "kurast_legacy_last_spellward",
@@ -229,7 +229,7 @@
       id: "hellforge_covenant_opportunity",
       title: "Sanctuary Covenant",
       zoneTitle: "Sanctuary Covenant",
-      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the sanctuary can still be bound into one final covenant before Diablo.",
+      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the sanctuary can still be bound into one final covenant before the Cinder Tyrant.",
       summary: "The act now has a post-branch convergence lane that pays off every sanctuary late route together.",
       grants: { gold: 14, xp: 14, potions: 0 },
       requiresQuestId: "hellforge_claim",
@@ -260,7 +260,7 @@
               "hellforge_claim",
               "raise_the_last_sanctuary_posts",
               "Raise the Last Sanctuary Posts",
-              "Turn the same covenant into one final ring of sanctuary posts before Diablo.",
+              "Turn the same covenant into one final ring of sanctuary posts before the Cinder Tyrant.",
               "last_sanctuary_posts_raised",
               ["hellforge_covenant_sanctuary_posts"],
               [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
@@ -325,7 +325,7 @@
               "hellforge_claim",
               "ring_the_last_sanctuary_bells",
               "Ring the Last Sanctuary Bells",
-              "Use the same covenant to ring the last sanctuary bells before Diablo.",
+              "Use the same covenant to ring the last sanctuary bells before the Cinder Tyrant.",
               "last_sanctuary_bells_rung",
               ["hellforge_covenant_sanctuary_bells"],
               [{ kind: "hero_max_energy", value: 1 }, { kind: "belt_capacity", value: 1 }]
@@ -339,7 +339,7 @@
       id: "harrogath_covenant_opportunity",
       title: "Summit Covenant",
       zoneTitle: "Summit Covenant",
-      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the summit can still be bound into one final covenant before Baal.",
+      description: "Once the legacy, reckoning, recovery, and accord lanes all settle, the summit can still be bound into one final covenant before the Siege Tyrant.",
       summary: "The act now has a post-branch convergence lane that pays off every summit late route together.",
       grants: { gold: 14, xp: 16, potions: 0 },
       requiresQuestId: "harrogath_rescue",
@@ -352,7 +352,7 @@
           id: "watch_covenant",
           title: "Watch Covenant",
           description: "Even without a sharper guard close, the summit can still settle into one final covenant once every late route is spent.",
-          summary: "A fallback covenant lane appears once every Harrogath late route has resolved.",
+          summary: "A fallback covenant lane appears once every Frosthaven late route has resolved.",
           grants: { gold: 6, xp: 8, potions: 0 },
           choices: [
             buildCovenantChoice(
@@ -360,7 +360,7 @@
               "harrogath_rescue",
               "tally_the_last_summit_ledger",
               "Tally the Last Summit Ledger",
-              "Bind the last summit stores into one closing ledger before the Worldstone climb.",
+              "Bind the last summit stores into one closing ledger before the Ruin Crown climb.",
               "last_summit_ledger_tallied",
               ["harrogath_covenant_summit_ledger"],
               [{ kind: "hero_max_life", value: 4 }, { kind: "refill_potions", value: 1 }]
@@ -400,7 +400,7 @@
               "harrogath_rescue",
               "seal_the_last_frost_rolls",
               "Seal the Last Frost Rolls",
-              "Use the same covenant to seal the last frost rolls before Baal.",
+              "Use the same covenant to seal the last frost rolls before the Siege Tyrant.",
               "last_frost_rolls_sealed",
               ["harrogath_covenant_frost_rolls"],
               [{ kind: "mercenary_max_life", value: 4 }, { kind: "hero_potion_heal", value: 1 }]
@@ -411,7 +411,7 @@
           id: "ancients_covenant",
           title: "Ancients Covenant",
           description: "Legacy, reckoning, recovery, and accord all converge into a true summit covenant instead of one more guard-post bind.",
-          summary: "Every Harrogath late-route payoff now closes together into one final summit covenant.",
+          summary: "Every Frosthaven late-route payoff now closes together into one final summit covenant.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: [
             "harrogath_legacy_last_guard_ranks",
@@ -435,7 +435,7 @@
               "harrogath_rescue",
               "ring_the_last_summit_bells",
               "Ring the Last Summit Bells",
-              "Use the same covenant to ring the last summit bells before the Worldstone push.",
+              "Use the same covenant to ring the last summit bells before the Ruin Crown push.",
               "last_summit_bells_rung",
               ["harrogath_covenant_summit_bells"],
               [{ kind: "mercenary_max_life", value: 4 }, { kind: "hero_potion_heal", value: 1 }]

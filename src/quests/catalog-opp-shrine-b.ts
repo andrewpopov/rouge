@@ -10,7 +10,7 @@
       title: "Jade Route Opportunity",
       zoneTitle: "Jade Opportunity",
       description: "The Jade Shrine opens a second dockside lane built around tide stores, bastions, or a covert contract screen.",
-      summary: "The shrine now pays off through its own Kurast route branch.",
+      summary: "The shrine now pays off through its own Idol Reach route branch.",
       grants: { gold: 10, xp: 12, potions: 0 },
       requiresShrineId: "jade_shrine",
       variants: [
@@ -90,7 +90,7 @@
           id: "trade_wind_chain",
           title: "Trade Wind Chain",
           description: "A trade-wind blessing can carry the dock route on a cleaner marker line through the river approach.",
-          summary: "The trade-wind blessing opens a steadier Kurast supply chain.",
+          summary: "The trade-wind blessing opens a steadier Idol Reach supply chain.",
           grants: { gold: 4, xp: 6, potions: 0 },
           requiresShrineOutcomeIds: ["blessing_of_trade_winds"],
           choices: [
@@ -112,8 +112,8 @@
         {
           id: "shadow_harbor",
           title: "Shadow Harbor",
-          description: "With a Kurast shadow or Iron Wolf under contract, the shrine's tide blessing can become a covert harbor screen.",
-          summary: "A contracted Kurast specialist turns the shrine lane into a stealth dockside payoff.",
+          description: "With an Idol Reach Cutthroat or River Spellblade under contract, the shrine's tide blessing can become a covert harbor screen.",
+          summary: "A contracted Idol Reach specialist turns the shrine lane into a stealth dockside payoff.",
           grants: { gold: 6, xp: 8, potions: 0 },
           requiresShrineOutcomeIds: ["blessing_of_tides"],
           requiresMercenaryIds: ["kurast_shadow", "iron_wolf"],
@@ -256,7 +256,7 @@
         {
           id: "hellward_phalanx",
           title: "Hellward Phalanx",
-          description: "With a Templar Vanguard or Pandemonium Scout under contract, the warfire blessing can turn into a real hellward phalanx.",
+          description: "With an Ashen Bulwark or Ashen Scout under contract, the warfire blessing can turn into a real hellward phalanx.",
           summary: "A contracted Act IV specialist turns the altar lane into a combat-ready escort screen.",
           grants: { gold: 6, xp: 8, potions: 0 },
           requiresShrineOutcomeIds: ["blessing_of_warfire"],
@@ -346,7 +346,7 @@
           id: "warband_column",
           title: "Warband Column",
           description: "A warband blessing can steady the summit porters or sharpen the reserve banners marching with you.",
-          summary: "The warband blessing opens a broader Harrogath support package.",
+          summary: "The warband blessing opens a broader Frosthaven support package.",
           grants: { gold: 4, xp: 6, potions: 0 },
           requiresShrineOutcomeIds: ["blessing_of_the_warband"],
           choices: [
@@ -412,7 +412,7 @@
         {
           id: "captains_watch",
           title: "Captain's Watch",
-          description: "With the Harrogath Captain under contract, the warband blessing can become a true captain's watch over the summit road.",
+          description: "With the Frosthaven Captain under contract, the warband blessing can become a true captain's watch over the summit road.",
           summary: "A contracted captain turns the shrine lane into a real final-act command payoff.",
           grants: { gold: 6, xp: 8, potions: 0 },
           requiresShrineOutcomeIds: ["blessing_of_the_warband"],

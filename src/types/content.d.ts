@@ -50,6 +50,7 @@ type CombatOutcome = "victory" | "defeat";
 type CardEffectKind =
   | "damage"
   | "damage_all"
+  | "summon_minion"
   | "gain_guard_self"
   | "gain_guard_party"
   | "heal_hero"
@@ -109,6 +110,9 @@ interface SpawnConfig {
 interface CardEffect {
   kind: CardEffectKind;
   value: number;
+  secondaryValue?: number;
+  minionId?: string;
+  duration?: number;
 }
 
 interface CardDefinition {

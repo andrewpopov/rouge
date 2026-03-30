@@ -288,8 +288,9 @@
       familyAllowList: ["Staves"],
       requiredRunes: ["rune_tir", "rune_ral"],
       bonuses: {
+        heroDamageBonus: 2,
         heroMaxEnergy: 2,
-        heroBurnBonus: 4,
+        heroBurnBonus: 5,
       },
     },
     white: {
@@ -333,9 +334,9 @@
       requiredRunes: ["rune_lum", "rune_io", "rune_sol"],
       bonuses: {
         heroMaxEnergy: 3,
-        heroBurnBonus: 3,
-        heroGuardBonus: 4,
-        heroMaxLife: 4,
+        heroDamageBonus: 4,
+        heroGuardBonus: 5,
+        heroMaxLife: 6,
       },
     },
     melody: {

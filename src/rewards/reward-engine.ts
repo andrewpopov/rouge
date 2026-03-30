@@ -12,6 +12,7 @@
     syncArchetypeScores: archetypes.syncArchetypeScores,
     getArchetypeScoreEntries: archetypes.getArchetypeScoreEntries,
     getDominantArchetype: archetypes.getDominantArchetype,
+    getArchetypeCatalog: archetypes.getArchetypeCatalog,
     getArchetypeWeaponFamilies: archetypes.getArchetypeWeaponFamilies,
     getStrategicWeaponFamilies: archetypes.getStrategicWeaponFamilies,
     buildRewardChoices: builder.buildRewardChoices,

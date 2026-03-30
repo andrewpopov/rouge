@@ -124,7 +124,7 @@
         "boss",
         ["hellforge_detour_hidden_relief", "hellforge_escalation_sanctuary_surge", "hellforge_covenant_breachscreen_ledger"],
         { gold: 22, xp: 12, potions: 1 },
-        ["Detour, escalation, and covenant now settle together at Diablo instead of ending at the first covenant pass."]
+        ["Detour, escalation, and covenant now settle together at the Cinder Tyrant instead of ending at the first covenant pass."]
       ),
       consequenceRewardPackage(
         "hellforge_aftermath_breachscreen_dividend",
@@ -160,7 +160,7 @@
           "hellforge_phalanx_steps_locked",
         ],
         { gold: 25, xp: 14, potions: 1 },
-        ["Locked phalanx steps and paced reliefs now settle the full sanctuary aftermath into a drilled Diablo payout."]
+        ["Locked phalanx steps and paced reliefs now settle the full sanctuary aftermath into a drilled the Cinder Tyrant payout."]
       ),
       consequenceRewardPackage(
         "hellforge_aftermath_breach_dividend",
@@ -175,7 +175,7 @@
           "hellforge_accord_breach_rivets",
         ],
         { gold: 27, xp: 15, potions: 1 },
-        ["Breach rivets, locked phalanx steps, and paced reliefs now settle the full sanctuary aftermath into the most mobilized Diablo payout."]
+        ["Breach rivets, locked phalanx steps, and paced reliefs now settle the full sanctuary aftermath into the most mobilized the Cinder Tyrant payout."]
       ),
       consequenceRewardPackage(
         "hellforge_aftermath_bell_dividend",
@@ -183,7 +183,7 @@
         "boss",
         ["hellforge_detour_hellward_sidepass", "hellforge_escalation_sanctuary_screen", "hellforge_covenant_sanctuary_bells"],
         { gold: 24, xp: 13, potions: 1 },
-        ["Sanctuary bells, the hellward sidepass, and the sanctuary screen now hold the full Diablo aftermath behind a posted infernal court."]
+        ["Sanctuary bells, the hellward sidepass, and the sanctuary screen now hold the full the Cinder Tyrant aftermath behind a posted infernal court."]
       ),
     ],
     5: [
@@ -209,7 +209,7 @@
         "boss",
         ["harrogath_covenant_ancients_ledger"],
         { gold: 20, xp: 12, potions: 1 },
-        ["The final summit covenant resolves into a richer boss settlement before Baal falls."]
+        ["The final summit covenant resolves into a richer boss settlement before the Siege Tyrant falls."]
       ),
       consequenceRewardPackage(
         "harrogath_detour_sled_dividend",
@@ -251,11 +251,11 @@
       ),
       consequenceRewardPackage(
         "harrogath_escalation_worldstone_dividend",
-        "Worldstone Surge Dividend",
+        "Ruin Crown Surge Dividend",
         "branchMiniboss",
         ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge"],
         { gold: 16, xp: 8, potions: 1 },
-        ["The Worldstone surge pays out when the next elite summit line breaks under full pressure."]
+        ["The Ruin Crown surge pays out when the next elite summit line breaks under full pressure."]
       ),
       consequenceRewardPackage(
         "harrogath_escalation_oath_dividend",
@@ -263,7 +263,7 @@
         "branchMiniboss",
         ["harrogath_reckoning_oath_rations", "harrogath_escalation_oath_surge"],
         { gold: 14, xp: 8, potions: 1 },
-        ["The oath surge turns the next elite summit host into a sharper breach payout before the full Worldstone rush lands."]
+        ["The oath surge turns the next elite summit host into a sharper breach payout before the full Ruin Crown rush lands."]
       ),
       consequenceRewardPackage(
         "harrogath_escalation_reserve_dividend",
@@ -271,7 +271,7 @@
         "branchMiniboss",
         ["harrogath_reckoning_oath_rations", "harrogath_escalation_worldstone_surge", "harrogath_crossroads_summit_reserve"],
         { gold: 18, xp: 9, potions: 1 },
-        ["The earlier summit reserve now routes the full Worldstone surge into a more directed elite payout."]
+        ["The earlier summit reserve now routes the full Ruin Crown surge into a more directed elite payout."]
       ),
       consequenceRewardPackage(
         "harrogath_escalation_ancients_dividend",
@@ -285,15 +285,15 @@
           "harrogath_peak_guard_drilled",
         ],
         { gold: 19, xp: 10, potions: 1 },
-        ["The ancients accord, drilled peak guard, and summit reserve now route the full Worldstone surge into the most mobilized mountain elite payout."]
+        ["The ancients accord, drilled peak guard, and summit reserve now route the full Ruin Crown surge into the most mobilized mountain elite payout."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_worldstone_dividend",
-        "Worldstone Aftermath Dividend",
+        "Ruin Crown Aftermath Dividend",
         "boss",
         ["harrogath_detour_hidden_sleds", "harrogath_escalation_worldstone_surge", "harrogath_covenant_ancients_ledger"],
         { gold: 24, xp: 12, potions: 1 },
-        ["Detour, escalation, and covenant now settle together when Baal's host falls instead of stopping at the summit covenant."]
+        ["Detour, escalation, and covenant now settle together when the Siege Tyrant's host falls instead of stopping at the summit covenant."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_ancients_dividend",
@@ -301,7 +301,7 @@
         "boss",
         ["harrogath_detour_hidden_sleds", "harrogath_escalation_worldstone_surge", "harrogath_covenant_ancients_ledger", "harrogath_crossroads_summit_reserve"],
         { gold: 26, xp: 13, potions: 1 },
-        ["The earlier summit reserve line now steers the full Worldstone aftermath into a more directed Ancients settlement."]
+        ["The earlier summit reserve line now steers the full Ruin Crown aftermath into a more directed Ancients settlement."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_watchfire_dividend",
@@ -315,7 +315,7 @@
           "ancients_watchfires_ringed",
         ],
         { gold: 28, xp: 14, potions: 1 },
-        ["Ringed watchfires and the summit reserve now settle the full Worldstone aftermath into the sharpest mountain boss payout."]
+        ["Ringed watchfires and the summit reserve now settle the full Ruin Crown aftermath into the sharpest mountain boss payout."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_switchback_dividend",
@@ -329,7 +329,7 @@
           "harrogath_peak_guard_drilled",
         ],
         { gold: 27, xp: 15, potions: 1 },
-        ["Peak guard drills and the captain's switchbacks now settle the full summit aftermath into a drilled Worldstone payout."]
+        ["Peak guard drills and the captain's switchbacks now settle the full summit aftermath into a drilled Ruin Crown payout."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_accord_dividend",
@@ -344,7 +344,7 @@
           "harrogath_accord_ancients_posts",
         ],
         { gold: 29, xp: 16, potions: 1 },
-        ["Ancients accord posts, peak guard drills, and the captain's switchbacks now settle the full summit aftermath into the most mobilized Worldstone payout."]
+        ["Ancients accord posts, peak guard drills, and the captain's switchbacks now settle the full summit aftermath into the most mobilized Ruin Crown payout."]
       ),
       consequenceRewardPackage(
         "harrogath_aftermath_bell_dividend",
@@ -352,7 +352,7 @@
         "boss",
         ["harrogath_detour_banner_sidepass", "harrogath_escalation_oath_surge", "harrogath_covenant_summit_bells"],
         { gold: 26, xp: 13, potions: 1 },
-        ["Summit bells, the banner sidepass, and the oath surge now hold the full Worldstone aftermath behind a posted mountain court."]
+        ["Summit bells, the banner sidepass, and the oath surge now hold the full Ruin Crown aftermath behind a posted mountain court."]
       ),
     ],
   };

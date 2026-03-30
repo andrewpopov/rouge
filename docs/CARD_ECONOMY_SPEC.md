@@ -80,7 +80,7 @@ Recommended refresh rule:
 
 ## Act I Vendor Roles
 
-### Akara
+### Mireya
 
 Primary role:
 
@@ -108,7 +108,7 @@ Recommended eligible stock:
 | `Telekinesis` | 75 | Sorceress utility option |
 | `Ward Sigil` | 95 | town-exclusive utility card |
 
-### Charsi
+### Braska
 
 Primary role:
 
@@ -136,7 +136,7 @@ Recommended eligible stock:
 | `Ice Blast` | 85 | Sorceress control-damage option |
 | `Tempered Steel` | 100 | town-exclusive combat card |
 
-### Cain
+### Corven Vale
 
 Primary role:
 
@@ -147,7 +147,7 @@ Rule:
 - Cain should not sell cards in v1
 - his value should come from route intel, item identification-style services, and quest context
 
-### Kashya
+### Veyra
 
 Primary role:
 
@@ -155,7 +155,7 @@ Primary role:
 
 Rule:
 
-- Kashya should not sell cards in v1
+- Veyra should not sell cards in v1
 - mercenary power should come through hire choice and equipment, not through overlap with town card shops
 
 ## Town-Exclusive Premium Cards

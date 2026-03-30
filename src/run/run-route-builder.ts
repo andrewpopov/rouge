@@ -81,14 +81,14 @@
    * Build the full mainline + side-branch zone chain for an act.
    *
    * Act 1 example:
-   *   Blood Moor → Cold Plains → Stony Field → Underground Passage →
-   *   Dark Wood → Black Marsh → Tamoe Highland → Outer Cloister →
-   *   Barracks → Jail → Inner Cloister → Cathedral → Catacombs (boss)
+   *   Blighted Moors → Pale Fields → Cairn Field → Hollow Passage →
+   *   Gloamwood → Drowning Marsh → Monastery Gate → Outer Abbey →
+   *   Gate Barracks → Iron Cells → Inner Cloister → Black Chapel → Abbey Vault (boss)
    *
    * Side branches (from zones.json sideBranches):
-   *   Den of Evil (off Blood Moor), Burial Grounds (off Cold Plains),
-   *   Tristram (off Stony Field, locked until Dark Wood entered),
-   *   Tower (off Black Marsh)
+   *   Black Pit (off Blighted Moors), Graveyard Ridge (off Pale Fields),
+   *   Ashfall Hamlet (off Cairn Field, locked until Gloamwood entered),
+   *   Ruined Watchtower (off Drowning Marsh)
    */
   function createActState(actSeed: ActSeed, bossEntry: BossEntry | null | undefined, content: GameContent): ActState {
     const campaignZones = (actSeed.mainlineZones || []).filter((zone) => zone !== actSeed.town);

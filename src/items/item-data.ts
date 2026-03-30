@@ -299,8 +299,8 @@
       actRequirement: 2,
       progressionTier: 2,
       bonuses: {
-        heroDamageBonus: 1,
-        heroMaxEnergy: 2,
+        heroDamageBonus: 2,
+        heroMaxEnergy: 3,
         heroBurnBonus: 2,
       },
     },
@@ -311,9 +311,9 @@
       actRequirement: 3,
       progressionTier: 3,
       bonuses: {
-        heroMaxEnergy: 2,
-        heroDamageBonus: 2,
-        heroGuardBonus: 3,
+        heroMaxEnergy: 3,
+        heroDamageBonus: 3,
+        heroGuardBonus: 4,
         heroBurnBonus: 3,
       },
     },
@@ -324,11 +324,11 @@
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
-        heroMaxEnergy: 3,
-        heroDamageBonus: 4,
-        heroGuardBonus: 3,
+        heroMaxEnergy: 4,
+        heroDamageBonus: 5,
+        heroGuardBonus: 4,
         heroBurnBonus: 6,
-        heroMaxLife: 4,
+        heroMaxLife: 8,
       },
     },
     item_short_bow: {
@@ -381,8 +381,9 @@
       actRequirement: 1,
       progressionTier: 1,
       bonuses: {
-        heroDamageBonus: 1,
+        heroDamageBonus: 2,
         heroGuardBonus: 1,
+        heroMaxEnergy: 1,
       },
     },
     item_spear: {
@@ -461,8 +462,9 @@
       actRequirement: 3,
       progressionTier: 4,
       bonuses: {
-        heroDamageBonus: 4,
-        heroMaxEnergy: 1,
+        heroDamageBonus: 5,
+        heroGuardBonus: 1,
+        heroMaxEnergy: 2,
       },
     },
     item_war_spear: {
@@ -472,8 +474,8 @@
       actRequirement: 4,
       progressionTier: 5,
       bonuses: {
-        heroDamageBonus: 5,
-        heroGuardBonus: 1,
+        heroDamageBonus: 6,
+        heroGuardBonus: 2,
       },
     },
     item_hydra_bow: {
@@ -506,8 +508,9 @@
       actRequirement: 5,
       progressionTier: 7,
       bonuses: {
-        heroDamageBonus: 6,
-        heroMaxEnergy: 1,
+        heroDamageBonus: 8,
+        heroGuardBonus: 1,
+        heroMaxEnergy: 2,
       },
     },
     item_ghost_spear: {
@@ -517,8 +520,8 @@
       actRequirement: 5,
       progressionTier: 8,
       bonuses: {
-        heroDamageBonus: 7,
-        heroGuardBonus: 1,
+        heroDamageBonus: 8,
+        heroGuardBonus: 2,
       },
     },
     item_quilted_armor: {

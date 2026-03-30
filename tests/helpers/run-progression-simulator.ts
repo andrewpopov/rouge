@@ -19,11 +19,14 @@ import {
   getTrackedRandomState,
   hashString,
   incrementCount,
+  type ArchetypeCommitCheckpoint,
+  type ArchetypeCommitmentMode,
   type BuildPolicyDefinition,
   type PolicyProgressSummary,
   type PolicyRunSummary,
   type PolicySimulationHooks,
   type PolicySimulationReport,
+  type RunArchetypeSimulationPlan,
   type RunProgressionContinuationContext,
   type RunProgressionSimulationOptions,
   type RunProgressionSimulationReport,
@@ -31,6 +34,7 @@ import {
   type SimulationFailureSummary,
 } from "./run-progression-simulator-core"
 import {
+  buildArchetypeLaneMetrics,
   cloneRun,
   discardLowestValueCarriedEntry,
   evaluateRunScore,
@@ -53,6 +57,7 @@ export {
 
 export type {
   PolicyRunSummary,
+  RunArchetypeSimulationPlan,
   RunProgressionContinuationContext,
   RunProgressionSimulationOptions,
   RunProgressionSimulationReport,
@@ -60,17 +65,226 @@ export type {
   SimulationFailureSummary,
 }
 
+function buildArchetypeSimulationPlan(
+  harness: ReturnType<typeof createQuietAppHarness>,
+  classId: string,
+  input?: Partial<RunArchetypeSimulationPlan> | null
+): RunArchetypeSimulationPlan | null {
+  const targetArchetypeId = String(input?.targetArchetypeId || "").trim()
+  if (!targetArchetypeId) {
+    return null
+  }
+  const catalogEntry = harness.browserWindow.ROUGE_REWARD_ENGINE
+    ?.getArchetypeCatalog?.(classId)?.[classId]?.[targetArchetypeId] || null
+  if (!catalogEntry) {
+    throw new Error(`Unknown archetype target ${targetArchetypeId} for class ${classId}.`)
+  }
+  return {
+    targetArchetypeId,
+    targetArchetypeLabel: String(input?.targetArchetypeLabel || catalogEntry.label || targetArchetypeId),
+    targetBand: input?.targetBand === "flagship" ? "flagship" : "secondary",
+    commitmentMode: (input?.commitmentMode || "committed") as ArchetypeCommitmentMode,
+    commitAct: clamp(Number(input?.commitAct || 2), 1, 5),
+    commitCheckpoint: (input?.commitCheckpoint || "first_safe_zone") as ArchetypeCommitCheckpoint,
+    commitmentLocked: Boolean(input?.commitmentLocked),
+    commitmentSatisfied: Boolean(input?.commitmentSatisfied),
+    committedByCheckpoint: Boolean(input?.committedByCheckpoint),
+    committedAtCheckpointId: String(input?.committedAtCheckpointId || ""),
+    postCommitCheckpointCount: Number(input?.postCommitCheckpointCount || 0),
+    driftCountAfterCommit: Number(input?.driftCountAfterCommit || 0),
+    fallbackDebtCardCount: Number(input?.fallbackDebtCardCount || 0),
+    fallbackDebtWeight: Number(input?.fallbackDebtWeight || 0),
+    fallbackWeaponDebt: Boolean(input?.fallbackWeaponDebt),
+    exitedFallbackGear: Boolean(input?.exitedFallbackGear),
+    laneIntegrityByCheckpoint: Array.isArray(input?.laneIntegrityByCheckpoint)
+      ? input!.laneIntegrityByCheckpoint!.map((entry) => ({
+          checkpointId: String(entry.checkpointId || ""),
+          actNumber: Number(entry.actNumber || 0),
+          laneIntegrity: Number(entry.laneIntegrity || 0),
+        }))
+      : [],
+  }
+}
+
+function getSimulationAssumptions(archetypePlan: RunArchetypeSimulationPlan | null) {
+  const assumptions = [...getPolicySimulationAssumptions()]
+  if (archetypePlan?.targetArchetypeId) {
+    assumptions.push(
+      `Archetype testing is ${archetypePlan.commitmentMode}; target lane ${archetypePlan.targetArchetypeLabel} is preferred in Act I and locked by Act ${archetypePlan.commitAct} ${archetypePlan.commitCheckpoint.replaceAll("_", " ")}.`
+    )
+  }
+  return assumptions
+}
+
+function syncCommittedArchetypePreference(
+  state: AppState,
+  archetypePlan: RunArchetypeSimulationPlan | null
+) {
+  if (!archetypePlan?.targetArchetypeId || archetypePlan.commitmentMode !== "committed" || !state.run?.progression?.classProgression) {
+    return
+  }
+  const classProgression = state.run.progression.classProgression
+  classProgression.favoredTreeId = archetypePlan.targetArchetypeId
+  const currentTargetRank = Number(classProgression.treeRanks?.[archetypePlan.targetArchetypeId] || 0)
+  const targetRankFloor = archetypePlan.commitmentLocked ? 4 : 2
+  if (!classProgression.treeRanks) {
+    classProgression.treeRanks = {}
+  }
+  if (currentTargetRank < targetRankFloor) {
+    classProgression.treeRanks[archetypePlan.targetArchetypeId] = targetRankFloor
+  }
+}
+
+function updateArchetypeCommitmentLock(
+  state: AppState,
+  archetypePlan: RunArchetypeSimulationPlan | null,
+  afterRewardClaim = false
+) {
+  if (!archetypePlan?.targetArchetypeId || archetypePlan.commitmentMode !== "committed" || !state.run) {
+    return
+  }
+  if (archetypePlan.commitmentLocked) {
+    return
+  }
+  const actNumber = Number(state.run.actNumber || 1)
+  if (actNumber < archetypePlan.commitAct) {
+    return
+  }
+  if (archetypePlan.commitCheckpoint === "first_reward" && !afterRewardClaim) {
+    return
+  }
+  archetypePlan.commitmentLocked = true
+}
+
+function updateArchetypeCommitmentProgress(
+  harness: ReturnType<typeof createQuietAppHarness>,
+  run: RunState,
+  checkpoint: SafeZoneCheckpointSummary | null,
+  archetypePlan: RunArchetypeSimulationPlan | null
+) {
+  if (!archetypePlan?.targetArchetypeId) {
+    return
+  }
+  const progressionSummary = harness.runFactory.getProgressionSummary(run, harness.content)
+  const laneMetrics = buildArchetypeLaneMetrics(harness, run, archetypePlan.targetArchetypeId)
+  const commitmentSatisfied =
+    (progressionSummary?.dominantArchetypeId || "") === archetypePlan.targetArchetypeId ||
+    Number(laneMetrics?.laneIntegrity || 0) >= 0.6
+
+  if (commitmentSatisfied) {
+    archetypePlan.commitmentSatisfied = true
+  }
+
+  if (!checkpoint) {
+    return
+  }
+
+  if (!archetypePlan.laneIntegrityByCheckpoint.some((entry) => entry.checkpointId === checkpoint.checkpointId)) {
+    archetypePlan.laneIntegrityByCheckpoint.push({
+      checkpointId: checkpoint.checkpointId,
+      actNumber: checkpoint.actNumber,
+      laneIntegrity: Number(laneMetrics?.laneIntegrity || 0),
+    })
+  }
+
+  if (checkpoint.actNumber < archetypePlan.commitAct) {
+    return
+  }
+
+  if (!archetypePlan.committedAtCheckpointId) {
+    archetypePlan.fallbackDebtCardCount = Number(laneMetrics?.offLaneCardCount || 0)
+    archetypePlan.fallbackDebtWeight = Number(laneMetrics?.offLaneCardWeight || 0)
+    archetypePlan.fallbackWeaponDebt = !Boolean(laneMetrics?.alignedWeapon)
+  }
+
+  archetypePlan.postCommitCheckpointCount += 1
+  if ((progressionSummary?.dominantArchetypeId || "") !== archetypePlan.targetArchetypeId) {
+    archetypePlan.driftCountAfterCommit += 1
+  }
+  if (!archetypePlan.committedByCheckpoint) {
+    archetypePlan.committedByCheckpoint = commitmentSatisfied
+    if (commitmentSatisfied) {
+      archetypePlan.committedAtCheckpointId = checkpoint.checkpointId
+    }
+  } else if (laneMetrics?.alignedWeapon) {
+    archetypePlan.exitedFallbackGear = true
+  }
+}
+
 function chooseBestRewardChoice(
   harness: ReturnType<typeof createQuietAppHarness>,
   run: RunState,
   _profile: ProfileState,
   reward: RunReward,
-  policy: BuildPolicyDefinition
+  policy: BuildPolicyDefinition,
+  archetypePlan?: RunArchetypeSimulationPlan | null
 ) {
   const deepClone = harness.browserWindow.ROUGE_UTILS.deepClone as <T>(value: T) => T
   const choices = Array.isArray(reward.choices) ? reward.choices : []
   let bestChoice = choices[0] || null
   let bestScore = Number.NEGATIVE_INFINITY
+
+  function getCommittedChoiceBias(choice: RewardChoice, runClone: RunState) {
+    if (!archetypePlan?.targetArchetypeId || archetypePlan.commitmentMode !== "committed") {
+      return 0
+    }
+
+    const rewardEngine = harness.browserWindow.ROUGE_REWARD_ENGINE
+    const archetypeRuntime = harness.browserWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES
+    const targetEntry = rewardEngine?.getArchetypeCatalog?.(run.classId)?.[run.classId]?.[archetypePlan.targetArchetypeId] || null
+    if (!rewardEngine || !archetypeRuntime || !targetEntry) {
+      return 0
+    }
+
+    const commitLocked = Boolean(archetypePlan.commitmentLocked)
+    const primaryTrees = Array.isArray(targetEntry.primaryTrees) ? targetEntry.primaryTrees : []
+    const supportTrees = Array.isArray(targetEntry.supportTrees) ? targetEntry.supportTrees : []
+    const targetFamilies = Array.isArray(targetEntry.weaponFamilies) ? targetEntry.weaponFamilies : []
+    const nextWeaponFamily = harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(runClone.loadout?.weapon?.itemId || "", harness.content) || ""
+    let total = 0
+
+    ;(Array.isArray(choice.effects) ? choice.effects : []).forEach((effect) => {
+      if (effect.kind === "add_card") {
+        const treeId = archetypeRuntime.getCardTree?.(effect.cardId || "") || ""
+        if (primaryTrees.includes(treeId)) {
+          total += commitLocked ? 180 : 220
+          return
+        }
+        if (supportTrees.includes(treeId)) {
+          total += commitLocked ? 65 : 90
+          return
+        }
+        total -= commitLocked ? 150 : 45
+        return
+      }
+
+      if (effect.kind === "upgrade_card") {
+        const baseTreeId = archetypeRuntime.getCardTree?.(effect.fromCardId || effect.toCardId || "") || ""
+        if (primaryTrees.includes(baseTreeId)) {
+          total += commitLocked ? 150 : 185
+          return
+        }
+        if (supportTrees.includes(baseTreeId)) {
+          total += commitLocked ? 55 : 80
+          return
+        }
+        total -= commitLocked ? 120 : 35
+        return
+      }
+
+      if (effect.kind === "class_point") {
+        total += commitLocked ? 18 : 28
+      }
+    })
+
+    if (targetFamilies.length > 0 && nextWeaponFamily) {
+      total += targetFamilies.includes(nextWeaponFamily)
+        ? (commitLocked ? 110 : 135)
+        : (commitLocked ? -125 : -32)
+    }
+
+    return total
+  }
 
   choices.forEach((choice) => {
     const runClone = cloneRun(harness, run)
@@ -85,7 +299,10 @@ function chooseBestRewardChoice(
       harness.runFactory.advanceToNextAct(runClone, harness.content)
     }
 
-    const score = evaluateRunScore(harness, runClone, policy, { assumeFullResources })
+    const score = evaluateRunScore(harness, runClone, policy, {
+      assumeFullResources,
+      archetypePlan: archetypePlan || null,
+    }) + getCommittedChoiceBias(choice, runClone)
     if (score > bestScore) {
       bestScore = score
       bestChoice = choice
@@ -211,7 +428,8 @@ export function runProgressionPolicyFromState(
   maxCombatTurns: number,
   seedOffset = 0,
   continuation?: Partial<RunProgressionContinuationContext>,
-  hooks?: PolicySimulationHooks
+  hooks?: PolicySimulationHooks,
+  archetypePlanInput?: Partial<RunArchetypeSimulationPlan> | null
 ): PolicySimulationReport {
   const PHASES = harness.appEngine.PHASES
   const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : []
@@ -222,6 +440,9 @@ export function runProgressionPolicyFromState(
   let lastEncounterContext: SimulationFailureSummary | null = continuation?.lastEncounterContext
     ? { ...continuation.lastEncounterContext }
     : null
+  const archetypePlan = continuation?.archetypePlan
+    ? buildArchetypeSimulationPlan(harness, classId, continuation.archetypePlan)
+    : buildArchetypeSimulationPlan(harness, classId, archetypePlanInput)
 
   const continuationContext = () => cloneContinuationContext({
     policyId: policy.id,
@@ -233,10 +454,13 @@ export function runProgressionPolicyFromState(
     checkpoints,
     failure,
     lastEncounterContext,
+    archetypePlan: archetypePlan ? JSON.parse(JSON.stringify(archetypePlan)) as RunArchetypeSimulationPlan : null,
   })
 
   if (!continuation) {
-    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy)
+    syncCommittedArchetypePreference(state, archetypePlan)
+    updateArchetypeCommitmentLock(state, archetypePlan)
+    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, 24, archetypePlan)
     const initialCheckpoint = buildCheckpointSummary(
       harness,
       state.run as RunState,
@@ -245,8 +469,10 @@ export function runProgressionPolicyFromState(
       state.run!.actNumber,
       progress,
       probeRuns,
-      maxCombatTurns
+      maxCombatTurns,
+      archetypePlan
     )
+    updateArchetypeCommitmentProgress(harness, state.run as RunState, initialCheckpoint, archetypePlan)
     checkpoints.push(initialCheckpoint)
     hooks?.onInitialized?.({
       state,
@@ -266,6 +492,8 @@ export function runProgressionPolicyFromState(
       continuationContext: continuationContext(),
     })
   } else {
+    syncCommittedArchetypePreference(state, archetypePlan)
+    updateArchetypeCommitmentLock(state, archetypePlan)
     hooks?.onInitialized?.({
       state,
       harness,
@@ -283,13 +511,13 @@ export function runProgressionPolicyFromState(
           policyId: policy.id,
           policyLabel: policy.label,
           description: policy.description,
-          assumptions: getPolicySimulationAssumptions(),
+          assumptions: getSimulationAssumptions(archetypePlan),
           outcome: "reached_checkpoint",
           finalActNumber: state.run.actNumber,
           finalLevel: state.run.level,
           checkpoints,
           failure: null,
-          summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress),
+          summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress, archetypePlan),
         }
         hooks?.onRunComplete?.({
           state,
@@ -318,7 +546,9 @@ export function runProgressionPolicyFromState(
       if (needsTown) {
         const returnResult = harness.appEngine.returnToSafeZone(state)
         if (returnResult.ok) {
-          optimizeSafeZoneRun(harness, state.run, state.profile, policy)
+          syncCommittedArchetypePreference(state, archetypePlan)
+          updateArchetypeCommitmentLock(state, archetypePlan)
+          optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan)
           continue
         }
       }
@@ -390,13 +620,13 @@ export function runProgressionPolicyFromState(
           policyId: policy.id,
           policyLabel: policy.label,
           description: policy.description,
-          assumptions: getPolicySimulationAssumptions(),
+          assumptions: getSimulationAssumptions(archetypePlan),
           outcome: "run_failed",
           finalActNumber: failure?.actNumber || state.run?.actNumber || 1,
           finalLevel: state.run?.level || 1,
           checkpoints,
           failure,
-          summary: buildPolicyRunSummary(harness, state.run as RunState, state.profile, policy, progress),
+          summary: buildPolicyRunSummary(harness, state.run as RunState, state.profile, policy, progress, archetypePlan),
         }
         hooks?.onRunFailure?.({
           state,
@@ -418,7 +648,8 @@ export function runProgressionPolicyFromState(
       if (!reward) {
         throw new Error("Reward phase is active without a pending reward.")
       }
-      const primaryChoice = chooseBestRewardChoice(harness, state.run, state.profile, reward, policy)
+      syncCommittedArchetypePreference(state, archetypePlan)
+      const primaryChoice = chooseBestRewardChoice(harness, state.run, state.profile, reward, policy, archetypePlan)
       const orderedChoices = [
         primaryChoice,
         ...((Array.isArray(reward.choices) ? reward.choices : []).filter((choice) => choice.id !== primaryChoice?.id)),
@@ -432,6 +663,7 @@ export function runProgressionPolicyFromState(
           const claimResult = harness.appEngine.claimRewardAndAdvance(state, choice?.id || "")
           if (claimResult.ok) {
             countChoice(progress, reward, choice)
+            updateArchetypeCommitmentLock(state, archetypePlan, true)
             claimed = true
             break
           }
@@ -471,8 +703,21 @@ export function runProgressionPolicyFromState(
       if (!continueResult.ok) {
         throw new Error(continueResult.message || "Could not continue act transition.")
       }
-      optimizeSafeZoneRun(harness, state.run, state.profile, policy)
-      const checkpoint = buildCheckpointSummary(harness, state.run, state.profile, policy, state.run.actNumber, progress, probeRuns, maxCombatTurns)
+      syncCommittedArchetypePreference(state, archetypePlan)
+      updateArchetypeCommitmentLock(state, archetypePlan)
+      optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan)
+      const checkpoint = buildCheckpointSummary(
+        harness,
+        state.run,
+        state.profile,
+        policy,
+        state.run.actNumber,
+        progress,
+        probeRuns,
+        maxCombatTurns,
+        archetypePlan
+      )
+      updateArchetypeCommitmentProgress(harness, state.run, checkpoint, archetypePlan)
       checkpoints.push(checkpoint)
       hooks?.onCheckpoint?.({
         state,
@@ -491,13 +736,13 @@ export function runProgressionPolicyFromState(
         policyId: policy.id,
         policyLabel: policy.label,
         description: policy.description,
-        assumptions: getPolicySimulationAssumptions(),
+          assumptions: getSimulationAssumptions(archetypePlan),
         outcome: "run_complete",
         finalActNumber: state.run.actNumber,
         finalLevel: state.run.level,
         checkpoints,
         failure: null,
-        summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress),
+        summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress, archetypePlan),
       }
       hooks?.onRunComplete?.({
         state,
@@ -525,11 +770,24 @@ function simulatePolicyRun(
   probeRuns: number,
   maxCombatTurns: number,
   seedOffset = 0,
-  hooks?: PolicySimulationHooks
+  hooks?: PolicySimulationHooks,
+  archetypePlan?: Partial<RunArchetypeSimulationPlan> | null
 ): PolicySimulationReport {
   const seed = createProgressionSimulationSeed(classId, policy.id, throughActNumber, seedOffset)
   const state = createSimulationState(harness, classId, seed)
-  return runProgressionPolicyFromState(harness, state, classId, policy, throughActNumber, probeRuns, maxCombatTurns, seedOffset, undefined, hooks)
+  return runProgressionPolicyFromState(
+    harness,
+    state,
+    classId,
+    policy,
+    throughActNumber,
+    probeRuns,
+    maxCombatTurns,
+    seedOffset,
+    undefined,
+    hooks,
+    archetypePlan
+  )
 }
 
 export function runProgressionEncounterTrace(options: {
@@ -703,6 +961,14 @@ export function runProgressionSimulationReport(options: RunProgressionSimulation
   const probeRuns = Math.max(0, options.probeRuns ?? 3)
   const maxCombatTurns = Math.max(12, options.maxCombatTurns || 36)
   const seedOffset = Math.max(0, options.seedOffset || 0)
+  const archetypePlan = options.targetArchetypeId
+    ? {
+        targetArchetypeId: options.targetArchetypeId,
+        commitmentMode: options.commitmentMode || "committed",
+        commitAct: options.commitAct || 2,
+        commitCheckpoint: options.commitCheckpoint || "first_safe_zone",
+      }
+    : null
   const classIds = options.classIds && options.classIds.length > 0 ? options.classIds : [...DEFAULT_CLASS_IDS]
   const policies = getPolicyDefinitions(options.policyIds)
 
@@ -718,7 +984,7 @@ export function runProgressionSimulationReport(options: RunProgressionSimulation
       className: classDefinition.name,
       policyReports: policies.map((policy) => {
         const harness = createQuietAppHarness()
-        return simulatePolicyRun(harness, classId, policy, throughActNumber, probeRuns, maxCombatTurns, seedOffset)
+        return simulatePolicyRun(harness, classId, policy, throughActNumber, probeRuns, maxCombatTurns, seedOffset, undefined, archetypePlan)
       }),
     }
   })

@@ -125,7 +125,7 @@ test("rogue auth survives listener errors and signs in through credential exchan
   const user: RogueAuthUser = {
     googleId: "gid-2",
     email: "rogue@example.com",
-    name: "Akara",
+    name: "Mireya",
     avatarUrl: "https://example.com/akara.png",
   };
   let notifications = 0;

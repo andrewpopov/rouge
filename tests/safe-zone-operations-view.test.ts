@@ -82,7 +82,7 @@ test("safe-zone shell exposes departure, build, and drilldown operations through
   });
 
   assert.match(root.innerHTML, /Departure Board/);
-  assert.match(root.innerHTML, /Recommended next route: Blood Moor is already open on the map\./);
+  assert.match(root.innerHTML, /Recommended next route: Blighted Moors is already open on the map\./);
   assert.match(root.innerHTML, /Recovery still available: hero 9 Life, mercenary 7 Life, belt 2 charges\./);
   assert.match(root.innerHTML, /Prep Comparison Board/);
   assert.match(root.innerHTML, /Recover First/);
@@ -112,7 +112,7 @@ test("safe-zone operations module exposes a reusable model and standalone markup
   assert.equal(model.missingHeroLife, 9);
   assert.equal(model.missingMercenaryLife, 7);
   assert.equal(model.missingBelt, 2);
-  assert.equal(model.routeSnapshot.nextZone?.title, "Blood Moor");
+  assert.equal(model.routeSnapshot.nextZone?.title, "Blighted Moors");
   assert.equal(model.readinessTone, "available");
   assert.match(model.readinessIssues.join(" "), /Hero is missing 9 Life\./);
   assert.match(model.readinessIssues.join(" "), /Mercenary is missing 7 Life\./);

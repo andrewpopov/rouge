@@ -899,7 +899,7 @@
       enemy.paralyze = Math.max(0, enemy.paralyze - 1);
     }
 
-    // ── D2 monster intent resolution (delegated to monster-actions module) ──
+    // ── Monster intent resolution (delegated to monster-actions module) ──
     if (monsterActions.resolveMonsterIntent(state, enemy, intent, intentValue, chooseEnemyTarget, dealDamage, healEntity)) {
       return;
     }

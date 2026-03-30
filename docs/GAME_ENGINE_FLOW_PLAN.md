@@ -7,10 +7,10 @@ Documentation note:
 
 ## 1. Product Targets
 
-- Build target: turn-based roguelite deckbuilder with high-fidelity Diablo II structure.
-- Content spine: Acts I-V, canonical towns, canonical zones, canonical enemies and bosses, class build identity, and recognizable quest beats.
+- Build target: turn-based roguelite deckbuilder with high-fidelity dark-fantasy ARPG structure.
+- Content spine: Acts I-V, Blood Rogue towns, Blood Rogue zones, Blood Rogue enemies and bosses, class build identity, and recognizable quest beats.
 - Core readability rule: every state answers `who am I`, `what can I do`, and `what happens next`.
-- Fidelity rule: preserve canonical D2 structure and names where feasible, but compress for run readability where needed.
+- Fidelity rule: preserve the genre's structural strengths while favoring Blood Rogue naming and readability whenever we choose between homage and direct copy.
 
 ## 2. Current Reality Versus Target
 

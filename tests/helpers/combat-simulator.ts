@@ -1,6 +1,8 @@
 import { createAppHarness } from "./browser-harness";
 import {
   scoreArmorProfile,
+  scoreBossAdjustedPartyPower,
+  scoreBossReadiness,
   scoreEncounterPowerFromDefinition,
   scorePartyPower,
   scoreWeaponProfile,
@@ -58,6 +60,7 @@ const CARD_EFFECT_WEIGHTS: Record<CardEffectKind, number> = {
   apply_stun_all: 3.2,
   apply_paralyze: 2.8,
   apply_paralyze_all: 3.2,
+  summon_minion: 3.6,
 };
 
 const ATTACK_INTENT_KINDS = new Set<EnemyIntentKind>([
@@ -121,6 +124,8 @@ interface SimulationBuildSummary {
   addedCards: string[];
   potions: number;
   powerScore: number;
+  bossReadinessScore: number;
+  bossAdjustedPowerScore: number;
   powerBreakdown: {
     offense: number;
     defense: number;
@@ -768,7 +773,7 @@ function getEncounterEntries(context: SimulatedBuildContext, encounterSetId: str
           return null;
         }
         const hasBoss = encounter.enemies.some((enemy) => enemy.templateId.endsWith("_boss"));
-        const hasElite = encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
+        const hasElite = zone.kind === "miniboss" || encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
         const include =
           encounterSetId === "act5_bosses"
             ? zone.kind === "boss" || hasBoss
@@ -1187,6 +1192,62 @@ function buildSummary(context: SimulatedBuildContext): SimulationBuildSummary {
     bankedAttributePoints: Number(run.progression?.attributePointsAvailable || 0),
     includeCurrentResources: false,
   });
+  const bossReadiness = scoreBossReadiness({
+    content: harness.content,
+    deckCardIds: run.deck,
+    heroState: {
+      maxLife: combatOverrides.heroState.maxLife,
+      maxEnergy: combatOverrides.heroState.maxEnergy,
+      handSize: combatOverrides.heroState.handSize,
+      potionHeal: combatOverrides.heroState.potionHeal,
+      damageBonus: Number(combatOverrides.heroState.damageBonus || 0),
+      guardBonus: Number(combatOverrides.heroState.guardBonus || 0),
+      burnBonus: Number(combatOverrides.heroState.burnBonus || 0),
+    },
+    mercenaryState: {
+      maxLife: combatOverrides.mercenaryState.maxLife,
+      attack: combatOverrides.mercenaryState.attack,
+    },
+    weaponProfile,
+    armorProfile,
+    weaponFamily: weaponItem?.family || "",
+    classPreferredFamilies: harness.classRegistry.getPreferredWeaponFamilies(run.classId) || [],
+    gold: run.gold,
+    potions: run.belt.current,
+    level: run.level,
+    bankedSkillPoints: Number(run.progression?.skillPointsAvailable || 0),
+    bankedClassPoints: Number(run.progression?.classPointsAvailable || 0),
+    bankedAttributePoints: Number(run.progression?.attributePointsAvailable || 0),
+    includeCurrentResources: false,
+  });
+  const bossAdjustedPower = scoreBossAdjustedPartyPower({
+    content: harness.content,
+    deckCardIds: run.deck,
+    heroState: {
+      maxLife: combatOverrides.heroState.maxLife,
+      maxEnergy: combatOverrides.heroState.maxEnergy,
+      handSize: combatOverrides.heroState.handSize,
+      potionHeal: combatOverrides.heroState.potionHeal,
+      damageBonus: Number(combatOverrides.heroState.damageBonus || 0),
+      guardBonus: Number(combatOverrides.heroState.guardBonus || 0),
+      burnBonus: Number(combatOverrides.heroState.burnBonus || 0),
+    },
+    mercenaryState: {
+      maxLife: combatOverrides.mercenaryState.maxLife,
+      attack: combatOverrides.mercenaryState.attack,
+    },
+    weaponProfile,
+    armorProfile,
+    weaponFamily: weaponItem?.family || "",
+    classPreferredFamilies: harness.classRegistry.getPreferredWeaponFamilies(run.classId) || [],
+    gold: run.gold,
+    potions: run.belt.current,
+    level: run.level,
+    bankedSkillPoints: Number(run.progression?.skillPointsAvailable || 0),
+    bankedClassPoints: Number(run.progression?.classPointsAvailable || 0),
+    bankedAttributePoints: Number(run.progression?.attributePointsAvailable || 0),
+    includeCurrentResources: false,
+  });
   return {
     classId: context.classId,
     className: context.className,
@@ -1199,6 +1260,8 @@ function buildSummary(context: SimulatedBuildContext): SimulationBuildSummary {
     addedCards: [...context.addedCards],
     potions: run.belt.current,
     powerScore: partyPower.total,
+    bossReadinessScore: bossReadiness.total,
+    bossAdjustedPowerScore: bossAdjustedPower.total,
     powerBreakdown: {
       offense: partyPower.offense,
       defense: partyPower.defense,

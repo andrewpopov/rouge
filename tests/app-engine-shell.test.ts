@@ -359,7 +359,7 @@ test("front-door account hall renders richer unlock, vault, archive-signal, and 
   assert.match(root.innerHTML, /Vault Logistics/);
   assert.match(root.innerHTML, /Archive Signal Board/);
   assert.match(root.innerHTML, /Capstone Watch/);
-  assert.match(root.innerHTML, /Boss gallery: Andariel\./);
+  assert.match(root.innerHTML, /Boss gallery: The Briar Matron\./);
   assert.match(root.innerHTML, /Runeword codex: Steel, White\./);
   assert.match(root.innerHTML, /Vault loadout watch: Short Sword\./);
   assert.match(root.innerHTML, /Rune reserve: El\./);

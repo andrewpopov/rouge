@@ -151,17 +151,17 @@
       sorceress_cold: {
         label: "Cold Control",
         primaryTrees: ["cold"],
-        supportTrees: ["lightning"],
+        supportTrees: [],
       },
       sorceress_fire: {
         label: "Fire Burst",
         primaryTrees: ["fire"],
-        supportTrees: ["lightning"],
+        supportTrees: [],
       },
       sorceress_lightning: {
         label: "Lightning Tempo",
         primaryTrees: ["lightning"],
-        supportTrees: ["fire", "cold"],
+        supportTrees: [],
       },
     },
   };
@@ -199,6 +199,29 @@
 
   function getBuildPath(classId: string, treeId: string) {
     return BUILD_PATHS[classId]?.[treeId] || null;
+  }
+
+  function getArchetypeCatalog(classId?: string) {
+    const classIds = classId ? [classId] : Object.keys(BUILD_PATHS);
+    return Object.fromEntries(
+      classIds
+        .filter((candidateClassId) => Boolean(BUILD_PATHS[candidateClassId]))
+        .map((candidateClassId) => [
+          candidateClassId,
+          Object.fromEntries(
+            Object.entries(BUILD_PATHS[candidateClassId] || {}).map(([archetypeId, path]) => [
+              archetypeId,
+              {
+                archetypeId,
+                label: path.label,
+                primaryTrees: [...path.primaryTrees],
+                supportTrees: [...path.supportTrees],
+                weaponFamilies: [...(ARCHETYPE_WEAPON_FAMILIES[archetypeId] || [])],
+              },
+            ])
+          ),
+        ])
+    );
   }
 
   function getCardClassId(cardId: string, card: CardDefinition | null = null) {
@@ -496,6 +519,7 @@
     syncArchetypeScores,
     getArchetypeScoreEntries,
     getDominantArchetype,
+    getArchetypeCatalog,
     getArchetypeWeaponFamilies,
     getStrategicWeaponFamilies,
     getRewardPathPreference,

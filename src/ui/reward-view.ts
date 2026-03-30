@@ -385,18 +385,17 @@
               <span class="reward-header__eyebrow">${escapeHtml(reward.zoneTitle)} · Encounter ${reward.encounterNumber}</span>
               <h1 class="reward-header__title">${escapeHtml(reward.title)}</h1>
               <p class="reward-header__copy">${escapeHtml(getRewardLeadCopy(reward, rewardContext))}</p>
-            </div>
-          </header>
-
-          <section class="reward-stage">
-            <aside class="reward-stage__figure-rail">
-              <div class="reward-stage__grants">
+              <div class="reward-header__grants">
                 <span class="reward-grant reward-grant--gold"><span class="reward-grant__label">Gold</span><strong>+${reward.grants.gold}</strong></span>
                 <span class="reward-grant reward-grant--xp"><span class="reward-grant__label">XP</span><strong>+${reward.grants.xp}</strong></span>
                 <span class="reward-grant reward-grant--potions"><span class="reward-grant__label">Potions</span><strong>+${reward.grants.potions}</strong></span>
                 <span class="reward-grant reward-grant--life"><span class="reward-grant__label">Vitality</span><strong>${run.hero.currentLife}/${run.hero.maxLife}</strong></span>
               </div>
+            </div>
+          </header>
 
+          <section class="reward-stage">
+            <aside class="reward-stage__figure-rail">
               <div class="reward-stage__figure-card">
                 ${heroPortraitSrc ? `
                   <div class="reward-stage__figure-glow"></div>

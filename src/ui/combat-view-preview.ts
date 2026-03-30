@@ -72,6 +72,7 @@
     let stunAll = 0;
     let paralyze = 0;
     let paralyzeAll = 0;
+    const summonSegments: string[] = [];
 
     let heroLife = combat.hero.life;
     let mercLife = combat.mercenary.life;
@@ -122,6 +123,13 @@
         case "draw":
           drawCount += effect.value;
           break;
+        case "summon_minion": {
+          const summonPreview = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.getSummonPreview?.(combat, effect) || "Summon";
+          if (summonPreview) {
+            summonSegments.push(summonPreview);
+          }
+          break;
+        }
         case "mark_enemy_for_mercenary":
           markBonus += getCardPreviewSupportValue(combat, instance, effect);
           break;
@@ -170,6 +178,7 @@
     });
 
     const parts: string[] = [];
+    if (summonSegments.length > 0) { parts.push(...summonSegments); }
     if (singleDamage > 0) { parts.push(`${singleDamage} dmg`); }
     if (singleGuardDamage > 0) { parts.push(`${singleGuardDamage} guard`); }
     if (lineDamage > 0) { parts.push(`${lineDamage} dmg line`); }
@@ -229,6 +238,9 @@
         case "apply_paralyze_all":
           scopes.add("enemy_line");
           break;
+        case "summon_minion":
+          scopes.add("minions");
+          break;
         case "gain_guard_self":
         case "heal_hero":
         case "draw":
@@ -260,6 +272,7 @@
       switch (scope) {
         case "selected_enemy": return "Target";
         case "enemy_line": return "Enemy Line";
+        case "minions": return "Minion";
         case "hero": return "Self";
         case "mercenary": return "Mercenary";
         case "party": return "Party";

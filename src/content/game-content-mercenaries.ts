@@ -23,8 +23,8 @@
   const mercenaryCatalog = {
     rogue_scout: {
       id: "rogue_scout",
-      name: "Rogue Scout",
-      role: "Act I Hunter",
+      name: "Blackwood Hunter",
+      role: "Blackwood Hunter",
       actOrigin: 1,
       maxLife: 28,
       attack: 5,
@@ -136,8 +136,8 @@
     },
     desert_guard: {
       id: "desert_guard",
-      name: "Desert Guard",
-      role: "Act II Spearwall",
+      name: "Sepulcher Spearwall",
+      role: "Sepulcher Spearwall",
       actOrigin: 2,
       maxLife: 34,
       attack: 4,
@@ -246,8 +246,8 @@
     },
     iron_wolf: {
       id: "iron_wolf",
-      name: "Iron Wolf",
-      role: "Act III Spellblade",
+      name: "River Spellblade",
+      role: "Idol Reach Spellblade",
       actOrigin: 3,
       maxLife: 26,
       attack: 4,
@@ -346,8 +346,8 @@
     },
     kurast_shadow: {
       id: "kurast_shadow",
-      name: "Kurast Shadow",
-      role: "Act III Cutthroat",
+      name: "River Shadow",
+      role: "Idol Reach Cutthroat",
       actOrigin: 3,
       maxLife: 27,
       attack: 5,

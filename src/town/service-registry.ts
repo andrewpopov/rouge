@@ -45,7 +45,7 @@
     return {
       id: "healer_restore_party",
       category: "service",
-      title: "Akara's Care",
+      title: "Camp Relief",
       subtitle: "Restore Party",
       description: "Restore the hero and living mercenary to full Life before heading back into the field.",
       previewLines: [statusLine, affordable ? "Immediate recovery in town." : "Not enough gold yet."],

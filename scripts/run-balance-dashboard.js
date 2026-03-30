@@ -68,10 +68,27 @@ function buildDashboard(indexEntries, latestJob) {
 
   const latestArtifacts = (Array.isArray(indexEntries) ? indexEntries : []).slice(0, 10).map((entry) => {
     const artifact = loadJson(entry.artifactPath || "", null);
+    const committedLanes = [...(artifact?.aggregate?.archetypes?.committedLanes || [])]
+      .sort((left, right) =>
+        String(left.laneHealth || "").localeCompare(String(right.laneHealth || "")) ||
+        Number(right.clearRate || 0) - Number(left.clearRate || 0) ||
+        Number(right.averageLaneIntegrityFinal || 0) - Number(left.averageLaneIntegrityFinal || 0)
+      );
+    const naturalConvergence = [...(artifact?.aggregate?.archetypes?.naturalConvergence || [])]
+      .sort((left, right) =>
+        Number(right.convergenceRate || 0) - Number(left.convergenceRate || 0) ||
+        Number(right.averageFinalLaneIntegrity || 0) - Number(left.averageFinalLaneIntegrity || 0)
+      );
     return {
       ...entry,
       bands: artifact?.bands || [],
       baselineComparison: artifact?.baselineComparison || null,
+      archetypes: {
+        naturalConvergence,
+        committedLanes,
+      },
+      topCommittedLanes: committedLanes.slice(0, 3),
+      topNaturalConvergence: naturalConvergence.slice(0, 3),
     };
   });
 
@@ -116,9 +133,20 @@ function buildMarkdown(dashboard) {
   } else {
     dashboard.latestArtifacts.forEach((entry) => {
       const failedBands = (entry.bands || []).filter((band) => band.status === "fail").length;
+      const healthyLanes = (entry.archetypes?.committedLanes || []).filter((lane) => lane.laneHealth === "healthy").length;
       lines.push(
-        `- \`${entry.experimentId}\` (${entry.scenarioType}): ${(Number(entry.coverageRate || 0) * 100).toFixed(1)}% coverage, ${(Number(entry.overallWinRate || 0) * 100).toFixed(1)}% win, ${failedBands} failed bands`
+        `- \`${entry.experimentId}\` (${entry.scenarioType}): ${(Number(entry.coverageRate || 0) * 100).toFixed(1)}% coverage, ${(Number(entry.overallWinRate || 0) * 100).toFixed(1)}% win, ${failedBands} failed bands, ${healthyLanes} healthy committed lanes`
       );
+      (entry.topCommittedLanes || []).forEach((lane) => {
+        lines.push(
+          `  lane ${lane.className} / ${lane.targetArchetypeLabel}: ${(Number(lane.clearRate || 0) * 100).toFixed(1)}% clear, ${(Number(lane.committedByCheckpointRate || 0) * 100).toFixed(1)}% commit, integrity ${Number(lane.averageLaneIntegrityFinal || 0).toFixed(2)}, ${lane.laneHealth}`
+        );
+      });
+      (entry.topNaturalConvergence || []).forEach((lane) => {
+        lines.push(
+          `  natural ${lane.className} / ${lane.policyLabel} -> ${lane.archetypeLabel}: ${(Number(lane.convergenceRate || 0) * 100).toFixed(1)}% convergence, integrity ${Number(lane.averageFinalLaneIntegrity || 0).toFixed(2)}`
+        );
+      });
     });
   }
 

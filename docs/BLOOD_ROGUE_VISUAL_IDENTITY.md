@@ -22,7 +22,7 @@ This document should answer:
 
 ## 2. Design Thesis
 
-Blood Rogue should feel like a cursed expedition interface pulled from the game world: Diablo II atmosphere, modern deckbuilder readability, and original Blood Rogue branding.
+Blood Rogue should feel like a cursed expedition interface pulled from the game world: classic dark-fantasy ARPG atmosphere, modern deckbuilder readability, and original Blood Rogue branding.
 
 The product should not feel like:
 
@@ -85,7 +85,7 @@ It should visually outrank support controls during the player phase, but it must
 
 ### 4.6 Original, Not Derivative
 
-Diablo II is the reference energy, not the copy target.
+Classic dark-fantasy ARPG lineage is the reference energy, not the copy target.
 We want that weight, materiality, and dread, but the final game should still read as Blood Rogue.
 
 ## 5. Visual Vocabulary

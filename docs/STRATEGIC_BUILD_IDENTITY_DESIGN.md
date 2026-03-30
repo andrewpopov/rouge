@@ -21,7 +21,7 @@ The target feel is closer to the best parts of _Slay the Spire_ and _Monster Tra
 - itemization reinforces an archetype instead of replacing the need for one
 - randomness creates tension around draws, shops, loot, and route options, but coherent planning still beats drifting into a pile of goodstuff
 
-The Diablo II theme changes the surface area, not the goal. Rouge should feel like a Diablo II run where the player is assembling a deck, a skill path, a mercenary package, and an item plan that all point in the same direction.
+The dark-fantasy ARPG theme changes the surface area, not the goal. Rouge should feel like a Blood Rogue run where the player is assembling a deck, a skill path, a mercenary package, and an item plan that all point in the same direction.
 
 ## External Strategic Read
 
@@ -47,7 +47,7 @@ Inference from the PC Gamer review coverage:
 
 ## Rouge Translation
 
-Rouge should apply those same strategic ideas through Diablo II systems.
+Rouge should apply those same strategic ideas through Blood Rogue systems.
 
 - Class trees are the archetype lanes.
 - Skill cards are the tactical engine pieces.
@@ -102,11 +102,11 @@ No boss should be a one-turn target dummy for optimized builds.
 
 Target examples:
 
-- Andariel should test poison handling, early sustain, and whether the player can survive a longer opener.
-- Duriel should test guard, mercenary protection, and surviving direct pressure.
-- Mephisto should test backline disruption, lightning mitigation, and tempo recovery.
-- Diablo should test burst survival, telegraph reading, and whether the deck has a real late-game plan.
-- Baal should test consistency, summon handling, and the ability to fight through disruption.
+- The Briar Matron should test poison handling, early sustain, and whether the player can survive a longer opener.
+- The Sepulcher Devourer should test guard, mercenary protection, and surviving direct pressure.
+- The Idol Patriarch should test backline disruption, lightning mitigation, and tempo recovery.
+- The Cinder Tyrant should test burst survival, telegraph reading, and whether the deck has a real late-game plan.
+- The Siege Tyrant should test consistency, summon handling, and the ability to fight through disruption.
 
 ### 5. Items should reinforce archetypes, not replace them
 

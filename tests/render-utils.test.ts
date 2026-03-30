@@ -90,7 +90,7 @@ test("buildWorldMapNodeCard produces zone card markup", () => {
   const { buildWorldMapNodeCard } = browserWindow.ROUGE_RENDER_UTILS;
 
   const result = buildWorldMapNodeCard({
-    zone: { id: "z1", title: "Blood Moor", kind: "battle", status: "available", cleared: false, encountersCleared: 0, encounterTotal: 2, prerequisites: [], description: "A bloody moor." } as ZoneState,
+    zone: { id: "z1", title: "Blighted Moors", kind: "battle", status: "available", cleared: false, encountersCleared: 0, encounterTotal: 2, prerequisites: [], description: "A blighted stretch of moorland." } as ZoneState,
     reachable: true,
     actionLabel: "Enter Route",
     prerequisiteLabel: "Opening Route",
@@ -98,7 +98,7 @@ test("buildWorldMapNodeCard produces zone card markup", () => {
     summaryLine: "A test zone.",
     detailLines: ["Detail 1"],
   });
-  assert.ok(result.includes("Blood Moor"), "should include zone title");
+  assert.ok(result.includes("Blighted Moors"), "should include zone title");
   assert.ok(result.includes("Enter Route"), "should include action label");
   assert.ok(result.includes("Battle Path"), "should include hook label");
 });
@@ -131,14 +131,14 @@ test("buildShell sets root innerHTML with shell structure", () => {
   const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
   buildShell(root, {
     eyebrow: "Act 1",
-    title: "The Rogue Encampment",
+    title: "Forsaken Palisade",
     copy: "Welcome to town.",
     body: "<p>Body content</p>",
     footer: "<button>Continue</button>",
   });
 
   assert.ok(root.innerHTML.includes("Act 1"), "should include eyebrow");
-  assert.ok(root.innerHTML.includes("The Rogue Encampment"), "should include title");
+  assert.ok(root.innerHTML.includes("Forsaken Palisade"), "should include title");
   assert.ok(root.innerHTML.includes("Body content"), "should include body");
   assert.ok(root.innerHTML.includes("Continue"), "should include footer");
 });

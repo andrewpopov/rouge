@@ -57,6 +57,32 @@
     inventory: "Loadout",
   };
 
+  const PORTRAIT_KEY_OVERRIDES: Record<string, string> = {
+    mireya: "akara",
+    braska: "charsi",
+    murn: "gheed",
+    veyra: "kashya",
+    "corven-vale": "deckard-cain",
+    dagan: "warriv",
+    samira: "fara",
+    khezir: "elzix",
+    vorrik: "greiz",
+    salek: "meshif",
+    naima: "atma",
+    sabir: "lysander",
+    sevran: "ormus",
+    brenn: "hratli",
+    vasko: "alkor",
+    ilya: "asheara",
+    serapha: "jamella",
+    dorn: "halbu",
+    aurel: "tyrael",
+    ysra: "malah",
+    torv: "larzuk",
+    elska: "anya",
+    hadrik: "qual-kehk",
+  };
+
   const CATEGORY_ICONS: Record<string, string> = {
     service: "\u2764",
     vendor: "\u2696",
@@ -81,10 +107,11 @@
   }
 
   function toPortraitKey(input: string): string {
-    return String(input || "")
+    const normalized = String(input || "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+    return PORTRAIT_KEY_OVERRIDES[normalized] || normalized;
   }
 
   function getNpcThemeKey(npc: SafeZoneNpcViewModel): string {

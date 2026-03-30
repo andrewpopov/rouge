@@ -10,10 +10,10 @@
     3: {
       kind: "opportunity",
       id: "kurast_route_opportunity",
-      title: "Kurast Route Opportunity",
-      zoneTitle: "Kurast Opportunity",
+      title: "Idol Reach Route Opportunity",
+      zoneTitle: "Idol Reach Opportunity",
       description: "The dockside chain opens one more smuggler or purifier payoff once its aftermath resolves.",
-      summary: "A third route node now cashes out the Kurast chain.",
+      summary: "A third route node now cashes out the Idol Reach chain.",
       grants: { gold: 10, xp: 12, potions: 0 },
       requiresQuestId: "smugglers_wake",
       variants: [
@@ -225,9 +225,9 @@
         },
         {
           id: "kurast_shadow_tide",
-          title: "Kurast Shadow Tide",
-          description: "With a Kurast shadow or Iron Wolf under contract, the tide blessing turns the purifier line into a covert ward net.",
-          summary: "A contracted Kurast specialist and shrine-backed purifier path create a sharper dockside tide screen.",
+          title: "Idol Reach Shadow Tide",
+          description: "With an Idol Reach Cutthroat or River Spellblade under contract, the tide blessing turns the purifier line into a covert ward net.",
+          summary: "A contracted Idol Reach specialist and shrine-backed purifier path create a sharper dockside tide screen.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFollowUpOutcomeIds: ["cast_the_ashes_wide", "bottle_the_resin"],
           requiresFlagIds: ["jade_shrine_tides"],

@@ -131,7 +131,7 @@
               "smugglers_wake",
               "reopen_the_river_stores",
               "Reopen the River Stores",
-              "Recover the last river stores and keep the Kurast line from rotting shut before Mephisto.",
+              "Recover the last river stores and keep the Idol Reach line from rotting shut before the Idol Patriarch.",
               "river_stores_reopened",
               ["kurast_recovery_river_stores"],
               [{ kind: "gold_bonus", value: 12 }, { kind: "hero_max_energy", value: 1 }]
@@ -151,8 +151,8 @@
         {
           id: "channel_recovery",
           title: "Channel Recovery",
-          description: "Floated supply marks and the cleared Durance channel turn the recovery lane into a true river reset instead of a generic dock reopening.",
-          summary: "The shrine tide line and the Durance-channel culmination now recover the harbor together after the last relay settles.",
+          description: "Floated supply marks and the cleared Sanctum channel turn the recovery lane into a true river reset instead of a generic dock reopening.",
+          summary: "The shrine tide line and the Sanctum-channel culmination now recover the harbor together after the last relay settles.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: ["jade_supply_marks_floated", "kurast_culmination_durance_channel"],
           choices: [
@@ -264,7 +264,7 @@
               "hellforge_claim",
               "recover_the_forgegate_posts",
               "Recover the Forgegate Posts",
-              "Carry the chained gates and breach rivets into one last forgegate recovery before Diablo.",
+              "Carry the chained gates and breach rivets into one last forgegate recovery before the Cinder Tyrant.",
               "forgegate_posts_recovered",
               ["hellforge_recovery_forgegate_posts"],
               [{ kind: "hero_max_life", value: 3 }, { kind: "mercenary_attack", value: 1 }]
@@ -337,7 +337,7 @@
               "harrogath_rescue",
               "recover_the_last_frost_caches",
               "Recover the Last Frost Caches",
-              "Recover the last frost caches and keep the summit road from starving out before Baal.",
+              "Recover the last frost caches and keep the summit road from starving out before the Siege Tyrant.",
               "last_frost_caches_recovered",
               ["harrogath_recovery_frost_caches"],
               [{ kind: "hero_max_life", value: 4 }, { kind: "refill_potions", value: 1 }]
@@ -407,7 +407,7 @@
               "harrogath_rescue",
               "marshal_the_last_oath_posts",
               "Marshal the Last Oath Posts",
-              "Use the same recovered guard line to marshal the last oath posts before the Worldstone push.",
+              "Use the same recovered guard line to marshal the last oath posts before the Ruin Crown push.",
               "last_oath_posts_marshaled",
               ["harrogath_recovery_oath_posts"],
               [{ kind: "mercenary_max_life", value: 4 }, { kind: "hero_potion_heal", value: 1 }]

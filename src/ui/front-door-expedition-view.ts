@@ -269,7 +269,7 @@
           </article>
           <article class="feature-card">
             <strong>First Destination</strong>
-            <p>Character select leads straight into Rogue Encampment, where the shell explains town services, route pressure, and what persists when you step back onto the world map.</p>
+            <p>Character select leads straight into Forsaken Palisade, where the shell explains town services, route pressure, and what persists when you step back onto the world map.</p>
           </article>
         </div>
         <div class="cta-row">

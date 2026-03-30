@@ -36,6 +36,32 @@ interface CombatMercenaryState extends MercenaryDefinition {
   contractPerkLabels: string[];
 }
 
+type CombatMinionActionKind =
+  | "attack"
+  | "attack_mark"
+  | "attack_poison"
+  | "attack_guard_party"
+  | "attack_heal_hero"
+  | "heal_party"
+  | "buff_mercenary_guard_party"
+  | "attack_all_burn"
+  | "attack_all_paralyze";
+
+type CombatMinionTargetRule = "selected_enemy" | "lowest_life" | "all_enemies";
+
+interface CombatMinionState {
+  id: string;
+  templateId: string;
+  name: string;
+  skillLabel: string;
+  actionKind: CombatMinionActionKind;
+  targetRule: CombatMinionTargetRule;
+  power: number;
+  secondaryValue: number;
+  remainingTurns: number;
+  persistent: boolean;
+}
+
 interface CombatEnemyState {
   id: string;
   templateId: string;
@@ -73,6 +99,7 @@ interface CombatState {
   potions: number;
   hero: CombatHeroState;
   mercenary: CombatMercenaryState;
+  minions: CombatMinionState[];
   enemies: CombatEnemyState[];
   drawPile: CardInstance[];
   discardPile: CardInstance[];

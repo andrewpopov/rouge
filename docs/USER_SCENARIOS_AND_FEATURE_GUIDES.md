@@ -9,11 +9,11 @@ Documentation note:
 
 ### Scenario A: First-Time Player (Clarity-First)
 - Goal: understand identity, objective, and controls in first 2 minutes.
-- Entry: starts run, selects class, enters Act I Rogue Encampment.
+- Entry: starts run, selects class, enters Act I Forsaken Palisade.
 - Expected experience:
   - sees clear class identity and starter skills in character select.
-  - arrives in Rogue Encampment and recognizes town vendors / services.
-  - finds the exit to Blood Moor without confusion.
+  - arrives in Forsaken Palisade and recognizes town vendors / services.
+  - finds the exit to Blighted Moors without confusion.
   - understands that world traversal is branching and one-way.
   - completes first combat and receives understandable reward.
 - Success criteria:

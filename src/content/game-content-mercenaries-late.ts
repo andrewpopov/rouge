@@ -13,8 +13,8 @@
   const mercenaryCatalogLate = {
     templar_vanguard: {
       id: "templar_vanguard",
-      name: "Templar Vanguard",
-      role: "Act IV Bulwark",
+      name: "Ashen Bulwark",
+      role: "Ashen Bulwark",
       actOrigin: 4,
       maxLife: 32,
       attack: 4,
@@ -124,8 +124,8 @@
     },
     harrogath_captain: {
       id: "harrogath_captain",
-      name: "Harrogath Captain",
-      role: "Act V Warleader",
+      name: "Frosthaven Captain",
+      role: "Frosthaven Warleader",
       actOrigin: 5,
       maxLife: 36,
       attack: 5,
@@ -234,8 +234,8 @@
     },
     pandemonium_scout: {
       id: "pandemonium_scout",
-      name: "Pandemonium Scout",
-      role: "Act IV Interdictor",
+      name: "Ashen Scout",
+      role: "Ashen Interdictor",
       actOrigin: 4,
       maxLife: 31,
       attack: 5,

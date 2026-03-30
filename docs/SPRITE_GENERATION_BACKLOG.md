@@ -51,7 +51,7 @@ Use `--dry-run` to verify which Downloads image would be imported without moving
 
 Use this as the default art direction for every prompt unless a specific monster needs an override:
 
-- Blood Rogue dark-fantasy portrait aligned with `BLOOD_ROGUE_VISUAL_IDENTITY.md`; Diablo II is reference energy, not a literal copy target
+- Blood Rogue dark-fantasy portrait aligned with `BLOOD_ROGUE_VISUAL_IDENTITY.md`; classic dark-fantasy ARPG energy is reference only, not a literal copy target
 - single subject only
 - full body or full creature visible
 - square composition, centered subject, all limbs, horns, wings, staffs, weapons, spell fire, and trailing cloth fully inside frame
@@ -60,7 +60,7 @@ Use this as the default art direction for every prompt unless a specific monster
 - no cinematic background scene
 - grimy materials, worn leather, tarnished metal, bone, cloth, ash, blood, embers
 - grounded anatomy and costume design; avoid cartoon, chibi, anime, glossy 3D, sci-fi, or steampunk reads
-- do not copy exact Diablo II renders or sprite poses; use D2 as thematic reference only
+- do not copy exact legacy ARPG renders or sprite poses; use the genre as thematic reference only
 
 ## Hard Prompt Requirements
 

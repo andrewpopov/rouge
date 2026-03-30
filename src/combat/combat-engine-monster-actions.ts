@@ -27,7 +27,7 @@
     return [state.hero, state.mercenary].filter((target: CombatHeroState | CombatMercenaryState) => target?.alive);
   }
 
-  // ── D2 elite modifier: on-attack effects ──
+  // ── Elite modifier: on-attack effects ──
 
   function processModifierOnAttack(state: CombatState, enemy: CombatEnemyState) {
     if (!Array.isArray(enemy.traits) || !state.hero.alive) {
@@ -49,7 +49,7 @@
     }
   }
 
-  // ── D2 elite modifier: on-hit-by-player effects ──
+  // ── Elite modifier: on-hit-by-player effects ──
 
   function processModifierOnHit(state: CombatState, enemy: CombatEnemyState) {
     if (!Array.isArray(enemy.traits) || !enemy.alive || !state.hero.alive) {
@@ -69,7 +69,7 @@
     }
   }
 
-  // ── D2 monster intent resolution ──
+  // ── Monster intent resolution ──
 
   function resolveMonsterIntent(
     state: CombatState,

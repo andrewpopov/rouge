@@ -7,6 +7,7 @@
     dealDamage,
     getLivingEnemies,
     drawCards,
+    summonMinion,
     getWeaponAttackBonus,
     getWeaponSupportBonus,
     applyWeaponTypedDamage,
@@ -169,6 +170,9 @@
     if (effect.kind === "heal_hero") {
       const healed = healEntity(state.hero, getWeaponScaledSupportValue(state, effect, cardId));
       return `healed for ${healed}.`;
+    }
+    if (effect.kind === "summon_minion") {
+      return summonMinion(state, effect);
     }
     return "";
   }

@@ -2,7 +2,7 @@
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
-- This file tracks the current Diablo-inspired icon attribution.
+- This file tracks the current Blood Rogue icon attribution.
 
 ## Kenney (CC0)
 - UI Pack - Sci-Fi
@@ -15,7 +15,7 @@ Documentation note:
 - Source: https://game-icons.net
 - License: CC BY 3.0
 - Tags used:
-  - Diablo-inspired set: `medieval-fantasy`, `weapon`, `blade`, `skull`, `blood`, `fire`, `poison`, `armor`, `zombie`, `vampire`, `death`, `mask`
+  - gothic dark-fantasy set: `medieval-fantasy`, `weapon`, `blade`, `skull`, `blood`, `fire`, `poison`, `armor`, `zombie`, `vampire`, `death`, `mask`
 - Contributors used in curated set:
   - Lorc
   - Delapouite
@@ -25,7 +25,7 @@ Documentation note:
   - Skoll
   - Cathelineau
   - Sbed
-- Diablo-inspired curated icon source map:
+- Blood Rogue curated icon source map:
   - `assets/curated/themes/diablo-inspired/icons/SOURCES.txt`
   - `assets/curated/themes/diablo-inspired/icons/AUTHORS.txt`
 

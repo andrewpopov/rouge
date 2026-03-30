@@ -138,7 +138,7 @@ Fallback only if transparency is impossible: one single flat chroma-key green ba
 
 Art direction:
 Hand-painted dark fantasy item art for Blood Rogue.
-Grounded Diablo-inspired item silhouettes, but clearly original.
+Grounded gothic dark-fantasy item silhouettes, but clearly original.
 Dirty metal, worn leather, bone, wood, cloth, tarnish, grime, ash, and believable material wear.
 Strong inventory readability at small size.
 
@@ -320,6 +320,86 @@ Cell order:
   `hell`, `worldstone_keep`, `throne_of_destruction`, `mountain`,
   `frozen_tundra`, `ice`, `ancients_way`
 
+### Phase 3B: Zone-Unique Combat Background Packs
+
+Use these only if we want one distinct combat backdrop per mapped zone instead of the current shared environment set.
+
+`combat_zone_uniques_act1_shared`
+
+- priority: low
+- grid: `4 x 3`
+- recommended canvas: `4096 x 3072`
+- labels:
+  `den_of_evil`, `burial_grounds`, `underground_passage`, `black_marsh`,
+  `forgotten_tower`, `outer_cloister`, `barracks`, `jail`,
+  `inner_cloister`, `cathedral`, `catacombs`
+
+`combat_zone_uniques_act2_shared`
+
+- priority: low
+- grid: `4 x 3`
+- recommended canvas: `4096 x 3072`
+- labels:
+  `rocky_waste`, `dry_hills`, `sewers`, `halls_of_the_dead`,
+  `lost_city`, `maggot_lair`, `valley_of_snakes`, `harem`,
+  `palace_cellar`, `arcane_sanctuary`, `canyon_of_the_magi`, `tal_rasha`
+
+`combat_zone_uniques_act3_shared`
+
+- priority: low
+- grid: `4 x 3`
+- recommended canvas: `4096 x 3072`
+- labels:
+  `spider_forest`, `spider_cavern`, `great_marsh`, `flayer_jungle`,
+  `flayer_dungeon`, `lower_kurast`, `kurast_bazaar`, `upper_kurast`,
+  `kurast_causeway`, `kurast_sewers`, `travincal`, `durance_of_hate`
+
+`combat_zone_uniques_act4_shared`
+
+- priority: low
+- grid: `3 x 2`
+- recommended canvas: `3072 x 2048`
+- labels:
+  `outer_steppes`, `plains_of_despair`, `city_of_the_damned`,
+  `river_of_flame`, `chaos_sanctuary`, `infernal_pit`
+
+`combat_zone_uniques_act5_shared`
+
+- priority: low
+- grid: `5 x 2`
+- recommended canvas: `5120 x 2048`
+- labels:
+  `frigid_highlands`, `arreat_plateau`, `crystalline_passage`, `glacial_trail`, `frozen_tundra`,
+  `frozen_river`, `nihlathak`, `drifter_cavern`, `ancients_way`, `arreat_summit`
+
+### Phase 3C: Targeted Background Retries
+
+Use these only for scenes that still read weakly after combat-frame review.
+
+`combat_zone_retry_den_of_evil`
+
+- priority: low
+- grid: `2 x 1`
+- recommended canvas: `2048 x 1024`
+- labels:
+  `den_of_evil`
+
+`combat_zone_retry_act2_desert_pair`
+
+- priority: low
+- grid: `3 x 1`
+- recommended canvas: `3072 x 1024`
+- labels:
+  `rocky_waste`, `dry_hills`
+
+`combat_zone_retry_act5_snow_pair`
+
+- priority: low
+- grid: `3 x 1`
+- recommended canvas: `3072 x 1024`
+- labels:
+  `arreat_plateau`, `frozen_tundra`
+
 ## Worked Prompt: First Equipment Sheet
 
 Use this first:
@@ -344,7 +424,7 @@ Fallback only if transparency is impossible: one single flat chroma-key green ba
 
 Art direction:
 Hand-painted dark fantasy item art for Blood Rogue.
-Grounded Diablo-inspired item silhouettes, but clearly original.
+Grounded gothic dark-fantasy item silhouettes, but clearly original.
 Dirty metal, worn leather, bone, wood, cloth, tarnish, grime, ash, and believable material wear.
 Strong inventory readability at small size.
 

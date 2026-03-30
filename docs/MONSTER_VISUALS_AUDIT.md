@@ -14,10 +14,10 @@ This document tracks the current monster-portrait pipeline used by combat and th
 ## Landed In This Pass
 
 - Boss encounters now resolve art from `assets/curated/sprites/bosses` instead of falling back through the generic enemy resolver.
-- The retired steampunk icon runtime has been deleted. Missing or intentionally-disabled monster portraits now use Diablo-inspired fallback icons.
+- The retired steampunk icon runtime has been deleted. Missing or intentionally-disabled monster portraits now use Blood Rogue-aligned gothic fallback icons.
 - The combat portrait presentation now bottom-aligns enemy sprites, uses pixel-art rendering for enemy PNGs, and adds a subtle hostile halo behind enemy figures.
 - Existing enemy and boss PNGs were repacked with `scripts/polish-monster-sprites.sh` so the visible silhouette fills more of the portrait slot.
-- `scripts/generate-monster-sprites.py` now exports first-pass monster portraits from raw Diablo II source sheets into a Blood Rogue-aligned graded style.
+- `scripts/generate-monster-sprites.py` now exports first-pass monster portraits from raw legacy ARPG source sheets into a Blood Rogue-aligned graded style.
 - The first generated enemy batch now covers: `baboon_demon`, `council_member`, `demon_imp`, `fallen`, `fallen_shaman`, `fetish`, `fetish_shaman`, `frog_demon`, `giant_mosquito`, `goatman`, `regurgitator`, `sand_maggot`, `sand_maggot_young`, `vampire`, `vulture_demon`, and `wraith`.
 
 ## Current Runtime Rules
@@ -34,7 +34,7 @@ The current portrait selection order is:
 
 1. Use a curated enemy PNG when the family has a usable sprite.
 2. Use a curated boss PNG when the template is a boss and the boss sprite is not on the broken-sprite denylist.
-3. Fall back to a Diablo-inspired SVG chosen by monster-name keywords.
+3. Fall back to a gothic SVG chosen by monster-name keywords.
 
 ## Intentional Fallbacks
 
@@ -83,5 +83,5 @@ Priority order:
 
 1. Expand `scripts/generate-monster-sprites.py` with explicit source overrides for the weakest core families: `zombie`, `mummy`, `scarab_demon`, `skeleton`, and `succubus`.
 2. Curate the worst visible bosses first: the boss roster is now wired correctly, so bad source picks are much easier to spot.
-3. Replace weak support or trap families with deliberate D2 frame extracts: `fire_tower`, `lightning_spire`, `mummy_sarcophagus`, and similar thin or prop-like silhouettes.
+3. Replace weak support or trap families with deliberate legacy ARPG frame extracts: `fire_tower`, `lightning_spire`, `mummy_sarcophagus`, and similar thin or prop-like silhouettes.
 4. Keep `scripts/polish-monster-sprites.sh` as the final normalization step after any new batch extraction.

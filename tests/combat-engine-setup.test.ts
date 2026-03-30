@@ -16,7 +16,7 @@ test("createCombatState builds hero, mercenary, and encounter pack", () => {
   });
 
   assert.equal(state.hero.name, "Wanderer");
-  assert.equal(state.mercenary.name, "Rogue Scout");
+  assert.equal(state.mercenary.name, "Blackwood Hunter");
   assert.equal(state.enemies.length, 3);
   assert.equal(state.turn, 1);
   assert.equal(state.phase, "player");

@@ -3,7 +3,9 @@ import {
   POLICY_ARCHETYPE_PRIORITIES,
   SIMULATION_SCORING_WEIGHTS,
   type AppHarness,
+  type ArchetypeLaneMetrics,
   type BuildPolicyDefinition,
+  type RunArchetypeSimulationPlan,
 } from "./run-progression-simulator-core"
 
 export function getWeaponEquipment(run: RunState) {
@@ -21,6 +23,75 @@ function getWeaponFamily(harness: AppHarness, run: RunState) {
 
 function getWeaponProfile(harness: AppHarness, run: RunState) {
   return harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(getWeaponEquipment(run), harness.content) || null
+}
+
+function getArchetypeCatalogEntry(harness: AppHarness, classId: string, archetypeId: string) {
+  return harness.browserWindow.ROUGE_REWARD_ENGINE
+    ?.getArchetypeCatalog?.(classId)?.[classId]?.[archetypeId] || null
+}
+
+function getCardAlignmentWeight(harness: AppHarness, cardId: string) {
+  const rewardRole = harness.browserWindow.ROUGE_REWARD_ENGINE?.getCardRewardRole?.(cardId, harness.content) || "foundation"
+  return Number(harness.browserWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES?.CARD_ROLE_SCORE_WEIGHTS?.[rewardRole] || 1)
+}
+
+export function buildArchetypeLaneMetrics(
+  harness: AppHarness,
+  run: RunState,
+  targetArchetypeId: string
+): ArchetypeLaneMetrics | null {
+  if (!targetArchetypeId) {
+    return null
+  }
+
+  const rewardEngine = harness.browserWindow.ROUGE_REWARD_ENGINE
+  const targetEntry = getArchetypeCatalogEntry(harness, run.classId, targetArchetypeId)
+  if (!rewardEngine || !targetEntry) {
+    return null
+  }
+
+  let alignedCardWeight = 0
+  let totalCardWeight = 0
+  let offLaneCardCount = 0
+
+  ;(Array.isArray(run.deck) ? run.deck : []).forEach((cardId) => {
+    const tags = rewardEngine.getCardArchetypeTags?.(cardId, harness.content) || []
+    const weight = getCardAlignmentWeight(harness, cardId)
+    totalCardWeight += weight
+    if (Array.isArray(tags) && tags.includes(targetArchetypeId)) {
+      alignedCardWeight += weight
+      return
+    }
+    offLaneCardCount += 1
+  })
+
+  const weaponFamily = getWeaponFamily(harness, run)
+  const alignedWeapon = !weaponFamily
+    ? false
+    : targetEntry.weaponFamilies.length === 0 || targetEntry.weaponFamilies.includes(weaponFamily)
+  const weaponAlignment = !weaponFamily ? 0.5 : alignedWeapon ? 1 : 0
+
+  const scoreEntries = rewardEngine.getArchetypeScoreEntries?.(run, harness.content) || []
+  const totalScore = scoreEntries.reduce((sum, entry) => sum + Number(entry.score || 0), 0)
+  const targetScore = Number(scoreEntries.find((entry) => entry.archetypeId === targetArchetypeId)?.score || 0)
+  const scoreAlignment = totalScore > 0 ? Math.min(1, targetScore / totalScore) : 0
+  const deckAlignment = totalCardWeight > 0 ? alignedCardWeight / totalCardWeight : 0
+  const laneIntegrity = Math.max(
+    0,
+    Math.min(1, deckAlignment * 0.65 + weaponAlignment * 0.25 + Math.min(1, scoreAlignment * 1.5) * 0.1)
+  )
+
+  return {
+    targetArchetypeId,
+    targetArchetypeLabel: String(targetEntry.label || targetArchetypeId),
+    deckAlignment,
+    weaponAlignment,
+    scoreAlignment,
+    laneIntegrity,
+    offLaneCardCount,
+    offLaneCardWeight: Math.max(0, totalCardWeight - alignedCardWeight),
+    alignedWeapon,
+  }
 }
 
 function getLoadoutItemTier(harness: AppHarness, equipment: RunEquipmentState | null | undefined) {
@@ -196,7 +267,8 @@ function scoreRunewordProgress(harness: AppHarness, run: RunState) {
 function scoreArchetypePlan(
   harness: AppHarness,
   run: RunState,
-  policy: BuildPolicyDefinition
+  policy: BuildPolicyDefinition,
+  archetypePlan?: RunArchetypeSimulationPlan | null
 ) {
   const rewardEngine = harness.browserWindow.ROUGE_REWARD_ENGINE
   const entries = rewardEngine?.getArchetypeScoreEntries?.(run, harness.content) || []
@@ -222,6 +294,26 @@ function scoreArchetypePlan(
     }
     if (secondary && preferred.includes(secondary.archetypeId)) {
       total += 10
+    }
+  }
+
+  if (archetypePlan?.targetArchetypeId) {
+    const targetScore = Number(entries.find((entry) => entry.archetypeId === archetypePlan.targetArchetypeId)?.score || 0)
+    const laneMetrics = buildArchetypeLaneMetrics(harness, run, archetypePlan.targetArchetypeId)
+    total += targetScore * (archetypePlan.commitmentLocked ? 2.35 : 1.1)
+    if (laneMetrics) {
+      total += laneMetrics.laneIntegrity * (archetypePlan.commitmentLocked ? 320 : 145)
+      total -= laneMetrics.offLaneCardWeight * (archetypePlan.commitmentLocked ? 1.05 : 0.35)
+      if (!laneMetrics.alignedWeapon) {
+        total -= archetypePlan.commitmentLocked ? 96 : 22
+      } else {
+        total += archetypePlan.commitmentLocked ? 34 : 10
+      }
+    }
+    if (primary?.archetypeId === archetypePlan.targetArchetypeId) {
+      total += archetypePlan.commitmentLocked ? 118 : 34
+    } else if (archetypePlan.commitmentLocked) {
+      total -= 110
     }
   }
 
@@ -297,7 +389,7 @@ export function evaluateRunScore(
   harness: AppHarness,
   run: RunState,
   policy: BuildPolicyDefinition,
-  options: { assumeFullResources: boolean }
+  options: { assumeFullResources: boolean; archetypePlan?: RunArchetypeSimulationPlan | null }
 ) {
   const scoringRun = createScoringRun(harness, run, options.assumeFullResources)
   const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, null)
@@ -327,7 +419,7 @@ export function evaluateRunScore(
     scoreWeaponProfileForDeck(weaponProfile || undefined, deckStats.proficiencyCounts) * policy.weaponWeight +
     scoreArmorProfile(armorProfile || undefined) * policy.armorWeight +
     scoreRunewordProgress(harness, scoringRun) +
-    scoreArchetypePlan(harness, scoringRun, policy) +
+    scoreArchetypePlan(harness, scoringRun, policy, options.archetypePlan || null) +
     Number(scoringRun.progression?.skillPointsAvailable || 0) * policy.bankedSkillPointWeight +
     Number(scoringRun.progression?.classPointsAvailable || 0) * policy.bankedClassPointWeight +
     Number(scoringRun.progression?.attributePointsAvailable || 0) * policy.bankedAttributePointWeight
@@ -372,7 +464,8 @@ export function optimizeSafeZoneRun(
   run: RunState,
   profile: ProfileState,
   policy: BuildPolicyDefinition,
-  maxIterations = 24
+  maxIterations = 24,
+  archetypePlan?: RunArchetypeSimulationPlan | null
 ) {
   const townServices = harness.browserWindow.ROUGE_TOWN_SERVICES
   const isGearFollowupAction = (actionId: string, allowVendorBuys = true) => {
@@ -385,7 +478,7 @@ export function optimizeSafeZoneRun(
   }
 
   function findBestImmediateGearFollowup(targetRun: RunState, allowVendorBuys: boolean) {
-    const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false })
+    const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
     const actions = townServices
       .listActions(harness.content, targetRun, profile)
       .filter((action: TownAction) => {
@@ -403,7 +496,7 @@ export function optimizeSafeZoneRun(
         return
       }
 
-      const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false })
+      const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
       const delta = nextScore - baseScore
       if (delta > bestDelta) {
         bestDelta = delta
@@ -429,7 +522,7 @@ export function optimizeSafeZoneRun(
   }
 
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
-    const baseScore = evaluateRunScore(harness, run, policy, { assumeFullResources: false })
+    const baseScore = evaluateRunScore(harness, run, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
     const actions = townServices
       .listActions(harness.content, run, profile)
       .filter((action: TownAction) => isOptimizableTownAction(action))
@@ -450,7 +543,7 @@ export function optimizeSafeZoneRun(
         settleGearFollowups(clone, 4, false)
       }
 
-      const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false })
+      const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
       const delta = nextScore - baseScore
       if (delta > bestDelta) {
         bestDelta = delta

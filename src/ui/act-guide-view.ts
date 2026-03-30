@@ -2,11 +2,11 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const ACT_POSTER_MAP: Record<number, string> = {
-    1: "./assets/curated/act-maps/act1-the-sightless-eye.png",
-    2: "./assets/curated/act-maps/act2-the-secret-of-the-vizjerei.png",
-    3: "./assets/curated/act-maps/act3-the-infernal-gate.png",
-    4: "./assets/curated/act-maps/act4-the-harrowing.png",
-    5: "./assets/curated/act-maps/act5-lord-of-destruction.png",
+    1: "./assets/curated/act-maps/act1-the-blackwood-covenant.png",
+    2: "./assets/curated/act-maps/act2-the-sunken-sepulchers.png",
+    3: "./assets/curated/act-maps/act3-the-river-of-idols.png",
+    4: "./assets/curated/act-maps/act4-the-ashen-gate.png",
+    5: "./assets/curated/act-maps/act5-the-frost-siege-charter.png",
   };
 
   const TOWN_ART_MAP: Record<number, string> = {

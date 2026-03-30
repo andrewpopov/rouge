@@ -39,7 +39,7 @@
               "lost_reliquary",
               "remark_the_tomb_waystations",
               "Remark the Tomb Waystations",
-              "Turn the same accord into one final set of waystation marks before Duriel.",
+              "Turn the same accord into one final set of waystation marks before the Sepulcher Devourer.",
               "tomb_waystations_remarked",
               ["sunwell_accord_tomb_waystations"],
               [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
@@ -133,7 +133,7 @@
               "smugglers_wake",
               "recover_the_tally_ledgers",
               "Recover the Tally Ledgers",
-              "Bind the last harbor ledgers into one clean account before Mephisto.",
+              "Bind the last harbor ledgers into one clean account before the Idol Patriarch.",
               "tally_ledgers_recovered",
               ["kurast_accord_tally_ledgers"],
               [{ kind: "gold_bonus", value: 12 }, { kind: "hero_max_energy", value: 1 }]
@@ -183,7 +183,7 @@
         {
           id: "channel_accord",
           title: "Channel Accord",
-          description: "Floated supply marks, shadow pilots, and the cleared Durance channel turn the accord lane into a true harbor close instead of a generic berth restage.",
+          description: "Floated supply marks, shadow pilots, and the cleared Sanctum channel turn the accord lane into a true harbor close instead of a generic berth restage.",
           summary: "The shrine, crossroads, and culmination all settle together into one final harbor accord.",
           grants: { gold: 8, xp: 8, potions: 0 },
           requiresFlagIds: ["jade_supply_marks_floated", "kurast_crossroads_shadow_pilots", "kurast_culmination_durance_channel"],
@@ -203,7 +203,7 @@
               "smugglers_wake",
               "seal_the_last_harbor_cordons",
               "Seal the Last Harbor Cordons",
-              "Use the same accord to bind the last harbor cordons before the Durance push.",
+              "Use the same accord to bind the last harbor cordons before the Sanctum push.",
               "last_harbor_cordons_sealed",
               ["kurast_accord_harbor_cordons"],
               [{ kind: "gold_bonus", value: 12 }, { kind: "hero_potion_heal", value: 1 }]
@@ -247,7 +247,7 @@
               "hellforge_claim",
               "remark_the_last_ash_routes",
               "Remark the Last Ash Routes",
-              "Turn the same accord into one final ash-route marking run before Diablo.",
+              "Turn the same accord into one final ash-route marking run before the Cinder Tyrant.",
               "last_ash_routes_remarked",
               ["hellforge_accord_ash_routes"],
               [{ kind: "reinforce_build" }, { kind: "hero_max_energy", value: 1 }]
@@ -341,7 +341,7 @@
               "harrogath_rescue",
               "count_the_summit_stores",
               "Count the Summit Stores",
-              "Bind the last summit stores into one final ration count before Baal.",
+              "Bind the last summit stores into one final ration count before the Siege Tyrant.",
               "summit_stores_counted",
               ["harrogath_accord_summit_stores"],
               [{ kind: "hero_max_life", value: 4 }, { kind: "refill_potions", value: 1 }]
@@ -381,7 +381,7 @@
               "harrogath_rescue",
               "stage_the_last_sled_guides",
               "Stage the Last Sled Guides",
-              "Use the same accord to set the last guide sleds before the Worldstone climb.",
+              "Use the same accord to set the last guide sleds before the Ruin Crown climb.",
               "last_sled_guides_staged",
               ["harrogath_accord_sled_guides"],
               [{ kind: "hero_max_energy", value: 1 }, { kind: "belt_capacity", value: 1 }]

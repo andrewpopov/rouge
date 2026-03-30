@@ -49,8 +49,46 @@ test("balance catalog exposes standard suites", () => {
   assert.ok(catalog.optimized_campaign);
   assert.ok(catalog.weak_campaign);
   assert.ok(catalog.endgame_balance);
+  assert.ok(catalog.committed_archetype_campaign);
+  assert.ok(catalog.committed_archetype_boss_probe);
   assert.ok(catalog.nightly_full_matrix);
   assert.ok(catalog.local_smoke);
+});
+
+test("committed archetype suites expand one task per named lane", () => {
+  const catalog = getBalanceExperimentCatalog();
+  const spec: BalanceExperimentSpec = {
+    ...catalog.committed_archetype_campaign,
+    classIds: ["sorceress"],
+    seedOffsets: [0],
+    policyIds: ["aggressive"],
+    concurrency: 1,
+  };
+  const tasks = buildBalanceRunTasks(spec);
+  assert.equal(tasks.length, 3);
+  assert.deepEqual(
+    tasks.map((task) => task.targetArchetypeId).sort(),
+    ["sorceress_cold", "sorceress_fire", "sorceress_lightning"]
+  );
+});
+
+test("natural archetype convergence artifacts summarize live lane outcomes", () => {
+  const catalog = getBalanceExperimentCatalog();
+  const spec: BalanceExperimentSpec = {
+    ...catalog.archetype_convergence,
+    classIds: ["sorceress"],
+    policyIds: ["aggressive"],
+    seedOffsets: [0],
+    throughActNumber: 1,
+    concurrency: 1,
+  };
+  const task = buildBalanceRunTasks(spec)[0];
+  const result = executeBalanceRunTask(spec, task);
+  const artifact = buildBalanceArtifact(spec, [result.record]);
+
+  assert.ok(artifact.aggregate.archetypes.naturalConvergence.length > 0);
+  assert.equal(artifact.aggregate.archetypes.naturalConvergence[0]?.classId, "sorceress");
+  assert.equal(artifact.aggregate.archetypes.naturalConvergence[0]?.policyId, "aggressive");
 });
 
 test("balance snapshot tokens restore and resume progression", () => {
@@ -86,6 +124,25 @@ test("balance snapshot tokens restore and resume progression", () => {
       checkpoints: [],
       failure: null,
       lastEncounterContext: null,
+      archetypePlan: {
+        targetArchetypeId: "barbarian_combat_skills",
+        targetArchetypeLabel: "Combat Pressure",
+        targetBand: "flagship",
+        commitmentMode: "committed",
+        commitAct: 2,
+        commitCheckpoint: "first_safe_zone",
+        commitmentLocked: false,
+        commitmentSatisfied: false,
+        committedByCheckpoint: false,
+        committedAtCheckpointId: "",
+        postCommitCheckpointCount: 0,
+        driftCountAfterCommit: 0,
+        fallbackDebtCardCount: 0,
+        fallbackDebtWeight: 0,
+        fallbackWeaponDebt: false,
+        exitedFallbackGear: false,
+        laneIntegrityByCheckpoint: [],
+      },
     },
   });
 
@@ -97,6 +154,7 @@ test("balance snapshot tokens restore and resume progression", () => {
   const resumed = runProgressionFromBalanceSnapshotToken(tokenRef.token);
   assert.equal(resumed.outcome, "reached_checkpoint");
   assert.equal(resumed.finalActNumber, 1);
+  assert.equal(resumed.summary.archetypeCommitment?.targetArchetypeId, "barbarian_combat_skills");
 });
 
 test("balance run task captures boss snapshots and trace payloads", () => {
@@ -139,6 +197,49 @@ test("balance artifact aggregates metrics and evaluates bands", () => {
     { metricId: "group.amazon.aggressive.win_rate", label: "Missing group", min: 0.5 },
   ]);
   assert.equal(missingBand[0].status, "missing");
+});
+
+test("committed lane runs stay separated in aggregate reporting", () => {
+  const catalog = getBalanceExperimentCatalog();
+  const spec: BalanceExperimentSpec = {
+    ...catalog.committed_archetype_campaign,
+    classIds: ["sorceress"],
+    policyIds: ["aggressive"],
+    seedOffsets: [0],
+    throughActNumber: 1,
+    targetArchetypeId: "sorceress_fire",
+    concurrency: 1,
+  };
+  const task = buildBalanceRunTasks(spec)[0];
+  const result = executeBalanceRunTask(spec, task);
+  const artifact = buildBalanceArtifact(spec, [result.record]);
+
+  assert.equal(artifact.runs[0].targetArchetypeId, "sorceress_fire");
+  assert.equal(artifact.aggregate.groups[0]?.targetArchetypeId, "sorceress_fire");
+  assert.equal(artifact.aggregate.archetypes.committedLanes[0]?.targetArchetypeId, "sorceress_fire");
+});
+
+test("lane-specific metric bands resolve committed archetype values", () => {
+  const catalog = getBalanceExperimentCatalog();
+  const spec: BalanceExperimentSpec = {
+    ...catalog.committed_archetype_campaign,
+    classIds: ["sorceress"],
+    policyIds: ["aggressive"],
+    seedOffsets: [0],
+    throughActNumber: 1,
+    targetArchetypeId: "sorceress_fire",
+    concurrency: 1,
+    expectedBands: [
+      { metricId: "lane.sorceress.sorceress_fire.clear_rate", label: "Fire clear rate", min: 0, max: 1, severity: "hard" },
+      { metricId: "lane.sorceress.sorceress_fire.commit_rate", label: "Fire commit rate", min: 0, max: 1, severity: "hard" },
+    ],
+  };
+  const task = buildBalanceRunTasks(spec)[0];
+  const result = executeBalanceRunTask(spec, task);
+  const artifact = buildBalanceArtifact(spec, [result.record]);
+
+  assert.equal(artifact.bands.length, 2);
+  assert.ok(artifact.bands.every((band) => band.status === "pass"));
 });
 
 test("combat balance run task produces aggregated combat record", () => {

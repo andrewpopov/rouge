@@ -99,6 +99,39 @@
     `;
   }
 
+  function renderMinionRack(minions: CombatMinionState[], escapeHtml: (s: string) => string): string {
+    const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    const maxMinions = turns?.MAX_ACTIVE_MINIONS || 3;
+    const activeMinions = Array.isArray(minions) ? minions : [];
+    return `
+      <div class="minion-rack ${activeMinions.length === 0 ? "minion-rack--empty" : ""}">
+        <div class="minion-rack__head">
+          <span class="minion-rack__label">Minions</span>
+          <span class="minion-rack__count">${activeMinions.length}/${maxMinions}</span>
+        </div>
+        <div class="minion-rack__list">
+          ${activeMinions.length === 0
+            ? '<div class="minion-rack__empty">No summons in play.</div>'
+            : activeMinions.map((minion) => {
+              const summary = turns?.getMinionSkillSummary?.(minion) || minion.skillLabel;
+              const durationLabel = minion.persistent ? "Persistent" : `${minion.remainingTurns}t`;
+              const toneClass = minion.persistent ? "combat-minion--persistent" : "combat-minion--temporary";
+              return `
+                <div class="combat-minion ${toneClass}">
+                  <div class="combat-minion__topline">
+                    <span class="combat-minion__name">${escapeHtml(minion.name)}</span>
+                    <span class="combat-minion__duration">${escapeHtml(durationLabel)}</span>
+                  </div>
+                  <div class="combat-minion__skill">${escapeHtml(minion.skillLabel)}</div>
+                  <div class="combat-minion__summary">${escapeHtml(summary)}</div>
+                </div>
+              `;
+            }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
   function getEnemyStageProfile(enemy: CombatEnemyState): string {
     const haystack = [
       enemy.family || "",
@@ -380,6 +413,7 @@
 
   runtimeWindow.__ROUGE_COMBAT_VIEW_RENDERERS = {
     renderAllySprite,
+    renderMinionRack,
     renderEnemySprite,
     renderHandCard,
     renderCombatLogPanel,
