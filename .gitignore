@@ -21,6 +21,8 @@ artifacts/quality/
 artifacts/balance/
 output/generated-sheet-splits/
 tmp/art-review/
+tmp/bg-cell-previews/
+tmp/bg-combat-review/
 
 # Source asset dumps (keep curated runtime assets only)
 assets/raw/
