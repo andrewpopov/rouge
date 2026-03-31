@@ -7,8 +7,8 @@
   // Longer keys win so specific zones like "kurast sewers" beat generic matches like "sewers".
   const ZONE_COMBAT_BG: Record<string, string> = {
     // Act 1
-    "forsaken palisade": "moor.webp",
-    "blighted moors": "moor.webp",
+    "forsaken palisade": "forsaken_palisade.webp",
+    "blighted moors": "blighted_moors.webp",
     "black pit": "den_of_evil.webp",
     "pale fields": "plains.webp",
     "graveyard ridge": "burial_grounds.webp",
@@ -26,12 +26,12 @@
     "black chapel": "cathedral.webp",
     "abbey vault": "catacombs.webp",
     // Act 2
-    "oasis refuge": "oasis.webp",
+    "oasis refuge": "oasis_refuge.webp",
     "shale flats": "rocky_waste.webp",
     "collapsed cisterns": "sewers.webp",
     "dust hills": "dry_hills.webp",
     "buried tomb entries": "halls_of_the_dead.webp",
-    "salt oasis": "oasis.webp",
+    "salt oasis": "salt_oasis.webp",
     "sunken archives": "lost_city.webp",
     "worm-tunnels": "maggot_lair.webp",
     "serpent vaults": "valley_of_snakes.webp",
@@ -39,10 +39,10 @@
     "lower court": "palace_cellar.webp",
     "star archive": "arcane_sanctuary.webp",
     "sandscript canyon": "canyon_of_the_magi.webp",
-    "royal vault": "tal_rasha.webp",
+    "royal vault": "royal_vault.webp",
     "royal sepulcher": "tal_rasha.webp",
     // Act 3
-    "rotting dock refuge": "jungle.webp",
+    "rotting dock refuge": "rotting_dock_refuge.webp",
     "widowwood": "spider_forest.webp",
     "spider hollows": "spider_cavern.webp",
     "fever marsh": "great_marsh.webp",
@@ -60,11 +60,11 @@
     "burning causeway": "plains_of_despair.webp",
     "chained bastion": "city_of_the_damned.webp",
     "demon forge": "river_of_flame.webp",
-    "black gate": "chaos_sanctuary.webp",
+    "black gate": "black_gate.webp",
     "ashen throne": "chaos_sanctuary.webp",
     // Act 5
-    "frosthaven keep": "mountain.webp",
-    "siege walls": "mountain.webp",
+    "frosthaven keep": "frosthaven_keep.webp",
+    "siege walls": "siege_walls.webp",
     "watchfire ridge": "frigid_highlands.webp",
     "icebound river": "frozen_river.webp",
     "tombs of the fallen": "arreat_plateau.webp",
@@ -75,12 +75,12 @@
     "sorrow halls": "ice.webp",
     "frost scar": "frozen_tundra.webp",
     "ruin halls": "cave.webp",
-    "the ascent": "arreat_summit.webp",
+    "the ascent": "the_ascent.webp",
     "oathbreaker vault": "tomb.webp",
-    "summit gate": "arreat_summit.webp",
+    "summit gate": "summit_gate.webp",
     "summit citadel": "worldstone_keep.webp",
-    "citadel core": "throne_of_destruction.webp",
-    "crown of ruin": "throne_of_destruction.webp",
+    "citadel core": "citadel_core.webp",
+    "crown of ruin": "crown_of_ruin.webp",
   };
 
   const ZONE_COMBAT_BG_PATTERNS = Object.entries(ZONE_COMBAT_BG).sort((a, b) => b[0].length - a[0].length);
