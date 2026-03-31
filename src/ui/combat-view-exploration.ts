@@ -297,11 +297,11 @@
                   <strong class="explore-header__stat-value">${escapeHtml(run.className)} Lv.${run.level}</strong>
                 </div>
                 <div class="explore-header__stat">
-                  <span class="explore-header__stat-label">Vitality</span>
+                  <span class="explore-header__stat-label">Life</span>
                   <strong class="explore-header__stat-value">HP ${run.hero.currentLife}/${run.hero.maxLife}</strong>
                 </div>
                 <div class="explore-header__stat">
-                  <span class="explore-header__stat-label">Treasury</span>
+                  <span class="explore-header__stat-label">Gold</span>
                   <strong class="explore-header__stat-value">${run.gold}g</strong>
                 </div>
               </div>

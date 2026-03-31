@@ -155,6 +155,18 @@
     return [...cardIds];
   }
 
+  function isUtilitySplashCandidate(cardId: string, content: GameContent, buildPath: ReturnType<typeof archetypes.getRewardPathPreference>) {
+    const card = content.cardCatalog[cardId];
+    const treeId = archetypes.getCardTree(cardId);
+    if (buildPath?.primaryTrees?.includes(treeId)) {
+      return true;
+    }
+    if (buildPath?.supportTrees?.includes(treeId)) {
+      return (card?.splashRole || "primary_only") !== "primary_only";
+    }
+    return (card?.splashRole || "primary_only") === "utility_splash_ok";
+  }
+
   function resolveReinforceBuildReward(run: RunState, content: GameContent) {
     archetypes.annotateCardRewardMetadata(content);
     const buildPath = archetypes.getRewardPathPreference(run, content);
@@ -229,6 +241,9 @@
           if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
             return false;
           }
+          if (!isUtilitySplashCandidate(cardId, content, buildPath)) {
+            return false;
+          }
           const role = archetypes.getCardRewardRole(cardId, content);
           return role === "support" || role === "tech" || role === "foundation";
         }),
@@ -255,6 +270,9 @@
       filterCardsByPathPriority(
         getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
           if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
+            return false;
+          }
+          if (!isUtilitySplashCandidate(cardId, content, buildPath)) {
             return false;
           }
           const role = archetypes.getCardRewardRole(cardId, content);

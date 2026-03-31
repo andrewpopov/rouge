@@ -39,11 +39,30 @@ test("run progression simulator produces checkpoint data for an early act", () =
   assert.ok(policyReport.summary.world.questOutcomes >= 0);
   assert.ok(policyReport.summary.finalBuild.hero.handSize >= 5);
   assert.ok(policyReport.summary.finalBuild.deckProficiencies.length > 0);
+  assert.ok(policyReport.summary.finalBuild.deckProfile.targetShapeFit >= 0);
+  assert.ok(policyReport.summary.finalBuild.deckProfile.targetShapeFit <= 1);
+  assert.ok(policyReport.summary.finalBuild.deckProfile.targetDeckSizeMin >= 1);
+  assert.ok(policyReport.summary.finalBuild.deckProfile.targetDeckSizeMax >= policyReport.summary.finalBuild.deckProfile.targetDeckSizeMin);
+  assert.ok(Array.isArray(policyReport.summary.finalBuild.deckProfile.centerpieceCards));
+  assert.ok(policyReport.summary.buildJourney.totalRewardUpgrades >= 0);
+  assert.ok(policyReport.summary.buildJourney.totalRefinements >= 0);
+  assert.ok(policyReport.summary.buildJourney.totalEvolutions >= 0);
+  assert.ok(typeof policyReport.summary.townActionCounts === "object");
+  const battleMetrics = policyReport.summary.encounterMetricsByKind.battle;
+  assert.ok(battleMetrics);
+  assert.ok((battleMetrics?.averageEarlyCandidateCount || 0) >= 1);
+  assert.ok((battleMetrics?.averageEarlyMeaningfulCandidateCount || 0) >= 0);
+  assert.ok((battleMetrics?.averageEarlyDecisionScoreSpread || 0) >= 0);
+  assert.ok((battleMetrics?.earlyCloseDecisionRate || 0) >= 0);
+  assert.ok((battleMetrics?.earlyCloseDecisionRate || 0) <= 1);
+  assert.ok((battleMetrics?.averageEarlyEndTurnRegret || 0) >= 0);
   const act1BossProbe = act1PreBoss?.probes.find((probe) => probe.kind === "boss");
   assert.ok(act1BossProbe);
   assert.ok((act1BossProbe?.enemyPowerScore || 0) > 0);
   assert.ok((act1BossProbe?.powerRatio || 0) > 0);
   assert.ok((act1BossProbe?.averageTurns || 0) >= 1);
+  assert.ok((act1BossProbe?.averageEarlyCandidateCount || 0) >= 1);
+  assert.ok((act1BossProbe?.averageEarlyEndTurnRegret || 0) >= 0);
 });
 
 test("run progression simulator can skip checkpoint probes for fast rng sweeps", () => {

@@ -55,12 +55,12 @@
     variantManifest: Record<string, string[]> | undefined | null
   ): string[] {
     const variants = Array.isArray(variantManifest?.[slug])
-      ? variantManifest[slug].filter((entry) => typeof entry === "string" && entry.toLowerCase().endsWith(".png"))
+      ? variantManifest[slug].filter((entry) => typeof entry === "string" && /\.(png|webp)$/i.test(entry))
       : [];
     if (variants.length > 0) {
       return variants.map((entry) => `${UNIQUE_ART_BASE}/${folder}/${entry}`);
     }
-    return [`${UNIQUE_ART_BASE}/${folder}/${slug}.png`];
+    return [`${UNIQUE_ART_BASE}/${folder}/${slug}.webp`];
   }
 
   function pickUniqueArtPath(paths: string[], selectionKey: string, useSessionSalt = false): string | null {

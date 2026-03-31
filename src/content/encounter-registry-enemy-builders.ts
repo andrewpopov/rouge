@@ -82,6 +82,137 @@
     return grouped;
   }
 
+  function uniqueTags<T>(values: T[]) {
+    return Array.from(new Set((Array.isArray(values) ? values : []).filter(Boolean)));
+  }
+
+  function getActCounterTags(actNumber: number): CounterTag[] {
+    if (actNumber === 1) {
+      return ["anti_attrition"];
+    }
+    if (actNumber === 2) {
+      return ["anti_guard_break", "telegraph_respect"];
+    }
+    if (actNumber === 3) {
+      return ["anti_backline", "anti_lightning_pressure", "anti_support_disruption"];
+    }
+    if (actNumber === 4) {
+      return ["anti_fire_pressure", "telegraph_respect"];
+    }
+    return ["anti_summon", "anti_control", "anti_attrition"];
+  }
+
+  function inferIntentRole(intent: EnemyIntent): EncounterIntentRole {
+    if (
+      intent.kind === "guard" ||
+      intent.kind === "guard_allies" ||
+      intent.kind === "heal_and_guard"
+    ) {
+      return "protection";
+    }
+    if (
+      intent.kind === "heal_ally" ||
+      intent.kind === "heal_allies" ||
+      intent.kind === "resurrect_ally"
+    ) {
+      return "recovery";
+    }
+    if (
+      intent.kind === "charge" ||
+      intent.kind === "summon_minion" ||
+      intent.kind === "teleport"
+    ) {
+      return "setup";
+    }
+    if (
+      intent.kind === "curse_amplify" ||
+      intent.kind === "curse_weaken" ||
+      intent.kind === "drain_energy"
+    ) {
+      return "tax";
+    }
+    if (intent.kind === "buff_allies_attack" || intent.kind === "consume_corpse" || intent.kind === "corpse_explosion") {
+      return "disruption";
+    }
+    return "spike";
+  }
+
+  function inferIntentCounterTags(intent: EnemyIntent): CounterTag[] {
+    const tags: CounterTag[] = [];
+    if (
+      intent.kind === "attack_all" ||
+      intent.kind === "attack_lightning_all" ||
+      intent.kind === "attack_burn_all" ||
+      intent.kind === "attack_poison_all"
+    ) {
+      tags.push("anti_summon", "anti_backline");
+    }
+    if (intent.kind === "attack_lightning" || intent.kind === "attack_lightning_all") {
+      tags.push("anti_lightning_pressure");
+    }
+    if (intent.kind === "attack_burn" || intent.kind === "attack_burn_all") {
+      tags.push("anti_fire_pressure");
+    }
+    if (
+      intent.kind === "charge" ||
+      intent.kind === "sunder_attack" ||
+      intent.kind === "attack_and_guard"
+    ) {
+      tags.push("telegraph_respect", "anti_guard_break");
+    }
+    if (
+      intent.kind === "guard_allies" ||
+      intent.kind === "heal_ally" ||
+      intent.kind === "heal_allies" ||
+      intent.kind === "heal_and_guard"
+    ) {
+      tags.push("anti_support_disruption");
+    }
+    if (intent.kind === "summon_minion" || intent.kind === "resurrect_ally") {
+      tags.push("anti_summon");
+    }
+    if (intent.kind === "drain_energy" || intent.kind === "curse_weaken" || intent.kind === "curse_amplify") {
+      tags.push("anti_tax", "anti_control");
+    }
+    return uniqueTags(tags);
+  }
+
+  function annotateIntent(intent: EnemyIntent): EnemyIntent {
+    return {
+      ...intent,
+      intentRole: inferIntentRole(intent),
+      counterTags: inferIntentCounterTags(intent),
+    };
+  }
+
+  function getEncounterAskTags(actNumber: number, role: string, variant: string, bossId = ""): CounterTag[] {
+    const tags = [...getActCounterTags(actNumber)];
+    if (variant === "boss") {
+      if (bossId === "andariel") {
+        tags.push("anti_attrition");
+      } else if (bossId === "duriel") {
+        tags.push("anti_guard_break");
+      } else if (bossId === "mephisto") {
+        tags.push("anti_backline", "anti_lightning_pressure");
+      } else if (bossId === "diablo") {
+        tags.push("anti_fire_pressure", "telegraph_respect");
+      } else if (bossId === "baal") {
+        tags.push("anti_summon", "anti_control");
+      }
+    } else if (variant === "elite") {
+      if (role === "support") {
+        tags.push("anti_support_disruption");
+      }
+      if (role === "ranged") {
+        tags.push("anti_backline");
+      }
+      if (role === "brute") {
+        tags.push("anti_guard_break");
+      }
+    }
+    return uniqueTags(tags);
+  }
+
   function buildScale(actNumber: number, role: string, { elite = false, boss = false } = {}) {
     const base = ROLE_STATS[role];
     let lifeStep = 6;
@@ -436,15 +567,17 @@
     if (actNumber === 1) {
       return [
         { kind: "guard_allies", label: `${bossName} Brood Screen`, value: Math.max(4, scale.guard + 1) },
-        { kind: "attack_all", label: `${bossName} Poison Spray`, value: Math.max(5, scale.attack - 1) },
+        { kind: "summon_minion", label: `${bossName} Grave Swarm`, value: Math.max(4, scale.attack - 1), secondaryValue: 2, cooldown: 2 },
         {
-          kind: "attack_and_guard",
-          label: `${bossName} Nest Rush`,
-          value: scale.attack + 1,
-          target: "hero",
-          secondaryValue: Math.max(4, scale.guard + 1),
+          kind: "charge",
+          label: `${bossName} Poison Spray`,
+          value: Math.max(5, scale.attack - 1),
+          target: "all_allies",
+          secondaryValue: Math.max(5, scale.guard + 2),
+          damageType: "poison",
         },
-        { kind: "attack", label: `${bossName} Lunge`, value: scale.attack + 3, target: "lowest_life" },
+        { kind: "attack_poison_all", label: `${bossName} Poison Spray`, value: Math.max(5, scale.attack - 1), secondaryValue: 4 },
+        { kind: "attack", label: `${bossName} Nest Rush`, value: scale.attack + 3, target: "lowest_life" },
       ];
     }
     if (actNumber === 2) {
@@ -457,6 +590,17 @@
     }
     if (actNumber === 3) {
       return [
+        { kind: "guard_allies", label: `${bossName} Court Shield`, value: Math.max(4, scale.guard + 1) },
+        {
+          kind: "charge",
+          label: `${bossName} Hatred Orb`,
+          value: Math.max(6, scale.attack - 1),
+          target: "all_allies",
+          secondaryValue: Math.max(5, scale.guard + 2),
+          damageType: "lightning",
+        },
+        { kind: "heal_allies", label: `${bossName} Blood Court`, value: Math.max(4, scale.heal) },
+        { kind: "attack_lightning_all", label: `${bossName} Hatred Orb`, value: Math.max(6, scale.attack - 1) },
         {
           kind: "drain_attack",
           label: `${bossName} Siphon`,
@@ -464,42 +608,37 @@
           target: "hero",
           secondaryValue: Math.max(4, Math.floor(scale.attack / 2)),
         },
-        { kind: "attack_all", label: `${bossName} Hatred Orb`, value: Math.max(6, scale.attack - 1) },
-        { kind: "heal_allies", label: `${bossName} Blood Court`, value: Math.max(4, scale.heal) },
-        { kind: "guard_allies", label: `${bossName} Court Shield`, value: Math.max(4, scale.guard + 1) },
       ];
     }
     if (actNumber === 4) {
       return [
         { kind: "guard_allies", label: `${bossName} Sanctuary Guard`, value: Math.max(5, scale.guard + 2) },
-        { kind: "attack_all", label: `${bossName} Hellfire`, value: Math.max(7, scale.attack + 1) },
         {
-          kind: "attack_and_guard",
-          label: `${bossName} Ashen Advance`,
-          value: scale.attack + 2,
-          target: "hero",
-          secondaryValue: Math.max(5, scale.guard + 2),
+          kind: "charge",
+          label: `${bossName} Hellfire`,
+          value: Math.max(7, scale.attack + 1),
+          target: "all_allies",
+          secondaryValue: Math.max(6, scale.guard + 3),
+          damageType: "fire",
         },
+        { kind: "attack_burn_all", label: `${bossName} Hellfire`, value: Math.max(7, scale.attack + 1), secondaryValue: 1 },
+        { kind: "heal_and_guard", label: `${bossName} Cinder Recovery`, value: Math.max(5, scale.heal + 1), secondaryValue: Math.max(5, scale.guard + 2) },
         { kind: "sunder_attack", label: `${bossName} Ruinous Charge`, value: scale.attack + 4, target: "hero" },
       ];
     }
     if (actNumber === 5) {
       return [
+        { kind: "summon_minion", label: `${bossName} War Host`, value: Math.max(6, scale.attack), secondaryValue: 2, cooldown: 2 },
+        { kind: "heal_and_guard", label: `${bossName} Frozen Host`, value: Math.max(5, scale.heal + 1), secondaryValue: Math.max(6, scale.guard + 2) },
+        {
+          kind: "charge",
+          label: `${bossName} Throne Volley`,
+          value: Math.max(8, scale.attack + 1),
+          target: "all_allies",
+          secondaryValue: Math.max(7, scale.guard + 2),
+        },
         { kind: "attack_all", label: `${bossName} Throne Volley`, value: Math.max(8, scale.attack + 1) },
-        { kind: "heal_allies", label: `${bossName} War Host`, value: Math.max(5, scale.heal + 1) },
-        {
-          kind: "drain_attack",
-          label: `${bossName} Essence Theft`,
-          value: scale.attack + 2,
-          target: "lowest_life",
-          secondaryValue: Math.max(5, Math.floor(scale.attack / 2) + 1),
-        },
-        {
-          kind: "heal_and_guard",
-          label: `${bossName} Frozen Host`,
-          value: Math.max(5, scale.heal + 1),
-          secondaryValue: Math.max(6, scale.guard + 2),
-        },
+        { kind: "drain_attack", label: `${bossName} Essence Theft`, value: scale.attack + 2, target: "lowest_life", secondaryValue: Math.max(5, Math.floor(scale.attack / 2) + 1) },
       ];
     }
 
@@ -590,9 +729,11 @@
       templateId: `act_${actNumber}_${entry.id}_${suffix}`,
       name,
       maxLife: scale.life,
-      intents: resolvedIntents.map((intent) => ({ ...intent })),
+      intents: resolvedIntents.map((intent) => annotateIntent(intent)),
       role: effectiveRole,
       variant,
+      askTags: getEncounterAskTags(actNumber, effectiveRole, variant),
+      counterTags: getEncounterAskTags(actNumber, effectiveRole, variant),
       ...(affixes.length > 0 ? { affixes: [...affixes] } : {}),
       ...(familyOverride?.traits && familyOverride.traits.length > 0 ? { traits: [...familyOverride.traits] } : {}),
       ...(familyOverride?.family ? { family: familyOverride.family } : {}),
@@ -679,9 +820,11 @@
       templateId: `act_${actNumber}_${actSeed.boss.id}_boss`,
       name: bossName,
       maxLife: bossScale.life,
-      intents: buildBossIntentSet(actNumber, bossScale, bossName, bossId),
+      intents: buildBossIntentSet(actNumber, bossScale, bossName, bossId).map((intent: EnemyIntent) => annotateIntent(intent)),
       role: "boss",
       variant: "boss",
+      askTags: getEncounterAskTags(actNumber, "boss", "boss", bossId),
+      counterTags: getEncounterAskTags(actNumber, "boss", "boss", bossId),
     };
   }
 

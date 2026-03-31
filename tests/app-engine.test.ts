@@ -116,22 +116,15 @@ test("safe-zone services can heal, refill, and change mercenary contracts withou
   let quartermasterSurgery = browserWindow.ROUGE_TOWN_SERVICES
     .listActions(content, state.run, state.profile)
     .find((action: TownAction) => action.id === "quartermaster_deck_surgery_locked");
-  assert.ok(quartermasterSurgery);
+  assert.equal(quartermasterSurgery, undefined);
 
   const blackPit = state.run.acts[0]?.zones?.find((zone) => zone.title === "Black Pit");
   assert.ok(blackPit);
   blackPit.cleared = true;
-
-  const deckBeforeSurgery = state.run.deck.length;
   quartermasterSurgery = browserWindow.ROUGE_TOWN_SERVICES
     .listActions(content, state.run, state.profile)
     .find((action: TownAction) => action.id.startsWith("quartermaster_deck_surgery_") && !action.disabled);
-  assert.ok(quartermasterSurgery);
-
-  result = appEngine.useTownAction(state, quartermasterSurgery.id);
-  assert.equal(result.ok, true);
-  assert.equal(state.run.deck.length, deckBeforeSurgery - 1);
-  assert.equal(state.run.town.quartermasterDeckSurgeryUsed, true);
+  assert.equal(quartermasterSurgery, undefined);
 
   // Kill current mercenary, then revive via town service (act-filtered: only act mercs available)
   state.run.mercenary.currentLife = 0;

@@ -155,6 +155,8 @@
     const rect = cardEl.getBoundingClientRect();
     if (rect.width < 20 || rect.height < 20) { return; }
 
+    document.querySelectorAll(".fan-card--fx-clone").forEach((existing) => existing.remove());
+
     const clone = cardEl.cloneNode(true) as HTMLElement;
     if (
       !clone ||

@@ -1,13 +1,10 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-
-  const ACT_ENVIRONMENT_MAP: Record<number, string> = {
-    1: "./assets/curated/combat-backgrounds/desert.webp",
-    2: "./assets/curated/combat-backgrounds/jungle.webp",
-    3: "./assets/curated/combat-backgrounds/hell.webp",
-    4: "./assets/curated/combat-backgrounds/mountain.webp",
-    5: "./assets/curated/combat-backgrounds/worldstone_keep.webp",
-  };
+  const actVisuals = (runtimeWindow as Window & {
+    __ROUGE_ACT_VISUAL_ASSETS: {
+      getEnvironmentSrc(actNumber: number): string;
+    };
+  }).__ROUGE_ACT_VISUAL_ASSETS;
 
   function renderStat(label: string, value: string | number, escapeHtml: (value: unknown) => string): string {
     return `
@@ -41,7 +38,7 @@
 
   function getBackdrop(run: RunState): string {
     const actNumber = Math.max(1, Math.min(5, Number(run.actNumber) || 1));
-    return ACT_ENVIRONMENT_MAP[actNumber] || ACT_ENVIRONMENT_MAP[1];
+    return actVisuals.getEnvironmentSrc(actNumber);
   }
 
   function getOutcomeCopy(run: RunState, victory: boolean): string {
@@ -104,7 +101,7 @@
                 <strong class="run-summary-chip__value">${escapeHtml(`Lv.${run.level}`)}</strong>
               </div>
               <div class="run-summary-chip">
-                <span class="run-summary-label">Treasury</span>
+                <span class="run-summary-label">Gold</span>
                 <strong class="run-summary-chip__value">${escapeHtml(`${run.gold}g`)}</strong>
               </div>
             </div>
@@ -146,22 +143,26 @@
                   { label: "Outcome", value: victory ? "Victory" : "Defeat" },
                   { label: "Acts", value: actsCleared },
                   { label: "Bosses", value: bossesDefeated },
+                  { label: "Final Gold", value: `${run.gold}g` },
+                ], escapeHtml, { className: "trail" })}
+                ${renderSummaryCard("Road Tally", "Campaign Pace", [
                   { label: "Zones", value: zonesCleared },
                   { label: "Encounters", value: encountersCleared },
-                  { label: "Final Gold", value: `${run.gold}g` },
-                ], escapeHtml, { className: "wide" })}
+                  { label: "Deck Size", value: run.deck.length },
+                  { label: "XP Gained", value: run.summary.xpGained },
+                ], escapeHtml, { className: "road" })}
                 ${renderSummaryCard("Growth", "Lasting Gain", [
                   { label: "Skill Pts", value: run.summary.skillPointsEarned },
                   { label: "Class Pts", value: run.summary.classPointsEarned },
                   { label: "Attr Pts", value: run.summary.attributePointsEarned },
                   { label: "Training Ranks", value: run.summary.trainingRanksGained },
-                ], escapeHtml)}
+                ], escapeHtml, { className: "growth" })}
                 ${renderSummaryCard("Recovered Cache", "Spoils", [
                   { label: "Gold", value: run.summary.goldGained },
                   { label: "Runewords", value: run.summary.runewordsForged },
                   { label: "Unique Finds", value: uniqueItemsFound },
-                  { label: "Encounters", value: encountersCleared },
-                ], escapeHtml, { className: "muted" })}
+                  { label: "Final Level", value: `Lv.${run.level}` },
+                ], escapeHtml, { className: "spoils" })}
               </div>
 
               <div class="run-summary-report__footer">

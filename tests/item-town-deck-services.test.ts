@@ -65,13 +65,13 @@ test("buildBlacksmithActions returns at least one action", () => {
   }
 });
 
-test("buildBlacksmithActions shows no-evolutions placeholder when none available", () => {
+test("buildBlacksmithActions shows no-forge-work placeholder when none available", () => {
   const { state, content, deckServices } = createRunState();
   // Wipe deck to something non-evolvable
   state.run.deck = ["nonexistent_card"];
   const actions = deckServices.buildBlacksmithActions(state.run, content);
   assert.ok(actions.length >= 1);
-  const placeholder = actions.find((a: TownAction) => a.id === "blacksmith_no_evolutions");
+  const placeholder = actions.find((a: TownAction) => a.id === "blacksmith_no_forge_work");
   assert.ok(placeholder);
   assert.equal(placeholder.disabled, true);
 });
@@ -92,6 +92,39 @@ test("applyBlacksmithAction rejects when gold is insufficient", () => {
     assert.equal(result.ok, false);
     assert.ok(result.message.includes("gold"));
   }
+});
+
+test("applyBlacksmithAction refine replaces a card with its plus version", () => {
+  const { state, content, deckServices } = createRunState();
+  state.run.gold = 999;
+  state.run.deck.unshift("quick_slash");
+  const quickSlashCountBefore = state.run.deck.filter((cardId) => cardId === "quick_slash").length;
+  const result = deckServices.applyBlacksmithAction(state.run, content, "blacksmith_refine_quick_slash");
+  assert.equal(result.ok, true);
+  assert.ok(state.run.deck.includes("quick_slash_plus"));
+  assert.equal(state.run.deck.filter((cardId) => cardId === "quick_slash").length, quickSlashCountBefore - 1);
+});
+
+test("applyBlacksmithAction refine keeps class cards on their evolution path", () => {
+  const { state, content, deckServices, browserWindow } = createRunState();
+  state.run.gold = 999;
+  state.run.actNumber = 2;
+  const evo = browserWindow.__ROUGE_SKILL_EVOLUTION;
+
+  assert.ok(content.cardCatalog.barbarian_bash_plus, "barbarian_bash should have a generated plus variant");
+
+  const refineResult = deckServices.applyBlacksmithAction(state.run, content, "blacksmith_refine_barbarian_bash");
+  assert.equal(refineResult.ok, true);
+  assert.ok(state.run.deck.includes("barbarian_bash_plus"));
+
+  const evolvable = evo.listEvolvableCards(state.run);
+  const refinedEvolution = evolvable.find((entry: { cardId: string; targetId: string; cost: number }) => entry.cardId === "barbarian_bash_plus");
+  assert.ok(refinedEvolution, "refined class cards should still be evolvable");
+  assert.equal(refinedEvolution?.targetId, "barbarian_stun_plus");
+
+  const evolveResult = deckServices.applyBlacksmithAction(state.run, content, "blacksmith_evolve_barbarian_bash_plus");
+  assert.equal(evolveResult.ok, true);
+  assert.ok(state.run.deck.includes("barbarian_stun_plus"));
 });
 
 // ── Sage ──
@@ -155,14 +188,29 @@ test("applySageAction purge increments sagePurgeCount", () => {
 });
 
 test("applySageAction transform replaces a card in deck", () => {
-  const { state, content, deckServices } = createRunState();
+  const { state, content, deckServices, browserWindow } = createRunState();
   state.run.gold = 999;
-  const cardToTransform = state.run.deck[0];
+  const evo = browserWindow.__ROUGE_SKILL_EVOLUTION;
+  const cardToTransform = state.run.deck.find((cardId) => Boolean(evo.getCardTree(cardId))) || state.run.deck[0];
   const deckBefore = state.run.deck.length;
   const result = deckServices.applySageAction(state.run, content, `sage_transform_${cardToTransform}`);
   assert.equal(result.ok, true);
   assert.equal(state.run.deck.length, deckBefore);
   assert.ok(result.message.includes("transformed") || result.message.includes("Transform"));
+});
+
+test("applySageAction transform stays within the same class family when possible", () => {
+  const { state, content, deckServices, browserWindow } = createRunState();
+  state.run.gold = 999;
+  const evo = browserWindow.__ROUGE_SKILL_EVOLUTION;
+  const classCard = state.run.deck.find((cardId) => Boolean(evo.getCardTree(cardId)));
+  assert.ok(classCard);
+  const deckIndex = state.run.deck.indexOf(classCard);
+  const result = deckServices.applySageAction(state.run, content, `sage_transform_${classCard}`);
+  assert.equal(result.ok, true);
+  const transformedCard = state.run.deck[deckIndex];
+  assert.notEqual(transformedCard, classCard);
+  assert.ok(transformedCard.startsWith("barbarian_"), "transform should stay within barbarian card space");
 });
 
 test("applySageAction transform is deterministic for the same run state", () => {

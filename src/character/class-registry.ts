@@ -55,6 +55,124 @@
       },
     },
   };
+  const TREE_METADATA: Record<string, { behaviorTags: CardBehaviorTag[]; counterTags: CounterTag[] }> = {
+    amazon_bow_and_crossbow: {
+      behaviorTags: ["pressure", "setup", "payoff"],
+      counterTags: ["anti_backline", "anti_summon", "telegraph_respect"],
+    },
+    amazon_javelin_and_spear: {
+      behaviorTags: ["pressure", "payoff", "scaling"],
+      counterTags: ["anti_summon", "anti_guard_break"],
+    },
+    amazon_passive_and_magic: {
+      behaviorTags: ["salvage", "mitigation", "scaling", "protection"],
+      counterTags: ["anti_attrition", "anti_backline"],
+    },
+    assassin_martial_arts: {
+      behaviorTags: ["pressure", "payoff", "conversion"],
+      counterTags: ["anti_guard_break", "telegraph_respect"],
+    },
+    assassin_shadow_disciplines: {
+      behaviorTags: ["mitigation", "salvage", "disruption", "protection"],
+      counterTags: ["anti_control", "anti_tax", "anti_attrition"],
+    },
+    assassin_traps: {
+      behaviorTags: ["setup", "payoff", "scaling", "tax"],
+      counterTags: ["anti_summon", "anti_backline", "anti_support_disruption"],
+    },
+    barbarian_combat_skills: {
+      behaviorTags: ["pressure", "payoff", "conversion"],
+      counterTags: ["anti_guard_break", "telegraph_respect"],
+    },
+    barbarian_combat_masteries: {
+      behaviorTags: ["mitigation", "scaling", "support"],
+      counterTags: ["anti_attrition", "anti_control"],
+    },
+    barbarian_warcries: {
+      behaviorTags: ["tax", "disruption", "salvage", "protection"],
+      counterTags: ["anti_summon", "anti_support_disruption", "anti_control"],
+    },
+    druid_elemental: {
+      behaviorTags: ["setup", "payoff", "pressure", "scaling"],
+      counterTags: ["anti_summon", "anti_backline"],
+    },
+    druid_shape_shifting: {
+      behaviorTags: ["pressure", "mitigation", "conversion"],
+      counterTags: ["anti_attrition", "anti_guard_break"],
+    },
+    druid_summoning: {
+      behaviorTags: ["setup", "protection", "scaling", "salvage"],
+      counterTags: ["anti_attrition", "anti_backline", "anti_control"],
+    },
+    necromancer_curses: {
+      behaviorTags: ["tax", "disruption", "support", "conversion"],
+      counterTags: ["anti_support_disruption", "anti_attrition", "anti_guard_break"],
+    },
+    necromancer_poison_and_bone: {
+      behaviorTags: ["pressure", "payoff", "setup"],
+      counterTags: ["anti_backline", "anti_attrition"],
+    },
+    necromancer_summoning: {
+      behaviorTags: ["setup", "protection", "scaling"],
+      counterTags: ["anti_attrition", "anti_control", "anti_summon"],
+    },
+    paladin_combat_skills: {
+      behaviorTags: ["pressure", "mitigation", "payoff"],
+      counterTags: ["anti_guard_break", "telegraph_respect"],
+    },
+    paladin_offensive_auras: {
+      behaviorTags: ["support", "setup", "payoff", "scaling"],
+      counterTags: ["anti_summon", "anti_fire_pressure"],
+    },
+    paladin_defensive_auras: {
+      behaviorTags: ["mitigation", "protection", "support", "conversion"],
+      counterTags: ["anti_attrition", "anti_fire_pressure", "anti_control"],
+    },
+    sorceress_cold: {
+      behaviorTags: ["setup", "disruption", "mitigation", "payoff"],
+      counterTags: ["telegraph_respect", "anti_backline", "anti_fire_pressure"],
+    },
+    sorceress_fire: {
+      behaviorTags: ["pressure", "payoff", "scaling"],
+      counterTags: ["anti_summon", "anti_guard_break"],
+    },
+    sorceress_lightning: {
+      behaviorTags: ["pressure", "salvage", "disruption", "payoff"],
+      counterTags: ["anti_backline", "anti_support_disruption", "anti_lightning_pressure"],
+    },
+  };
+
+  function getTreeMetadata(treeId: string, archetypeId: string) {
+    const exact = TREE_METADATA[treeId];
+    if (exact) {
+      return {
+        behaviorTags: [...exact.behaviorTags],
+        counterTags: [...exact.counterTags],
+      };
+    }
+    if (archetypeId === TREE_ARCHETYPES.arcane.id) {
+      return {
+        behaviorTags: ["setup", "payoff", "scaling"],
+        counterTags: ["anti_backline", "anti_support_disruption"],
+      };
+    }
+    if (archetypeId === TREE_ARCHETYPES.support.id) {
+      return {
+        behaviorTags: ["mitigation", "support", "conversion"],
+        counterTags: ["anti_attrition", "anti_control"],
+      };
+    }
+    if (archetypeId === TREE_ARCHETYPES.command.id) {
+      return {
+        behaviorTags: ["protection", "salvage", "scaling"],
+        counterTags: ["anti_summon", "anti_support_disruption"],
+      };
+    }
+    return {
+      behaviorTags: ["pressure", "payoff"],
+      counterTags: ["anti_guard_break"],
+    };
+  }
 
   function getClassList(seedBundle: SeedBundle) {
     return Array.isArray(seedBundle?.classes?.classes) ? seedBundle.classes.classes : [];
@@ -151,6 +269,7 @@
                 name: tree.name,
                 archetypeId: archetype.id,
                 summary: archetype.summary,
+                ...getTreeMetadata(tree.id, archetype.id),
                 bonusPerRank: { ...(archetype.bonusPerRank || {}) },
                 maxRank: skills.length,
                 unlockThreshold: Math.max(1, toNumber(archetype.unlockThreshold, 2)),

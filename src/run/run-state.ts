@@ -29,9 +29,15 @@
   function createDefaultClassProgression(): RunClassProgressionState {
     return {
       favoredTreeId: "",
+      primaryTreeId: "",
+      secondaryUtilityTreeId: "",
+      specializationStage: "exploratory",
       treeRanks: {},
       unlockedSkillIds: [],
       archetypeScores: {},
+      offTreeUtilityCount: 0,
+      offTreeDamageCount: 0,
+      counterCoverageTags: [],
     };
   }
 

@@ -93,7 +93,8 @@
     );
   }
 
-  function buildQuartermasterDeckSurgeryActions(run: RunState, content: GameContent): TownAction[] {
+  // Kept local until the quartermaster surgery bench is wired into town actions.
+  function _buildQuartermasterDeckSurgeryActions(run: RunState, content: GameContent): TownAction[] {
     const unlocked = hasQuartermasterDeckSurgeryUnlock(run);
     if (!unlocked) {
       return [{
@@ -325,7 +326,6 @@
     return [
       buildHealerAction(run, content),
       buildQuartermasterAction(run),
-      ...buildQuartermasterDeckSurgeryActions(run, content),
       ...progressionActions,
       ...itemActions,
       ...blacksmithActions,
@@ -371,28 +371,6 @@
       return { ok: true, message: "Belt refilled." };
     }
 
-    if (actionId.startsWith("quartermaster_deck_surgery_")) {
-      const cardId = actionId.replace("quartermaster_deck_surgery_", "");
-      if (!hasQuartermasterDeckSurgeryUnlock(run)) {
-        return { ok: false, message: "Clear Black Pit or Ashfall Hamlet before the quartermaster can offer deck surgery." };
-      }
-      if (run.town.quartermasterDeckSurgeryUsed) {
-        return { ok: false, message: "The quartermaster has already used this deck cut for the current expedition." };
-      }
-      if (run.deck.length <= 5) {
-        return { ok: false, message: "Deck is at minimum size." };
-      }
-      const deckIndex = run.deck.indexOf(cardId);
-      if (deckIndex < 0) {
-        return { ok: false, message: "Card not found in deck." };
-      }
-
-      run.deck.splice(deckIndex, 1);
-      run.town.quartermasterDeckSurgeryUsed = true;
-      const card = content.cardCatalog[cardId];
-      return { ok: true, message: `${card?.title || cardId} excised from the deck manifest.` };
-    }
-
     if (actionId.startsWith("progression_spend_")) {
       return runtimeWindow.ROUGE_RUN_FACTORY.applyProgressionAction(run, actionId, content);
     }
@@ -412,6 +390,14 @@
     }
 
     if (actionId.startsWith("blacksmith_evolve_")) {
+      const deckServices = runtimeWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
+      if (!deckServices) {
+        return { ok: false, message: "Deck services not available." };
+      }
+      return deckServices.applyBlacksmithAction(run, content, actionId);
+    }
+
+    if (actionId.startsWith("blacksmith_refine_")) {
       const deckServices = runtimeWindow.__ROUGE_ITEM_TOWN_DECK_SERVICES;
       if (!deckServices) {
         return { ok: false, message: "Deck services not available." };

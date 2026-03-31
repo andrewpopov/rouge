@@ -40,7 +40,7 @@ test("getEnemyIcon returns a path for enemy template IDs", () => {
   for (const templateId of templateIds) {
     const icon = assets.getEnemyIcon(templateId);
     assert.ok(icon, `should return an icon for ${templateId}`);
-    assert.ok(icon.includes(".png") || icon.includes(".svg"), `icon should be an image: ${icon}`);
+    assert.ok(icon.includes(".webp") || icon.includes(".png") || icon.includes(".svg"), `icon should be an image: ${icon}`);
   }
 });
 

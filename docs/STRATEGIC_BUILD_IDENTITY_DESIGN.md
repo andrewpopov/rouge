@@ -1,9 +1,10 @@
 # Strategic Build Identity Design
 
-_Snapshot: 2026-03-28_
+_Snapshot: 2026-03-31_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
+- Use `DECKBUILDER_COMBAT_MODEL.md` for the high-level hybrid gameplay model.
 - Use this document for target-state strategy design: build identity, deck pressure, boss asks, and run-shaping decisions.
 - Use `STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md` for the concrete modification plan.
 - Use `CLASS_STRATEGY_GUIDE_SYSTEM.md` and `docs/strategy-guides/*.md` for per-class guide-source material.
@@ -25,25 +26,50 @@ The dark-fantasy ARPG theme changes the surface area, not the goal. Rouge should
 
 ## External Strategic Read
 
-Based on online reviews of _Slay the Spire_ and _Monster Train_, the strategic pressure in those games comes from a few repeatable traits.
+Rouge should intentionally split its references instead of treating _Slay the Spire_ and _Monster Train_ as the same kind of model.
 
 ### What _Slay the Spire_ gets right
 
-Inference from the PC Gamer review coverage:
+Primary design read:
+
+- Anthony Giovannetti's GDC talk and notes on enemy intent, hand tension, and balance iteration
 
 - A run is defined by synergy, not by collecting individually strong cards.
 - Lean decks make every draft choice matter; adding the wrong card is a real cost.
 - Tactical turns have strategic consequences because enemy intents are visible, healing is limited, and every point of damage taken can hurt future fights.
 - Card removal, upgrades, and route choices matter because they shape whether the deck draws its important pieces often enough.
 
+Rouge translation:
+
+- _Slay the Spire_ is the better reference for combat turns, hand pressure, energy pressure, and readable enemy asks.
+
 ### What _Monster Train_ gets right
 
-Inference from the PC Gamer review coverage:
+Primary design read:
+
+- official _Monster Train_ game materials and feature descriptions
+- champion or clan reinforcement, merchant upgrades, and route-layer planning
 
 - Winning decks are planned engines, not accidental piles.
 - The best builds usually revolve around one or two centerpiece interactions with support pieces that improve consistency.
 - Strategy exists at multiple levels at once: run pathing, upgrade routing, sequencing, and battlefield planning.
 - Bosses have enough health and enough specific asks that players must plan toward them instead of assuming raw stats will carry the run.
+
+Rouge translation:
+
+- _Monster Train_ is the better reference for between-fight reinforcement, merchant pressure, and turning a few key cards into exceptional pieces.
+
+### What Diablo II contributes
+
+- class fantasy
+- three-tree identity
+- specialization pressure
+- utility splash
+- repeat-run boss and matchup preparation
+
+Rouge translation:
+
+- D2 should provide the class shape and preparation mindset, not override the fact that Rouge is a deckbuilder in actual play.
 
 ## Rouge Translation
 
@@ -58,6 +84,12 @@ Rouge should apply those same strategic ideas through Blood Rogue systems.
 - Bosses are act-level exams for the build the player has assembled.
 
 The player should feel like they are not just "playing a class." They are building a version of that class that has a game plan.
+
+The clean summary is:
+
+- _Slay the Spire_ for turn tension
+- _Monster Train_ for upgrade and reinforcement structure
+- Diablo II for specialization and matchup-prep identity
 
 ## Design Principles
 

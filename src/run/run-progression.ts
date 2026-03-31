@@ -86,8 +86,14 @@
     if (!definition) {
       run.progression.classProgression.unlockedSkillIds = [];
       run.progression.classProgression.favoredTreeId = "";
+      run.progression.classProgression.primaryTreeId = "";
+      run.progression.classProgression.secondaryUtilityTreeId = "";
+      run.progression.classProgression.specializationStage = "exploratory";
       run.progression.classProgression.treeRanks = {};
       run.progression.classProgression.archetypeScores = {};
+      run.progression.classProgression.offTreeUtilityCount = 0;
+      run.progression.classProgression.offTreeDamageCount = 0;
+      run.progression.classProgression.counterCoverageTags = [];
       return;
     }
 
@@ -152,6 +158,9 @@
     const training = run.progression?.training || createDefaultTraining();
     const definition = getClassProgression(content, run.classId);
     const favoredTreeId = run.progression?.classProgression?.favoredTreeId || "";
+    const primaryTreeId = run.progression?.classProgression?.primaryTreeId || "";
+    const secondaryUtilityTreeId = run.progression?.classProgression?.secondaryUtilityTreeId || "";
+    const specializationStage = run.progression?.classProgression?.specializationStage || "exploratory";
     const favoredTree = (definition?.trees || []).find((tree: RuntimeClassTreeDefinition) => tree.id === favoredTreeId) || null;
     const treeSummaries = (definition?.trees || []).map((tree: RuntimeClassTreeDefinition) => {
       const rank = getTreeRank(run, tree.id);
@@ -188,6 +197,14 @@
       trainingRanks: getTrainingRankCount(training),
       favoredTreeId,
       favoredTreeName: favoredTree?.name || "",
+      primaryTreeId,
+      secondaryUtilityTreeId,
+      specializationStage,
+      offTreeUtilityCount: toBonusValue(run.progression?.classProgression?.offTreeUtilityCount),
+      offTreeDamageCount: toBonusValue(run.progression?.classProgression?.offTreeDamageCount),
+      counterCoverageTags: Array.isArray(run.progression?.classProgression?.counterCoverageTags)
+        ? [...run.progression.classProgression.counterCoverageTags]
+        : [],
       dominantArchetypeId: archetypeSummary.primary?.archetypeId || "",
       dominantArchetypeLabel: archetypeSummary.primary?.label || "",
       dominantArchetypeScore: toBonusValue(archetypeSummary.primary?.score),

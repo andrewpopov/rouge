@@ -3,7 +3,7 @@ import {
   type RunProgressionSimulationOptions,
 } from "./run-progression-simulator";
 
-type EncounterBandKind = "boss" | "elite" | "battle";
+type EncounterBandKind = "boss" | "miniboss" | "elite" | "battle";
 type PowerBandStatus = "below_target" | "on_target" | "above_target";
 
 export interface PowerBandRange {
@@ -59,7 +59,8 @@ export type PowerCurveReportOptions = RunProgressionSimulationOptions;
 export function getDefaultPowerBands(): Record<EncounterBandKind, PowerBandRange> {
   return {
     boss: { min: 1.1, max: 1.4 },
-    elite: { min: 1.4, max: 1.8 },
+    miniboss: { min: 1.4, max: 1.8 },
+    elite: { min: 1.8, max: 2.4 },
     battle: { min: 2.0, max: 3.0 },
   };
 }

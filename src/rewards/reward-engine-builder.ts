@@ -1,5 +1,7 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const registryWindow = runtimeWindow as Window & Record<string, unknown>;
   const { ZONE_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const {
     pickProgressionChoice,
@@ -9,136 +11,17 @@
   } = runtimeWindow.__ROUGE_REWARD_ENGINE_PROGRESSION;
   const archetypes = runtimeWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES;
   const strategies = runtimeWindow.__ROUGE_REWARD_ENGINE_BUILDER_STRATEGIES;
+  const dataApi = registryWindow.__ROUGE_REWARD_ENGINE_BUILDER_DATA as {
+    BOON_POOLS: Record<string, { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }[]>;
+  };
 
   function getDeckUpgradeThreshold(actNumber: number) { return 12 + Math.max(0, actNumber) * 2; }
   function getDeckSoftCardCap(actNumber: number) { return 14 + Math.max(0, actNumber) * 2; }
   function getDeckHardCardCap(actNumber: number) { return 18 + Math.max(0, actNumber) * 3; }
 
-  const BOON_POOLS: Record<string, { id: string; title: string; subtitle: string; description: string; effects: RewardChoiceEffect[] }[]> = {
-    opening: [
-      {
-        id: "field_training",
-        title: "Field Training",
-        subtitle: "Hero Boon",
-        description: "Raise the hero's max Life by 6 and recover that amount immediately.",
-        effects: [{ kind: "hero_max_life", value: 6 }],
-      },
-      {
-        id: "supply_cache",
-        title: "Supply Cache",
-        subtitle: "Run Economy",
-        description: "Take extra gold and top off one potion charge for the road ahead.",
-        effects: [
-          { kind: "gold_bonus", value: 18 },
-          { kind: "refill_potions", value: 1 },
-        ],
-      },
-      {
-        id: "mercenary_drill",
-        title: "Mercenary Drill",
-        subtitle: "Companion Boon",
-        description: "Harden your mercenary with +1 attack and +4 max Life.",
-        effects: [
-          { kind: "mercenary_attack", value: 1 },
-          { kind: "mercenary_max_life", value: 4 },
-        ],
-      },
-    ],
-    branchBattle: [
-      {
-        id: "battlefield_rites",
-        title: "Battlefield Rites",
-        subtitle: "Hero Boon",
-        description: "Raise the hero's max Life by 8 and recover that amount immediately.",
-        effects: [{ kind: "hero_max_life", value: 8 }],
-      },
-      {
-        id: "war_chest",
-        title: "War Chest",
-        subtitle: "Run Economy",
-        description: "Take extra gold and refill one potion charge.",
-        effects: [
-          { kind: "gold_bonus", value: 26 },
-          { kind: "refill_potions", value: 1 },
-        ],
-      },
-      {
-        id: "escort_contract",
-        title: "Escort Contract",
-        subtitle: "Companion Boon",
-        description: "Raise mercenary attack by 1 and max Life by 6.",
-        effects: [
-          { kind: "mercenary_attack", value: 1 },
-          { kind: "mercenary_max_life", value: 6 },
-        ],
-      },
-    ],
-    branchMiniboss: [
-      {
-        id: "veteran_instinct",
-        title: "Veteran Instinct",
-        subtitle: "Hero Boon",
-        description: "Raise the hero's max Life by 10 and recover that amount immediately.",
-        effects: [{ kind: "hero_max_life", value: 10 }],
-      },
-      {
-        id: "belt_satchel",
-        title: "Belt Satchel",
-        subtitle: "Utility Boon",
-        description: "Increase belt capacity by 1 and immediately gain 1 potion charge.",
-        effects: [
-          { kind: "belt_capacity", value: 1 },
-          { kind: "refill_potions", value: 1 },
-        ],
-      },
-      {
-        id: "mercenary_veterancy",
-        title: "Mercenary Veterancy",
-        subtitle: "Companion Boon",
-        description: "Raise mercenary attack by 2 and max Life by 6.",
-        effects: [
-          { kind: "mercenary_attack", value: 2 },
-          { kind: "mercenary_max_life", value: 6 },
-        ],
-      },
-    ],
-    boss: [
-      {
-        id: "horadric_satchel",
-        title: "Horadric Satchel",
-        subtitle: "Major Boon",
-        description: "Increase belt capacity by 1 and immediately refill 2 potion charges.",
-        effects: [
-          { kind: "belt_capacity", value: 1 },
-          { kind: "refill_potions", value: 2 },
-        ],
-      },
-      {
-        id: "inner_focus",
-        title: "Inner Focus",
-        subtitle: "Major Boon",
-        description: "Raise max Energy by 1 and improve potion healing by 2.",
-        effects: [
-          { kind: "hero_max_energy", value: 1 },
-          { kind: "hero_potion_heal", value: 2 },
-        ],
-      },
-      {
-        id: "warband_command",
-        title: "Warband Command",
-        subtitle: "Major Boon",
-        description: "Raise hero max Life by 12 and mercenary attack by 2 and max Life by 8.",
-        effects: [
-          { kind: "hero_max_life", value: 12 },
-          { kind: "mercenary_attack", value: 2 },
-          { kind: "mercenary_max_life", value: 8 },
-        ],
-      },
-    ],
-  };
-
   function getChoiceSeed(run: RunState, zone: ZoneState, actNumber: number, encounterNumber: number) {
-    return actNumber * 41 + encounterNumber * 17 + run.deck.length * 7 + zone.title.length;
+    const runSeed = Number(run.seed || 1) >>> 0;
+    return (runSeed * 131 + actNumber * 41 + encounterNumber * 17 + run.deck.length * 7 + zone.title.length) >>> 0;
   }
 
   function getPoolCandidates(pool: string[], usedCardIds: Set<string>, content: GameContent) {
@@ -208,9 +91,151 @@
     return pickPreferredCardId(pool, seed, usedCardIds, content, preferredTrees, supportTrees);
   }
 
+  function getTreeCardCounts(run: RunState) {
+    const counts: Record<string, number> = {};
+    (Array.isArray(run.deck) ? run.deck : []).forEach((cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      if (!treeId) {
+        return;
+      }
+      counts[treeId] = Number(counts[treeId] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function getStableSeedFromText(text: string) {
+    return String(text || "").split("").reduce((sum: number, char: string) => sum + char.charCodeAt(0), 0);
+  }
+
+  function pickExploratoryCardId(
+    pool: string[],
+    seed: number,
+    usedCardIds: Set<string>,
+    content: GameContent,
+    run: RunState,
+    preferredRoles: CardRewardRole[],
+    excludedTrees: string[] = []
+  ) {
+    const candidates = getPoolCandidates(pool, usedCardIds, content);
+    if (candidates.length === 0) {
+      return "";
+    }
+
+    const excludedTreeSet = new Set((Array.isArray(excludedTrees) ? excludedTrees : []).filter(Boolean));
+    const treeCounts = getTreeCardCounts(run);
+    const candidatesByTree = candidates.reduce((map, cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId) || "neutral";
+      if (excludedTreeSet.has(treeId)) {
+        return map;
+      }
+      if (!map[treeId]) {
+        map[treeId] = [];
+      }
+      map[treeId].push(cardId);
+      return map;
+    }, {} as Record<string, string[]>);
+
+    const treeIds = Object.keys(candidatesByTree);
+    const rankedTrees = treeIds.sort((left, right) => {
+      const countDiff = Number(treeCounts[left] || 0) - Number(treeCounts[right] || 0);
+      if (countDiff !== 0) {
+        return countDiff;
+      }
+      const leftSeed = (getStableSeedFromText(left) + seed) % 97;
+      const rightSeed = (getStableSeedFromText(right) + seed) % 97;
+      if (leftSeed !== rightSeed) {
+        return leftSeed - rightSeed;
+      }
+      return left.localeCompare(right);
+    });
+
+    for (let roleIndex = 0; roleIndex < preferredRoles.length; roleIndex += 1) {
+      const role = preferredRoles[roleIndex];
+      for (let treeIndex = 0; treeIndex < rankedTrees.length; treeIndex += 1) {
+        const treeId = rankedTrees[treeIndex];
+        const roleMatches = candidatesByTree[treeId].filter((cardId: string) => archetypes.getCardRewardRole(cardId, content) === role);
+        if (roleMatches.length === 0) {
+          continue;
+        }
+        return roleMatches[(seed + getStableSeedFromText(treeId) + roleIndex) % roleMatches.length];
+      }
+    }
+
+    for (let treeIndex = 0; treeIndex < rankedTrees.length; treeIndex += 1) {
+      const treeId = rankedTrees[treeIndex];
+      const treeCandidates = candidatesByTree[treeId];
+      if (treeCandidates.length > 0) {
+        return treeCandidates[(seed + getStableSeedFromText(treeId)) % treeCandidates.length];
+      }
+    }
+
+    return candidates[seed % candidates.length];
+  }
+
   function buildRoleSubtitle(buildPath: ReturnType<typeof archetypes.getRewardPathPreference>, role: CardRewardRole) {
     const roleLabel = archetypes.CARD_ROLE_LABELS[role] || archetypes.CARD_ROLE_LABELS.engine;
     return buildPath ? `${buildPath.label} ${roleLabel}` : `${roleLabel} Skill`;
+  }
+
+  function getTreeBiasForRewardSlot(
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>,
+    actNumber: number,
+    mode: "primary" | "support" | "fallback",
+    needsPrimaryReinforcement = false
+  ) {
+    if (!buildPath) {
+      return { preferredTrees: [] as string[], supportTrees: [] as string[] };
+    }
+
+    const stage = buildPath.specializationStage || "exploratory";
+    if (stage === "exploratory" && actNumber <= 1) {
+      return { preferredTrees: [] as string[], supportTrees: [] as string[] };
+    }
+
+    if (mode === "primary") {
+      if (stage === "candidate" && actNumber <= 1) {
+        return {
+          preferredTrees: [...buildPath.primaryTrees],
+          supportTrees: [],
+        };
+      }
+      return {
+        preferredTrees: [...buildPath.primaryTrees],
+        supportTrees: [...buildPath.supportTrees],
+      };
+    }
+
+    if (mode === "support") {
+      const preferredTrees =
+        !needsPrimaryReinforcement && buildPath.supportTrees.length > 0
+          ? [...buildPath.supportTrees]
+          : [...buildPath.primaryTrees];
+      const supportTrees = needsPrimaryReinforcement
+        ? [...buildPath.supportTrees]
+        : [...buildPath.primaryTrees];
+      if (stage === "candidate" && actNumber <= 1) {
+        return {
+          preferredTrees,
+          supportTrees: [],
+        };
+      }
+      return {
+        preferredTrees,
+        supportTrees,
+      };
+    }
+
+    if (stage === "candidate" && actNumber <= 1) {
+      return {
+        preferredTrees: [...buildPath.primaryTrees],
+        supportTrees: [],
+      };
+    }
+
+    return {
+      preferredTrees: [...buildPath.primaryTrees],
+      supportTrees: [...buildPath.supportTrees],
+    };
   }
 
   function countCardsInTrees(run: RunState, trees: string[] = []) {
@@ -221,6 +246,42 @@
       const treeId = archetypes.getCardTree(cardId);
       return treeId && trees.includes(treeId) ? sum + 1 : sum;
     }, 0);
+  }
+
+  function filterPoolForSpecialization(
+    cardIds: string[],
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>,
+    mode: "primary" | "support" | "pivot"
+  ) {
+    if (!buildPath || cardIds.length === 0) {
+      return [...cardIds];
+    }
+    const stage = buildPath.specializationStage || "exploratory";
+    if (stage === "exploratory") {
+      return [...cardIds];
+    }
+    const filtered = cardIds.filter((cardId: string) => {
+      const card = content.cardCatalog[cardId];
+      const treeId = archetypes.getCardTree(cardId);
+      const splashRole = card?.splashRole || "primary_only";
+      const onPrimary = buildPath.primaryTrees.includes(treeId);
+      const onSupport = buildPath.supportTrees.includes(treeId);
+      if (onPrimary) {
+        return true;
+      }
+      if (mode === "primary") {
+        return stage === "candidate" && onSupport;
+      }
+      if (mode === "support") {
+        if (onSupport && splashRole !== "primary_only") {
+          return true;
+        }
+        return splashRole === "utility_splash_ok";
+      }
+      return splashRole !== "primary_only";
+    });
+    return filtered.length > 0 ? filtered : [...cardIds];
   }
 
   function getUpgradableCardIds(run: RunState, content: GameContent) {
@@ -283,7 +344,7 @@
   }
 
   function pickBoonChoice(zoneRole: string, seed: number, profile: ProfileState | null = null, actNumber: number = 1) {
-    const pool = (BOON_POOLS as Record<string, typeof BOON_POOLS.opening>)[zoneRole] || BOON_POOLS.opening;
+    const pool = dataApi.BOON_POOLS[zoneRole] || dataApi.BOON_POOLS.opening;
     const definition = pool[seed % pool.length];
     const scaledEffects = definition.effects.map((effect: RewardChoiceEffect) => {
       if (effect.kind === "gold_bonus") {
@@ -332,17 +393,18 @@
       content.rewardPools?.zoneRoleCards?.[zone.zoneRole] || [],
       content.rewardPools?.bossCards || [],
     ];
+    const fallbackBias = getTreeBiasForRewardSlot(buildPath, actNumber, "fallback");
 
     if (allowFallbackCards) {
       for (let poolIndex = 0; choices.length < 3 && poolIndex < fallbackPools.length; poolIndex += 1) {
-        const pool = fallbackPools[poolIndex];
+        const pool = filterPoolForSpecialization(fallbackPools[poolIndex], content, buildPath, "pivot");
         const cardId = pickPreferredCardId(
           pool,
           seed + poolIndex + choices.length,
           usedCardIds,
           content,
-          buildPath?.primaryTrees || [],
-          buildPath?.supportTrees || []
+          fallbackBias.preferredTrees,
+          fallbackBias.supportTrees
         );
         if (!cardId) {
           continue;
@@ -375,6 +437,8 @@
     const primaryCardCount = countCardsInTrees(run, buildPath?.primaryTrees || []);
     const supportCardCount = countCardsInTrees(run, buildPath?.supportTrees || []);
     const needsPrimaryReinforcement = Boolean(buildPath) && (primaryCardCount < 4 || primaryCardCount < supportCardCount);
+    const primaryBias = getTreeBiasForRewardSlot(buildPath, actNumber, "primary", needsPrimaryReinforcement);
+    const supportBias = getTreeBiasForRewardSlot(buildPath, actNumber, "support", needsPrimaryReinforcement);
     const preferredUpgradeCandidates = upgradableCardIds.filter((cardId: string) => {
       const tree = archetypes.getCardTree(cardId);
       if (needsPrimaryReinforcement) {
@@ -402,16 +466,33 @@
     });
     const progressionChoice = pickProgressionChoice(zone, seed + 3, run, actNumber, content, profile);
 
-    const firstCardPool = zone.kind === ZONE_KIND.BOSS ? [...bossPool, ...profilePool] : [...profilePool, ...zonePool];
-    const firstCardId = pickCardForRole(
-      firstCardPool,
-      seed,
-      usedCardIds,
+    const firstCardPool = filterPoolForSpecialization(
+      zone.kind === ZONE_KIND.BOSS || zone.kind === ZONE_KIND.MINIBOSS
+        ? [...bossPool, ...profilePool]
+        : [...profilePool, ...zonePool],
       content,
-      "engine",
-      buildPath?.primaryTrees || [],
-      buildPath?.supportTrees || []
+      buildPath,
+      "primary"
     );
+    const exploratoryOpen = !buildPath && actNumber <= 1;
+    const firstCardId = exploratoryOpen
+      ? pickExploratoryCardId(
+          firstCardPool,
+          seed,
+          usedCardIds,
+          content,
+          run,
+          ["engine", "support", "tech", "foundation"]
+        )
+      : pickCardForRole(
+          firstCardPool,
+          seed,
+          usedCardIds,
+          content,
+          "engine",
+          primaryBias.preferredTrees,
+          primaryBias.supportTrees
+        );
     const canOfferPrimaryCard = !hardCapCards;
     if (firstCardId && canOfferPrimaryCard) {
       usedCardIds.add(firstCardId);
@@ -452,22 +533,37 @@
       choices.push(pickBoonChoice(boonRole, seed + 9, profile, actNumber));
     }
 
-    const secondCardPool = zone.kind === ZONE_KIND.BOSS ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool];
+    const secondCardPool = filterPoolForSpecialization(
+      zone.kind === ZONE_KIND.BOSS ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool],
+      content,
+      buildPath,
+      "support"
+    );
     const canOfferSecondaryCard = zone.kind === ZONE_KIND.BOSS ? !hardCapCards : !softCapCards;
     if (choices.length < 3 && canOfferSecondaryCard) {
-      const secondaryPrimaryTrees = buildPath?.primaryTrees || [];
-      const secondarySupportTrees = buildPath?.supportTrees || [];
-      const supportPreferredTrees = needsPrimaryReinforcement ? secondaryPrimaryTrees : (secondarySupportTrees.length > 0 ? secondarySupportTrees : secondaryPrimaryTrees);
-      const supportFallbackTrees = needsPrimaryReinforcement ? secondarySupportTrees : secondaryPrimaryTrees;
-      let secondCardId = pickRoleScopedCardId(
-        secondCardPool,
-        seed + 5,
-        usedCardIds,
-        content,
-        "support",
-        supportPreferredTrees,
-        supportFallbackTrees
-      );
+      const secondaryPrimaryTrees = primaryBias.preferredTrees;
+      const secondarySupportTrees = supportBias.preferredTrees;
+      const supportPreferredTrees = supportBias.preferredTrees;
+      const supportFallbackTrees = supportBias.supportTrees;
+      let secondCardId = exploratoryOpen
+        ? pickExploratoryCardId(
+            secondCardPool,
+            seed + 5,
+            usedCardIds,
+            content,
+            run,
+            ["support", "tech", "engine", "foundation"],
+            firstCardId ? [archetypes.getCardTree(firstCardId) || ""] : []
+          )
+        : pickRoleScopedCardId(
+            secondCardPool,
+            seed + 5,
+            usedCardIds,
+            content,
+            "support",
+            supportPreferredTrees,
+            supportFallbackTrees
+          );
       if (!secondCardId) {
         secondCardId = pickRoleScopedCardId(
           secondCardPool,

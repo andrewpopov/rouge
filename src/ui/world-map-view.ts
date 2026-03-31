@@ -29,98 +29,97 @@
   const ACT_POSITIONS: Record<number, Record<string, [number, number]>> = {
     1: {
       // Mainline (left→right across the middle)
-      "town":              [7, 44],
-      "Blighted Moors":    [19, 44],
-      "Pale Fields":       [33, 44],
-      "Cairn Field":       [46, 44],
-      "Hollow Passage":    [58, 44],
-      "Gloamwood":         [72, 44],
-      "Drowning Marsh":    [86, 44],
+      "town":              [6, 47],
+      "Blighted Moors":    [18, 47],
+      "Pale Fields":       [34, 47],
+      "Cairn Field":       [50, 47],
+      "Hollow Passage":    [64, 47],
+      "Gloamwood":         [76, 47],
+      "Drowning Marsh":    [88, 47],
       // Monastery wrap (right→left along bottom)
-      "Monastery Gate":    [93, 68],
-      "Outer Abbey":       [80, 82],
-      "Gate Barracks":     [64, 80],
-      "Iron Cells":        [50, 80],
-      "Inner Cloister":    [37, 80],
-      "Black Chapel":      [25, 80],
-      "Abbey Vault":       [10, 80],
+      "Monastery Gate":    [93, 72],
+      "Outer Abbey":       [84, 86],
+      "Gate Barracks":     [67, 86],
+      "Iron Cells":        [50, 86],
+      "Inner Cloister":    [34, 86],
+      "Black Chapel":      [18, 86],
+      "Abbey Vault":       [9, 86],
       // Side branches (directly above their parent mainline zone)
-      [ZONE_NAME.BLACK_PIT]:         [19, 12],
-      "Graveyard Ridge":   [33, 12],
-      [ZONE_NAME.ASHFALL_HAMLET]:    [46, 12],
-      "Ruined Watchtower": [86, 12],
+      [ZONE_NAME.BLACK_PIT]:         [18, 16],
+      "Graveyard Ridge":   [34, 16],
+      [ZONE_NAME.ASHFALL_HAMLET]:    [50, 16],
+      "Ruined Watchtower": [88, 16],
     },
     2: {
       // Mainline (left→right across the middle)
-      "town":              [8, 46],
-      "Shale Flats":       [22, 46],
-      "Dust Hills":        [34, 46],
-      "Salt Oasis":        [47, 46],
-      "Sunken Archives":   [63, 46],
-      "Serpent Vaults":    [79, 46],
+      "town":              [7, 48],
+      "Shale Flats":       [23, 48],
+      "Dust Hills":        [38, 48],
+      "Salt Oasis":        [53, 48],
+      "Sunken Archives":   [69, 48],
+      "Serpent Vaults":    [85, 48],
       // Monastery-style wrap (left→right along bottom)
-      "Veiled Court":      [16, 76],
-      "Lower Court":       [30, 76],
-      "Star Archive":      [44, 76],
-      "Sandscript Canyon": [59, 76],
-      "Royal Vault":       [76, 76],
-      "Royal Sepulcher":   [90, 76],
+      "Veiled Court":      [14, 82],
+      "Lower Court":       [30, 82],
+      "Star Archive":      [46, 82],
+      "Sandscript Canyon": [62, 82],
+      "Royal Vault":       [79, 82],
+      "Royal Sepulcher":   [93, 82],
       // Side branches (upper row)
-      "Collapsed Cisterns": [8, 12],
-      "Buried Tomb Entries": [38, 13],
-      "Worm-Tunnels":      [56, 15],
+      "Collapsed Cisterns": [10, 18],
+      "Buried Tomb Entries": [38, 18],
+      "Worm-Tunnels":      [59, 19],
     },
     3: {
       // Upper mainline (left→right)
-      "town":              [7, 38],
-      "Widowwood":         [24, 38],
-      "Fever Marsh":       [42, 28],
-      "Hunter Canopy":     [60, 38],
-      "River Quarter":     [78, 38],
+      "town":              [6, 40],
+      "Widowwood":         [24, 40],
+      "Fever Marsh":       [43, 30],
+      "Hunter Canopy":     [62, 40],
+      "River Quarter":     [86, 38],
       // Lower mainline (right→left)
-      "Idol Market":       [72, 72],
-      "Flooded Processional": [52, 72],
-      "Temple Stairs":     [35, 72],
-      "Idol Court":        [20, 72],
-      "Corrupted Sanctum": [7, 74],
+      "Idol Market":       [75, 78],
+      "Flooded Processional": [53, 78],
+      "Temple Stairs":     [33, 78],
+      "Idol Court":        [16, 78],
+      "Corrupted Sanctum": [6, 80],
       // Side branches
-      "Spider Hollows":    [24, 10],
-      "Hunter Village":    [62, 10],
-      "Drowned Causeway":  [62, 86],
+      "Spider Hollows":    [23, 10],
+      "Hunter Village":    [64, 10],
+      "Drowned Causeway":  [84, 88],
     },
     4: {
       // Single row (left→right)
-      "town":              [8, 65],
-      "Burning Causeway":  [24, 65],
-      "Chained Bastion":   [40, 65],
-      "Demon Forge":       [56, 65],
-      "Black Gate":        [74, 65],
-      "Ashen Throne":      [92, 65],
+      "town":              [6, 68],
+      "Burning Causeway":  [24, 68],
+      "Chained Bastion":   [42, 68],
+      "Demon Forge":       [60, 68],
+      "Black Gate":        [78, 68],
+      "Ashen Throne":      [94, 68],
     },
     5: {
       // Top row (left→right)
-      "town":              [6, 26],
-      "Siege Walls":       [22, 26],
-      "Watchfire Ridge":   [42, 26],
-      "Tombs of the Fallen": [62, 26],
-      "Ancient Halls":     [84, 26],
-      // Bottom row (right→left)
-      "Glacial Tunnels":   [90, 66],
-      "Frost Scar":        [58, 72],
-      "The Ascent":        [32, 72],
-      "Summit Gate":       [10, 72],
-      // Lowest row (left→right)
-      "Summit Citadel":    [24, 90],
-      "Citadel Core":      [48, 90],
-      "Crown of Ruin":     [72, 88],
+      "town":              [5, 22],
+      "Siege Walls":       [23, 22],
+      "Watchfire Ridge":   [42, 22],
+      "Tombs of the Fallen": [60, 22],
+      "Ancient Halls":     [75, 20],
+      // Descent from the mainline into a single return row
+      "Glacial Tunnels":   [84, 60],
+      "Frost Scar":        [70, 76],
+      "The Ascent":        [57, 76],
+      "Summit Gate":       [44, 76],
+      "Summit Citadel":    [31, 76],
+      "Citadel Core":      [18, 80],
+      "Crown of Ruin":     [8, 74],
       // Side branches
-      "Icebound River":      [84, 8],
-      "White Drift Cavern":  [90, 50],
+      "Icebound River":      [91, 14],
+      "White Drift Cavern":  [93, 56],
       // Mourning Temple chain (from Frosthaven Keep, gated by Icebound River)
-      "Mourning Temple":     [22, 48],
-      "Sorrow Halls":        [42, 48],
-      "Ruin Halls":          [62, 48],
-      "Oathbreaker Vault":   [82, 48],
+      "Mourning Temple":     [16, 48],
+      "Sorrow Halls":        [33, 48],
+      "Ruin Halls":          [50, 48],
+      "Oathbreaker Vault":   [65, 48],
     },
   };
 
@@ -133,7 +132,7 @@
     5: new Set(["Mourning Temple"]),
   };
 
-  const EDGE_NODE_PADDING_PX = 4;
+  const EDGE_NODE_PADDING_PX = 2;
   const worldMapEdgeObservers = new WeakMap<HTMLElement, ResizeObserver>();
   const worldMapEdgeObserverReleases = new WeakMap<HTMLElement, () => void>();
 
@@ -155,9 +154,22 @@
     "Collapsed Cisterns",
     "Buried Tomb Entries",
     "Worm-Tunnels",
-    "Spider Hollows",
+    "River Quarter",
+    "Tombs of the Fallen",
+    "Oathbreaker Vault",
+    "Ancient Halls",
+    "White Drift Cavern",
+  ]);
+
+  const RIGHT_LABEL_ZONE_TITLES = new Set([
+    "Drowning Marsh",
     "Hunter Village",
+    "Drowned Causeway",
     "Icebound River",
+  ]);
+
+  const LEFT_LABEL_ZONE_TITLES = new Set([
+    "Spider Hollows",
   ]);
 
   /**
@@ -476,7 +488,14 @@
     const ariaLabel = !canClick ? `aria-label="${escapeHtml(zone.title)} — ${zone.status === "cleared" ? "cleared" : "locked"}"` : "";
 
     const kindClass = zone.kind !== "battle" ? `waypoint--${zone.kind}` : "";
-    const labelPlacementClass = TOP_LABEL_ZONE_TITLES.has(zone.title) ? "waypoint--label-top" : "";
+    let labelPlacementClass = "";
+    if (TOP_LABEL_ZONE_TITLES.has(zone.title)) {
+      labelPlacementClass = "waypoint--label-top";
+    } else if (RIGHT_LABEL_ZONE_TITLES.has(zone.title)) {
+      labelPlacementClass = "waypoint--label-right";
+    } else if (LEFT_LABEL_ZONE_TITLES.has(zone.title)) {
+      labelPlacementClass = "waypoint--label-left";
+    }
     const priorityClass = isPriority ? "waypoint--priority" : "";
     const progressMarkup = zone.encounterTotal > 0 && zone.status !== "cleared"
       ? `<span class="waypoint__progress">${zone.encountersCleared}/${zone.encounterTotal}</span>`
@@ -635,11 +654,11 @@
                 <strong class="actmap__stat-value">${escapeHtml(run.className)} Lv.${run.level}</strong>
               </div>
               <div class="actmap__stat-pill">
-                <span class="actmap__stat-label">Vitality</span>
+                <span class="actmap__stat-label">Life</span>
                 <strong class="actmap__stat-value">HP ${run.hero.currentLife}/${run.hero.maxLife}</strong>
               </div>
               <div class="actmap__stat-pill">
-                <span class="actmap__stat-label">Treasury</span>
+                <span class="actmap__stat-label">Gold</span>
                 <strong class="actmap__stat-value">${run.gold}g</strong>
               </div>
               <div class="actmap__stat-pill">
@@ -668,7 +687,7 @@
 
               <div class="actmap__canvas ${scrollOpen ? "actmap__canvas--scroll" : ""}">
                 <img class="actmap__bg"
-                     src="./assets/curated/act-maps/${actMapFile}.png"
+                     src="./assets/curated/act-maps/${actMapFile}.webp"
                      alt="${escapeHtml(run.actTitle)}"
                      draggable="false" />
 

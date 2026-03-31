@@ -108,9 +108,20 @@ test("triage command modifiers deepen support recovery scripts without changing 
 
 test("triage screen modifiers fortify support units while deepening their opening heal", () => {
   const { content, engine } = createHarness();
+  const customContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      triage_screen_probe: {
+        ...content.encounterCatalog.act_3_branch_bulwark,
+        id: "triage_screen_probe",
+        modifiers: [{ kind: "triage_screen", value: 4 }],
+      },
+    },
+  };
   const state = engine.createCombatState({
-    content,
-    encounterId: "act_3_branch_bulwark",
+    content: customContent,
+    encounterId: "triage_screen_probe",
     mercenaryId: "rogue_scout",
     randomFn: () => 0,
   });
@@ -177,6 +188,7 @@ test("elite onslaught modifiers push elite packs into their harder follow-up wit
       elite_onslaught_probe: {
         ...content.encounterCatalog.act_5_branch_warhost,
         id: "elite_onslaught_probe",
+        modifiers: [{ kind: "elite_onslaught", value: 1 }],
       },
     },
   };
@@ -311,9 +323,20 @@ test("boss salvo modifiers retune the boss and ranged escorts into a sharper ope
 
 test("phalanx march modifiers advance elite and brute escorts without moving support scripts", () => {
   const { content, engine } = createHarness();
+  const customContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      phalanx_march_probe: {
+        ...content.encounterCatalog.act_4_branch_phalanx,
+        id: "phalanx_march_probe",
+        modifiers: [{ kind: "phalanx_march", value: 4 }],
+      },
+    },
+  };
   const state = engine.createCombatState({
-    content,
-    encounterId: "act_4_branch_phalanx",
+    content: customContent,
+    encounterId: "phalanx_march_probe",
     mercenaryId: "rogue_scout",
     randomFn: () => 0,
   });

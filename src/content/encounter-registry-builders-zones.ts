@@ -14,8 +14,8 @@
       bossLabel: "Abbey Vault",
       openingDescription: "Rogue-outskirts skirmishes with shamans, raiders, and first ranged pressure.",
       branchBattleDescription: "Disciplined cult and monastery pressure with tougher fronts and ranged cover.",
-      branchMinibossDescription: "Elite graveyard pressure led by a champion and support backline.",
-      bossDescription: "The Briar Matron's guard line leans into poison swarms and fast melee pressure.",
+      branchMinibossDescription: "Elite graveyard pressure asks for attrition discipline first, then a clean answer to a screened support backline.",
+      bossDescription: "The Briar Matron cycles poison swarms into a telegraphed spray, asking for sustain first and a fast punish second.",
       bossAdds: ["brute", "support"],
     },
     2: {
@@ -25,8 +25,8 @@
       bossLabel: "Royal Sepulcher",
       openingDescription: "Open-desert swarms and ranged harassment with faster battlefield pressure.",
       branchBattleDescription: "Crypt and tomb pressure with mummies, brood enemies, and ranged chip damage.",
-      branchMinibossDescription: "Sepulcher defenders hold the line with elite bruisers and reviver-style support.",
-      bossDescription: "The Sepulcher Devourer's chamber closes around heavy bruisers and relentless boss hits.",
+      branchMinibossDescription: "Sepulcher defenders test guard-break tools first and reviver disruption second.",
+      bossDescription: "The Sepulcher Devourer alternates shell-up recovery with committed charges, asking for frontline durability and punish timing.",
       bossAdds: ["support", "ranged"],
     },
     3: {
@@ -36,8 +36,8 @@
       bossLabel: "Corrupted Sanctum",
       openingDescription: "Jungle packs swarm with quick attackers, priests, and irregular ranged fire.",
       branchBattleDescription: "Temple and causeway fights lean into cultists, priests, and bruiser escorts.",
-      branchMinibossDescription: "Idol-reach branches feature stronger elites with priest support.",
-      bossDescription: "The Idol Patriarch's court mixes spell pressure and disciplined support around the act boss.",
+      branchMinibossDescription: "Idol-reach branches pressure backline reach first and priest disruption second.",
+      bossDescription: "The Idol Patriarch builds a support court around a telegraphed lightning burst, asking for backline reach and spell-pressure mitigation.",
       bossAdds: ["support", "ranged"],
     },
     4: {
@@ -47,8 +47,8 @@
       bossLabel: "Ashen Throne",
       openingDescription: "Hellfield skirmishes escalate immediately into harder-hitting demonic packs.",
       branchBattleDescription: "Infernal route battles favor durable demons, ranged punishment, and attrition.",
-      branchMinibossDescription: "Citadel defenders revolve around elite bruisers and spell-support backlines.",
-      bossDescription: "Ashen Throne battles center on the Cinder Tyrant's escort pressure and brutal follow-up hits.",
+      branchMinibossDescription: "Citadel defenders test anti-fire prep first and escort disruption second.",
+      bossDescription: "Ashen Throne battles revolve around a telegraphed fire salvo, recovery windows, and a punishing follow-up charge.",
       bossAdds: ["brute", "support"],
     },
     5: {
@@ -58,8 +58,8 @@
       bossLabel: "Crown Of Ruin",
       openingDescription: "Act V opens with siege pressure, ranged volleys, and heavier frontline enemies.",
       branchBattleDescription: "Frozen routes mix durable beasts, ranged chip, and attrition pressure.",
-      branchMinibossDescription: "Citadel-ascent encounters feature elite guardians and layered support.",
-      bossDescription: "The Siege Tyrant's court builds around escorts, ranged punishment, and boss spike turns.",
+      branchMinibossDescription: "Citadel-ascent encounters test summon handling first and layered-control recovery second.",
+      bossDescription: "The Siege Tyrant mixes war-host musters with a telegraphed volley, asking for summon control and recovery after disruption.",
       bossAdds: ["brute", "ranged"],
     },
   };
@@ -85,7 +85,66 @@
     return bruteTemplateId;
   }
 
+  function inferEncounterCounterTags(id: string, modifiers: EncounterModifier[] = []): CounterTag[] {
+    const tags = new Set<CounterTag>()
+    const actNumber = Number((id.match(/^act_(\d+)_/) || [])[1] || 0)
+    if (id.includes("_boss")) {
+      if (actNumber === 1) {
+        tags.add("anti_attrition")
+      } else if (actNumber === 2) {
+        tags.add("anti_guard_break")
+      } else if (actNumber === 3) {
+        tags.add("anti_backline")
+        tags.add("anti_lightning_pressure")
+      } else if (actNumber === 4) {
+        tags.add("anti_fire_pressure")
+        tags.add("telegraph_respect")
+      } else if (actNumber >= 5) {
+        tags.add("anti_summon")
+        tags.add("anti_control")
+      }
+    } else if (id.includes("_miniboss") || id.includes("branch_retinue") || id.includes("branch_sanctum") || id.includes("branch_warhost")) {
+      tags.add("telegraph_respect")
+      if (actNumber === 1) {
+        tags.add("anti_attrition")
+        tags.add("anti_backline")
+      } else if (actNumber === 2) {
+        tags.add("anti_guard_break")
+        tags.add("anti_support_disruption")
+      } else if (actNumber === 3) {
+        tags.add("anti_backline")
+        tags.add("anti_lightning_pressure")
+      } else if (actNumber === 4) {
+        tags.add("anti_fire_pressure")
+        tags.add("anti_guard_break")
+      } else if (actNumber >= 5) {
+        tags.add("anti_summon")
+        tags.add("anti_control")
+      }
+    }
+    modifiers.forEach((modifier) => {
+      const kind = String(modifier.kind || "")
+      if (kind.includes("BACKLINE") || kind.includes("SNIPER")) {
+        tags.add("anti_backline")
+      }
+      if (kind.includes("ESCORT") || kind.includes("PHALANX")) {
+        tags.add("anti_guard_break")
+      }
+      if (kind.includes("RITUAL") || kind.includes("ONSLAUGHT") || kind.includes("SALVO") || kind.includes("LINEBREAKER")) {
+        tags.add("telegraph_respect")
+      }
+      if (kind.includes("TRIAGE") || kind.includes("WAR_DRUMS")) {
+        tags.add("anti_support_disruption")
+      }
+      if (kind.includes("COURT_RESERVES")) {
+        tags.add("anti_summon")
+      }
+    })
+    return [...tags]
+  }
+
   function makeEncounter(id: string, name: string, description: string, enemyTemplateIds: string[], modifiers: EncounterModifier[] = []) {
+    const counterTags = inferEncounterCounterTags(id, modifiers)
     return {
       id,
       name,
@@ -95,6 +154,8 @@
         templateId,
       })),
       modifiers: modifiers.map((modifier) => ({ ...modifier })),
+      askTags: [...counterTags],
+      counterTags,
     };
   }
 
@@ -163,21 +224,37 @@
         encounterIds[0],
         `${zoneName} Patrol`,
         `A pack of ${zoneName} denizens blocks the path.`,
-        [raiderA.templateId, raiderB.templateId, supportA.templateId]
+        actNumber >= 4
+          ? [raiderA.templateId, raiderB.templateId, rangedA.templateId, supportA.templateId]
+          : [raiderA.templateId, raiderB.templateId, supportA.templateId],
+        actNumber >= 4
+          ? [{ kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber - 1) }]
+          : []
       ),
       [encounterIds[1]]: makeEncounter(
         encounterIds[1],
         `${zoneName} Ambush`,
         `${zoneName} creatures emerge from the shadows with ranged support.`,
-        [raiderA.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 }]
+        actNumber >= 3
+          ? [raiderA.templateId, raiderB.templateId, rangedA.templateId, supportA.templateId]
+          : [raiderA.templateId, rangedA.templateId, supportA.templateId],
+        [
+          { kind: MODIFIER_KIND.AMBUSH_OPENING, value: 1 },
+          ...(actNumber >= 3 ? [{ kind: MODIFIER_KIND.BACKLINE_SCREEN, value: Math.max(2, actNumber - 1) }] : []),
+        ]
       ),
       [encounterIds[2]]: makeEncounter(
         encounterIds[2],
         `${zoneName} Swarm`,
         `A larger group of ${zoneName} inhabitants surges forward with brute force.`,
-        [raiderA.templateId, bruteA.templateId, rangedA.templateId, supportA.templateId],
-        [{ kind: MODIFIER_KIND.VANGUARD_RUSH, value: 1 }]
+        actNumber >= 3
+          ? [raiderA.templateId, raiderB.templateId, bruteA.templateId, rangedA.templateId, supportA.templateId]
+          : [raiderA.templateId, bruteA.templateId, rangedA.templateId, supportA.templateId],
+        [
+          { kind: MODIFIER_KIND.VANGUARD_RUSH, value: Math.max(1, Math.min(3, Math.ceil(actNumber / 2))) },
+          ...(actNumber >= 3 ? [{ kind: MODIFIER_KIND.WAR_DRUMS, value: 1 }] : []),
+          ...(actNumber >= 4 ? [{ kind: MODIFIER_KIND.LINEBREAKER_CHARGE, value: 1 }] : []),
+        ]
       ),
     };
 

@@ -25,14 +25,15 @@ test("power calibration report is deterministic and produces ratio buckets", () 
   assert.ok(bossSample);
   assert.ok((bossSample?.bossAdjustedPowerScore || 0) >= (bossSample?.buildPowerScore || 0));
   assert.ok((bossSample?.analysisPowerRatio || 0) >= (bossSample?.powerRatio || 0));
-  assert.ok(report.kinds.battle.sampleCount > 0 || report.kinds.elite.sampleCount > 0);
+  assert.ok(report.kinds.battle.sampleCount > 0 || report.kinds.elite.sampleCount > 0 || report.kinds.miniboss.sampleCount > 0);
   assert.ok(
     report.kinds.battle.buckets.some((bucket) => bucket.encounterCount > 0) ||
-      report.kinds.elite.buckets.some((bucket) => bucket.encounterCount > 0)
+      report.kinds.elite.buckets.some((bucket) => bucket.encounterCount > 0) ||
+      report.kinds.miniboss.buckets.some((bucket) => bucket.encounterCount > 0)
   );
 });
 
-test("power calibration report captures elite samples from miniboss encounter sets", () => {
+test("power calibration report captures miniboss samples from miniboss encounter sets", () => {
   const report = runPowerCalibrationReport({
     classIds: ["barbarian"],
     scenarioIds: ["mainline_rewarded"],
@@ -42,8 +43,8 @@ test("power calibration report captures elite samples from miniboss encounter se
     determinismChecks: 1,
   });
 
-  assert.ok(report.kinds.elite.sampleCount > 0);
-  assert.ok(report.kinds.elite.buckets.some((bucket) => bucket.encounterCount > 0));
+  assert.ok(report.kinds.miniboss.sampleCount > 0);
+  assert.ok(report.kinds.miniboss.buckets.some((bucket) => bucket.encounterCount > 0));
 });
 
 test("power calibration report supports real progression checkpoint probes", () => {

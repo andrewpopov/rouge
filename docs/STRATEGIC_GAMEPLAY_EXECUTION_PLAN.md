@@ -1,11 +1,13 @@
 # Strategic Gameplay Execution Plan
 
-_Snapshot: 2026-03-28_
+_Snapshot: 2026-03-30_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
 - Read this after `STRATEGIC_BUILD_IDENTITY_DESIGN.md`.
 - Use this document as the concrete modification plan for moving Rouge closer to the strategic feel of _Slay the Spire_ and _Monster Train_.
+- Use `COMBAT_DECISION_DESIGN.md` for the hand, energy, skill-card, and enemy-intent design rules that sit underneath this plan.
+- Use `D2_SPECIALIZATION_MODEL.md` for the one-tree specialization and soft-counter planning rules that should shape rewards, lanes, and boss prep.
 - Use `CLASS_STRATEGY_GUIDE_SYSTEM.md` and `docs/strategy-guides/*.md` for the per-class source material that future player guides should be written from.
 
 ## Goal
@@ -42,6 +44,25 @@ The big live problems are:
 3. Bosses are more interesting than before, but too much of the strategic burden still sits on the Cinder Tyrant.
 4. Build identity exists, but class fantasy and weapon fantasy do not always align.
 5. Hand size and draw shaping exist mechanically, but not yet as major strategic axes.
+6. Some class starts can currently spend most or all of the opening hand, which removes the "which card matters most?" question too early.
+
+## Slay the Spire Takeaways We Actually Want
+
+The useful reference from _Slay the Spire_ is not its exact starting numbers.
+
+The useful reference is the shape of the decision space:
+
+- energy exists to force tradeoffs inside a hand, not to let the player routinely spend every card they draw
+- visible enemy intent makes blocking, racing, and setup choices legible instead of random
+- runs stay fresh because the player is pushed to adapt to what the run offers rather than assembling the same solved deck every time
+- rare overpowered states are fine when they are earned and difficult to assemble
+
+Rouge should copy those principles, not the exact `3`-energy template.
+
+Reference reading:
+
+- Anthony Giovannetti interview with PC Gamer on adaptation, cost systems, and why energy makes combat decisions more interesting: [PC Gamer](https://www.pcgamer.com/slay-the-spire-designer-discusses-new-characters-and-card-game-inspirations/)
+- Anthony Giovannetti on balance, predictable enemy intents, and why random enemy moves made blocking decisions unreadable: [GDC Vault](https://www.gdcvault.com/play/1025731/-Slay-the-Spire-Metrics) and transcript notes at [Lilys.ai](https://lilys.ai/en/notes/138321)
 
 ## Target Player Experience
 
@@ -243,28 +264,33 @@ For weak or unfocused builds:
 - The Siege Tyrant:
   - tests anti-disruption planning, add handling, and consistency over a long fight
 
-## 5. Make elites the mid-run exams
+## 5. Make minibosses the mid-run exams and elites the flow checks
 
 Right now bosses are doing too much of the real testing.
 
 ### Change
 
-Elites and minibosses should punish one-dimensional decks earlier.
+Minibosses should expose one-dimensional decks earlier.
+Regular elites can be more generous and should mostly test flow, target priority, and resource tax instead of serving as frequent wipe points.
 
 ### Required modifications
 
-- Add more elite packages that stress:
+- Add more miniboss packages that stress:
   - AoE reliance
   - weak defense
   - slow setup
   - lack of draw
   - inability to answer support enemies
-- Increase elite pressure more through mechanics than raw damage.
-- Give more elite fights a “problem shape” the player has to solve.
+- Keep elite fights readable and rewarding, but ensure they still ask for:
+  - target selection
+  - sequencing under visible intent
+  - occasional resource tradeoffs before the next town or boss
+- Increase miniboss pressure more through mechanics than raw damage.
+- Give more miniboss fights a "problem shape" the player has to solve.
 
 ### Success check
 
-By Act II-III, bad archetype construction should already be visible in elite outcomes, not only at the Cinder Tyrant.
+By Act II-III, bad archetype construction should already be visible in miniboss outcomes, not only at the Cinder Tyrant.
 
 ## 6. Push weapon families into archetype identity
 
@@ -359,9 +385,13 @@ These are present, but not yet important enough.
 ### Change
 
 Make draw texture a small but meaningful identity layer.
+Also make sure the baseline turn asks a real sequencing question.
 
 ### Required modifications
 
+- Bias early combat toward "more options than energy" instead of "enough energy for most starter hands."
+- Prefer opening-draw or selective draw tweaks over flat baseline energy inflation.
+- Keep visible enemy intent sharp enough that leaving cards unplayed still feels fair and skill-based.
 - Add a few more rare sources of:
   - `+1 opening draw`
   - `+1 max hand size`
@@ -376,9 +406,12 @@ Make draw texture a small but meaningful identity layer.
 ### Why
 
 If we want draw randomness to create strategy, some builds need to care deeply about hand texture.
+That only works if the player cannot routinely spend everything anyway.
 
 ### Success check
 
+- early turns should more often end with a meaningful unplayed card or two
+- opening turns should more often present offense-vs-defense-vs-setup choices
 At least some successful archetypes should start to diverge on:
 
 - hand size
@@ -489,7 +522,7 @@ Do the work in this order.
 ### Phase 2: combat pressure
 
 5. boss pacing pass toward longer multi-cycle fights
-6. elite package pass
+6. miniboss package pass
 7. early Act I-II pressure pass
 
 ### Phase 3: identity reinforcement

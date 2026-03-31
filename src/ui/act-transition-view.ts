@@ -1,29 +1,12 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-
-  const ACT_POSTER_MAP: Record<number, string> = {
-    1: "./assets/curated/act-maps/act1-the-blackwood-covenant.png",
-    2: "./assets/curated/act-maps/act2-the-sunken-sepulchers.png",
-    3: "./assets/curated/act-maps/act3-the-river-of-idols.png",
-    4: "./assets/curated/act-maps/act4-the-ashen-gate.png",
-    5: "./assets/curated/act-maps/act5-the-frost-siege-charter.png",
-  };
-
-  const TOWN_ART_MAP: Record<number, string> = {
-    1: "./assets/curated/town-maps/act1.webp",
-    2: "./assets/curated/town-maps/act2.webp",
-    3: "./assets/curated/town-maps/act3.webp",
-    4: "./assets/curated/town-maps/act4.webp",
-    5: "./assets/curated/town-maps/act5.webp",
-  };
-
-  const ACT_ENVIRONMENT_MAP: Record<number, string> = {
-    1: "./assets/curated/combat-backgrounds/desert.webp",
-    2: "./assets/curated/combat-backgrounds/jungle.webp",
-    3: "./assets/curated/combat-backgrounds/hell.webp",
-    4: "./assets/curated/combat-backgrounds/mountain.webp",
-    5: "./assets/curated/combat-backgrounds/worldstone_keep.webp",
-  };
+  const actVisuals = (runtimeWindow as Window & {
+    __ROUGE_ACT_VISUAL_ASSETS: {
+      getPosterSrc(actNumber: number): string;
+      getTownArtSrc(actNumber: number): string;
+      getEnvironmentSrc(actNumber: number): string;
+    };
+  }).__ROUGE_ACT_VISUAL_ASSETS;
 
   const ACT_BOSS_TEMPLATE_MAP: Record<number, string> = {
     1: "act_1_andariel_boss",
@@ -131,15 +114,16 @@
     const nextAct = run.acts[run.currentActIndex + 1];
     const nextTown = nextAct?.town || "the next town";
     const cutscene = getCutscene(run.actNumber, run.bossName, nextTown);
-    const destinationTownSrc = TOWN_ART_MAP[nextAct?.actNumber || run.actNumber] || "";
-    const backdropSrc = ACT_ENVIRONMENT_MAP[nextAct?.actNumber || run.actNumber] || destinationTownSrc;
+    const destinationActNumber = nextAct?.actNumber || run.actNumber;
+    const destinationTownSrc = actVisuals.getTownArtSrc(destinationActNumber) || "";
+    const backdropSrc = actVisuals.getEnvironmentSrc(destinationActNumber) || destinationTownSrc;
     const bossTemplateId = ACT_BOSS_TEMPLATE_MAP[run.actNumber] || "";
     const bossSpriteSrc = bossTemplateId ? assets?.getEnemyIcon(bossTemplateId) || "" : "";
     const classPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
     const actsCleared = Math.max(run.summary?.actsCleared || 0, 1);
     const bossesDefeated = Math.max(run.summary?.bossesDefeated || 0, 1);
     const destinationBrief = getDestinationBrief(run.actNumber, nextTown);
-    const nextActPosterSrc = ACT_POSTER_MAP[nextAct?.actNumber || run.actNumber] || "";
+    const nextActPosterSrc = actVisuals.getPosterSrc(destinationActNumber) || "";
     const scrollDropCopy = getScrollDropCopy(run.actNumber, run.bossName, nextTown);
     const scrollOverlay = appState.ui.actTransitionScrollOpen ? `
       <div class="act-transition-scroll-overlay" data-action="close-act-transition-scroll">
@@ -182,15 +166,15 @@
                 <strong class="act-transition-chip__value">${escapeHtml(run.className)} Lv.${run.level}</strong>
               </div>
               <div class="act-transition-chip">
-                <span class="act-transition-chip__label">Acts Cleared</span>
+                <span class="act-transition-chip__label">Acts</span>
                 <strong class="act-transition-chip__value">${actsCleared}</strong>
               </div>
               <div class="act-transition-chip">
-                <span class="act-transition-chip__label">Bosses Felled</span>
+                <span class="act-transition-chip__label">Bosses</span>
                 <strong class="act-transition-chip__value">${bossesDefeated}</strong>
               </div>
               <div class="act-transition-chip">
-                <span class="act-transition-chip__label">Treasury</span>
+                <span class="act-transition-chip__label">Coin</span>
                 <strong class="act-transition-chip__value">${run.gold}g</strong>
               </div>
             </div>
@@ -198,17 +182,16 @@
 
           <section class="act-transition-body">
             <aside class="act-transition-chapter">
-              <div class="act-transition-chapter__boss-card">
-                <div class="act-transition-chapter__boss-icon">
-                  ${bossSpriteSrc
-                    ? renderImage(bossSpriteSrc, "act-transition-chapter__boss-img", run.bossName, escapeHtml)
-                    : '<span class="act-transition-chapter__boss-glyph" aria-hidden="true">☠</span>'}
-                </div>
-                <div class="act-transition-chapter__boss-copy">
-                  <span class="act-transition-label">Boss Fallen</span>
-                  <strong class="act-transition-chapter__boss-name">${escapeHtml(run.bossName)}</strong>
-                  <p class="act-transition-chapter__boss-text">The blood debt of this chapter is paid, but the hunt only turns darker from here.</p>
-                </div>
+              <div class="act-transition-chapter__head">
+                <span class="act-transition-label">Boss Fallen</span>
+                <strong class="act-transition-chapter__boss-name">${escapeHtml(run.bossName)}</strong>
+                <p class="act-transition-chapter__boss-text">The blood debt of this chapter is paid, but the hunt only turns darker from here.</p>
+              </div>
+
+              <div class="act-transition-chapter__boss-figure">
+                ${bossSpriteSrc
+                  ? renderImage(bossSpriteSrc, "act-transition-chapter__boss-img", run.bossName, escapeHtml)
+                  : '<span class="act-transition-chapter__boss-glyph" aria-hidden="true">☠</span>'}
               </div>
 
               <div class="act-transition-chapter__seal">
@@ -225,12 +208,15 @@
               <div class="act-transition-scroll-drop">
                 <div class="act-transition-scroll-drop__copy">
                   <p class="act-transition-scroll-drop__text">${escapeHtml(scrollDropCopy)}</p>
-                  <button
-                    class="act-transition-scroll-drop__seal"
-                    data-action="open-act-transition-scroll"
-                    aria-label="Open Scroll"
-                    title="Open Scroll"
-                  >📜</button>
+                  <div class="act-transition-scroll-drop__action">
+                    <span class="act-transition-scroll-drop__action-label">Open the recovered scroll</span>
+                    <button
+                      class="act-transition-scroll-drop__seal"
+                      data-action="open-act-transition-scroll"
+                      aria-label="Open Scroll"
+                      title="Open Scroll"
+                    >📜</button>
+                  </div>
                 </div>
               </div>
               <div class="cutscene__narrative">

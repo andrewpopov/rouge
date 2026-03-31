@@ -284,8 +284,12 @@
 
   // ── Public API ──
 
+  function normalizeCardId(cardId: string): string {
+    return String(cardId || "").replace(/_plus$/, "");
+  }
+
   function getCardTree(cardId: string): string {
-    return CARD_TREE_MAP[cardId] || "";
+    return CARD_TREE_MAP[normalizeCardId(cardId)] || "";
   }
 
   function getCardProficiency(cardId: string): string {
@@ -295,7 +299,8 @@
     if (card?.proficiency) {
       return card.proficiency;
     }
-    return CARD_PROFICIENCY_MAP[cardId] || getCardTree(cardId) || "";
+    const baseCardId = normalizeCardId(cardId);
+    return CARD_PROFICIENCY_MAP[baseCardId] || getCardTree(baseCardId) || "";
   }
 
   function applyCardProficiencies(cardCatalog: Record<string, CardDefinition> | null | undefined) {
@@ -306,7 +311,7 @@
       if (!card || card.proficiency) {
         return;
       }
-      const proficiency = CARD_PROFICIENCY_MAP[card.id] || getCardTree(card.id);
+      const proficiency = CARD_PROFICIENCY_MAP[normalizeCardId(card.id)] || getCardTree(card.id);
       if (proficiency) {
         card.proficiency = proficiency;
       }
@@ -314,7 +319,18 @@
   }
 
   function getEvolution(cardId: string): EvolutionEntry | null {
-    return EVOLUTION_CHAINS[cardId] || null;
+    const baseCardId = normalizeCardId(cardId);
+    const evolution = EVOLUTION_CHAINS[baseCardId];
+    if (!evolution) {
+      return null;
+    }
+    const refinedTargetId = `${evolution.targetId}_plus`;
+    const refinedCard = baseCardId !== cardId;
+    const targetId =
+      refinedCard && runtimeWindow.ROUGE_GAME_CONTENT?.cardCatalog?.[refinedTargetId]
+        ? refinedTargetId
+        : evolution.targetId;
+    return { ...evolution, targetId };
   }
 
   function getEvolutionCost(targetTier: number): number {

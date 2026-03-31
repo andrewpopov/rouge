@@ -370,6 +370,7 @@ function main() {
   );
 
   printKindSummary(report.kinds.boss);
+  printKindSummary(report.kinds.miniboss);
   printKindSummary(report.kinds.elite);
   printKindSummary(report.kinds.battle);
 }

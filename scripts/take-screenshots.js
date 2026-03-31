@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* global document, HTMLImageElement */
+/* global document, HTMLImageElement, HTMLElement, window */
 
 const { chromium } = require("playwright");
 const http = require("node:http");
@@ -326,6 +326,76 @@ function buildTownOverlayFixture({ actNumber = 1, classId = "amazon", mercenaryI
   };
 }
 
+function buildWorldMapFixture({ actNumber = 1, classId = "amazon", mercenaryId = "rogue_scout", gold = 19998 } = {}) {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, classId);
+  appEngine.setSelectedMercenary(state, mercenaryId);
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+
+  state.run.gold = gold;
+  state.run.level = Math.max(state.run.level, actNumber * 4);
+  state.run.summary.actsCleared = Math.max(0, actNumber - 1);
+  state.run.summary.zonesCleared = Math.max(state.run.summary.zonesCleared, (actNumber - 1) * 7);
+  state.run.summary.bossesDefeated = Math.max(state.run.summary.bossesDefeated, actNumber - 1);
+
+  if (actNumber > 1) {
+    state.run.actNumber = actNumber;
+    state.run.currentActIndex = Math.max(0, actNumber - 1);
+    for (let index = 0; index < state.run.acts.length; index += 1) {
+      const act = state.run.acts[index];
+      if (!act) { continue; }
+      act.complete = index < state.run.currentActIndex;
+    }
+    const currentAct = state.run.acts[state.run.currentActIndex];
+    if (currentAct) {
+      state.run.safeZoneName = currentAct.town;
+      state.run.actTitle = currentAct.title;
+      if (currentAct.boss?.name) {
+        state.run.bossName = currentAct.boss.name;
+      }
+    }
+  }
+
+  if (!appEngine.leaveSafeZone(state).ok) {
+    return null;
+  }
+
+  state.run.guide.overlayKind = "";
+  state.run.guide.targetActNumber = 0;
+  state.ui.scrollMapOpen = false;
+  state.ui.routeIntelOpen = false;
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
 async function openFixturePage(browser, baseUrl, fixture) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   await context.addInitScript((savedFixture) => {
@@ -612,6 +682,28 @@ async function captureScreenshots(baseUrl) {
     }
   } else {
     console.log("  ⚠ Could not build Cain town fixture");
+  }
+
+  // ── 12. Additional act campaign boards ──
+  const worldMapShots = [
+    { actNumber: 2, name: "12-act2-campaign-board" },
+    { actNumber: 3, name: "13-act3-campaign-board" },
+    { actNumber: 4, name: "14-act4-campaign-board" },
+    { actNumber: 5, name: "15-act5-campaign-board" },
+  ];
+  for (const worldMapShot of worldMapShots) {
+    const fixture = buildWorldMapFixture({ actNumber: worldMapShot.actNumber });
+    if (!fixture) {
+      console.log(`  ⚠ Could not build world map fixture for act ${worldMapShot.actNumber}`);
+      continue;
+    }
+    const { context: worldContext, page: worldPage } = await openFixturePage(browser, baseUrl, fixture);
+    try {
+      await resetScroll(worldPage);
+      await shot(worldPage, worldMapShot.name);
+    } finally {
+      await worldContext.close();
+    }
   }
 
   await browser.close();

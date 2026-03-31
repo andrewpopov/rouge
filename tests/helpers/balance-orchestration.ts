@@ -38,6 +38,7 @@ export type BalanceScenarioType =
   | "campaign"
   | "checkpoint_probe"
   | "boss_probe"
+  | "miniboss_probe"
   | "elite_probe"
   | "combat_balance"
   | "loot_economy"
@@ -217,13 +218,22 @@ export interface BalanceRunRecord {
       averageMercenaryLifePct: number;
       averagePotionsRemaining: number;
       averageEnemyLifePct: number;
+      openingHandFullSpendRate?: number;
+      averageTurn1UnspentEnergy?: number;
+      averageEarlyUnspentEnergy?: number;
+      averageEarlyMeaningfulUnplayedRate?: number;
+      averageEarlyCandidateCount?: number;
+      averageEarlyMeaningfulCandidateCount?: number;
+      averageEarlyDecisionScoreSpread?: number;
+      earlyCloseDecisionRate?: number;
+      averageEarlyEndTurnRegret?: number;
     };
     encounters: Array<{
       encounterId: string;
       encounterName: string;
       zoneTitle: string;
       zoneKind: string;
-      kind: "boss" | "elite" | "battle";
+      kind: "boss" | "miniboss" | "elite" | "battle";
       runs: number;
       enemyPowerScore: number;
       powerDelta: number;
@@ -237,6 +247,15 @@ export interface BalanceRunRecord {
       averageMercenaryLifePct: number;
       averagePotionsRemaining: number;
       averageEnemyLifePct: number;
+      openingHandFullSpendRate?: number;
+      averageTurn1UnspentEnergy?: number;
+      averageEarlyUnspentEnergy?: number;
+      averageEarlyMeaningfulUnplayedRate?: number;
+      averageEarlyCandidateCount?: number;
+      averageEarlyMeaningfulCandidateCount?: number;
+      averageEarlyDecisionScoreSpread?: number;
+      earlyCloseDecisionRate?: number;
+      averageEarlyEndTurnRegret?: number;
     }>;
   } | null;
 }
@@ -306,6 +325,11 @@ export interface BalanceCommittedLaneSummary {
   laneHealth: "healthy" | "playable but weak" | "identity drift" | "not viable";
 }
 
+export interface BalanceDecisionTensionSummary {
+  status: "too solved" | "healthy tension" | "too clunky" | "mixed";
+  reasons: string[];
+}
+
 export interface BalanceAggregateReport {
   experimentId: string;
   title: string;
@@ -325,6 +349,31 @@ export interface BalanceAggregateReport {
     offArchetypeWeaponRate: number;
     handSizeBonusRate: number;
     combatSampleWinRate: number;
+    primarySpecializationRate: number;
+    masteryRate: number;
+    averageOffTreeUtilityCount: number;
+    averageOffTreeDamageCount: number;
+    averageCounterCoverageCount: number;
+    averageTargetShapeFit: number;
+    averageStarterShellCardsRemaining: number;
+    averageReinforcedCardCount: number;
+    averageCenterpieceCount: number;
+    deckFamilyDistribution: Record<string, number>;
+    averageCommittedAtAct: number;
+    averageFirstMajorReinforcementAct: number;
+    averagePurgeCount: number;
+    averageRefinementCount: number;
+    averageEvolutionCount: number;
+    openingHandFullSpendRate: number;
+    averageTurn1UnspentEnergy: number;
+    averageEarlyUnspentEnergy: number;
+    averageEarlyMeaningfulUnplayedRate: number;
+    averageEarlyCandidateCount: number;
+    averageEarlyMeaningfulCandidateCount: number;
+    averageEarlyDecisionScoreSpread: number;
+    earlyCloseDecisionRate: number;
+    averageEarlyEndTurnRegret: number;
+    decisionTension: BalanceDecisionTensionSummary;
   };
   encounterMetricsByKind: Record<string, {
     count: number;
@@ -334,6 +383,16 @@ export interface BalanceAggregateReport {
     averageMercenaryLifePct: number;
     averageEnemyLifePct: number;
     averagePowerRatio: number;
+    openingHandFullSpendRate: number;
+    averageTurn1UnspentEnergy: number;
+    averageEarlyUnspentEnergy: number;
+    averageEarlyMeaningfulUnplayedRate: number;
+    averageEarlyCandidateCount: number;
+    averageEarlyMeaningfulCandidateCount: number;
+    averageEarlyDecisionScoreSpread: number;
+    earlyCloseDecisionRate: number;
+    averageEarlyEndTurnRegret: number;
+    decisionTension: BalanceDecisionTensionSummary;
   }>;
   strategyRoleCounts: Record<string, number>;
   rewardRoleCounts: Record<string, number>;
@@ -380,6 +439,54 @@ export interface BalanceRunExecutionResult {
   }>;
 }
 
+function buildEmptyDeckProfile(): PolicyRunSummary["finalBuild"]["deckProfile"] {
+  return {
+    deckFamily: "hybrid",
+    engineCardCount: 0,
+    roleCounts: {
+      setup: 0,
+      payoff: 0,
+      support: 0,
+      answer: 0,
+      salvage: 0,
+      conversion: 0,
+    },
+    behaviorCounts: {},
+    targetDeckSizeMin: 10,
+    targetDeckSizeMax: 14,
+    deckSizeStatus: "within_band",
+    targetShapeFit: 0,
+    primaryTreeCardCount: 0,
+    secondaryUtilityTreeCardCount: 0,
+    starterShellCardsRemaining: 0,
+    refinedCardCount: 0,
+    evolvedCardCount: 0,
+    reinforcedCardCount: 0,
+    centerpieceCards: [],
+  };
+}
+
+function buildEmptyBuildJourney(): PolicyRunSummary["buildJourney"] {
+  return {
+    committedAtAct: 0,
+    committedPrimaryTreeId: "",
+    firstMajorReinforcementAct: 0,
+    firstPurgeAct: 0,
+    rewardUpgradesByAct: {},
+    refinementsByAct: {},
+    evolutionsByAct: {},
+    purgesByAct: {},
+    transformsByAct: {},
+    driftActs: [],
+    recoveredFromDrift: false,
+    totalRewardUpgrades: 0,
+    totalRefinements: 0,
+    totalEvolutions: 0,
+    totalPurges: 0,
+    totalTransforms: 0,
+  };
+}
+
 function buildEmptyFinalBuild(): PolicyRunSummary["finalBuild"] {
   return {
     level: 0,
@@ -410,8 +517,15 @@ function buildEmptyFinalBuild(): PolicyRunSummary["finalBuild"] {
     secondaryArchetypeId: "",
     secondaryArchetypeLabel: "",
     secondaryArchetypeScore: 0,
+    primaryTreeId: "",
+    secondaryUtilityTreeId: "",
+    specializationStage: "exploratory",
+    offTreeUtilityCount: 0,
+    offTreeDamageCount: 0,
+    counterCoverageTags: [],
     archetypeScores: [],
     activeRunewords: [],
+    deckProfile: buildEmptyDeckProfile(),
     archetypeCommitment: null,
   };
 }
@@ -427,6 +541,7 @@ function buildEmptySummary(): PolicyRunSummary {
     rewardEffectCounts: {},
     rewardRoleCounts: {},
     strategyRoleCounts: {},
+    townActionCounts: {},
     encounterResults: [],
     encounterMetricsByKind: {},
     world: {
@@ -440,6 +555,7 @@ function buildEmptySummary(): PolicyRunSummary {
       opportunityOutcomes: 0,
     },
     finalBuild: buildEmptyFinalBuild(),
+    buildJourney: buildEmptyBuildJourney(),
     archetypeCommitment: null,
   };
 }
@@ -604,6 +720,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
     mercLifeWeighted: number;
     enemyLifeWeighted: number;
     powerRatioWeighted: number;
+    openingFullSpendWeighted: number;
+    turn1UnspentEnergyWeighted: number;
+    earlyUnspentEnergyWeighted: number;
+    earlyMeaningfulUnplayedWeighted: number;
+    earlyCandidateCountWeighted: number;
+    earlyMeaningfulCandidateCountWeighted: number;
+    earlyDecisionScoreSpreadWeighted: number;
+    earlyCloseDecisionWeighted: number;
+    earlyEndTurnRegretWeighted: number;
   }> = {};
   records.forEach((record) => {
     if (record.combat) {
@@ -618,6 +743,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
           mercLifeWeighted: 0,
           enemyLifeWeighted: 0,
           powerRatioWeighted: 0,
+          openingFullSpendWeighted: 0,
+          turn1UnspentEnergyWeighted: 0,
+          earlyUnspentEnergyWeighted: 0,
+          earlyMeaningfulUnplayedWeighted: 0,
+          earlyCandidateCountWeighted: 0,
+          earlyMeaningfulCandidateCountWeighted: 0,
+          earlyDecisionScoreSpreadWeighted: 0,
+          earlyCloseDecisionWeighted: 0,
+          earlyEndTurnRegretWeighted: 0,
         };
         const aggregate = byKind[kind];
         const weight = Math.max(1, Number(entry.runs || 1));
@@ -629,6 +763,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
         aggregate.mercLifeWeighted += Number(entry.averageMercenaryLifePct || 0) * weight;
         aggregate.enemyLifeWeighted += Number(entry.averageEnemyLifePct || 0) * weight;
         aggregate.powerRatioWeighted += Number(entry.powerRatio || 0) * weight;
+        aggregate.openingFullSpendWeighted += Number(entry.openingHandFullSpendRate || 0) * weight;
+        aggregate.turn1UnspentEnergyWeighted += Number(entry.averageTurn1UnspentEnergy || 0) * weight;
+        aggregate.earlyUnspentEnergyWeighted += Number(entry.averageEarlyUnspentEnergy || 0) * weight;
+        aggregate.earlyMeaningfulUnplayedWeighted += Number(entry.averageEarlyMeaningfulUnplayedRate || 0) * weight;
+        aggregate.earlyCandidateCountWeighted += Number(entry.averageEarlyCandidateCount || 0) * weight;
+        aggregate.earlyMeaningfulCandidateCountWeighted += Number(entry.averageEarlyMeaningfulCandidateCount || 0) * weight;
+        aggregate.earlyDecisionScoreSpreadWeighted += Number(entry.averageEarlyDecisionScoreSpread || 0) * weight;
+        aggregate.earlyCloseDecisionWeighted += Number(entry.earlyCloseDecisionRate || 0) * weight;
+        aggregate.earlyEndTurnRegretWeighted += Number(entry.averageEarlyEndTurnRegret || 0) * weight;
       });
       return;
     }
@@ -644,6 +787,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
         mercLifeWeighted: 0,
         enemyLifeWeighted: 0,
         powerRatioWeighted: 0,
+        openingFullSpendWeighted: 0,
+        turn1UnspentEnergyWeighted: 0,
+        earlyUnspentEnergyWeighted: 0,
+        earlyMeaningfulUnplayedWeighted: 0,
+        earlyCandidateCountWeighted: 0,
+        earlyMeaningfulCandidateCountWeighted: 0,
+        earlyDecisionScoreSpreadWeighted: 0,
+        earlyCloseDecisionWeighted: 0,
+        earlyEndTurnRegretWeighted: 0,
       };
       const aggregate = byKind[kind];
       aggregate.count += 1;
@@ -654,12 +806,21 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
       aggregate.mercLifeWeighted += Number(entry.mercenaryLifePct || 0);
       aggregate.enemyLifeWeighted += Number(entry.enemyLifePct || 0);
       aggregate.powerRatioWeighted += Number(entry.powerRatio || 0);
+      aggregate.openingFullSpendWeighted += entry.openingHandFullSpend ? 1 : 0;
+      aggregate.turn1UnspentEnergyWeighted += Number(entry.turn1UnspentEnergy || 0);
+      aggregate.earlyUnspentEnergyWeighted += Number(entry.earlyUnspentEnergyAverage || 0);
+      aggregate.earlyMeaningfulUnplayedWeighted += Number(entry.earlyMeaningfulUnplayedRate || 0);
+      aggregate.earlyCandidateCountWeighted += Number(entry.averageEarlyCandidateCount || 0);
+      aggregate.earlyMeaningfulCandidateCountWeighted += Number(entry.averageEarlyMeaningfulCandidateCount || 0);
+      aggregate.earlyDecisionScoreSpreadWeighted += Number(entry.averageEarlyDecisionScoreSpread || 0);
+      aggregate.earlyCloseDecisionWeighted += Number(entry.earlyCloseDecisionRate || 0);
+      aggregate.earlyEndTurnRegretWeighted += Number(entry.averageEarlyEndTurnRegret || 0);
     });
   });
   return Object.fromEntries(
     Object.entries(byKind).map(([kind, aggregate]) => {
       const weight = Math.max(1, aggregate.sampleWeight);
-      return [kind, {
+      const entry = {
         count: aggregate.count,
         winRate: roundTo(aggregate.winWeighted / weight),
         averageTurns: roundTo(aggregate.turnsWeighted / weight),
@@ -667,6 +828,19 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
         averageMercenaryLifePct: roundTo(aggregate.mercLifeWeighted / weight),
         averageEnemyLifePct: roundTo(aggregate.enemyLifeWeighted / weight),
         averagePowerRatio: roundTo(aggregate.powerRatioWeighted / weight),
+        openingHandFullSpendRate: roundTo(aggregate.openingFullSpendWeighted / weight),
+        averageTurn1UnspentEnergy: roundTo(aggregate.turn1UnspentEnergyWeighted / weight),
+        averageEarlyUnspentEnergy: roundTo(aggregate.earlyUnspentEnergyWeighted / weight),
+        averageEarlyMeaningfulUnplayedRate: roundTo(aggregate.earlyMeaningfulUnplayedWeighted / weight),
+        averageEarlyCandidateCount: roundTo(aggregate.earlyCandidateCountWeighted / weight, 3),
+        averageEarlyMeaningfulCandidateCount: roundTo(aggregate.earlyMeaningfulCandidateCountWeighted / weight, 3),
+        averageEarlyDecisionScoreSpread: roundTo(aggregate.earlyDecisionScoreSpreadWeighted / weight, 3),
+        earlyCloseDecisionRate: roundTo(aggregate.earlyCloseDecisionWeighted / weight, 3),
+        averageEarlyEndTurnRegret: roundTo(aggregate.earlyEndTurnRegretWeighted / weight, 3),
+      };
+      return [kind, {
+        ...entry,
+        decisionTension: buildDecisionTensionSummary(entry),
       }];
     })
   );
@@ -733,6 +907,26 @@ export function getBalanceExperimentCatalog(): Record<string, BalanceExperimentS
       ],
       tags: ["baseline", "boss"],
     },
+    miniboss_pressure: {
+      experimentId: "miniboss_pressure",
+      title: "Miniboss Pressure",
+      scenarioType: "miniboss_probe",
+      classIds: [...DEFAULT_CLASS_IDS],
+      policyIds: ["aggressive", "balanced"],
+      seedOffsets: [0, 1, 2, 3, 4],
+      throughActNumber: 5,
+      probeRuns: 1,
+      maxCombatTurns: 42,
+      concurrency: 4,
+      traceFailures: true,
+      traceOutliers: true,
+      slowRunThresholdMs: 60000,
+      expectedBands: [
+        { metricId: "encounter.miniboss.average_turns", label: "Miniboss average turns", min: 3, max: 10, severity: "soft" },
+        { metricId: "encounter.miniboss.win_rate", label: "Miniboss win rate", min: 0.55, max: 0.98, severity: "soft" },
+      ],
+      tags: ["baseline", "miniboss"],
+    },
     endgame_balance: {
       experimentId: "endgame_balance",
       title: "Endgame Balance",
@@ -759,7 +953,7 @@ export function getBalanceExperimentCatalog(): Record<string, BalanceExperimentS
     },
     elite_pressure: {
       experimentId: "elite_pressure",
-      title: "Elite Pressure",
+      title: "Elite Flow",
       scenarioType: "elite_probe",
       classIds: [...DEFAULT_CLASS_IDS],
       policyIds: ["aggressive", "balanced"],
@@ -772,9 +966,10 @@ export function getBalanceExperimentCatalog(): Record<string, BalanceExperimentS
       traceOutliers: true,
       slowRunThresholdMs: 60000,
       expectedBands: [
-        { metricId: "encounter.elite.average_turns", label: "Elite average turns", min: 2.5, max: 10, severity: "soft" },
+        { metricId: "encounter.elite.average_turns", label: "Elite average turns", min: 1.5, max: 7, severity: "soft" },
+        { metricId: "encounter.battle.average_turns", label: "Battle average turns", min: 1.25, max: 8, severity: "soft" },
       ],
-      tags: ["baseline", "elite"],
+      tags: ["baseline", "elite", "soft-pressure"],
     },
     loot_rune_economy: {
       experimentId: "loot_rune_economy",
@@ -1135,7 +1330,14 @@ function getNaturalCommitAct(record: BalanceRunRecord) {
   if (!finalDominant) {
     return 0;
   }
-  return Number(record.checkpoints.find((checkpoint) => checkpoint.dominantArchetypeId === finalDominant)?.actNumber || 0);
+  const committedCheckpoint = record.checkpoints.find((checkpoint) => {
+    const stage = String(checkpoint.specializationStage || "exploratory");
+    if (stage === "exploratory") {
+      return false;
+    }
+    return checkpoint.primaryTreeId === finalDominant || checkpoint.dominantArchetypeId === finalDominant;
+  });
+  return Number(committedCheckpoint?.actNumber || 0);
 }
 
 function classifyLaneHealth(
@@ -1156,6 +1358,93 @@ function classifyLaneHealth(
     return "playable but weak";
   }
   return "not viable";
+}
+
+type DecisionTensionMetricShape = {
+  openingHandFullSpendRate: number;
+  averageEarlyUnspentEnergy: number;
+  averageEarlyMeaningfulUnplayedRate: number;
+  averageEarlyCandidateCount: number;
+  averageEarlyMeaningfulCandidateCount: number;
+  averageEarlyDecisionScoreSpread: number;
+  earlyCloseDecisionRate: number;
+  averageEarlyEndTurnRegret: number;
+};
+
+function buildDecisionTensionSummary(metrics: DecisionTensionMetricShape): BalanceDecisionTensionSummary {
+  const solvedReasons: string[] = [];
+  const clunkyReasons: string[] = [];
+  const healthyReasons: string[] = [];
+
+  if (metrics.openingHandFullSpendRate >= 0.45) {
+    solvedReasons.push("opening hands empty too often");
+  } else if (metrics.openingHandFullSpendRate <= 0.3) {
+    healthyReasons.push("opening hands usually keep at least one option back");
+  }
+
+  if (metrics.averageEarlyDecisionScoreSpread >= 9) {
+    solvedReasons.push("top action dominates the early turn");
+  } else if (metrics.averageEarlyDecisionScoreSpread <= 6.5) {
+    healthyReasons.push("top actions stay close enough to compete");
+  }
+
+  if (metrics.earlyCloseDecisionRate >= 0.25) {
+    healthyReasons.push("close decisions appear regularly");
+  } else if (metrics.earlyCloseDecisionRate <= 0.1) {
+    solvedReasons.push("too few close early decisions");
+  }
+
+  if (metrics.averageEarlyMeaningfulCandidateCount >= 1.6) {
+    healthyReasons.push("multiple meaningful actions appear early");
+  } else if (metrics.averageEarlyMeaningfulCandidateCount <= 1.15 && metrics.averageEarlyEndTurnRegret >= 7) {
+    solvedReasons.push("early turns collapse into one obvious active line");
+  } else if (metrics.averageEarlyMeaningfulCandidateCount <= 1.15) {
+    clunkyReasons.push("too few meaningful early plays");
+  }
+
+  if (metrics.averageEarlyUnspentEnergy >= 4.5) {
+    clunkyReasons.push("too much early energy strands in hand");
+  } else if (metrics.averageEarlyUnspentEnergy >= 0.5 && metrics.averageEarlyUnspentEnergy <= 3.5) {
+    healthyReasons.push("early energy tension is present without bricking the hand");
+  }
+
+  if (metrics.averageEarlyEndTurnRegret <= 4) {
+    clunkyReasons.push("ending turn is too often close to the best line");
+  } else if (metrics.averageEarlyEndTurnRegret >= 6 && metrics.averageEarlyEndTurnRegret <= 12) {
+    healthyReasons.push("passing early turns carries real but not absurd cost");
+  } else if (metrics.averageEarlyEndTurnRegret > 14 && metrics.averageEarlyDecisionScoreSpread >= 8) {
+    solvedReasons.push("the early turn has a very obvious best action");
+  }
+
+  const solvedScore = solvedReasons.length;
+  const clunkyScore = clunkyReasons.length;
+  const healthyScore = healthyReasons.length;
+
+  if (clunkyScore >= 2 && clunkyScore > solvedScore && healthyScore < 3) {
+    return {
+      status: "too clunky",
+      reasons: clunkyReasons.slice(0, 3),
+    };
+  }
+
+  if (solvedScore >= 2 && solvedScore > clunkyScore && healthyScore < 3) {
+    return {
+      status: "too solved",
+      reasons: solvedReasons.slice(0, 3),
+    };
+  }
+
+  if (healthyScore >= 3 && solvedScore <= 1 && clunkyScore <= 1) {
+    return {
+      status: "healthy tension",
+      reasons: healthyReasons.slice(0, 3),
+    };
+  }
+
+  return {
+    status: "mixed",
+    reasons: [...healthyReasons, ...solvedReasons, ...clunkyReasons].slice(0, 3),
+  };
 }
 
 function buildNaturalConvergenceSummaries(records: BalanceRunRecord[]): BalanceNaturalConvergenceSummary[] {
@@ -1380,6 +1669,30 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
   let offArchetypeWeapons = 0;
   let handSizeBonusCount = 0;
   let combatWinRateTotal = 0;
+  let primarySpecializationCount = 0;
+  let masteryCount = 0;
+  let offTreeUtilityTotal = 0;
+  let offTreeDamageTotal = 0;
+  let counterCoverageTotal = 0;
+  let targetShapeFitTotal = 0;
+  let starterShellCardsRemainingTotal = 0;
+  let reinforcedCardCountTotal = 0;
+  let centerpieceCountTotal = 0;
+  const deckFamilyDistribution: Record<string, number> = {};
+  let committedAtActTotal = 0;
+  let firstMajorReinforcementActTotal = 0;
+  let purgeCountTotal = 0;
+  let refinementCountTotal = 0;
+  let evolutionCountTotal = 0;
+  let openingHandFullSpendTotal = 0;
+  let turn1UnspentEnergyTotal = 0;
+  let earlyUnspentEnergyTotal = 0;
+  let earlyMeaningfulUnplayedTotal = 0;
+  let earlyCandidateCountTotal = 0;
+  let earlyMeaningfulCandidateCountTotal = 0;
+  let earlyDecisionScoreSpreadTotal = 0;
+  let earlyCloseDecisionTotal = 0;
+  let earlyEndTurnRegretTotal = 0;
 
   records.forEach((record) => {
     const key = `${record.classId}:${record.policyId}:${record.targetArchetypeId || "natural"}:${record.commitmentMode}`;
@@ -1426,11 +1739,57 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
     offArchetypeWeapons += record.summary.finalBuild?.weapon?.preferredForClass === false ? 1 : 0;
     handSizeBonusCount += Number(record.summary.finalBuild?.hero?.handSize || 5) > 5 ? 1 : 0;
     combatWinRateTotal += record.combat ? Number(record.combat.overall.winRate || 0) : recordWinRate;
+    const specializationStage = record.summary.finalBuild?.specializationStage || "exploratory";
+    primarySpecializationCount += specializationStage === "primary" || specializationStage === "mastery" ? 1 : 0;
+    masteryCount += specializationStage === "mastery" ? 1 : 0;
+    offTreeUtilityTotal += Number(record.summary.finalBuild?.offTreeUtilityCount || 0);
+    offTreeDamageTotal += Number(record.summary.finalBuild?.offTreeDamageCount || 0);
+    counterCoverageTotal += Array.isArray(record.summary.finalBuild?.counterCoverageTags)
+      ? record.summary.finalBuild.counterCoverageTags.length
+      : 0;
+    targetShapeFitTotal += Number(record.summary.finalBuild?.deckProfile?.targetShapeFit || 0);
+    starterShellCardsRemainingTotal += Number(record.summary.finalBuild?.deckProfile?.starterShellCardsRemaining || 0);
+    reinforcedCardCountTotal += Number(record.summary.finalBuild?.deckProfile?.reinforcedCardCount || 0);
+    centerpieceCountTotal += Array.isArray(record.summary.finalBuild?.deckProfile?.centerpieceCards)
+      ? record.summary.finalBuild.deckProfile.centerpieceCards.length
+      : 0;
+    const deckFamily = record.summary.finalBuild?.deckProfile?.deckFamily || "hybrid";
+    deckFamilyDistribution[deckFamily] = Number(deckFamilyDistribution[deckFamily] || 0) + 1;
+    committedAtActTotal += Number(record.summary.buildJourney?.committedAtAct || 0);
+    firstMajorReinforcementActTotal += Number(record.summary.buildJourney?.firstMajorReinforcementAct || 0);
+    purgeCountTotal += Number(record.summary.buildJourney?.totalPurges || 0);
+    refinementCountTotal += Number(record.summary.buildJourney?.totalRefinements || 0);
+    evolutionCountTotal += Number(record.summary.buildJourney?.totalEvolutions || 0);
+    const encounterDivisor = Math.max(1, Number(record.summary.encounterResults?.length || 0));
+    openingHandFullSpendTotal += (record.summary.encounterResults || []).filter((entry) => entry.openingHandFullSpend).length / encounterDivisor;
+    turn1UnspentEnergyTotal += (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.turn1UnspentEnergy || 0), 0) / encounterDivisor;
+    earlyUnspentEnergyTotal += (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.earlyUnspentEnergyAverage || 0), 0) / encounterDivisor;
+    earlyMeaningfulUnplayedTotal += (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.earlyMeaningfulUnplayedRate || 0), 0) / encounterDivisor;
+    earlyCandidateCountTotal += (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.averageEarlyCandidateCount || 0), 0) / encounterDivisor;
+    earlyMeaningfulCandidateCountTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.averageEarlyMeaningfulCandidateCount || 0), 0) /
+      encounterDivisor;
+    earlyDecisionScoreSpreadTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.averageEarlyDecisionScoreSpread || 0), 0) /
+      encounterDivisor;
+    earlyCloseDecisionTotal += (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.earlyCloseDecisionRate || 0), 0) / encounterDivisor;
+    earlyEndTurnRegretTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.averageEarlyEndTurnRegret || 0), 0) / encounterDivisor;
     mergeCounts(rewardRoleCounts, record.summary.rewardRoleCounts);
     mergeCounts(strategyRoleCounts, record.summary.strategyRoleCounts);
   });
 
   const divisor = Math.max(1, records.length);
+  const overallDecisionMetrics = {
+    openingHandFullSpendRate: roundTo(openingHandFullSpendTotal / divisor),
+    averageEarlyUnspentEnergy: roundTo(earlyUnspentEnergyTotal / divisor),
+    averageEarlyMeaningfulUnplayedRate: roundTo(earlyMeaningfulUnplayedTotal / divisor),
+    averageEarlyCandidateCount: roundTo(earlyCandidateCountTotal / divisor, 3),
+    averageEarlyMeaningfulCandidateCount: roundTo(earlyMeaningfulCandidateCountTotal / divisor, 3),
+    averageEarlyDecisionScoreSpread: roundTo(earlyDecisionScoreSpreadTotal / divisor, 3),
+    earlyCloseDecisionRate: roundTo(earlyCloseDecisionTotal / divisor, 3),
+    averageEarlyEndTurnRegret: roundTo(earlyEndTurnRegretTotal / divisor, 3),
+  };
   return {
     experimentId: spec.experimentId,
     title: spec.title,
@@ -1450,6 +1809,35 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
       offArchetypeWeaponRate: roundTo(offArchetypeWeapons / divisor),
       handSizeBonusRate: roundTo(handSizeBonusCount / divisor),
       combatSampleWinRate: roundTo(combatWinRateTotal / divisor),
+      primarySpecializationRate: roundTo(primarySpecializationCount / divisor),
+      masteryRate: roundTo(masteryCount / divisor),
+      averageOffTreeUtilityCount: roundTo(offTreeUtilityTotal / divisor),
+      averageOffTreeDamageCount: roundTo(offTreeDamageTotal / divisor),
+      averageCounterCoverageCount: roundTo(counterCoverageTotal / divisor),
+      averageTargetShapeFit: roundTo(targetShapeFitTotal / divisor, 3),
+      averageStarterShellCardsRemaining: roundTo(starterShellCardsRemainingTotal / divisor, 3),
+      averageReinforcedCardCount: roundTo(reinforcedCardCountTotal / divisor, 3),
+      averageCenterpieceCount: roundTo(centerpieceCountTotal / divisor, 3),
+      deckFamilyDistribution: Object.fromEntries(
+        Object.entries(deckFamilyDistribution)
+          .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+          .map(([family, count]) => [family, roundTo(count / divisor, 3)])
+      ),
+      averageCommittedAtAct: roundTo(committedAtActTotal / divisor, 3),
+      averageFirstMajorReinforcementAct: roundTo(firstMajorReinforcementActTotal / divisor, 3),
+      averagePurgeCount: roundTo(purgeCountTotal / divisor, 3),
+      averageRefinementCount: roundTo(refinementCountTotal / divisor, 3),
+      averageEvolutionCount: roundTo(evolutionCountTotal / divisor, 3),
+      openingHandFullSpendRate: overallDecisionMetrics.openingHandFullSpendRate,
+      averageTurn1UnspentEnergy: roundTo(turn1UnspentEnergyTotal / divisor),
+      averageEarlyUnspentEnergy: overallDecisionMetrics.averageEarlyUnspentEnergy,
+      averageEarlyMeaningfulUnplayedRate: overallDecisionMetrics.averageEarlyMeaningfulUnplayedRate,
+      averageEarlyCandidateCount: overallDecisionMetrics.averageEarlyCandidateCount,
+      averageEarlyMeaningfulCandidateCount: overallDecisionMetrics.averageEarlyMeaningfulCandidateCount,
+      averageEarlyDecisionScoreSpread: overallDecisionMetrics.averageEarlyDecisionScoreSpread,
+      earlyCloseDecisionRate: overallDecisionMetrics.earlyCloseDecisionRate,
+      averageEarlyEndTurnRegret: overallDecisionMetrics.averageEarlyEndTurnRegret,
+      decisionTension: buildDecisionTensionSummary(overallDecisionMetrics),
     },
     encounterMetricsByKind: aggregateEncounterMetrics(records),
     strategyRoleCounts,
@@ -1510,8 +1898,24 @@ function resolveMetricValue(report: BalanceAggregateReport, metricId: string): n
   if (metricId === "overall.off_archetype_weapon_rate") { return report.overall.offArchetypeWeaponRate; }
   if (metricId === "overall.hand_size_bonus_rate") { return report.overall.handSizeBonusRate; }
   if (metricId === "overall.combat_sample_win_rate") { return report.overall.combatSampleWinRate; }
+  if (metricId === "overall.primary_specialization_rate") { return report.overall.primarySpecializationRate; }
+  if (metricId === "overall.mastery_rate") { return report.overall.masteryRate; }
+  if (metricId === "overall.average_off_tree_utility_count") { return report.overall.averageOffTreeUtilityCount; }
+  if (metricId === "overall.average_off_tree_damage_count") { return report.overall.averageOffTreeDamageCount; }
+  if (metricId === "overall.average_counter_coverage_count") { return report.overall.averageCounterCoverageCount; }
+  if (metricId === "overall.opening_hand_full_spend_rate") { return report.overall.openingHandFullSpendRate; }
+  if (metricId === "overall.average_turn1_unspent_energy") { return report.overall.averageTurn1UnspentEnergy; }
+  if (metricId === "overall.average_early_unspent_energy") { return report.overall.averageEarlyUnspentEnergy; }
+  if (metricId === "overall.average_early_meaningful_unplayed_rate") { return report.overall.averageEarlyMeaningfulUnplayedRate; }
+  if (metricId === "overall.average_early_candidate_count") { return report.overall.averageEarlyCandidateCount; }
+  if (metricId === "overall.average_early_meaningful_candidate_count") { return report.overall.averageEarlyMeaningfulCandidateCount; }
+  if (metricId === "overall.average_early_decision_score_spread") { return report.overall.averageEarlyDecisionScoreSpread; }
+  if (metricId === "overall.early_close_decision_rate") { return report.overall.earlyCloseDecisionRate; }
+  if (metricId === "overall.average_early_end_turn_regret") { return report.overall.averageEarlyEndTurnRegret; }
 
-  const encounterMatch = metricId.match(/^encounter\.(boss|elite|battle)\.(average_turns|win_rate|average_power_ratio)$/);
+  const encounterMatch = metricId.match(
+    /^encounter\.(boss|miniboss|elite|battle)\.(average_turns|win_rate|average_power_ratio|opening_hand_full_spend_rate|average_turn1_unspent_energy|average_early_unspent_energy|average_early_meaningful_unplayed_rate|average_early_candidate_count|average_early_meaningful_candidate_count|average_early_decision_score_spread|early_close_decision_rate|average_early_end_turn_regret)$/
+  );
   if (encounterMatch) {
     const [, kind, field] = encounterMatch;
     const entry = report.encounterMetricsByKind[kind];
@@ -1521,6 +1925,15 @@ function resolveMetricValue(report: BalanceAggregateReport, metricId: string): n
     if (field === "average_turns") { return entry.averageTurns; }
     if (field === "win_rate") { return entry.winRate; }
     if (field === "average_power_ratio") { return entry.averagePowerRatio; }
+    if (field === "opening_hand_full_spend_rate") { return entry.openingHandFullSpendRate; }
+    if (field === "average_turn1_unspent_energy") { return entry.averageTurn1UnspentEnergy; }
+    if (field === "average_early_unspent_energy") { return entry.averageEarlyUnspentEnergy; }
+    if (field === "average_early_meaningful_unplayed_rate") { return entry.averageEarlyMeaningfulUnplayedRate; }
+    if (field === "average_early_candidate_count") { return entry.averageEarlyCandidateCount; }
+    if (field === "average_early_meaningful_candidate_count") { return entry.averageEarlyMeaningfulCandidateCount; }
+    if (field === "average_early_decision_score_spread") { return entry.averageEarlyDecisionScoreSpread; }
+    if (field === "early_close_decision_rate") { return entry.earlyCloseDecisionRate; }
+    if (field === "average_early_end_turn_regret") { return entry.averageEarlyEndTurnRegret; }
   }
 
   const groupMatch = metricId.match(/^group\.([a-z_]+)\.([a-z_]+)\.(win_rate|act5_rate|average_final_act)$/);
@@ -1641,6 +2054,9 @@ export function compareBalanceArtifacts(current: BalanceAggregateReport, baselin
     "encounter.boss.average_turns": roundTo(
       Number(current.encounterMetricsByKind.boss?.averageTurns || 0) - Number(baseline.encounterMetricsByKind.boss?.averageTurns || 0)
     ),
+    "encounter.miniboss.average_turns": roundTo(
+      Number(current.encounterMetricsByKind.miniboss?.averageTurns || 0) - Number(baseline.encounterMetricsByKind.miniboss?.averageTurns || 0)
+    ),
     "encounter.elite.average_turns": roundTo(
       Number(current.encounterMetricsByKind.elite?.averageTurns || 0) - Number(baseline.encounterMetricsByKind.elite?.averageTurns || 0)
     ),
@@ -1683,13 +2099,50 @@ export function buildBalanceMarkdownReport(artifact: BalanceArtifact) {
     `- Combat sample win rate: ${(artifact.aggregate.overall.combatSampleWinRate * 100).toFixed(1)}%`,
     `- Act V reach rate: ${(artifact.aggregate.overall.act5Rate * 100).toFixed(1)}%`,
     `- Average runewords: ${artifact.aggregate.overall.averageRunewords.toFixed(2)}`,
+    `- Decision tension: ${artifact.aggregate.overall.decisionTension.status} (${artifact.aggregate.overall.decisionTension.reasons.join("; ") || "no notes"})`,
     "",
     "## Encounter Metrics",
   ];
 
-  Object.entries(artifact.aggregate.encounterMetricsByKind).forEach(([kind, entry]) => {
-    lines.push(`- ${kind}: ${entry.averageTurns.toFixed(2)} turns, ${(entry.winRate * 100).toFixed(1)}% win, ${entry.averagePowerRatio.toFixed(2)}x ratio`);
+  ["boss", "miniboss", "elite", "battle"].forEach((kind) => {
+    const entry = artifact.aggregate.encounterMetricsByKind[kind];
+    if (!entry) {
+      return;
+    }
+    lines.push(
+      `- ${kind}: ${entry.averageTurns.toFixed(2)} turns, ${(entry.winRate * 100).toFixed(1)}% win, ${entry.averagePowerRatio.toFixed(2)}x ratio, tension ${entry.decisionTension.status}`
+    );
   });
+
+  lines.push("", "## Decision Tension");
+  lines.push(
+    `- overall: ${artifact.aggregate.overall.decisionTension.status} | candidates ${artifact.aggregate.overall.averageEarlyCandidateCount.toFixed(2)}, meaningful ${artifact.aggregate.overall.averageEarlyMeaningfulCandidateCount.toFixed(2)}, spread ${artifact.aggregate.overall.averageEarlyDecisionScoreSpread.toFixed(2)}, close ${(artifact.aggregate.overall.earlyCloseDecisionRate * 100).toFixed(1)}%, end-turn regret ${artifact.aggregate.overall.averageEarlyEndTurnRegret.toFixed(2)}`
+  );
+  lines.push(`  notes: ${artifact.aggregate.overall.decisionTension.reasons.join("; ") || "none"}`);
+  ["boss", "miniboss", "elite", "battle"].forEach((kind) => {
+    const entry = artifact.aggregate.encounterMetricsByKind[kind];
+    if (!entry) {
+      return;
+    }
+    lines.push(
+      `- ${kind}: ${entry.decisionTension.status} | candidates ${entry.averageEarlyCandidateCount.toFixed(2)}, meaningful ${entry.averageEarlyMeaningfulCandidateCount.toFixed(2)}, spread ${entry.averageEarlyDecisionScoreSpread.toFixed(2)}, close ${(entry.earlyCloseDecisionRate * 100).toFixed(1)}%, end-turn regret ${entry.averageEarlyEndTurnRegret.toFixed(2)}`
+    );
+    lines.push(`  notes: ${entry.decisionTension.reasons.join("; ") || "none"}`);
+  });
+
+  lines.push("", "## Deck Profile");
+  lines.push(
+    `- target fit ${artifact.aggregate.overall.averageTargetShapeFit.toFixed(2)}, reinforced ${artifact.aggregate.overall.averageReinforcedCardCount.toFixed(2)}, starter shell left ${artifact.aggregate.overall.averageStarterShellCardsRemaining.toFixed(2)}, centerpieces ${artifact.aggregate.overall.averageCenterpieceCount.toFixed(2)}`
+  );
+  const deckFamilies = Object.entries(artifact.aggregate.overall.deckFamilyDistribution || {})
+    .map(([family, rate]) => `${family} ${(Number(rate || 0) * 100).toFixed(1)}%`)
+    .join(", ");
+  lines.push(`- families: ${deckFamilies || "none"}`);
+
+  lines.push("", "## Build Journey");
+  lines.push(
+    `- commit act ${artifact.aggregate.overall.averageCommittedAtAct.toFixed(2)}, first reinforcement act ${artifact.aggregate.overall.averageFirstMajorReinforcementAct.toFixed(2)}, purges ${artifact.aggregate.overall.averagePurgeCount.toFixed(2)}, refinements ${artifact.aggregate.overall.averageRefinementCount.toFixed(2)}, evolutions ${artifact.aggregate.overall.averageEvolutionCount.toFixed(2)}`
+  );
 
   lines.push("", "## Groups");
   artifact.aggregate.groups.forEach((group) => {
@@ -1739,7 +2192,7 @@ export function buildBalanceMarkdownReport(artifact: BalanceArtifact) {
 }
 
 function buildCombatEncounterMetrics(encounters: Array<{
-  kind: "boss" | "elite" | "battle";
+  kind: "boss" | "miniboss" | "elite" | "battle";
   runs: number;
   winRate: number;
   averageTurns: number;
@@ -1747,6 +2200,15 @@ function buildCombatEncounterMetrics(encounters: Array<{
   averageMercenaryLifePct: number;
   averageEnemyLifePct: number;
   powerRatio: number;
+  openingHandFullSpendRate?: number;
+  averageTurn1UnspentEnergy?: number;
+  averageEarlyUnspentEnergy?: number;
+  averageEarlyMeaningfulUnplayedRate?: number;
+  averageEarlyCandidateCount?: number;
+  averageEarlyMeaningfulCandidateCount?: number;
+  averageEarlyDecisionScoreSpread?: number;
+  earlyCloseDecisionRate?: number;
+  averageEarlyEndTurnRegret?: number;
 }>) {
   const byKind: Record<string, {
     count: number;
@@ -1757,11 +2219,38 @@ function buildCombatEncounterMetrics(encounters: Array<{
     merc: number;
     enemy: number;
     ratio: number;
+    openingFullSpend: number;
+    turn1Unspent: number;
+    earlyUnspent: number;
+    earlyMeaningfulUnplayed: number;
+    earlyCandidateCount: number;
+    earlyMeaningfulCandidateCount: number;
+    earlyDecisionScoreSpread: number;
+    earlyCloseDecision: number;
+    earlyEndTurnRegret: number;
   }> = {};
 
   encounters.forEach((entry) => {
     const kind = entry.kind || "battle";
-    byKind[kind] = byKind[kind] || { count: 0, weight: 0, win: 0, turns: 0, hero: 0, merc: 0, enemy: 0, ratio: 0 };
+    byKind[kind] = byKind[kind] || {
+      count: 0,
+      weight: 0,
+      win: 0,
+      turns: 0,
+      hero: 0,
+      merc: 0,
+      enemy: 0,
+      ratio: 0,
+      openingFullSpend: 0,
+      turn1Unspent: 0,
+      earlyUnspent: 0,
+      earlyMeaningfulUnplayed: 0,
+      earlyCandidateCount: 0,
+      earlyMeaningfulCandidateCount: 0,
+      earlyDecisionScoreSpread: 0,
+      earlyCloseDecision: 0,
+      earlyEndTurnRegret: 0,
+    };
     const aggregate = byKind[kind];
     const weight = Math.max(1, Number(entry.runs || 1));
     aggregate.count += 1;
@@ -1772,12 +2261,21 @@ function buildCombatEncounterMetrics(encounters: Array<{
     aggregate.merc += Number(entry.averageMercenaryLifePct || 0) * weight;
     aggregate.enemy += Number(entry.averageEnemyLifePct || 0) * weight;
     aggregate.ratio += Number(entry.powerRatio || 0) * weight;
+    aggregate.openingFullSpend += Number(entry.openingHandFullSpendRate || 0) * weight;
+    aggregate.turn1Unspent += Number(entry.averageTurn1UnspentEnergy || 0) * weight;
+    aggregate.earlyUnspent += Number(entry.averageEarlyUnspentEnergy || 0) * weight;
+    aggregate.earlyMeaningfulUnplayed += Number(entry.averageEarlyMeaningfulUnplayedRate || 0) * weight;
+    aggregate.earlyCandidateCount += Number(entry.averageEarlyCandidateCount || 0) * weight;
+    aggregate.earlyMeaningfulCandidateCount += Number(entry.averageEarlyMeaningfulCandidateCount || 0) * weight;
+    aggregate.earlyDecisionScoreSpread += Number(entry.averageEarlyDecisionScoreSpread || 0) * weight;
+    aggregate.earlyCloseDecision += Number(entry.earlyCloseDecisionRate || 0) * weight;
+    aggregate.earlyEndTurnRegret += Number(entry.averageEarlyEndTurnRegret || 0) * weight;
   });
 
   return Object.fromEntries(
     Object.entries(byKind).map(([kind, aggregate]) => {
       const weight = Math.max(1, aggregate.weight);
-      return [kind, {
+      const entry = {
         count: aggregate.count,
         winRate: roundTo(aggregate.win / weight),
         averageTurns: roundTo(aggregate.turns / weight),
@@ -1785,6 +2283,19 @@ function buildCombatEncounterMetrics(encounters: Array<{
         averageMercenaryLifePct: roundTo(aggregate.merc / weight),
         averageEnemyLifePct: roundTo(aggregate.enemy / weight),
         averagePowerRatio: roundTo(aggregate.ratio / weight),
+        openingHandFullSpendRate: roundTo(aggregate.openingFullSpend / weight),
+        averageTurn1UnspentEnergy: roundTo(aggregate.turn1Unspent / weight),
+        averageEarlyUnspentEnergy: roundTo(aggregate.earlyUnspent / weight),
+        averageEarlyMeaningfulUnplayedRate: roundTo(aggregate.earlyMeaningfulUnplayed / weight),
+        averageEarlyCandidateCount: roundTo(aggregate.earlyCandidateCount / weight, 3),
+        averageEarlyMeaningfulCandidateCount: roundTo(aggregate.earlyMeaningfulCandidateCount / weight, 3),
+        averageEarlyDecisionScoreSpread: roundTo(aggregate.earlyDecisionScoreSpread / weight, 3),
+        earlyCloseDecisionRate: roundTo(aggregate.earlyCloseDecision / weight, 3),
+        averageEarlyEndTurnRegret: roundTo(aggregate.earlyEndTurnRegret / weight, 3),
+      };
+      return [kind, {
+        ...entry,
+        decisionTension: buildDecisionTensionSummary(entry),
       }];
     })
   );
@@ -1847,8 +2358,15 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     secondaryArchetypeId: "",
     secondaryArchetypeLabel: "",
     secondaryArchetypeScore: 0,
+    primaryTreeId: "",
+    secondaryUtilityTreeId: "",
+    specializationStage: "exploratory",
+    offTreeUtilityCount: 0,
+    offTreeDamageCount: 0,
+    counterCoverageTags: [],
     archetypeScores: [],
     activeRunewords: [],
+    deckProfile: buildEmptyDeckProfile(),
     archetypeCommitment: null,
   } as PolicyRunSummary["finalBuild"];
 
@@ -1868,6 +2386,17 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     heroPowerScore: Number(scenarioReport.build.powerScore || 0),
     enemyPowerScore: Number(encounter.enemyPowerScore || 0),
     powerRatio: Number(encounter.powerRatio || 0),
+    openingHandFullSpend: Number(encounter.openingHandFullSpendRate || 0) >= 0.5,
+    openingHandCardsPlayed: 0,
+    openingHandSize: 0,
+    turn1UnspentEnergy: Number(encounter.averageTurn1UnspentEnergy || 0),
+    earlyUnspentEnergyAverage: Number(encounter.averageEarlyUnspentEnergy || 0),
+    earlyMeaningfulUnplayedRate: Number(encounter.averageEarlyMeaningfulUnplayedRate || 0),
+    averageEarlyCandidateCount: Number(encounter.averageEarlyCandidateCount || 0),
+    averageEarlyMeaningfulCandidateCount: Number(encounter.averageEarlyMeaningfulCandidateCount || 0),
+    averageEarlyDecisionScoreSpread: Number(encounter.averageEarlyDecisionScoreSpread || 0),
+    earlyCloseDecisionRate: Number(encounter.earlyCloseDecisionRate || 0),
+    averageEarlyEndTurnRegret: Number(encounter.averageEarlyEndTurnRegret || 0),
   }));
 
   const summary: PolicyRunSummary = {
@@ -1880,6 +2409,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     rewardEffectCounts: {},
     rewardRoleCounts: {},
     strategyRoleCounts: {},
+    townActionCounts: {},
     encounterResults,
     encounterMetricsByKind: buildCombatEncounterMetrics(scenarioReport.encounters || []),
     world: {
@@ -1893,6 +2423,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
       opportunityOutcomes: 0,
     },
     finalBuild,
+    buildJourney: buildEmptyBuildJourney(),
     archetypeCommitment: null,
   };
 

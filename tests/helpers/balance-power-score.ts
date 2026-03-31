@@ -230,11 +230,11 @@ function getBossCardContribution(effect: CardEffect) {
     case "apply_burn":
       return { offense: value * 1.4, durability: 0, sustain: 0, control: 0, tempo: 0 };
     case "apply_burn_all":
-      return { offense: value * 1.0, durability: 0, sustain: 0, control: 0, tempo: 0 };
+      return { offense: Number(value), durability: 0, sustain: 0, control: 0, tempo: 0 };
     case "apply_poison":
       return { offense: value * 1.4, durability: 0, sustain: 0, control: 0, tempo: 0 };
     case "apply_poison_all":
-      return { offense: value * 1.0, durability: 0, sustain: 0, control: 0, tempo: 0 };
+      return { offense: Number(value), durability: 0, sustain: 0, control: 0, tempo: 0 };
     case "apply_slow":
       return { offense: 0, durability: 0, sustain: 0, control: value * 2.8, tempo: 0 };
     case "apply_slow_all":

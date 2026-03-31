@@ -425,18 +425,6 @@ async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselin
     updateJob();
   };
 
-  if (concurrency <= 1) {
-    for (const task of queue) {
-      const result = helper.executeBalanceRunTask(spec, task);
-      persistResult(result);
-      console.log(`[${completedRuns}/${totalRuns}] ${result.record.className} / ${result.record.policyLabel} / seed ${result.record.seedOffset}: ${result.record.outcome}, act ${result.record.finalActNumber}, level ${result.record.finalLevel}`);
-      if (parsed.stopAfter > 0 && completedNewRuns >= parsed.stopAfter) {
-        break;
-      }
-    }
-    return;
-  }
-
   await new Promise((resolve, reject) => {
     let active = 0;
     let stopped = false;

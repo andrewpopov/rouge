@@ -13,10 +13,10 @@
       title: "Firestorm",
       cost: 1,
       target: "enemy",
-      text: "Deal 5 fire damage. Apply 2 Burn.",
+      text: "Deal 4 fire damage. Apply 4 Burn.",
       effects: [
-        { kind: "damage", value: 5 },
-        { kind: "apply_burn", value: 2 },
+        { kind: "damage", value: 4 },
+        { kind: "apply_burn", value: 4 },
       ],
       skillRef: "druid_firestorm",
       tier: 1,
@@ -24,12 +24,12 @@
     druid_werewolf: {
       id: "druid_werewolf",
       title: "Werewolf",
-      cost: 1,
+      cost: 2,
       target: "enemy",
-      text: "Deal 8 damage. Gain 2 Guard.",
+      text: "Deal 12 damage. Heal 3.",
       effects: [
-        { kind: "damage", value: 8 },
-        { kind: "gain_guard_self", value: 2 },
+        { kind: "damage", value: 12 },
+        { kind: "heal_hero", value: 3 },
       ],
       skillRef: "druid_werewolf",
       tier: 1,
@@ -62,12 +62,9 @@
       id: "druid_cyclone_armor",
       title: "Cyclone Armor",
       cost: 1,
-      target: "enemy",
-      text: "Deal 5 damage. Gain 3 Guard.",
-      effects: [
-        { kind: "damage", value: 5 },
-        { kind: "gain_guard_self", value: 3 },
-      ],
+      target: "none",
+      text: "Gain 7 Guard.",
+      effects: [{ kind: "gain_guard_self", value: 7 }],
       skillRef: "druid_cyclone_armor",
       tier: 1,
     },
@@ -76,10 +73,10 @@
       title: "Lycanthropy",
       cost: 1,
       target: "none",
-      text: "Heal 4. Gain 1 Guard.",
+      text: "Heal 4. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 4 },
-        { kind: "gain_guard_self", value: 1 },
+        { kind: "draw", value: 1 },
       ],
       skillRef: "druid_lycanthropy",
       tier: 1,
@@ -234,14 +231,15 @@
   };
 
   const DRUID_STARTER_DECK = [
-    "druid_firestorm", "druid_firestorm", "druid_firestorm",
+    "druid_firestorm", "druid_firestorm",
     "druid_werewolf", "druid_werewolf",
     "druid_raven", "druid_raven",
     "druid_poison_creeper",
     "rally_mercenary",
     "druid_lycanthropy",
     "druid_cyclone_armor",
-    "druid_cyclone_armor",
+    "druid_werebear",
+    "druid_oak_sage",
     "druid_cyclone_armor",
   ];
 

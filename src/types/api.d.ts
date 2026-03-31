@@ -93,8 +93,13 @@ interface RewardPathPreference {
   treeId: string;
   label: string;
   score: number;
+  specializationStage: RunSpecializationStage;
+  primaryTreeId: string;
+  secondaryUtilityTreeId: string;
   primaryTrees: string[];
   supportTrees: string[];
+  behaviorTags: CardBehaviorTag[];
+  counterTags: CounterTag[];
 }
 
 interface RewardBuildResolution {
@@ -108,6 +113,20 @@ interface RewardEngineArchetypeCatalogEntry {
   primaryTrees: string[];
   supportTrees: string[];
   weaponFamilies: string[];
+  targetBand?: "flagship" | "secondary";
+  behaviorTags?: CardBehaviorTag[];
+  counterTags?: CounterTag[];
+  splashRole?: CardSplashRole;
+}
+
+interface RewardEngineSpecializationSnapshot {
+  favoredTreeId: string;
+  primaryTreeId: string;
+  secondaryUtilityTreeId: string;
+  specializationStage: RunSpecializationStage;
+  offTreeUtilityCount: number;
+  offTreeDamageCount: number;
+  counterCoverageTags: CounterTag[];
 }
 
 interface RewardEngineArchetypesApi {
@@ -115,6 +134,7 @@ interface RewardEngineArchetypesApi {
   CARD_ROLE_SCORE_WEIGHTS: Record<CardRewardRole, number>;
   SUPPORT_ROLE_PRIORITY: Record<CardRewardRole, number>;
   getDeckProfileId(content: GameContent, classId: string): string;
+  getCardClassId(cardId: string, card?: CardDefinition | null): string;
   getCardTree(cardId: string): string;
   annotateCardRewardMetadata(content: GameContent): void;
   getCardRewardRole(cardId: string, content?: GameContent | null): CardRewardRole;
@@ -130,6 +150,7 @@ interface RewardEngineArchetypesApi {
   getArchetypeCatalog(classId?: string): Record<string, Record<string, RewardEngineArchetypeCatalogEntry>>;
   getArchetypeWeaponFamilies(archetypeId: string): string[];
   getStrategicWeaponFamilies(run: RunState, content: GameContent): string[];
+  getSpecializationSnapshot(run: RunState, content: GameContent): RewardEngineSpecializationSnapshot;
   getRewardPathPreference(run: RunState, content: GameContent): RewardPathPreference | null;
 }
 

@@ -323,13 +323,15 @@ test("damage cards gain proficiency-matched weapon bonuses and on-hit effects", 
   });
   const target = state.enemies[0];
   target.guard = 0;
+  target.life = 99;
+  target.maxLife = 99;
   const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
   assert.ok(card);
   const lifeBefore = target.life;
 
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
 
-  assert.equal(lifeBefore - target.life, 9);
+  assert.equal(lifeBefore - target.life, 8);
   assert.equal(target.burn, 1);
 });
 
@@ -352,13 +354,15 @@ test("preferred weapon families amplify matching weapon-skill bonuses", () => {
   });
   const target = state.enemies[0];
   target.guard = 0;
+  target.life = 99;
+  target.maxLife = 99;
   const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
   assert.ok(card);
   const lifeBefore = target.life;
 
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
 
-  assert.equal(lifeBefore - target.life, 13);
+  assert.equal(lifeBefore - target.life, 12);
   assert.equal(target.burn, 2);
 });
 
@@ -377,13 +381,15 @@ test("typed weapon damage applies as a separate packet on matching attack cards"
   });
   const target = state.enemies[0];
   target.guard = 0;
+  target.life = 99;
+  target.maxLife = 99;
   const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
   assert.ok(card);
   const lifeBefore = target.life;
 
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
 
-  assert.equal(lifeBefore - target.life, 9);
+  assert.equal(lifeBefore - target.life, 8);
   assert.ok(state.log.some((line: string) => /fire damage/i.test(line)));
 });
 
@@ -403,13 +409,15 @@ test("weapon proficiency bonuses do not apply to attacks with other proficiencie
   });
   const target = state.enemies[0];
   target.guard = 0;
+  target.life = 99;
+  target.maxLife = 99;
   const card = state.hand.find((entry) => entry.cardId === "barbarian_bash");
   assert.ok(card);
   const lifeBefore = target.life;
 
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
 
-  assert.equal(lifeBefore - target.life, 9);
+  assert.equal(lifeBefore - target.life, 14);
   assert.equal(target.burn, 0);
 });
 
@@ -433,8 +441,8 @@ test("matching weapon proficiencies boost support skills as well as attacks", ()
 
   harness.engine.playCard(state, harness.content, card.instanceId);
 
-  assert.equal(state.hero.life, state.hero.maxLife - 2);
-  assert.equal(state.hero.guard, 5);
+  assert.equal(state.hero.life, state.hero.maxLife - 3);
+  assert.equal(state.hero.guard, 7);
 });
 
 test("preferred weapon families amplify matching support skill bonuses", () => {
@@ -459,8 +467,8 @@ test("preferred weapon families amplify matching support skill bonuses", () => {
 
   harness.engine.playCard(state, harness.content, card.instanceId);
 
-  assert.equal(state.hero.life, state.hero.maxLife - 1);
-  assert.equal(state.hero.guard, 6);
+  assert.equal(state.hero.life, state.hero.maxLife - 2);
+  assert.equal(state.hero.guard, 8);
 });
 
 test("preferred weapon family adds the same helper lift to matching attack and support bonuses", () => {

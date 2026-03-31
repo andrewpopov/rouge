@@ -1,29 +1,12 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-
-  const ACT_POSTER_MAP: Record<number, string> = {
-    1: "./assets/curated/act-maps/act1-the-blackwood-covenant.png",
-    2: "./assets/curated/act-maps/act2-the-sunken-sepulchers.png",
-    3: "./assets/curated/act-maps/act3-the-river-of-idols.png",
-    4: "./assets/curated/act-maps/act4-the-ashen-gate.png",
-    5: "./assets/curated/act-maps/act5-the-frost-siege-charter.png",
-  };
-
-  const TOWN_ART_MAP: Record<number, string> = {
-    1: "./assets/curated/town-maps/act1.webp",
-    2: "./assets/curated/town-maps/act2.webp",
-    3: "./assets/curated/town-maps/act3.webp",
-    4: "./assets/curated/town-maps/act4.webp",
-    5: "./assets/curated/town-maps/act5.webp",
-  };
-
-  const ACT_ENVIRONMENT_MAP: Record<number, string> = {
-    1: "./assets/curated/combat-backgrounds/grasslands.webp",
-    2: "./assets/curated/combat-backgrounds/desert.webp",
-    3: "./assets/curated/combat-backgrounds/jungle.webp",
-    4: "./assets/curated/combat-backgrounds/hell.webp",
-    5: "./assets/curated/combat-backgrounds/mountain.webp",
-  };
+  const actVisuals = (runtimeWindow as Window & {
+    __ROUGE_ACT_VISUAL_ASSETS: {
+      getPosterSrc(actNumber: number): string;
+      getTownArtSrc(actNumber: number): string;
+      getEnvironmentSrc(actNumber: number): string;
+    };
+  }).__ROUGE_ACT_VISUAL_ASSETS;
 
   interface GuideViewModel {
     kind: "intro" | "reward";
@@ -100,9 +83,9 @@
         scrollLabel: "Guide Scroll",
         scrollNote: "Break the seal to carry the charter forward.",
         routeLines: getRewardLines(run, currentAct, targetAct),
-        backdropSrc: ACT_ENVIRONMENT_MAP[targetAct.actNumber] || TOWN_ART_MAP[targetAct.actNumber] || "",
-        posterSrc: ACT_POSTER_MAP[targetAct.actNumber] || "",
-        destinationArtSrc: TOWN_ART_MAP[targetAct.actNumber] || "",
+        backdropSrc: actVisuals.getEnvironmentSrc(targetAct.actNumber) || actVisuals.getTownArtSrc(targetAct.actNumber) || "",
+        posterSrc: actVisuals.getPosterSrc(targetAct.actNumber) || "",
+        destinationArtSrc: actVisuals.getTownArtSrc(targetAct.actNumber) || "",
       };
     }
 
@@ -120,9 +103,9 @@
       scrollLabel: "Boss Guide",
       scrollNote: "Break the seal to begin the first charter.",
       routeLines: getIntroLines(run, currentAct),
-      backdropSrc: TOWN_ART_MAP[currentAct.actNumber] || ACT_ENVIRONMENT_MAP[currentAct.actNumber] || "",
-      posterSrc: ACT_POSTER_MAP[currentAct.actNumber] || "",
-      destinationArtSrc: TOWN_ART_MAP[currentAct.actNumber] || "",
+      backdropSrc: actVisuals.getTownArtSrc(currentAct.actNumber) || actVisuals.getEnvironmentSrc(currentAct.actNumber) || "",
+      posterSrc: actVisuals.getPosterSrc(currentAct.actNumber) || "",
+      destinationArtSrc: actVisuals.getTownArtSrc(currentAct.actNumber) || "",
     };
   }
 
@@ -152,15 +135,11 @@
                 <strong class="act-guide-chip__value">${escapeHtml(run.className)} Lv.${run.level}</strong>
               </div>
               <div class="act-guide-chip">
-                <span class="act-guide-chip__label">Current Act</span>
-                <strong class="act-guide-chip__value">${escapeHtml(run.actTitle)}</strong>
-              </div>
-              <div class="act-guide-chip">
-                <span class="act-guide-chip__label">${viewModel.kind === "reward" ? "Next Refuge" : "Issued From"}</span>
+                <span class="act-guide-chip__label">${viewModel.kind === "reward" ? "Refuge" : "Issued"}</span>
                 <strong class="act-guide-chip__value">${escapeHtml(viewModel.destinationLabel)}</strong>
               </div>
               <div class="act-guide-chip">
-                <span class="act-guide-chip__label">Boss Hunt</span>
+                <span class="act-guide-chip__label">Hunt</span>
                 <strong class="act-guide-chip__value">${escapeHtml(run.bossName)}</strong>
               </div>
             </div>

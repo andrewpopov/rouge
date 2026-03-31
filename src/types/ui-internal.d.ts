@@ -49,9 +49,10 @@ interface HallViewArchiveApi {
 }
 
 interface SafeZoneOpsMarkupApi {
+  buildOperationsMarkupFromModel(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string;
   buildPrepComparisonMarkup(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string;
-  buildWorldLedgerMarkup(run: RunState, renderUtils: RenderUtilsApi): string;
-  buildDepartureBriefingMarkup(run: RunState, routeSnapshot: SafeZoneSnapshot, derivedParty: DerivedPartyState, worldOutcomeCount: number, renderUtils: RenderUtilsApi): string;
+  buildWorldLedgerMarkup(worldLedgerLines: string[], renderUtils: RenderUtilsApi): string;
+  buildDepartureBriefingMarkup(departureBriefingLines: string[], renderUtils: RenderUtilsApi): string;
   buildLoadoutBenchMarkup(run: RunState, content: GameContent, renderUtils: RenderUtilsApi): string;
 }
 

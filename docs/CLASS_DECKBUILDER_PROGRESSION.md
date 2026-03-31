@@ -1,11 +1,13 @@
 # Class Deckbuilder Progression
 
-_Snapshot: 2026-03-06_
+_Snapshot: 2026-03-31_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
 - Use `PROJECT_MASTER.md` plus `COMBAT_FOUNDATION.md` for the current-build overview.
+- Use `DECKBUILDER_COMBAT_MODEL.md` for the overall STS or Monster Train or D2 hybrid gameplay spine.
 - Use this document for the class, skill, deck, and upgrade-path combat model.
+- Use `D2_SPECIALIZATION_MODEL.md` for the one-tree specialization, utility-splash, and boss-prep rules that should shape class card rewrites.
 
 ## Core Loop
 
@@ -61,6 +63,77 @@ Rule:
 - Core consumables such as potions should remain off-deck.
 - Potions should live in quick-use inventory and not dilute the draw pile.
 - Later tactical consumables such as scrolls or bombs can generate temporary cards if needed.
+
+## Hand Management Principles
+
+Rouge should borrow the right lesson from _Slay the Spire_, not the literal surface numbers.
+
+The goal is not "copy `3` energy and `5` cards."
+The goal is to make each turn ask the player which cards matter most right now.
+
+Hard rules:
+
+- visible enemy intent must stay readable before the player commits their hand
+- the average turn should present more plausible actions than available energy can cover
+- players should often end a turn with `1-2` unplayed cards for a strategic reason, not because the hand was dead on arrival
+- energy should be the main per-turn limiter; hand size and opening draw should shape texture and identity
+- early characters should not routinely spend their entire opening hand without giving something up
+- opening generosity should usually come from draw texture or selective draw support, not from simply raising base energy high enough to play everything
+
+Preferred tuning order:
+
+1. visible intents and clearer enemy asks
+2. opening-draw and hand-texture tuning
+3. card-cost and sequencing tuning
+4. base-energy changes only if the first three levers are not enough
+
+## Hybrid Progression Contract
+
+Rouge should treat combat growth as a hybrid of three models:
+
+- _Slay the Spire_ for combat-turn pressure and deck curation
+- _Monster Train_ for reinforcement, merchant timing, and vertical upgrades
+- Diablo II for one-tree specialization plus light utility splash
+
+That means class progression should not come from one system alone.
+
+It should come from several systems working together:
+
+### Reward screens
+
+- add or reinforce engine cards
+- offer answer or consistency tools
+- create the main randomness that shapes what kind of deck the run can realistically become
+
+### Tree investment
+
+- determines primary lane commitment
+- controls which class evolutions and higher-tier rewards should become more likely
+- tells the run which cards deserve long-term investment
+
+### Blacksmith evolution and upgrade
+
+- supplies the main vertical growth for class cards
+- makes a few important cards exceptional instead of making the whole deck generically stronger
+- should usually sharpen a current plan rather than replace it
+
+### Sage purge and transform
+
+- keep the deck clean
+- remove filler and failed pivots
+- let the player trade breadth for consistency
+
+### Itemization and runewords
+
+- reinforce the chosen engine
+- add delivery, defense, or matchup support
+- should not replace the need for a coherent deck plan
+
+The intended feel is:
+
+- rewards decide what the build is
+- evolutions and upgrades decide what the build is best at
+- purge and draw consistency determine whether the build actually works in combat
 
 ## Upgrade Path Model
 
@@ -386,6 +459,7 @@ Hard rules:
 - no roguelite layer should make the hand feel secondary
 - no fixed-skill system should make the deck feel optional
 - no consumable system should flood the deck with maintenance cards
+- no starting-state generosity should remove meaningful card sequencing from the first few turns
 
 ## Current Runtime Note
 
@@ -393,4 +467,6 @@ Current runtime implementation still differs from this target model in places:
 
 - some starter skills are currently represented as class cards
 - the live class roster is still smaller than the target roster
+- the live combat baseline still refills to a class-defined hand target each turn, while mana-derived class shells can start as high as `4` energy on a `5`-card opening hand
+- that means some early Rouge turns still allow "play nearly everything" sequencing, which is exactly the tension gap the next combat pass should address
 - this document should be treated as the intended progression model for future implementation work

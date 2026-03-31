@@ -70,9 +70,15 @@
       },
       classProgression: {
         favoredTreeId: "",
+        primaryTreeId: "",
+        secondaryUtilityTreeId: "",
+        specializationStage: "exploratory",
         treeRanks: {},
         unlockedSkillIds: [],
         archetypeScores: {},
+        offTreeUtilityCount: 0,
+        offTreeDamageCount: 0,
+        counterCoverageTags: [],
       },
       training: createDefaultTraining(),
     };
@@ -91,12 +97,20 @@
     };
     run.progression.classProgression = {
       favoredTreeId: "",
+      primaryTreeId: "",
+      secondaryUtilityTreeId: "",
+      specializationStage: "exploratory",
+      offTreeUtilityCount: 0,
+      offTreeDamageCount: 0,
       ...(run.progression.classProgression || {}),
       treeRanks: { ...(run.progression.classProgression?.treeRanks || {}) },
       unlockedSkillIds: Array.isArray(run.progression.classProgression?.unlockedSkillIds)
         ? [...run.progression.classProgression.unlockedSkillIds]
         : [],
       archetypeScores: { ...(run.progression.classProgression?.archetypeScores || {}) },
+      counterCoverageTags: Array.isArray(run.progression.classProgression?.counterCoverageTags)
+        ? [...run.progression.classProgression.counterCoverageTags]
+        : [],
     };
     run.progression.training = {
       ...createDefaultTraining(),

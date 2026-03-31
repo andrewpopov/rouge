@@ -68,6 +68,7 @@ function buildDashboard(indexEntries, latestJob) {
 
   const latestArtifacts = (Array.isArray(indexEntries) ? indexEntries : []).slice(0, 10).map((entry) => {
     const artifact = loadJson(entry.artifactPath || "", null);
+    const overall = artifact?.aggregate?.overall || {};
     const committedLanes = [...(artifact?.aggregate?.archetypes?.committedLanes || [])]
       .sort((left, right) =>
         String(left.laneHealth || "").localeCompare(String(right.laneHealth || "")) ||
@@ -79,16 +80,52 @@ function buildDashboard(indexEntries, latestJob) {
         Number(right.convergenceRate || 0) - Number(left.convergenceRate || 0) ||
         Number(right.averageFinalLaneIntegrity || 0) - Number(left.averageFinalLaneIntegrity || 0)
       );
+    const topDeckRuns = [...(artifact?.runs || [])]
+      .filter((run) => run?.summary?.finalBuild?.deckProfile)
+      .sort((left, right) =>
+        Number(right.summary.finalBuild.deckProfile.targetShapeFit || 0) - Number(left.summary.finalBuild.deckProfile.targetShapeFit || 0) ||
+        Number(right.finalLevel || 0) - Number(left.finalLevel || 0) ||
+        String(left.className || "").localeCompare(String(right.className || ""))
+      )
+      .slice(0, 3)
+      .map((run) => ({
+        className: run.className,
+        policyLabel: run.policyLabel,
+        targetArchetypeLabel: run.targetArchetypeLabel,
+        deckFamily: run.summary.finalBuild.deckProfile.deckFamily,
+        targetShapeFit: run.summary.finalBuild.deckProfile.targetShapeFit,
+        reinforcedCardCount: run.summary.finalBuild.deckProfile.reinforcedCardCount,
+        starterShellCardsRemaining: run.summary.finalBuild.deckProfile.starterShellCardsRemaining,
+        centerpieceCards: run.summary.finalBuild.deckProfile.centerpieceCards.map((card) => card.title),
+        committedAtAct: run.summary.buildJourney?.committedAtAct || 0,
+        firstMajorReinforcementAct: run.summary.buildJourney?.firstMajorReinforcementAct || 0,
+      }));
     return {
       ...entry,
       bands: artifact?.bands || [],
       baselineComparison: artifact?.baselineComparison || null,
+      decisionTension: artifact?.aggregate?.overall?.decisionTension || null,
+      deckProfile: {
+        averageTargetShapeFit: Number(overall.averageTargetShapeFit || 0),
+        averageStarterShellCardsRemaining: Number(overall.averageStarterShellCardsRemaining || 0),
+        averageReinforcedCardCount: Number(overall.averageReinforcedCardCount || 0),
+        averageCenterpieceCount: Number(overall.averageCenterpieceCount || 0),
+        deckFamilyDistribution: overall.deckFamilyDistribution || {},
+      },
+      buildJourney: {
+        averageCommittedAtAct: Number(overall.averageCommittedAtAct || 0),
+        averageFirstMajorReinforcementAct: Number(overall.averageFirstMajorReinforcementAct || 0),
+        averagePurgeCount: Number(overall.averagePurgeCount || 0),
+        averageRefinementCount: Number(overall.averageRefinementCount || 0),
+        averageEvolutionCount: Number(overall.averageEvolutionCount || 0),
+      },
       archetypes: {
         naturalConvergence,
         committedLanes,
       },
       topCommittedLanes: committedLanes.slice(0, 3),
       topNaturalConvergence: naturalConvergence.slice(0, 3),
+      topDeckRuns,
     };
   });
 
@@ -134,9 +171,26 @@ function buildMarkdown(dashboard) {
     dashboard.latestArtifacts.forEach((entry) => {
       const failedBands = (entry.bands || []).filter((band) => band.status === "fail").length;
       const healthyLanes = (entry.archetypes?.committedLanes || []).filter((lane) => lane.laneHealth === "healthy").length;
+      const tension = entry.decisionTension?.status ? `, tension ${entry.decisionTension.status}` : "";
+      const deckFit = Number(entry.deckProfile?.averageTargetShapeFit || 0);
       lines.push(
-        `- \`${entry.experimentId}\` (${entry.scenarioType}): ${(Number(entry.coverageRate || 0) * 100).toFixed(1)}% coverage, ${(Number(entry.overallWinRate || 0) * 100).toFixed(1)}% win, ${failedBands} failed bands, ${healthyLanes} healthy committed lanes`
+        `- \`${entry.experimentId}\` (${entry.scenarioType}): ${(Number(entry.coverageRate || 0) * 100).toFixed(1)}% coverage, ${(Number(entry.overallWinRate || 0) * 100).toFixed(1)}% win, ${failedBands} failed bands, ${healthyLanes} healthy committed lanes, deck fit ${deckFit.toFixed(2)}${tension}`
       );
+      if (entry.decisionTension?.reasons?.length) {
+        lines.push(`  tension notes: ${entry.decisionTension.reasons.join("; ")}`);
+      }
+      const deckFamilies = Object.entries(entry.deckProfile?.deckFamilyDistribution || {})
+        .map(([family, rate]) => `${family} ${(Number(rate || 0) * 100).toFixed(1)}%`)
+        .join(", ");
+      lines.push(
+        `  deck profile: reinforced ${Number(entry.deckProfile?.averageReinforcedCardCount || 0).toFixed(2)}, starter shell ${Number(entry.deckProfile?.averageStarterShellCardsRemaining || 0).toFixed(2)}, centerpieces ${Number(entry.deckProfile?.averageCenterpieceCount || 0).toFixed(2)}`
+      );
+      lines.push(
+        `  build journey: commit act ${Number(entry.buildJourney?.averageCommittedAtAct || 0).toFixed(2)}, first reinforcement ${Number(entry.buildJourney?.averageFirstMajorReinforcementAct || 0).toFixed(2)}, purges ${Number(entry.buildJourney?.averagePurgeCount || 0).toFixed(2)}, refinements ${Number(entry.buildJourney?.averageRefinementCount || 0).toFixed(2)}, evolutions ${Number(entry.buildJourney?.averageEvolutionCount || 0).toFixed(2)}`
+      );
+      if (deckFamilies) {
+        lines.push(`  families: ${deckFamilies}`);
+      }
       (entry.topCommittedLanes || []).forEach((lane) => {
         lines.push(
           `  lane ${lane.className} / ${lane.targetArchetypeLabel}: ${(Number(lane.clearRate || 0) * 100).toFixed(1)}% clear, ${(Number(lane.committedByCheckpointRate || 0) * 100).toFixed(1)}% commit, integrity ${Number(lane.averageLaneIntegrityFinal || 0).toFixed(2)}, ${lane.laneHealth}`
@@ -146,6 +200,15 @@ function buildMarkdown(dashboard) {
         lines.push(
           `  natural ${lane.className} / ${lane.policyLabel} -> ${lane.archetypeLabel}: ${(Number(lane.convergenceRate || 0) * 100).toFixed(1)}% convergence, integrity ${Number(lane.averageFinalLaneIntegrity || 0).toFixed(2)}`
         );
+      });
+      (entry.topDeckRuns || []).forEach((run) => {
+        const targetSuffix = run.targetArchetypeLabel ? ` / ${run.targetArchetypeLabel}` : "";
+        lines.push(
+          `  deck ${run.className} / ${run.policyLabel}${targetSuffix}: ${run.deckFamily}, fit ${Number(run.targetShapeFit || 0).toFixed(2)}, reinforced ${Number(run.reinforcedCardCount || 0)}, starter shell ${Number(run.starterShellCardsRemaining || 0)}, commit act ${Number(run.committedAtAct || 0)}, reinforce act ${Number(run.firstMajorReinforcementAct || 0)}`
+        );
+        if ((run.centerpieceCards || []).length > 0) {
+          lines.push(`    centerpiece cards: ${run.centerpieceCards.join(", ")}`);
+        }
       });
     });
   }

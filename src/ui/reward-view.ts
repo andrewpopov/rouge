@@ -389,7 +389,7 @@
                 <span class="reward-grant reward-grant--gold"><span class="reward-grant__label">Gold</span><strong>+${reward.grants.gold}</strong></span>
                 <span class="reward-grant reward-grant--xp"><span class="reward-grant__label">XP</span><strong>+${reward.grants.xp}</strong></span>
                 <span class="reward-grant reward-grant--potions"><span class="reward-grant__label">Potions</span><strong>+${reward.grants.potions}</strong></span>
-                <span class="reward-grant reward-grant--life"><span class="reward-grant__label">Vitality</span><strong>${run.hero.currentLife}/${run.hero.maxLife}</strong></span>
+                <span class="reward-grant reward-grant--life"><span class="reward-grant__label">Life</span><strong>${run.hero.currentLife}/${run.hero.maxLife}</strong></span>
               </div>
             </div>
           </header>
@@ -423,7 +423,7 @@
                     <strong class="reward-stage__stat-value">${escapeHtml(companionLife)}</strong>
                   </div>
                   <div class="reward-stage__stat">
-                    <span class="reward-stage__stat-label">Treasury</span>
+                    <span class="reward-stage__stat-label">Gold</span>
                     <strong class="reward-stage__stat-value">${run.gold}g</strong>
                   </div>
                 </div>

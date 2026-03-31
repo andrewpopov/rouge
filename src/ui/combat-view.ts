@@ -225,7 +225,7 @@
                 <p class="combat-command__brief-copy">${escapeHtml(briefCopy)}</p>
                 <div class="combat-command__resource-strip">
                   <div class="combat-command__resource">
-                    <span class="combat-command__resource-label">Vitality</span>
+                    <span class="combat-command__resource-label">Life</span>
                     <strong class="combat-command__resource-value">${assets ? `<img src="${assets.getUiIcon("hp") || ""}" class="hud-icon" alt="HP" loading="lazy" onerror="this.style.display='none'" />` : "\u2764"} ${combat.hero.life}/${combat.hero.maxLife}</strong>
                   </div>
                   <div class="combat-command__resource">
@@ -233,7 +233,7 @@
                     <strong class="combat-command__resource-value">\u{1F9EA} ${combat.potions}</strong>
                   </div>
                   <div class="combat-command__resource">
-                    <span class="combat-command__resource-label">Treasury</span>
+                    <span class="combat-command__resource-label">Gold</span>
                     <strong class="combat-command__resource-value">\u{1F4B0} ${run.gold}</strong>
                   </div>
                 </div>

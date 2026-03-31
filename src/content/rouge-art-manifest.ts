@@ -156,449 +156,449 @@
   ],
   "enemyVariants": {
     "abominable": [
-      "abominable.png"
+      "abominable.webp"
     ],
     "baal_s_minion": [
-      "baal_s_minion.png"
+      "baal_s_minion.webp"
     ],
     "baboon_demon": [
-      "baboon_demon.png"
+      "baboon_demon.webp"
     ],
     "bat_demon": [
-      "bat_demon.png"
+      "bat_demon.webp"
     ],
     "blood_hawk": [
-      "blood_hawk.png"
+      "blood_hawk.webp"
     ],
     "blood_hawk_nest": [
-      "blood_hawk_nest.png"
+      "blood_hawk_nest.webp"
     ],
     "blood_lord": [
-      "blood_lord.png"
+      "blood_lord.webp"
     ],
     "blunderbore": [
-      "blunderbore.png"
+      "blunderbore.webp"
     ],
     "bone_fetish": [
-      "bone_fetish.png"
+      "bone_fetish.webp"
     ],
     "catapult": [
-      "catapult.png"
+      "catapult.webp"
     ],
     "claw_viper": [
-      "claw_viper.png"
+      "claw_viper.webp"
     ],
     "corrupt_rogue": [
-      "corrupt_rogue.png"
+      "corrupt_rogue.webp"
     ],
     "corrupt_rogue_archer": [
-      "corrupt_rogue_archer.png"
+      "corrupt_rogue_archer.webp"
     ],
     "corrupt_rogue_spearwoman": [
-      "corrupt_rogue_spearwoman.png"
+      "corrupt_rogue_spearwoman.webp"
     ],
     "council_member": [
-      "council_member.png"
+      "council_member.webp"
     ],
     "death_mauler": [
-      "death_mauler.png"
+      "death_mauler.webp"
     ],
     "demon_imp": [
-      "demon_imp.png"
+      "demon_imp.webp"
     ],
     "fallen": [
-      "fallen.png"
+      "fallen.webp"
     ],
     "fallen_shaman": [
-      "fallen_shaman.png"
+      "fallen_shaman.webp"
     ],
     "fetish": [
-      "fetish.png"
+      "fetish.webp"
     ],
     "fetish_shaman": [
-      "fetish_shaman.png"
+      "fetish_shaman.webp"
     ],
     "fire_tower": [
-      "fire_tower.png"
+      "fire_tower.webp"
     ],
     "flying_scimitar": [
-      "flying_scimitar.png"
+      "flying_scimitar.webp"
     ],
     "frog_demon": [
-      "frog_demon.png"
+      "frog_demon.webp"
     ],
     "frozen_horror": [
-      "frozen_horror.png"
+      "frozen_horror.webp"
     ],
     "gargoyle_trap": [
-      "gargoyle_trap.png"
+      "gargoyle_trap.webp"
     ],
     "giant_mosquito": [
-      "giant_mosquito.png"
+      "giant_mosquito.webp"
     ],
     "giant_spider": [
-      "giant_spider.png"
+      "giant_spider.webp"
     ],
     "goatman": [
-      "goatman.png"
+      "goatman.webp"
     ],
     "leaper": [
-      "leaper.png"
+      "leaper.webp"
     ],
     "lightning_spire": [
-      "lightning_spire.png"
+      "lightning_spire.webp"
     ],
     "megademon": [
-      "megademon.png"
+      "megademon.webp"
     ],
     "minion_of_destruction": [
-      "minion_of_destruction.png"
+      "minion_of_destruction.webp"
     ],
     "mummy": [
-      "mummy.png"
+      "mummy.webp"
     ],
     "mummy_sarcophagus": [
-      "mummy_sarcophagus.png"
+      "mummy_sarcophagus.webp"
     ],
     "oblivion_knight": [
-      "oblivion_knight.png"
+      "oblivion_knight.webp"
     ],
     "overseer": [
-      "overseer.png"
+      "overseer.webp"
     ],
     "pain_worm": [
-      "pain_worm.png"
+      "pain_worm.webp"
     ],
     "reanimated_horde": [
-      "reanimated_horde.png"
+      "reanimated_horde.webp"
     ],
     "regurgitator": [
-      "regurgitator.png"
+      "regurgitator.webp"
     ],
     "reziarfg": [
-      "reziarfg.png"
+      "reziarfg.webp"
     ],
     "sabre_cat": [
-      "sabre_cat.png"
+      "sabre_cat.webp"
     ],
     "sand_maggot": [
-      "sand_maggot.png"
+      "sand_maggot.webp"
     ],
     "sand_maggot_egg": [
-      "sand_maggot_egg.png"
+      "sand_maggot_egg.webp"
     ],
     "sand_maggot_young": [
-      "sand_maggot_young.png"
+      "sand_maggot_young.webp"
     ],
     "sand_raider": [
-      "sand_raider.png"
+      "sand_raider.webp"
     ],
     "scarab_demon": [
-      "scarab_demon.png"
+      "scarab_demon.webp"
     ],
     "siege_beast": [
-      "siege_beast.png"
+      "siege_beast.webp"
     ],
     "skeleton": [
-      "skeleton.png"
+      "skeleton.webp"
     ],
     "skeleton_archer": [
-      "skeleton_archer.png"
+      "skeleton_archer.webp"
     ],
     "skeleton_mage": [
-      "skeleton_mage.png"
+      "skeleton_mage.webp"
     ],
     "slinger": [
-      "slinger.png",
-      "slinger__alt_1.png"
+      "slinger.webp",
+      "slinger__alt_1.webp"
     ],
     "spike_fiend": [
-      "spike_fiend.png"
+      "spike_fiend.webp"
     ],
     "stygian_fury": [
-      "stygian_fury.png"
+      "stygian_fury.webp"
     ],
     "succubus": [
-      "succubus.png",
-      "succubus__alt_1.png"
+      "succubus.webp",
+      "succubus__alt_1.webp"
     ],
     "suicide_minion": [
-      "suicide_minion.png"
+      "suicide_minion.webp"
     ],
     "swarm": [
-      "swarm.png"
+      "swarm.webp"
     ],
     "tainted": [
-      "tainted.png"
+      "tainted.webp"
     ],
     "undead_horror": [
-      "undead_horror.png"
+      "undead_horror.webp"
     ],
     "vampire": [
-      "vampire.png"
+      "vampire.webp"
     ],
     "vile_child": [
-      "vile_child.png"
+      "vile_child.webp"
     ],
     "vile_mother": [
-      "vile_mother.png",
-      "vile_mother__alt_1.png"
+      "vile_mother.webp",
+      "vile_mother__alt_1.webp"
     ],
     "vulture_demon": [
-      "vulture_demon.png"
+      "vulture_demon.webp"
     ],
     "wendigo": [
-      "wendigo.png"
+      "wendigo.webp"
     ],
     "willowisp": [
-      "willowisp.png"
+      "willowisp.webp"
     ],
     "wraith": [
-      "wraith.png"
+      "wraith.webp"
     ],
     "zakarum_priest": [
-      "zakarum_priest.png"
+      "zakarum_priest.webp"
     ],
     "zakarum_zealot": [
-      "zakarum_zealot.png"
+      "zakarum_zealot.webp"
     ],
     "zombie": [
-      "zombie.png"
+      "zombie.webp"
     ]
   },
   "bossVariants": {
     "andariel": [
-      "andariel.png"
+      "andariel.webp"
     ],
     "baal": [
-      "baal.png"
+      "baal.webp"
     ],
     "bartuc_the_bloody": [
-      "bartuc_the_bloody.png"
+      "bartuc_the_bloody.webp"
     ],
     "battlemaid_sarina": [
-      "battlemaid_sarina.png"
+      "battlemaid_sarina.webp"
     ],
     "beetleburst": [
-      "beetleburst.png"
+      "beetleburst.webp"
     ],
     "bishibosh": [
-      "bishibosh.png"
+      "bishibosh.webp"
     ],
     "blood_raven": [
-      "blood_raven.png"
+      "blood_raven.webp"
     ],
     "bloodwitch_the_wild": [
-      "bloodwitch_the_wild.png"
+      "bloodwitch_the_wild.webp"
     ],
     "bonebreaker": [
-      "bonebreaker.png"
+      "bonebreaker.webp"
     ],
     "bonesaw_breaker": [
-      "bonesaw_breaker.png"
+      "bonesaw_breaker.webp"
     ],
     "bremm_sparkfist": [
-      "bremm_sparkfist.png"
+      "bremm_sparkfist.webp"
     ],
     "coldcrow": [
-      "coldcrow.png"
+      "coldcrow.webp"
     ],
     "coldworm_the_burrower": [
-      "coldworm_the_burrower.png"
+      "coldworm_the_burrower.webp"
     ],
     "colenzo_the_annihilator": [
-      "colenzo_the_annihilator.png"
+      "colenzo_the_annihilator.webp"
     ],
     "corpsefire": [
-      "corpsefire.png"
+      "corpsefire.webp"
     ],
     "creeping_feature": [
-      "creeping_feature.png"
+      "creeping_feature.webp"
     ],
     "dac_farren": [
-      "dac_farren.png",
-      "dac_farren__alt_1.png"
+      "dac_farren.webp",
+      "dac_farren__alt_1.webp"
     ],
     "dark_elder": [
-      "dark_elder.png"
+      "dark_elder.webp"
     ],
     "diablo": [
-      "diablo.png"
+      "diablo.webp"
     ],
     "duriel": [
-      "duriel.png"
+      "duriel.webp"
     ],
     "eldritch_the_rectifier": [
-      "eldritch_the_rectifier.png"
+      "eldritch_the_rectifier.webp"
     ],
     "eyeback_the_unleashed": [
-      "eyeback_the_unleashed.png"
+      "eyeback_the_unleashed.webp"
     ],
     "fangskin": [
-      "fangskin.png"
+      "fangskin.webp"
     ],
     "fire_eye": [
-      "fire_eye.png"
+      "fire_eye.webp"
     ],
     "frozenstein": [
-      "frozenstein.png"
+      "frozenstein.webp"
     ],
     "geleb_flamefinger": [
-      "geleb_flamefinger.png"
+      "geleb_flamefinger.webp"
     ],
     "griswold": [
-      "griswold.png"
+      "griswold.webp"
     ],
     "hephasto_the_armorer": [
-      "hephasto_the_armorer.png"
+      "hephasto_the_armorer.webp"
     ],
     "icehawk_riftwing": [
-      "icehawk_riftwing.png"
+      "icehawk_riftwing.webp"
     ],
     "infector_of_souls": [
-      "infector_of_souls.png"
+      "infector_of_souls.webp"
     ],
     "ismail_vilehand": [
-      "ismail_vilehand.png"
+      "ismail_vilehand.webp"
     ],
     "izual": [
-      "izual.png",
-      "izual__alt_1.png"
+      "izual.webp",
+      "izual__alt_1.webp"
     ],
     "korlic": [
-      "korlic.png"
+      "korlic.webp"
     ],
     "lilith": [
-      "lilith.png"
+      "lilith.webp"
     ],
     "lister_the_tormentor": [
-      "lister_the_tormentor.png"
+      "lister_the_tormentor.webp"
     ],
     "lord_de_seis": [
-      "lord_de_seis.png"
+      "lord_de_seis.webp"
     ],
     "madawc": [
-      "madawc.png"
+      "madawc.webp"
     ],
     "maffer_dragonhand": [
-      "maffer_dragonhand.png"
+      "maffer_dragonhand.webp"
     ],
     "nihlathak": [
-      "nihlathak.png",
-      "nihlathak__alt_1.png"
+      "nihlathak.webp",
+      "nihlathak__alt_1.webp"
     ],
     "pandemonium_diablo": [
-      "pandemonium_diablo.png"
+      "pandemonium_diablo.webp"
     ],
     "pindleskin": [
-      "pindleskin.png"
+      "pindleskin.webp"
     ],
     "pitspawn_fouldog": [
-      "pitspawn_fouldog.png"
+      "pitspawn_fouldog.webp"
     ],
     "rakanishu": [
-      "rakanishu.png"
+      "rakanishu.webp"
     ],
     "sharptooth_slayer": [
-      "sharptooth_slayer.png"
+      "sharptooth_slayer.webp"
     ],
     "shenk_the_overseer": [
-      "shenk_the_overseer.png"
+      "shenk_the_overseer.webp"
     ],
     "snapchip_shatter": [
-      "snapchip_shatter.png",
-      "snapchip_shatter__alt_1.png"
+      "snapchip_shatter.webp",
+      "snapchip_shatter__alt_1.webp"
     ],
     "sszark_the_burning": [
-      "sszark_the_burning.png"
+      "sszark_the_burning.webp"
     ],
     "talic": [
-      "talic.png"
+      "talic.webp"
     ],
     "the_countess": [
-      "the_countess.png"
+      "the_countess.webp"
     ],
     "the_cow_king": [
-      "the_cow_king.png"
+      "the_cow_king.webp"
     ],
     "the_smith": [
-      "the_smith.png"
+      "the_smith.webp"
     ],
     "the_summoner": [
-      "the_summoner.png"
+      "the_summoner.webp"
     ],
     "thresh_socket": [
-      "thresh_socket.png"
+      "thresh_socket.webp"
     ],
     "toorc_icefist": [
-      "toorc_icefist.png"
+      "toorc_icefist.webp"
     ],
     "treehead_woodfist": [
-      "treehead_woodfist.png"
+      "treehead_woodfist.webp"
     ],
     "uber_baal": [
-      "uber_baal.png"
+      "uber_baal.webp"
     ],
     "uber_diablo": [
-      "uber_diablo.png"
+      "uber_diablo.webp"
     ],
     "uber_duriel": [
-      "uber_duriel.png"
+      "uber_duriel.webp"
     ],
     "uber_izual": [
-      "uber_izual.png"
+      "uber_izual.webp"
     ],
     "ventar_the_unholy": [
-      "ventar_the_unholy.png"
+      "ventar_the_unholy.webp"
     ],
     "witch_doctor_endugu": [
-      "witch_doctor_endugu.png"
+      "witch_doctor_endugu.webp"
     ],
     "wyand_voidbringer": [
-      "wyand_voidbringer.png"
+      "wyand_voidbringer.webp"
     ]
   },
   "portraitVariants": {
     "amazon": [
-      "amazon.png"
+      "amazon.webp"
     ],
     "assassin": [
-      "assassin.png"
+      "assassin.webp"
     ],
     "barbarian": [
-      "barbarian.png"
+      "barbarian.webp"
     ],
     "druid": [
-      "druid.png"
+      "druid.webp"
     ],
     "necromancer": [
-      "necromancer.png"
+      "necromancer.webp"
     ],
     "paladin": [
-      "paladin.png"
+      "paladin.webp"
     ],
     "sorceress": [
-      "sorceress.png"
+      "sorceress.webp"
     ]
   },
   "mercenaryVariants": {
     "desert_guard": [
-      "desert_guard.png"
+      "desert_guard.webp"
     ],
     "harrogath_captain": [
-      "harrogath_captain.png"
+      "harrogath_captain.webp"
     ],
     "iron_wolf": [
-      "iron_wolf.png"
+      "iron_wolf.webp"
     ],
     "kurast_shadow": [
-      "kurast_shadow.png"
+      "kurast_shadow.webp"
     ],
     "rogue_scout": [
-      "rogue_scout.png"
+      "rogue_scout.webp"
     ],
     "templar_vanguard": [
-      "templar_vanguard.png"
+      "templar_vanguard.webp"
     ]
   }
 };

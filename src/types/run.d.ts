@@ -179,9 +179,15 @@ interface RunAttributeState {
 
 interface RunClassProgressionState {
   favoredTreeId: string;
+  primaryTreeId: string;
+  secondaryUtilityTreeId: string;
+  specializationStage: RunSpecializationStage;
   treeRanks: Record<string, number>;
   unlockedSkillIds: string[];
   archetypeScores: Record<string, number>;
+  offTreeUtilityCount: number;
+  offTreeDamageCount: number;
+  counterCoverageTags: CounterTag[];
 }
 
 interface RunProgressionState {
@@ -296,6 +302,12 @@ interface RunProgressionSummary {
   trainingRanks: number;
   favoredTreeId: string;
   favoredTreeName: string;
+  primaryTreeId: string;
+  secondaryUtilityTreeId: string;
+  specializationStage: RunSpecializationStage;
+  offTreeUtilityCount: number;
+  offTreeDamageCount: number;
+  counterCoverageTags: CounterTag[];
   dominantArchetypeId: string;
   dominantArchetypeLabel: string;
   dominantArchetypeScore: number;

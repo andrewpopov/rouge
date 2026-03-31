@@ -71,6 +71,33 @@ type CardEffectKind =
   | "apply_paralyze"
   | "apply_paralyze_all";
 type CardRewardRole = "foundation" | "engine" | "support" | "tech";
+type CardBehaviorTag =
+  | "pressure"
+  | "mitigation"
+  | "setup"
+  | "payoff"
+  | "salvage"
+  | "conversion"
+  | "support"
+  | "tax"
+  | "disruption"
+  | "protection"
+  | "scaling";
+type CardRoleTag = "answer" | "setup" | "payoff" | "salvage" | "conversion" | "support";
+type CardSplashRole = "primary_only" | "utility_splash_ok" | "hybrid_only";
+type EncounterIntentRole = "spike" | "tax" | "setup" | "protection" | "disruption" | "recovery";
+type CounterTag =
+  | "anti_attrition"
+  | "anti_guard_break"
+  | "anti_backline"
+  | "anti_support_disruption"
+  | "anti_fire_pressure"
+  | "anti_lightning_pressure"
+  | "anti_summon"
+  | "anti_control"
+  | "anti_tax"
+  | "telegraph_respect";
+type RunSpecializationStage = "exploratory" | "candidate" | "primary" | "mastery";
 
 type StatusEffectKind = "burn" | "poison" | "slow" | "freeze" | "stun" | "paralyze";
 type WeaponEffectKind = "burn" | "slow" | "freeze" | "shock" | "crushing";
@@ -127,6 +154,10 @@ interface CardDefinition {
   tier?: number;
   rewardRole?: CardRewardRole;
   archetypeTags?: string[];
+  behaviorTags?: CardBehaviorTag[];
+  roleTag?: CardRoleTag;
+  counterTags?: CounterTag[];
+  splashRole?: CardSplashRole;
 }
 
 interface ClassCardDefinition extends CardDefinition {
@@ -189,6 +220,8 @@ interface EnemyIntent {
   damageType?: DamageType;
   statusValue?: number;
   cooldown?: number;
+  intentRole?: EncounterIntentRole;
+  counterTags?: CounterTag[];
 }
 
 interface EnemyTemplate {
@@ -203,6 +236,8 @@ interface EnemyTemplate {
   family?: string;
   summonTemplateId?: string;
   spawnConfig?: SpawnConfig;
+  askTags?: CounterTag[];
+  counterTags?: CounterTag[];
 }
 
 interface EncounterEnemyEntry {
@@ -221,6 +256,8 @@ interface EncounterDefinition {
   description: string;
   enemies: EncounterEnemyEntry[];
   modifiers?: EncounterModifier[];
+  askTags?: CounterTag[];
+  counterTags?: CounterTag[];
 }
 
 interface ConsequenceEncounterPackageDefinition {
@@ -411,6 +448,8 @@ interface RuntimeClassTreeDefinition {
   name: string;
   archetypeId: string;
   summary: string;
+  behaviorTags: CardBehaviorTag[];
+  counterTags: CounterTag[];
   bonusPerRank: ItemBonusSet;
   maxRank: number;
   unlockThreshold: number;

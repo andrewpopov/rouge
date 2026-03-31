@@ -6,7 +6,8 @@ const { roundTo, runOrchestratorSpec } = require("./orchestrator-wrapper-utils")
 
 const TARGET_BANDS = {
   boss: { min: 1.1, max: 1.4 },
-  elite: { min: 1.4, max: 1.8 },
+  miniboss: { min: 1.4, max: 1.8 },
+  elite: { min: 1.8, max: 2.4 },
   battle: { min: 2.0, max: 3.0 },
 };
 
@@ -92,7 +93,7 @@ function buildReport(artifact, throughActNumber) {
     const counts = { below_target: 0, on_target: 0, above_target: 0 };
     const checkpoints = (run.checkpoints || []).map((checkpoint) => {
       const probes = (checkpoint.probes || []).map((probe) => {
-        const targetBand = TARGET_BANDS[probe.kind];
+        const targetBand = TARGET_BANDS[probe.kind] || TARGET_BANDS.battle;
         const status = getBandStatus(Number(probe.powerRatio || 0), targetBand);
         counts[status] += 1;
         return {
@@ -144,6 +145,7 @@ function printHumanReport(report) {
   console.log(
     [
       printBand("Boss", report.targetBands.boss),
+      printBand("Miniboss", report.targetBands.miniboss),
       printBand("Elite", report.targetBands.elite),
       printBand("Battle", report.targetBands.battle),
     ].join(" | ")

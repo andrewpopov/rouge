@@ -125,47 +125,6 @@
     `;
   }
 
-  function buildGridCell(
-    entry: InventoryEntry,
-    content: GameContent,
-    escapeHtml: (s: string) => string
-  ): string {
-    const { getItemDefinition, getRuneDefinition } = runtimeWindow.ROUGE_ITEM_CATALOG;
-    const assetMap = runtimeWindow.ROUGE_ASSET_MAP;
-    const isEquipment = entry.kind === ENTRY_KIND.EQUIPMENT;
-    const itemDef = isEquipment ? getItemDefinition(content, entry.equipment?.itemId || "") : null;
-    const runeDef = !isEquipment ? getRuneDefinition(content, entry.runeId || "") : null;
-    const name = isEquipment
-      ? (itemDef?.name || "Unknown")
-      : (runeDef?.name || "Unknown Rune");
-    const runeTier = Math.max(1, Math.min(9, runeDef?.progressionTier || 1));
-    const colorClass = isEquipment ? getRarityColorClass(entry.equipment?.rarity) : `d2inv--rune d2inv--rune-tier-${runeTier}`;
-    let sprite = null;
-    if (isEquipment) {
-      sprite = itemDef ? assetMap.getItemSprite(itemDef.sourceId, entry.equipment?.rarity, entry.equipment?.slot) : null;
-    } else {
-      sprite = runeDef ? assetMap.getRuneSprite(runeDef.sourceId) : null;
-    }
-    let meta = `Tier ${runeTier} Rune`;
-    if (isEquipment) {
-      meta = toTitleCase(itemDef?.family || itemDef?.slot || "Equipment");
-    }
-
-    return `
-      <div class="d2inv-grid-cell ${colorClass}" title="${escapeHtml(name)}">
-        <span class="d2inv-grid-cell__meta">${escapeHtml(meta)}</span>
-        ${sprite
-          ? `<img class="d2inv-grid-cell__sprite" src="${escapeHtml(sprite)}" alt="${escapeHtml(name)}">`
-          : `<span class="d2inv-grid-cell__name">${escapeHtml(name)}</span>`}
-        <span class="d2inv-grid-cell__label">${escapeHtml(name)}</span>
-        ${isEquipment ? `
-          <button class="d2inv-grid-cell__use" data-action="use-town-action"
-                  data-town-action-id="inventory_equip_${entry.entryId}">Equip</button>
-        ` : ""}
-      </div>
-    `;
-  }
-
   function buildPackSlotCell(
     entry: InventoryEntry | null,
     slotIndex: number,
@@ -189,9 +148,12 @@
     const meta = isEquipment
       ? toTitleCase(itemDef?.family || itemDef?.slot || "Equipment")
       : `Tier ${Math.max(1, runeDef?.progressionTier || 1)} Rune`;
-    const sprite = isEquipment
-      ? (itemDef ? runtimeWindow.ROUGE_ASSET_MAP.getItemSprite(itemDef.sourceId, entry.equipment?.rarity, entry.equipment?.slot) : null)
-      : (runeDef ? runtimeWindow.ROUGE_ASSET_MAP.getRuneSprite(runeDef.sourceId) : null);
+    let sprite = null;
+    if (isEquipment) {
+      sprite = itemDef ? runtimeWindow.ROUGE_ASSET_MAP.getItemSprite(itemDef.sourceId, entry.equipment?.rarity, entry.equipment?.slot) : null;
+    } else {
+      sprite = runeDef ? runtimeWindow.ROUGE_ASSET_MAP.getRuneSprite(runeDef.sourceId) : null;
+    }
     const rarityClass = isEquipment
       ? getRarityColorClass(entry.equipment?.rarity)
       : `d2inv--rune d2inv--rune-tier-${Math.max(1, Math.min(9, runeDef?.progressionTier || 1))}`;
@@ -466,7 +428,11 @@
     `;
   }
 
-  function buildHeroDossierMarkup(services: UiRenderServices, vm: ReturnType<typeof deriveInventoryModel>): string {
+  function buildHeroDossierMarkup(
+    services: UiRenderServices,
+    vm: ReturnType<typeof deriveInventoryModel>,
+    layout: "default" | "field-pack" = "default"
+  ): string {
     const { escapeHtml } = services.renderUtils;
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const { run, derivedParty } = vm;
@@ -481,21 +447,20 @@
       ? svgIcon(mercPortraitSrc, "d2inv-hero__companion-image", run.mercenary.name || run.mercenary.role || "Mercenary")
       : `<span class="d2inv-hero__companion-mark">${escapeHtml((run.mercenary.name || run.mercenary.role || "M").charAt(0).toUpperCase())}</span>`;
 
-    return `
-      <section class="d2inv-hero">
-        <div class="d2inv-hero__art">
-          <div class="d2inv-hero__sigil">
-            <div class="d2inv-hero__eclipse"></div>
-            <div class="d2inv-hero__portrait">${heroPortrait}</div>
+    const resourcesMarkup = layout === "field-pack"
+      ? `
+        <div class="d2inv-hero__resources d2inv-hero__resources--compact">
+          <div class="d2inv-hero__resource d2inv-hero__resource--compact">
+            <span class="d2inv-hero__resource-label">Deck</span>
+            <strong class="d2inv-hero__resource-value">${run.deck?.length || 0}</strong>
           </div>
-          <div class="d2inv-hero__identity">
-            <div class="d2inv-hero__eyebrow">${escapeHtml(run.safeZoneName || "Safe Haven")}</div>
-            <div class="d2inv-hero__name">${escapeHtml(run.className)}</div>
-            <div class="d2inv-hero__role">Level ${run.level} · ${escapeHtml(run.actTitle || "Current route")}</div>
-            ${buildLifeMeter("Hero Vitality", derivedParty.hero.currentLife, derivedParty.hero.maxLife, escapeHtml, "hero")}
+          <div class="d2inv-hero__resource d2inv-hero__resource--compact">
+            <span class="d2inv-hero__resource-label">Belt</span>
+            <strong class="d2inv-hero__resource-value">${run.belt.current}/${run.belt.max}</strong>
           </div>
         </div>
-
+      `
+      : `
         <div class="d2inv-hero__resources">
           <div class="d2inv-hero__resource">
             <span class="d2inv-hero__resource-label">Gold</span>
@@ -514,13 +479,31 @@
             <strong class="d2inv-hero__resource-value">${carried}/${capacity}</strong>
           </div>
         </div>
+      `;
+
+    return `
+      <section class="d2inv-hero">
+        <div class="d2inv-hero__art">
+          <div class="d2inv-hero__sigil">
+            <div class="d2inv-hero__eclipse"></div>
+            <div class="d2inv-hero__portrait">${heroPortrait}</div>
+          </div>
+          <div class="d2inv-hero__identity">
+            <div class="d2inv-hero__eyebrow">${escapeHtml(run.safeZoneName || "Safe Haven")}</div>
+            <div class="d2inv-hero__name">${escapeHtml(run.className)}</div>
+            <div class="d2inv-hero__role">Level ${run.level} · ${escapeHtml(run.actTitle || "Current route")}</div>
+            ${buildLifeMeter("Hero Life", derivedParty.hero.currentLife, derivedParty.hero.maxLife, escapeHtml, "hero")}
+          </div>
+        </div>
+
+        ${resourcesMarkup}
 
         <div class="d2inv-hero__companion">
           <div class="d2inv-hero__companion-portrait">${mercPortrait}</div>
           <div class="d2inv-hero__companion-copy">
             <div class="d2inv-hero__companion-label">Mercenary</div>
             <div class="d2inv-hero__companion-name">${escapeHtml(run.mercenary.name || run.mercenary.role || "Companion")}</div>
-            ${buildLifeMeter("Companion Vitality", derivedParty.mercenary.currentLife, derivedParty.mercenary.maxLife, escapeHtml, "merc")}
+            ${buildLifeMeter("Companion Life", derivedParty.mercenary.currentLife, derivedParty.mercenary.maxLife, escapeHtml, "merc")}
           </div>
         </div>
       </section>
@@ -589,8 +572,7 @@
         <div class="d2inv__summary">
           ${buildSummaryChip("Bloodline", `${vm.run.className} Lv.${vm.run.level}`, escapeHtml)}
           ${buildSummaryChip("Companion", vm.run.mercenary.name || vm.run.mercenary.role || "Mercenary", escapeHtml)}
-          ${buildSummaryChip("Gold", `${vm.run.gold} G`, escapeHtml)}
-          ${buildSummaryChip("Pack", `${carried}/${capacity}`, escapeHtml)}
+          ${buildSummaryChip("Supply", `${vm.run.gold} G · Pack ${carried}/${capacity}`, escapeHtml)}
         </div>
 
         <button class="d2inv__close" data-action="close-inventory" aria-label="Close Inventory">×</button>
@@ -691,13 +673,12 @@
     const loadout = buildHydratedLoadout(run, content);
     const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY;
     const carried = run.inventory?.carried || [];
-    const emptyCount = Math.max(0, capacity - carried.length);
     const packBodyMarkup = buildPackStageMarkup(appState, vm, content, escapeHtml);
 
     return `
       <div class="d2inv__body d2inv__body--inventory">
         <div class="d2inv__rail">
-          ${buildHeroDossierMarkup(services, vm)}
+          ${buildHeroDossierMarkup(services, vm, "field-pack")}
 
           <section class="d2inv__panel d2inv__panel--loadout">
             <div class="d2inv__panel-head">

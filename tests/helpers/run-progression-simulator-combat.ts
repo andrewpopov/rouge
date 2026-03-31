@@ -21,7 +21,46 @@ export interface SimulatedCombatResult {
   heroLifePct: number
   mercenaryLifePct: number
   enemyLifePct: number
+  openingHandFullSpend: boolean
+  openingHandCardsPlayed: number
+  openingHandSize: number
+  turn1UnspentEnergy: number
+  earlyUnspentEnergyAverage: number
+  earlyMeaningfulUnplayedRate: number
+  averageEarlyCandidateCount: number
+  averageEarlyMeaningfulCandidateCount: number
+  averageEarlyDecisionScoreSpread: number
+  earlyCloseDecisionRate: number
+  averageEarlyEndTurnRegret: number
 }
+
+interface TurnDecisionTelemetry {
+  startingEnergy: number
+  startingHandSize: number
+  cardsPlayed: number
+  endingEnergy: number
+  endingHandSize: number
+  meaningfulUnplayed: number
+  candidateCount: number
+  meaningfulCandidateCount: number
+  decisionScoreSpread: number
+  endTurnRegret: number
+}
+
+interface CombatActionChoiceStats {
+  action: CombatCandidateAction
+  candidateCount: number
+  meaningfulCandidateCount: number
+  bestScore: number
+  secondBestScore: number
+  scoreSpread: number
+  endTurnScore: number
+  endTurnRegret: number
+}
+
+const MEANINGFUL_DECISION_MARGIN = 8
+const CLOSE_DECISION_SPREAD_THRESHOLD = 6
+const PASS_REGRET_SIGNIFICANCE_THRESHOLD = 2
 
 export interface CombatSimulationHooks {
   slowStepThresholdMs?: number
@@ -109,6 +148,64 @@ export function getHeroDebuffScore(state: CombatState) {
     state.hero.weaken * SIMULATION_SCORING_WEIGHTS.heroDebuff.weaken +
     state.hero.energyDrain * SIMULATION_SCORING_WEIGHTS.heroDebuff.energyDrain
   )
+}
+
+function getMeaningfulUnplayedCount(
+  state: CombatState,
+  content: GameContent,
+  policy: BuildPolicyDefinition,
+  matchingProficiencies: Set<string>,
+  startingEnergy: number
+) {
+  return state.hand.reduce((count, entry) => {
+    const card = content.cardCatalog[entry.cardId]
+    if (!card) {
+      return count
+    }
+    if (Number(card.cost || 0) > Math.max(1, startingEnergy)) {
+      return count
+    }
+    return scoreCard(card, policy, matchingProficiencies) >= 8 ? count + 1 : count
+  }, 0)
+}
+
+function summarizeTurnTelemetry(turns: TurnDecisionTelemetry[]) {
+  const earlyTurns = turns.slice(0, 3)
+  const opening = turns[0] || {
+    startingEnergy: 0,
+    startingHandSize: 0,
+    cardsPlayed: 0,
+    endingEnergy: 0,
+    endingHandSize: 0,
+    meaningfulUnplayed: 0,
+    candidateCount: 0,
+    meaningfulCandidateCount: 0,
+    decisionScoreSpread: 0,
+    endTurnRegret: 0,
+  }
+  const divisor = Math.max(1, earlyTurns.length)
+  return {
+    openingHandFullSpend: opening.endingHandSize === 0,
+    openingHandCardsPlayed: opening.cardsPlayed,
+    openingHandSize: opening.startingHandSize,
+    turn1UnspentEnergy: opening.endingEnergy,
+    earlyUnspentEnergyAverage: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.endingEnergy, 0) / divisor),
+    earlyMeaningfulUnplayedRate: roundTo(earlyTurns.filter((turn) => turn.meaningfulUnplayed > 0).length / divisor, 3),
+    averageEarlyCandidateCount: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.candidateCount, 0) / divisor),
+    averageEarlyMeaningfulCandidateCount: roundTo(
+      earlyTurns.reduce((sum, turn) => sum + turn.meaningfulCandidateCount, 0) / divisor,
+      3
+    ),
+    averageEarlyDecisionScoreSpread: roundTo(
+      earlyTurns.reduce((sum, turn) => sum + turn.decisionScoreSpread, 0) / divisor,
+      3
+    ),
+    earlyCloseDecisionRate: roundTo(
+      earlyTurns.filter((turn) => turn.meaningfulCandidateCount >= 2 && turn.decisionScoreSpread <= CLOSE_DECISION_SPREAD_THRESHOLD).length / divisor,
+      3
+    ),
+    averageEarlyEndTurnRegret: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.endTurnRegret, 0) / divisor, 3),
+  }
 }
 
 function scoreSingleEnemyThreat(enemy: CombatEnemyState) {
@@ -380,23 +477,7 @@ function chooseBestCombatAction(
   policy: BuildPolicyDefinition,
   matchingProficiencies: Set<string>
 ) {
-  const candidates = listCandidateActions(state, content, engine, policy, matchingProficiencies).sort((left, right) => right.score - left.score)
-  const best = candidates[0] || { type: "end_turn", score: 0 }
-  const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn") || null
-  const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null
-  const chargeThreat = hasChargeThreat(state)
-  const threatPressure = getThreatPressure(state)
-  if (best.score < 1) {
-    if (
-      bestActiveCandidate &&
-      (chargeThreat || threatPressure >= 0.45) &&
-      bestActiveCandidate.score > Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY)
-    ) {
-      return bestActiveCandidate
-    }
-    return { type: "end_turn", score: 0 } as CombatCandidateAction
-  }
-  return best
+  return chooseBestCombatActionWithStats(state, content, engine, policy, matchingProficiencies).action
 }
 
 function chooseBestCombatActionWithStats(
@@ -405,35 +486,51 @@ function chooseBestCombatActionWithStats(
   engine: CombatEngineApi,
   policy: BuildPolicyDefinition,
   matchingProficiencies: Set<string>
-) {
+) : CombatActionChoiceStats {
   const candidates = listCandidateActions(state, content, engine, policy, matchingProficiencies).sort((left, right) => right.score - left.score)
-  const best = candidates[0] || { type: "end_turn", score: 0 }
+  const best = candidates[0] || ({ type: "end_turn", score: 0 } as CombatCandidateAction)
   const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn") || null
   const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null
+  const finiteCandidates = candidates.filter((candidate) => Number.isFinite(Number(candidate.score)))
+  const activeFiniteCandidates = finiteCandidates.filter((candidate) => candidate.type !== "end_turn")
+  const bestActiveScore = Number(bestActiveCandidate?.score ?? Number.NEGATIVE_INFINITY)
+  const endTurnScore = Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY)
+  const meaningfulFloor = Math.max(bestActiveScore - MEANINGFUL_DECISION_MARGIN, endTurnScore + PASS_REGRET_SIGNIFICANCE_THRESHOLD)
+  const meaningfulCandidateCount = Number.isFinite(bestActiveScore)
+    ? activeFiniteCandidates.filter((candidate) => Number(candidate.score) >= meaningfulFloor).length
+    : 0
+  const bestScore = Number(finiteCandidates[0]?.score ?? 0)
+  const secondBestScore = Number(finiteCandidates[1]?.score ?? bestScore)
+  const scoreSpread = roundTo(Math.max(0, bestScore - secondBestScore), 3)
+  const endTurnRegret = roundTo(
+    Number.isFinite(bestActiveScore) && Number.isFinite(endTurnScore) ? Math.max(0, bestActiveScore - endTurnScore) : 0,
+    3
+  )
   const chargeThreat = hasChargeThreat(state)
   const threatPressure = getThreatPressure(state)
+  let action: CombatCandidateAction
   if (best.score < 1) {
     if (
       bestActiveCandidate &&
       (chargeThreat || threatPressure >= 0.45) &&
       bestActiveCandidate.score > Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY)
     ) {
-      return {
-        action: bestActiveCandidate,
-        candidateCount: candidates.length,
-        bestScore: Number(bestActiveCandidate.score || 0),
-      }
+      action = bestActiveCandidate
+    } else {
+      action = { type: "end_turn", score: 0 } as CombatCandidateAction
     }
-    return {
-      action: { type: "end_turn", score: 0 } as CombatCandidateAction,
-      candidateCount: candidates.length,
-      bestScore: 0,
-    }
+  } else {
+    action = best
   }
   return {
-    action: best,
+    action,
     candidateCount: candidates.length,
-    bestScore: Number(best.score || 0),
+    meaningfulCandidateCount,
+    bestScore,
+    secondBestScore,
+    scoreSpread,
+    endTurnScore: Number.isFinite(endTurnScore) ? roundTo(endTurnScore, 3) : 0,
+    endTurnRegret,
   }
 }
 
@@ -631,21 +728,53 @@ export function simulateEncounterWithRun(
   const combatState = buildCombatStateForEncounter(harness, run, profile, encounterId, seed)
   const matchingProficiencies = new Set(getMatchingWeaponProficienciesForCombatState(combatState))
   const actionLimitPerTurn = 32
+  const turnTelemetry: TurnDecisionTelemetry[] = []
 
   while (!combatState.outcome && combatState.turn < maxTurns) {
     if (combatState.phase !== "player") {
       harness.combatEngine.endTurn(combatState)
       continue
     }
+    const telemetry: TurnDecisionTelemetry = {
+      startingEnergy: Number(combatState.hero.energy || 0),
+      startingHandSize: combatState.hand.length,
+      cardsPlayed: 0,
+      endingEnergy: 0,
+      endingHandSize: 0,
+      meaningfulUnplayed: 0,
+      candidateCount: 0,
+      meaningfulCandidateCount: 0,
+      decisionScoreSpread: 0,
+      endTurnRegret: 0,
+    }
     let actionsTaken = 0
     while (combatState.phase === "player" && !combatState.outcome && actionsTaken < actionLimitPerTurn) {
-      const action = chooseBestCombatAction(combatState, harness.content, harness.combatEngine, policy, matchingProficiencies)
-      const result = executeCombatAction(action, combatState, harness.content, harness.combatEngine)
+      const choice = chooseBestCombatActionWithStats(combatState, harness.content, harness.combatEngine, policy, matchingProficiencies)
+      if (actionsTaken === 0) {
+        telemetry.candidateCount = choice.candidateCount
+        telemetry.meaningfulCandidateCount = choice.meaningfulCandidateCount
+        telemetry.decisionScoreSpread = choice.scoreSpread
+        telemetry.endTurnRegret = choice.endTurnRegret
+      }
+      const result = executeCombatAction(choice.action, combatState, harness.content, harness.combatEngine)
+      if (result.ok && choice.action.type === "card") {
+        telemetry.cardsPlayed += 1
+      }
       actionsTaken += 1
-      if (!result.ok || action.type === "end_turn") {
+      if (!result.ok || choice.action.type === "end_turn") {
         break
       }
     }
+    telemetry.endingEnergy = Number(combatState.hero.energy || 0)
+    telemetry.endingHandSize = combatState.hand.length
+    telemetry.meaningfulUnplayed = getMeaningfulUnplayedCount(
+      combatState,
+      harness.content,
+      policy,
+      matchingProficiencies,
+      telemetry.startingEnergy
+    )
+    turnTelemetry.push(telemetry)
     if (!combatState.outcome && combatState.phase === "player") {
       harness.combatEngine.endTurn(combatState)
     }
@@ -653,12 +782,14 @@ export function simulateEncounterWithRun(
 
   const remainingEnemyLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.life, 0)
   const enemyMaxLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.maxLife, 0)
+  const telemetrySummary = summarizeTurnTelemetry(turnTelemetry)
   return {
     outcome: combatState.outcome || "timeout",
     turns: combatState.turn,
     heroLifePct: combatState.hero.maxLife > 0 ? combatState.hero.life / combatState.hero.maxLife : 0,
     mercenaryLifePct: combatState.mercenary.maxLife > 0 ? combatState.mercenary.life / combatState.mercenary.maxLife : 0,
     enemyLifePct: enemyMaxLife > 0 ? remainingEnemyLife / enemyMaxLife : 0,
+    ...telemetrySummary,
   }
 }
 
@@ -677,6 +808,7 @@ export function playStateCombat(
   const actionLimitPerTurn = 32
   const encounterStartedAt = Date.now()
   const slowStepThresholdMs = Math.max(250, Number(hooks?.slowStepThresholdMs || 1500))
+  const turnTelemetry: TurnDecisionTelemetry[] = []
 
   while (!state.combat.outcome && state.combat.turn < maxCombatTurns) {
     if (state.combat.phase !== "player") {
@@ -711,6 +843,18 @@ export function playStateCombat(
       continue
     }
     let actionsTaken = 0
+    const telemetry: TurnDecisionTelemetry = {
+      startingEnergy: Number(state.combat.hero.energy || 0),
+      startingHandSize: state.combat.hand.length,
+      cardsPlayed: 0,
+      endingEnergy: 0,
+      endingHandSize: 0,
+      meaningfulUnplayed: 0,
+      candidateCount: 0,
+      meaningfulCandidateCount: 0,
+      decisionScoreSpread: 0,
+      endTurnRegret: 0,
+    }
     if (Number(state.combat.turn || 0) === 0 || Number(state.combat.turn || 0) % 5 === 0) {
       hooks?.onProgress?.({
         stage: "turn_start",
@@ -739,6 +883,12 @@ export function playStateCombat(
       }
       const chooseStartedAt = Date.now()
       const choice = chooseBestCombatActionWithStats(state.combat, harness.content, harness.combatEngine, policy, matchingProficiencies)
+      if (actionsTaken === 0) {
+        telemetry.candidateCount = choice.candidateCount
+        telemetry.meaningfulCandidateCount = choice.meaningfulCandidateCount
+        telemetry.decisionScoreSpread = choice.scoreSpread
+        telemetry.endTurnRegret = choice.endTurnRegret
+      }
       const chooseElapsedMs = Date.now() - chooseStartedAt
       if (shouldLogAction || chooseElapsedMs >= slowStepThresholdMs) {
         hooks?.onProgress?.({
@@ -754,6 +904,9 @@ export function playStateCombat(
       }
       const executeStartedAt = Date.now()
       const result = executeCombatAction(choice.action, state.combat, harness.content, harness.combatEngine)
+      if (result.ok && choice.action.type === "card") {
+        telemetry.cardsPlayed += 1
+      }
       const executeElapsedMs = Date.now() - executeStartedAt
       if (shouldLogAction || executeElapsedMs >= slowStepThresholdMs) {
         hooks?.onProgress?.({
@@ -772,6 +925,16 @@ export function playStateCombat(
         break
       }
     }
+    telemetry.endingEnergy = Number(state.combat.hero.energy || 0)
+    telemetry.endingHandSize = state.combat.hand.length
+    telemetry.meaningfulUnplayed = getMeaningfulUnplayedCount(
+      state.combat,
+      harness.content,
+      policy,
+      matchingProficiencies,
+      telemetry.startingEnergy
+    )
+    turnTelemetry.push(telemetry)
     if (!state.combat.outcome && state.combat.phase === "player") {
       const endTurnStartedAt = Date.now()
       if (Number(state.combat.turn || 0) === 0) {
@@ -817,6 +980,7 @@ export function playStateCombat(
     detail: `outcome ${state.combat.outcome || "defeat"}`,
   })
   const remainingEnemyLife = state.combat.enemies.reduce((sum, enemy) => sum + Number(enemy.life || 0), 0)
+  const telemetrySummary = summarizeTurnTelemetry(turnTelemetry)
   return {
     outcome: state.combat.outcome || "defeat",
     turns: Number(state.combat.turn || 0),
@@ -826,5 +990,6 @@ export function playStateCombat(
         ? roundTo((Number(state.combat.mercenary.life || 0) / Number(state.combat.mercenary.maxLife || 1)) * 100)
         : 0,
     enemyLifePct: startingEnemyLife > 0 ? roundTo((remainingEnemyLife / startingEnemyLife) * 100) : 0,
+    ...telemetrySummary,
   }
 }

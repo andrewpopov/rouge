@@ -3,13 +3,13 @@
   const { RUN_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
   const hallViewSections = runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS || {
     formatTimestamp: (value: string | number | null | undefined, _includeTime?: boolean) =>
-      value == null ? "" : String(value),
+      value === null || value === undefined ? "" : String(value),
     getPhaseTone: () => "locked",
     getRunOutcomeTone: () => "locked",
-    getLabelFromId: (id: string | number | null | undefined) => (id == null ? "" : String(id)),
-    getClassName: (_appState: AppState, classId: string | null | undefined) => (classId == null ? "" : String(classId)),
+    getLabelFromId: (id: string | number | null | undefined) => (id === null || id === undefined ? "" : String(id)),
+    getClassName: (_appState: AppState, classId: string | null | undefined) => (classId === null || classId === undefined ? "" : String(classId)),
     getRunewordLabel: (_appState: AppState, runewordId: string | null | undefined) =>
-      runewordId == null ? "" : String(runewordId),
+      runewordId === null || runewordId === undefined ? "" : String(runewordId),
     getCapstoneReviewTone: () => "locked",
     getArchiveReviewState: () => ({
       reviewedHistoryEntry: false,
@@ -20,7 +20,6 @@
     formatTimestamp,
     getPhaseTone,
     getRunOutcomeTone,
-    getLabelFromId,
     getClassName,
     getRunewordLabel,
     getCapstoneReviewTone,

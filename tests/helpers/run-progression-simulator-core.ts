@@ -303,7 +303,7 @@ export interface EncounterRunMetric {
   encounterId: string
   encounterName: string
   zoneTitle: string
-  kind: "boss" | "elite" | "battle"
+  kind: "boss" | "miniboss" | "elite" | "battle"
   zoneKind: string
   zoneRole: string
   outcome: string
@@ -314,6 +314,17 @@ export interface EncounterRunMetric {
   heroPowerScore: number
   enemyPowerScore: number
   powerRatio: number
+  openingHandFullSpend: boolean
+  openingHandCardsPlayed: number
+  openingHandSize: number
+  turn1UnspentEnergy: number
+  earlyUnspentEnergyAverage: number
+  earlyMeaningfulUnplayedRate: number
+  averageEarlyCandidateCount: number
+  averageEarlyMeaningfulCandidateCount: number
+  averageEarlyDecisionScoreSpread: number
+  earlyCloseDecisionRate: number
+  averageEarlyEndTurnRegret: number
 }
 
 export type ArchetypeCommitmentMode = "natural" | "committed"
@@ -360,6 +371,7 @@ export interface RunArchetypeSimulationPlan {
 
 export interface PolicyProgressSummary {
   actionCounts: Record<string, number>
+  townActionCounts: Record<string, number>
   rewardKindCounts: Record<string, number>
   rewardEffectCounts: Record<string, number>
   rewardRoleCounts: Record<string, number>
@@ -374,7 +386,9 @@ export interface ProbeEncounterSummary {
   encounterId: string
   encounterName: string
   zoneTitle: string
-  kind: "boss" | "elite" | "battle"
+  kind: "boss" | "miniboss" | "elite" | "battle"
+  askTags: CounterTag[]
+  missingCounterTags: CounterTag[]
   enemyPowerScore: number
   powerDelta: number
   powerRatio: number
@@ -384,10 +398,72 @@ export interface ProbeEncounterSummary {
   averageHeroLifePct: number
   averageMercenaryLifePct: number
   averageEnemyLifePct: number
+  openingHandFullSpendRate: number
+  averageTurn1UnspentEnergy: number
+  averageEarlyUnspentEnergy: number
+  averageEarlyMeaningfulUnplayedRate: number
+  averageEarlyCandidateCount: number
+  averageEarlyMeaningfulCandidateCount: number
+  averageEarlyDecisionScoreSpread: number
+  earlyCloseDecisionRate: number
+  averageEarlyEndTurnRegret: number
 }
 
 export type CheckpointProbeProfile = "default" | "pressure"
 export type RunCheckpointKind = "safe_zone" | "pre_boss"
+
+export type DeckFamily = "pressure" | "setup_payoff" | "scaling_engine" | "control_answer" | "hybrid"
+
+export interface FinalDeckProfileSummary {
+  deckFamily: DeckFamily
+  engineCardCount: number
+  roleCounts: {
+    setup: number
+    payoff: number
+    support: number
+    answer: number
+    salvage: number
+    conversion: number
+  }
+  behaviorCounts: Partial<Record<CardBehaviorTag, number>>
+  targetDeckSizeMin: number
+  targetDeckSizeMax: number
+  deckSizeStatus: "under_band" | "within_band" | "over_band"
+  targetShapeFit: number
+  primaryTreeCardCount: number
+  secondaryUtilityTreeCardCount: number
+  starterShellCardsRemaining: number
+  refinedCardCount: number
+  evolvedCardCount: number
+  reinforcedCardCount: number
+  centerpieceCards: Array<{
+    cardId: string
+    title: string
+    count: number
+    roleTag: CardRoleTag
+    tree: string
+    reinforced: boolean
+  }>
+}
+
+export interface BuildJourneySummary {
+  committedAtAct: number
+  committedPrimaryTreeId: string
+  firstMajorReinforcementAct: number
+  firstPurgeAct: number
+  rewardUpgradesByAct: Record<string, number>
+  refinementsByAct: Record<string, number>
+  evolutionsByAct: Record<string, number>
+  purgesByAct: Record<string, number>
+  transformsByAct: Record<string, number>
+  driftActs: number[]
+  recoveredFromDrift: boolean
+  totalRewardUpgrades: number
+  totalRefinements: number
+  totalEvolutions: number
+  totalPurges: number
+  totalTransforms: number
+}
 
 export interface SafeZoneCheckpointSummary {
   checkpointKind: RunCheckpointKind
@@ -430,6 +506,12 @@ export interface SafeZoneCheckpointSummary {
   training: Record<string, number>
   favoredTreeId: string
   favoredTreeName: string
+  primaryTreeId: string
+  secondaryUtilityTreeId: string
+  specializationStage: RunSpecializationStage
+  offTreeUtilityCount: number
+  offTreeDamageCount: number
+  counterCoverageTags: CounterTag[]
   dominantArchetypeId: string
   dominantArchetypeLabel: string
   dominantArchetypeScore: number
@@ -450,6 +532,7 @@ export interface SafeZoneCheckpointSummary {
     immunities: DamageType[]
   }
   choiceCounts: Record<string, number>
+  townActionCounts: Record<string, number>
   probes: ProbeEncounterSummary[]
   archetypeCommitment: {
     targetArchetypeId: string
@@ -467,7 +550,7 @@ export interface SimulationFailureSummary {
   zoneTitle: string
   encounterId: string
   encounterName: string
-  kind?: "boss" | "elite" | "battle"
+  kind?: "boss" | "miniboss" | "elite" | "battle"
   zoneKind?: string
   zoneRole?: string
   nodeType?: string
@@ -510,6 +593,12 @@ export interface FinalBuildSummary {
   } | null
   favoredTreeId: string
   favoredTreeName: string
+  primaryTreeId: string
+  secondaryUtilityTreeId: string
+  specializationStage: RunSpecializationStage
+  offTreeUtilityCount: number
+  offTreeDamageCount: number
+  counterCoverageTags: CounterTag[]
   dominantArchetypeId: string
   dominantArchetypeLabel: string
   dominantArchetypeScore: number
@@ -518,6 +607,7 @@ export interface FinalBuildSummary {
   secondaryArchetypeScore: number
   archetypeScores: Array<{ archetypeId: string; label: string; score: number }>
   activeRunewords: string[]
+  deckProfile: FinalDeckProfileSummary
   archetypeCommitment: {
     targetArchetypeId: string
     targetArchetypeLabel: string
@@ -559,6 +649,7 @@ export interface PolicyRunSummary {
   rewardEffectCounts: Record<string, number>
   rewardRoleCounts: Record<string, number>
   strategyRoleCounts: Record<string, number>
+  townActionCounts: Record<string, number>
   encounterResults: EncounterRunMetric[]
   encounterMetricsByKind: Record<string, {
     count: number
@@ -568,9 +659,19 @@ export interface PolicyRunSummary {
     averageMercenaryLifePct: number
     averageEnemyLifePct: number
     averagePowerRatio: number
+    openingHandFullSpendRate: number
+    averageTurn1UnspentEnergy: number
+    averageEarlyUnspentEnergy: number
+    averageEarlyMeaningfulUnplayedRate: number
+    averageEarlyCandidateCount: number
+    averageEarlyMeaningfulCandidateCount: number
+    averageEarlyDecisionScoreSpread: number
+    earlyCloseDecisionRate: number
+    averageEarlyEndTurnRegret: number
   }>
   world: WorldProgressSummary
   finalBuild: FinalBuildSummary
+  buildJourney: BuildJourneySummary
   archetypeCommitment: FinalBuildSummary["archetypeCommitment"]
 }
 
@@ -833,6 +934,7 @@ export function getMercenaryIdForClass(classId: string) {
 export function createEmptyPolicyProgressSummary(): PolicyProgressSummary {
   return {
     actionCounts: {},
+    townActionCounts: {},
     rewardKindCounts: {},
     rewardEffectCounts: {},
     rewardRoleCounts: {},

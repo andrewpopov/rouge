@@ -1,5 +1,11 @@
 # Monster Variety & Skills — Implementation Guide
 
+Documentation note:
+- Start with `PROJECT_MASTER.md`.
+- Use `COMBAT_DECISION_DESIGN.md` for the target feel of enemy intents and why specific patterns are interesting.
+- Use `D2_SPECIALIZATION_MODEL.md` for the soft-counter and boss-prep model that minibosses and bosses should teach.
+- Use this document for monster-family implementation backlog and concrete mechanic candidates.
+
 ## Current State
 
 The game has **100+ named D2 monsters** across 5 acts in `d2-zone-monsters.json`, but they all behave identically based on 4 generic roles:

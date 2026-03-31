@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -263,8 +264,140 @@
     },
   };
 
+  function formatMinionName(minionId: string | undefined): string {
+    const parts = String(minionId || "")
+      .split("_")
+      .slice(1)
+      .filter(Boolean);
+    return parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+  }
+
+  function describeCardEffect(effect: CardEffect): string {
+    switch (effect.kind) {
+      case "damage":
+        return `Deal ${effect.value} damage`;
+      case "damage_all":
+        return `Deal ${effect.value} damage to all enemies`;
+      case "summon_minion": {
+        const minionName = formatMinionName(effect.minionId) || "Minion";
+        return `Summon ${minionName}`;
+      }
+      case "gain_guard_self":
+        return `Gain ${effect.value} Guard`;
+      case "gain_guard_party":
+        return `You and your mercenary gain ${effect.value} Guard`;
+      case "heal_hero":
+        return `Heal ${effect.value}`;
+      case "heal_mercenary":
+        return `Heal your mercenary ${effect.value}`;
+      case "draw":
+        return `Draw ${effect.value} card${effect.value === 1 ? "" : "s"}`;
+      case "mark_enemy_for_mercenary":
+        return `Your mercenary deals +${effect.value} to this target`;
+      case "buff_mercenary_next_attack":
+        return `Mercenary next attack +${effect.value}`;
+      case "apply_burn":
+        return `Apply ${effect.value} Burn`;
+      case "apply_burn_all":
+        return `Apply ${effect.value} Burn to all enemies`;
+      case "apply_poison":
+        return `Apply ${effect.value} Poison`;
+      case "apply_poison_all":
+        return `Apply ${effect.value} Poison to all enemies`;
+      case "apply_slow":
+        return `Apply ${effect.value} Slow`;
+      case "apply_slow_all":
+        return `Apply ${effect.value} Slow to all enemies`;
+      case "apply_freeze":
+        return `Apply ${effect.value} Freeze`;
+      case "apply_freeze_all":
+        return `Apply ${effect.value} Freeze to all enemies`;
+      case "apply_stun":
+        return `Apply ${effect.value} Stun`;
+      case "apply_stun_all":
+        return `Apply ${effect.value} Stun to all enemies`;
+      case "apply_paralyze":
+        return `Apply ${effect.value} Paralyze`;
+      case "apply_paralyze_all":
+        return `Apply ${effect.value} Paralyze to all enemies`;
+      default:
+        return "";
+    }
+  }
+
+  function boostRefinedEffectValue(effect: CardEffect): CardEffect {
+    const upgraded = { ...effect };
+    switch (effect.kind) {
+      case "damage":
+      case "damage_all":
+      case "gain_guard_self":
+      case "gain_guard_party":
+      case "heal_hero":
+      case "heal_mercenary":
+      case "mark_enemy_for_mercenary":
+      case "buff_mercenary_next_attack":
+        upgraded.value = effect.value + Math.max(2, Math.round(effect.value * 0.3));
+        break;
+      case "summon_minion":
+        upgraded.value = effect.value + 1;
+        if (typeof effect.secondaryValue === "number") {
+          upgraded.secondaryValue = effect.secondaryValue + 1;
+        }
+        break;
+      case "draw":
+      case "apply_burn":
+      case "apply_burn_all":
+      case "apply_poison":
+      case "apply_poison_all":
+      case "apply_slow":
+      case "apply_slow_all":
+      case "apply_freeze":
+      case "apply_freeze_all":
+      case "apply_stun":
+      case "apply_stun_all":
+      case "apply_paralyze":
+      case "apply_paralyze_all":
+        upgraded.value = effect.value + 1;
+        break;
+      default:
+        break;
+    }
+    return upgraded;
+  }
+
+  function buildCardText(effects: CardEffect[]): string {
+    return effects
+      .map((effect) => describeCardEffect(effect))
+      .filter(Boolean)
+      .join(". ")
+      .concat(".");
+  }
+
+  function createGeneratedPlusVariant(card: CardDefinition): CardDefinition {
+    const upgradedEffects = (Array.isArray(card.effects) ? card.effects : []).map((effect) => boostRefinedEffectValue(effect));
+    return {
+      ...card,
+      id: `${card.id}_plus`,
+      title: card.title.endsWith("+") ? card.title : `${card.title}+`,
+      text: buildCardText(upgradedEffects),
+      effects: upgradedEffects,
+    };
+  }
+
+  function addGeneratedPlusVariants(catalog: Record<string, CardDefinition>) {
+    const baseCards = Object.values(catalog).filter((card) => card && !card.id.endsWith("_plus"));
+    for (const card of baseCards) {
+      const plusId = `${card.id}_plus`;
+      if (catalog[plusId]) {
+        continue;
+      }
+      catalog[plusId] = createGeneratedPlusVariant(card);
+    }
+  }
+
   // Merge class-specific skill cards into the card catalog
   Object.assign(cardCatalog, classCardCatalog);
+  addGeneratedPlusVariants(cardCatalog);
 
   const starterDeck = [
     "quick_slash",

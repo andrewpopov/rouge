@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: March 28, 2026.
+Last updated: March 31, 2026.
 
 ## Purpose
 
@@ -73,7 +73,19 @@ Use the deterministic simulator tooling for balance checks instead of one-off fe
 - `npm run sim:progression -- --class barbarian,sorceress --policy aggressive --through-act 3 --probe-runs 0` runs a deterministic campaign checkpoint sim and now reports active runewords at each safe zone
 - `npm run sim:progression-class-sweep -- --policy aggressive --through-act 5 --probe-runs 0 --seeds 4` is the main optimized-build clear-rate sweep
 - `npm run sim:progression-class-sweep -- --policy balanced,control,bulwark --through-act 2 --probe-runs 0 --seeds 4` is the main weak-build early-pressure sweep
-- `npm run sim:power-curve -- --class barbarian --policy aggressive --through-act 5` compares checkpoint probes to the target boss or elite or battle power bands
+- `npm run sim:power-curve -- --class barbarian --policy aggressive --through-act 5` compares checkpoint probes to the target boss or miniboss or elite or battle power bands
+
+Near-term combat direction lives in [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md) and [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md).
+
+- keep visible enemy intent as the main fairness tool for tactical turns
+- use energy to force meaningful sequencing choices instead of letting early hands dump trivially
+- use [docs/DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md) as the source of truth for the hybrid gameplay model: STS for turn tension, Monster Train for reinforcement and upgrade pressure, Diablo II for class identity and matchup-prep structure
+- use [docs/DECKBUILDER_PROGRESSION_AUDIT.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_PROGRESSION_AUDIT.md) as the live-gap audit for reward screens, evolutions, deck surgery, and merchant reinforcement
+- use [docs/OPTIMIZED_DECK_PROFILE.md](/Users/andrew/proj/rouge/docs/OPTIMIZED_DECK_PROFILE.md) as the target-state definition of what a strong late-game deck should look like and whether the path to it felt earned
+- use [docs/D2_SPECIALIZATION_MODEL.md](/Users/andrew/proj/rouge/docs/D2_SPECIALIZATION_MODEL.md) as the source of truth for one-tree specialization, utility splash rules, and soft-counter boss prep
+- treat bosses and minibosses as the real exams while normal battles and most elites stay more expressive and generous
+- use [docs/COMBAT_DECISION_DESIGN.md](/Users/andrew/proj/rouge/docs/COMBAT_DECISION_DESIGN.md) as the target-state reference for hand tension, skill-card roles, and enemy-intent design
+- use [docs/COMBAT_DECISION_AUDIT.md](/Users/andrew/proj/rouge/docs/COMBAT_DECISION_AUDIT.md) as the current prioritized gap list for starter cards, enemy verbs, and encounter decision depth
 
 The current rule is to rerun the relevant sweep after major combat, loot, or class-card changes, then freeze balance unless the new deterministic sample shows a clear outlier.
 
@@ -159,7 +171,11 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION_ARCHITECTURE.md)
 - [docs/ROADMAP_EPICS.md](/Users/andrew/proj/rouge/docs/ROADMAP_EPICS.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
+- [docs/DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md)
+- [docs/DECKBUILDER_PROGRESSION_AUDIT.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_PROGRESSION_AUDIT.md)
+- [docs/OPTIMIZED_DECK_PROFILE.md](/Users/andrew/proj/rouge/docs/OPTIMIZED_DECK_PROFILE.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
+- [docs/D2_SPECIALIZATION_MODEL.md](/Users/andrew/proj/rouge/docs/D2_SPECIALIZATION_MODEL.md)
 - [docs/CLASS_IDENTITY_PATHS.md](/Users/andrew/proj/rouge/docs/CLASS_IDENTITY_PATHS.md)
 - [docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md)
 - [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md)

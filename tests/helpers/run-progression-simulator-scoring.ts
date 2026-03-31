@@ -216,6 +216,200 @@ function scoreArmorProfile(profile: ArmorMitigationProfile | undefined) {
   return resistanceScore + immunityScore
 }
 
+function normalizeScoringCardId(cardId: string) {
+  return String(cardId || "").replace(/_plus$/, "")
+}
+
+function getScoringCardDefinition(harness: AppHarness, cardId: string) {
+  return harness.content.cardCatalog?.[cardId] || harness.content.cardCatalog?.[normalizeScoringCardId(cardId)] || null
+}
+
+function getScoringCardTree(harness: AppHarness, cardId: string) {
+  return String(harness.browserWindow.__ROUGE_SKILL_EVOLUTION?.getCardTree?.(normalizeScoringCardId(cardId)) || "")
+}
+
+function buildEvolutionReverseMapForScoring(harness: AppHarness) {
+  const chains = harness.browserWindow.__ROUGE_SKILL_EVOLUTION?.EVOLUTION_CHAINS || {}
+  return Object.entries(chains).reduce((map, [sourceId, entry]) => {
+    const targetId = normalizeScoringCardId(String((entry as { targetId?: string } | null)?.targetId || ""))
+    if (targetId) {
+      map[targetId] = normalizeScoringCardId(sourceId)
+    }
+    return map
+  }, {} as Record<string, string>)
+}
+
+function getEvolutionRootCardIdForScoring(cardId: string, reverseMap: Record<string, string>) {
+  let current = normalizeScoringCardId(cardId)
+  const seen = new Set<string>()
+  while (reverseMap[current] && !seen.has(current)) {
+    seen.add(current)
+    current = normalizeScoringCardId(reverseMap[current])
+  }
+  return current
+}
+
+function getStarterShellTargetByAct(actNumber: number) {
+  if (actNumber <= 1) {
+    return 10
+  }
+  if (actNumber === 2) {
+    return 8
+  }
+  if (actNumber === 3) {
+    return 6
+  }
+  if (actNumber === 4) {
+    return 4
+  }
+  return 3
+}
+
+function getReinforcementTargetByAct(actNumber: number) {
+  if (actNumber <= 1) {
+    return 1
+  }
+  if (actNumber === 2) {
+    return 3
+  }
+  if (actNumber === 3) {
+    return 5
+  }
+  if (actNumber === 4) {
+    return 6
+  }
+  return 7
+}
+
+type DeckConstructionState = {
+  buildPath: ReturnType<NonNullable<AppHarness["browserWindow"]["__ROUGE_REWARD_ENGINE_ARCHETYPES"]>["getRewardPathPreference"]> | null
+  specialization: ReturnType<NonNullable<AppHarness["browserWindow"]["__ROUGE_REWARD_ENGINE_ARCHETYPES"]>["getSpecializationSnapshot"]> | null
+  roleCounts: Record<CardRoleTag, number>
+  starterCountsByCardId: Record<string, number>
+  duplicateCounts: Record<string, number>
+  unchangedStarterCount: number
+  refinedCount: number
+  evolvedCount: number
+  primaryTreeCardCount: number
+  supportTreeCardCount: number
+}
+
+function buildDeckConstructionState(harness: AppHarness, run: RunState): DeckConstructionState {
+  const archetypes = harness.browserWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES
+  const buildPath = archetypes?.getRewardPathPreference?.(run, harness.content) || null
+  const specialization = archetypes?.getSpecializationSnapshot?.(run, harness.content) || null
+  const reverseEvolutionMap = buildEvolutionReverseMapForScoring(harness)
+  const starterDeck = harness.classRegistry.getStarterDeckForClass(harness.content, run.classId) || []
+  const starterBaseIds = new Set(starterDeck.map((cardId) => normalizeScoringCardId(cardId)))
+
+  const roleCounts: Record<CardRoleTag, number> = {
+    answer: 0,
+    setup: 0,
+    payoff: 0,
+    salvage: 0,
+    conversion: 0,
+    support: 0,
+  }
+  const starterCountsByCardId: Record<string, number> = {}
+  const duplicateCounts: Record<string, number> = {}
+  let unchangedStarterCount = 0
+  let refinedCount = 0
+  let evolvedCount = 0
+  let primaryTreeCardCount = 0
+  let supportTreeCardCount = 0
+
+  ;(Array.isArray(run.deck) ? run.deck : []).forEach((cardId) => {
+    const card = getScoringCardDefinition(harness, cardId)
+    const baseCardId = normalizeScoringCardId(cardId)
+    const rootCardId = getEvolutionRootCardIdForScoring(cardId, reverseEvolutionMap)
+    const treeId = getScoringCardTree(harness, cardId)
+    const roleTag = ((card?.roleTag as CardRoleTag | undefined) || "answer")
+    const refined = String(cardId || "").endsWith("_plus")
+    const evolved = rootCardId !== baseCardId
+
+    duplicateCounts[baseCardId] = Number(duplicateCounts[baseCardId] || 0) + 1
+    roleCounts[roleTag] = Number(roleCounts[roleTag] || 0) + 1
+
+    if (starterBaseIds.has(baseCardId) && !refined && rootCardId === baseCardId) {
+      unchangedStarterCount += 1
+      starterCountsByCardId[baseCardId] = Number(starterCountsByCardId[baseCardId] || 0) + 1
+    }
+    if (refined) {
+      refinedCount += 1
+    }
+    if (evolved) {
+      evolvedCount += 1
+    }
+    if (buildPath?.primaryTrees?.includes(treeId)) {
+      primaryTreeCardCount += 1
+    }
+    if (buildPath?.supportTrees?.includes(treeId)) {
+      supportTreeCardCount += 1
+    }
+  })
+
+  return {
+    buildPath,
+    specialization,
+    roleCounts,
+    starterCountsByCardId,
+    duplicateCounts,
+    unchangedStarterCount,
+    refinedCount,
+    evolvedCount,
+    primaryTreeCardCount,
+    supportTreeCardCount,
+  }
+}
+
+function scoreDeckConstructionState(harness: AppHarness, run: RunState, policy: BuildPolicyDefinition) {
+  const deckState = buildDeckConstructionState(harness, run)
+  const starterShellTarget = getStarterShellTargetByAct(Number(run.actNumber || 1))
+  const reinforcementTarget = getReinforcementTargetByAct(Number(run.actNumber || 1))
+  const reinforcedCount = deckState.refinedCount + deckState.evolvedCount
+  const specializationStage = String(deckState.specialization?.specializationStage || "exploratory")
+  const offTreeDamageCount = Number(deckState.specialization?.offTreeDamageCount || 0)
+  const offTreeUtilityCount = Number(deckState.specialization?.offTreeUtilityCount || 0)
+  const primaryRatio = run.deck.length > 0 ? deckState.primaryTreeCardCount / run.deck.length : 0
+  const policyStarterPenaltyMultiplier = policy.id === "aggressive" ? 1.2 : policy.id === "balanced" ? 1.0 : 0.9
+
+  let total = 0
+
+  if (deckState.unchangedStarterCount <= starterShellTarget) {
+    total += 20
+  } else {
+    total -= (deckState.unchangedStarterCount - starterShellTarget) * 13 * policyStarterPenaltyMultiplier
+  }
+
+  if (reinforcedCount >= reinforcementTarget) {
+    total += 34 + Math.min(4, reinforcedCount - reinforcementTarget) * 6
+  } else {
+    total -= (reinforcementTarget - reinforcedCount) * 18
+  }
+
+  total += Math.min(4, deckState.refinedCount) * 10
+  total += Math.min(4, deckState.evolvedCount) * 14
+  total += Math.min(0.75, primaryRatio) * 70
+  total += Math.min(2, deckState.supportTreeCardCount) * 6
+  total += Math.min(2, offTreeUtilityCount) * 10
+  total -= offTreeDamageCount * (specializationStage === "primary" || specializationStage === "mastery" ? 16 : 9)
+
+  if (deckState.roleCounts.salvage >= 1) {
+    total += 10
+  }
+  if (deckState.roleCounts.answer >= 1) {
+    total += 10
+  }
+  if (deckState.roleCounts.setup >= 1 && deckState.roleCounts.payoff >= 1) {
+    total += 12
+  }
+  if (run.deck.length > 18) {
+    total -= (run.deck.length - 18) * 2.4
+  }
+
+  return total
+}
+
 function scoreRunewordProgress(harness: AppHarness, run: RunState) {
   const itemCatalog = harness.browserWindow.ROUGE_ITEM_CATALOG
   const loadout = itemCatalog.buildHydratedLoadout(run, harness.content)
@@ -278,22 +472,31 @@ function scoreArchetypePlan(
 
   const primary = entries[0] || null
   const secondary = entries[1] || null
-  const preferred = POLICY_ARCHETYPE_PRIORITIES[policy.id]?.[run.classId] || []
+  const preferred = archetypePlan?.targetArchetypeId
+    ? (POLICY_ARCHETYPE_PRIORITIES[policy.id]?.[run.classId] || [])
+    : []
   const preferredEntries = entries.filter((entry) => preferred.includes(entry.archetypeId))
   const bestPreferredScore = Number(preferredEntries[0]?.score || 0)
   const commitmentScore = Math.max(0, Number(primary?.score || 0) - Number(secondary?.score || 0))
+  const specializationStage = String(run.progression?.classProgression?.specializationStage || "exploratory")
+  const earlyNaturalExploration =
+    !archetypePlan?.targetArchetypeId &&
+    specializationStage === "exploratory" &&
+    Number(run.actNumber || 1) <= 1
 
-  let total = Number(primary?.score || 0) * 0.2 + commitmentScore * 0.35
+  let total =
+    Number(primary?.score || 0) * (earlyNaturalExploration ? 0.1 : 0.2) +
+    commitmentScore * (earlyNaturalExploration ? 0.08 : 0.35)
 
-  if (preferred.length > 0) {
-    total += bestPreferredScore * 0.9
+  if (preferred.length > 0 && !earlyNaturalExploration) {
+    total += bestPreferredScore * 0.45
     if (primary && preferred.includes(primary.archetypeId)) {
-      total += preferred[0] === primary.archetypeId ? 42 : 24
+      total += preferred[0] === primary.archetypeId ? 18 : 10
     } else if (primary) {
-      total -= 28
+      total -= 12
     }
     if (secondary && preferred.includes(secondary.archetypeId)) {
-      total += 10
+      total += 6
     }
   }
 
@@ -419,6 +622,7 @@ export function evaluateRunScore(
     scoreWeaponProfileForDeck(weaponProfile || undefined, deckStats.proficiencyCounts) * policy.weaponWeight +
     scoreArmorProfile(armorProfile || undefined) * policy.armorWeight +
     scoreRunewordProgress(harness, scoringRun) +
+    scoreDeckConstructionState(harness, scoringRun, policy) +
     scoreArchetypePlan(harness, scoringRun, policy, options.archetypePlan || null) +
     Number(scoringRun.progression?.skillPointsAvailable || 0) * policy.bankedSkillPointWeight +
     Number(scoringRun.progression?.classPointsAvailable || 0) * policy.bankedClassPointWeight +
@@ -452,11 +656,113 @@ function isOptimizableTownAction(action: TownAction) {
     actionId.startsWith("inventory_socket_") ||
     actionId.startsWith("inventory_commission_") ||
     actionId.startsWith("blacksmith_evolve_") ||
+    actionId.startsWith("blacksmith_refine_") ||
     actionId.startsWith("sage_purge_")
   ) {
     return true
   }
   return false
+}
+
+function isReinforcementAction(actionId: string) {
+  return actionId.startsWith("blacksmith_evolve_") || actionId.startsWith("blacksmith_refine_")
+}
+
+function isCleanupAction(actionId: string) {
+  return actionId.startsWith("sage_purge_")
+}
+
+function scoreTownActionStrategicBias(
+  harness: AppHarness,
+  beforeRun: RunState,
+  afterRun: RunState,
+  actionId: string
+) {
+  const beforeDeck = buildDeckConstructionState(harness, beforeRun)
+  const afterDeck = buildDeckConstructionState(harness, afterRun)
+  const reverseEvolutionMap = buildEvolutionReverseMapForScoring(harness)
+  const reinforcementTarget = getReinforcementTargetByAct(Number(beforeRun.actNumber || 1))
+  const beforeReinforcementDeficit = Math.max(0, reinforcementTarget - (beforeDeck.refinedCount + beforeDeck.evolvedCount))
+  const afterReinforcementDeficit = Math.max(0, reinforcementTarget - (afterDeck.refinedCount + afterDeck.evolvedCount))
+  let total = 0
+
+  total += Math.max(0, beforeDeck.unchangedStarterCount - afterDeck.unchangedStarterCount) * 12
+  total += Math.max(0, beforeReinforcementDeficit - afterReinforcementDeficit) * 28
+  total += Math.max(0, afterDeck.refinedCount - beforeDeck.refinedCount) * 24
+  total += Math.max(0, afterDeck.evolvedCount - beforeDeck.evolvedCount) * 32
+  total += Math.max(0, Number(beforeDeck.specialization?.offTreeDamageCount || 0) - Number(afterDeck.specialization?.offTreeDamageCount || 0)) * 18
+  total += Math.max(0, Number(afterDeck.specialization?.offTreeUtilityCount || 0) - Number(beforeDeck.specialization?.offTreeUtilityCount || 0)) * 8
+  total += Math.max(0, afterDeck.supportTreeCardCount - beforeDeck.supportTreeCardCount) * 5
+  total += Math.max(0, beforeRun.deck.length - afterRun.deck.length) * 3
+
+  if (actionId.startsWith("sage_purge_")) {
+    const cardId = actionId.replace("sage_purge_", "")
+    const baseCardId = normalizeScoringCardId(cardId)
+    const card = getScoringCardDefinition(harness, cardId)
+    const roleTag = ((card?.roleTag as CardRoleTag | undefined) || "answer")
+    const treeId = getScoringCardTree(harness, cardId)
+    const duplicateCount = Number(beforeDeck.duplicateCounts[baseCardId] || 0)
+    const unchangedStarterCopies = Number(beforeDeck.starterCountsByCardId[baseCardId] || 0)
+    const onPrimary = Boolean(beforeDeck.buildPath?.primaryTrees?.includes(treeId))
+    const onSupport = Boolean(beforeDeck.buildPath?.supportTrees?.includes(treeId))
+    const reinforced = String(cardId || "").endsWith("_plus") || getEvolutionRootCardIdForScoring(cardId, reverseEvolutionMap) !== baseCardId
+
+    if (beforeReinforcementDeficit > 0) {
+      total -= 30 + beforeReinforcementDeficit * 6
+    }
+    if (Number(beforeRun.actNumber || 1) <= 2) {
+      total -= 12
+    }
+
+    if (unchangedStarterCopies > 0) {
+      total += beforeReinforcementDeficit > 0 ? 4 : 10
+    }
+    if (duplicateCount >= 3) {
+      total += 8
+    }
+    if (!onPrimary && !onSupport && String(beforeDeck.specialization?.specializationStage || "exploratory") !== "exploratory") {
+      total += 10
+    }
+    if (reinforced) {
+      total -= 26
+    }
+    if (roleTag === "salvage" && duplicateCount <= 1) {
+      total -= 14
+    }
+    if (roleTag === "answer" && duplicateCount <= 1) {
+      total -= 8
+    }
+    if (onPrimary && roleTag === "payoff") {
+      total -= 18
+    } else if (onPrimary && roleTag === "setup") {
+      total -= 10
+    } else if (onSupport && (roleTag === "support" || roleTag === "salvage")) {
+      total -= 6
+    }
+  }
+
+  if (actionId.startsWith("blacksmith_refine_") || actionId.startsWith("blacksmith_evolve_")) {
+    const cardId = actionId.replace("blacksmith_refine_", "").replace("blacksmith_evolve_", "")
+    const card = getScoringCardDefinition(harness, cardId)
+    const roleTag = ((card?.roleTag as CardRoleTag | undefined) || "answer")
+    const treeId = getScoringCardTree(harness, cardId)
+    const onPrimary = Boolean(beforeDeck.buildPath?.primaryTrees?.includes(treeId))
+    const onSupport = Boolean(beforeDeck.buildPath?.supportTrees?.includes(treeId))
+
+    if (onPrimary) {
+      total += actionId.startsWith("blacksmith_evolve_") ? 24 : 18
+    } else if (onSupport) {
+      total += 12
+    }
+    if (roleTag === "payoff" || roleTag === "setup" || roleTag === "salvage") {
+      total += 8
+    }
+    if (beforeReinforcementDeficit > 0) {
+      total += actionId.startsWith("blacksmith_evolve_") ? 16 : 12
+    }
+  }
+
+  return total
 }
 
 export function optimizeSafeZoneRun(
@@ -465,9 +771,24 @@ export function optimizeSafeZoneRun(
   profile: ProfileState,
   policy: BuildPolicyDefinition,
   maxIterations = 24,
-  archetypePlan?: RunArchetypeSimulationPlan | null
+  archetypePlan?: RunArchetypeSimulationPlan | null,
+  options?: {
+    onTownActionApplied?: (actionId: string) => void
+  }
 ) {
   const townServices = harness.browserWindow.ROUGE_TOWN_SERVICES
+  function getCurrentReinforcementDeficit(targetRun: RunState) {
+    const deckState = buildDeckConstructionState(harness, targetRun)
+    const target = getReinforcementTargetByAct(Number(targetRun.actNumber || 1))
+    return Math.max(0, target - (deckState.refinedCount + deckState.evolvedCount))
+  }
+  const isDeckShapingAction = (actionId: string) => {
+    return (
+      actionId.startsWith("blacksmith_evolve_") ||
+      actionId.startsWith("blacksmith_refine_") ||
+      actionId.startsWith("sage_purge_")
+    )
+  }
   const isGearFollowupAction = (actionId: string, allowVendorBuys = true) => {
     return (
       (allowVendorBuys && actionId.startsWith("vendor_buy_")) ||
@@ -475,6 +796,60 @@ export function optimizeSafeZoneRun(
       actionId.startsWith("inventory_commission_") ||
       actionId.startsWith("inventory_socket_")
     )
+  }
+
+  function findBestDeckShapingAction(targetRun: RunState) {
+    const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
+    const reinforcementDeficit = getCurrentReinforcementDeficit(targetRun)
+    const actNumber = Number(targetRun.actNumber || 1)
+    const allActions = townServices
+      .listActions(harness.content, targetRun, profile)
+      .filter((action: TownAction) => {
+        const actionId = action.id || ""
+        return !action.disabled && isDeckShapingAction(actionId)
+      })
+    const reinforcementActions = allActions.filter((action: TownAction) => isReinforcementAction(action.id || ""))
+    const actions =
+      reinforcementDeficit > 0 && reinforcementActions.length > 0
+        ? reinforcementActions
+        : reinforcementDeficit > 0 && actNumber <= 2
+          ? allActions.filter((action: TownAction) => !isCleanupAction(action.id || ""))
+          : allActions
+
+    let bestAction: TownAction | null = null
+    let bestDelta = 0
+
+    actions.forEach((action: TownAction) => {
+      const clone = cloneRun(harness, targetRun)
+      const result = townServices.applyAction(clone, profile, harness.content, action.id)
+      if (!result.ok) {
+        return
+      }
+
+      const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
+      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, targetRun, clone, action.id || "")
+      if (delta > bestDelta) {
+        bestDelta = delta
+        bestAction = action
+      }
+    })
+
+    return { bestAction, bestDelta }
+  }
+
+  function settleDeckShapingActions(targetRun: RunState, maxDeckActions = 2) {
+    for (let actionIndex = 0; actionIndex < maxDeckActions; actionIndex += 1) {
+      const { bestAction, bestDelta } = findBestDeckShapingAction(targetRun)
+      if (!bestAction || bestDelta <= 1.5) {
+        break
+      }
+
+      const result = townServices.applyAction(targetRun, profile, harness.content, bestAction.id)
+      if (!result.ok) {
+        break
+      }
+      options?.onTownActionApplied?.(bestAction.id)
+    }
   }
 
   function findBestImmediateGearFollowup(targetRun: RunState, allowVendorBuys: boolean) {
@@ -509,6 +884,10 @@ export function optimizeSafeZoneRun(
 
   function settleGearFollowups(targetRun: RunState, maxFollowups = 4, allowVendorBuys = false) {
     for (let followupIndex = 0; followupIndex < maxFollowups; followupIndex += 1) {
+      const deckShapingAction = findBestDeckShapingAction(targetRun)
+      if (deckShapingAction.bestAction && deckShapingAction.bestDelta > 3) {
+        break
+      }
       const { bestAction, bestDelta } = findBestImmediateGearFollowup(targetRun, allowVendorBuys && followupIndex === 0)
       if (!bestAction || bestDelta <= 0.05) {
         break
@@ -518,8 +897,11 @@ export function optimizeSafeZoneRun(
       if (!result.ok) {
         break
       }
+      options?.onTownActionApplied?.(bestAction.id)
     }
   }
+
+  settleDeckShapingActions(run, Number(run.actNumber || 1) >= 4 ? 4 : Number(run.actNumber || 1) >= 2 ? 3 : 1)
 
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
     const baseScore = evaluateRunScore(harness, run, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
@@ -544,7 +926,7 @@ export function optimizeSafeZoneRun(
       }
 
       const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
-      const delta = nextScore - baseScore
+      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, run, clone, action.id || "")
       if (delta > bestDelta) {
         bestDelta = delta
         bestAction = action
@@ -559,6 +941,7 @@ export function optimizeSafeZoneRun(
     if (!result.ok) {
       break
     }
+    options?.onTownActionApplied?.(bestAction.id)
 
     if ((bestAction.id || "") === "vendor_refresh_stock") {
       settleGearFollowups(run, 4, true)

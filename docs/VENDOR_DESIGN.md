@@ -47,9 +47,12 @@ Every vendor interaction should cost enough gold to create real trade-offs. Heal
 
 ### Blacksmith
 
-**Intent**: Upgrade cards. The Monster Train merchant equivalent.
+**Intent**: Sharpen a small number of important cards. The Monster Train merchant equivalent.
 
-**Interaction**: Pick one card from your deck, pick one upgrade to apply. Two-step choice, both small. The blacksmith shows 2-3 available upgrades (from a pool seeded by act and class).
+**Interaction**: Pick one forge action. In the current runtime, the blacksmith offers:
+
+- **evolution** when a card has a higher-tier class-tree version
+- **refinement** when a card has a `_plus` version
 
 **Core mechanic: Skill Tree Stacking**
 
@@ -74,16 +77,16 @@ Evolution rules:
 - Evolution costs more than a generic upgrade but less than buying a new card.
 - The evolved card retains any generic upgrades already applied.
 
-Generic upgrades (when no evolution is available):
+Current live generic reinforcement path:
 
 | Upgrade | Effect | Cost |
 |---------|--------|------|
-| Sharpen | Card deals +3 damage | 40-60 gold |
-| Fortify | Card grants +3 Block | 40-60 gold |
-| Temper | Card costs 1 less Energy (once per card) | 80-100 gold |
-| Hone | Card gains "Draw 1" | 60-80 gold |
+| Refine | Replace a card with its `_plus` version | roughly 55-95 gold by tier and role |
 
-Upgrade slot limit: each card has **2 upgrade slots** (matching Monster Train's model). Evolution does not consume a slot.
+Target-state note:
+
+- the broader slot-based upgrade model still exists as a design direction
+- the live runtime currently uses `_plus` refinement instead of full upgrade-slot stacking
 
 **What the blacksmith does NOT do**:
 - Sell cards
@@ -144,13 +147,13 @@ Outcome weights should favor middling results. The gambler should feel like a tr
 | Service | Effect | Cost |
 |---------|--------|------|
 | **Purge** | Remove one card from your deck permanently | 50 gold, +25 per subsequent purge this run |
-| **Transform** | Replace one card with a random card of the same tier and type | 40 gold |
+| **Transform** | Replace one card with a constrained same-tier alternative that favors lane and role coherence | 40 gold |
 | **Identify** | Reveal evolution paths for all eligible cards (informational, no deck change) | Free |
 
 **Design notes**:
 - Purging is the single most important service in a deckbuilder. Removing starter `Strike` and `Guard` cards to increase draw consistency is a core skill-expression.
 - Escalating purge cost (50, 75, 100, 125...) mirrors Monster Train's model and prevents infinite thinning.
-- Transform is the gamble-lite option: cheaper than the gambler, but you lose the card you had.
+- Transform is now a controlled pivot tool rather than a wide randomizer.
 - Identify is free to encourage visiting the camp sage. It teaches the player about the evolution system and surfaces what the blacksmith can do.
 - The camp sage should **not** sell cards. His value is in deck manipulation, not deck expansion.
 

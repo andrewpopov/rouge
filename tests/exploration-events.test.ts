@@ -75,6 +75,17 @@ test("getUpgradableCardIds returns card IDs that have plus variants", () => {
   }
 });
 
+test("getUpgradableCardIds includes starter class cards with generated plus variants", () => {
+  const harness = createHarness();
+  const { browserWindow } = harness;
+  const explorationEvents = browserWindow.ROUGE_EXPLORATION_EVENTS;
+  const { state } = createRunState(harness);
+
+  const upgradable = explorationEvents.getUpgradableCardIds(state.run, state.content);
+  assert.ok(upgradable.includes("barbarian_bash"));
+  assert.ok(state.content.cardCatalog.barbarian_bash_plus);
+});
+
 test("applyExplorationEventChoice handles gold reward choices", () => {
   const harness = createHarness();
   const { browserWindow } = harness;

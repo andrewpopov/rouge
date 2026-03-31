@@ -94,6 +94,14 @@
     const archetypeScores = ensureObjectRecord(source.archetypeScores);
     return {
       favoredTreeId: typeof source.favoredTreeId === "string" ? source.favoredTreeId : "",
+      primaryTreeId: typeof source.primaryTreeId === "string" ? source.primaryTreeId : "",
+      secondaryUtilityTreeId: typeof source.secondaryUtilityTreeId === "string" ? source.secondaryUtilityTreeId : "",
+      specializationStage:
+        source.specializationStage === "candidate" ||
+        source.specializationStage === "primary" ||
+        source.specializationStage === "mastery"
+          ? source.specializationStage
+          : "exploratory",
       treeRanks: Object.fromEntries(
         Object.entries(treeRanks)
           .filter(([treeId]) => typeof treeId === "string" && treeId)
@@ -105,6 +113,9 @@
           .filter(([archetypeId]) => typeof archetypeId === "string" && archetypeId)
           .map(([archetypeId, score]) => [archetypeId, toNumber(score, 0)])
       ),
+      offTreeUtilityCount: toNumber(source.offTreeUtilityCount, 0),
+      offTreeDamageCount: toNumber(source.offTreeDamageCount, 0),
+      counterCoverageTags: ensureStringArray(source.counterCoverageTags),
     };
   }
 

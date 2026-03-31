@@ -426,12 +426,10 @@ test("safe-zone shell turns priority town prep actions into before-or-after read
   const townActions = browserWindow.ROUGE_TOWN_SERVICES.listActions(content, state.run, state.profile);
   const healerAction = townActions.find((action) => action.id === "healer_restore_party");
   const quartermasterAction = townActions.find((action) => action.id === "quartermaster_refill_belt");
-  const quartermasterSurgeryLocked = townActions.find((action) => action.id === "quartermaster_deck_surgery_locked");
   const progressionAction = townActions.find((action) => action.id === "progression_spend_vitality");
   const marketAction = townActions.find((action) => action.id === "vendor_refresh_stock");
   assert.ok(healerAction);
   assert.ok(quartermasterAction);
-  assert.ok(quartermasterSurgeryLocked);
   assert.ok(progressionAction);
   assert.ok(marketAction);
 
@@ -461,7 +459,6 @@ test("safe-zone shell turns priority town prep actions into before-or-after read
       `Projected market reset: gold ${state.run.gold} -&gt; ${state.run.gold - marketAction.cost}, refresh ${state.run.town.vendor.refreshCount} -&gt; ${state.run.town.vendor.refreshCount + 1}, stock rerolls after the fee\\.`
     )
   );
-  assert.match(root.innerHTML, /Deck Surgery/);
 });
 
 test("world-map and reward shell render node-specific quest and aftermath guidance", () => {

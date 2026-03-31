@@ -171,13 +171,13 @@
     root.innerHTML = `
       <section class="welcome-hero panel">
         <div class="welcome-hero-art" aria-hidden="true">
-          <img class="welcome-cover-art" src="./assets/curated/title-screen/welcome-cover-art.jpg" alt="" />
+          <img class="welcome-cover-art" src="./assets/curated/title-screen/welcome-cover-art.webp" alt="" />
         </div>
         <div class="welcome-hero-content">
           <div class="welcome-hero-copy">
             <p class="eyebrow">Roguelite Deckbuilder</p>
             <h1 class="welcome-title">
-              <img class="welcome-title-logo" src="./assets/curated/title-screen/blood-rogue-logo.png" alt="Blood Rogue" />
+              <img class="welcome-title-logo" src="./assets/curated/title-screen/blood-rogue-logo.webp" alt="Blood Rogue" />
             </h1>
             <div class="welcome-copy-block">
               <p class="welcome-intro">${introParagraph}</p>

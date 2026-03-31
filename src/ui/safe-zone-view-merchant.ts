@@ -240,7 +240,7 @@
     const themeKey = getNpcThemeKey(npc);
     const presentation = MERCHANT_PRESENTATIONS[themeKey] || MERCHANT_PRESENTATIONS[npc.id] || MERCHANT_PRESENTATIONS.default;
     const portraitKey = toPortraitKey(npc.name);
-    const portraitSrc = `./assets/curated/town-portraits/${portraitKey}.png`;
+    const portraitSrc = `./assets/curated/town-portraits/${portraitKey}.webp`;
     const portraitFallbackSrc = `./assets/curated/town-portraits/${npc.id}.svg`;
     const serviceChips = [...new Set(npc.actions.map((action) => getMerchantActionLabel(action)))]
       .slice(0, 4)

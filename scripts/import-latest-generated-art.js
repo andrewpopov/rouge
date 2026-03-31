@@ -70,7 +70,7 @@ function printHelp() {
 Options:
   --kind enemy|boss|portrait|mercenary
   --slug snake_case target asset id
-  --variant snake_case alt label (writes slug__variant.png)
+  --variant snake_case alt label (writes slug__variant.webp)
   --downloads-dir /custom/path
   --dry-run
 `);
@@ -107,12 +107,12 @@ function importImageFile(sourcePath, destinationPath) {
     fs.rmSync(destinationPath, { force: true });
   }
 
-  if (sourceExt === ".png") {
+  if (sourceExt === ".webp") {
     fs.renameSync(sourcePath, destinationPath);
     return;
   }
 
-  const magickResult = spawnSync("magick", [sourcePath, destinationPath], {
+  const magickResult = spawnSync("magick", [sourcePath, "-quality", "90", destinationPath], {
     cwd: ROOT,
     encoding: "utf8",
   });
@@ -127,7 +127,7 @@ function buildManifestObject() {
     const grouped = new Map();
     const entries = fs
       .readdirSync(path.join(ROUGE_ART_DIR, folder), { withFileTypes: true })
-      .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".png"))
+      .filter((entry) => entry.isFile() && /\.(png|webp)$/i.test(entry.name))
       .map((entry) => entry.name);
 
     entries.forEach((fileName) => {
@@ -143,12 +143,18 @@ function buildManifestObject() {
     const slugs = [...grouped.keys()].sort();
     const variants = Object.fromEntries(
       slugs.map((slug) => {
-        const primaryFile = `${slug}.png`;
+        const primaryFile = `${slug}.webp`;
         const files = (grouped.get(slug) || []).sort((left, right) => {
           if (left === primaryFile) {
             return -1;
           }
           if (right === primaryFile) {
+            return 1;
+          }
+          if (left === `${slug}.png`) {
+            return -1;
+          }
+          if (right === `${slug}.png`) {
             return 1;
           }
           return left.localeCompare(right);
@@ -191,7 +197,7 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const latestImage = getLatestImageFile(args.downloadsDir);
   const folder = KIND_TO_FOLDER[args.kind];
-  const fileName = `${args.slug}${args.variant ? `__${args.variant}` : ""}.png`;
+  const fileName = `${args.slug}${args.variant ? `__${args.variant}` : ""}.webp`;
   const destinationPath = path.join(ROUGE_ART_DIR, folder, fileName);
 
   console.log(`latest download: ${latestImage.fullPath}`);

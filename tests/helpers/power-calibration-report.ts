@@ -11,13 +11,12 @@ import {
   createQuietAppHarness,
   createSimulationState,
   runProgressionPolicyFromState,
-  runProgressionSimulationReport,
   type RunProgressionSimulationOptions,
   type RunProgressionSimulationReport,
 } from "./run-progression-simulator";
 import { getPolicyDefinitions } from "./run-progression-simulator-core";
 
-type EncounterBandKind = "boss" | "elite" | "battle";
+type EncounterBandKind = "boss" | "miniboss" | "elite" | "battle";
 type PowerCalibrationSource = "synthetic" | "progression";
 type CheckpointProbeProfile = NonNullable<RunProgressionSimulationOptions["checkpointProbeProfile"]>
 
@@ -411,7 +410,7 @@ function buildKindSummary(
 ): PowerCalibrationKindSummary {
   const buckets = bucketRanges.map((range) => {
     const matching = samples.filter((sample) => {
-      return sample.analysisPowerRatio >= range.min && (range.max == null || sample.analysisPowerRatio < range.max);
+      return sample.analysisPowerRatio >= range.min && (range.max === null || range.max === undefined || sample.analysisPowerRatio < range.max);
     });
     const weighted = buildWeightedSummary(matching);
     return {
@@ -729,6 +728,7 @@ export function runPowerCalibrationReport(options: PowerCalibrationReportOptions
 
   const kinds = {
     boss: buildKindSummary("boss", samples.filter((sample) => sample.kind === "boss"), bucketRanges, targetBands.boss),
+    miniboss: buildKindSummary("miniboss", samples.filter((sample) => sample.kind === "miniboss"), bucketRanges, targetBands.miniboss),
     elite: buildKindSummary("elite", samples.filter((sample) => sample.kind === "elite"), bucketRanges, targetBands.elite),
     battle: buildKindSummary("battle", samples.filter((sample) => sample.kind === "battle"), bucketRanges, targetBands.battle),
   } satisfies Record<EncounterBandKind, PowerCalibrationKindSummary>;

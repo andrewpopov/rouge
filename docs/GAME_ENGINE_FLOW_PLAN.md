@@ -153,6 +153,17 @@ flowchart TD
 - hand cleanup
 - next-turn setup
 
+### 5.1 Target combat tension rules
+
+Target-state combat should preserve these rules even as counts and classes evolve:
+
+- enemy intent stays visible before the player spends cards
+- the opening turn should usually show more worthwhile actions than current energy allows
+- the player should feel the cost of choosing offense, defense, setup, or tempo instead of trivially spending the whole hand
+- extra opening generosity should come from draw texture, not simply from enough base energy to play everything
+- bosses and minibosses are the primary tactical exams
+- normal battles and most elites can stay more generous as long as they still create readable sequencing and target-priority decisions
+
 ## 6. Economy and Progression Rules
 
 ### 6.1 Live baseline

@@ -112,6 +112,9 @@
           ? [...run.progression.classProgression.unlockedSkillIds]
           : [],
         archetypeScores: { ...(run.progression?.classProgression?.archetypeScores || {}) },
+        counterCoverageTags: Array.isArray(run.progression?.classProgression?.counterCoverageTags)
+          ? [...run.progression.classProgression.counterCoverageTags]
+          : [],
       },
       training: {
         ...createDefaultTraining(),

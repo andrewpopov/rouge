@@ -72,6 +72,43 @@ test("committed archetype suites expand one task per named lane", () => {
   );
 });
 
+test("class progression trees expose behavior and counter tags", () => {
+  const harness = createQuietAppHarness();
+  const progression = harness.classRegistry.getClassProgression(harness.content, "sorceress");
+  const archetypeCatalog = harness.browserWindow.ROUGE_REWARD_ENGINE.getArchetypeCatalog("sorceress");
+
+  assert.ok(progression);
+  assert.equal(progression.trees.length, 3);
+  assert.equal(
+    progression.trees.every((tree: { behaviorTags?: string[]; counterTags?: string[] }) => (
+      Array.isArray(tree.behaviorTags) && tree.behaviorTags.length > 0 &&
+      Array.isArray(tree.counterTags) && tree.counterTags.length > 0
+    )),
+    true
+  );
+  assert.equal(archetypeCatalog.sorceress.sorceress_fire.targetBand, "flagship");
+  assert.equal(archetypeCatalog.sorceress.sorceress_fire.splashRole, "hybrid_only");
+  assert.ok(archetypeCatalog.sorceress.sorceress_fire.behaviorTags.includes("payoff"));
+});
+
+test("specialization snapshot derives a primary tree and utility splash from tree ranks", () => {
+  const harness = createQuietAppHarness();
+  const seed = createProgressionSimulationSeed("sorceress", "aggressive", 1, 0);
+  const state = createSimulationState(harness, "sorceress", seed);
+
+  state.run.progression.classProgression.treeRanks = {
+    sorceress_fire: 4,
+    sorceress_cold: 2,
+    sorceress_lightning: 1,
+  };
+  state.run.progression.classProgression.favoredTreeId = "sorceress_fire";
+
+  const snapshot = harness.browserWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES.getSpecializationSnapshot(state.run, harness.content);
+  assert.equal(snapshot.primaryTreeId, "sorceress_fire");
+  assert.equal(snapshot.secondaryUtilityTreeId, "sorceress_cold");
+  assert.equal(snapshot.specializationStage, "primary");
+});
+
 test("natural archetype convergence artifacts summarize live lane outcomes", () => {
   const catalog = getBalanceExperimentCatalog();
   const spec: BalanceExperimentSpec = {
@@ -112,6 +149,7 @@ test("balance snapshot tokens restore and resume progression", () => {
       seedOffset: 0,
       progress: {
         actionCounts: {},
+        townActionCounts: {},
         rewardKindCounts: {},
         rewardEffectCounts: {},
         rewardRoleCounts: {},
@@ -277,6 +315,16 @@ test("combat balance run task produces aggregated combat record", () => {
   const artifact = buildBalanceArtifact(spec, [result.record]);
   assert.ok(artifact.aggregate.encounterMetricsByKind.boss);
   assert.ok(artifact.aggregate.overall.combatSampleWinRate >= 0);
+  assert.ok(artifact.aggregate.overall.averageEarlyCandidateCount >= 0);
+  assert.ok(artifact.aggregate.encounterMetricsByKind.boss.averageEarlyDecisionScoreSpread >= 0);
+  assert.ok(["too solved", "healthy tension", "too clunky", "mixed"].includes(artifact.aggregate.overall.decisionTension.status));
+  assert.ok(["too solved", "healthy tension", "too clunky", "mixed"].includes(artifact.aggregate.encounterMetricsByKind.boss.decisionTension.status));
+  assert.ok(artifact.aggregate.overall.averageTargetShapeFit >= 0);
+  assert.ok(artifact.aggregate.overall.averageTargetShapeFit <= 1);
+  assert.ok(artifact.aggregate.overall.averageCommittedAtAct >= 0);
+  assert.ok(typeof artifact.aggregate.overall.deckFamilyDistribution === "object");
+  assert.ok(result.record.summary.finalBuild.deckProfile.centerpieceCards.length >= 0);
+  assert.ok(result.record.summary.buildJourney.totalRewardUpgrades >= 0);
   assert.equal(artifact.bands[0].status, "pass");
 });
 

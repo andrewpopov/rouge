@@ -432,9 +432,20 @@ test("act-specific support archetypes can fortify the enemy line", () => {
 
 test("escort bulwark modifiers harden elite escorts but not the whole enemy pack", () => {
   const { content, engine } = createHarness();
+  const customContent = {
+    ...content,
+    encounterCatalog: {
+      ...content.encounterCatalog,
+      escort_bulwark_probe: {
+        ...content.encounterCatalog.act_5_branch_warhost,
+        id: "escort_bulwark_probe",
+        modifiers: [{ kind: "escort_bulwark", value: 6 }],
+      },
+    },
+  };
   const state = engine.createCombatState({
-    content,
-    encounterId: "act_5_branch_warhost",
+    content: customContent,
+    encounterId: "escort_bulwark_probe",
     mercenaryId: "rogue_scout",
     randomFn: () => 0,
   });

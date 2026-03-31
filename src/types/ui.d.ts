@@ -326,6 +326,33 @@ interface SafeZoneOperationsModel {
   readinessIssues: string[];
   readinessTone: string;
   readinessBadgeLabel: string;
+  debugEnabled: boolean;
+  planning: ProfilePlanningSummary;
+  review: ProfileAccountReviewSummary;
+  stashSummary: ProfileStashSummary;
+  planningOverview: ProfilePlanningOverviewSummary;
+  plannedWeaponLabel: string;
+  plannedArmorLabel: string;
+  plannedRunewordLabels: string[];
+  charterStageLines: string[];
+  readyCharterCount: number;
+  preparedCharterCount: number;
+  townFeatureLabels: string[];
+  liveBonusBadgeLabel: string;
+  liveBonusTone: string;
+  equippedCount: number;
+  nextPrepLabel: string;
+  nextPrepTone: string;
+  nextPrepCopy: string;
+  nextPrepLines: string[];
+  routeProgressTone: string;
+  objectiveTone: string;
+  objectiveSummary: ObjectiveSummary;
+  bossTone: string;
+  bossBadgeLabel: string;
+  companionTone: string;
+  worldLedgerLines: string[];
+  departureBriefingLines: string[];
 }
 
 interface InventoryViewApi {

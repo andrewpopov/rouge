@@ -7,10 +7,7 @@ import {
   scorePartyPower,
   scoreWeaponProfile,
 } from "./balance-power-score";
-import {
-  ATTACK_INTENT_KINDS,
-  SIMULATION_SCORING_WEIGHTS,
-} from "./run-progression-simulator-core";
+import { SIMULATION_SCORING_WEIGHTS } from "./run-progression-simulator-core";
 import {
   getEnemyStatusScore,
   getHeroDebuffScore,
@@ -63,6 +60,7 @@ interface BalanceEncounterEntry {
   zoneTitle: string;
   zoneKind: ZoneKind;
   hasBoss: boolean;
+  hasMiniboss: boolean;
   hasElite: boolean;
 }
 
@@ -119,7 +117,7 @@ interface EncounterSimulationSummary {
   encounterName: string;
   zoneTitle: string;
   zoneKind: ZoneKind;
-  kind: "boss" | "elite" | "battle";
+  kind: "boss" | "miniboss" | "elite" | "battle";
   runs: number;
   enemyPowerScore: number;
   powerDelta: number;
@@ -133,6 +131,15 @@ interface EncounterSimulationSummary {
   averageMercenaryLifePct: number;
   averagePotionsRemaining: number;
   averageEnemyLifePct: number;
+  openingHandFullSpendRate: number;
+  averageTurn1UnspentEnergy: number;
+  averageEarlyUnspentEnergy: number;
+  averageEarlyMeaningfulUnplayedRate: number;
+  averageEarlyCandidateCount: number;
+  averageEarlyMeaningfulCandidateCount: number;
+  averageEarlyDecisionScoreSpread: number;
+  earlyCloseDecisionRate: number;
+  averageEarlyEndTurnRegret: number;
 }
 
 interface ScenarioBalanceReport {
@@ -151,6 +158,15 @@ interface ScenarioBalanceReport {
     averageMercenaryLifePct: number;
     averagePotionsRemaining: number;
     averageEnemyLifePct: number;
+    openingHandFullSpendRate?: number;
+    averageTurn1UnspentEnergy?: number;
+    averageEarlyUnspentEnergy?: number;
+    averageEarlyMeaningfulUnplayedRate?: number;
+    averageEarlyCandidateCount?: number;
+    averageEarlyMeaningfulCandidateCount?: number;
+    averageEarlyDecisionScoreSpread?: number;
+    earlyCloseDecisionRate?: number;
+    averageEarlyEndTurnRegret?: number;
   };
 }
 
@@ -727,7 +743,8 @@ function getEncounterEntries(context: SimulatedBuildContext, encounterSetId: str
           return null;
         }
         const hasBoss = encounter.enemies.some((enemy) => enemy.templateId.endsWith("_boss"));
-        const hasElite = zone.kind === "miniboss" || encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
+        const hasMiniboss = zone.kind === "miniboss";
+        const hasElite = !hasMiniboss && encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
         const include =
           encounterSetId === "act5_bosses"
             ? zone.kind === "boss" || hasBoss
@@ -745,6 +762,7 @@ function getEncounterEntries(context: SimulatedBuildContext, encounterSetId: str
           zoneTitle: zone.title,
           zoneKind: zone.kind,
           hasBoss,
+          hasMiniboss,
           hasElite,
         } as BalanceEncounterEntry;
       });
@@ -754,6 +772,9 @@ function getEncounterEntries(context: SimulatedBuildContext, encounterSetId: str
   const sorted = entries.sort((left, right) => {
     if (left.hasBoss !== right.hasBoss) {
       return left.hasBoss ? -1 : 1;
+    }
+    if (left.hasMiniboss !== right.hasMiniboss) {
+      return left.hasMiniboss ? -1 : 1;
     }
     if (left.hasElite !== right.hasElite) {
       return left.hasElite ? -1 : 1;
@@ -1032,7 +1053,7 @@ function summarizeEncounterRuns(
     encounterName: entry.encounterName,
     zoneTitle: entry.zoneTitle,
     zoneKind: entry.zoneKind,
-    kind: entry.hasBoss ? "boss" : entry.hasElite ? "elite" : "battle",
+    kind: entry.hasBoss ? "boss" : entry.hasMiniboss ? "miniboss" : entry.hasElite ? "elite" : "battle",
     runs: runs.length,
     enemyPowerScore,
     powerDelta: 0,
@@ -1046,6 +1067,15 @@ function summarizeEncounterRuns(
     averageMercenaryLifePct: roundTo((runs.reduce((sum, result) => sum + result.mercenaryLifePct, 0) / divisor) * 100),
     averagePotionsRemaining: roundTo(runs.reduce((sum, result) => sum + result.potionsRemaining, 0) / divisor),
     averageEnemyLifePct: roundTo((runs.reduce((sum, result) => sum + result.enemyLifePct, 0) / divisor) * 100),
+    openingHandFullSpendRate: 0,
+    averageTurn1UnspentEnergy: 0,
+    averageEarlyUnspentEnergy: 0,
+    averageEarlyMeaningfulUnplayedRate: 0,
+    averageEarlyCandidateCount: 0,
+    averageEarlyMeaningfulCandidateCount: 0,
+    averageEarlyDecisionScoreSpread: 0,
+    earlyCloseDecisionRate: 0,
+    averageEarlyEndTurnRegret: 0,
   };
 }
 
@@ -1206,7 +1236,7 @@ function buildScenarioReport(context: SimulatedBuildContext, encounterSetId: str
     const summary = summarizeEncounterRuns(context.harness.content, entry, runs);
     return {
       ...summary,
-      kind: (entry.hasBoss ? "boss" : entry.hasElite ? "elite" : "battle") as "boss" | "elite" | "battle",
+      kind: (entry.hasBoss ? "boss" : entry.hasMiniboss ? "miniboss" : entry.hasElite ? "elite" : "battle") as "boss" | "miniboss" | "elite" | "battle",
       runs: runsPerEncounter,
       powerDelta: roundTo(build.powerScore - summary.enemyPowerScore),
       powerRatio: roundTo(build.powerScore / Math.max(1, summary.enemyPowerScore)),

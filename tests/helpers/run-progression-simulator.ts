@@ -341,6 +341,13 @@ function countChoice(progress: PolicyProgressSummary, reward: RunReward | null, 
   })
 }
 
+function countTownAction(progress: PolicyProgressSummary, actionId: string) {
+  if (!actionId) {
+    return
+  }
+  incrementCount(progress.townActionCounts, actionId)
+}
+
 function getZoneUnlockValue(run: RunState, zone: ZoneState) {
   const currentAct = run.acts[run.currentActIndex]
   return currentAct.zones.reduce((sum, candidate) => {
@@ -511,7 +518,9 @@ export function runProgressionPolicyFromState(
     updateArchetypeCommitmentLock(state, archetypePlan)
     reportOperation("started", "optimize_safe_zone", 0, "initial")
     const optimizeStartedAt = Date.now()
-    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, 24, archetypePlan)
+    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, 24, archetypePlan, {
+      onTownActionApplied: (actionId) => countTownAction(progress, actionId),
+    })
     reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "initial")
     reportOperation("started", "build_checkpoint", 0, "initial")
     const checkpointStartedAt = Date.now()
@@ -581,7 +590,7 @@ export function runProgressionPolicyFromState(
           finalLevel: state.run.level,
           checkpoints,
           failure: null,
-          summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress, archetypePlan),
+          summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress, checkpoints, archetypePlan),
         }
         hooks?.onRunComplete?.({
           state,
@@ -627,7 +636,9 @@ export function runProgressionPolicyFromState(
           updateArchetypeCommitmentLock(state, archetypePlan)
           reportOperation("started", "optimize_safe_zone", 0, "town return")
           const optimizeStartedAt = Date.now()
-          optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan)
+          optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan, {
+            onTownActionApplied: (actionId) => countTownAction(progress, actionId),
+          })
           reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "town return")
           const postRecoverySignature = getTownRecoverySignature()
           blockedTownRecoverySignature = postRecoverySignature === townRecoverySignature ? postRecoverySignature : ""
@@ -717,7 +728,7 @@ export function runProgressionPolicyFromState(
           zoneTitle: selectedZone.title,
           encounterId: state.run.activeEncounterId,
           encounterName: encounter?.name || state.run.activeEncounterId,
-          kind: selectedZone.kind === "boss" ? "boss" : selectedZone.kind === "miniboss" ? "elite" : "battle",
+          kind: selectedZone.kind === "boss" ? "boss" : selectedZone.kind === "miniboss" ? "miniboss" : "battle",
           zoneKind: selectedZone.kind || "",
           zoneRole: selectedZone.zoneRole || "",
           nodeType: selectedZone.nodeType || "",
@@ -792,7 +803,7 @@ export function runProgressionPolicyFromState(
           finalLevel: state.run?.level || 1,
           checkpoints,
           failure,
-          summary: buildPolicyRunSummary(harness, state.run as RunState, state.profile, policy, progress, archetypePlan),
+          summary: buildPolicyRunSummary(harness, state.run as RunState, state.profile, policy, progress, checkpoints, archetypePlan),
         }
         hooks?.onRunFailure?.({
           state,
@@ -894,7 +905,9 @@ export function runProgressionPolicyFromState(
       updateArchetypeCommitmentLock(state, archetypePlan)
       reportOperation("started", "optimize_safe_zone", 0, "act transition")
       const optimizeStartedAt = Date.now()
-      optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan)
+      optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan, {
+        onTownActionApplied: (actionId) => countTownAction(progress, actionId),
+      })
       reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "act transition")
       reportOperation("started", "build_checkpoint", 0, `act ${state.run.actNumber}`)
       const checkpointStartedAt = Date.now()
@@ -944,7 +957,7 @@ export function runProgressionPolicyFromState(
         finalLevel: state.run.level,
         checkpoints,
         failure: null,
-        summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress, archetypePlan),
+        summary: buildPolicyRunSummary(harness, state.run, state.profile, policy, progress, checkpoints, archetypePlan),
       }
       hooks?.onRunComplete?.({
         state,
