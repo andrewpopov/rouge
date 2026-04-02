@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const registryWindow = runtimeWindow as Window & Record<string, unknown>;
@@ -45,9 +46,25 @@
 
   const EARLY_PATH_SCORE_LEAD_THRESHOLD = 6;
   const EARLY_PATH_TREE_RANK_THRESHOLD = 3;
+  const FLAGSHIP_SUPPORT_WITHOUT_PRIMARY_MULTIPLIER = 0.35;
+  const FLAGSHIP_SUPPORT_SINGLE_PRIMARY_MULTIPLIER = 0.7;
+  const SECONDARY_SUPPORT_BASE_MULTIPLIER = 0.55;
+  const HYBRID_SUPPORT_BASE_MULTIPLIER = 0.4;
 
   function uniqueTags<T>(values: T[]) {
     return Array.from(new Set((Array.isArray(values) ? values : []).filter(Boolean)));
+  }
+
+  function buildTreeCardCounts(run: RunState) {
+    const counts: Record<string, number> = {};
+    (Array.isArray(run.deck) ? run.deck : []).forEach((cardId: string) => {
+      const treeId = classificationApi.getCardTree(cardId);
+      if (!treeId) {
+        return;
+      }
+      counts[treeId] = toNumber(counts[treeId], 0) + 1;
+    });
+    return counts;
   }
 
   function getArchetypePathForId(archetypeId: string) {
@@ -145,7 +162,92 @@
     ) as Record<string, number>;
   }
 
-  function getArchetypeCardMatchMultiplier(classId: string, archetypeId: string, treeId: string) {
+  function getArchetypePrimaryCardCount(
+    path: {
+      primaryTrees: string[];
+      supportTrees: string[];
+      targetBand: "flagship" | "secondary";
+      splashRole: CardSplashRole;
+    },
+    treeCardCounts: Record<string, number>
+  ) {
+    return path.primaryTrees.reduce((total, primaryTreeId) => total + toNumber(treeCardCounts[primaryTreeId], 0), 0);
+  }
+
+  function getSecondarySupportPresenceMultiplier(
+    path: {
+      targetBand: "flagship" | "secondary";
+      splashRole: CardSplashRole;
+    },
+    primaryCardCount: number
+  ) {
+    if (path.splashRole === "hybrid_only") {
+      if (primaryCardCount >= 4) {
+        return 1;
+      }
+      if (primaryCardCount === 3) {
+        return 0.8;
+      }
+      if (primaryCardCount === 2) {
+        return 0.45;
+      }
+      if (primaryCardCount === 1) {
+        return 0.18;
+      }
+      return 0.05;
+    }
+    if (primaryCardCount >= 4) {
+      return 1;
+    }
+    if (primaryCardCount === 3) {
+      return 0.85;
+    }
+    if (primaryCardCount === 2) {
+      return 0.55;
+    }
+    if (primaryCardCount === 1) {
+      return 0.25;
+    }
+    return 0.05;
+  }
+
+  function getSupportTreeCardScoreMultiplier(
+    path: {
+      targetBand: "flagship" | "secondary";
+      splashRole: CardSplashRole;
+    },
+    primaryCardCount: number,
+    role: CardRewardRole
+  ) {
+    if (path.targetBand === "flagship") {
+      if (primaryCardCount >= 2) {
+        return SUPPORT_TREE_CARD_SCORE_MULTIPLIER;
+      }
+      if (primaryCardCount === 1) {
+        return SUPPORT_TREE_CARD_SCORE_MULTIPLIER * FLAGSHIP_SUPPORT_SINGLE_PRIMARY_MULTIPLIER;
+      }
+      return SUPPORT_TREE_CARD_SCORE_MULTIPLIER * FLAGSHIP_SUPPORT_WITHOUT_PRIMARY_MULTIPLIER;
+    }
+    const bandBaseMultiplier = path.splashRole === "hybrid_only"
+      ? HYBRID_SUPPORT_BASE_MULTIPLIER
+      : SECONDARY_SUPPORT_BASE_MULTIPLIER;
+    const presenceMultiplier = getSecondarySupportPresenceMultiplier(path, primaryCardCount);
+    let roleMultiplier = 1;
+    if (role === "engine") {
+      roleMultiplier = 0.45;
+    } else if (role === "foundation") {
+      roleMultiplier = 0.7;
+    }
+    return SUPPORT_TREE_CARD_SCORE_MULTIPLIER * bandBaseMultiplier * presenceMultiplier * roleMultiplier;
+  }
+
+  function getArchetypeCardMatchMultiplier(
+    classId: string,
+    archetypeId: string,
+    treeId: string,
+    role: CardRewardRole,
+    treeCardCounts: Record<string, number>
+  ) {
     const path = BUILD_PATHS[classId]?.[archetypeId];
     if (!path || !treeId) {
       return 0;
@@ -154,7 +256,8 @@
       return PRIMARY_TREE_CARD_SCORE_MULTIPLIER;
     }
     if (path.supportTrees.includes(treeId)) {
-      return SUPPORT_TREE_CARD_SCORE_MULTIPLIER;
+      const primaryCardCount = getArchetypePrimaryCardCount(path, treeCardCounts);
+      return getSupportTreeCardScoreMultiplier(path, primaryCardCount, role);
     }
     return 0;
   }
@@ -177,6 +280,7 @@
     const scores = createEmptyArchetypeScores(run.classId);
     const classProgression = run.progression?.classProgression;
     const favoredTreeId = classProgression?.favoredTreeId || "";
+    const treeCardCounts = buildTreeCardCounts(run);
 
     Object.keys(scores).forEach((archetypeId) => {
       const treeRank = toNumber(classProgression?.treeRanks?.[archetypeId], 0);
@@ -197,7 +301,7 @@
       const weight = CARD_ROLE_SCORE_WEIGHTS[role] || CARD_ROLE_SCORE_WEIGHTS.foundation;
       Object.keys(scores).forEach((archetypeId) => {
         if (Object.prototype.hasOwnProperty.call(scores, archetypeId)) {
-          const treeMatchMultiplier = getArchetypeCardMatchMultiplier(run.classId, archetypeId, treeId);
+          const treeMatchMultiplier = getArchetypeCardMatchMultiplier(run.classId, archetypeId, treeId, role, treeCardCounts);
           if (treeMatchMultiplier > 0) {
             scores[archetypeId] += weight * treeMatchMultiplier;
           }

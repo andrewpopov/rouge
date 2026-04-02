@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const {
@@ -13,6 +14,8 @@
     createDefaultTraining,
     createDefaultWorldState,
     getLevelForXp,
+    recordSummaryLifeFloor,
+    syncSummaryLifeFloors,
     toBonusValue,
   } = runtimeWindow.ROUGE_RUN_STATE;
   const {
@@ -125,6 +128,7 @@
       ...createDefaultSummary(),
       ...(run.summary || {}),
     };
+    syncSummaryLifeFloors(run);
     run.inventory = {
       ...createDefaultInventory(),
       ...(run.inventory || {}),
@@ -468,6 +472,12 @@
     run.mercenary.maxLife = Math.max(1, combatState.mercenary.maxLife - toBonusValue(bonuses.mercenaryMaxLife));
     run.mercenary.attack = Math.max(0, combatState.mercenary.attack - toBonusValue(bonuses.mercenaryAttack));
     run.belt.current = combatState.potions;
+    run.summary.enemiesDefeated = toBonusValue(run.summary?.enemiesDefeated, 0) + combatState.enemies.filter((enemy) => !enemy.alive).length;
+    run.summary.cardsPlayed = toBonusValue(run.summary?.cardsPlayed, 0) + toBonusValue(combatState.cardsPlayed, 0);
+    run.summary.potionsUsed = toBonusValue(run.summary?.potionsUsed, 0) + toBonusValue(combatState.potionsUsed, 0);
+    recordSummaryLifeFloor(run.summary, "hero", combatState.lowestHeroLife, run.hero.maxLife);
+    recordSummaryLifeFloor(run.summary, "mercenary", combatState.lowestMercenaryLife, run.mercenary.maxLife);
+    syncSummaryLifeFloors(run);
   }
 
   function createCombatOverrides(run: RunState, content: GameContent, profile?: ProfileState | null) {

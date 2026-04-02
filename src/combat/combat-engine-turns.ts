@@ -303,6 +303,16 @@
     return amount;
   }
 
+  function trackLowestLife(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState) {
+    if (entity === state.hero) {
+      state.lowestHeroLife = Math.min(state.lowestHeroLife, state.hero.life);
+      return;
+    }
+    if (entity === state.mercenary) {
+      state.lowestMercenaryLife = Math.min(state.lowestMercenaryLife, state.mercenary.life);
+    }
+  }
+
   function handleDefeat(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState) {
     const isEnemy = state.enemies.includes(entity as CombatEnemyState);
     entity.alive = false;
@@ -387,6 +397,7 @@
     entity.guard -= blocked;
     const lifeLoss = damage - blocked;
     entity.life = Math.max(0, entity.life - lifeLoss);
+    trackLowestLife(state, entity);
 
     // Thorns / Lightning Enchanted: enemy deals damage back when hit
     if (!isAlly && (entity as CombatEnemyState).alive) {
@@ -435,6 +446,7 @@
     }
     const before = entity.life;
     entity.life = Math.max(0, entity.life - damage);
+    trackLowestLife(state, entity);
     if (entity.life <= 0 && entity.alive) {
       handleDefeat(state, entity);
     }
@@ -451,6 +463,7 @@
     }
     const before = entity.life;
     entity.life = Math.max(0, entity.life - directDamage);
+    trackLowestLife(state, entity);
     if (entity.life <= 0 && entity.alive) {
       handleDefeat(state, entity);
     }
@@ -901,6 +914,7 @@
     }
 
     state.potions -= 1;
+    state.potionsUsed += 1;
     const healed = healEntity(target, state.hero.potionHeal);
     appendLog(state, `Potion used on ${target.name} for ${healed}.`);
     return { ok: true, message: "Potion used." };

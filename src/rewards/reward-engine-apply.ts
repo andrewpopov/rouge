@@ -154,6 +154,7 @@
     }
 
     archetypes.syncArchetypeScores(run, content);
+    runtimeWindow.ROUGE_RUN_STATE?.syncSummaryLifeFloors?.(run);
     return { ok: true };
   }
 

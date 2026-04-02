@@ -99,7 +99,7 @@ test("reward-engine opening reward choices stay deterministic for the same seede
   assertNormalizedEqual(
     rewardChoices.map((choice) => choice.id),
     [
-      "reward_card_amazon_multiple_shot",
+      "reward_card_amazon_exploding_arrow",
       "reward_loot_act_1_blighted_moors_1",
       "reward_boon_field_training",
     ]
@@ -128,4 +128,23 @@ test("reward-engine specialization snapshot stays stable for a fresh amazon run"
     counterCoverageTags: ["anti_attrition", "anti_backline", "anti_fire_pressure", "anti_support_disruption", "anti_tax"],
   });
   assert.equal(buildPath, null);
+});
+
+test("support-heavy hybrid scoring still requires real primary-tree investment", () => {
+  const { state, content, browserWindow } = createAmazonRunFixture();
+
+  state.run.deck = [
+    "amazon_magic_arrow",
+    "amazon_fire_arrow",
+    "amazon_multiple_shot",
+    "amazon_exploding_arrow",
+    "amazon_jab",
+    "amazon_power_strike",
+    "amazon_inner_sight",
+    "rally_mercenary",
+  ];
+
+  const dominant = browserWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES.getDominantArchetype(state.run, content);
+  assert.equal(dominant.primary?.archetypeId, "amazon_bow_and_crossbow");
+  assert.notEqual(dominant.primary?.archetypeId, "amazon_passive_and_magic");
 });

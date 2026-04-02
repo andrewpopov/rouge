@@ -273,6 +273,13 @@ interface RunState {
     bossesDefeated: number;
     runewordsForged: number;
     uniqueItemsFound: number;
+    enemiesDefeated?: number;
+    cardsPlayed?: number;
+    potionsUsed?: number;
+    lowestHeroLife?: number;
+    lowestHeroLifeMax?: number;
+    lowestMercenaryLife?: number;
+    lowestMercenaryLifeMax?: number;
   };
 }
 
@@ -331,6 +338,13 @@ interface RunHistoryEntry {
   actsCleared: number;
   bossesDefeated: number;
   goldGained: number;
+  enemiesDefeated?: number;
+  cardsPlayed?: number;
+  potionsUsed?: number;
+  lowestHeroLife?: number;
+  lowestHeroLifeMax?: number;
+  lowestMercenaryLife?: number;
+  lowestMercenaryLifeMax?: number;
   runewordsForged: number;
   skillPointsEarned: number;
   classPointsEarned: number;

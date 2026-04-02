@@ -300,6 +300,15 @@
         appEngine.continueActTransition(appState);
         render();
         return true;
+      case "set-run-summary-step": {
+        const nextStep = actionEl.dataset.runSummaryStep || "finale";
+        if (nextStep === "finale" || nextStep === "ledger" || nextStep === "archive") {
+          appState.ui.runSummaryStep = nextStep;
+          render();
+          return true;
+        }
+        return false;
+      }
       case "return-front-door":
         appEngine.returnToFrontDoor(appState);
         appState.ui.hallExpanded = true;

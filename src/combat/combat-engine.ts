@@ -287,6 +287,7 @@
 
     state.hero.energy -= effectiveCost;
     state.hand.splice(handIndex, 1);
+    state.cardsPlayed += 1;
 
     const segments: string[] = [];
     card.effects.forEach((effect: CardEffect) => {
@@ -406,7 +407,14 @@
       armorProfile,
       classPreferredFamilies,
       deckCardIds: Array.isArray(starterDeck) && starterDeck.length > 0 ? [...starterDeck] : [...content.starterDeck],
+      cardsPlayed: 0,
+      potionsUsed: 0,
+      lowestHeroLife: 0,
+      lowestMercenaryLife: 0,
     };
+
+    state.lowestHeroLife = state.hero.life;
+    state.lowestMercenaryLife = state.mercenary.life;
 
     applyRandomAffixes(state, randomFn, encounterId);
 

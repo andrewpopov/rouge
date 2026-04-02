@@ -135,6 +135,7 @@
   function recordRunHistory(state: AppState, outcome: RunHistoryEntry["outcome"]): void {
     const persistence = getPersistence();
     if (persistence?.recordRunHistory && state.run) {
+      runtimeWindow.ROUGE_RUN_STATE.syncSummaryLifeFloors(state.run);
       persistence.recordRunHistory(state.profile, state.run, outcome, state.content);
     }
     state.ui.reviewedHistoryIndex = 0;
@@ -145,13 +146,14 @@
     const persistence = getPersistence();
     const snapshot = state.profile.activeRunSnapshot || persistence?.loadFromStorage?.() || null;
     if (persistence?.recordRunHistory && snapshot?.run) {
+      runtimeWindow.ROUGE_RUN_STATE.syncSummaryLifeFloors(snapshot.run);
       persistence.recordRunHistory(state.profile, snapshot.run, outcome, state.content);
     }
     state.ui.reviewedHistoryIndex = 0;
     clearActiveRunProfile(state);
   }
 
-  const { getTrainingRankCount } = runtimeWindow.ROUGE_RUN_STATE;
+  const { getTrainingRankCount, syncSummaryLifeFloors } = runtimeWindow.ROUGE_RUN_STATE;
 
   function parseInteger(value: unknown, fallback = 0): number {
     const parsed = Number.parseInt(String(value ?? fallback), 10);
@@ -262,6 +264,9 @@
 
   function persistRunIfPossible(state: AppState) {
     const persistence = getPersistence();
+    if (state.run) {
+      syncSummaryLifeFloors(state.run);
+    }
     const snapshot = createRunSnapshot(state);
     if (!snapshot || state.phase === PHASES.ENCOUNTER || state.phase === PHASES.RUN_COMPLETE || state.phase === PHASES.RUN_FAILED) {
       return;

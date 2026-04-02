@@ -28,6 +28,62 @@
     return (Array.isArray(pool) ? pool : []).filter((cardId: string) => Boolean(content.cardCatalog[cardId]) && !usedCardIds.has(cardId));
   }
 
+  function getBaseCardId(cardId: string) {
+    return String(cardId || "").replace(/_plus$/i, "");
+  }
+
+  function getDeckCardCopyCount(run: RunState, cardId: string) {
+    const baseCardId = getBaseCardId(cardId);
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((count: number, deckCardId: string) => {
+      return getBaseCardId(deckCardId) === baseCardId ? count + 1 : count;
+    }, 0);
+  }
+
+  function getRewardDuplicateLimit(cardId: string, content: GameContent) {
+    const role = archetypes.getCardRewardRole(cardId, content);
+    const card = content.cardCatalog[cardId];
+    const roleTag = String(card?.roleTag || "answer");
+    const tier = Number(card?.tier || 1);
+
+    if (roleTag === "payoff" && tier >= 4) {
+      return 3;
+    }
+    if (roleTag === "payoff") {
+      return 4;
+    }
+    if (roleTag === "setup" && role === "engine") {
+      return 5;
+    }
+    if (role === "engine") {
+      return 4;
+    }
+    if (role === "support" || role === "tech") {
+      return 3;
+    }
+    return 2;
+  }
+
+  function thinCandidatesByDuplicateLimit(candidates: string[], run: RunState, content: GameContent, strict = false) {
+    if (!Array.isArray(candidates) || candidates.length === 0) {
+      return [];
+    }
+    const belowLimit = candidates.filter((cardId: string) => getDeckCardCopyCount(run, cardId) < getRewardDuplicateLimit(cardId, content));
+    if (belowLimit.length > 0) {
+      return belowLimit;
+    }
+    return strict ? [] : candidates;
+  }
+
+  function sortCandidatesByDuplicateNeed(candidates: string[], run: RunState) {
+    return [...candidates].sort((left: string, right: string) => {
+      const duplicateDelta = getDeckCardCopyCount(run, left) - getDeckCardCopyCount(run, right);
+      if (duplicateDelta !== 0) {
+        return duplicateDelta;
+      }
+      return left.localeCompare(right);
+    });
+  }
+
   function pickCandidateWithTreeBias(candidates: string[], seed: number, preferredTrees: string[] = [], supportTrees: string[] = []) {
     if (candidates.length === 0) {
       return "";
@@ -52,14 +108,15 @@
     seed: number,
     usedCardIds: Set<string>,
     content: GameContent,
+    run: RunState,
     preferredTrees: string[] = [],
     supportTrees: string[] = []
   ) {
-    const candidates = getPoolCandidates(pool, usedCardIds, content);
+    const candidates = thinCandidatesByDuplicateLimit(getPoolCandidates(pool, usedCardIds, content), run, content);
     if (candidates.length === 0) {
       return "";
     }
-    return pickCandidateWithTreeBias(candidates, seed, preferredTrees, supportTrees);
+    return pickCandidateWithTreeBias(sortCandidatesByDuplicateNeed(candidates, run), seed, preferredTrees, supportTrees);
   }
 
   function pickRoleScopedCardId(
@@ -67,11 +124,20 @@
     seed: number,
     usedCardIds: Set<string>,
     content: GameContent,
+    run: RunState,
     role: CardRewardRole,
     preferredTrees: string[] = [],
     supportTrees: string[] = []
   ) {
-    const candidates = getPoolCandidates(pool, usedCardIds, content).filter((cardId: string) => archetypes.getCardRewardRole(cardId, content) === role);
+    const candidates = sortCandidatesByDuplicateNeed(
+      thinCandidatesByDuplicateLimit(
+        getPoolCandidates(pool, usedCardIds, content).filter((cardId: string) => archetypes.getCardRewardRole(cardId, content) === role),
+        run,
+        content,
+        true
+      ),
+      run
+    );
     return pickCandidateWithTreeBias(candidates, seed, preferredTrees, supportTrees);
   }
 
@@ -80,15 +146,16 @@
     seed: number,
     usedCardIds: Set<string>,
     content: GameContent,
+    run: RunState,
     role: CardRewardRole,
     preferredTrees: string[] = [],
     supportTrees: string[] = []
   ) {
-    const strictMatch = pickRoleScopedCardId(pool, seed, usedCardIds, content, role, preferredTrees, supportTrees);
+    const strictMatch = pickRoleScopedCardId(pool, seed, usedCardIds, content, run, role, preferredTrees, supportTrees);
     if (strictMatch) {
       return strictMatch;
     }
-    return pickPreferredCardId(pool, seed, usedCardIds, content, preferredTrees, supportTrees);
+    return pickPreferredCardId(pool, seed, usedCardIds, content, run, preferredTrees, supportTrees);
   }
 
   function getTreeCardCounts(run: RunState) {
@@ -141,31 +208,33 @@
       if (countDiff !== 0) {
         return countDiff;
       }
-      const leftSeed = (getStableSeedFromText(left) + seed) % 97;
-      const rightSeed = (getStableSeedFromText(right) + seed) % 97;
-      if (leftSeed !== rightSeed) {
-        return leftSeed - rightSeed;
-      }
       return left.localeCompare(right);
     });
 
     for (let roleIndex = 0; roleIndex < preferredRoles.length; roleIndex += 1) {
       const role = preferredRoles[roleIndex];
-      for (let treeIndex = 0; treeIndex < rankedTrees.length; treeIndex += 1) {
-        const treeId = rankedTrees[treeIndex];
-        const roleMatches = candidatesByTree[treeId].filter((cardId: string) => archetypes.getCardRewardRole(cardId, content) === role);
-        if (roleMatches.length === 0) {
-          continue;
-        }
-        return roleMatches[(seed + getStableSeedFromText(treeId) + roleIndex) % roleMatches.length];
+      const roleEligibleTrees = rankedTrees.filter((treeId) => {
+        return candidatesByTree[treeId].some((cardId: string) => archetypes.getCardRewardRole(cardId, content) === role);
+      });
+      if (roleEligibleTrees.length === 0) {
+        continue;
+      }
+      const lowestCount = Number(treeCounts[roleEligibleTrees[0]] || 0);
+      const lowestCountTrees = roleEligibleTrees.filter((treeId) => Number(treeCounts[treeId] || 0) === lowestCount);
+      const selectedTreeId = lowestCountTrees[(seed + roleIndex) % lowestCountTrees.length];
+      const roleMatches = candidatesByTree[selectedTreeId].filter((cardId: string) => archetypes.getCardRewardRole(cardId, content) === role);
+      if (roleMatches.length > 0) {
+        return roleMatches[(seed + getStableSeedFromText(selectedTreeId) + roleIndex) % roleMatches.length];
       }
     }
 
-    for (let treeIndex = 0; treeIndex < rankedTrees.length; treeIndex += 1) {
-      const treeId = rankedTrees[treeIndex];
-      const treeCandidates = candidatesByTree[treeId];
+    const lowestCount = rankedTrees.length > 0 ? Number(treeCounts[rankedTrees[0]] || 0) : 0;
+    const lowestCountTrees = rankedTrees.filter((treeId) => Number(treeCounts[treeId] || 0) === lowestCount);
+    if (lowestCountTrees.length > 0) {
+      const selectedTreeId = lowestCountTrees[seed % lowestCountTrees.length];
+      const treeCandidates = candidatesByTree[selectedTreeId];
       if (treeCandidates.length > 0) {
-        return treeCandidates[(seed + getStableSeedFromText(treeId)) % treeCandidates.length];
+        return treeCandidates[(seed + getStableSeedFromText(selectedTreeId)) % treeCandidates.length];
       }
     }
 
@@ -245,6 +314,42 @@
     return (Array.isArray(run.deck) ? run.deck : []).reduce((sum: number, cardId: string) => {
       const treeId = archetypes.getCardTree(cardId);
       return treeId && trees.includes(treeId) ? sum + 1 : sum;
+    }, 0);
+  }
+
+  function getSupportSplashCap(buildPath: ReturnType<typeof archetypes.getRewardPathPreference>) {
+    const stage = buildPath?.specializationStage || "exploratory";
+    return stage === "primary" || stage === "mastery" ? 3 : 4;
+  }
+
+  function getUtilitySplashCardCount(
+    run: RunState,
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>
+  ) {
+    if (!buildPath) {
+      return 0;
+    }
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((sum: number, cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      if (!treeId || buildPath.primaryTrees.includes(treeId)) {
+        return sum;
+      }
+      const card = content.cardCatalog[cardId];
+      const roleTag = String(card?.roleTag || "answer");
+      const splashRole = String(card?.splashRole || "primary_only");
+      const rewardRole = archetypes.getCardRewardRole(cardId, content);
+      const isUtilityRole =
+        roleTag === "support" ||
+        roleTag === "salvage" ||
+        roleTag === "answer" ||
+        rewardRole === "support" ||
+        rewardRole === "tech" ||
+        rewardRole === "foundation";
+      if (splashRole === "utility_splash_ok" || (buildPath.supportTrees.includes(treeId) && isUtilityRole)) {
+        return sum + 1;
+      }
+      return sum;
     }, 0);
   }
 
@@ -393,7 +498,14 @@
       content.rewardPools?.zoneRoleCards?.[zone.zoneRole] || [],
       content.rewardPools?.bossCards || [],
     ];
-    const fallbackBias = getTreeBiasForRewardSlot(buildPath, actNumber, "fallback");
+    const supportCardCount = countCardsInTrees(run, buildPath?.supportTrees || []);
+    const utilitySplashCount = getUtilitySplashCardCount(run, content, buildPath);
+    const supportSplashCap = getSupportSplashCap(buildPath);
+    const supportSaturated =
+      Boolean(buildPath) && (supportCardCount >= supportSplashCap || utilitySplashCount >= supportSplashCap + 1);
+    const fallbackBias = supportSaturated
+      ? { preferredTrees: [...(buildPath?.primaryTrees || [])], supportTrees: [] as string[] }
+      : getTreeBiasForRewardSlot(buildPath, actNumber, "fallback");
 
     if (allowFallbackCards) {
       for (let poolIndex = 0; choices.length < 3 && poolIndex < fallbackPools.length; poolIndex += 1) {
@@ -403,6 +515,7 @@
           seed + poolIndex + choices.length,
           usedCardIds,
           content,
+          run,
           fallbackBias.preferredTrees,
           fallbackBias.supportTrees
         );
@@ -436,7 +549,12 @@
     const upgradableCardIds = getUpgradableCardIds(run, content);
     const primaryCardCount = countCardsInTrees(run, buildPath?.primaryTrees || []);
     const supportCardCount = countCardsInTrees(run, buildPath?.supportTrees || []);
+    const utilitySplashCount = getUtilitySplashCardCount(run, content, buildPath);
+    const supportSplashCap = getSupportSplashCap(buildPath);
+    const specializationStage = buildPath?.specializationStage || "exploratory";
     const needsPrimaryReinforcement = Boolean(buildPath) && (primaryCardCount < 4 || primaryCardCount < supportCardCount);
+    const supportSaturated =
+      Boolean(buildPath) && (supportCardCount >= supportSplashCap || utilitySplashCount >= supportSplashCap + 1);
     const primaryBias = getTreeBiasForRewardSlot(buildPath, actNumber, "primary", needsPrimaryReinforcement);
     const supportBias = getTreeBiasForRewardSlot(buildPath, actNumber, "support", needsPrimaryReinforcement);
     const preferredUpgradeCandidates = upgradableCardIds.filter((cardId: string) => {
@@ -444,9 +562,17 @@
       if (needsPrimaryReinforcement) {
         return buildPath?.primaryTrees?.includes(tree);
       }
+      if (supportSaturated) {
+        return buildPath?.primaryTrees?.includes(tree);
+      }
       return buildPath?.primaryTrees?.includes(tree) || buildPath?.supportTrees?.includes(tree);
     });
-    const upgradeSource = preferredUpgradeCandidates.length > 0 ? preferredUpgradeCandidates : upgradableCardIds;
+    const upgradeSource =
+      preferredUpgradeCandidates.length > 0
+        ? preferredUpgradeCandidates
+        : Boolean(buildPath) && specializationStage !== "exploratory"
+          ? []
+          : upgradableCardIds;
     const upgradeCardId = upgradeSource.length > 0 ? upgradeSource[seed % upgradeSource.length] : "";
     const upgradeChoice = upgradeCardId ? buildUpgradeChoice(upgradeCardId, content) : null;
     const deckSize = Array.isArray(run.deck) ? run.deck.length : 0;
@@ -489,6 +615,7 @@
           seed,
           usedCardIds,
           content,
+          run,
           "engine",
           primaryBias.preferredTrees,
           primaryBias.supportTrees
@@ -533,18 +660,28 @@
       choices.push(pickBoonChoice(boonRole, seed + 9, profile, actNumber));
     }
 
-    const secondCardPool = filterPoolForSpecialization(
+    const secondCardPoolBase = filterPoolForSpecialization(
       zone.kind === ZONE_KIND.BOSS ? [...zonePool, ...profilePool] : [...zonePool, ...profilePool, ...bossPool],
       content,
       buildPath,
       "support"
     );
+    const secondCardPool =
+      supportSaturated && buildPath?.primaryTrees?.length
+        ? (() => {
+            const primaryOnly = secondCardPoolBase.filter((cardId: string) => {
+              const treeId = archetypes.getCardTree(cardId);
+              return Boolean(treeId) && buildPath.primaryTrees.includes(treeId);
+            });
+            return primaryOnly.length > 0 ? primaryOnly : secondCardPoolBase;
+          })()
+        : secondCardPoolBase;
     const canOfferSecondaryCard = zone.kind === ZONE_KIND.BOSS ? !hardCapCards : !softCapCards;
     if (choices.length < 3 && canOfferSecondaryCard) {
       const secondaryPrimaryTrees = primaryBias.preferredTrees;
-      const secondarySupportTrees = supportBias.preferredTrees;
-      const supportPreferredTrees = supportBias.preferredTrees;
-      const supportFallbackTrees = supportBias.supportTrees;
+      const secondarySupportTrees = supportSaturated ? primaryBias.preferredTrees : supportBias.preferredTrees;
+      const supportPreferredTrees = supportSaturated ? primaryBias.preferredTrees : supportBias.preferredTrees;
+      const supportFallbackTrees = supportSaturated ? [] : supportBias.supportTrees;
       let secondCardId = exploratoryOpen
         ? pickExploratoryCardId(
             secondCardPool,
@@ -560,6 +697,7 @@
             seed + 5,
             usedCardIds,
             content,
+            run,
             "support",
             supportPreferredTrees,
             supportFallbackTrees
@@ -570,6 +708,7 @@
           seed + 6,
           usedCardIds,
           content,
+          run,
           "tech",
           secondaryPrimaryTrees,
           secondarySupportTrees
@@ -581,6 +720,7 @@
           seed + 7,
           usedCardIds,
           content,
+          run,
           "foundation",
           secondaryPrimaryTrees,
           secondarySupportTrees
@@ -592,6 +732,7 @@
           seed + 5,
           usedCardIds,
           content,
+          run,
           "support",
           supportPreferredTrees,
           supportFallbackTrees

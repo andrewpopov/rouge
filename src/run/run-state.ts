@@ -109,7 +109,50 @@
       bossesDefeated: 0,
       runewordsForged: 0,
       uniqueItemsFound: 0,
+      enemiesDefeated: 0,
+      cardsPlayed: 0,
+      potionsUsed: 0,
+      lowestHeroLife: 0,
+      lowestHeroLifeMax: 0,
+      lowestMercenaryLife: 0,
+      lowestMercenaryLifeMax: 0,
     };
+  }
+
+  function recordSummaryLifeFloor(
+    summary: RunState["summary"] | null | undefined,
+    actor: "hero" | "mercenary",
+    currentLife: unknown,
+    maxLife: unknown
+  ): void {
+    if (!summary) {
+      return;
+    }
+
+    const normalizedMaxLife = Math.max(1, toBonusValue(maxLife, 1));
+    const normalizedLife = clamp(toBonusValue(currentLife, normalizedMaxLife), 0, normalizedMaxLife);
+    if (actor === "hero") {
+      const existing = toBonusValue(summary.lowestHeroLife, 0);
+      if (existing <= 0 || normalizedLife < existing) {
+        summary.lowestHeroLife = normalizedLife;
+        summary.lowestHeroLifeMax = normalizedMaxLife;
+      }
+      return;
+    }
+
+    const existing = toBonusValue(summary.lowestMercenaryLife, 0);
+    if (existing <= 0 || normalizedLife < existing) {
+      summary.lowestMercenaryLife = normalizedLife;
+      summary.lowestMercenaryLifeMax = normalizedMaxLife;
+    }
+  }
+
+  function syncSummaryLifeFloors(run: RunState | null | undefined): void {
+    if (!run?.summary) {
+      return;
+    }
+    recordSummaryLifeFloor(run.summary, "hero", run.hero?.currentLife, run.hero?.maxLife);
+    recordSummaryLifeFloor(run.summary, "mercenary", run.mercenary?.currentLife, run.mercenary?.maxLife);
   }
 
   function getLevelForXp(xp: unknown): number {
@@ -249,6 +292,8 @@
     createDefaultTownState,
     createDefaultGuideState,
     createDefaultSummary,
+    recordSummaryLifeFloor,
+    syncSummaryLifeFloors,
     getLevelForXp,
     getTrainingTrackForLevel,
     getTrainingRankCount,

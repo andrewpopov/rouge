@@ -239,6 +239,18 @@ function buildEvolutionReverseMapForScoring(harness: AppHarness) {
   }, {} as Record<string, string>)
 }
 
+function buildEvolutionForwardMapForScoring(harness: AppHarness) {
+  const chains = harness.browserWindow.__ROUGE_SKILL_EVOLUTION?.EVOLUTION_CHAINS || {}
+  return Object.entries(chains).reduce((map, [sourceId, entry]) => {
+    const sourceBaseId = normalizeScoringCardId(sourceId)
+    const targetBaseId = normalizeScoringCardId(String((entry as { targetId?: string } | null)?.targetId || ""))
+    if (sourceBaseId && targetBaseId) {
+      map[sourceBaseId] = targetBaseId
+    }
+    return map
+  }, {} as Record<string, string>)
+}
+
 function getEvolutionRootCardIdForScoring(cardId: string, reverseMap: Record<string, string>) {
   let current = normalizeScoringCardId(cardId)
   const seen = new Set<string>()
@@ -279,6 +291,14 @@ function getReinforcementTargetByAct(actNumber: number) {
     return 6
   }
   return 7
+}
+
+function getSupportSplashCapByStage(stage: string) {
+  return stage === "primary" || stage === "mastery" ? 3 : 4
+}
+
+function getOffTreeUtilityCapByStage(stage: string) {
+  return stage === "primary" || stage === "mastery" ? 2 : 3
 }
 
 type DeckConstructionState = {
@@ -370,6 +390,8 @@ function scoreDeckConstructionState(harness: AppHarness, run: RunState, policy: 
   const specializationStage = String(deckState.specialization?.specializationStage || "exploratory")
   const offTreeDamageCount = Number(deckState.specialization?.offTreeDamageCount || 0)
   const offTreeUtilityCount = Number(deckState.specialization?.offTreeUtilityCount || 0)
+  const supportSplashCap = getSupportSplashCapByStage(specializationStage)
+  const offTreeUtilityCap = getOffTreeUtilityCapByStage(specializationStage)
   const primaryRatio = run.deck.length > 0 ? deckState.primaryTreeCardCount / run.deck.length : 0
   const policyStarterPenaltyMultiplier = policy.id === "aggressive" ? 1.2 : policy.id === "balanced" ? 1.0 : 0.9
 
@@ -390,8 +412,14 @@ function scoreDeckConstructionState(harness: AppHarness, run: RunState, policy: 
   total += Math.min(4, deckState.refinedCount) * 10
   total += Math.min(4, deckState.evolvedCount) * 14
   total += Math.min(0.75, primaryRatio) * 70
-  total += Math.min(2, deckState.supportTreeCardCount) * 6
-  total += Math.min(2, offTreeUtilityCount) * 10
+  total += Math.min(1, deckState.supportTreeCardCount) * 6
+  total += Math.min(1, offTreeUtilityCount) * 10
+  if (deckState.supportTreeCardCount > supportSplashCap) {
+    total -= (deckState.supportTreeCardCount - supportSplashCap) * (specializationStage === "primary" || specializationStage === "mastery" ? 18 : 12)
+  }
+  if (offTreeUtilityCount > offTreeUtilityCap) {
+    total -= (offTreeUtilityCount - offTreeUtilityCap) * (specializationStage === "primary" || specializationStage === "mastery" ? 22 : 14)
+  }
   total -= offTreeDamageCount * (specializationStage === "primary" || specializationStage === "mastery" ? 16 : 9)
 
   if (deckState.roleCounts.salvage >= 1) {
@@ -529,7 +557,11 @@ export function scoreCard(card: CardDefinition | null | undefined, policy: Build
   }
   const effectScore = (card.effects || []).reduce((sum, effect) => {
     const multiplier = policy.cardEffectMultipliers[effect.kind] || 1
-    return sum + SIMULATION_SCORING_WEIGHTS.cardEffectBase[effect.kind] * Number(effect.value || 0) * multiplier
+    let effectMagnitude = Number(effect.value || 0)
+    if (effect.kind === "summon_minion") {
+      effectMagnitude += Number(effect.secondaryValue || 0) * 0.8
+    }
+    return sum + SIMULATION_SCORING_WEIGHTS.cardEffectBase[effect.kind] * effectMagnitude * multiplier
   }, 0)
   const tierBonus = Number(card.tier || 1) * 2.5
   const neutralTargetBonus = card.target === "none" ? 1 : 0
@@ -681,9 +713,13 @@ function scoreTownActionStrategicBias(
   const beforeDeck = buildDeckConstructionState(harness, beforeRun)
   const afterDeck = buildDeckConstructionState(harness, afterRun)
   const reverseEvolutionMap = buildEvolutionReverseMapForScoring(harness)
+  const forwardEvolutionMap = buildEvolutionForwardMapForScoring(harness)
   const reinforcementTarget = getReinforcementTargetByAct(Number(beforeRun.actNumber || 1))
   const beforeReinforcementDeficit = Math.max(0, reinforcementTarget - (beforeDeck.refinedCount + beforeDeck.evolvedCount))
   const afterReinforcementDeficit = Math.max(0, reinforcementTarget - (afterDeck.refinedCount + afterDeck.evolvedCount))
+  const specializationStage = String(beforeDeck.specialization?.specializationStage || "exploratory")
+  const supportSplashCap = getSupportSplashCapByStage(specializationStage)
+  const offTreeUtilityCap = getOffTreeUtilityCapByStage(specializationStage)
   let total = 0
 
   total += Math.max(0, beforeDeck.unchangedStarterCount - afterDeck.unchangedStarterCount) * 12
@@ -691,8 +727,18 @@ function scoreTownActionStrategicBias(
   total += Math.max(0, afterDeck.refinedCount - beforeDeck.refinedCount) * 24
   total += Math.max(0, afterDeck.evolvedCount - beforeDeck.evolvedCount) * 32
   total += Math.max(0, Number(beforeDeck.specialization?.offTreeDamageCount || 0) - Number(afterDeck.specialization?.offTreeDamageCount || 0)) * 18
-  total += Math.max(0, Number(afterDeck.specialization?.offTreeUtilityCount || 0) - Number(beforeDeck.specialization?.offTreeUtilityCount || 0)) * 8
-  total += Math.max(0, afterDeck.supportTreeCardCount - beforeDeck.supportTreeCardCount) * 5
+  const offTreeUtilityGain = Math.max(0, Number(afterDeck.specialization?.offTreeUtilityCount || 0) - Number(beforeDeck.specialization?.offTreeUtilityCount || 0))
+  if (Number(beforeDeck.specialization?.offTreeUtilityCount || 0) < offTreeUtilityCap) {
+    total += Math.min(offTreeUtilityGain, Math.max(0, offTreeUtilityCap - Number(beforeDeck.specialization?.offTreeUtilityCount || 0))) * 8
+  } else if (offTreeUtilityGain > 0) {
+    total -= offTreeUtilityGain * (specializationStage === "primary" || specializationStage === "mastery" ? 20 : 12)
+  }
+  const supportTreeGain = Math.max(0, afterDeck.supportTreeCardCount - beforeDeck.supportTreeCardCount)
+  if (beforeDeck.supportTreeCardCount < supportSplashCap) {
+    total += Math.min(supportTreeGain, Math.max(0, supportSplashCap - beforeDeck.supportTreeCardCount)) * 5
+  } else if (supportTreeGain > 0) {
+    total -= supportTreeGain * (specializationStage === "primary" || specializationStage === "mastery" ? 24 : 16)
+  }
   total += Math.max(0, beforeRun.deck.length - afterRun.deck.length) * 3
 
   if (actionId.startsWith("sage_purge_")) {
@@ -720,8 +766,11 @@ function scoreTownActionStrategicBias(
     if (duplicateCount >= 3) {
       total += 8
     }
-    if (!onPrimary && !onSupport && String(beforeDeck.specialization?.specializationStage || "exploratory") !== "exploratory") {
+    if (!onPrimary && !onSupport && specializationStage !== "exploratory") {
       total += 10
+      if (roleTag === "payoff" || roleTag === "setup") {
+        total += 14
+      }
     }
     if (reinforced) {
       total -= 26
@@ -734,10 +783,19 @@ function scoreTownActionStrategicBias(
     }
     if (onPrimary && roleTag === "payoff") {
       total -= 18
+      if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 5) {
+        total += 34 + (duplicateCount - 4) * 18
+      }
     } else if (onPrimary && roleTag === "setup") {
       total -= 10
+      if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 6) {
+        total += 8 + (duplicateCount - 5) * 8
+      }
     } else if (onSupport && (roleTag === "support" || roleTag === "salvage")) {
       total -= 6
+      if (beforeDeck.supportTreeCardCount >= supportSplashCap && duplicateCount >= 2) {
+        total += 20 + (duplicateCount - 1) * 8
+      }
     }
   }
 
@@ -753,12 +811,33 @@ function scoreTownActionStrategicBias(
       total += actionId.startsWith("blacksmith_evolve_") ? 24 : 18
     } else if (onSupport) {
       total += 12
+      if ((roleTag === "support" || roleTag === "salvage") && beforeDeck.supportTreeCardCount >= supportSplashCap) {
+        total -= 36 + (beforeDeck.supportTreeCardCount - (supportSplashCap - 1)) * 8
+      }
+    } else if (specializationStage !== "exploratory") {
+      if (roleTag === "payoff" || roleTag === "setup") {
+        total -= actionId.startsWith("blacksmith_evolve_") ? 34 : 24
+      } else {
+        total -= 10
+      }
     }
     if (roleTag === "payoff" || roleTag === "setup" || roleTag === "salvage") {
       total += 8
     }
     if (beforeReinforcementDeficit > 0) {
       total += actionId.startsWith("blacksmith_evolve_") ? 16 : 12
+    }
+    if (actionId.startsWith("blacksmith_evolve_")) {
+      const targetBaseCardId = forwardEvolutionMap[normalizeScoringCardId(cardId)] || ""
+      const targetDuplicateCount = Number(afterDeck.duplicateCounts[targetBaseCardId] || 0)
+      const targetCard = targetBaseCardId ? getScoringCardDefinition(harness, targetBaseCardId) : null
+      const targetRoleTag = ((targetCard?.roleTag as CardRoleTag | undefined) || "answer")
+      const payoffDuplicateCap = Number(beforeRun.actNumber || 1) >= 4 ? 4 : 3
+      if (targetRoleTag === "payoff" && targetDuplicateCount > payoffDuplicateCap) {
+        total -= (targetDuplicateCount - payoffDuplicateCap) * 48
+      } else if (targetDuplicateCount > 4) {
+        total -= (targetDuplicateCount - 4) * 18
+      }
     }
   }
 

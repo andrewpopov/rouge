@@ -153,6 +153,14 @@
       trainingRanksGained: toNumber(source.trainingRanksGained, 0),
       bossesDefeated: toNumber(source.bossesDefeated, 0),
       runewordsForged: toNumber(source.runewordsForged, 0),
+      uniqueItemsFound: toNumber(source.uniqueItemsFound, 0),
+      enemiesDefeated: toNumber(source.enemiesDefeated, 0),
+      cardsPlayed: toNumber(source.cardsPlayed, 0),
+      potionsUsed: toNumber(source.potionsUsed, 0),
+      lowestHeroLife: toNumber(source.lowestHeroLife, 0),
+      lowestHeroLifeMax: toNumber(source.lowestHeroLifeMax, 0),
+      lowestMercenaryLife: toNumber(source.lowestMercenaryLife, 0),
+      lowestMercenaryLifeMax: toNumber(source.lowestMercenaryLifeMax, 0),
     };
   }
 

@@ -84,7 +84,7 @@
         label: "Trap Field",
         primaryTrees: ["traps"],
         supportTrees: ["shadow"],
-        targetBand: "secondary",
+        targetBand: "flagship",
         behaviorTags: ["setup", "payoff", "scaling", "tax"],
         counterTags: ["anti_summon", "anti_backline", "anti_support_disruption"],
         splashRole: "utility_splash_ok",

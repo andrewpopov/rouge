@@ -114,6 +114,10 @@ interface CombatState {
   armorProfile?: ArmorMitigationProfile | null;
   classPreferredFamilies?: string[];
   deckCardIds: string[];
+  cardsPlayed: number;
+  potionsUsed: number;
+  lowestHeroLife: number;
+  lowestMercenaryLife: number;
 }
 
 interface CombatMercenaryRouteBonusState {

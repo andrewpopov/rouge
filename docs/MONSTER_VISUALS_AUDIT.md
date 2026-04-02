@@ -1,87 +1,25 @@
 # Monster Visuals Audit
 
-Last updated: March 28, 2026.
+Last updated: April 2, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
-- Use `BLOOD_ROGUE_VISUAL_IDENTITY.md` for the canonical visual standard.
-- Use `SPRITE_GENERATION_BACKLOG.md` for current sprite-generation and import rules.
+- This file is retained as a compatibility landing page.
 
-## Scope
+## Consolidated
 
-This document tracks the current monster-portrait pipeline used by combat and the remaining gaps before the roster feels consistent with the Blood Rogue visual identity.
+Current subject-art status now lives in:
 
-## Landed In This Pass
+- [VISUAL_ASSET_STATUS.md](/Users/andrew/proj/rouge/docs/VISUAL_ASSET_STATUS.md)
 
-- Boss encounters now resolve art from `assets/curated/sprites/bosses` instead of falling back through the generic enemy resolver.
-- The retired steampunk icon runtime has been deleted. Missing or intentionally-disabled monster portraits now use Blood Rogue-aligned gothic fallback icons.
-- The combat portrait presentation now bottom-aligns enemy sprites, uses pixel-art rendering for enemy PNGs, and adds a subtle hostile halo behind enemy figures.
-- Existing enemy and boss PNGs were repacked with `scripts/polish-monster-sprites.sh` so the visible silhouette fills more of the portrait slot.
-- `scripts/generate-monster-sprites.py` now exports first-pass monster portraits from raw legacy ARPG source sheets into a Blood Rogue-aligned graded style.
-- The first generated enemy batch now covers: `baboon_demon`, `council_member`, `demon_imp`, `fallen`, `fallen_shaman`, `fetish`, `fetish_shaman`, `frog_demon`, `giant_mosquito`, `goatman`, `regurgitator`, `sand_maggot`, `sand_maggot_young`, `vampire`, `vulture_demon`, and `wraith`.
+Generation and import workflow now lives in:
 
-## Current Runtime Rules
+- [ART_GENERATION_WORKFLOW.md](/Users/andrew/proj/rouge/docs/ART_GENERATION_WORKFLOW.md)
 
-Primary runtime files:
+## Current Decision Snapshot
 
-- `src/content/asset-map.ts`
-- `src/content/asset-map-data.ts`
-- `styles.css`
-- `scripts/polish-monster-sprites.sh`
-- `scripts/generate-monster-sprites.py`
+- known live hero, mercenary, enemy, and boss subjects resolve through `assets/curated/rouge-art`
+- legacy portrait and sprite folders remain defensive fallbacks rather than the quality baseline
+- broad monster or portrait replacement is not the active visual priority
 
-The current portrait selection order is:
-
-1. Use a curated enemy PNG when the family has a usable sprite.
-2. Use a curated boss PNG when the template is a boss and the boss sprite is not on the broken-sprite denylist.
-3. Fall back to a gothic SVG chosen by monster-name keywords.
-
-## Intentional Fallbacks
-
-These are currently forced off their PNG sprite path because the curated still is visibly worse than a themed icon.
-
-Regular enemies:
-
-- `baal_s_minion`
-- `fire_tower`
-- `lightning_spire`
-
-Bosses:
-
-- `bishibosh`
-- `corpsefire`
-- `eyeback_the_unleashed`
-- `fire_eye`
-- `rakanishu`
-
-## Remaining Gaps
-
-The current pass improves readability and thematic consistency, but it does not solve the full art problem. The remaining issues are mostly source quality and extraction quality, not CSS.
-
-Still needed:
-
-- replace placeholder-quality boss stills that are really sprite-sheet fragments, prop-only crops, or low-value duplicates
-- replace the weakest remaining enemy stills with curated source-sheet extracts instead of relying on repack plus fallback
-- widen the extraction manifest so the remaining Act I-V families use deliberate frames rather than generic auto-crops
-- evaluate whether a small set of hero monsters should use animated GIF or multi-frame rendering instead of still PNG portraits
-
-Highest-priority missing or weak families after the generated batch:
-
-- `zombie`
-- `mummy`
-- `scarab_demon`
-- `skeleton`
-- `succubus`
-- `zakarum_zealot`
-- `blood_lord`
-- `blunderbore`
-- support props like `fire_tower`, `lightning_spire`, and `mummy_sarcophagus`
-
-## Recommended Next Pass
-
-Priority order:
-
-1. Expand `scripts/generate-monster-sprites.py` with explicit source overrides for the weakest core families: `zombie`, `mummy`, `scarab_demon`, `skeleton`, and `succubus`.
-2. Curate the worst visible bosses first: the boss roster is now wired correctly, so bad source picks are much easier to spot.
-3. Replace weak support or trap families with deliberate legacy ARPG frame extracts: `fire_tower`, `lightning_spire`, `mummy_sarcophagus`, and similar thin or prop-like silhouettes.
-4. Keep `scripts/polish-monster-sprites.sh` as the final normalization step after any new batch extraction.
+Use this file only as a forwarding stub for older links.

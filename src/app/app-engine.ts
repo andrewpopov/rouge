@@ -77,6 +77,7 @@
         scrollMapOpen: false,
         routeIntelOpen: false,
         actTransitionScrollOpen: false,
+        runSummaryStep: "finale",
       },
       profile,
       run: null,
@@ -399,6 +400,7 @@
     runFactory.snapshotPartyFromCombat(state.run, state.combat, state.content, state.profile);
 
     if (state.combat.outcome === "defeat") {
+      state.ui.runSummaryStep = "finale";
       state.phase = PHASES.RUN_FAILED;
       recordRunHistory(state, RUN_OUTCOME.FAILED);
       return { ok: true };
@@ -438,6 +440,7 @@
     state.error = "";
 
     if (reward.endsRun || runFactory.runIsComplete(state.run)) {
+      state.ui.runSummaryStep = "finale";
       state.phase = PHASES.RUN_COMPLETE;
       recordRunHistory(state, RUN_OUTCOME.COMPLETED);
       return { ok: true };
@@ -513,6 +516,7 @@
 
   function returnToFrontDoor(state: AppState): void {
     resetFrontDoorUi(state);
+    state.ui.runSummaryStep = "finale";
     state.phase = PHASES.FRONT_DOOR;
     state.run = null;
     state.combat = null;

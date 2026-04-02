@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: March 31, 2026.
+Last updated: April 1, 2026.
 
 ## Purpose
 
@@ -200,12 +200,14 @@ Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION
 ### 3. Operational support
 
 - [docs/MONSTER-IMPLEMENTATION-GUIDE.md](/Users/andrew/proj/rouge/docs/MONSTER-IMPLEMENTATION-GUIDE.md)
-- [docs/SPRITE_GENERATION_BACKLOG.md](/Users/andrew/proj/rouge/docs/SPRITE_GENERATION_BACKLOG.md)
-- [docs/NON_CHARACTER_ART_BACKLOG.md](/Users/andrew/proj/rouge/docs/NON_CHARACTER_ART_BACKLOG.md)
+- [docs/VISUAL_ASSET_STATUS.md](/Users/andrew/proj/rouge/docs/VISUAL_ASSET_STATUS.md)
+- [docs/ART_GENERATION_WORKFLOW.md](/Users/andrew/proj/rouge/docs/ART_GENERATION_WORKFLOW.md)
 - [docs/ATTRIBUTION.md](/Users/andrew/proj/rouge/docs/ATTRIBUTION.md)
 - [artifacts/balance/latest.md](/Users/andrew/proj/rouge/artifacts/balance/latest.md)
 
 These support asset sourcing, legal tracking, and the current deterministic balance snapshot.
+
+The older visual asset audit and backlog docs remain in the repo as compatibility landing pages, but `VISUAL_ASSET_STATUS.md` now owns current asset truth and `ART_GENERATION_WORKFLOW.md` now owns generation and import workflow.
 
 ## Working Rule
 

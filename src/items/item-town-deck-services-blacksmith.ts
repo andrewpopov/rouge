@@ -24,6 +24,41 @@
     return base;
   }
 
+  function getBaseCardId(cardId: string) {
+    return String(cardId || "").replace(/_plus$/i, "");
+  }
+
+  function getDeckCardCopyCount(run: RunState, cardId: string) {
+    const baseCardId = getBaseCardId(cardId);
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((count: number, deckCardId: string) => {
+      return getBaseCardId(deckCardId) === baseCardId ? count + 1 : count;
+    }, 0);
+  }
+
+  function getReinforcementDuplicateCap(cardId: string, content: GameContent): number {
+    const card = content.cardCatalog[cardId];
+    const role = sharedApi.getCardRewardRole(cardId, content);
+    const roleTag = String(card?.roleTag || "answer");
+    const tier = Number(card?.tier || 1);
+
+    if (roleTag === "payoff" && tier >= 4) {
+      return 5;
+    }
+    if (roleTag === "payoff") {
+      return 6;
+    }
+    if (roleTag === "setup" && role === "engine") {
+      return 7;
+    }
+    if (role === "engine") {
+      return 6;
+    }
+    if (role === "support" || role === "tech") {
+      return 4;
+    }
+    return 3;
+  }
+
   function listRefinableCards(run: RunState, content: GameContent): Array<{ cardId: string; targetId: string; cost: number }> {
     const seen = new Set<string>();
     const buildPath = runtimeWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES?.getRewardPathPreference?.(run, content) || null;
@@ -67,6 +102,11 @@
       const sourceCard = content.cardCatalog[entry.cardId];
       const targetCard = content.cardCatalog[entry.targetId];
       if (!sourceCard || !targetCard) {
+        continue;
+      }
+      const targetDuplicateCap = getReinforcementDuplicateCap(entry.targetId, content);
+      const targetDuplicateCount = getDeckCardCopyCount(run, entry.targetId);
+      if (targetDuplicateCount >= targetDuplicateCap) {
         continue;
       }
       const tree = getCardTree(entry.cardId);
@@ -173,6 +213,9 @@
 
     if (!content.cardCatalog[evolution.targetId]) {
       return { ok: false, message: "Evolution target card not found." };
+    }
+    if (getDeckCardCopyCount(run, evolution.targetId) >= getReinforcementDuplicateCap(evolution.targetId, content)) {
+      return { ok: false, message: "That evolution path is already saturated in your deck." };
     }
 
     run.gold -= cost;

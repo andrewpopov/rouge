@@ -301,6 +301,8 @@ interface RunStateHelpersApi {
   createDefaultTownState(): RunTownState;
   createDefaultGuideState(): RunGuideState;
   createDefaultSummary(): RunState["summary"];
+  recordSummaryLifeFloor(summary: RunState["summary"] | null | undefined, actor: "hero" | "mercenary", currentLife: unknown, maxLife: unknown): void;
+  syncSummaryLifeFloors(run: RunState | null | undefined): void;
   getLevelForXp(xp: unknown): number;
   getTrainingTrackForLevel(level: unknown): keyof RunProgressionState["training"];
   getTrainingRankCount(training: RunProgressionState["training"] | null | undefined): number;
@@ -518,6 +520,7 @@ interface AppState {
     scrollMapOpen: boolean;
     routeIntelOpen: boolean;
     actTransitionScrollOpen: boolean;
+    runSummaryStep: "finale" | "ledger" | "archive";
   };
   profile: ProfileState;
   run: RunState | null;

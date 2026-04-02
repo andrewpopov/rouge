@@ -141,6 +141,21 @@
       counterTags: ["anti_backline", "anti_support_disruption", "anti_lightning_pressure"],
     },
   };
+  const TREE_PROGRESS_OVERRIDES: Record<string, {
+    bonusPerRank?: Partial<ItemBonusSet>;
+    unlockBonusPerThreshold?: Partial<ItemBonusSet>;
+  }> = {
+    assassin_traps: {
+      bonusPerRank: {
+        heroDamageBonus: 1,
+        heroMaxEnergy: 1,
+      },
+      unlockBonusPerThreshold: {
+        heroDamageBonus: 1,
+        heroBurnBonus: 1,
+      },
+    },
+  };
 
   function getTreeMetadata(treeId: string, archetypeId: string) {
     const exact = TREE_METADATA[treeId];
@@ -270,10 +285,16 @@
                 archetypeId: archetype.id,
                 summary: archetype.summary,
                 ...getTreeMetadata(tree.id, archetype.id),
-                bonusPerRank: { ...(archetype.bonusPerRank || {}) },
+                bonusPerRank: {
+                  ...(archetype.bonusPerRank || {}),
+                  ...(TREE_PROGRESS_OVERRIDES[tree.id]?.bonusPerRank || {}),
+                },
                 maxRank: skills.length,
                 unlockThreshold: Math.max(1, toNumber(archetype.unlockThreshold, 2)),
-                unlockBonusPerThreshold: { ...(archetype.unlockBonusPerThreshold || {}) },
+                unlockBonusPerThreshold: {
+                  ...(archetype.unlockBonusPerThreshold || {}),
+                  ...(TREE_PROGRESS_OVERRIDES[tree.id]?.unlockBonusPerThreshold || {}),
+                },
                 skills,
               };
             })

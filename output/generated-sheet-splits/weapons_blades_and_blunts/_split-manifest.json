@@ -1,5 +1,5 @@
 {
-  "sheet": "/Users/andrew/Downloads/ChatGPT Image Mar 29, 2026, 09_54_35 AM.png",
+  "sheet": "/Users/andrew/Downloads/ChatGPT Image Apr 2, 2026, 10_10_39 AM.png",
   "batchId": "weapons_blades_and_blunts",
   "description": "Swords and blunt weapons. Use for the first equipment sheet pass.",
   "category": "item",
@@ -11,9 +11,12 @@
     "offsetX": 0,
     "offsetY": 0,
     "gutterX": 0,
-    "gutterY": 0
+    "gutterY": 0,
+    "insetX": 0,
+    "insetY": 0
   },
   "trim": true,
+  "largestComponent": false,
   "keyColor": "#00FF00",
   "extent": [
     128,
@@ -25,6 +28,12 @@
       "row": 0,
       "col": 0,
       "box": [
+        0,
+        0,
+        204,
+        256
+      ],
+      "innerBox": [
         0,
         0,
         204,
@@ -43,6 +52,12 @@
         408,
         256
       ],
+      "innerBox": [
+        204,
+        0,
+        408,
+        256
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/scimitar.png",
       "empty": false
     },
@@ -51,6 +66,12 @@
       "row": 0,
       "col": 2,
       "box": [
+        408,
+        0,
+        612,
+        256
+      ],
+      "innerBox": [
         408,
         0,
         612,
@@ -69,6 +90,12 @@
         816,
         256
       ],
+      "innerBox": [
+        612,
+        0,
+        816,
+        256
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/long_sword.png",
       "empty": false
     },
@@ -77,6 +104,12 @@
       "row": 0,
       "col": 4,
       "box": [
+        816,
+        0,
+        1020,
+        256
+      ],
+      "innerBox": [
         816,
         0,
         1020,
@@ -95,6 +128,12 @@
         204,
         512
       ],
+      "innerBox": [
+        0,
+        256,
+        204,
+        512
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/crystal_sword.png",
       "empty": false
     },
@@ -103,6 +142,12 @@
       "row": 1,
       "col": 1,
       "box": [
+        204,
+        256,
+        408,
+        512
+      ],
+      "innerBox": [
         204,
         256,
         408,
@@ -121,6 +166,12 @@
         612,
         512
       ],
+      "innerBox": [
+        408,
+        256,
+        612,
+        512
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/broad_sword.png",
       "empty": false
     },
@@ -129,6 +180,12 @@
       "row": 1,
       "col": 3,
       "box": [
+        612,
+        256,
+        816,
+        512
+      ],
+      "innerBox": [
         612,
         256,
         816,
@@ -147,6 +204,12 @@
         1020,
         512
       ],
+      "innerBox": [
+        816,
+        256,
+        1020,
+        512
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/rune_sword.png",
       "empty": false
     },
@@ -155,6 +218,12 @@
       "row": 2,
       "col": 0,
       "box": [
+        0,
+        512,
+        204,
+        768
+      ],
+      "innerBox": [
         0,
         512,
         204,
@@ -173,6 +242,12 @@
         408,
         768
       ],
+      "innerBox": [
+        204,
+        512,
+        408,
+        768
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/zweihander.png",
       "empty": false
     },
@@ -181,6 +256,12 @@
       "row": 2,
       "col": 2,
       "box": [
+        408,
+        512,
+        612,
+        768
+      ],
+      "innerBox": [
         408,
         512,
         612,
@@ -199,6 +280,12 @@
         816,
         768
       ],
+      "innerBox": [
+        612,
+        512,
+        816,
+        768
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/colossus_blade.png",
       "empty": false
     },
@@ -207,6 +294,12 @@
       "row": 2,
       "col": 4,
       "box": [
+        816,
+        512,
+        1020,
+        768
+      ],
+      "innerBox": [
         816,
         512,
         1020,
@@ -225,6 +318,12 @@
         204,
         1024
       ],
+      "innerBox": [
+        0,
+        768,
+        204,
+        1024
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/morning_star.png",
       "empty": false
     },
@@ -233,6 +332,12 @@
       "row": 3,
       "col": 1,
       "box": [
+        204,
+        768,
+        408,
+        1024
+      ],
+      "innerBox": [
         204,
         768,
         408,
@@ -251,6 +356,12 @@
         612,
         1024
       ],
+      "innerBox": [
+        408,
+        768,
+        612,
+        1024
+      ],
       "output": "/Users/andrew/proj/rouge/output/generated-sheet-splits/weapons_blades_and_blunts/war_hammer.png",
       "empty": false
     },
@@ -259,6 +370,12 @@
       "row": 3,
       "col": 3,
       "box": [
+        612,
+        768,
+        816,
+        1024
+      ],
+      "innerBox": [
         612,
         768,
         816,

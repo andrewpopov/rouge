@@ -1,12 +1,14 @@
 # Blood Rogue Visual Identity
 
-Last updated: March 28, 2026.
+Last updated: April 2, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
 - This is the canonical visual identity and look-and-feel document for the project.
 - The repo still uses `Rouge` in code and package naming, but the live player-facing presentation is `Blood Rogue`.
 - Use `VISUAL_DESIGN_TRD.md` for screen/component scope and acceptance criteria.
+- Use `VISUAL_ASSET_STATUS.md` for current live asset status and replacement priority.
+- Use `ART_GENERATION_WORKFLOW.md` for generation and import workflow.
 - Use `ui-redesign-plan.md` for execution order and cleanup priorities.
 
 ## 1. Purpose
@@ -235,6 +237,43 @@ When generating sets such as NPCs or enemies, each subject should be visually di
 
 If two characters could be mistaken for one another at a glance, the prompt is not specific enough.
 
+### 7.4 Icon Quality Bar
+
+Icons need a stricter bar than "readable enough." They are one of the fastest ways for the UI to feel premium or inherited.
+
+Ship-ready icon families:
+
+- read cleanly at `24px` to `32px` without relying on tooltip text
+- use one deliberate silhouette and one dominant internal idea
+- keep contrast strong enough to survive dark UI surfaces
+- belong to the same material and framing family as the rest of Blood Rogue
+- avoid muddy compression, noisy texture chatter, and accidental blur
+- feel authored for Blood Rogue rather than imported from a generic pack
+
+Acceptable fallback or utility icons:
+
+- can be simpler and more symbolic than premium skill art
+- can be monochrome or sigil-like if they are supporting system states
+- should be used for utility, unknown content, or non-marquee surfaces
+- must still read as dark-fantasy and in-world rather than modern app chrome
+
+Not acceptable as a final-quality primary icon family:
+
+- muddy or generic raster icons that fail to read cleanly and only survive because players already know the skill name
+- mixed frame treatments or unrelated visual families on the same surface
+- stock-pack glyphs used as the defining art language for flagship class or combat systems
+- icons that need labels to be understandable at actual shipping size
+
+### 7.5 Current Runtime Art Note
+
+Current implementation truth:
+
+- hero, enemy, boss, and mercenary subject art now resolve through `assets/curated/rouge-art` for the live runtime
+- old class portrait PNGs in `assets/curated/portraits` are legacy fallback material, not the desired quality bar
+- the current icon family is intentionally mixed: D2-style skill icons remain approved for class and card recognition, while Blood Rogue-aligned gothic SVGs cover fallback and utility states
+
+That means future visual review should treat subject-art coverage as largely solved and judge icon work case by case rather than assuming the full D2-style skill set needs replacement.
+
 ## 8. Interaction And Motion
 
 - Hover, focus, selected, disabled, risk, and resolving states should feel like one product family.
@@ -327,7 +366,8 @@ If a screenshot and this document disagree, update the screen toward this docume
 - `BLOOD_ROGUE_VISUAL_IDENTITY.md`: canonical look, feel, and review standard
 - `VISUAL_DESIGN_TRD.md`: screen/component scope, structure, and acceptance criteria
 - `ui-redesign-plan.md`: execution order and cleanup priorities
-- `SPRITE_GENERATION_BACKLOG.md`: art import workflow and sprite-specific generation constraints
-- `NON_CHARACTER_ART_BACKLOG.md`: item, rune, and scenic-background batch generation workflow
+- `VISUAL_ASSET_STATUS.md`: current runtime asset truth and replacement priority
+- `ART_GENERATION_WORKFLOW.md`: art generation, review, and import workflow
+- the older audit and backlog docs now exist as compatibility landing pages rather than separate sources of truth
 
 Keep visual identity guidance here instead of restating it differently across multiple docs.

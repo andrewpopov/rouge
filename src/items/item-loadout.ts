@@ -130,6 +130,13 @@
       bossesDefeated: 0,
       runewordsForged: 0,
       uniqueItemsFound: 0,
+      enemiesDefeated: 0,
+      cardsPlayed: 0,
+      potionsUsed: 0,
+      lowestHeroLife: 0,
+      lowestHeroLifeMax: 0,
+      lowestMercenaryLife: 0,
+      lowestMercenaryLifeMax: 0,
       ...(run.summary || {}),
     };
 

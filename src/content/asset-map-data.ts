@@ -8,7 +8,7 @@
   const UNIQUE_ART_BASE = "./assets/curated/rouge-art";
   const SKILL_ICON_BASE = "./assets/curated/skill-icons";
   const SPRITE_BASE = "./assets/curated/sprites";
-  const PORTRAIT_BASE = "./assets/curated/portraits";
+  const PORTRAIT_BASE = `${UNIQUE_ART_BASE}/portraits`;
   const RUNE_SPRITE_BASE = `${SPRITE_BASE}/runes`;
 
   // ── Card Icons ──

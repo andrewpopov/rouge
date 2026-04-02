@@ -241,11 +241,14 @@ function buildRunSummaryFixture() {
 
   state.run.pendingReward.endsRun = true;
   state.run.level = 12;
+  state.run.xp = 550;
   state.run.gold = 148;
+  state.run.hero.currentLife = Math.max(1, Math.min(state.run.hero.maxLife, 19));
+  state.run.mercenary.currentLife = Math.max(1, Math.min(state.run.mercenary.maxLife, 11));
   state.run.summary.encountersCleared = 11;
   state.run.summary.zonesCleared = 4;
   state.run.summary.actsCleared = 1;
-  state.run.summary.goldGained = 148;
+  state.run.summary.goldGained = 312;
   state.run.summary.xpGained = 92;
   state.run.summary.levelsGained = 3;
   state.run.summary.skillPointsEarned = 4;
@@ -255,11 +258,325 @@ function buildRunSummaryFixture() {
   state.run.summary.bossesDefeated = 1;
   state.run.summary.runewordsForged = 1;
   state.run.summary.uniqueItemsFound = 1;
+  state.run.summary.enemiesDefeated = 37;
+  state.run.summary.cardsPlayed = 64;
+  state.run.summary.potionsUsed = 3;
+  state.run.summary.lowestHeroLife = 4;
+  state.run.summary.lowestHeroLifeMax = state.run.hero.maxLife;
+  state.run.summary.lowestMercenaryLife = 3;
+  state.run.summary.lowestMercenaryLifeMax = state.run.mercenary.maxLife;
   state.profile.meta.progression.highestLevel = 12;
   state.profile.meta.progression.highestActCleared = 1;
   state.profile.meta.progression.totalBossesDefeated = 1;
-  state.profile.meta.progression.totalGoldCollected = 148;
+  state.profile.meta.progression.totalGoldCollected = 1298;
   state.profile.meta.progression.totalRunewordsForged = 1;
+  state.profile.runHistory = [
+    {
+      runId: "archive-1",
+      classId: "amazon",
+      className: "Amazon",
+      level: 7,
+      actsCleared: 1,
+      bossesDefeated: 1,
+      goldGained: 144,
+      enemiesDefeated: 29,
+      cardsPlayed: 46,
+      potionsUsed: 2,
+      lowestHeroLife: 6,
+      lowestHeroLifeMax: 36,
+      lowestMercenaryLife: 5,
+      lowestMercenaryLifeMax: 24,
+      runewordsForged: 0,
+      skillPointsEarned: 2,
+      classPointsEarned: 2,
+      attributePointsEarned: 5,
+      trainingRanksGained: 1,
+      favoredTreeId: "huntress",
+      favoredTreeName: "Huntress",
+      unlockedClassSkills: 5,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-20T10:15:00.000Z",
+      outcome: "completed",
+    },
+    {
+      runId: "archive-2",
+      classId: "paladin",
+      className: "Paladin",
+      level: 9,
+      actsCleared: 2,
+      bossesDefeated: 2,
+      goldGained: 238,
+      enemiesDefeated: 33,
+      cardsPlayed: 58,
+      potionsUsed: 1,
+      lowestHeroLife: 7,
+      lowestHeroLifeMax: 40,
+      lowestMercenaryLife: 4,
+      lowestMercenaryLifeMax: 26,
+      runewordsForged: 1,
+      skillPointsEarned: 3,
+      classPointsEarned: 2,
+      attributePointsEarned: 8,
+      trainingRanksGained: 3,
+      favoredTreeId: "zeal",
+      favoredTreeName: "Zeal",
+      unlockedClassSkills: 7,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-22T10:15:00.000Z",
+      outcome: "failed",
+    },
+    {
+      runId: "archive-3",
+      classId: "necromancer",
+      className: "Necromancer",
+      level: 11,
+      actsCleared: 2,
+      bossesDefeated: 2,
+      goldGained: 284,
+      enemiesDefeated: 41,
+      cardsPlayed: 73,
+      potionsUsed: 4,
+      lowestHeroLife: 5,
+      lowestHeroLifeMax: 38,
+      lowestMercenaryLife: 2,
+      lowestMercenaryLifeMax: 25,
+      runewordsForged: 1,
+      skillPointsEarned: 4,
+      classPointsEarned: 3,
+      attributePointsEarned: 10,
+      trainingRanksGained: 4,
+      favoredTreeId: "bone",
+      favoredTreeName: "Bone",
+      unlockedClassSkills: 8,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-24T10:15:00.000Z",
+      outcome: "completed",
+    },
+    {
+      runId: "archive-4",
+      classId: "druid",
+      className: "Druid",
+      level: 8,
+      actsCleared: 1,
+      bossesDefeated: 1,
+      goldGained: 167,
+      enemiesDefeated: 24,
+      cardsPlayed: 49,
+      potionsUsed: 3,
+      lowestHeroLife: 3,
+      lowestHeroLifeMax: 37,
+      lowestMercenaryLife: 6,
+      lowestMercenaryLifeMax: 24,
+      runewordsForged: 0,
+      skillPointsEarned: 2,
+      classPointsEarned: 2,
+      attributePointsEarned: 6,
+      trainingRanksGained: 2,
+      favoredTreeId: "wildheart",
+      favoredTreeName: "Wildheart",
+      unlockedClassSkills: 6,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-26T10:15:00.000Z",
+      outcome: "abandoned",
+    },
+    {
+      runId: "archive-5",
+      classId: "sorceress",
+      className: "Sorceress",
+      level: 10,
+      actsCleared: 2,
+      bossesDefeated: 2,
+      goldGained: 255,
+      enemiesDefeated: 35,
+      cardsPlayed: 61,
+      potionsUsed: 2,
+      lowestHeroLife: 8,
+      lowestHeroLifeMax: 34,
+      lowestMercenaryLife: 4,
+      lowestMercenaryLifeMax: 22,
+      runewordsForged: 1,
+      skillPointsEarned: 4,
+      classPointsEarned: 3,
+      attributePointsEarned: 8,
+      trainingRanksGained: 4,
+      favoredTreeId: "stormcraft",
+      favoredTreeName: "Stormcraft",
+      unlockedClassSkills: 8,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-28T10:15:00.000Z",
+      outcome: "completed",
+    },
+  ];
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
+function buildRunFailedSummaryFixture() {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, runFactory, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "barbarian");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+  if (!appEngine.leaveSafeZone(state).ok) {
+    return null;
+  }
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  if (!appEngine.selectZone(state, openingZoneId).ok) {
+    return null;
+  }
+  if (state.phase === appEngine.PHASES.ENCOUNTER) {
+    state.combat.outcome = "defeat";
+    state.combat.cardsPlayed = 31;
+    state.combat.potionsUsed = 2;
+    state.combat.lowestHeroLife = 0;
+    state.combat.lowestMercenaryLife = 2;
+    if (!appEngine.syncEncounterOutcome(state).ok) {
+      return null;
+    }
+  }
+
+  state.run.level = 8;
+  state.run.xp = 350;
+  state.run.gold = 74;
+  state.run.hero.currentLife = 0;
+  state.run.mercenary.currentLife = Math.max(1, Math.min(state.run.mercenary.maxLife, 5));
+  state.run.summary.encountersCleared = 5;
+  state.run.summary.zonesCleared = 2;
+  state.run.summary.actsCleared = 0;
+  state.run.summary.goldGained = 118;
+  state.run.summary.xpGained = 58;
+  state.run.summary.levelsGained = 2;
+  state.run.summary.skillPointsEarned = 2;
+  state.run.summary.classPointsEarned = 1;
+  state.run.summary.attributePointsEarned = 5;
+  state.run.summary.trainingRanksGained = 2;
+  state.run.summary.bossesDefeated = 0;
+  state.run.summary.runewordsForged = 0;
+  state.run.summary.uniqueItemsFound = 0;
+  state.run.summary.enemiesDefeated = 17;
+  state.run.summary.cardsPlayed = 31;
+  state.run.summary.potionsUsed = 2;
+  state.run.summary.lowestHeroLife = 0;
+  state.run.summary.lowestHeroLifeMax = state.run.hero.maxLife;
+  state.run.summary.lowestMercenaryLife = 2;
+  state.run.summary.lowestMercenaryLifeMax = state.run.mercenary.maxLife;
+  state.profile.meta.progression.highestLevel = 12;
+  state.profile.meta.progression.highestActCleared = 1;
+  state.profile.meta.progression.totalBossesDefeated = 1;
+  state.profile.meta.progression.totalGoldCollected = 1298;
+  state.profile.meta.progression.totalRunewordsForged = 1;
+  state.profile.runHistory = [
+    {
+      runId: "archive-a",
+      classId: "barbarian",
+      className: "Barbarian",
+      level: 6,
+      actsCleared: 0,
+      bossesDefeated: 0,
+      goldGained: 96,
+      enemiesDefeated: 14,
+      cardsPlayed: 27,
+      potionsUsed: 1,
+      lowestHeroLife: 3,
+      lowestHeroLifeMax: 42,
+      lowestMercenaryLife: 4,
+      lowestMercenaryLifeMax: 24,
+      runewordsForged: 0,
+      skillPointsEarned: 1,
+      classPointsEarned: 1,
+      attributePointsEarned: 4,
+      trainingRanksGained: 1,
+      favoredTreeId: "berserker",
+      favoredTreeName: "Berserker",
+      unlockedClassSkills: 4,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-21T10:15:00.000Z",
+      outcome: "failed",
+    },
+    {
+      runId: "archive-b",
+      classId: "paladin",
+      className: "Paladin",
+      level: 9,
+      actsCleared: 2,
+      bossesDefeated: 2,
+      goldGained: 238,
+      enemiesDefeated: 33,
+      cardsPlayed: 58,
+      potionsUsed: 1,
+      lowestHeroLife: 7,
+      lowestHeroLifeMax: 40,
+      lowestMercenaryLife: 4,
+      lowestMercenaryLifeMax: 26,
+      runewordsForged: 1,
+      skillPointsEarned: 3,
+      classPointsEarned: 2,
+      attributePointsEarned: 8,
+      trainingRanksGained: 3,
+      favoredTreeId: "zeal",
+      favoredTreeName: "Zeal",
+      unlockedClassSkills: 7,
+      plannedWeaponRunewordId: "",
+      plannedArmorRunewordId: "",
+      completedPlannedRunewordIds: [],
+      activeRunewordIds: [],
+      newFeatureIds: [],
+      completedAt: "2026-03-22T10:15:00.000Z",
+      outcome: "completed",
+    },
+  ];
 
   const snapshotValue = appEngine.saveRunSnapshot(state);
   if (!snapshotValue) {
@@ -664,11 +981,63 @@ async function captureScreenshots(baseUrl) {
     if (await returnFrontDoor.isVisible({ timeout: 1200 }).catch(() => false)) {
       await returnFrontDoor.waitFor({ state: "visible", timeout: TIMEOUT });
     }
-    await summaryPage.waitForTimeout(700);
+    await summaryPage.waitForTimeout(850);
     await shot(summaryPage, "11-run-summary");
+    const ledgerStep = summaryPage.locator('[data-action="set-run-summary-step"][data-run-summary-step="ledger"]').first();
+    if (await ledgerStep.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await ledgerStep.click();
+      await summaryPage.waitForTimeout(720);
+      await shot(summaryPage, "11a-run-ledger");
+    }
+    const archiveStep = summaryPage.locator('[data-action="set-run-summary-step"][data-run-summary-step="archive"]').first();
+    if (await archiveStep.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await archiveStep.click();
+      await summaryPage.waitForTimeout(720);
+      await shot(summaryPage, "11b-run-archive");
+    }
     await summaryContext.close();
   } else {
     console.log("  ⚠ Could not build run summary fixture");
+  }
+
+  const runFailedFixture = buildRunFailedSummaryFixture();
+  if (runFailedFixture) {
+    const failedContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    await failedContext.addInitScript((fixture) => {
+      localStorage.clear();
+      localStorage.setItem(fixture.profileKey, fixture.profileValue);
+      localStorage.setItem(fixture.snapshotKey, fixture.snapshotValue);
+    }, runFailedFixture);
+
+    const failedPage = await failedContext.newPage();
+    failedPage.setDefaultTimeout(TIMEOUT);
+    await failedPage.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
+    await failedPage.goto(baseUrl);
+    const failedContinue = failedPage.locator('[data-action="continue-saved-run"]').first();
+    if (await failedContinue.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await failedContinue.click();
+    }
+    const failedReturn = failedPage.locator('[data-action="return-front-door"]').first();
+    if (await failedReturn.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await failedReturn.waitFor({ state: "visible", timeout: TIMEOUT });
+    }
+    await failedPage.waitForTimeout(850);
+    await shot(failedPage, "11c-run-summary-defeat");
+    const failedLedgerStep = failedPage.locator('[data-action="set-run-summary-step"][data-run-summary-step="ledger"]').first();
+    if (await failedLedgerStep.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await failedLedgerStep.click();
+      await failedPage.waitForTimeout(720);
+      await shot(failedPage, "11d-run-ledger-defeat");
+    }
+    const failedArchiveStep = failedPage.locator('[data-action="set-run-summary-step"][data-run-summary-step="archive"]').first();
+    if (await failedArchiveStep.isVisible({ timeout: 1200 }).catch(() => false)) {
+      await failedArchiveStep.click();
+      await failedPage.waitForTimeout(720);
+      await shot(failedPage, "11e-run-archive-defeat");
+    }
+    await failedContext.close();
+  } else {
+    console.log("  ⚠ Could not build failed run summary fixture");
   }
 
   // ── 11b. Cain overlay in a rescued town state ──

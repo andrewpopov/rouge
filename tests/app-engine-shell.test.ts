@@ -487,9 +487,8 @@ test("account shell surfaces live unlock and tutorial summaries through town, ru
   });
   assert.match(root.innerHTML, /Expedition Summary/);
   assert.match(root.innerHTML, /Outcome/);
-  assert.match(root.innerHTML, /Account Records/);
+  assert.match(root.innerHTML, /Road Ledger/);
   assert.match(root.innerHTML, /Archive/);
-  assert.match(root.innerHTML, /Unlocks/);
   assert.match(root.innerHTML, /Return To Account Hall/);
 
   appEngine.returnToFrontDoor(state);

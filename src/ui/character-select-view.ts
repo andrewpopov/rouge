@@ -30,7 +30,7 @@
         const isSelected = entry.id === appState.ui.selectedClassId;
         const isLocked = unlockRules && !unlockRules.isClassUnlocked(appState.profile, entry.id);
         const hint = isLocked ? unlockRules.getUnlockHint(entry.id) : "";
-        const portraitSrc = assets?.getClassPortrait(entry.id) || `./assets/curated/portraits/${entry.id}.png`;
+        const portraitSrc = assets?.getClassPortrait(entry.id) || `./assets/curated/rouge-art/portraits/${entry.id}.webp`;
         return `
           <button class="campfire-hero ${isSelected ? "campfire-hero--selected" : ""} ${isLocked ? "campfire-hero--locked" : ""}"
                   ${isLocked ? "" : `data-action="select-class" data-class-id="${escapeHtml(entry.id)}"`}

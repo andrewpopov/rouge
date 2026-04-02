@@ -8,6 +8,109 @@
     });
   }
 
+  function getSupportSplashCap(buildPath: ReturnType<typeof archetypes.getRewardPathPreference>) {
+    const stage = buildPath?.specializationStage || "exploratory";
+    return stage === "primary" || stage === "mastery" ? 3 : 4;
+  }
+
+  function getBaseCardId(cardId: string) {
+    return String(cardId || "").replace(/_plus$/i, "");
+  }
+
+  function getDeckCardCopyCount(run: RunState, cardId: string) {
+    const baseCardId = getBaseCardId(cardId);
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((count: number, deckCardId: string) => {
+      return getBaseCardId(deckCardId) === baseCardId ? count + 1 : count;
+    }, 0);
+  }
+
+  function getRewardDuplicateLimit(cardId: string, content: GameContent) {
+    const role = archetypes.getCardRewardRole(cardId, content);
+    const card = content.cardCatalog[cardId];
+    const roleTag = String(card?.roleTag || "answer");
+    const tier = Number(card?.tier || 1);
+
+    if (role === "engine") {
+      if (roleTag === "payoff" && tier >= 4) {
+        return 2;
+      }
+      if (roleTag === "payoff") {
+        return 3;
+      }
+      if (roleTag === "setup") {
+        return 4;
+      }
+      return 4;
+    }
+    if (role === "support" || role === "tech") {
+      return 3;
+    }
+    return 2;
+  }
+
+  function thinCandidatesByDuplicateLimit(cardIds: string[], run: RunState, content: GameContent) {
+    const belowLimit = cardIds.filter((cardId: string) => getDeckCardCopyCount(run, cardId) < getRewardDuplicateLimit(cardId, content));
+    return belowLimit.length > 0 ? belowLimit : cardIds;
+  }
+
+  function getPrimaryRoleCounts(
+    run: RunState,
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>
+  ) {
+    const counts: Record<string, number> = {};
+    (Array.isArray(run.deck) ? run.deck : []).forEach((cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      if (!buildPath?.primaryTrees?.includes(treeId)) {
+        return;
+      }
+      const roleTag = String(content.cardCatalog[cardId]?.roleTag || "answer");
+      counts[roleTag] = Number(counts[roleTag] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function getReinforcementNeedScore(
+    cardId: string,
+    run: RunState,
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>
+  ) {
+    const card = content.cardCatalog[cardId];
+    const roleTag = String(card?.roleTag || "answer");
+    const duplicateCount = getDeckCardCopyCount(run, cardId);
+    const primaryRoleCounts = getPrimaryRoleCounts(run, content, buildPath);
+    const setupCount = Number(primaryRoleCounts.setup || 0);
+    const payoffCount = Number(primaryRoleCounts.payoff || 0);
+    const salvageCount = Number(primaryRoleCounts.salvage || 0);
+    const answerCount = Number(primaryRoleCounts.answer || 0);
+    const supportCount = Number(primaryRoleCounts.support || 0);
+
+    let score = 0;
+    score -= duplicateCount * 8;
+
+    if (roleTag === "setup") {
+      score += Math.max(0, payoffCount - setupCount) * 6;
+    }
+    if (roleTag === "payoff") {
+      score += Math.max(0, setupCount - payoffCount) * 4;
+      if (duplicateCount >= 2) {
+        score -= duplicateCount * 6;
+      }
+    }
+    if (roleTag === "salvage" && salvageCount === 0) {
+      score += 18;
+    }
+    if (roleTag === "answer" && answerCount === 0) {
+      score += 14;
+    }
+    if (roleTag === "support" && supportCount < 2) {
+      score += 8;
+    }
+
+    return score;
+  }
+
   function getUpgradableCardIds(run: RunState, content: GameContent) {
     const seen = new Set<string>();
     return run.deck.filter((cardId: string) => {
@@ -20,7 +123,12 @@
     });
   }
 
-  function sortReinforceCandidates(cardIds: string[], content: GameContent, buildPath: ReturnType<typeof archetypes.getRewardPathPreference>) {
+  function sortReinforceCandidates(
+    cardIds: string[],
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>,
+    run: RunState
+  ) {
     return [...cardIds].sort((left, right) => {
       const leftTree = archetypes.getCardTree(left);
       const rightTree = archetypes.getCardTree(right);
@@ -30,17 +138,32 @@
         return rightPrimary - leftPrimary;
       }
 
+      const needDelta = getReinforcementNeedScore(right, run, content, buildPath) - getReinforcementNeedScore(left, run, content, buildPath);
+      if (needDelta !== 0) {
+        return needDelta;
+      }
+
       const leftRoleWeight = archetypes.CARD_ROLE_SCORE_WEIGHTS[archetypes.getCardRewardRole(left, content)] || 0;
       const rightRoleWeight = archetypes.CARD_ROLE_SCORE_WEIGHTS[archetypes.getCardRewardRole(right, content)] || 0;
       if (leftRoleWeight !== rightRoleWeight) {
         return rightRoleWeight - leftRoleWeight;
       }
 
+      const duplicateDelta = getDeckCardCopyCount(run, left) - getDeckCardCopyCount(run, right);
+      if (duplicateDelta !== 0) {
+        return duplicateDelta;
+      }
+
       return String(content.cardCatalog[left]?.title || left).localeCompare(String(content.cardCatalog[right]?.title || right));
     });
   }
 
-  function sortSupportCandidates(cardIds: string[], content: GameContent, buildPath: ReturnType<typeof archetypes.getRewardPathPreference>) {
+  function sortSupportCandidates(
+    cardIds: string[],
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>,
+    run: RunState
+  ) {
     return [...cardIds].sort((left, right) => {
       const leftTree = archetypes.getCardTree(left);
       const rightTree = archetypes.getCardTree(right);
@@ -62,6 +185,11 @@
         return rightRoleWeight - leftRoleWeight;
       }
 
+      const duplicateDelta = getDeckCardCopyCount(run, left) - getDeckCardCopyCount(run, right);
+      if (duplicateDelta !== 0) {
+        return duplicateDelta;
+      }
+
       return String(content.cardCatalog[left]?.title || left).localeCompare(String(content.cardCatalog[right]?.title || right));
     });
   }
@@ -70,7 +198,8 @@
     cardIds: string[],
     content: GameContent,
     primaryArchetypeId: string,
-    pivotArchetypeId: string
+    pivotArchetypeId: string,
+    run: RunState
   ) {
     return [...cardIds].sort((left, right) => {
       const leftTags = archetypes.getCardArchetypeTags(left, content);
@@ -91,6 +220,11 @@
       const rightRoleWeight = archetypes.CARD_ROLE_SCORE_WEIGHTS[archetypes.getCardRewardRole(right, content)] || 0;
       if (leftRoleWeight !== rightRoleWeight) {
         return rightRoleWeight - leftRoleWeight;
+      }
+
+      const duplicateDelta = getDeckCardCopyCount(run, left) - getDeckCardCopyCount(run, right);
+      if (duplicateDelta !== 0) {
+        return duplicateDelta;
       }
 
       return String(content.cardCatalog[left]?.title || left).localeCompare(String(content.cardCatalog[right]?.title || right));
@@ -167,6 +301,46 @@
     return (card?.splashRole || "primary_only") === "utility_splash_ok";
   }
 
+  function countCardsInTrees(run: RunState, trees: string[] = []) {
+    if (!Array.isArray(trees) || trees.length === 0) {
+      return 0;
+    }
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((sum: number, cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      return treeId && trees.includes(treeId) ? sum + 1 : sum;
+    }, 0);
+  }
+
+  function getUtilitySplashCardCount(
+    run: RunState,
+    content: GameContent,
+    buildPath: ReturnType<typeof archetypes.getRewardPathPreference>
+  ) {
+    if (!buildPath) {
+      return 0;
+    }
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((sum: number, cardId: string) => {
+      const treeId = archetypes.getCardTree(cardId);
+      if (!treeId || buildPath.primaryTrees.includes(treeId)) {
+        return sum;
+      }
+      const card = content.cardCatalog[cardId];
+      const roleTag = String(card?.roleTag || "answer");
+      const rewardRole = archetypes.getCardRewardRole(cardId, content);
+      const isUtilityRole =
+        roleTag === "support" ||
+        roleTag === "salvage" ||
+        roleTag === "answer" ||
+        rewardRole === "support" ||
+        rewardRole === "tech" ||
+        rewardRole === "foundation";
+      if ((card?.splashRole || "primary_only") === "utility_splash_ok" || (buildPath.supportTrees.includes(treeId) && isUtilityRole)) {
+        return sum + 1;
+      }
+      return sum;
+    }, 0);
+  }
+
   function resolveReinforceBuildReward(run: RunState, content: GameContent) {
     archetypes.annotateCardRewardMetadata(content);
     const buildPath = archetypes.getRewardPathPreference(run, content);
@@ -185,7 +359,8 @@
         "primary"
       ),
       content,
-      buildPath
+      buildPath,
+      run
     );
     const upgradeCardId = matchingUpgrades[0] || "";
     if (upgradeCardId) {
@@ -200,15 +375,20 @@
 
     const usedCardIds = new Set(Array.isArray(run.deck) ? run.deck : []);
     const addCandidates = sortReinforceCandidates(
-      filterCardsByPathPriority(
-        getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content)
-          .filter((cardId: string) => archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)),
-        content,
-        buildPath,
-        "primary"
+      thinCandidatesByDuplicateLimit(
+        filterCardsByPathPriority(
+          getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content)
+            .filter((cardId: string) => archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)),
+          content,
+          buildPath,
+          "primary"
+        ),
+        run,
+        content
       ),
       content,
-      buildPath
+      buildPath,
+      run
     );
     const addCardId = addCandidates[0] || "";
     if (addCardId) {
@@ -234,10 +414,18 @@
         previewLine: "Build support: Gain 3 max Life.",
       };
     }
+    const supportCardCount = countCardsInTrees(run, buildPath.supportTrees || []);
+    const utilitySplashCount = getUtilitySplashCardCount(run, content, buildPath);
+    const supportSplashCap = getSupportSplashCap(buildPath);
+    const supportSaturated = supportCardCount >= supportSplashCap || utilitySplashCount >= supportSplashCap + 1;
 
     const matchingUpgrades = sortSupportCandidates(
       filterCardsByPathPriority(
         getUpgradableCardIds(run, content).filter((cardId: string) => {
+          const treeId = archetypes.getCardTree(cardId);
+          if (supportSaturated && !buildPath.primaryTrees.includes(treeId)) {
+            return false;
+          }
           if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
             return false;
           }
@@ -252,7 +440,8 @@
         "support"
       ),
       content,
-      buildPath
+      buildPath,
+      run
     );
     const upgradeCardId = matchingUpgrades[0] || "";
     if (upgradeCardId) {
@@ -267,23 +456,32 @@
 
     const usedCardIds = new Set(Array.isArray(run.deck) ? run.deck : []);
     const addCandidates = sortSupportCandidates(
-      filterCardsByPathPriority(
-        getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
-          if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
-            return false;
-          }
-          if (!isUtilitySplashCandidate(cardId, content, buildPath)) {
-            return false;
-          }
-          const role = archetypes.getCardRewardRole(cardId, content);
-          return role === "support" || role === "tech" || role === "foundation";
-        }),
-        content,
-        buildPath,
-        "support"
+      thinCandidatesByDuplicateLimit(
+        filterCardsByPathPriority(
+          getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
+            const treeId = archetypes.getCardTree(cardId);
+            if (supportSaturated && !buildPath.primaryTrees.includes(treeId)) {
+              return false;
+            }
+            if (!archetypes.getCardArchetypeTags(cardId, content).includes(buildPath.treeId)) {
+              return false;
+            }
+            if (!isUtilitySplashCandidate(cardId, content, buildPath)) {
+              return false;
+            }
+            const role = archetypes.getCardRewardRole(cardId, content);
+            return role === "support" || role === "tech" || role === "foundation";
+          }),
+          content,
+          buildPath,
+          "support"
+        ),
+        run,
+        content
       ),
       content,
-      buildPath
+      buildPath,
+      run
     );
     const addCardId = addCandidates[0] || "";
     if (addCardId) {
@@ -313,19 +511,24 @@
 
     const usedCardIds = new Set(Array.isArray(run.deck) ? run.deck : []);
     const addCandidates = sortPivotCandidates(
-      getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
-        const tags = archetypes.getCardArchetypeTags(cardId, content);
-        if (tags.length === 0) {
-          return false;
-        }
-        if (pivotArchetypeId) {
-          return tags.includes(pivotArchetypeId);
-        }
-        return tags.some((tag) => tag && tag !== primaryArchetypeId);
-      }),
+      thinCandidatesByDuplicateLimit(
+        getPoolCandidates(getStrategicRewardPool(run, content), usedCardIds, content).filter((cardId: string) => {
+          const tags = archetypes.getCardArchetypeTags(cardId, content);
+          if (tags.length === 0) {
+            return false;
+          }
+          if (pivotArchetypeId) {
+            return tags.includes(pivotArchetypeId);
+          }
+          return tags.some((tag) => tag && tag !== primaryArchetypeId);
+        }),
+        run,
+        content
+      ),
       content,
       primaryArchetypeId,
-      pivotArchetypeId
+      pivotArchetypeId,
+      run
     );
     const addCardId = addCandidates[0] || "";
     if (addCardId) {
