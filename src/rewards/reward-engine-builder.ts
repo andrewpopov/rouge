@@ -39,12 +39,89 @@
     }, 0);
   }
 
+  function getEvolutionTerminalCardId(cardId: string) {
+    return String(runtimeWindow.__ROUGE_SKILL_EVOLUTION?.getEvolutionTerminalCardId?.(cardId) || getBaseCardId(cardId));
+  }
+
+  function getDeckEvolutionFamilyCount(run: RunState, cardId: string) {
+    const terminalBaseId = getBaseCardId(getEvolutionTerminalCardId(cardId));
+    return (Array.isArray(run.deck) ? run.deck : []).reduce((count: number, deckCardId: string) => {
+      return getBaseCardId(getEvolutionTerminalCardId(deckCardId)) === terminalBaseId ? count + 1 : count;
+    }, 0);
+  }
+
+  function getEvolutionFamilyDuplicateLimit(cardId: string, content: GameContent) {
+    const terminalCardId = getEvolutionTerminalCardId(cardId);
+    const terminalCard = content.cardCatalog[terminalCardId] || content.cardCatalog[getBaseCardId(terminalCardId)];
+    if (!terminalCard) {
+      return Number.POSITIVE_INFINITY;
+    }
+    if (getBaseCardId(terminalCardId) === "amazon_pierce") {
+      return 4;
+    }
+    if (getBaseCardId(terminalCardId) === "paladin_conviction") {
+      return 3;
+    }
+    if (getBaseCardId(terminalCardId) === "barbarian_berserk") {
+      return 1;
+    }
+    if (getBaseCardId(terminalCardId) === "necromancer_revive") {
+      return 2;
+    }
+    if (getBaseCardId(terminalCardId) === "druid_fury") {
+      return 6;
+    }
+    if (getBaseCardId(terminalCardId) === "druid_armageddon") {
+      return 4;
+    }
+    if (getBaseCardId(terminalCardId) === "druid_summon_grizzly") {
+      return 5;
+    }
+    if (getBaseCardId(terminalCardId) === "druid_heart_of_wolverine") {
+      return 5;
+    }
+    if (getBaseCardId(terminalCardId) === "sorceress_frozen_orb") {
+      return 10;
+    }
+    if (getBaseCardId(terminalCardId) === "sorceress_hydra") {
+      return 4;
+    }
+    if (getBaseCardId(terminalCardId) === "sorceress_lightning_mastery") {
+      return 4;
+    }
+    if (getBaseCardId(terminalCardId) === "assassin_shadow_warrior") {
+      return 4;
+    }
+    const role = archetypes.getCardRewardRole(terminalCardId, content);
+    const roleTag = String(terminalCard.roleTag || "answer");
+    const tier = Number(terminalCard.tier || 1);
+    if (role === "engine" && roleTag === "payoff" && tier >= 4) {
+      return 7;
+    }
+    return Number.POSITIVE_INFINITY;
+  }
+
+  function isBelowDuplicateLimits(run: RunState, cardId: string, content: GameContent) {
+    if (getDeckCardCopyCount(run, cardId) >= getRewardDuplicateLimit(cardId, content)) {
+      return false;
+    }
+    const familyLimit = getEvolutionFamilyDuplicateLimit(cardId, content);
+    if (Number.isFinite(familyLimit) && getDeckEvolutionFamilyCount(run, cardId) >= familyLimit) {
+      return false;
+    }
+    return true;
+  }
+
   function getRewardDuplicateLimit(cardId: string, content: GameContent) {
     const role = archetypes.getCardRewardRole(cardId, content);
     const card = content.cardCatalog[cardId];
     const roleTag = String(card?.roleTag || "answer");
     const tier = Number(card?.tier || 1);
+    const baseCardId = getBaseCardId(cardId);
 
+    if (baseCardId === "barbarian_weapon_mastery" || baseCardId === "barbarian_steel_skin" || baseCardId === "barbarian_unyielding") {
+      return 3;
+    }
     if (roleTag === "payoff" && tier >= 4) {
       return 3;
     }
@@ -67,7 +144,7 @@
     if (!Array.isArray(candidates) || candidates.length === 0) {
       return [];
     }
-    const belowLimit = candidates.filter((cardId: string) => getDeckCardCopyCount(run, cardId) < getRewardDuplicateLimit(cardId, content));
+    const belowLimit = candidates.filter((cardId: string) => isBelowDuplicateLimits(run, cardId, content));
     if (belowLimit.length > 0) {
       return belowLimit;
     }
@@ -79,6 +156,10 @@
       const duplicateDelta = getDeckCardCopyCount(run, left) - getDeckCardCopyCount(run, right);
       if (duplicateDelta !== 0) {
         return duplicateDelta;
+      }
+      const familyDelta = getDeckEvolutionFamilyCount(run, left) - getDeckEvolutionFamilyCount(run, right);
+      if (familyDelta !== 0) {
+        return familyDelta;
       }
       return left.localeCompare(right);
     });
@@ -567,12 +648,14 @@
       }
       return buildPath?.primaryTrees?.includes(tree) || buildPath?.supportTrees?.includes(tree);
     });
-    const upgradeSource =
-      preferredUpgradeCandidates.length > 0
-        ? preferredUpgradeCandidates
-        : Boolean(buildPath) && specializationStage !== "exploratory"
-          ? []
-          : upgradableCardIds;
+    let upgradeSource: string[];
+    if (preferredUpgradeCandidates.length > 0) {
+      upgradeSource = preferredUpgradeCandidates;
+    } else if (Boolean(buildPath) && specializationStage !== "exploratory") {
+      upgradeSource = [];
+    } else {
+      upgradeSource = upgradableCardIds;
+    }
     const upgradeCardId = upgradeSource.length > 0 ? upgradeSource[seed % upgradeSource.length] : "";
     const upgradeChoice = upgradeCardId ? buildUpgradeChoice(upgradeCardId, content) : null;
     const deckSize = Array.isArray(run.deck) ? run.deck.length : 0;

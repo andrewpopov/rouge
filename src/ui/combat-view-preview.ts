@@ -9,7 +9,8 @@
   ): number {
     const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
     const reduction = evo ? evo.getTreeCostReduction(instance.cardId, combat.deckCardIds, content.cardCatalog) : 0;
-    return Math.max(0, card.cost - reduction);
+    const skillReduction = Math.max(0, combat.skillModifiers?.nextCardCostReduction || 0);
+    return Math.max(0, card.cost - reduction - skillReduction);
   }
 
   function getCardPreviewAttackValue(combat: CombatState, instance: { cardId: string }, effectValue: number): number {
@@ -17,7 +18,8 @@
     const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
     const synergy = evo ? evo.getSynergyDamageBonus(instance.cardId, combat.deckCardIds) : 0;
     const weaponBonus = turns?.getWeaponAttackBonus?.(combat, instance.cardId) || 0;
-    let amount = Math.max(0, effectValue + combat.hero.damageBonus + synergy + weaponBonus);
+    const skillBonus = Math.max(0, combat.skillModifiers?.nextCardDamageBonus || 0);
+    let amount = Math.max(0, effectValue + combat.hero.damageBonus + synergy + weaponBonus + skillBonus);
     if (combat.hero.weaken > 0) {
       amount = Math.max(1, Math.floor(amount * 0.7));
     }
@@ -27,7 +29,10 @@
   function getCardPreviewSupportValue(combat: CombatState, instance: { cardId: string }, effect: CardEffect): number {
     const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
     const weaponBonus = turns?.getWeaponSupportBonus?.(combat, instance.cardId) || 0;
-    return Math.max(0, effect.value + weaponBonus);
+    const guardBonus = effect.kind === "gain_guard_self" || effect.kind === "gain_guard_party"
+      ? Math.max(0, combat.skillModifiers?.nextCardGuard || 0)
+      : 0;
+    return Math.max(0, effect.value + weaponBonus + guardBonus);
   }
 
   function applyPreviewEnemyDamage(enemy: { guard: number; life: number }, damage: number): { life: number; guard: number } {
@@ -121,7 +126,7 @@
           break;
         }
         case "draw":
-          drawCount += effect.value;
+          drawCount += effect.value + Math.max(0, combat.skillModifiers?.nextCardDraw || 0);
           break;
         case "summon_minion": {
           const summonPreview = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.getSummonPreview?.(combat, effect) || "Summon";
@@ -137,28 +142,28 @@
           mercBuff += getCardPreviewSupportValue(combat, instance, effect);
           break;
         case "apply_burn":
-          burn += Math.max(0, effect.value + combat.hero.burnBonus);
+          burn += Math.max(0, effect.value + combat.hero.burnBonus + (combat.skillModifiers?.nextCardBurn || 0));
           break;
         case "apply_burn_all":
-          burnAll += Math.max(0, effect.value + combat.hero.burnBonus);
+          burnAll += Math.max(0, effect.value + combat.hero.burnBonus + (combat.skillModifiers?.nextCardBurn || 0));
           break;
         case "apply_poison":
-          poison += effect.value;
+          poison += Math.max(0, effect.value + (combat.skillModifiers?.nextCardPoison || 0));
           break;
         case "apply_poison_all":
-          poisonAll += effect.value;
+          poisonAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardPoison || 0));
           break;
         case "apply_slow":
-          slow += effect.value;
+          slow += Math.max(0, effect.value + (combat.skillModifiers?.nextCardSlow || 0));
           break;
         case "apply_slow_all":
-          slowAll += effect.value;
+          slowAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardSlow || 0));
           break;
         case "apply_freeze":
-          freeze += effect.value;
+          freeze += Math.max(0, effect.value + (combat.skillModifiers?.nextCardFreeze || 0));
           break;
         case "apply_freeze_all":
-          freezeAll += effect.value;
+          freezeAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardFreeze || 0));
           break;
         case "apply_stun":
           stun = 1;
@@ -167,10 +172,10 @@
           stunAll = 1;
           break;
         case "apply_paralyze":
-          paralyze += effect.value;
+          paralyze += Math.max(0, effect.value + (combat.skillModifiers?.nextCardParalyze || 0));
           break;
         case "apply_paralyze_all":
-          paralyzeAll += effect.value;
+          paralyzeAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardParalyze || 0));
           break;
         default:
           break;
@@ -202,6 +207,23 @@
     if (stunAll > 0) { parts.push("Stun line"); }
     if (paralyze > 0) { parts.push(`Paralyze ${paralyze}`); }
     if (paralyzeAll > 0) { parts.push(`Paralyze ${paralyzeAll} line`); }
+    if (card.effects.some((effect) => effect.kind === "damage" || effect.kind === "damage_all")) {
+      if ((combat.skillModifiers?.nextCardBurn || 0) > 0 && burn === 0 && burnAll === 0) {
+        parts.push(`Burn ${combat.skillModifiers.nextCardBurn}`);
+      }
+      if ((combat.skillModifiers?.nextCardPoison || 0) > 0 && poison === 0 && poisonAll === 0) {
+        parts.push(`Poison ${combat.skillModifiers.nextCardPoison}`);
+      }
+      if ((combat.skillModifiers?.nextCardSlow || 0) > 0 && slow === 0 && slowAll === 0) {
+        parts.push(`Slow ${combat.skillModifiers.nextCardSlow}`);
+      }
+      if ((combat.skillModifiers?.nextCardFreeze || 0) > 0 && freeze === 0 && freezeAll === 0) {
+        parts.push(`Freeze ${combat.skillModifiers.nextCardFreeze}`);
+      }
+      if ((combat.skillModifiers?.nextCardParalyze || 0) > 0 && paralyze === 0 && paralyzeAll === 0) {
+        parts.push(`Paralyze ${combat.skillModifiers.nextCardParalyze}`);
+      }
+    }
 
     return parts.join(" + ") || "Resolve";
   }
@@ -219,6 +241,195 @@
     const blocked = Math.min(selectedEnemy.guard, damage);
     const dealt = Math.max(0, damage - blocked);
     return [dealt > 0 ? `${dealt} strike` : "", blocked > 0 ? `${blocked} guard` : ""].filter(Boolean).join(" + ");
+  }
+
+  function getSkillTierScale(skill: CombatEquippedSkillState): number {
+    if (skill.slot === 3 || skill.tier === "capstone") {
+      return 3;
+    }
+    if (skill.slot === 2 || skill.tier === "bridge") {
+      return 2;
+    }
+    return 1;
+  }
+
+  function _createSkillSummonEffect(combat: CombatState, skill: CombatEquippedSkillState): CardEffect | null {
+    const scale = getSkillTierScale(skill);
+    const powerBonus = Math.max(0, combat.summonPowerBonus || 0);
+    const secondaryBonus = Math.max(0, combat.summonSecondaryBonus || 0);
+    const build = (minionId: string, value: number, secondaryValue = 0, duration = 3): CardEffect => ({
+      kind: "summon_minion",
+      minionId,
+      value: Math.max(1, value + powerBonus),
+      secondaryValue: Math.max(0, secondaryValue + secondaryBonus),
+      duration,
+    });
+
+    switch (skill.skillId) {
+      case "amazon_decoy":
+        return build("amazon_decoy", 2 + scale, 2 + scale);
+      case "amazon_valkyrie":
+        return build("amazon_valkyrie", 3 + scale, 2 + scale);
+      case "assassin_shadow_master":
+        return build("assassin_shadow_master", 3 + scale, 1 + scale);
+      case "assassin_lightning_sentry":
+        return build("assassin_lightning_sentry", 2 + scale, 1 + scale, 4);
+      case "assassin_wake_of_inferno":
+        return build("assassin_wake_of_fire", 2 + scale, 1 + scale, 4);
+      case "assassin_death_sentry":
+        return build("assassin_death_sentry", 3 + scale, 1 + scale, 4);
+      case "druid_raven":
+        return build("druid_raven", 2 + scale, 1 + scale);
+      case "druid_poison_creeper":
+        return build("druid_poison_creeper", 2 + scale, 1 + scale);
+      case "druid_oak_sage":
+        return build("druid_oak_sage", 2 + scale);
+      case "druid_solar_creeper":
+        return build("druid_solar_creeper", 2 + scale, 1 + scale);
+      case "druid_spirit_of_barbs":
+        return build("druid_spirit_of_barbs", 2 + scale, 2 + scale);
+      case "druid_summon_grizzly":
+        return build("druid_grizzly", 3 + scale, 2 + scale);
+      case "necromancer_raise_skeleton":
+        return build("necromancer_skeleton", 2 + scale);
+      case "necromancer_clay_golem":
+        return build("necromancer_clay_golem", 2 + scale, 1 + scale);
+      case "necromancer_iron_golem":
+        return build("necromancer_iron_golem", 3 + scale, 2 + scale);
+      case "necromancer_fire_golem":
+        return build("necromancer_fire_golem", 3 + scale, 2 + scale);
+      case "necromancer_revive":
+        return build("necromancer_revive", 3 + scale, 2 + scale);
+      case "sorceress_hydra":
+        return build("sorceress_hydra", 3 + scale, 2 + scale);
+      default:
+        return null;
+    }
+  }
+
+  function deriveSkillPreviewScopes(skill: CombatEquippedSkillState): string[] {
+    const scopes = new Set<string>();
+    if (skill.skillType === "summon") {
+      scopes.add("minions");
+    }
+    if (!skill.active) {
+      if (skill.skillId === "necromancer_skeleton_mastery" || skill.skillId === "necromancer_summon_resist") {
+        scopes.add("minions");
+      }
+      if (skill.skillId === "amazon_evade" || skill.skillId === "barbarian_natural_resistance") {
+        scopes.add("party");
+      } else {
+        scopes.add("hero");
+      }
+      return Array.from(scopes);
+    }
+
+    const mixedTargetLineSkillIds = new Set([
+      "amazon_freezing_arrow",
+      "amazon_lightning_strike",
+      "assassin_phoenix_strike",
+      "druid_shock_wave",
+      "druid_volcano",
+      "paladin_fist_of_the_heavens",
+      "sorceress_meteor",
+    ]);
+    const enemyLineSkillIds = new Set([
+      "amazon_strafe",
+      "amazon_lightning_fury",
+      "assassin_shock_web",
+      "barbarian_whirlwind",
+      "barbarian_war_cry",
+      "barbarian_grim_ward",
+      "druid_firestorm",
+      "druid_armageddon",
+      "druid_hurricane",
+      "necromancer_corpse_explosion",
+      "necromancer_decrepify",
+      "necromancer_lower_resist",
+      "necromancer_poison_nova",
+      "paladin_conviction",
+      "paladin_holy_shock",
+      "paladin_fist_of_the_heavens",
+      "sorceress_frost_nova",
+      "sorceress_blizzard",
+      "sorceress_frozen_orb",
+      "sorceress_inferno",
+      "sorceress_thunder_storm",
+      "sorceress_static_field",
+    ]);
+    const partySkillIds = new Set([
+      "amazon_decoy",
+      "barbarian_shout",
+      "barbarian_battle_orders",
+      "barbarian_natural_resistance",
+      "necromancer_bone_armor",
+      "necromancer_summon_resist",
+      "paladin_meditation",
+      "paladin_prayer",
+      "paladin_resist_fire",
+      "paladin_resist_cold",
+      "paladin_defiance",
+      "paladin_holy_shield",
+      "paladin_redemption",
+      "paladin_salvation",
+      "paladin_sanctuary",
+    ]);
+    const mercenarySkillIds = new Set([
+      "amazon_inner_sight",
+      "amazon_jab",
+      "barbarian_battle_command",
+      "paladin_might",
+      "paladin_fanaticism",
+      "necromancer_amplify_damage",
+      "necromancer_attract",
+    ]);
+    const activeHeroSkillIds = new Set([
+      "barbarian_grim_ward",
+      "druid_shock_wave",
+      "necromancer_bone_prison",
+      "sorceress_chilling_armor",
+      "sorceress_energy_shield",
+    ]);
+
+    if (enemyLineSkillIds.has(skill.skillId) || mixedTargetLineSkillIds.has(skill.skillId)) {
+      scopes.add("enemy_line");
+    }
+    if (partySkillIds.has(skill.skillId)) {
+      scopes.add("party");
+    } else {
+      if (mercenarySkillIds.has(skill.skillId)) {
+        scopes.add("mercenary");
+      }
+      if (skill.skillType === "buff" || skill.skillType === "aura" || activeHeroSkillIds.has(skill.skillId)) {
+        scopes.add("hero");
+      }
+    }
+    if (skill.skillType === "attack" || skill.skillType === "spell" || skill.skillType === "debuff") {
+      if (!enemyLineSkillIds.has(skill.skillId) || mixedTargetLineSkillIds.has(skill.skillId)) {
+        scopes.add("selected_enemy");
+      }
+    }
+    if (skill.skillType === "summon") {
+      scopes.add("minions");
+    }
+    if (scopes.size === 0) {
+      if (skill.family === "command" || skill.family === "recovery") {
+        scopes.add("party");
+      } else if (skill.family === "state") {
+        scopes.add("hero");
+      } else {
+        scopes.add("selected_enemy");
+      }
+    }
+    return Array.from(scopes);
+  }
+
+  function buildSkillPreviewOutcome(
+    combat: CombatState,
+    skill: CombatEquippedSkillState,
+    _selectedEnemy: CombatEnemyState | null
+  ): string {
+    return runtimeWindow.__ROUGE_COMBAT_VIEW_PREVIEW_SKILLS.buildSkillPreviewOutcome(combat, skill, _selectedEnemy);
   }
 
   function derivePreviewScopes(card: CardDefinition): string[] {
@@ -302,7 +513,9 @@
     buildCardPreviewOutcome,
     buildMeleePreviewOutcome,
     derivePreviewScopes,
+    deriveSkillPreviewScopes,
     describePreviewScopes,
+    buildSkillPreviewOutcome,
     summarizePreviewOutcome,
   };
 })();

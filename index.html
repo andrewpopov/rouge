@@ -13,6 +13,44 @@
   <body>
     <main id="appRoot" class="page-shell"></main>
 
+    <script>
+    (function () {
+      var errorCount = 0;
+      function showCrashScreen(message) {
+        if (errorCount > 1) return;
+        var root = document.getElementById("appRoot");
+        if (!root) return;
+        root.innerHTML = "";
+        var wrapper = document.createElement("div");
+        wrapper.setAttribute("style", "max-width:480px;margin:80px auto;padding:32px;text-align:center;font-family:sans-serif;color:#e8d5b5");
+        var h1 = document.createElement("h1");
+        h1.setAttribute("style", "font-size:1.5rem;margin-bottom:16px");
+        h1.textContent = "Something went wrong";
+        var p = document.createElement("p");
+        p.setAttribute("style", "color:#baa993;margin-bottom:24px");
+        p.textContent = message;
+        var btn = document.createElement("button");
+        btn.setAttribute("style", "padding:10px 24px;background:#8b6914;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:1rem");
+        btn.textContent = "Reload";
+        btn.addEventListener("click", function () { location.reload(); });
+        wrapper.appendChild(h1);
+        wrapper.appendChild(p);
+        wrapper.appendChild(btn);
+        root.appendChild(wrapper);
+      }
+      window.onerror = function (msg, source, line) {
+        errorCount++;
+        console.error("Uncaught error:", msg, "at", source, ":" + line);
+        showCrashScreen("An unexpected error occurred. Your save data is safe.");
+      };
+      window.addEventListener("unhandledrejection", function (event) {
+        errorCount++;
+        console.error("Unhandled promise rejection:", event.reason);
+        showCrashScreen("An unexpected error occurred. Your save data is safe.");
+      });
+    })();
+    </script>
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <script src="./generated/src/core/utils.js"></script>
@@ -44,6 +82,8 @@
     <script src="./generated/src/combat/combat-engine-turns.js"></script>
     <script src="./generated/src/combat/card-effects.js"></script>
     <script src="./generated/src/combat/combat-engine.js"></script>
+    <script src="./generated/src/combat/combat-engine-skills.js"></script>
+    <script src="./generated/src/combat/combat-engine-combat.js"></script>
     <script src="./generated/src/content/content-validator-world-paths.js"></script>
     <script src="./generated/src/content/content-validator-world-opportunities-helpers.js"></script>
     <script src="./generated/src/content/content-validator-world-opportunities-families.js"></script>
@@ -52,6 +92,7 @@
     <script src="./generated/src/content/content-validator-world-opportunities.js"></script>
     <script src="./generated/src/content/content-validator-runtime-mercenaries.js"></script>
     <script src="./generated/src/content/content-validator-runtime-content.js"></script>
+    <script src="./generated/src/content/content-validator-runtime-orchestrator.js"></script>
     <script src="./generated/src/content/content-validator-world-catalog-sections.js"></script>
     <script src="./generated/src/content/content-validator-world-catalog.js"></script>
     <script src="./generated/src/content/content-validator.js"></script>
@@ -101,6 +142,8 @@
     <script src="./generated/src/rewards/reward-engine-archetypes.js"></script>
     <script src="./generated/src/rewards/reward-engine-builder-data.js"></script>
     <script src="./generated/src/rewards/reward-engine-builder-strategies.js"></script>
+    <script src="./generated/src/rewards/reward-engine-builder-need-scoring.js"></script>
+    <script src="./generated/src/rewards/reward-engine-builder-resolvers.js"></script>
     <script src="./generated/src/rewards/reward-engine-builder.js"></script>
     <script src="./generated/src/rewards/reward-engine-apply.js"></script>
     <script src="./generated/src/rewards/reward-engine.js"></script>
@@ -142,6 +185,7 @@
     <script src="./generated/src/run/run-state.js"></script>
     <script src="./generated/src/run/run-route-builder.js"></script>
     <script src="./generated/src/run/run-progression.js"></script>
+    <script src="./generated/src/run/run-progression-actions.js"></script>
     <script src="./generated/src/run/run-reward-flow.js"></script>
     <script src="./generated/src/run/run-factory.js"></script>
     <script src="./generated/src/meta/charm-data.js"></script>
@@ -179,6 +223,7 @@
     <script src="./generated/src/ui/safe-zone-operations-view-markup.js"></script>
     <script src="./generated/src/ui/safe-zone-operations-view.js"></script>
     <script src="./generated/src/ui/inventory-view.js"></script>
+    <script src="./generated/src/ui/training-view.js"></script>
     <script src="./generated/src/ui/safe-zone-view-merchant-presentation.js"></script>
     <script src="./generated/src/ui/safe-zone-view-merchant.js"></script>
     <script src="./generated/src/ui/safe-zone-view.js"></script>
@@ -188,8 +233,11 @@
     <script src="./generated/src/ui/approach-bonus.js"></script>
     <script src="./generated/src/ui/combat-view-exploration.js"></script>
     <script src="./generated/src/ui/combat-view-preview.js"></script>
+    <script src="./generated/src/ui/combat-view-preview-skills.js"></script>
     <script src="./generated/src/ui/combat-view-pressure.js"></script>
     <script src="./generated/src/ui/combat-view-renderers.js"></script>
+    <script src="./generated/src/ui/combat-view-renderers-pile.js"></script>
+    <script src="./generated/src/ui/combat-view-renderers-decklist.js"></script>
     <script src="./generated/src/ui/combat-view.js"></script>
     <script src="./generated/src/ui/reward-view-continuity.js"></script>
     <script src="./generated/src/ui/reward-view.js"></script>
@@ -199,7 +247,10 @@
     <script src="./generated/src/ui/app-shell.js"></script>
     <script src="./generated/src/ui/action-dispatcher-combat-fx.js"></script>
     <script src="./generated/src/ui/action-dispatcher-reward-fx.js"></script>
+    <script src="./generated/src/ui/action-dispatcher-keyboard.js"></script>
     <script src="./generated/src/ui/action-dispatcher.js"></script>
+    <script src="./generated/src/app/main-skill-preview-readouts.js"></script>
+    <script src="./generated/src/app/main-card-preview.js"></script>
     <script src="./generated/src/app/main.js"></script>
   </body>
 </html>

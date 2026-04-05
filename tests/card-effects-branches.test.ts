@@ -24,10 +24,11 @@ function findOrInjectCard(state: CombatState, content: GameContent, effectKind: 
     return existing;
   }
 
-  // Find any card in the catalog with this effect
-  const catalogEntry = Object.values(content.cardCatalog).find(
+  // Find any card in the catalog with this effect, preferring target:"none" for AoE effects
+  const candidates = Object.values(content.cardCatalog).filter(
     (card) => card.effects?.some((e) => e.kind === effectKind)
   );
+  const catalogEntry = candidates.find((c) => c.target === "none") || candidates[0];
   if (catalogEntry) {
     const instanceId = `test_${effectKind}_${Date.now()}`;
     state.hand.push({ cardId: catalogEntry.id, instanceId });
@@ -331,6 +332,30 @@ test("resolveCardEffect mark_enemy_for_mercenary marks target", () => {
   state.hero.energy = 99;
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
   assert.equal(state.mercenary.markedEnemyId, target.id);
+});
+
+test("resolveCardEffect mark_enemy_for_mercenary preserves an existing mark when the new target dies first", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+  const livingEnemies = state.enemies.filter((e) => e.alive);
+  assert.ok(livingEnemies.length >= 2, "fixture should provide at least two living enemies");
+  const preservedTarget = livingEnemies[0];
+  const doomedTarget = livingEnemies[1];
+  const card = findOrInjectCard(state, harness.content, "mark_enemy_for_mercenary");
+  if (!card) { return; }
+
+  state.mercenary.markedEnemyId = preservedTarget.id;
+  state.mercenary.markBonus = 11;
+  state.selectedEnemyId = doomedTarget.id;
+  state.hero.energy = 99;
+  doomedTarget.life = 1;
+  doomedTarget.guard = 0;
+
+  harness.engine.playCard(state, harness.content, card.instanceId, doomedTarget.id);
+
+  assert.equal(doomedTarget.alive, false);
+  assert.equal(state.mercenary.markedEnemyId, preservedTarget.id);
+  assert.equal(state.mercenary.markBonus, 11);
 });
 
 // ── weaken interaction ──

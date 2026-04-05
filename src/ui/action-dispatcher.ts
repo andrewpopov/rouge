@@ -3,6 +3,7 @@
 
   const { doCombatAction, addTempClass } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_COMBAT_FX;
   const { spawnRewardParticles } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_REWARD_FX;
+  const { handleKeydown, setRunSummaryStep } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_KEYBOARD;
 
   function getActionTarget(target: EventTarget | null): HTMLElement | null {
     return target instanceof Element ? target.closest("[data-action]") as HTMLElement | null : null;
@@ -31,6 +32,7 @@
         runtimeWindow.ROGUE_AUTH?.signOut().then(() => render());
         return true;
       case "start-character-select":
+        appState.ui.spellbookOpen = false;
         appEngine.startCharacterSelect(appState);
         render();
         return true;
@@ -96,10 +98,19 @@
         render();
         return true;
       case "continue-saved-run":
+        appState.ui.spellbookOpen = false;
         appEngine.continueSavedRun(appState);
         if (appState.run?.guide?.overlayKind && (appState.phase === appEngine.PHASES.WORLD_MAP || appState.phase === appEngine.PHASES.ACT_TRANSITION)) {
           appEngine.continueActGuide(appState);
         }
+        render();
+        return true;
+      case "open-spellbook":
+        appState.ui.spellbookOpen = true;
+        render();
+        return true;
+      case "close-spellbook":
+        appState.ui.spellbookOpen = false;
         render();
         return true;
       case "prompt-abandon-saved-run":
@@ -122,6 +133,55 @@
         appState.ui.townFocus = "";
         render();
         return true;
+      case "open-training-view":
+        appEngine.openTrainingView(appState, actionEl.dataset.trainingSource === "act_transition" ? "act_transition" : "safe_zone");
+        render();
+        return true;
+      case "close-training-view":
+        appEngine.closeTrainingView(appState);
+        render();
+        return true;
+      case "select-training-tree":
+        appEngine.selectTrainingTree(appState, actionEl.dataset.treeId || "");
+        render();
+        return true;
+      case "select-training-skill":
+        appEngine.selectTrainingSkill(appState, actionEl.dataset.skillId || "");
+        render();
+        return true;
+      case "select-training-slot": {
+        const rawSlotKey = actionEl.dataset.slotKey || "";
+        const slotKey = rawSlotKey === "slot1" || rawSlotKey === "slot2" || rawSlotKey === "slot3" ? rawSlotKey : "";
+        appEngine.selectTrainingSlot(appState, slotKey);
+        render();
+        return true;
+      }
+      case "set-training-mode": {
+        const rawMode = actionEl.dataset.trainingMode || "";
+        const mode = rawMode === "unlock" || rawMode === "equip" || rawMode === "swap" ? rawMode : "browse";
+        appEngine.setTrainingMode(appState, mode);
+        render();
+        return true;
+      }
+      case "set-training-compare":
+        appEngine.setTrainingCompare(appState, actionEl.dataset.skillId || "");
+        render();
+        return true;
+      case "clear-training-compare":
+        appEngine.setTrainingCompare(appState, "");
+        render();
+        return true;
+      case "unlock-training-skill":
+        appEngine.unlockTrainingSkill(appState, actionEl.dataset.skillId || "");
+        render();
+        return true;
+      case "equip-training-skill": {
+        const rawSlotKey = actionEl.dataset.slotKey || "";
+        const slotKey = rawSlotKey === "slot1" || rawSlotKey === "slot2" || rawSlotKey === "slot3" ? rawSlotKey : "slot1";
+        appEngine.equipTrainingSkill(appState, slotKey, actionEl.dataset.skillId || "");
+        render();
+        return true;
+      }
       case "open-inventory":
         appState.ui.inventoryOpen = true;
         render();
@@ -214,6 +274,29 @@
           appState.combat.selectedEnemyId = actionEl.dataset.enemyId || "";
         }
         return true;
+      case "open-combat-pile":
+        if (appState.combat && appState.phase === appEngine.PHASES.ENCOUNTER) {
+          const rawPileId = actionEl.dataset.pileId;
+          let pileId: "" | "draw" | "discard" | "decklist";
+          if (rawPileId === "discard") {
+            pileId = "discard";
+          } else if (rawPileId === "decklist") {
+            pileId = "decklist";
+          } else {
+            pileId = "draw";
+          }
+          appState.ui.combatPileView = appState.ui.combatPileView === pileId ? "" : pileId;
+          render();
+          return true;
+        }
+        return false;
+      case "close-combat-pile":
+        if (appState.ui.combatPileView) {
+          appState.ui.combatPileView = "";
+          render();
+          return true;
+        }
+        return false;
       case "play-card":
         if (appState.combat) {
           const instanceId = actionEl.dataset.instanceId || "";
@@ -223,7 +306,8 @@
           if (cardDef) {
             const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
             const reduction = evo ? evo.getTreeCostReduction(cardInst!.cardId, appState.combat.deckCardIds, appState.content.cardCatalog) : 0;
-            const cost = Math.max(0, cardDef.cost - reduction);
+            const skillReduction = Math.max(0, appState.combat.skillModifiers?.nextCardCostReduction || 0);
+            const cost = Math.max(0, cardDef.cost - reduction - skillReduction);
             if (appState.combat.hero.energy < cost) {
               addTempClass(actionEl, "fan-card--rejected", 400);
               return true;
@@ -238,6 +322,17 @@
             () => combatEngine.playCard(appState.combat, appState.content, instanceId, targetId),
             syncCombatResultAndRender,
             { playedCardEl: actionEl }
+          );
+        }
+        return true;
+      case "use-combat-skill":
+        if (appState.combat) {
+          const rawSlotKey = actionEl.dataset.slotKey || "";
+          const slotKey = rawSlotKey === "slot1" || rawSlotKey === "slot2" || rawSlotKey === "slot3" ? rawSlotKey : "slot1";
+          doCombatAction(
+            appState.combat,
+            () => combatEngine.useSkill(appState.combat, slotKey, appState.combat?.selectedEnemyId || ""),
+            syncCombatResultAndRender
           );
         }
         return true;
@@ -302,8 +397,7 @@
         return true;
       case "set-run-summary-step": {
         const nextStep = actionEl.dataset.runSummaryStep || "finale";
-        if (nextStep === "finale" || nextStep === "ledger" || nextStep === "archive") {
-          appState.ui.runSummaryStep = nextStep;
+        if (setRunSummaryStep(appState, nextStep)) {
           render();
           return true;
         }
@@ -333,23 +427,9 @@
         render();
         return true;
       case "toggle-profile-setting":
-        if (actionEl.dataset.settingKey === "showHints") {
+        if (actionEl.dataset.settingKey === "showHints" || actionEl.dataset.settingKey === "reduceMotion" || actionEl.dataset.settingKey === "compactMode") {
           appEngine.updateProfileSettings(appState, {
-            showHints: actionEl.dataset.settingValue === "true",
-          });
-          render();
-          return true;
-        }
-        if (actionEl.dataset.settingKey === "reduceMotion") {
-          appEngine.updateProfileSettings(appState, {
-            reduceMotion: actionEl.dataset.settingValue === "true",
-          });
-          render();
-          return true;
-        }
-        if (actionEl.dataset.settingKey === "compactMode") {
-          appEngine.updateProfileSettings(appState, {
-            compactMode: actionEl.dataset.settingValue === "true",
+            [actionEl.dataset.settingKey]: actionEl.dataset.settingValue === "true",
           });
           render();
           return true;
@@ -383,27 +463,17 @@
         appEngine.setPreferredClass(appState, actionEl.dataset.classId || "");
         render();
         return true;
-      case "manage-charm": {
-        const charmSystem = runtimeWindow.ROUGE_CHARM_SYSTEM;
-        if (charmSystem && appState.profile) {
-          const charmAction = actionEl.dataset.charmAction || "";
+      case "manage-charm":
+        if (runtimeWindow.ROUGE_CHARM_SYSTEM && appState.profile) {
           const charmId = actionEl.dataset.charmId || "";
-          if (charmAction === "equip") {
-            charmSystem.equipCharm(appState.profile, charmId);
-          } else if (charmAction === "unequip") {
-            charmSystem.unequipCharm(appState.profile, charmId);
-          }
+          if (actionEl.dataset.charmAction === "equip") { runtimeWindow.ROUGE_CHARM_SYSTEM.equipCharm(appState.profile, charmId); }
+          if (actionEl.dataset.charmAction === "unequip") { runtimeWindow.ROUGE_CHARM_SYSTEM.unequipCharm(appState.profile, charmId); }
           runtimeWindow.ROUGE_PERSISTENCE?.saveProfileToStorage(appState.profile);
         }
         render();
         return true;
-      }
       case "set-planned-runeword":
-        appEngine.setPlannedRuneword(
-          appState,
-          actionEl.dataset.planningSlot === "armor" ? "armor" : "weapon",
-          actionEl.dataset.runewordId || ""
-        );
+        appEngine.setPlannedRuneword(appState, actionEl.dataset.planningSlot === "armor" ? "armor" : "weapon", actionEl.dataset.runewordId || "");
         render();
         return true;
       case "set-run-history-review":
@@ -429,5 +499,6 @@
 
   runtimeWindow.ROUGE_ACTION_DISPATCHER = {
     handleClick,
+    handleKeydown,
   };
 })();

@@ -33,6 +33,19 @@ interface SavedRunPhaseGuidance {
   checklistLines: string[];
 }
 
+interface ScreenshotCombatFixtureOptions {
+  classId?: string;
+  mercenaryId?: string;
+  handSize?: number;
+  boss?: boolean;
+  openPile?: "" | "draw" | "discard" | "decklist";
+}
+
+interface ScreenshotHelpersApi {
+  ready: boolean;
+  loadCombatFixture(options?: ScreenshotCombatFixtureOptions): boolean;
+}
+
 interface RenderUtilsApi {
   escapeHtml(value: unknown): string;
   buildStat(label: string, value: unknown): string;
@@ -201,6 +214,10 @@ interface UiCommonApi {
 
 interface UiPhaseViewApi {
   render(root: HTMLElement, appState: AppState, services: UiRenderServices): void;
+}
+
+interface TrainingViewApi {
+  buildTrainingOverlay(appState: AppState, services: UiRenderServices): string;
 }
 
 interface ClassSelectorProfileRatings {
@@ -414,8 +431,14 @@ interface ActionDispatcherRewardFxApi {
   spawnRewardParticles(sourceEl: HTMLElement): void;
 }
 
+interface ActionDispatcherKeyboardApi {
+  handleKeydown(config: ActionDispatcherConfig & { event: KeyboardEvent }): boolean;
+  setRunSummaryStep(appState: AppState, nextStep: string): boolean;
+}
+
 interface ActionDispatcherApi {
   handleClick(config: ActionDispatcherConfig): boolean;
+  handleKeydown(config: ActionDispatcherConfig & { event: KeyboardEvent }): boolean;
 }
 
 interface RougeLimits {
@@ -517,8 +540,15 @@ interface Window {
   ROUGE_UTILS: RougeUtilsApi;
   ROUGE_LIMITS: RougeLimits;
   ROUGE_CONSTANTS: RougeConstants;
+  __ROUGE_SCREENSHOT_HELPERS: ScreenshotHelpersApi;
+  __ROUGE_MAIN_CARD_PREVIEW: { initCardPreview: (root: HTMLElement, getAppState: () => AppState | null) => void };
+  __ROUGE_MAIN_SKILL_PREVIEW_READOUTS: { buildExactSkillPreviewReadouts: (combat: CombatState, skill: CombatEquippedSkillState, helpers: Record<string, unknown>) => Record<string, unknown> | null } | undefined;
   ROUGE_GAME_CONTENT: GameContent;
   ROUGE_DEBUG: DebugModeConfig | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_ENGINE_HELPERS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_ENGINE_SKILLS: Record<string, any>;
   ROUGE_COMBAT_ENGINE: CombatEngineApi;
   ROUGE_COMBAT_MODIFIERS: CombatModifiersApi;
   ROUGE_SEED_LOADER: SeedLoaderApi;
@@ -565,6 +595,8 @@ interface Window {
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_CV_RUNTIME_MERCENARIES: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_CV_RUNTIME_VALIDATORS: Record<string, any>;
   __ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT: ContentValidatorRuntimeContentApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_CV_WORLD_CATALOG_SECTIONS: Record<string, any>;
@@ -639,6 +671,12 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_REWARD_ENGINE_PROGRESSION: Record<string, any>;
   __ROUGE_REWARD_ENGINE_ARCHETYPES: RewardEngineArchetypesApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_REWARD_STRATEGY_SCORING: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_REWARD_STRATEGY_NEED_SCORING: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_REWARD_BUILDER_STRATEGY_HELPERS: Record<string, any>;
   __ROUGE_REWARD_ENGINE_BUILDER_STRATEGIES: RewardEngineBuilderStrategiesApi;
   __ROUGE_REWARD_ENGINE_BUILDER: RewardEngineBuilderApi;
   __ROUGE_REWARD_ENGINE_APPLY: RewardEngineApplyApi;
@@ -663,8 +701,16 @@ interface Window {
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
   __ROUGE_COMBAT_VIEW_PREVIEW: CombatViewPreviewApi;
+  __ROUGE_COMBAT_VIEW_PREVIEW_SKILLS: {
+    buildSkillPreviewOutcome(combat: CombatState, skill: CombatEquippedSkillState, selectedEnemy: CombatEnemyState | null): string;
+  };
   __ROUGE_COMBAT_VIEW_PRESSURE: CombatViewPressureApi;
-  __ROUGE_COMBAT_VIEW_RENDERERS: CombatViewRenderersApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_VIEW_RENDERERS: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_VIEW_RENDERERS_PILE: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_VIEW_RENDERERS_DECKLIST: Record<string, any>;
   __ROUGE_ZONE_FLAVOR: { getZoneFlavor(eventId: string, zoneTitle: string): string | null; resolveZoneEnv(zoneTitle: string): string | null };
   __ROUGE_OPP_HELPERS: {
     nodeOutcomeEffect(nodeType: string, nodeId: string, outcomeId: string, outcomeTitle: string, flagIds?: string[]): RewardChoiceEffect;
@@ -715,6 +761,8 @@ interface Window {
   ROUGE_RENDER_UTILS: RenderUtilsApi;
   ROUGE_RUN_STATE: RunStateHelpersApi;
   ROUGE_RUN_ROUTE_BUILDER: RunRouteBuilderApi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_RUN_PROGRESSION_HELPERS: Record<string, any>;
   ROUGE_RUN_PROGRESSION: RunProgressionApi;
   ROUGE_RUN_REWARD_FLOW: RunRewardFlowApi;
   ROUGE_RUN_FACTORY: RunFactoryApi;
@@ -755,6 +803,7 @@ interface Window {
   __ROUGE_CHARACTER_SELECT_VIEW_DETAILS: CharacterSelectViewDetailsApi;
   ROUGE_CHARACTER_SELECT_VIEW: UiPhaseViewApi;
   ROUGE_INVENTORY_VIEW: InventoryViewApi;
+  ROUGE_TRAINING_VIEW: TrainingViewApi;
   __ROUGE_SAFE_ZONE_VIEW_MERCHANT_PRESENTATION: Record<string, unknown>;
   __ROUGE_SAFE_ZONE_VIEW_MERCHANT: SafeZoneViewMerchantApi;
   ROUGE_SAFE_ZONE_VIEW: UiPhaseViewApi;
@@ -808,5 +857,6 @@ interface Window {
   ROUGE_APP_SHELL: AppShellApi;
   __ROUGE_ACTION_DISPATCHER_COMBAT_FX: ActionDispatcherCombatFxApi;
   __ROUGE_ACTION_DISPATCHER_REWARD_FX: ActionDispatcherRewardFxApi;
+  __ROUGE_ACTION_DISPATCHER_KEYBOARD: ActionDispatcherKeyboardApi;
   ROUGE_ACTION_DISPATCHER: ActionDispatcherApi;
 }

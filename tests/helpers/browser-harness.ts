@@ -35,6 +35,8 @@ const SHARED_RUNTIME_FILES = [
   "src/combat/combat-engine-turns.js",
   "src/combat/card-effects.js",
   "src/combat/combat-engine.js",
+  "src/combat/combat-engine-skills.js",
+  "src/combat/combat-engine-combat.js",
 ];
 
 const VALIDATOR_RUNTIME_FILES = [
@@ -46,6 +48,7 @@ const VALIDATOR_RUNTIME_FILES = [
   "src/content/content-validator-world-opportunities.js",
   "src/content/content-validator-runtime-mercenaries.js",
   "src/content/content-validator-runtime-content.js",
+  "src/content/content-validator-runtime-orchestrator.js",
   "src/content/content-validator-world-catalog-sections.js",
   "src/content/content-validator-world-catalog.js",
   "src/content/content-validator.js",
@@ -92,6 +95,7 @@ const RUN_RUNTIME_FILES = [
   "src/run/run-state.js",
   "src/run/run-route-builder.js",
   "src/run/run-progression.js",
+  "src/run/run-progression-actions.js",
   "src/run/run-reward-flow.js",
   "src/run/run-factory.js",
   "src/meta/charm-data.js",
@@ -131,6 +135,7 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/safe-zone-operations-view-markup.js",
   "src/ui/safe-zone-operations-view.js",
   "src/ui/inventory-view.js",
+  "src/ui/training-view.js",
   "src/ui/safe-zone-view-merchant-presentation.js",
   "src/ui/safe-zone-view-merchant.js",
   "src/ui/safe-zone-view.js",
@@ -140,8 +145,11 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/approach-bonus.js",
   "src/ui/combat-view-exploration.js",
   "src/ui/combat-view-preview.js",
+  "src/ui/combat-view-preview-skills.js",
   "src/ui/combat-view-pressure.js",
   "src/ui/combat-view-renderers.js",
+  "src/ui/combat-view-renderers-pile.js",
+  "src/ui/combat-view-renderers-decklist.js",
   "src/ui/combat-view.js",
   "src/ui/reward-view-continuity.js",
   "src/ui/reward-view.js",
@@ -151,6 +159,7 @@ const APP_UI_RUNTIME_FILES = [
   "src/ui/app-shell.js",
   "src/ui/action-dispatcher-combat-fx.js",
   "src/ui/action-dispatcher-reward-fx.js",
+  "src/ui/action-dispatcher-keyboard.js",
   "src/ui/action-dispatcher.js",
 ];
 
@@ -223,6 +232,8 @@ const APP_RUNTIME_FILES = [
   "src/rewards/reward-engine-archetypes.js",
   "src/rewards/reward-engine-builder-data.js",
   "src/rewards/reward-engine-builder-strategies.js",
+  "src/rewards/reward-engine-builder-need-scoring.js",
+  "src/rewards/reward-engine-builder-resolvers.js",
   "src/rewards/reward-engine-builder.js",
   "src/rewards/reward-engine-apply.js",
   "src/rewards/reward-engine.js",
@@ -237,6 +248,8 @@ const APP_RUNTIME_FILES = [
   "src/app/app-engine-profile.js",
   "src/app/app-engine.js",
   ...APP_UI_RUNTIME_FILES,
+  "src/app/main-skill-preview-readouts.js",
+  "src/app/main-card-preview.js",
 ];
 
 export function getAppRuntimeFiles(): string[] {

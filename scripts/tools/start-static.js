@@ -3,13 +3,43 @@ const https = require("https");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 const { execSync } = require("child_process");
 
 const PORT = parseInt(process.env.PORT || "4173", 10);
 const DIST_DIR = path.resolve(__dirname, "../../dist");
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SESSION_SECRET = process.env.ROGUE_SESSION_SECRET || "dev-secret-change-me";
 const MAX_BODY_SIZE = 16 * 1024;
+
+if (IS_PRODUCTION && SESSION_SECRET === "dev-secret-change-me") {
+  console.error("FATAL: ROGUE_SESSION_SECRET must be set in production. Exiting.");
+  process.exit(1);
+}
+if (!process.env.ROGUE_SESSION_SECRET) {
+  console.warn("WARNING: Using default session secret — set ROGUE_SESSION_SECRET for production.");
+}
+
+const COMPRESSIBLE_TYPES = new Set([".html", ".css", ".js", ".json", ".svg"]);
+
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "script-src 'self' 'sha256-8OruamC8yKG7iW2KT3IH1gtp4w2u3QaiZlH49CjiK4o=' https://accounts.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src https://fonts.gstatic.com",
+    "img-src 'self' data:",
+    "connect-src 'self' https://oauth2.googleapis.com",
+    "frame-src https://accounts.google.com",
+  ].join("; "),
+};
+if (IS_PRODUCTION) {
+  SECURITY_HEADERS["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+}
 
 let db = null;
 try {
@@ -49,20 +79,39 @@ const MIME_TYPES = {
   ".woff2": "font/woff2",
 };
 
-function serveFile(res, filePath) {
+function serveFile(req, res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.writeHead(404, { "Content-Type": "text/plain", ...SECURITY_HEADERS });
       res.end("Not Found");
       return;
     }
-    res.writeHead(200, {
+    const headers = {
+      ...SECURITY_HEADERS,
       "Content-Type": contentType,
       "Cache-Control": ext === ".html" || ext === ".js" || ext === ".css" ? "no-cache, no-store, must-revalidate" : "public, max-age=86400",
-    });
+    };
+
+    const acceptEncoding = req.headers["accept-encoding"] || "";
+    if (COMPRESSIBLE_TYPES.has(ext) && acceptEncoding.includes("gzip")) {
+      zlib.gzip(data, (gzipErr, compressed) => {
+        if (gzipErr) {
+          res.writeHead(200, headers);
+          res.end(data);
+          return;
+        }
+        headers["Content-Encoding"] = "gzip";
+        headers["Vary"] = "Accept-Encoding";
+        res.writeHead(200, headers);
+        res.end(compressed);
+      });
+      return;
+    }
+
+    res.writeHead(200, headers);
     res.end(data);
   });
 }
@@ -119,12 +168,13 @@ function getSessionCookie(req) {
 
 function setSessionCookie(res, value, maxAge) {
   const parts = [`rogue_session=${value}`, "Path=/", "HttpOnly", "SameSite=Lax"];
+  if (IS_PRODUCTION) { parts.push("Secure"); }
   if (maxAge !== undefined) { parts.push(`Max-Age=${maxAge}`); }
   res.setHeader("Set-Cookie", parts.join("; "));
 }
 
 function sendJson(res, status, data) {
-  res.writeHead(status, { "Content-Type": "application/json" });
+  res.writeHead(status, { "Content-Type": "application/json", ...SECURITY_HEADERS });
   res.end(JSON.stringify(data));
 }
 
@@ -236,11 +286,11 @@ const server = http.createServer((req, res) => {
 
   fs.stat(filePath, (err, stats) => {
     if (!err && stats.isFile()) {
-      serveFile(res, filePath);
+      serveFile(req, res, filePath);
     } else if (!err && stats.isDirectory()) {
-      serveFile(res, path.join(filePath, "index.html"));
+      serveFile(req, res, path.join(filePath, "index.html"));
     } else {
-      serveFile(res, path.join(DIST_DIR, "index.html"));
+      serveFile(req, res, path.join(DIST_DIR, "index.html"));
     }
   });
 });

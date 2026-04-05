@@ -13,11 +13,14 @@ ssh -o ConnectTimeout=5 "$PI_HOST" "echo 'Connected to Pi'" || {
 echo "==> Pulling latest on Pi..."
 ssh "$PI_HOST" "cd $REMOTE_DIR && git pull"
 
+echo "==> Installing dependencies on Pi..."
+ssh "$PI_HOST" "cd $REMOTE_DIR && npm ci --omit=dev 2>/dev/null || npm install"
+
 echo "==> Building on Pi..."
 ssh "$PI_HOST" "cd $REMOTE_DIR && npx tsc -p tsconfig.runtime.json && node scripts/build.js"
 
-echo "==> Reloading PM2..."
-ssh "$PI_HOST" "cd $REMOTE_DIR && pm2 reload rogue-app && pm2 reload rogue-tunnel"
+echo "==> Reloading PM2 (production mode)..."
+ssh "$PI_HOST" "cd $REMOTE_DIR && NODE_ENV=production pm2 reload rogue-app && pm2 reload rogue-tunnel"
 
 echo "==> Waiting for startup..."
 sleep 2

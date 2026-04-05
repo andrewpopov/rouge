@@ -11,8 +11,30 @@
     toBonusValue,
   } = runtimeWindow.ROUGE_RUN_STATE;
 
+  const TRAINING_SLOT_META = {
+    slot1: {
+      slotNumber: 1 as const,
+      roleLabel: "Starter",
+      lockedLabel: "Always available from the start of the run.",
+    },
+    slot2: {
+      slotNumber: 2 as const,
+      roleLabel: "Bridge",
+      lockedLabel: "Unlocks at Level 6 with 3 points in a tree.",
+    },
+    slot3: {
+      slotNumber: 3 as const,
+      roleLabel: "Capstone",
+      lockedLabel: "Unlocks at Level 12 with 6 points in a favored tree and one learned bridge skill.",
+    },
+  };
+
   function getClassProgression(content: GameContent, classId: string) {
     return runtimeWindow.ROUGE_CLASS_REGISTRY?.getClassProgression?.(content, classId) || null;
+  }
+
+  function listClassTrees(definition: RuntimeClassProgressionDefinition | null) {
+    return Array.isArray(definition?.trees) ? definition.trees : [];
   }
 
   function getTreeRank(run: RunState, treeId: string) {
@@ -21,6 +43,186 @@
 
   function syncArchetypeProgression(run: RunState, content: GameContent) {
     return runtimeWindow.ROUGE_REWARD_ENGINE?.syncArchetypeScores?.(run, content) || {};
+  }
+
+  function getSkillTreeForSkill(definition: RuntimeClassProgressionDefinition | null, skillId: string) {
+    return listClassTrees(definition).find((tree: RuntimeClassTreeDefinition) => {
+      return tree.skills.some((skill: RuntimeClassSkillDefinition) => skill.id === skillId);
+    }) || null;
+  }
+
+  function getSkillDefinition(definition: RuntimeClassProgressionDefinition | null, skillId: string) {
+    const tree = getSkillTreeForSkill(definition, skillId);
+    return tree?.skills.find((skill: RuntimeClassSkillDefinition) => skill.id === skillId) || null;
+  }
+
+  function getAllClassSkills(definition: RuntimeClassProgressionDefinition | null) {
+    return listClassTrees(definition).flatMap((tree: RuntimeClassTreeDefinition) => tree.skills);
+  }
+
+  function getStarterSkill(definition: RuntimeClassProgressionDefinition | null) {
+    const explicitStarter = getSkillDefinition(definition, definition?.starterSkillId || "");
+    if (explicitStarter) {
+      return explicitStarter;
+    }
+    return getAllClassSkills(definition).find((skill: RuntimeClassSkillDefinition) => {
+      return skill.isStarter || (skill.slot === 1 && skill.tier === "starter");
+    }) || null;
+  }
+
+  function getDefaultFavoredTreeId(run: RunState, definition: RuntimeClassProgressionDefinition | null) {
+    const rankedTrees = listClassTrees(definition)
+      .map((tree: RuntimeClassTreeDefinition) => ({
+        treeId: tree.id,
+        rank: getTreeRank(run, tree.id),
+      }))
+      .filter((entry) => entry.rank > 0)
+      .sort((left, right) => right.rank - left.rank || left.treeId.localeCompare(right.treeId));
+    return rankedTrees[0]?.treeId || "";
+  }
+
+  function getNormalizedLearnedSkillIds(run: RunState, definition: RuntimeClassProgressionDefinition | null) {
+    const knownSkillIds = new Set(getAllClassSkills(definition).map((skill: RuntimeClassSkillDefinition) => skill.id));
+    const learned: string[] = [];
+    (run?.progression?.classProgression?.unlockedSkillIds || []).forEach((skillId: string) => {
+      if (!skillId || !knownSkillIds.has(skillId) || learned.includes(skillId)) {
+        return;
+      }
+      learned.push(skillId);
+    });
+
+    const starterSkill = getStarterSkill(definition);
+    if (starterSkill && !learned.includes(starterSkill.id)) {
+      learned.unshift(starterSkill.id);
+    }
+
+    return learned;
+  }
+
+  function getTreeEligibleSkills(run: RunState, tree: RuntimeClassTreeDefinition) {
+    const levelEligible = tree.skills.filter((skill: RuntimeClassSkillDefinition) => {
+      return toBonusValue(skill.requiredLevel, 1) <= run.level;
+    });
+    return levelEligible.slice(0, getTreeRank(run, tree.id));
+  }
+
+  function getTreeEligibleCount(run: RunState, tree: RuntimeClassTreeDefinition) {
+    return getTreeEligibleSkills(run, tree).length;
+  }
+
+  function getTreeLearnedCount(run: RunState, tree: RuntimeClassTreeDefinition) {
+    return (run?.progression?.classProgression?.unlockedSkillIds || []).filter((skillId: string) => {
+      return tree.skills.some((skill: RuntimeClassSkillDefinition) => skill.id === skillId);
+    }).length;
+  }
+
+  function hasLearnedBridgeSkill(run: RunState, tree: RuntimeClassTreeDefinition) {
+    const learnedSkillIds = new Set(run?.progression?.classProgression?.unlockedSkillIds || []);
+    return tree.skills.some((skill: RuntimeClassSkillDefinition) => {
+      return learnedSkillIds.has(skill.id) && (skill.slot === 2 || skill.tier === "bridge");
+    });
+  }
+
+  function isTreeFavoredForCapstone(run: RunState, definition: RuntimeClassProgressionDefinition | null, treeId: string) {
+    const targetRank = getTreeRank(run, treeId);
+    if (targetRank <= 0) {
+      return false;
+    }
+    const highestOtherRank = listClassTrees(definition)
+      .filter((tree: RuntimeClassTreeDefinition) => tree.id !== treeId)
+      .reduce((maxRank, tree: RuntimeClassTreeDefinition) => Math.max(maxRank, getTreeRank(run, tree.id)), 0);
+    return targetRank >= highestOtherRank + 2;
+  }
+
+  function isBridgeSlotUnlocked(run: RunState, tree: RuntimeClassTreeDefinition) {
+    return run.level >= 6 && getTreeRank(run, tree.id) >= 3;
+  }
+
+  function isCapstoneSlotUnlocked(run: RunState, definition: RuntimeClassProgressionDefinition | null, tree: RuntimeClassTreeDefinition) {
+    return run.level >= 12
+      && getTreeRank(run, tree.id) >= 6
+      && isTreeFavoredForCapstone(run, definition, tree.id)
+      && hasLearnedBridgeSkill(run, tree);
+  }
+
+  function isTrainingSlotUnlocked(
+    run: RunState,
+    definition: RuntimeClassProgressionDefinition | null,
+    slotKey: RunSkillBarSlotKey,
+    tree: RuntimeClassTreeDefinition | null = null
+  ) {
+    if (slotKey === "slot1") {
+      return Boolean(getStarterSkill(definition));
+    }
+    if (slotKey === "slot2") {
+      const trees = tree ? [tree] : listClassTrees(definition);
+      return trees.some((entry: RuntimeClassTreeDefinition) => isBridgeSlotUnlocked(run, entry));
+    }
+    const trees = tree ? [tree] : listClassTrees(definition);
+    return trees.some((entry: RuntimeClassTreeDefinition) => isCapstoneSlotUnlocked(run, definition, entry));
+  }
+
+  function getSkillEligibility(run: RunState, definition: RuntimeClassProgressionDefinition | null, tree: RuntimeClassTreeDefinition, skill: RuntimeClassSkillDefinition) {
+    if (skill.requiredLevel > run.level) { return { eligible: false, gateLabel: `Requires Level ${skill.requiredLevel}.` }; }
+    if (skill.slot === 1 || skill.tier === "starter" || skill.isStarter) { return { eligible: true, gateLabel: "Starting skill for this class." }; }
+    if (skill.slot === 2 || skill.tier === "bridge") {
+      if (!isBridgeSlotUnlocked(run, tree)) { return { eligible: false, gateLabel: `Requires Level 6 and 3 points in ${tree.name}.` }; }
+      return { eligible: true, gateLabel: "Ready to learn." };
+    }
+    if (run.level < 12) { return { eligible: false, gateLabel: "Requires Level 12." }; }
+    if (getTreeRank(run, tree.id) < 6) { return { eligible: false, gateLabel: `Requires 6 points in ${tree.name}.` }; }
+    if (!hasLearnedBridgeSkill(run, tree)) { return { eligible: false, gateLabel: `Learn a ${tree.name} bridge skill first.` }; }
+    if (!isTreeFavoredForCapstone(run, definition, tree.id)) { return { eligible: false, gateLabel: `${tree.name} needs a favored lead of 2 points.` }; }
+    return { eligible: true, gateLabel: "Ready to learn." };
+  }
+
+  function isSkillEquippableInSlot(run: RunState, definition: RuntimeClassProgressionDefinition | null, slotKey: RunSkillBarSlotKey, skillId: string) {
+    const tree = getSkillTreeForSkill(definition, skillId);
+    const skill = getSkillDefinition(definition, skillId);
+    if (!tree || !skill) {
+      return false;
+    }
+    const slotMatch = (slotKey === "slot1" && skill.slot === 1)
+      || (slotKey === "slot2" && skill.slot === 2)
+      || (slotKey === "slot3" && skill.slot === 3);
+    if (!slotMatch) {
+      return false;
+    }
+    if (!(run.progression?.classProgression?.unlockedSkillIds || []).includes(skillId)) {
+      return false;
+    }
+    return isTrainingSlotUnlocked(run, definition, slotKey, tree);
+  }
+
+  function normalizeEquippedSkillBar(run: RunState, definition: RuntimeClassProgressionDefinition | null, learnedSkillIds: string[]) {
+    const equipped = run?.progression?.classProgression?.equippedSkillBar || {
+      slot1SkillId: "",
+      slot2SkillId: "",
+      slot3SkillId: "",
+    };
+    const normalized = {
+      slot1SkillId: "",
+      slot2SkillId: "",
+      slot3SkillId: "",
+    };
+    const learnedSet = new Set(learnedSkillIds);
+    const starterSkill = getStarterSkill(definition);
+
+    const requestedSlot1 = equipped.slot1SkillId;
+    if (requestedSlot1 && learnedSet.has(requestedSlot1) && isSkillEquippableInSlot(run, definition, "slot1", requestedSlot1)) {
+      normalized.slot1SkillId = requestedSlot1;
+    } else if (starterSkill && learnedSet.has(starterSkill.id)) {
+      normalized.slot1SkillId = starterSkill.id;
+    }
+
+    (["slot2", "slot3"] as RunSkillBarSlotKey[]).forEach((slotKey) => {
+      const requestedSkillId = equipped[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "";
+      if (requestedSkillId && isSkillEquippableInSlot(run, definition, slotKey, requestedSkillId)) {
+        normalized[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] = requestedSkillId;
+      }
+    });
+
+    return normalized;
   }
 
   function updateFavoredTree(run: RunState, treeId: string) {
@@ -37,19 +239,13 @@
     }
   }
 
-  function getTreeUnlockedCount(run: RunState, tree: RuntimeClassTreeDefinition) {
-    return (run?.progression?.classProgression?.unlockedSkillIds || []).filter((skillId: string) => {
-      return tree.skills.some((skill: RuntimeClassSkillDefinition) => skill.id === skillId);
-    }).length;
-  }
-
   function getTreeContributionBonuses(run: RunState, tree: RuntimeClassTreeDefinition) {
     const total: Record<string, number> = {};
     const rankCount = getTreeRank(run, tree.id);
     const isFavored = run?.progression?.classProgression?.favoredTreeId === tree.id && rankCount > 0;
-    const unlockedCount = getTreeUnlockedCount(run, tree);
+    const eligibleCount = getTreeEligibleCount(run, tree);
     const unlockThreshold = Math.max(1, toBonusValue(tree.unlockThreshold, 2));
-    const unlockSteps = Math.floor(unlockedCount / unlockThreshold);
+    const unlockSteps = Math.floor(eligibleCount / unlockThreshold);
 
     if (rankCount > 0) {
       addBonusSet(total, tree.bonusPerRank, rankCount);
@@ -64,27 +260,48 @@
     return total;
   }
 
-  function getTreeNextUnlockLabel(run: RunState, tree: RuntimeClassTreeDefinition) {
-    const treeRank = getTreeRank(run, tree.id);
-    const nextSkill = tree.skills.find((skill: RuntimeClassSkillDefinition, index: number) => {
-      return index >= treeRank && toBonusValue(skill.requiredLevel, 1) <= run.level;
+  function getTreeNextUnlockLabel(run: RunState, definition: RuntimeClassProgressionDefinition | null, tree: RuntimeClassTreeDefinition) {
+    const learnedSkillIds = new Set(run?.progression?.classProgression?.unlockedSkillIds || []);
+    const learnableNow = tree.skills.find((skill: RuntimeClassSkillDefinition) => {
+      return !learnedSkillIds.has(skill.id) && getSkillEligibility(run, definition, tree, skill).eligible;
+    }) || null;
+    if (learnableNow) {
+      return `Next unlock ready: ${learnableNow.name}.`;
+    }
+
+    const nextLevelSkill = tree.skills.find((skill: RuntimeClassSkillDefinition) => {
+      return !learnedSkillIds.has(skill.id) && skill.requiredLevel > run.level;
+    }) || null;
+    if (nextLevelSkill) {
+      return `Next unlock at Level ${nextLevelSkill.requiredLevel}: ${nextLevelSkill.name}.`;
+    }
+
+    const hasUnlearnedBridge = tree.skills.some((skill: RuntimeClassSkillDefinition) => {
+      return !learnedSkillIds.has(skill.id) && (skill.slot === 2 || skill.tier === "bridge");
     });
-    if (nextSkill) {
-      return `Next unlock: ${nextSkill.name} (Lv ${nextSkill.requiredLevel}).`;
+    if (hasUnlearnedBridge && !isBridgeSlotUnlocked(run, tree)) {
+      return `Next unlock gate: bridge skills open at Level 6 with 3 points in ${tree.name}.`;
     }
 
-    const futureSkill = tree.skills.find((skill: RuntimeClassSkillDefinition, index: number) => index >= treeRank) || null;
-    if (futureSkill) {
-      return `Next unlock waits for Lv ${futureSkill.requiredLevel}: ${futureSkill.name}.`;
+    const hasUnlearnedCapstone = tree.skills.some((skill: RuntimeClassSkillDefinition) => {
+      return !learnedSkillIds.has(skill.id) && (skill.slot === 3 || skill.tier === "capstone");
+    });
+    if (hasUnlearnedCapstone && !isCapstoneSlotUnlocked(run, definition, tree)) {
+      return `Next unlock gate: capstone requires Level 12, 6 points in ${tree.name}, a learned bridge skill, and a favored lead.`;
     }
 
-    return "All current skills in this tree are unlocked.";
+    return "All current skills in this tree are unlocked for this run.";
   }
 
   function syncUnlockedClassSkills(run: RunState, content: GameContent) {
     const definition = getClassProgression(content, run.classId);
     if (!definition) {
       run.progression.classProgression.unlockedSkillIds = [];
+      run.progression.classProgression.equippedSkillBar = {
+        slot1SkillId: "",
+        slot2SkillId: "",
+        slot3SkillId: "",
+      };
       run.progression.classProgression.favoredTreeId = "";
       run.progression.classProgression.primaryTreeId = "";
       run.progression.classProgression.secondaryUtilityTreeId = "";
@@ -97,35 +314,36 @@
       return;
     }
 
-    const unlocked: string[] = [];
     const normalizedTreeRanks: Record<string, number> = {};
-    definition.trees.forEach((tree: RuntimeClassTreeDefinition) => {
+    listClassTrees(definition).forEach((tree: RuntimeClassTreeDefinition) => {
       const maxRank = Math.max(1, toBonusValue(tree.maxRank, tree.skills.length));
       const treeRank = clamp(Math.max(0, toBonusValue(run.progression.classProgression.treeRanks?.[tree.id])), 0, maxRank);
-      if (treeRank <= 0) {
-        return;
+      if (treeRank > 0) {
+        normalizedTreeRanks[tree.id] = treeRank;
       }
-      normalizedTreeRanks[tree.id] = treeRank;
-
-      const eligibleSkills = tree.skills.filter((skill: RuntimeClassSkillDefinition) => toBonusValue(skill.requiredLevel, 1) <= run.level).slice(0, treeRank);
-      eligibleSkills.forEach((skill: RuntimeClassSkillDefinition) => {
-        if (!unlocked.includes(skill.id)) {
-          unlocked.push(skill.id);
-        }
-      });
     });
 
     run.progression.classProgression.treeRanks = normalizedTreeRanks;
-    run.progression.classProgression.unlockedSkillIds = unlocked;
+    run.progression.classProgression.unlockedSkillIds = getNormalizedLearnedSkillIds(run, definition);
+    run.progression.classProgression.equippedSkillBar = normalizeEquippedSkillBar(
+      run,
+      definition,
+      run.progression.classProgression.unlockedSkillIds
+    );
+
     if (
-      run.progression.classProgression.favoredTreeId &&
-      !definition.trees.some((tree: RuntimeClassTreeDefinition) => tree.id === run.progression.classProgression.favoredTreeId)
+      run.progression.classProgression.favoredTreeId
+      && !listClassTrees(definition).some((tree: RuntimeClassTreeDefinition) => tree.id === run.progression.classProgression.favoredTreeId)
     ) {
       run.progression.classProgression.favoredTreeId = "";
     }
     if (run.progression.classProgression.favoredTreeId && !normalizedTreeRanks[run.progression.classProgression.favoredTreeId]) {
       run.progression.classProgression.favoredTreeId = "";
     }
+    if (!run.progression.classProgression.favoredTreeId) {
+      run.progression.classProgression.favoredTreeId = getDefaultFavoredTreeId(run, definition);
+    }
+
     syncArchetypeProgression(run, content);
   }
 
@@ -142,7 +360,7 @@
       heroBurnBonus: Math.floor(toBonusValue(attributes.energy) / 2),
     });
 
-    (definition?.trees || []).forEach((tree: RuntimeClassTreeDefinition) => {
+    listClassTrees(definition).forEach((tree: RuntimeClassTreeDefinition) => {
       addBonusSet(total, getTreeContributionBonuses(run, tree));
     });
 
@@ -161,11 +379,11 @@
     const primaryTreeId = run.progression?.classProgression?.primaryTreeId || "";
     const secondaryUtilityTreeId = run.progression?.classProgression?.secondaryUtilityTreeId || "";
     const specializationStage = run.progression?.classProgression?.specializationStage || "exploratory";
-    const favoredTree = (definition?.trees || []).find((tree: RuntimeClassTreeDefinition) => tree.id === favoredTreeId) || null;
-    const treeSummaries = (definition?.trees || []).map((tree: RuntimeClassTreeDefinition) => {
+    const favoredTree = listClassTrees(definition).find((tree: RuntimeClassTreeDefinition) => tree.id === favoredTreeId) || null;
+    const treeSummaries = listClassTrees(definition).map((tree: RuntimeClassTreeDefinition) => {
       const rank = getTreeRank(run, tree.id);
-      const unlockedSkills = getTreeUnlockedCount(run, tree);
-      const availableSkills = tree.skills.filter((skill: RuntimeClassSkillDefinition) => toBonusValue(skill.requiredLevel, 1) <= run.level).length;
+      const learnedSkills = getTreeLearnedCount(run, tree);
+      const availableSkills = getTreeEligibleCount(run, tree);
       const isFavored = favoredTreeId === tree.id && rank > 0;
       const bonusLines = describeBonusSet(getTreeContributionBonuses(run, tree));
 
@@ -175,18 +393,18 @@
         archetypeId: tree.archetypeId || "unknown",
         rank,
         maxRank: Math.max(1, toBonusValue(tree.maxRank, tree.skills.length)),
-        unlockedSkills,
+        unlockedSkills: learnedSkills,
         availableSkills,
         isFavored,
-        nextUnlock: getTreeNextUnlockLabel(run, tree),
+        nextUnlock: getTreeNextUnlockLabel(run, definition, tree),
         bonusLines: bonusLines.length > 0 ? bonusLines : ["No derived tree bonuses yet."],
       };
     });
 
     const nextClassUnlock =
-      treeSummaries.find((treeSummary: RunClassTreeSummary) => treeSummary.isFavored && !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock ||
-      treeSummaries.find((treeSummary: RunClassTreeSummary) => !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock ||
-      "All current class skills are unlocked.";
+      treeSummaries.find((treeSummary: RunClassTreeSummary) => treeSummary.isFavored && !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock
+      || treeSummaries.find((treeSummary: RunClassTreeSummary) => !treeSummary.nextUnlock.startsWith("All current"))?.nextUnlock
+      || "All current class skills are unlocked for this run.";
     const totalBonuses = buildProgressionBonuses(run, content);
     const bonusSummaryLines = describeBonusSet(totalBonuses);
 
@@ -302,215 +520,19 @@
     run.summary.trainingRanksGained = Math.max(toBonusValue(run.summary.trainingRanksGained), targetRanks);
   }
 
-  function buildProgressionAction(run: RunState, track: string, title: string, description: string, previewLines: string[]) {
-    const canSpend = run.progression.skillPointsAvailable > 0;
-    return {
-      id: `progression_spend_${track}`,
-      category: "progression",
-      title,
-      subtitle: "Spend Skill Point",
-      description,
-      previewLines: [
-        ...previewLines,
-        canSpend
-          ? `${run.progression.skillPointsAvailable} skill point${run.progression.skillPointsAvailable === 1 ? "" : "s"} ready.`
-          : "Earn more levels to unlock another spend.",
-      ],
-      cost: 0,
-      actionLabel: canSpend ? "Spend" : "Locked",
-      disabled: !canSpend,
-    };
-  }
-
-  function buildAttributeAction(run: RunState, attribute: string, title: string, description: string, previewLines: string[]) {
-    const canSpend = run.progression.attributePointsAvailable > 0;
-    return {
-      id: `progression_attribute_${attribute}`,
-      category: "progression",
-      title,
-      subtitle: "Allocate Attribute",
-      description,
-      previewLines: [
-        ...previewLines,
-        `${title} rank ${toBonusValue((run.progression.attributes as unknown as Record<string, number>)?.[attribute])}.`,
-        canSpend
-          ? `${run.progression.attributePointsAvailable} attribute point${run.progression.attributePointsAvailable === 1 ? "" : "s"} ready.`
-          : "Level up to unlock another attribute point.",
-      ],
-      cost: 0,
-      actionLabel: canSpend ? "Allocate" : "Locked",
-      disabled: !canSpend,
-    };
-  }
-
-  function buildClassTreeAction(run: RunState, tree: RuntimeClassTreeDefinition, treeSummary: RunClassTreeSummary) {
-    const treeRank = treeSummary?.rank || 0;
-    const maxRank = treeSummary?.maxRank || Math.max(1, toBonusValue(tree.maxRank, tree.skills.length));
-    const canSpend = run.progression.classPointsAvailable > 0 && treeRank < maxRank;
-    const threshold = Math.max(1, toBonusValue(tree.unlockThreshold, 2));
-    const bonusPreview = Array.isArray(treeSummary?.bonusLines) ? treeSummary.bonusLines.slice(0, runtimeWindow.ROUGE_LIMITS.BONUS_PREVIEW) : [];
-
-    let actionLabel = "Locked";
-    if (treeRank >= maxRank) {
-      actionLabel = "Maxed";
-    } else if (canSpend) {
-      actionLabel = "Invest";
-    }
-
-    return {
-      id: `progression_tree_${tree.id}`,
-      category: "progression",
-      title: tree.name,
-      subtitle: "Invest Class Point",
-      description: tree.summary,
-      previewLines: [
-        `Tree rank ${treeRank}/${maxRank}. Unlocked skills ${treeSummary?.unlockedSkills || 0}/${tree.skills.length}.`,
-        treeSummary?.nextUnlock || "Next unlock path unavailable.",
-        `Every ${threshold} unlocked skill${threshold === 1 ? "" : "s"} grants an extra tree passive.`,
-        ...(bonusPreview.length > 0 ? bonusPreview : ["No derived tree bonuses yet."]),
-      ],
-      cost: 0,
-      actionLabel,
-      disabled: !canSpend,
-    };
-  }
-
-  function listProgressionActions(run: RunState, content: GameContent) {
-    if (!run?.progression) {
-      return [];
-    }
-
-    const progressionSummary = getProgressionSummary(run, content);
-    const treeSummaries = new Map(progressionSummary.treeSummaries.map((entry: RunClassTreeSummary) => [entry.treeId, entry]));
-
-    const actions = [
-      buildProgressionAction(
-        run,
-        "vitality",
-        "Vitality Drill",
-        "Convert one banked skill point into permanent hero durability.",
-        ["Hero max Life +4."]
-      ),
-      buildProgressionAction(
-        run,
-        "focus",
-        "Focus Drill",
-        "Convert one banked skill point into permanent hero casting stamina.",
-        ["Hero max Energy +1.", "Potion healing +1."]
-      ),
-      buildProgressionAction(
-        run,
-        "command",
-        "Command Drill",
-        "Convert one banked skill point into permanent mercenary pressure.",
-        ["Mercenary attack +1.", "Mercenary max Life +3."]
-      ),
-      buildAttributeAction(
-        run,
-        "strength",
-        "Strength",
-        "Invest in raw physical power for higher card damage.",
-        ["Hero card damage +1."]
-      ),
-      buildAttributeAction(
-        run,
-        "dexterity",
-        "Dexterity",
-        "Invest in timing and control for stronger guard skills.",
-        ["Guard skills +1."]
-      ),
-      buildAttributeAction(
-        run,
-        "vitality",
-        "Vitality",
-        "Invest in durability for a larger Life pool.",
-        ["Hero max Life +3."]
-      ),
-      buildAttributeAction(
-        run,
-        "energy",
-        "Energy",
-        "Invest in spell fuel for mana growth and burn scaling.",
-        ["Every 2 ranks: Hero max Energy +1.", "Every 2 ranks: Burn +1."]
-      ),
-    ];
-
-    const classProgression = getClassProgression(content, run.classId);
-    (classProgression?.trees || []).forEach((tree: RuntimeClassTreeDefinition) => {
-      actions.push(buildClassTreeAction(run, tree, treeSummaries.get(tree.id) || null));
-    });
-
-    return actions;
-  }
-
-  function applyProgressionAction(run: RunState, actionId: string, content: GameContent) {
-    if (!actionId.startsWith("progression_spend_")) {
-      if (!actionId.startsWith("progression_attribute_") && !actionId.startsWith("progression_tree_")) {
-        return { ok: false, message: "Unknown progression action." };
-      }
-    }
-
-    if (actionId.startsWith("progression_spend_")) {
-      if (run.progression.skillPointsAvailable <= 0) {
-        return { ok: false, message: "No banked skill points are available." };
-      }
-
-      const track = actionId.replace("progression_spend_", "");
-      if (!Object.prototype.hasOwnProperty.call(createDefaultTraining(), track)) {
-        return { ok: false, message: "Unknown progression track." };
-      }
-
-      run.progression.trainingPointsSpent += 1;
-      run.progression.skillPointsAvailable = Math.max(0, run.progression.skillPointsAvailable - 1);
-      (run.progression.training as Record<string, number>)[track] += 1;
-      applyTrainingRank(run, track);
-      return { ok: true, message: "Training updated." };
-    }
-
-    if (actionId.startsWith("progression_attribute_")) {
-      if (run.progression.attributePointsAvailable <= 0) {
-        return { ok: false, message: "No attribute points are available." };
-      }
-
-      const attribute = actionId.replace("progression_attribute_", "");
-      if (!Object.prototype.hasOwnProperty.call(createDefaultAttributes(), attribute)) {
-        return { ok: false, message: "Unknown attribute." };
-      }
-
-      run.progression.attributePointsSpent += 1;
-      run.progression.attributePointsAvailable = Math.max(0, run.progression.attributePointsAvailable - 1);
-      (run.progression.attributes as unknown as Record<string, number>)[attribute] += 1;
-      return { ok: true, message: "Attributes updated." };
-    }
-
-    if (run.progression.classPointsAvailable <= 0) {
-      return { ok: false, message: "No class points are available." };
-    }
-
-    const treeId = actionId.replace("progression_tree_", "");
-    const classProgression = getClassProgression(content, run.classId);
-    const tree = classProgression?.trees?.find((entry: RuntimeClassTreeDefinition) => entry.id === treeId) || null;
-    if (!tree) {
-      return { ok: false, message: "Unknown class progression tree." };
-    }
-    if (getTreeRank(run, treeId) >= Math.max(1, toBonusValue(tree.maxRank, tree.skills.length))) {
-      return { ok: false, message: "That class tree is fully invested for this run." };
-    }
-
-    run.progression.classPointsSpent += 1;
-    run.progression.classPointsAvailable = Math.max(0, run.progression.classPointsAvailable - 1);
-    run.progression.classProgression.treeRanks[treeId] = toBonusValue(run.progression.classProgression.treeRanks?.[treeId]) + 1;
-    updateFavoredTree(run, treeId);
-    syncUnlockedClassSkills(run, content);
-    return { ok: true, message: "Class progression updated." };
-  }
-
-  runtimeWindow.ROUGE_RUN_PROGRESSION = {
-    buildProgressionBonuses,
-    getProgressionSummary,
-    syncLevelProgression,
-    syncUnlockedClassSkills,
-    listProgressionActions,
-    applyProgressionAction,
+  runtimeWindow.__ROUGE_RUN_PROGRESSION_HELPERS = {
+    TRAINING_SLOT_META,
+    getClassProgression, listClassTrees, getTreeRank, syncArchetypeProgression,
+    getSkillTreeForSkill, getSkillDefinition, getAllClassSkills, getStarterSkill,
+    getDefaultFavoredTreeId, getNormalizedLearnedSkillIds,
+    getTreeEligibleSkills, getTreeEligibleCount, getTreeLearnedCount,
+    hasLearnedBridgeSkill, isTreeFavoredForCapstone,
+    isBridgeSlotUnlocked, isCapstoneSlotUnlocked, isTrainingSlotUnlocked,
+    getSkillEligibility, isSkillEquippableInSlot, normalizeEquippedSkillBar,
+    updateFavoredTree, getTreeContributionBonuses, getTreeNextUnlockLabel,
+    syncUnlockedClassSkills, buildProgressionBonuses, getProgressionSummary,
+    applyTrainingRank, syncLevelProgression,
   };
+
 })();
+

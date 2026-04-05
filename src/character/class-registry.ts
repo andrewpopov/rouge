@@ -197,36 +197,139 @@
     return Array.isArray(seedBundle?.skills?.classes) ? seedBundle.skills.classes : [];
   }
 
-  function normalizeSkillDefinition(skill: SkillSeedDefinition) {
-    if (!skill?.id || !skill?.name) {
-      return null;
-    }
-
-    return {
-      id: skill.id,
-      name: skill.name,
-      requiredLevel: Math.max(1, toNumber(skill.requiredLevel, 1)),
-    };
-  }
-
-  function normalizeTreeSkills(skills: SkillSeedDefinition[]) {
+  function sortSkillSeeds(skills: SkillSeedDefinition[]) {
     const seenSkillIds = new Set();
     return (Array.isArray(skills) ? skills : [])
-      .map(normalizeSkillDefinition)
+      .filter((skill) => skill?.id && skill?.name)
       .filter((skill) => {
-        if (!skill || seenSkillIds.has(skill.id)) {
+        if (seenSkillIds.has(skill.id)) {
           return false;
         }
         seenSkillIds.add(skill.id);
         return true;
       })
       .sort((left, right) => {
-        const levelDelta = left.requiredLevel - right.requiredLevel;
+        const levelDelta = Math.max(1, toNumber(left?.requiredLevel, 1)) - Math.max(1, toNumber(right?.requiredLevel, 1));
         if (levelDelta !== 0) {
           return levelDelta;
         }
-        return left.name.localeCompare(right.name);
+        return String(left?.name || "").localeCompare(String(right?.name || ""));
       });
+  }
+
+  function inferSkillSlotAndTier(skill: SkillSeedDefinition, index: number, total: number, starterSkillId: string) {
+    if (skill?.isStarter || skill?.id === starterSkillId) {
+      return { slot: 1 as ClassSkillSlotNumber, tier: "starter" as ClassSkillTier };
+    }
+
+    const explicitSlot = skill?.slot;
+    const explicitTier = skill?.tier;
+    if ((explicitSlot === 1 || explicitSlot === 2 || explicitSlot === 3)
+      && (explicitTier === "starter" || explicitTier === "bridge" || explicitTier === "capstone")) {
+      return { slot: explicitSlot, tier: explicitTier };
+    }
+
+    const requiredLevel = Math.max(1, toNumber(skill?.requiredLevel, 1));
+    const nearEndOfTree = index >= Math.max(0, total - 2);
+    if (requiredLevel >= 24 || nearEndOfTree) {
+      return { slot: 3 as ClassSkillSlotNumber, tier: "capstone" as ClassSkillTier };
+    }
+
+    return { slot: 2 as ClassSkillSlotNumber, tier: "bridge" as ClassSkillTier };
+  }
+
+  function inferSkillFamily(archetypeId: string, slot: ClassSkillSlotNumber, tier: ClassSkillTier) {
+    if (tier === "capstone" || slot === 3) {
+      return "commitment" as SkillFamilyId;
+    }
+    if (slot === 1) {
+      if (archetypeId === TREE_ARCHETYPES.command.id) {
+        return "command" as SkillFamilyId;
+      }
+      if (archetypeId === TREE_ARCHETYPES.arcane.id) {
+        return "state" as SkillFamilyId;
+      }
+      return "answer" as SkillFamilyId;
+    }
+
+    if (archetypeId === TREE_ARCHETYPES.command.id) {
+      return "trigger_arming" as SkillFamilyId;
+    }
+    if (archetypeId === TREE_ARCHETYPES.support.id) {
+      return "recovery" as SkillFamilyId;
+    }
+    if (archetypeId === TREE_ARCHETYPES.arcane.id) {
+      return "conversion" as SkillFamilyId;
+    }
+    return "answer" as SkillFamilyId;
+  }
+
+  function normalizeSkillDefinition(
+    skill: SkillSeedDefinition,
+    index: number,
+    total: number,
+    archetypeId: string,
+    starterSkillId: string
+  ) {
+    if (!skill?.id || !skill?.name) {
+      return null;
+    }
+
+    const { slot, tier } = inferSkillSlotAndTier(skill, index, total, starterSkillId);
+    const description = String(skill.summary || skill.description || "").trim();
+    const exactText = String(skill.exactText || description || skill.name).trim();
+    const summary = String(skill.summary || description || `${skill.name} becomes available as a ${tier} class skill.`).trim();
+    const cost = Math.max(0, toNumber(skill.cost, slot === 3 ? 2 : 1));
+    let defaultCooldown: number;
+    if (slot === 1) {
+      defaultCooldown = 2;
+    } else if (slot === 2) {
+      defaultCooldown = 3;
+    } else {
+      defaultCooldown = 4;
+    }
+    const cooldown = Math.max(0, toNumber(skill.cooldown, defaultCooldown));
+    const explicitFamily = skill.family;
+    const family = explicitFamily
+      && ["state", "command", "answer", "trigger_arming", "conversion", "recovery", "commitment"].includes(explicitFamily)
+      ? explicitFamily
+      : inferSkillFamily(archetypeId, slot, tier);
+
+    return {
+      id: skill.id,
+      name: skill.name,
+      requiredLevel: Math.max(1, toNumber(skill.requiredLevel, 1)),
+      family,
+      slot,
+      tier,
+      cost,
+      cooldown,
+      summary,
+      exactText,
+      isStarter: skill.id === starterSkillId || Boolean(skill.isStarter),
+      chargeCount: Math.max(0, toNumber(skill.chargeCount, 0)) || undefined,
+      oncePerBattle: Boolean(skill.oncePerBattle),
+      active: skill.active !== false,
+      skillType: String(skill.skillType || "").trim() || undefined,
+      damageType: String(skill.damageType || "").trim() as SkillDamageTypeId || undefined,
+    };
+  }
+
+  function normalizeTreeSkills(skills: SkillSeedDefinition[], archetypeId: string, starterSkillId: string) {
+    const sortedSkills = sortSkillSeeds(skills);
+    return sortedSkills
+      .map((skill, index) => normalizeSkillDefinition(skill, index, sortedSkills.length, archetypeId, starterSkillId))
+      .filter(Boolean);
+  }
+
+  function getFallbackStarterSkillId(trees: SkillTreeSeedDefinition[]) {
+    for (const tree of Array.isArray(trees) ? trees : []) {
+      const firstSkill = sortSkillSeeds(tree?.skills || [])[0];
+      if (firstSkill?.id) {
+        return firstSkill.id;
+      }
+    }
+    return "";
   }
 
   function getTreeArchetype(treeName: string, index: number) {
@@ -271,10 +374,11 @@
         .filter((entry: ClassSkillsSeedEntry) => entry?.classId)
         .map((entry: ClassSkillsSeedEntry) => {
           const classDefinition = classesById[entry.classId] || null;
+          const starterSkillId = String(entry?.starterSkillId || getFallbackStarterSkillId(entry?.trees || []) || "");
           const trees = (Array.isArray(entry.trees) ? entry.trees : [])
             .map((tree: SkillTreeSeedDefinition, index: number) => {
               const archetype = getTreeArchetype(tree?.name, index);
-              const skills = normalizeTreeSkills(tree?.skills);
+              const skills = normalizeTreeSkills(tree?.skills, archetype.id, starterSkillId);
               if (!tree?.id || !tree?.name || skills.length === 0) {
                 return null;
               }
@@ -305,6 +409,7 @@
             {
               classId: entry.classId,
               className: entry.className || classDefinition?.name || entry.classId,
+              starterSkillId: starterSkillId || trees[0]?.skills?.[0]?.id || "",
               trees,
             },
           ];

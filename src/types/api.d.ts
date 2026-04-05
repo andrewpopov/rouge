@@ -328,6 +328,9 @@ interface RunProgressionApi {
   getProgressionSummary(run: RunState, content: GameContent): RunProgressionSummary;
   syncLevelProgression(run: RunState): void;
   syncUnlockedClassSkills(run: RunState, content: GameContent): void;
+  buildTrainingScreenModel(appState: AppState, content: GameContent): TrainingScreenModel | null;
+  unlockTrainingSkill(run: RunState, content: GameContent, skillId: string): ActionResult;
+  equipTrainingSkill(run: RunState, content: GameContent, slotKey: RunSkillBarSlotKey, skillId: string): ActionResult;
   listProgressionActions(run: RunState, content: GameContent): TownAction[];
   applyProgressionAction(run: RunState, actionId: string, content: GameContent): ActionResult;
 }
@@ -373,6 +376,15 @@ interface AppEngineApi {
   leaveSafeZone(state: AppState): ActionResult;
   returnToSafeZone(state: AppState): ActionResult;
   useTownAction(state: AppState, actionId: string): ActionResult;
+  openTrainingView(state: AppState, source?: TrainingViewSource): ActionResult;
+  closeTrainingView(state: AppState): void;
+  selectTrainingTree(state: AppState, treeId: string): void;
+  selectTrainingSkill(state: AppState, skillId: string): void;
+  selectTrainingSlot(state: AppState, slotKey: "" | RunSkillBarSlotKey): void;
+  setTrainingCompare(state: AppState, skillId: string): void;
+  setTrainingMode(state: AppState, mode: TrainingViewMode): void;
+  unlockTrainingSkill(state: AppState, skillId: string): ActionResult;
+  equipTrainingSkill(state: AppState, slotKey: RunSkillBarSlotKey, skillId: string): ActionResult;
   selectZone(state: AppState, zoneId: string): ActionResult;
   debugSkipEncounter(state: AppState): ActionResult;
   syncEncounterOutcome(state: AppState): ActionResult;
@@ -408,6 +420,8 @@ interface ExplorationEventsApi {
 
 interface AssetMapApi {
   getCardIcon(cardId: string, effects?: CardEffect[]): string;
+  getCardIllustration(cardId: string): string | null;
+  getCardFrame(roleKey: string): string | null;
   getEnemyIcon(templateId: string): string;
   getEnemySprite(templateId: string): string | null;
   getClassPortrait(classId: string): string | null;
@@ -494,41 +508,4 @@ interface ClassUnlockRulesApi {
   checkAndUnlockClasses(profile: ProfileState): string[];
 }
 
-interface AppState {
-  phase: AppPhase;
-  content: GameContent;
-  seedBundle: SeedBundle;
-  combatEngine: CombatEngineApi;
-  randomFn: RandomFn;
-  registries: {
-    classes: ClassDefinition[];
-    mercenaries: MercenaryDefinition[];
-  };
-  ui: {
-    selectedClassId: string;
-    selectedMercenaryId: string;
-    reviewedHistoryIndex: number;
-    confirmAbandonSavedRun: boolean;
-    hallExpanded: boolean;
-    hallSection: string;
-    townFocus: string;
-    inventoryOpen: boolean;
-    inventoryTab: string;
-    inventoryDetailEntryId: string;
-    exploring: boolean;
-    explorationEvent: ExplorationEvent | null;
-    scrollMapOpen: boolean;
-    routeIntelOpen: boolean;
-    actTransitionScrollOpen: boolean;
-    runSummaryStep: "finale" | "ledger" | "archive";
-  };
-  profile: ProfileState;
-  run: RunState | null;
-  combat: CombatState | null;
-  error: string;
-}
-
-interface BootState {
-  status: "loading" | "ready" | "error";
-  error: string;
-}
+// Training and app-state types in api-state.d.ts

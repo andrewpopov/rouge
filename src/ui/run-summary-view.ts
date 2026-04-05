@@ -12,6 +12,11 @@
 
   const SUMMARY_STEPS = ["finale", "ledger", "archive"] as const;
   type RunSummaryStep = (typeof SUMMARY_STEPS)[number];
+  const STEP_TITLES: Record<RunSummaryStep, string> = {
+    finale: "Finale",
+    ledger: "Road Ledger",
+    archive: "Archive",
+  };
 
   function renderStat(label: string, value: string | number, escapeHtml: (value: unknown) => string): string {
     return `
@@ -203,6 +208,41 @@
         <span class="run-summary-step-btn__title">${escapeHtml(title)}</span>
         <span class="run-summary-step-btn__sub">${escapeHtml(subtitle)}</span>
       </button>
+    `;
+  }
+
+  function renderStepHints(activeStep: RunSummaryStep, escapeHtml: (value: unknown) => string): string {
+    const stepIndex = SUMMARY_STEPS.indexOf(activeStep);
+    const prevStep = stepIndex > 0 ? SUMMARY_STEPS[stepIndex - 1] : null;
+    const nextStep = stepIndex < SUMMARY_STEPS.length - 1 ? SUMMARY_STEPS[stepIndex + 1] : null;
+    return `
+      <div class="run-summary-step-hints" aria-label="Run summary navigation help">
+        <div class="run-summary-step-hints__edge run-summary-step-hints__edge--left">
+          ${prevStep
+            ? `<button class="run-summary-step-hint-btn" data-action="set-run-summary-step" data-run-summary-step="${escapeHtml(prevStep)}" aria-label="Go to ${escapeHtml(STEP_TITLES[prevStep])}">
+                <span class="run-summary-step-hint-btn__arrow" aria-hidden="true">←</span>
+                <span class="run-summary-step-hint-btn__label">${escapeHtml(STEP_TITLES[prevStep])}</span>
+              </button>`
+            : `<span class="run-summary-step-hints__placeholder" aria-hidden="true"></span>`}
+        </div>
+
+        <div class="run-summary-step-hints__center">
+          <span class="run-summary-step-hints__keys" aria-hidden="true">
+            <span class="run-summary-step-hints__key">←</span>
+            <span class="run-summary-step-hints__key">→</span>
+          </span>
+          <span class="run-summary-step-hints__copy">Move between chronicle pages</span>
+        </div>
+
+        <div class="run-summary-step-hints__edge run-summary-step-hints__edge--right">
+          ${nextStep
+            ? `<button class="run-summary-step-hint-btn run-summary-step-hint-btn--next" data-action="set-run-summary-step" data-run-summary-step="${escapeHtml(nextStep)}" aria-label="Go to ${escapeHtml(STEP_TITLES[nextStep])}">
+                <span class="run-summary-step-hint-btn__label">${escapeHtml(STEP_TITLES[nextStep])}</span>
+                <span class="run-summary-step-hint-btn__arrow" aria-hidden="true">→</span>
+              </button>`
+            : `<span class="run-summary-step-hints__placeholder" aria-hidden="true"></span>`}
+        </div>
+      </div>
     `;
   }
 
@@ -495,21 +535,27 @@
     const bannerTitle = victory
       ? "The Archive Weighs This Run Against The Dead."
       : "The Archive Measures What Was Lost And What Still Returned.";
-    const bannerLede = priorChronicles > 0
-      ? (victory
-          ? `${honors[0]} Compared against ${priorChronicles} earlier chronicle${priorChronicles === 1 ? "" : "s"}, this road closes at Lv.${run.level} with ${actsCleared} act${actsCleared === 1 ? "" : "s"} cleared and ${run.summary.goldGained}g recovered.`
-          : `${honors[0]} Compared against ${priorChronicles} earlier chronicle${priorChronicles === 1 ? "" : "s"}, this failed road still marks Lv.${run.level}, ${enemiesDefeated} foes buried, and ${run.summary.goldGained}g recovered.`)
-      : (victory
-          ? "This is the first sealed chronicle in the hall. Every future road will be measured from this mark."
-          : "This is the first fallen chronicle in the hall. Every future road will be judged against the lesson it leaves behind.");
+    let bannerLede: string;
+    if (priorChronicles > 0 && victory) {
+      bannerLede = `${honors[0]} Compared against ${priorChronicles} earlier chronicle${priorChronicles === 1 ? "" : "s"}, this road closes at Lv.${run.level} with ${actsCleared} act${actsCleared === 1 ? "" : "s"} cleared and ${run.summary.goldGained}g recovered.`;
+    } else if (priorChronicles > 0) {
+      bannerLede = `${honors[0]} Compared against ${priorChronicles} earlier chronicle${priorChronicles === 1 ? "" : "s"}, this failed road still marks Lv.${run.level}, ${enemiesDefeated} foes buried, and ${run.summary.goldGained}g recovered.`;
+    } else if (victory) {
+      bannerLede = "This is the first sealed chronicle in the hall. Every future road will be measured from this mark.";
+    } else {
+      bannerLede = "This is the first fallen chronicle in the hall. Every future road will be judged against the lesson it leaves behind.";
+    }
     const noteLabel = victory ? "Historical Notes" : "Lessons Logged";
     const comparisonTitle = victory ? "How This Run Stacks Up" : "How This Fall Stacks Up";
     const archiveActionLabel = victory ? "Back To Road Ledger" : "Back To Fallen Ledger";
-    const chartNote = chartEntries.length > 1
-      ? (victory
-          ? "Bars track final level. The current run stays highlighted at the end of the ledger."
-          : "Bars track final level. The current failed run stays marked at the end of the ledger.")
-      : "This is the opening mark in the archive. Future runs will stack here for quick comparison.";
+    let chartNote: string;
+    if (chartEntries.length > 1 && victory) {
+      chartNote = "Bars track final level. The current run stays highlighted at the end of the ledger.";
+    } else if (chartEntries.length > 1) {
+      chartNote = "Bars track final level. The current failed run stays marked at the end of the ledger.";
+    } else {
+      chartNote = "This is the opening mark in the archive. Future runs will stack here for quick comparison.";
+    }
 
     return `
       <section class="run-summary-archive-stage">
@@ -594,6 +640,7 @@
     const profileSummary = services.appEngine.getProfileSummary(appState);
     const notice = common.renderNotice(appState, services.renderUtils);
     const step = getStep(appState.ui.runSummaryStep);
+    const stepDirection = appState.ui.runSummaryStepDirection || "none";
     const title = victory ? `${run.className} Victorious` : `${run.className} Has Fallen`;
     const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
     const finaleArtSrc = getRunEndAssetSrc("finale", victory);
@@ -730,7 +777,7 @@
 
     root.innerHTML = `
       ${notice}
-      <div class="run-summary-screen run-summary-screen--${escapeHtml(step)} run-summary-screen--${escapeHtml(victory ? "victory" : "defeat")}">
+      <div class="run-summary-screen run-summary-screen--${escapeHtml(step)} run-summary-screen--${escapeHtml(victory ? "victory" : "defeat")} run-summary-screen--transition-${escapeHtml(stepDirection)}">
         <div class="run-summary-screen__backdrop" style="background-image:${escapeHtml(backdropSrc)}"></div>
         <div class="run-summary-screen__shade"></div>
 
@@ -768,6 +815,8 @@
             ${renderStepButton("ledger", step, "Road Ledger", "Run stats and spoils", escapeHtml)}
             ${renderStepButton("archive", step, "Archive", "History and comparison", escapeHtml)}
           </nav>
+
+          ${renderStepHints(step, escapeHtml)}
 
           ${stageMarkup}
         </div>

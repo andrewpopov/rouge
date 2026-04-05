@@ -2,21 +2,10 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const {
-    applyGuard,
-    checkOutcome,
-    getLivingEnemies,
-    getFirstLivingEnemyId,
-    appendLog,
-    drawCards,
-    startPlayerTurn,
-    endTurn,
-    usePotion,
-    meleeStrike,
-    _shuffleInPlace: shuffleInPlace,
+    applyGuard, getLivingEnemies, appendLog, drawCards, healEntity, dealDamage,
+    summonMinion: _summonMinion, _shuffleInPlace: shuffleInPlace,
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
   const { clamp, parseInteger } = runtimeWindow.ROUGE_UTILS;
-  const { resolveCardEffect, summarizeCardEffect } = runtimeWindow.__ROUGE_CARD_EFFECTS;
-  const { COMBAT_PHASE } = runtimeWindow.ROUGE_CONSTANTS;
 
   function makeCardInstance(state: CombatState, cardId: string) {
     const instanceId = `card_${state.nextCardInstanceId}`;
@@ -160,287 +149,391 @@
     return content.cardCatalog[cardId] || null;
   }
 
+  const INTENT_TEMPLATES: Record<string, string | null> = {
+    attack: "V dmg", attack_all: "V dmg all", attack_and_guard: "V dmg + Guard",
+    drain_attack: "V dmg + heal", guard: "+V Guard", guard_allies: "+V Guard all",
+    heal_ally: "Heal V", heal_allies: "Heal all V", heal_and_guard: "Heal + Guard",
+    sunder_attack: "Sunder V", resurrect_ally: "Resurrect", summon_minion: "Summon",
+    attack_burn: "V dmg + Burn", attack_burn_all: "V dmg all + Burn",
+    attack_lightning: "V dmg + Lightning", attack_lightning_all: "V dmg all + Lightning",
+    attack_poison: "V dmg + Poison", attack_poison_all: "V dmg all + Poison",
+    attack_chill: "V dmg + Chill", curse_amplify: "Amplify Damage", curse_weaken: "Decrepify",
+    drain_energy: "V dmg + Drain", consume_corpse: "Consume corpse", corpse_explosion: "Corpse Explosion",
+    buff_allies_attack: "Buff allies +V",
+  };
   function describeIntent(intent: EnemyIntent | null) {
-    if (!intent) {
-      return "No action";
-    }
-    if (intent.kind === "attack") {
-      return `${intent.value} dmg`;
-    }
-    if (intent.kind === "attack_all") {
-      return `${intent.value} dmg all`;
-    }
-    if (intent.kind === "attack_and_guard") {
-      return `${intent.value} dmg + Guard`;
-    }
-    if (intent.kind === "drain_attack") {
-      return `${intent.value} dmg + heal`;
-    }
+    if (!intent) { return "No action"; }
     if (intent.kind === "charge") {
       let scope = "";
-      if (intent.target === "all_allies") {
-        scope = " all";
-      } else if (intent.target === "mercenary") {
-        scope = " merc";
-      }
-      const damageType = intent.damageType ? ` ${intent.damageType}` : "";
-      return `${intent.label} (${intent.value} dmg${scope}${damageType} next)`;
+      if (intent.target === "all_allies") { scope = " all"; }
+      else if (intent.target === "mercenary") { scope = " merc"; }
+      return `${intent.label} (${intent.value} dmg${scope}${intent.damageType ? ` ${intent.damageType}` : ""} next)`;
     }
-    if (intent.kind === "teleport") {
-      return `${intent.label} (+${intent.value} Guard)`;
-    }
-    if (intent.kind === "guard") {
-      return `+${intent.value} Guard`;
-    }
-    if (intent.kind === "guard_allies") {
-      return `+${intent.value} Guard all`;
-    }
-    if (intent.kind === "heal_ally") {
-      return `Heal ${intent.value}`;
-    }
-    if (intent.kind === "heal_allies") {
-      return `Heal all ${intent.value}`;
-    }
-    if (intent.kind === "heal_and_guard") {
-      return "Heal + Guard";
-    }
-    if (intent.kind === "sunder_attack") {
-      return `Sunder ${intent.value}`;
-    }
-    if (intent.kind === "resurrect_ally") {
-      return "Resurrect";
-    }
-    if (intent.kind === "summon_minion") {
-      return "Summon";
-    }
-    if (intent.kind === "attack_burn") {
-      return `${intent.value} dmg + Burn`;
-    }
-    if (intent.kind === "attack_burn_all") {
-      return `${intent.value} dmg all + Burn`;
-    }
-    if (intent.kind === "attack_lightning") {
-      return `${intent.value} dmg + Lightning`;
-    }
-    if (intent.kind === "attack_lightning_all") {
-      return `${intent.value} dmg all + Lightning`;
-    }
-    if (intent.kind === "attack_poison") {
-      return `${intent.value} dmg + Poison`;
-    }
-    if (intent.kind === "attack_poison_all") {
-      return `${intent.value} dmg all + Poison`;
-    }
-    if (intent.kind === "attack_chill") {
-      return `${intent.value} dmg + Chill`;
-    }
-    if (intent.kind === "curse_amplify") {
-      return "Amplify Damage";
-    }
-    if (intent.kind === "curse_weaken") {
-      return "Decrepify";
-    }
-    if (intent.kind === "drain_energy") {
-      return `${intent.value} dmg + Drain`;
-    }
-    if (intent.kind === "buff_allies_attack") {
-      return `Buff allies +${intent.value}`;
-    }
-    if (intent.kind === "consume_corpse") {
-      return "Consume corpse";
-    }
-    if (intent.kind === "corpse_explosion") {
-      return "Corpse Explosion";
-    }
+    if (intent.kind === "teleport") { return `${intent.label} (+${intent.value} Guard)`; }
+    const template = INTENT_TEMPLATES[intent.kind];
+    if (template) { return template.replace(/V/g, String(intent.value)); }
     return intent.label || "Unknown";
   }
 
-  function playCard(state: CombatState, content: GameContent, instanceId: string, targetId: string = "") {
-    if (state.phase !== COMBAT_PHASE.PLAYER || state.outcome) {
-      return { ok: false, message: "Cards can only be played during the player turn." };
-    }
+  function createEmptySkillModifiers(): CombatSkillModifierState {
+    return {
+      nextCardCostReduction: 0,
+      nextCardDamageBonus: 0,
+      nextCardBurn: 0,
+      nextCardPoison: 0,
+      nextCardSlow: 0,
+      nextCardFreeze: 0,
+      nextCardParalyze: 0,
+      nextCardDraw: 0,
+      nextCardGuard: 0,
+    };
+  }
 
-    const handIndex = state.hand.findIndex((entry: CardInstance) => entry.instanceId === instanceId);
-    if (handIndex < 0) {
-      return { ok: false, message: "Card is not in hand." };
-    }
+  function hasSkillModifiers(state: CombatState) {
+    const modifiers = state.skillModifiers || createEmptySkillModifiers();
+    return Object.values(modifiers).some((value) => value > 0);
+  }
 
-    const cardInstance = state.hand[handIndex];
-    const card = getCardDefinition(content, cardInstance.cardId);
-    if (!card) {
-      return { ok: false, message: "Unknown card." };
-    }
-    const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
-    const costReduction = evo ? evo.getTreeCostReduction(cardInstance.cardId, state.deckCardIds, content.cardCatalog) : 0;
-    const effectiveCost = Math.max(0, card.cost - costReduction);
-    if (state.hero.energy < effectiveCost) {
-      return { ok: false, message: "Not enough Energy." };
-    }
+  function clearSkillModifiers(state: CombatState) {
+    state.skillModifiers = createEmptySkillModifiers();
+  }
 
-    const targetEnemy =
-      card.target === "enemy"
-        ? state.enemies.find((enemy: CombatEnemyState) => enemy.id === targetId && enemy.alive) || null
-        : null;
-    if (card.target === "enemy" && !targetEnemy) {
-      return { ok: false, message: "Select a living enemy." };
+  function addSkillModifiers(state: CombatState, patch: Partial<CombatSkillModifierState>) {
+    const next = { ...(state.skillModifiers || createEmptySkillModifiers()) };
+    (Object.keys(next) as Array<keyof CombatSkillModifierState>).forEach((key) => {
+      next[key] = Math.max(0, (next[key] || 0) + Math.max(0, patch[key] || 0));
+    });
+    state.skillModifiers = next;
+  }
+
+  function getSkillTierScale(skill: CombatEquippedSkillState) {
+    if (skill.slot === 3 || skill.tier === "capstone") {
+      return 3;
     }
+    if (skill.slot === 2 || skill.tier === "bridge") {
+      return 2;
+    }
+    return 1;
+  }
 
-    state.hero.energy -= effectiveCost;
-    state.hand.splice(handIndex, 1);
-    state.cardsPlayed += 1;
+  function getSelectedEnemy(state: CombatState, targetId = "") {
+    return state.enemies.find((enemy: CombatEnemyState) => enemy.id === targetId && enemy.alive)
+      || state.enemies.find((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId && enemy.alive)
+      || getLivingEnemies(state)[0]
+      || null;
+  }
 
-    const segments: string[] = [];
-    card.effects.forEach((effect: CardEffect) => {
-      const segment = resolveCardEffect(state, effect, targetEnemy, cardInstance.cardId);
-      if (segment) {
-        segments.push(segment);
+  function getOtherLivingEnemy(state: CombatState, excludedId = "") {
+    return getLivingEnemies(state).find((enemy: CombatEnemyState) => enemy.id !== excludedId) || null;
+  }
+
+  function applyEnemyStatus(targetEnemy: CombatEnemyState | null, status: StatusEffectKind, amount: number) {
+    if (!targetEnemy || !targetEnemy.alive || amount <= 0) {
+      return "";
+    }
+    if (status === "burn") {
+      targetEnemy.burn = Math.max(0, targetEnemy.burn + amount);
+      return `burns ${targetEnemy.name} for ${amount}`;
+    }
+    if (status === "poison") {
+      targetEnemy.poison = Math.max(0, targetEnemy.poison + amount);
+      return `poisons ${targetEnemy.name} for ${amount}`;
+    }
+    if (status === "slow") {
+      targetEnemy.slow = Math.max(0, targetEnemy.slow + amount);
+      return `slows ${targetEnemy.name} for ${amount}`;
+    }
+    if (status === "freeze") {
+      targetEnemy.freeze = Math.max(0, targetEnemy.freeze + amount);
+      return `freezes ${targetEnemy.name} for ${amount}`;
+    }
+    if (status === "stun") {
+      targetEnemy.stun = Math.max(0, targetEnemy.stun + amount);
+      return `stuns ${targetEnemy.name} for ${amount}`;
+    }
+    if (status === "paralyze") {
+      targetEnemy.paralyze = Math.max(0, targetEnemy.paralyze + amount);
+      return `paralyzes ${targetEnemy.name} for ${amount}`;
+    }
+    return "";
+  }
+
+  function applyStatusToAllEnemies(state: CombatState, status: StatusEffectKind, amount: number) {
+    if (amount <= 0) {
+      return 0;
+    }
+    let affected = 0;
+    getLivingEnemies(state).forEach((enemy: CombatEnemyState) => {
+      const result = applyEnemyStatus(enemy, status, amount);
+      if (result) {
+        affected += 1;
       }
     });
-
-    state.discardPile.push(cardInstance);
-    appendLog(state, summarizeCardEffect(card, segments));
-
-    if (targetEnemy?.id) {
-      state.selectedEnemyId = targetEnemy.id;
-    }
-    if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
-      state.selectedEnemyId = getFirstLivingEnemyId(state);
-    }
-
-    checkOutcome(state);
-    return { ok: true, message: "Card played." };
+    return affected;
   }
 
-  function applyEncounterModifiers(state: CombatState) {
-    if (!runtimeWindow.ROUGE_COMBAT_MODIFIERS) {
-      throw new Error("Combat modifiers helper is unavailable.");
-    }
-    runtimeWindow.ROUGE_COMBAT_MODIFIERS.applyEncounterModifiers(state);
+  function createSummonSkillEffect(state: CombatState, minionId: string, value: number, secondaryValue = 0, duration = 3): CardEffect {
+    return {
+      kind: "summon_minion",
+      minionId,
+      value: Math.max(1, value + Math.max(0, state.summonPowerBonus || 0)),
+      secondaryValue: Math.max(0, secondaryValue + Math.max(0, state.summonSecondaryBonus || 0)),
+      duration,
+    };
   }
 
-  function applyMercenaryContractBonuses(state: CombatState) {
-    if (!state?.mercenary?.alive) {
+  function dealDamageToAllEnemies(state: CombatState, amount: number, damageType: DamageType) {
+    const enemies = getLivingEnemies(state);
+    enemies.forEach((enemy: CombatEnemyState) => {
+      dealDamage(state, enemy, amount, damageType);
+    });
+    return enemies.length;
+  }
+
+  function applyGuardToParty(state: CombatState, heroGuard: number, mercenaryGuard = heroGuard) {
+    applyGuard(state.hero, heroGuard);
+    if (state.mercenary.alive) {
+      applyGuard(state.mercenary, mercenaryGuard);
+    }
+  }
+
+  function healParty(state: CombatState, amount: number) {
+    const heroHealed = healEntity(state.hero, amount);
+    const mercenaryHealed = state.mercenary.alive ? healEntity(state.mercenary, amount) : 0;
+    return { heroHealed, mercenaryHealed };
+  }
+
+  function addDamageTypeRider(modifiers: Partial<CombatSkillModifierState>, damageType: SkillDamageTypeId, amount: number) {
+    if (damageType === "fire") {
+      modifiers.nextCardBurn = Math.max(0, (modifiers.nextCardBurn || 0) + amount);
       return;
     }
-
-    if (state.mercenary.contractHeroStartGuard > 0) {
-      applyGuard(state.hero, state.mercenary.contractHeroStartGuard);
-      appendLog(state, `The Wanderer enters with ${state.mercenary.contractHeroStartGuard} Guard from contract route support.`);
+    if (damageType === "poison") {
+      modifiers.nextCardPoison = Math.max(0, (modifiers.nextCardPoison || 0) + amount);
+      return;
     }
-
-    if (state.mercenary.contractHeroDamageBonus > 0) {
-      state.hero.damageBonus += state.mercenary.contractHeroDamageBonus;
-      appendLog(state, `${state.mercenary.name} route support sharpens the Wanderer's attacks by ${state.mercenary.contractHeroDamageBonus}.`);
+    if (damageType === "cold") {
+      modifiers.nextCardFreeze = Math.max(0, (modifiers.nextCardFreeze || 0) + amount);
+      modifiers.nextCardSlow = Math.max(0, (modifiers.nextCardSlow || 0) + amount);
+      return;
     }
+    if (damageType === "lightning") {
+      modifiers.nextCardParalyze = Math.max(0, (modifiers.nextCardParalyze || 0) + amount);
+      return;
+    }
+    if (damageType === "magic") {
+      modifiers.nextCardDamageBonus = Math.max(0, (modifiers.nextCardDamageBonus || 0) + amount);
+      return;
+    }
+    if (damageType === "physical") {
+      modifiers.nextCardDamageBonus = Math.max(0, (modifiers.nextCardDamageBonus || 0) + amount);
+    }
+  }
 
-    if (state.mercenary.contractOpeningDraw > 0) {
-      const drawn = drawCards(state, state.mercenary.contractOpeningDraw);
-      if (drawn > 0) {
-        appendLog(state, `${state.mercenary.name} route intel draws ${drawn} extra card${drawn === 1 ? "" : "s"} for the opening hand.`);
+  function applyEnemySkillRider(targetEnemy: CombatEnemyState | null, damageType: SkillDamageTypeId, amount: number) {
+    if (!targetEnemy || !targetEnemy.alive || amount <= 0) {
+      return "";
+    }
+    if (damageType === "fire") {
+      targetEnemy.burn = Math.max(0, targetEnemy.burn + amount);
+      return `applies ${amount} Burn to ${targetEnemy.name}.`;
+    }
+    if (damageType === "poison") {
+      targetEnemy.poison = Math.max(0, targetEnemy.poison + amount);
+      return `applies ${amount} Poison to ${targetEnemy.name}.`;
+    }
+    if (damageType === "cold") {
+      targetEnemy.freeze = Math.max(0, targetEnemy.freeze + amount);
+      targetEnemy.slow = Math.max(0, targetEnemy.slow + amount);
+      return `freezes ${targetEnemy.name} for ${amount}.`;
+    }
+    if (damageType === "lightning") {
+      targetEnemy.paralyze = Math.max(0, targetEnemy.paralyze + amount);
+      return `paralyzes ${targetEnemy.name} for ${amount}.`;
+    }
+    return "";
+  }
+
+  function applySpecificPassiveSkill(state: CombatState, skill: CombatEquippedSkillState) {
+    const scale = getSkillTierScale(skill);
+    const modifiers: Partial<CombatSkillModifierState> = {};
+    const segments: string[] = [];
+    const weaponFamily = String(state.weaponFamily || "").toLowerCase();
+
+    switch (skill.skillId) {
+      case "amazon_critical_strike":
+        state.hero.damageBonus += scale + 1;
+        modifiers.nextCardDamageBonus = scale + 1;
+        segments.push(`sharpens the opener by ${scale + 1} damage`);
+        break;
+      case "amazon_dodge":
+        applyGuard(state.hero, 3 + scale);
+        if (state.mercenary.alive) {
+          applyGuard(state.mercenary, 2 + scale);
+        }
+        modifiers.nextCardGuard = scale + 1;
+        modifiers.nextCardCostReduction = 1;
+        segments.push("sets a guarded footing");
+        break;
+      case "amazon_evade":
+        applyGuardToParty(state, 4 + scale, 3 + scale);
+        modifiers.nextCardGuard = scale + 1;
+        modifiers.nextCardDraw = 1;
+        segments.push("keeps the whole line evasive");
+        break;
+      case "amazon_pierce":
+        state.hero.damageBonus += scale + 2;
+        modifiers.nextCardDamageBonus = scale + 2;
+        modifiers.nextCardCostReduction = 1;
+        segments.push("loads the opener with piercing force");
+        break;
+      case "assassin_claw_mastery":
+        state.hero.damageBonus += scale + 1;
+        modifiers.nextCardCostReduction = 1;
+        modifiers.nextCardDamageBonus = scale;
+        segments.push("accelerates claw follow-ups");
+        break;
+      case "barbarian_sword_mastery":
+      case "barbarian_axe_mastery":
+      case "barbarian_mace_mastery":
+      case "barbarian_polearm_mastery":
+      case "barbarian_throwing_mastery": {
+        const token = skill.skillId
+          .replace("barbarian_", "")
+          .replace("_mastery", "")
+          .replace("throwing", "throw");
+        const matchedWeapon = weaponFamily.includes(token);
+        state.hero.damageBonus += matchedWeapon ? scale + 2 : scale + 1;
+        if (matchedWeapon) {
+          modifiers.nextCardDamageBonus = scale + 1;
+          segments.push(`aligns with the ${token} loadout`);
+        } else {
+          modifiers.nextCardGuard = 1;
+          segments.push(`keeps ${token} discipline ready`);
+        }
+        break;
       }
+      case "druid_lycanthropy":
+        state.hero.damageBonus += scale + 1;
+        applyGuard(state.hero, 2 + scale);
+        modifiers.nextCardDamageBonus = scale + 1;
+        segments.push("primes a feral opener");
+        break;
+      case "barbarian_increased_speed":
+        modifiers.nextCardCostReduction = 1;
+        modifiers.nextCardDraw = 1;
+        modifiers.nextCardDamageBonus = scale;
+        segments.push("accelerates the first exchange");
+        break;
+      case "barbarian_natural_resistance":
+        applyGuardToParty(state, 4 + scale, 3 + scale);
+        healEntity(state.hero, 1 + scale);
+        modifiers.nextCardGuard = scale + 1;
+        segments.push("hardens the party against the opener");
+        break;
+      case "necromancer_skeleton_mastery":
+        state.summonPowerBonus = Math.max(0, state.summonPowerBonus + scale + 1);
+        state.summonSecondaryBonus = Math.max(0, state.summonSecondaryBonus + 1);
+        modifiers.nextCardGuard = scale;
+        segments.push("empowers future summons");
+        break;
+      case "necromancer_summon_resist":
+        state.summonPowerBonus = Math.max(0, state.summonPowerBonus + scale + 1);
+        state.summonSecondaryBonus = Math.max(0, state.summonSecondaryBonus + scale);
+        applyGuardToParty(state, 3 + scale, 2 + scale);
+        modifiers.nextCardGuard = scale + 1;
+        segments.push("wards the party and their summons");
+        break;
+      case "sorceress_warmth":
+        healEntity(state.hero, 2 + scale);
+        state.hero.burnBonus += scale + 1;
+        modifiers.nextCardCostReduction = 1;
+        modifiers.nextCardBurn = scale;
+        segments.push("warms the opening line");
+        break;
+      case "sorceress_cold_mastery":
+        state.hero.damageBonus += scale + 1;
+        modifiers.nextCardFreeze = scale + 1;
+        modifiers.nextCardSlow = scale + 1;
+        segments.push("sharpens every cold opening");
+        break;
+      case "sorceress_fire_mastery":
+        state.hero.burnBonus += scale + 2;
+        modifiers.nextCardBurn = scale + 2;
+        modifiers.nextCardDamageBonus = scale;
+        segments.push("intensifies the first fire line");
+        break;
+      case "sorceress_lightning_mastery":
+        state.hero.damageBonus += scale + 1;
+        modifiers.nextCardParalyze = scale + 1;
+        modifiers.nextCardDamageBonus = scale;
+        segments.push("charges the first lightning line");
+        break;
+      default:
+        return false;
     }
 
-    if (state.mercenary.contractStartGuard > 0) {
-      applyGuard(state.mercenary, state.mercenary.contractStartGuard);
-      appendLog(state, `${state.mercenary.name} enters with ${state.mercenary.contractStartGuard} Guard from contract route support.`);
-    }
-
-    if (state.mercenary.contractPerkLabels.length > 0) {
-      appendLog(state, `${state.mercenary.name} route perks active: ${state.mercenary.contractPerkLabels.join(", ")}.`);
-    }
+    addSkillModifiers(state, modifiers);
+    const cleanSegments = segments.filter(Boolean);
+    appendLog(
+      state,
+      `${skill.name} shapes the opening hand: ${cleanSegments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`
+    );
+    return true;
   }
 
-  function createCombatState({
-    content,
-    encounterId,
-    mercenaryId,
-    randomFn = Math.random,
-    heroState = null,
-    mercenaryState = null,
-    starterDeck = null,
-    initialPotions = 2,
-    weaponFamily = "",
-    weaponName = "",
-    weaponDamageBonus = 0,
-    weaponProfile = null,
-    armorProfile = null,
-    classPreferredFamilies = [],
-  }: {
-    content: GameContent;
-    encounterId: string;
-    mercenaryId: string;
-    randomFn?: RandomFn;
-    heroState?: Record<string, unknown> | null;
-    mercenaryState?: Record<string, unknown> | null;
-    starterDeck?: string[] | null;
-    initialPotions?: number;
-    weaponFamily?: string;
-    weaponName?: string;
-    weaponDamageBonus?: number;
-    weaponProfile?: WeaponCombatProfile | null;
-    armorProfile?: ArmorMitigationProfile | null;
-    classPreferredFamilies?: string[];
-  }) {
-    const encounter = content.encounterCatalog[encounterId];
-    const state = {
-      encounter,
-      randomFn,
-      nextCardInstanceId: 1,
-      turn: 0,
-      phase: COMBAT_PHASE.PLAYER,
-      outcome: null as CombatOutcome | null,
-      potions: Math.max(0, parseInteger(initialPotions, 0)),
-      hero: createHero(content, heroState),
-      mercenary: createMercenary(content, mercenaryId, mercenaryState),
-      minions: [] as CombatMinionState[],
-      enemies: encounter.enemies.map((enemyEntry: EncounterEnemyEntry) => createEnemy(content, enemyEntry)),
-      drawPile: [] as CardInstance[],
-      discardPile: [] as CardInstance[],
-      hand: [] as CardInstance[],
-      log: [] as string[],
-      selectedEnemyId: "",
-      meleeUsed: false,
-      weaponFamily,
-      weaponName,
-      weaponDamageBonus,
-      weaponProfile,
-      armorProfile,
-      classPreferredFamilies,
-      deckCardIds: Array.isArray(starterDeck) && starterDeck.length > 0 ? [...starterDeck] : [...content.starterDeck],
-      cardsPlayed: 0,
-      potionsUsed: 0,
-      lowestHeroLife: 0,
-      lowestMercenaryLife: 0,
-    };
-
-    state.lowestHeroLife = state.hero.life;
-    state.lowestMercenaryLife = state.mercenary.life;
-
-    applyRandomAffixes(state, randomFn, encounterId);
-
-    // Process on-spawn triggers (ETB effects) — only for original encounter enemies
-    const initialEnemies = [...state.enemies];
-    initialEnemies.forEach((enemy: CombatEnemyState) => {
-      runtimeWindow.__ROUGE_COMBAT_MONSTER_ACTIONS.processSpawnTraits(state, enemy);
-    });
-
-    state.drawPile = createDeck(state, content, starterDeck);
-    state.selectedEnemyId = getFirstLivingEnemyId(state);
-    appendLog(state, `${encounter.name}: ${encounter.description}`);
-    applyEncounterModifiers(state);
-    startPlayerTurn(state);
-    applyMercenaryContractBonuses(state);
-    return state;
-  }
-
-  runtimeWindow.ROUGE_COMBAT_ENGINE = {
-    createCombatState,
-    playCard,
-    endTurn,
-    usePotion,
-    meleeStrike,
-    describeIntent,
-    getLivingEnemies,
-    getFirstLivingEnemyId,
+  runtimeWindow.__ROUGE_COMBAT_ENGINE_HELPERS = {
+    getSkillTierScale, addSkillModifiers, applyEnemyStatus, applyStatusToAllEnemies, dealDamageToAllEnemies,
+    applyGuardToParty, healParty, addDamageTypeRider, applyEnemySkillRider, createSummonSkillEffect,
+    getSelectedEnemy, getOtherLivingEnemy, applyGuard, healEntity, drawCards, dealDamage, appendLog,
+    clearSkillModifiers, applySpecificPassiveSkill, describeIntent, createEmptySkillModifiers, hasSkillModifiers,
+    makeCardInstance, createHero, createMercenary, createEnemy, parseActNumber, applyRandomAffixes, createDeck,
+    getCardDefinition, summonMinion: _summonMinion, getSkillPreparationSummary, applyPassiveSkill,
   };
+
+
+  function getSkillPreparationSummary(modifiers: CombatSkillModifierState) {
+    const parts: string[] = [];
+    if (modifiers.nextCardCostReduction > 0) { parts.push(`cost -${modifiers.nextCardCostReduction}`); }
+    if (modifiers.nextCardDamageBonus > 0) { parts.push(`+${modifiers.nextCardDamageBonus} damage`); }
+    if (modifiers.nextCardGuard > 0) { parts.push(`+${modifiers.nextCardGuard} guard`); }
+    if (modifiers.nextCardDraw > 0) { parts.push(`+${modifiers.nextCardDraw} draw`); }
+    if (modifiers.nextCardBurn > 0) { parts.push(`Burn ${modifiers.nextCardBurn}`); }
+    if (modifiers.nextCardPoison > 0) { parts.push(`Poison ${modifiers.nextCardPoison}`); }
+    if (modifiers.nextCardSlow > 0) { parts.push(`Slow ${modifiers.nextCardSlow}`); }
+    if (modifiers.nextCardFreeze > 0) { parts.push(`Freeze ${modifiers.nextCardFreeze}`); }
+    if (modifiers.nextCardParalyze > 0) { parts.push(`Paralyze ${modifiers.nextCardParalyze}`); }
+    return parts.join(", ");
+  }
+
+  function applyPassiveSkill(state: CombatState, skill: CombatEquippedSkillState) {
+    if (applySpecificPassiveSkill(state, skill)) {
+      return;
+    }
+    const scale = getSkillTierScale(skill);
+    const modifiers: Partial<CombatSkillModifierState> = {};
+    const segments: string[] = [];
+
+    if (skill.family === "command") {
+      state.mercenary.nextAttackBonus = Math.max(0, state.mercenary.nextAttackBonus + scale + 1);
+      drawCards(state, 1);
+      segments.push(`draws 1 and empowers the mercenary by ${scale + 1}`);
+    } else if (skill.family === "recovery") {
+      applyGuard(state.hero, scale + 2);
+      modifiers.nextCardGuard = scale;
+      segments.push(`grants ${scale + 2} Guard`);
+    } else if (skill.family === "state") {
+      applyGuard(state.hero, scale + 2);
+      modifiers.nextCardCostReduction = 1;
+      segments.push(`steadies the opener`);
+    } else {
+      modifiers.nextCardDamageBonus = scale;
+      segments.push(`arms the next card`);
+    }
+
+    addDamageTypeRider(modifiers, skill.damageType, scale);
+    addSkillModifiers(state, modifiers);
+    appendLog(state, `${skill.name} shapes the opening hand: ${segments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`);
+  }
+
 })();

@@ -12,6 +12,8 @@ import {
   getEnemyStatusScore,
   getHeroDebuffScore,
   getIncomingThreat,
+  getIncomingThreatProfile,
+  getThreatShortfall,
   getThreatPressure,
   hasChargeThreat,
 } from "./run-progression-simulator-combat";
@@ -211,6 +213,7 @@ interface CombatCandidateAction {
   targetId?: string;
   targetName?: string;
   potionTarget?: "hero" | "mercenary";
+  afterShortfall?: number;
 }
 
 const BALANCE_SCENARIOS: Record<string, BalanceScenarioDefinition> = {
@@ -839,34 +842,57 @@ function getHandValue(state: CombatState, content: GameContent) {
 }
 
 function scoreCombatStateDelta(before: CombatState, after: CombatState, content: GameContent, actionType: CombatCandidateAction["type"]) {
+  const beforeThreatProfile = getIncomingThreatProfile(before);
+  const afterThreatProfile = getIncomingThreatProfile(after);
+  const beforeBypassRatio = beforeThreatProfile.totalThreat > 0 ? beforeThreatProfile.bypassGuardThreat / beforeThreatProfile.totalThreat : 0;
+  const afterBypassRatio = afterThreatProfile.totalThreat > 0 ? afterThreatProfile.bypassGuardThreat / afterThreatProfile.totalThreat : 0;
+  const guardValueFactor = Math.max(0.15, 1 - Math.max(beforeBypassRatio, afterBypassRatio));
   const beforeEnemyLife = before.enemies.reduce((sum, enemy) => sum + enemy.life, 0);
   const beforeEnemyGuard = before.enemies.reduce((sum, enemy) => sum + enemy.guard, 0);
   const afterEnemyLife = after.enemies.reduce((sum, enemy) => sum + enemy.life, 0);
   const afterEnemyGuard = after.enemies.reduce((sum, enemy) => sum + enemy.guard, 0);
   const beforeLivingEnemies = before.enemies.filter((enemy) => enemy.alive).length;
   const afterLivingEnemies = after.enemies.filter((enemy) => enemy.alive).length;
-  const beforeThreat = getIncomingThreat(before);
-  const afterThreat = getIncomingThreat(after);
-  const beforeShortfall = Math.max(0, beforeThreat - (before.hero.life + before.hero.guard));
-  const afterShortfall = Math.max(0, afterThreat - (after.hero.life + after.hero.guard));
+  const _beforeThreat = getIncomingThreat(before);
+  const _afterThreat = getIncomingThreat(after);
+  const beforeShortfall = getThreatShortfall(before);
+  const afterShortfall = getThreatShortfall(after);
   const beforePressure = getThreatPressure(before);
   const afterPressure = getThreatPressure(after);
   const chargeThreat = hasChargeThreat(before);
+  const underImmediateThreat = beforeShortfall > 0 || (chargeThreat && beforePressure >= 0.55);
+  const shortfallWeight = underImmediateThreat ? (chargeThreat ? 22 : 12) : (chargeThreat ? 14 : 7);
 
   let score =
     (beforeEnemyLife - afterEnemyLife) * 3.4 +
     (beforeEnemyGuard - afterEnemyGuard) * 1.0 +
     (before.hero.life - after.hero.life) * 0 +
     (after.hero.life - before.hero.life) * 2.4 +
-    (after.hero.guard - before.hero.guard) * 1.8 +
+    (after.hero.guard - before.hero.guard) * 1.8 * guardValueFactor +
     (after.mercenary.life - before.mercenary.life) * 1.0 +
-    (after.mercenary.guard - before.mercenary.guard) * 0.8 +
+    (after.mercenary.guard - before.mercenary.guard) * 0.8 * guardValueFactor +
     (beforeLivingEnemies - afterLivingEnemies) * 45 +
     (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.4 +
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
-    (beforeShortfall - afterShortfall) * 5 +
+    (beforeShortfall - afterShortfall) * shortfallWeight +
     (beforePressure - afterPressure) * (chargeThreat ? 42 : 18) +
     (getHandValue(after, content) - getHandValue(before, content)) * 0.12;
+
+  if (beforeShortfall > 0 && afterShortfall <= 0) {
+    score += chargeThreat ? 90 : 45;
+  }
+  if (beforeShortfall <= 0 && afterShortfall > 0) {
+    score -= chargeThreat ? 100 : 50;
+  }
+  if (beforeShortfall > 0 && afterShortfall > 0) {
+    score += (beforeShortfall - afterShortfall) * (chargeThreat ? 18 : 10);
+  }
+  if (afterThreatProfile.bypassGuardThreat > beforeThreatProfile.bypassGuardThreat) {
+    score -= (afterThreatProfile.bypassGuardThreat - beforeThreatProfile.bypassGuardThreat) * 0.9;
+  }
+  if (afterThreatProfile.bypassGuardThreat > 0 && after.hero.life < before.hero.life) {
+    score -= (before.hero.life - after.hero.life) * 1.4;
+  }
 
   if (after.mercenary.markedEnemyId && !before.mercenary.markedEnemyId) {
     score += 6;
@@ -881,7 +907,7 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
   }
   if (actionType === "potion") {
     score -= 5;
-    if (before.hero.life <= beforeThreat || before.hero.life / Math.max(1, before.hero.maxLife) <= 0.35) {
+    if (beforeShortfall > 0 || before.hero.life / Math.max(1, before.hero.maxLife) <= 0.35) {
       score += 18;
     }
     if (chargeThreat && beforePressure >= 0.55) {
@@ -892,9 +918,12 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
     }
   }
   if (actionType === "end_turn") {
-    score -= 2 + afterShortfall * 2;
+    score -= 2 + afterShortfall * (underImmediateThreat ? 5 : 2);
     if (chargeThreat) {
       score -= 10 + afterPressure * 8;
+    }
+    if (afterShortfall > 0) {
+      score -= chargeThreat ? 40 : 18;
     }
   }
   return score;
@@ -951,8 +980,10 @@ function scoreCandidateAction(candidate: CombatCandidateAction, state: CombatSta
   if (candidate.type === "end_turn") {
     const clone = cloneCombatState(state);
     engine.endTurn(clone);
+    const afterShortfall = getThreatShortfall(clone);
     return {
       ...candidate,
+      afterShortfall,
       score: scoreCombatStateDelta(state, clone, content, "end_turn"),
     };
   }
@@ -974,8 +1005,11 @@ function scoreCandidateAction(candidate: CombatCandidateAction, state: CombatSta
     };
   }
 
+  const afterShortfall = getThreatShortfall(clone);
+
   return {
     ...candidate,
+    afterShortfall,
     score: scoreCombatStateDelta(state, clone, content, candidate.type),
   };
 }
@@ -983,7 +1017,34 @@ function scoreCandidateAction(candidate: CombatCandidateAction, state: CombatSta
 function chooseBestAction(state: CombatState, content: GameContent, engine: CombatEngineApi) {
   const candidates = listCandidateActions(state, content, engine).sort((left, right) => right.score - left.score);
   const best = candidates[0] || { type: "end_turn", score: 0 };
+  const currentShortfall = getThreatShortfall(state);
+  const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null;
+  const bestThreatReducer =
+    currentShortfall > 0
+      ? candidates
+          .filter((candidate) => candidate.type !== "end_turn" && Number.isFinite(Number(candidate.afterShortfall)))
+          .sort((left, right) => {
+            const shortfallDelta =
+              Number(left.afterShortfall ?? Number.POSITIVE_INFINITY) - Number(right.afterShortfall ?? Number.POSITIVE_INFINITY);
+            if (shortfallDelta !== 0) {
+              return shortfallDelta;
+            }
+            return Number(right.score) - Number(left.score);
+          })[0] || null
+      : null;
+  if (currentShortfall > 0 && bestThreatReducer && Number(bestThreatReducer.afterShortfall ?? Number.POSITIVE_INFINITY) < currentShortfall) {
+    return bestThreatReducer;
+  }
   if (!best || best.score < 1) {
+    const chargeThreat = hasChargeThreat(state);
+    const threatPressure = getThreatPressure(state);
+    if (
+      bestActiveCandidate &&
+      (chargeThreat || threatPressure >= 0.45) &&
+      bestActiveCandidate.score > Number(candidates.find((candidate) => candidate.type === "end_turn")?.score ?? Number.NEGATIVE_INFINITY)
+    ) {
+      return bestActiveCandidate;
+    }
     return { type: "end_turn", score: 0 } as CombatCandidateAction;
   }
   return best;

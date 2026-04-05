@@ -39,25 +39,23 @@ test("reward-engine archetype metadata stays stable for representative cards", (
   const { content, browserWindow } = createAmazonRunFixture();
   browserWindow.ROUGE_REWARD_ENGINE.annotateCardRewardMetadata(content);
 
-  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_magic_arrow", content), "engine");
-  assertNormalizedEqual(browserWindow.ROUGE_REWARD_ENGINE.getCardArchetypeTags("amazon_magic_arrow", content), ["amazon_bow_and_crossbow", "amazon_passive_and_magic"]);
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_magic_arrow", content), "foundation");
+  assertNormalizedEqual(browserWindow.ROUGE_REWARD_ENGINE.getCardArchetypeTags("amazon_magic_arrow", content), ["amazon_bow_and_crossbow"]);
   assertNormalizedEqual(content.cardCatalog.amazon_magic_arrow.behaviorTags, ["pressure", "salvage", "payoff"]);
-  assertNormalizedEqual(content.cardCatalog.amazon_magic_arrow.counterTags, ["anti_tax"]);
-  assert.equal(content.cardCatalog.amazon_magic_arrow.splashRole, "hybrid_only");
+  assertNormalizedEqual(content.cardCatalog.amazon_magic_arrow.counterTags, ["anti_backline"]);
+  assert.equal(content.cardCatalog.amazon_magic_arrow.splashRole, "utility_splash_ok");
 
-  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_inner_sight", content), "support");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_inner_sight", content), "foundation");
   assertNormalizedEqual(
     browserWindow.ROUGE_REWARD_ENGINE.getCardArchetypeTags("amazon_inner_sight", content),
     ["amazon_bow_and_crossbow", "amazon_javelin_and_spear", "amazon_passive_and_magic"]
   );
 
-  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_freezing_arrow", content), "tech");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_freezing_arrow", content), "engine");
   assertNormalizedEqual(content.cardCatalog.amazon_freezing_arrow.behaviorTags, [
     "pressure",
     "disruption",
-    "tax",
     "mitigation",
-    "protection",
     "payoff",
   ]);
   assertNormalizedEqual(content.cardCatalog.amazon_freezing_arrow.counterTags, [
@@ -99,7 +97,7 @@ test("reward-engine opening reward choices stay deterministic for the same seede
   assertNormalizedEqual(
     rewardChoices.map((choice) => choice.id),
     [
-      "reward_card_amazon_exploding_arrow",
+      "reward_card_amazon_power_strike",
       "reward_loot_act_1_blighted_moors_1",
       "reward_boon_field_training",
     ]
@@ -125,7 +123,7 @@ test("reward-engine specialization snapshot stays stable for a fresh amazon run"
     specializationStage: "exploratory",
     offTreeUtilityCount: 0,
     offTreeDamageCount: 0,
-    counterCoverageTags: ["anti_attrition", "anti_backline", "anti_fire_pressure", "anti_support_disruption", "anti_tax"],
+    counterCoverageTags: ["anti_attrition", "anti_backline", "anti_fire_pressure", "anti_summon", "anti_tax", "telegraph_respect"],
   });
   assert.equal(buildPath, null);
 });

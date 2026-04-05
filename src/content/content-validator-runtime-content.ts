@@ -3,7 +3,6 @@
     __ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT?: ContentValidatorRuntimeContentApi;
   };
   const { collectEffectFlagIds } = runtimeWindow.__ROUGE_CONTENT_VALIDATOR_WORLD_PATHS;
-  const { validateMercenaryCatalog } = runtimeWindow.__ROUGE_CV_RUNTIME_MERCENARIES;
 
   const ALLOWED_INTENT_KINDS = new Set([
     "attack", "attack_all", "attack_and_guard", "attack_burn", "attack_burn_all",
@@ -176,7 +175,12 @@
         pushError(errors, `classProgressionCatalog.${classId} is missing trees.`);
         return;
       }
+      if (!progression?.starterSkillId) {
+        pushError(errors, `classProgressionCatalog.${classId} is missing starterSkillId.`);
+      }
 
+      const classSkillIds = new Set<string>();
+      let hasStarterSkill = false;
       progression.trees.forEach((tree: RuntimeClassTreeDefinition, index: number) => {
         if (!tree?.id || !tree?.name) {
           pushError(errors, `classProgressionCatalog.${classId}.trees[${index}] is missing identity fields.`);
@@ -192,8 +196,55 @@
         }
         if (!Array.isArray(tree?.skills) || tree.skills.length === 0) {
           pushError(errors, `classProgressionCatalog.${classId}.trees[${index}] is missing skills.`);
+          return;
         }
+        tree.skills.forEach((skill: RuntimeClassSkillDefinition, skillIndex: number) => {
+          if (!skill?.id || !skill?.name) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] is missing identity fields.`);
+            return;
+          }
+          classSkillIds.add(skill.id);
+          if (skill.id === progression.starterSkillId) {
+            hasStarterSkill = true;
+            if (skill.slot !== 1 || skill.tier !== "starter") {
+              pushError(
+                errors,
+                `classProgressionCatalog.${classId}.starterSkillId must reference a slot-1 starter skill.`
+              );
+            }
+          }
+          if (!["state", "command", "answer", "trigger_arming", "conversion", "recovery", "commitment"].includes(skill.family)) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] has invalid family "${String(skill.family || "")}".`);
+          }
+          if (skill.slot !== 1 && skill.slot !== 2 && skill.slot !== 3) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] has invalid slot "${String(skill.slot || "")}".`);
+          }
+          if (skill.tier !== "starter" && skill.tier !== "bridge" && skill.tier !== "capstone") {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] has invalid tier "${String(skill.tier || "")}".`);
+          }
+          if (!Number.isFinite(Number(skill.requiredLevel)) || Number(skill.requiredLevel) <= 0) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] is missing a valid requiredLevel.`);
+          }
+          if (!Number.isFinite(Number(skill.cost)) || Number(skill.cost) < 0) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] is missing a valid cost.`);
+          }
+          if (!Number.isFinite(Number(skill.cooldown)) || Number(skill.cooldown) < 0) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] is missing a valid cooldown.`);
+          }
+          if (!String(skill.summary || "").trim()) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] is missing summary.`);
+          }
+          if (!String(skill.exactText || "").trim()) {
+            pushError(errors, `classProgressionCatalog.${classId}.trees[${index}].skills[${skillIndex}] is missing exactText.`);
+          }
+        });
       });
+
+      if (progression?.starterSkillId && !classSkillIds.has(progression.starterSkillId)) {
+        pushError(errors, `classProgressionCatalog.${classId}.starterSkillId references missing skill "${progression.starterSkillId}".`);
+      } else if (progression?.starterSkillId && !hasStarterSkill) {
+        pushError(errors, `classProgressionCatalog.${classId}.starterSkillId does not resolve to a slot-1 starter skill.`);
+      }
     });
 
     Object.entries(content?.classStarterDecks || {}).forEach(([classId, cardIds]: [string, string[]]) => {
@@ -396,14 +447,10 @@
       }
     });
 
-    if (roleCounts.branchBattle < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle) {
-      pushError(errors, `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle} packages for zoneRole "branchBattle".`);
-    }
-    if (roleCounts.branchMiniboss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss) {
-      pushError(errors, `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss} packages for zoneRole "branchMiniboss".`);
-    }
-    if (roleCounts.boss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss) {
-      pushError(errors, `consequenceEncounterPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss} packages for zoneRole "boss".`);
+    for (const [role, minCount] of Object.entries(MIN_CONSEQUENCE_PACKAGES_PER_ROLE)) {
+      if ((roleCounts[role as keyof typeof roleCounts] || 0) < minCount) {
+        pushError(errors, `consequenceEncounterPackages.${actNumber} must include at least ${minCount} packages for zoneRole "${role}".`);
+      }
     }
   }
 
@@ -486,72 +533,16 @@
       validateStringIdList(rewardPackage?.bonusLines, `${packageLabel}.bonusLines`, errors);
     });
 
-    if (rewardRoleCounts.branchBattle < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle) {
-      pushError(errors, `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchBattle} packages for zoneRole "branchBattle".`);
-    }
-    if (rewardRoleCounts.branchMiniboss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss) {
-      pushError(errors, `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.branchMiniboss} packages for zoneRole "branchMiniboss".`);
-    }
-    if (rewardRoleCounts.boss < MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss) {
-      pushError(errors, `consequenceRewardPackages.${actNumber} must include at least ${MIN_CONSEQUENCE_PACKAGES_PER_ROLE.boss} packages for zoneRole "boss".`);
+    for (const [role, minCount] of Object.entries(MIN_CONSEQUENCE_PACKAGES_PER_ROLE)) {
+      if ((rewardRoleCounts[role as keyof typeof rewardRoleCounts] || 0) < minCount) {
+        pushError(errors, `consequenceRewardPackages.${actNumber} must include at least ${minCount} packages for zoneRole "${role}".`);
+      }
     }
   }
 
-  function validateRuntimeContent(content: GameContent) {
-    const errors: string[] = [];
-    const cardCatalog = content?.cardCatalog || {};
-    const mercenaryCatalog = content?.mercenaryCatalog || {};
-    const enemyCatalog = content?.enemyCatalog || {};
-    const encounterCatalog = content?.encounterCatalog || {};
-    const eliteAffixesByAct: Record<number, Set<string>> = {};
-    const worldNodeCatalog = runtimeWindow.ROUGE_WORLD_NODE_CATALOG?.getCatalog?.();
-    const knownWorldFlagIds = collectKnownWorldFlagIds(worldNodeCatalog);
-
-    (Object.values(mercenaryCatalog) as MercenaryDefinition[]).forEach((mercenary: MercenaryDefinition) => {
-      (Array.isArray(mercenary?.routePerks) ? mercenary.routePerks : []).forEach((routePerk: MercenaryRoutePerkDefinition) => {
-        (Array.isArray(routePerk?.requiredFlagIds) ? routePerk.requiredFlagIds : []).forEach((flagId: string) => {
-          if (typeof flagId === "string" && flagId) {
-            knownWorldFlagIds.add(flagId);
-          }
-        });
-      });
-    });
-    validateMercenaryCatalog(mercenaryCatalog, knownWorldFlagIds, worldNodeCatalog, errors);
-
-    validateCardAndClassContent(content, cardCatalog, errors);
-    validateEnemyCatalog(enemyCatalog, eliteAffixesByAct, errors);
-    validateEncounterCatalog(encounterCatalog, enemyCatalog, errors);
-    validateGeneratedActEncounters(content, encounterCatalog, eliteAffixesByAct, errors);
-
-    Object.keys(content?.consequenceEncounterPackages || {}).forEach((actNumber: string) => {
-      if (!content?.generatedActEncounterIds?.[Number(actNumber)]) {
-        pushError(errors, `consequenceEncounterPackages.${actNumber} references unknown act ${actNumber}.`);
-      }
-    });
-
-    Object.keys(content?.consequenceRewardPackages || {}).forEach((actNumber: string) => {
-      if (!content?.generatedActEncounterIds?.[Number(actNumber)]) {
-        pushError(errors, `consequenceRewardPackages.${actNumber} references unknown act ${actNumber}.`);
-      }
-    });
-
-    Object.keys(content?.generatedActEncounterIds || {}).forEach((actNumber: string) => {
-      const hasEncounterPackages = Array.isArray(content?.consequenceEncounterPackages?.[Number(actNumber)]);
-      const hasRewardPackages = Array.isArray(content?.consequenceRewardPackages?.[Number(actNumber)]);
-      if (!hasEncounterPackages && !hasRewardPackages) {
-        return;
-      }
-      validateConsequenceEncounterPackages(actNumber, content, encounterCatalog, knownWorldFlagIds, errors);
-      validateConsequenceRewardPackages(actNumber, content, knownWorldFlagIds, errors);
-    });
-
-    return {
-      ok: errors.length === 0,
-      errors,
-    };
-  }
-
-  runtimeWindow.__ROUGE_CONTENT_VALIDATOR_RUNTIME_CONTENT = {
-    validateRuntimeContent,
+  runtimeWindow.__ROUGE_CV_RUNTIME_VALIDATORS = {
+    pushError, collectKnownWorldFlagIds, validateCardAndClassContent,
+    validateEnemyCatalog, validateEncounterCatalog, validateGeneratedActEncounters,
+    validateConsequenceEncounterPackages, validateConsequenceRewardPackages,
   };
 })();

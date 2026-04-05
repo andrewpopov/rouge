@@ -1,30 +1,143 @@
 (() => {
-  const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
-  const { getCardElement, ELEMENT_LABELS } = runtimeWindow.__ROUGE_COMBAT_VIEW_EXPLORATION;
+  type CardTextLine = { short: string; full: string };
+  type CardTextApi = {
+    describeCompactEffect(effect: CardEffect): CardTextLine;
+    formatCompactRuleLine(
+      line: string,
+      escapeHtml: (value: string) => string,
+      valueClass: string,
+      keywordClass: string
+    ): string;
+  };
+
+  const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window & { ROUGE_CARD_TEXT?: CardTextApi };
+  const { getCardElement } = runtimeWindow.__ROUGE_COMBAT_VIEW_EXPLORATION;
   const preview = runtimeWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
   const pressure = runtimeWindow.__ROUGE_COMBAT_VIEW_PRESSURE;
+  const cardText = runtimeWindow.ROUGE_CARD_TEXT;
+  const CARD_DISPLAY_TITLES: Record<string, string> = {
+    rally_mercenary: "Rally Merc.",
+    merciless_command: "Merciless Cmd.",
+  };
 
   function svgIcon(src: string, cls: string, alt: string): string {
     return `<img src="${src}" class="${cls}" alt="${alt}" loading="lazy" onerror="this.style.display='none'" />`;
   }
 
+  function isTemplatedIllustrationSrc(src: string | null | undefined): boolean {
+    return typeof src === "string" && src.includes("/themes/diablo-inspired/icons/cards/");
+  }
+
+  type CombatCardRoleKey = "attack" | "guard" | "affliction" | "draw" | "summon" | "setup" | "support" | "utility";
+  type CombatCardFamilyKey = "attack" | "skill" | "hex" | "summon";
+
+  function deriveCombatCardRole(card: CardDefinition): { key: CombatCardRoleKey; label: string } {
+    const kinds = new Set(card.effects.map((effect) => effect.kind));
+    if (kinds.has("summon_minion")) {
+      return { key: "summon", label: "Summon" };
+    }
+    if ([...kinds].some((kind) => kind.startsWith("apply_"))) {
+      return { key: "affliction", label: "Hex" };
+    }
+
+    switch (card.roleTag) {
+      case "answer": return { key: "guard", label: "Guard" };
+      case "setup": return { key: "setup", label: "Setup" };
+      case "payoff": return { key: "attack", label: "Strike" };
+      case "support": return { key: "support", label: "Support" };
+      case "salvage": return { key: "draw", label: "Draw" };
+      case "conversion": return { key: "utility", label: "Convert" };
+    }
+
+    if (kinds.has("gain_guard_self") || kinds.has("gain_guard_party") || kinds.has("heal_hero") || kinds.has("heal_mercenary")) {
+      return { key: "guard", label: "Guard" };
+    }
+    if (kinds.has("draw")) {
+      return { key: "draw", label: "Draw" };
+    }
+    if (kinds.has("mark_enemy_for_mercenary") || kinds.has("buff_mercenary_next_attack")) {
+      return { key: "setup", label: "Setup" };
+    }
+    if (kinds.has("damage") || kinds.has("damage_all")) {
+      return { key: "attack", label: "Strike" };
+    }
+
+    return { key: "utility", label: "Tactic" };
+  }
+
+  function deriveCombatCardFamily(card: CardDefinition, role: { key: CombatCardRoleKey }): { key: CombatCardFamilyKey; label: string } {
+    const kinds = new Set(card.effects.map((effect) => effect.kind));
+    if (kinds.has("summon_minion")) {
+      return { key: "summon", label: "Summon" };
+    }
+    if (kinds.has("damage") || kinds.has("damage_all")) {
+      return { key: "attack", label: "Attack" };
+    }
+    if ([...kinds].some((kind) => kind.startsWith("apply_"))) {
+      return { key: "hex", label: "Hex" };
+    }
+    if (role.key === "summon") {
+      return { key: "summon", label: "Summon" };
+    }
+    return { key: "skill", label: "Skill" };
+  }
+
+  function describeCompactEffect(effect: CardEffect): { short: string; full: string } {
+    return cardText?.describeCompactEffect(effect) || { short: "Special", full: "Special effect." };
+  }
+
+  function formatCompactRuleLine(line: string, escapeHtml: (s: string) => string, valueClass: string, keywordClass: string): string {
+    return cardText?.formatCompactRuleLine(line, escapeHtml, valueClass, keywordClass) || escapeHtml(line);
+  }
+
+  function getHandCardTitleFitClass(title: string): string {
+    if (title.length >= 16) { return " fan-card--title-very-long"; }
+    if (title.length >= 13) { return " fan-card--title-long"; }
+    return "";
+  }
+
+  function getDisplayCardTitle(cardId: string, title: string): string {
+    const upgraded = cardId.endsWith("_plus");
+    const baseId = upgraded ? cardId.slice(0, -5) : cardId;
+    const mapped = CARD_DISPLAY_TITLES[baseId] || title;
+    return upgraded && !mapped.endsWith("+") ? `${mapped}+` : mapped;
+  }
+
+  function getAfflictionStateClasses(options: { burn?: number; poison?: number }): string {
+    const classes: string[] = [];
+    if ((options.burn || 0) > 0) {
+      classes.push("sprite--afflicted-burn");
+    }
+    if ((options.poison || 0) > 0) {
+      classes.push("sprite--afflicted-poison");
+    }
+    return classes.join(" ");
+  }
+
+  function renderAfflictionLayers(options: { burn?: number; poison?: number }): string {
+    const burn = options.burn || 0;
+    const poison = options.poison || 0;
+    if (burn <= 0 && poison <= 0) {
+      return "";
+    }
+
+    return `
+      <div class="sprite__affliction-layers" aria-hidden="true">
+        ${burn > 0 ? `<span class="sprite__affliction sprite__affliction--burn"></span>` : ""}
+        ${poison > 0 ? `<span class="sprite__affliction sprite__affliction--poison"></span>` : ""}
+      </div>
+    `;
+  }
+
   const TRAIT_BADGE: Record<string, { icon: string; label: string; css: string }> = {
-    swift: { icon: "\u{1F4A8}", label: "Swift", css: "trait--swift" },
-    frenzy: { icon: "\u{1F4A2}", label: "Frenzy", css: "trait--frenzy" },
-    thorns: { icon: "\u{1FAB6}", label: "Thorns", css: "trait--thorns" },
-    regeneration: { icon: "\u{1F49A}", label: "Regen", css: "trait--regen" },
-    death_explosion: { icon: "\u{1F4A5}", label: "Volatile", css: "trait--death" },
-    death_poison: { icon: "\u2620", label: "Toxic Death", css: "trait--death" },
-    death_spawn: { icon: "\u{1F95A}", label: "Spawner", css: "trait--death" },
-    flee_on_ally_death: { icon: "\u{1F4A8}", label: "Cowardly", css: "trait--flee" },
-    extra_fast: { icon: "\u26A1", label: "Extra Fast", css: "trait--fast" },
-    extra_strong: { icon: "\u{1F4AA}", label: "Extra Strong", css: "trait--strong" },
-    cursed: { icon: "\u{1F480}", label: "Cursed", css: "trait--cursed" },
-    cold_enchanted: { icon: "\u2744", label: "Cold Enchanted", css: "trait--cold" },
-    fire_enchanted: { icon: "\u{1F525}", label: "Fire Enchanted", css: "trait--fire" },
-    lightning_enchanted: { icon: "\u26A1", label: "Lightning", css: "trait--lightning" },
-    stone_skin: { icon: "\u{1F6E1}", label: "Stone Skin", css: "trait--stone" },
-    mana_burn: { icon: "\u{1F50B}", label: "Mana Burn", css: "trait--mana" },
+    swift: { icon: "\u{1F4A8}", label: "Swift", css: "trait--swift" }, frenzy: { icon: "\u{1F4A2}", label: "Frenzy", css: "trait--frenzy" },
+    thorns: { icon: "\u{1FAB6}", label: "Thorns", css: "trait--thorns" }, regeneration: { icon: "\u{1F49A}", label: "Regen", css: "trait--regen" },
+    death_explosion: { icon: "\u{1F4A5}", label: "Volatile", css: "trait--death" }, death_poison: { icon: "\u2620", label: "Toxic Death", css: "trait--death" },
+    death_spawn: { icon: "\u{1F95A}", label: "Spawner", css: "trait--death" }, flee_on_ally_death: { icon: "\u{1F4A8}", label: "Cowardly", css: "trait--flee" },
+    extra_fast: { icon: "\u26A1", label: "Extra Fast", css: "trait--fast" }, extra_strong: { icon: "\u{1F4AA}", label: "Extra Strong", css: "trait--strong" },
+    cursed: { icon: "\u{1F480}", label: "Cursed", css: "trait--cursed" }, cold_enchanted: { icon: "\u2744", label: "Cold Enchanted", css: "trait--cold" },
+    fire_enchanted: { icon: "\u{1F525}", label: "Fire Enchanted", css: "trait--fire" }, lightning_enchanted: { icon: "\u26A1", label: "Lightning", css: "trait--lightning" },
+    stone_skin: { icon: "\u{1F6E1}", label: "Stone Skin", css: "trait--stone" }, mana_burn: { icon: "\u{1F50B}", label: "Mana Burn", css: "trait--mana" },
   };
 
   function renderTraitBadges(traits: MonsterTraitKind[] | undefined): string {
@@ -63,6 +176,7 @@
     extraStatusHtml,
     incomingPressureHtml,
     threatened,
+    persistentAfflictions,
     escapeHtml,
   }: {
     unit: { alive: boolean; life: number; maxLife: number; guard: number; name: string };
@@ -73,14 +187,17 @@
     extraStatusHtml: string;
     incomingPressureHtml: string;
     threatened: boolean;
+    persistentAfflictions?: { burn?: number; poison?: number };
     escapeHtml: (s: string) => string;
   }): string {
     const assets = runtimeWindow.ROUGE_ASSET_MAP;
     const hpPct = Math.round((unit.life / unit.maxLife) * 100);
     const lowHp = hpPct > 0 && hpPct <= 25;
+    const afflictionStateClasses = getAfflictionStateClasses(persistentAfflictions || {});
+    const afflictionLayerHtml = renderAfflictionLayers(persistentAfflictions || {});
     return `
-      <div class="sprite ${unit.alive ? "" : "sprite--dead"} ${threatened ? "sprite--incoming-threat" : ""}">
-        <div class="sprite__figure ${figureClass}">${portraitHtml}</div>
+      <div class="sprite ${unit.alive ? "" : "sprite--dead"} ${threatened ? "sprite--incoming-threat" : ""} ${afflictionStateClasses}">
+        <div class="sprite__figure ${figureClass}">${afflictionLayerHtml}${portraitHtml}</div>
         <div class="sprite__bars">
           <div class="sprite__hp-bar">
             <div class="sprite__hp-fill sprite__hp-fill--${figureClass === "sprite__figure--hero" ? "hero" : "merc"} ${lowHp ? "sprite__hp-fill--low" : ""}" style="width:${hpPct}%"></div>
@@ -120,8 +237,43 @@
               const summary = turns?.getMinionSkillSummary?.(minion) || minion.skillLabel;
               const durationLabel = minion.persistent ? "Persistent" : `${minion.remainingTurns}t`;
               const toneClass = minion.persistent ? "combat-minion--persistent" : "combat-minion--temporary";
+              const previewScopes = (() => {
+                const scopes = new Set<string>();
+                if (minion.actionKind === "attack_all_burn" || minion.actionKind === "attack_all_paralyze") {
+                  scopes.add("enemy_line");
+                } else if (minion.targetRule === "selected_enemy" || minion.targetRule === "lowest_life") {
+                  scopes.add("selected_enemy");
+                }
+                if (minion.actionKind === "attack_guard_party" || minion.actionKind === "heal_party" || minion.actionKind === "buff_mercenary_guard_party") {
+                  scopes.add("party");
+                  if (minion.actionKind === "buff_mercenary_guard_party") {
+                    scopes.add("mercenary");
+                  }
+                } else {
+                  if (minion.actionKind === "attack_heal_hero") {
+                    scopes.add("hero");
+                  }
+                  if (minion.actionKind === "attack_mark") {
+                    scopes.add("mercenary");
+                  }
+                }
+                return Array.from(scopes);
+              })();
+              const previewOutcome = summary;
               return `
-                <div class="combat-minion ${toneClass}">
+                <div class="combat-minion ${toneClass}"
+                  data-preview-minion-id="${escapeHtml(minion.id)}"
+                  data-preview-scope="${escapeHtml(previewScopes.join(","))}"
+                  data-preview-label="${escapeHtml(previewScopes.length > 0 ? previewScopes.map((scope) => {
+                    if (scope === "selected_enemy") { return "Target"; }
+                    if (scope === "enemy_line") { return "Enemy Line"; }
+                    if (scope === "party") { return "Party"; }
+                    if (scope === "hero") { return "Self"; }
+                    if (scope === "mercenary") { return "Mercenary"; }
+                    return scope;
+                  }).join(" + ") : "Summon")}"
+                  data-preview-title="${escapeHtml(`${minion.name} · ${minion.skillLabel}`)}"
+                  data-preview-outcome="${escapeHtml(previewOutcome)}">
                   <div class="combat-minion__topline">
                     <span class="combat-minion__name">${escapeHtml(minion.name)}</span>
                     <span class="combat-minion__duration">${escapeHtml(durationLabel)}</span>
@@ -211,6 +363,8 @@
       enemyTierClass = "sprite--elite";
     }
     const enemyStageClass = getEnemyStageProfile(enemy);
+    const afflictionStateClasses = getAfflictionStateClasses({ burn: enemy.burn, poison: enemy.poison });
+    const afflictionLayerHtml = renderAfflictionLayers({ burn: enemy.burn, poison: enemy.poison });
     const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
     const enemyIcon = assets ? assets.getEnemyIcon(enemy.templateId || enemy.id) : "";
     const intentSvg = assets ? svgIcon(assets.getIntentIcon(intentDesc), "intent-icon", intentDesc) : "";
@@ -225,12 +379,6 @@
     }
     const intentPresentation = pressure.buildEnemyIntentPresentation(combat, enemy.currentIntent);
     const intentClasses = [intentTone, intentPresentation.intentClass].filter(Boolean).join(" ");
-    let threatBadge = "";
-    if (isBoss) {
-      threatBadge = `<span class="sprite__threat-badge sprite__threat-badge--boss">Boss</span>`;
-    } else if (isElite) {
-      threatBadge = `<span class="sprite__threat-badge sprite__threat-badge--elite">Elite</span>`;
-    }
     const effectItems = [
       enemy.guard > 0 ? { css: "sprite__effect--guard", icon: assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}", value: String(enemy.guard), label: `Guard ${enemy.guard}` } : null,
       enemy.burn > 0 ? { css: "sprite__effect--burn", icon: "\u{1F525}", value: String(enemy.burn), label: `Burn ${enemy.burn}` } : null,
@@ -242,20 +390,18 @@
     ].filter(Boolean) as Array<{ css: string; icon: string; value: string; label: string }>;
     const effectStrip = effectItems.length > 0 ? renderEffectStrip(effectItems) : "";
     const traitsContent = [
-      threatBadge,
       isMarked && !isDead ? `<span class="sprite__mark-badge">Marked</span>` : "",
       renderTraitBadges(enemy.traits),
     ].filter(Boolean).join("");
-    const enemyFooter = [effectStrip, traitsContent ? `<div class="sprite__traits">${traitsContent}</div>` : ""]
-      .filter(Boolean)
-      .join("");
+    const enemyBadgeRail = traitsContent ? `<div class="sprite__badge-rail">${traitsContent}</div>` : "";
+    const enemyFooter = effectStrip || "";
     return `
-      <button class="sprite sprite--enemy ${enemyTierClass} ${enemyStageClass} ${isSelected ? "sprite--targeted" : ""} ${isMarked ? "sprite--marked" : ""} ${isDead ? "sprite--dead" : ""}"
+      <button class="sprite sprite--enemy ${enemyTierClass} ${enemyStageClass} ${isSelected ? "sprite--targeted" : ""} ${isMarked ? "sprite--marked" : ""} ${isDead ? "sprite--dead" : ""} ${afflictionStateClasses}"
               data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}" data-enemy-name="${escapeHtml(enemy.name)}"
               ${isDead || hasOutcome ? "disabled" : ""}>
         ${!isDead && !hasOutcome ? `<div class="sprite__intent ${intentClasses}"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span>${intentPresentation.targetLabel ? `<span class="sprite__intent-target">${escapeHtml(intentPresentation.targetLabel)}</span>` : ""}</div>` : ""}
-        ${isSelected && !isDead ? `<div class="sprite__selection-badge">Locked</div>` : ""}
-        <div class="sprite__figure sprite__figure--enemy">${assets ? svgIcon(enemyIcon, "sprite__portrait sprite__portrait--enemy", enemy.name) : escapeHtml(enemy.name.charAt(0))}</div>
+        ${enemyBadgeRail}
+        <div class="sprite__figure sprite__figure--enemy">${afflictionLayerHtml}${assets ? svgIcon(enemyIcon, "sprite__portrait sprite__portrait--enemy", enemy.name) : escapeHtml(enemy.name.charAt(0))}</div>
         <div class="sprite__bars">
           <div class="sprite__hp-bar">
             <div class="sprite__hp-fill sprite__hp-fill--enemy" style="width:${enemyHpPct}%"></div>
@@ -273,10 +419,10 @@
   function renderHandCard({
     instance,
     index,
-    cardCount,
     card,
     effectiveCost,
     previewOutcome,
+    maxRuleLines = 4,
     stateClass,
     stateLabel,
     cantPlay,
@@ -284,10 +430,10 @@
   }: {
     instance: { instanceId: string; cardId: string };
     index: number;
-    cardCount: number;
     card: CardDefinition;
     effectiveCost: number;
     previewOutcome: string;
+    maxRuleLines?: number;
     stateClass: string;
     stateLabel: string;
     cantPlay: boolean;
@@ -298,14 +444,35 @@
     const isUpgraded = instance.cardId.endsWith("_plus");
     const previewScopes = preview.derivePreviewScopes(card);
     const previewLabel = preview.describePreviewScopes(previewScopes);
-    const previewSummary = preview.summarizePreviewOutcome(previewOutcome);
-    const mid = (cardCount - 1) / 2;
-    const offset = index - mid;
-    const rotation = offset * 1.4;
-    const translateY = Math.abs(offset) * 2;
+    const rotation = 0;
+    const translateY = 0;
+    const sigilSrc = assets ? assets.getCardIcon(instance.cardId, card.effects) : "";
+    const customIllustrationSrc = assets?.getCardIllustration ? assets.getCardIllustration(instance.cardId) : null;
+    const templatedIllustration = isTemplatedIllustrationSrc(customIllustrationSrc);
+    const role = deriveCombatCardRole(card);
+    const family = deriveCombatCardFamily(card, role);
+    const frameSrc = assets?.getCardFrame ? assets.getCardFrame(role.key) : null;
+    const typeLine = family.label;
+    const emblemSrc = templatedIllustration ? customIllustrationSrc : sigilSrc;
+    const displayTitle = getDisplayCardTitle(instance.cardId, card.title);
+    const titleFitClass = getHandCardTitleFitClass(displayTitle);
+    const cardStyle = `--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${index}${frameSrc ? `; --card-frame-url:url('${escapeHtml(frameSrc)}')` : ""}`;
+    const ruleLines = card.effects
+      .map((effect) => describeCompactEffect(effect))
+      .slice(0, Math.max(1, maxRuleLines));
+    const rulesText = ruleLines.length > 0
+      ? ruleLines.map((line) => line.full).join(" ")
+      : card.text;
+    const cardRulesHtml = `<p class="fan-card__rules-paragraph">${formatCompactRuleLine(rulesText, escapeHtml, "fan-card__text-value", "fan-card__text-keyword")}</p>`;
+    const emblemInner = `
+      <div class="fan-card__art-emblem">
+        ${emblemSrc ? svgIcon(emblemSrc, `fan-card__art-emblem-icon fan-card__art-emblem-icon--${element}${templatedIllustration ? " fan-card__art-emblem-icon--templated" : ""}`, card.title) : `<div class="fan-card__art-fallback" aria-hidden="true">${card.target === "enemy" ? "\u2694" : "\u{1F6E1}"}</div>`}
+      </div>
+    `;
     return `
-      <button class="fan-card ${cantPlay ? "fan-card--disabled" : "fan-card--playable"} ${stateClass} fan-card--${element}${isUpgraded ? " fan-card--upgraded" : ""}"
+      <button class="fan-card ${cantPlay ? "fan-card--disabled" : "fan-card--playable"} ${stateClass} fan-card--${element} fan-card--role-${role.key} fan-card--family-${family.key}${isUpgraded ? " fan-card--upgraded" : ""}${customIllustrationSrc ? " fan-card--illustrated" : " fan-card--icon-forward"}${templatedIllustration ? " fan-card--templated" : ""}${frameSrc ? " fan-card--framed" : ""}${titleFitClass}"
               data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
+              data-card-id="${escapeHtml(instance.cardId)}"
               data-card-title="${escapeHtml(card.title)}"
               data-card-target="${escapeHtml(card.target)}"
               data-card-playable="${cantPlay ? "false" : "true"}"
@@ -313,105 +480,38 @@
               data-preview-label="${escapeHtml(previewLabel)}"
               data-preview-outcome="${escapeHtml(previewOutcome)}"
               title="${escapeHtml(stateLabel || card.text)}"
-              style="--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${index}">
-        <div class="fan-card__cost ${effectiveCost < card.cost ? "fan-card__cost--discounted" : ""}">${effectiveCost}</div>
-        <div class="fan-card__art">${(() => { if (assets) { return svgIcon(assets.getCardIcon(instance.cardId, card.effects), `fan-card__icon fan-card__icon--${element}`, card.title); } return card.target === "enemy" ? "\u2694" : "\u{1F6E1}"; })()}</div>
-        <div class="fan-card__name">${escapeHtml(card.title)}</div>
-        <div class="fan-card__desc">${escapeHtml(card.text)}</div>
-        <div class="fan-card__intel">
-          <span class="fan-card__intel-scope">${escapeHtml(previewLabel)}</span>
-          <strong class="fan-card__intel-outcome">${escapeHtml(previewSummary)}</strong>
-        </div>
-        <div class="fan-card__footer">
-          <div class="fan-card__type">${ELEMENT_LABELS[element] || "Skill"}</div>
-          ${stateLabel ? `<div class="fan-card__state">${escapeHtml(stateLabel)}</div>` : ""}
+              style="${cardStyle}">
+        <div class="fan-card__surface">
+          <div class="fan-card__header">
+            <div class="fan-card__cost ${effectiveCost < card.cost ? "fan-card__cost--discounted" : ""}">${effectiveCost}</div>
+            <div class="fan-card__title-ribbon">
+              <div class="fan-card__name" title="${escapeHtml(card.title)}">
+                <span class="fan-card__name-text">${escapeHtml(displayTitle)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="fan-card__art">
+            <div class="fan-card__art-stage fan-card__art-stage--${element}${customIllustrationSrc ? " fan-card__art-stage--illustrated" : " fan-card__art-stage--sigil"}${templatedIllustration ? " fan-card__art-stage--templated" : ""}">
+              ${customIllustrationSrc ? `
+                ${templatedIllustration ? emblemInner : ""}
+                <img src="${customIllustrationSrc}" class="fan-card__art-illustration fan-card__art-illustration--${element}${templatedIllustration ? " fan-card__art-illustration--templated" : ""}" alt="" aria-hidden="true" loading="eager" decoding="async" onerror="this.style.display='none'" />
+                ${sigilSrc ? `<span class="fan-card__sigil">${svgIcon(sigilSrc, `fan-card__sigil-icon fan-card__sigil-icon--${element}`, card.title)}</span>` : ""}
+              ` : `
+                ${emblemInner}
+              `}
+              <div class="fan-card__art-rim" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="fan-card__type-line">
+            <span class="fan-card__type-label">${escapeHtml(typeLine)}</span>
+          </div>
+          <div class="fan-card__copy">
+            <div class="fan-card__rules">
+              <div class="fan-card__desc">${cardRulesHtml}</div>
+            </div>
+          </div>
         </div>
       </button>
-    `;
-  }
-
-  type CombatLogTone = "strike" | "status" | "surge" | "summon" | "loss" | "maneuver" | "report";
-
-  function classifyCombatLogEntry(entry: string): { tone: CombatLogTone; icon: string; label: string } {
-    const lower = entry.toLowerCase();
-    if (lower.includes("encounter lost") || lower.includes(" falls") || lower.includes("falls.")) {
-      return { tone: "loss", icon: "\u2620", label: "Loss" };
-    }
-    if (lower.includes("explodes") || lower.includes("erupts in flame") || lower.includes("frost nova")) {
-      return { tone: "loss", icon: "\u2739", label: "Burst" };
-    }
-    if (lower.includes("resurrect") || lower.includes("spawn") || lower.includes("summon")) {
-      return { tone: "summon", icon: "\u2726", label: "Summon" };
-    }
-    if (
-      lower.includes("burn") ||
-      lower.includes("poison") ||
-      lower.includes("chill") ||
-      lower.includes("freeze") ||
-      lower.includes("stun") ||
-      lower.includes("paralyze") ||
-      lower.includes("amplifies") ||
-      lower.includes("drains")
-    ) {
-      return { tone: "status", icon: "\u2727", label: "Affliction" };
-    }
-    if (lower.includes("guard") || lower.includes("heal") || lower.includes("heals") || lower.includes("gains")) {
-      return { tone: "surge", icon: "\u26E8", label: "Surge" };
-    }
-    if (lower.includes("charging") || lower.includes("flees") || lower.includes("blinking") || lower.includes("teleport")) {
-      return { tone: "maneuver", icon: "\u21BB", label: "Shift" };
-    }
-    if (lower.includes("uses") || lower.includes("attacks") || lower.includes("deals") || lower.includes("zaps")) {
-      return { tone: "strike", icon: "\u2694", label: "Strike" };
-    }
-    return { tone: "report", icon: "\u2022", label: "Report" };
-  }
-
-  function formatCombatLogEntryText(entry: string, escapeHtml: (s: string) => string): string {
-    return escapeHtml(entry)
-      .replace(/(\d+)/g, '<span class="combat-log-entry__value">$1</span>')
-      .replace(
-        /\b(Burn|Poison|Chill|Freeze|Stun|Paralyze|Slow|Guard|damage|fire|lightning|cold|energy|heals?|drains?|spawns?|resurrects?)\b/gi,
-        '<span class="combat-log-entry__keyword">$1</span>'
-      );
-  }
-
-  function renderCombatLogPanel(combat: CombatState, escapeHtml: (s: string) => string): string {
-    const latestEntry = combat.log[0] || "No exchanges yet.";
-    const latestMeta = classifyCombatLogEntry(latestEntry);
-
-    return `
-      <details class="combat-log" aria-label="Battle Log">
-        <summary class="combat-log__toggle">
-          <span class="combat-log__toggle-label">Battle Log</span>
-          <span class="combat-log__toggle-latest">
-            <span class="combat-log__toggle-icon" aria-hidden="true">${latestMeta.icon}</span>
-            <span class="combat-log__toggle-text">${escapeHtml(latestEntry)}</span>
-          </span>
-          <span class="combat-log__toggle-count">${combat.log.length} event${combat.log.length === 1 ? "" : "s"}</span>
-        </summary>
-        ${combat.log.length > 0 ? `
-          <ol class="log-list combat-log-list">
-            ${combat.log.map((entry, index) => {
-              const { tone, icon, label } = classifyCombatLogEntry(entry);
-              return `
-                <li class="combat-log-entry combat-log-entry--${tone}${index === 0 ? " combat-log-entry--latest" : ""}">
-                  <div class="combat-log-entry__meta">
-                    <span class="combat-log-entry__when">${index === 0 ? "Latest" : `${index} beat${index === 1 ? "" : "s"} ago`}</span>
-                    <span class="combat-log-entry__tag">${escapeHtml(label)}</span>
-                  </div>
-                  <div class="combat-log-entry__line">
-                    <span class="combat-log-entry__icon" aria-hidden="true">${icon}</span>
-                    <p class="combat-log-entry__text">${formatCombatLogEntryText(entry, escapeHtml)}</p>
-                  </div>
-                </li>
-              `;
-            }).join("")}
-          </ol>
-        ` : `
-          <div class="combat-log__empty">No exchanges yet. The field is still holding its breath.</div>
-        `}
-      </details>
     `;
   }
 
@@ -420,6 +520,14 @@
     renderMinionRack,
     renderEnemySprite,
     renderHandCard,
-    renderCombatLogPanel,
+    svgIcon,
+    getCardElement,
+    isTemplatedIllustrationSrc,
+    deriveCombatCardRole,
+    deriveCombatCardFamily,
+    getHandCardTitleFitClass,
+    getDisplayCardTitle,
+    describeCompactEffect,
+    formatCompactRuleLine,
   };
 })();

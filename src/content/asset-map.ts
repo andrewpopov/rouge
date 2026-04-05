@@ -3,8 +3,12 @@
 
   const {
     UNIQUE_ART_BASE,
+    CARD_ILLUSTRATION_BASE: _CARD_ILLUSTRATION_BASE,
+    CARD_FRAME_BASE: _CARD_FRAME_BASE,
     SPRITE_BASE,
     CARD_ICONS,
+    CARD_ILLUSTRATIONS,
+    CARD_FRAMES,
     ATTACK_ICONS,
     SKILL_ICONS,
     ENEMY_SVGS,
@@ -95,6 +99,17 @@
     const hasDamage = effects?.some((e) => e.kind === "damage") ?? false;
     const pool = hasDamage ? ATTACK_ICONS : SKILL_ICONS;
     return pool[simpleHash(cardId) % pool.length];
+  }
+
+  function getCardIllustration(cardId: string): string | null {
+    if (CARD_ILLUSTRATIONS[cardId]) {return CARD_ILLUSTRATIONS[cardId];}
+    const baseId = cardId.replace(/_plus$/, "");
+    if (CARD_ILLUSTRATIONS[baseId]) {return CARD_ILLUSTRATIONS[baseId];}
+    return null;
+  }
+
+  function getCardFrame(roleKey: string): string | null {
+    return CARD_FRAMES[roleKey] || null;
   }
 
   function resolveEnemySlug(rawSlug: string): string | null {
@@ -228,6 +243,8 @@
 
   runtimeWindow.ROUGE_ASSET_MAP = {
     getCardIcon,
+    getCardIllustration,
+    getCardFrame,
     getEnemyIcon,
     getEnemySprite,
     getClassPortrait,

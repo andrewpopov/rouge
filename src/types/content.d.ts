@@ -102,7 +102,7 @@ type RunSpecializationStage = "exploratory" | "candidate" | "primary" | "mastery
 type StatusEffectKind = "burn" | "poison" | "slow" | "freeze" | "stun" | "paralyze";
 type WeaponEffectKind = "burn" | "slow" | "freeze" | "shock" | "crushing";
 type WeaponDamageType = "fire" | "cold" | "lightning" | "poison";
-type DamageType = "physical" | WeaponDamageType;
+type DamageType = "physical" | WeaponDamageType | "magic";
 type HeroDebuffKind = "burn" | "poison" | "chill" | "amplify" | "weaken" | "energyDrain";
 type MonsterTraitKind =
   | "swift"
@@ -413,10 +413,40 @@ interface ClassDefinition {
   [key: string]: unknown;
 }
 
+type SkillFamilyId =
+  | "state"
+  | "command"
+  | "answer"
+  | "trigger_arming"
+  | "conversion"
+  | "recovery"
+  | "commitment";
+
+type ClassSkillSlotNumber = 1 | 2 | 3;
+type ClassSkillTier = "starter" | "bridge" | "capstone";
+type SkillTypeId = "attack" | "spell" | "debuff" | "buff" | "passive" | "summon" | "aura" | (string & {});
+type SkillDamageTypeId = DamageType | "magic" | "none";
+
 interface SkillSeedDefinition {
   id: string;
   name: string;
   requiredLevel: number;
+  description?: string;
+  skillType?: string;
+  damageType?: string;
+  active?: boolean;
+  prerequisites?: string[];
+  synergies?: Array<{ skillId: string; bonus: string }>;
+  family?: SkillFamilyId;
+  slot?: ClassSkillSlotNumber;
+  tier?: ClassSkillTier;
+  cost?: number;
+  cooldown?: number;
+  summary?: string;
+  exactText?: string;
+  isStarter?: boolean;
+  chargeCount?: number;
+  oncePerBattle?: boolean;
 }
 
 interface SkillTreeSeedDefinition {
@@ -428,6 +458,7 @@ interface SkillTreeSeedDefinition {
 interface ClassSkillsSeedEntry {
   classId: string;
   className: string;
+  starterSkillId?: string;
   trees: SkillTreeSeedDefinition[];
 }
 
@@ -441,6 +472,19 @@ interface RuntimeClassSkillDefinition {
   id: string;
   name: string;
   requiredLevel: number;
+  family: SkillFamilyId;
+  slot: ClassSkillSlotNumber;
+  tier: ClassSkillTier;
+  cost: number;
+  cooldown: number;
+  summary: string;
+  exactText: string;
+  isStarter?: boolean;
+  chargeCount?: number;
+  oncePerBattle?: boolean;
+  active?: boolean;
+  skillType?: SkillTypeId;
+  damageType?: SkillDamageTypeId;
 }
 
 interface RuntimeClassTreeDefinition {
@@ -460,6 +504,7 @@ interface RuntimeClassTreeDefinition {
 interface RuntimeClassProgressionDefinition {
   classId: string;
   className: string;
+  starterSkillId: string;
   trees: RuntimeClassTreeDefinition[];
 }
 
@@ -487,52 +532,4 @@ interface ActSeed {
   boss: ActBossSeed;
 }
 
-interface ZonesSeedFile {
-  acts?: ActSeed[];
-}
-
-interface BossEntry {
-  id: string;
-  name: string;
-  bossProfile?: string | null;
-  [key: string]: unknown;
-}
-
-interface BossesSeedFile {
-  entries?: BossEntry[];
-}
-
-interface EnemyPoolEntryRef {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
-
-interface EnemyPoolEntry {
-  act: number;
-  enemies?: EnemyPoolEntryRef[];
-  nativeEnemies?: EnemyPoolEntryRef[];
-  guestEnemiesNightmareHell?: EnemyPoolEntryRef[];
-}
-
-interface EnemyPoolsSeedFile {
-  enemyPools?: EnemyPoolEntry[];
-}
-
-type ZoneMonsterMap = Record<string, Record<string, string[]>>;
-
-interface SeedBundle {
-  loadedAt?: string;
-  classes?: {
-    classes?: ClassDefinition[];
-  };
-  skills?: SkillsSeedFile;
-  zones?: ZonesSeedFile;
-  enemyPools?: EnemyPoolsSeedFile;
-  monsters?: unknown;
-  items?: unknown;
-  runes?: unknown;
-  runewords?: unknown;
-  bosses?: BossesSeedFile;
-  zoneMonsters?: ZoneMonsterMap;
-}
+// Remaining seed-bundle types in content-seeds.d.ts
