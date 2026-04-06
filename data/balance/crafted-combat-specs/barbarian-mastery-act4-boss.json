@@ -1,0 +1,38 @@
+{
+  "label": "Barbarian Mastery vs Act IV Boss",
+  "classId": "barbarian",
+  "seed": 23,
+  "actNumber": 4,
+  "targetLevel": 24,
+  "runsPerEncounter": 5,
+  "encounterId": "act_4_boss",
+  "addCardIds": [
+    "barbarian_weapon_mastery",
+    "barbarian_battle_instinct",
+    "barbarian_unyielding"
+  ],
+  "treeRanks": {
+    "barbarian_combat_masteries": 6,
+    "barbarian_warcries": 2
+  },
+  "favoredTreeId": "barbarian_combat_masteries",
+  "equippedSkillIds": {
+    "slot2": "barbarian_mace_mastery",
+    "slot3": "barbarian_natural_resistance"
+  },
+  "loadout": {
+    "weapon": "item_maul"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act4",
+    "barbarian",
+    "mastery",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking mastery survivability and weapon-family alignment into Act IV boss pressure."
+  ]
+}

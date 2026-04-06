@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -8,6 +9,132 @@
     if (skill.slot === 3 || skill.tier === "capstone") { return 3; }
     if (skill.slot === 2 || skill.tier === "bridge") { return 2; }
     return 1;
+  }
+
+  function getActiveMinions(state: CombatState): CombatMinionState[] {
+    return runtimeWindow.__ROUGE_COMBAT_MINIONS?.getActiveMinions?.(state)
+      || (Array.isArray(state.minions) ? state.minions : []);
+  }
+
+  function reinforceFirstActiveMinion(state: CombatState, amount: number): string {
+    const minion = getActiveMinions(state)[0];
+    if (!minion || amount <= 0) {
+      return "";
+    }
+    minion.power += amount;
+    return `${minion.name} is reinforced by +${amount} power.`;
+  }
+
+  function isEnemyAlreadyWounded(enemy: CombatEnemyState | null): boolean {
+    if (!enemy) {
+      return false;
+    }
+    return enemy.life < enemy.maxLife
+      || enemy.burn > 0
+      || enemy.poison > 0
+      || enemy.slow > 0
+      || enemy.freeze > 0
+      || enemy.stun > 0
+      || enemy.paralyze > 0;
+  }
+
+  function resolveStarterCoreSkill(
+    state: CombatState,
+    skill: CombatEquippedSkillState,
+    targetEnemy: CombatEnemyState | null
+  ): boolean {
+    const h = runtimeWindow.__ROUGE_COMBAT_ENGINE_HELPERS;
+    const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    const scale = getSkillTierScale(skill);
+    const modifiers: Partial<CombatSkillModifierState> = {};
+    const segments: string[] = [];
+
+    switch (skill.skillId) {
+      case "amazon_call_the_shot": {
+        const markBonus = 3 + scale;
+        modifiers.nextCardDamageBonus = scale + 1;
+        if (targetEnemy?.id) {
+          state.mercenary.markedEnemyId = targetEnemy.id;
+          state.mercenary.markBonus = Math.max(state.mercenary.markBonus, markBonus);
+          segments.push(`marks ${targetEnemy.name} for +${markBonus} mercenary damage`);
+        } else {
+          segments.push("sharpens the next shot");
+        }
+        break;
+      }
+      case "assassin_shadow_feint": {
+        h.applyGuard(state.hero, 4 + scale);
+        modifiers.nextCardCostReduction = 1;
+        modifiers.nextCardDamageBonus = scale + 1;
+        modifiers.nextCardGuard = scale + 1;
+        segments.push(`gains ${4 + scale} Guard`);
+        break;
+      }
+      case "barbarian_core_bash": {
+        const alreadyWounded = isEnemyAlreadyWounded(targetEnemy);
+        if (targetEnemy) {
+          const dealt = h.dealDamage(state, targetEnemy, 5 + scale, "physical" as DamageType);
+          segments.push(`hits ${targetEnemy.name} for ${dealt}`);
+        }
+        if (alreadyWounded) {
+          h.applyGuard(state.hero, 2);
+          segments.push("gains 2 Guard");
+        }
+        break;
+      }
+      case "druid_primal_attunement": {
+        h.applyGuard(state.hero, 3 + scale);
+        modifiers.nextCardDamageBonus = scale + 1;
+        segments.push(`gains ${3 + scale} Guard`);
+        const reinforcement = reinforceFirstActiveMinion(state, 1);
+        if (reinforcement) {
+          segments.push(reinforcement);
+        }
+        break;
+      }
+      case "necromancer_raise_servant": {
+        const reinforcement = reinforceFirstActiveMinion(state, scale + 1);
+        if (reinforcement) {
+          segments.push(reinforcement);
+        } else {
+          const result = turns.summonMinion(state, h.createSummonSkillEffect(state, "necromancer_servant", 1 + scale, 0, 2));
+          segments.push(result);
+        }
+        break;
+      }
+      case "paladin_sanctify": {
+        h.applyGuardToParty(state, 3 + scale, 3 + scale);
+        modifiers.nextCardDamageBonus = scale + 1;
+        modifiers.nextCardGuard = scale + 1;
+        segments.push(`grants ${3 + scale} Guard to the party`);
+        break;
+      }
+      case "sorceress_core_fire_bolt": {
+        if (targetEnemy) {
+          const dealt = h.dealDamage(state, targetEnemy, 3 + scale, "fire" as DamageType);
+          segments.push(`hits ${targetEnemy.name} for ${dealt}`);
+        }
+        if (state.cardsPlayed === 0) {
+          modifiers.nextCardCostReduction = 1;
+          segments.push("smooths the next cast");
+        }
+        break;
+      }
+      default:
+        return false;
+    }
+
+    h.addSkillModifiers(state, modifiers);
+    const prep = h.getSkillPreparationSummary(state.skillModifiers);
+    h.appendLog(
+      state,
+      `${skill.name}: ${segments.join(", ")}${prep ? ` (${prep}).` : "."}`
+    );
+    if (targetEnemy?.id) {
+      state.selectedEnemyId = targetEnemy.id;
+    }
+    turns.checkOutcome(state);
+    return true;
   }
 
   function buildSummonEffect(
@@ -409,6 +536,10 @@
     skill: CombatEquippedSkillState,
     targetEnemy: CombatEnemyState | null
   ): { ok: boolean; message: string } | null {
+    if (resolveStarterCoreSkill(state, skill, targetEnemy)) {
+      return { ok: true, message: "Skill used." };
+    }
+
     // Handle summon skills via the summon effect builder
     if (skill.skillType === "summon") {
       if (resolveSummonSkill(state, skill)) {

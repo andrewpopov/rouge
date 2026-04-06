@@ -202,6 +202,15 @@ export interface BalanceRunRecord {
       heroPowerScore: number;
       enemyPowerScore: number;
       powerRatio: number;
+      skillActionRate: number;
+      skillUseTurnRate: number;
+      readySkillUnusedTurnRate: number;
+      slot1UseRate: number;
+      slot2UseRate: number;
+      slot3UseRate: number;
+      beamDecisionRate: number;
+      averageBeamDepth: number;
+      beamOverrideRate: number;
     } | null;
     lastBoss: {
       encounterId: string;
@@ -213,6 +222,15 @@ export interface BalanceRunRecord {
       heroPowerScore: number;
       enemyPowerScore: number;
       powerRatio: number;
+      skillActionRate: number;
+      skillUseTurnRate: number;
+      readySkillUnusedTurnRate: number;
+      slot1UseRate: number;
+      slot2UseRate: number;
+      slot3UseRate: number;
+      beamDecisionRate: number;
+      averageBeamDepth: number;
+      beamOverrideRate: number;
     } | null;
     trainingRealization: {
       favoredTreeRequested: string;
@@ -226,7 +244,26 @@ export interface BalanceRunRecord {
       slot3RequestedSkillId: string;
       slot3ActualSkillId: string;
       slot3Matched: boolean;
+      favoredTreeAlignedActNumber: number;
+      favoredTreeAlignedCheckpointId: string;
+      slot2UnlockedActNumber: number;
+      slot2UnlockedCheckpointId: string;
+      slot2EquippedActNumber: number;
+      slot2EquippedCheckpointId: string;
+      slot3UnlockedActNumber: number;
+      slot3UnlockedCheckpointId: string;
+      slot3EquippedActNumber: number;
+      slot3EquippedCheckpointId: string;
+      maxSlotsFilled: number;
       fullyRealized: boolean;
+    } | null;
+    failureAudit: {
+      failed: boolean;
+      summary: string;
+      reasons: string[];
+      encounterName: string;
+      actNumber: number;
+      powerRatio: number;
     } | null;
     finalBuild: {
       hero: {
@@ -324,6 +361,15 @@ export interface BalanceRunRecord {
       averageEarlyDecisionScoreSpread?: number;
       earlyCloseDecisionRate?: number;
       averageEarlyEndTurnRegret?: number;
+      skillActionRate?: number;
+      skillUseTurnRate?: number;
+      readySkillUnusedTurnRate?: number;
+      slot1UseRate?: number;
+      slot2UseRate?: number;
+      slot3UseRate?: number;
+      beamDecisionRate?: number;
+      averageBeamDepth?: number;
+      beamOverrideRate?: number;
     };
     encounters: Array<{
       encounterId: string;
@@ -353,6 +399,15 @@ export interface BalanceRunRecord {
       averageEarlyDecisionScoreSpread?: number;
       earlyCloseDecisionRate?: number;
       averageEarlyEndTurnRegret?: number;
+      skillActionRate?: number;
+      skillUseTurnRate?: number;
+      readySkillUnusedTurnRate?: number;
+      slot1UseRate?: number;
+      slot2UseRate?: number;
+      slot3UseRate?: number;
+      beamDecisionRate?: number;
+      averageBeamDepth?: number;
+      beamOverrideRate?: number;
     }>;
   } | null;
 }
@@ -401,7 +456,8 @@ function buildRunSkillBarSummary(
 
 function buildTrainingRealizationSummary(
   requestedTrainingLoadout: RunProgressionTrainingLoadout | null | undefined,
-  skillBar: BalanceRunRecord["skillBar"]
+  skillBar: BalanceRunRecord["skillBar"],
+  checkpoints: SafeZoneCheckpointSummary[]
 ): NonNullable<BalanceRunRecord["analysis"]>["trainingRealization"] {
   if (!requestedTrainingLoadout && !skillBar) {
     return null;
@@ -422,6 +478,33 @@ function buildTrainingRealizationSummary(
   const slot3Matched = !slot3RequestedSkillId || slot3RequestedSkillId === slot3ActualSkillId;
   const favoredTreeMatched = !favoredTreeRequested || favoredTreeRequested === favoredTreeActual;
   const unlockedMatched = requestedUnlockedSkillIds.every((skillId) => actualUnlockedSkillIds.includes(skillId));
+  const findMilestone = (predicate: (checkpoint: SafeZoneCheckpointSummary) => boolean) => {
+    const checkpoint = checkpoints.find(predicate) || null;
+    return {
+      actNumber: Number(checkpoint?.actNumber || 0),
+      checkpointId: String(checkpoint?.checkpointId || ""),
+    };
+  };
+  const favoredTreeMilestone = favoredTreeRequested
+    ? findMilestone((checkpoint) => String(checkpoint.favoredTreeId || "") === favoredTreeRequested)
+    : { actNumber: 0, checkpointId: "" };
+  const slot2UnlockedMilestone = slot2RequestedSkillId
+    ? findMilestone((checkpoint) => (checkpoint.trainingState?.unlockedSkillIds || []).includes(slot2RequestedSkillId))
+    : { actNumber: 0, checkpointId: "" };
+  const slot2EquippedMilestone = slot2RequestedSkillId
+    ? findMilestone((checkpoint) => String(checkpoint.trainingState?.equippedSkillIds?.slot2 || "") === slot2RequestedSkillId)
+    : { actNumber: 0, checkpointId: "" };
+  const slot3UnlockedMilestone = slot3RequestedSkillId
+    ? findMilestone((checkpoint) => (checkpoint.trainingState?.unlockedSkillIds || []).includes(slot3RequestedSkillId))
+    : { actNumber: 0, checkpointId: "" };
+  const slot3EquippedMilestone = slot3RequestedSkillId
+    ? findMilestone((checkpoint) => String(checkpoint.trainingState?.equippedSkillIds?.slot3 || "") === slot3RequestedSkillId)
+    : { actNumber: 0, checkpointId: "" };
+  const maxSlotsFilled = Math.max(
+    Object.values(skillBar?.equippedSkillIds || {}).filter(Boolean).length,
+    ...checkpoints.map((checkpoint) => Object.values(checkpoint.trainingState?.equippedSkillIds || {}).filter(Boolean).length),
+    0
+  );
   return {
     favoredTreeRequested,
     favoredTreeActual,
@@ -434,7 +517,64 @@ function buildTrainingRealizationSummary(
     slot3RequestedSkillId,
     slot3ActualSkillId,
     slot3Matched,
+    favoredTreeAlignedActNumber: favoredTreeMilestone.actNumber,
+    favoredTreeAlignedCheckpointId: favoredTreeMilestone.checkpointId,
+    slot2UnlockedActNumber: slot2UnlockedMilestone.actNumber,
+    slot2UnlockedCheckpointId: slot2UnlockedMilestone.checkpointId,
+    slot2EquippedActNumber: slot2EquippedMilestone.actNumber,
+    slot2EquippedCheckpointId: slot2EquippedMilestone.checkpointId,
+    slot3UnlockedActNumber: slot3UnlockedMilestone.actNumber,
+    slot3UnlockedCheckpointId: slot3UnlockedMilestone.checkpointId,
+    slot3EquippedActNumber: slot3EquippedMilestone.actNumber,
+    slot3EquippedCheckpointId: slot3EquippedMilestone.checkpointId,
+    maxSlotsFilled,
     fullyRealized: favoredTreeMatched && slot2Matched && slot3Matched && unlockedMatched,
+  };
+}
+
+function buildFailureAuditSummary(
+  report: PolicySimulationReport,
+  trainingRealization: NonNullable<BalanceRunRecord["analysis"]>["trainingRealization"],
+  lastEncounter: NonNullable<BalanceRunRecord["analysis"]>["lastEncounter"]
+): NonNullable<BalanceRunRecord["analysis"]>["failureAudit"] {
+  if (report.outcome !== "run_failed" || !report.failure || !lastEncounter) {
+    return null;
+  }
+  const reasons: string[] = [];
+  if (trainingRealization) {
+    if (trainingRealization.favoredTreeRequested && trainingRealization.favoredTreeAlignedActNumber <= 0) {
+      reasons.push("favored tree never aligned to the requested training plan");
+    }
+    if (trainingRealization.slot2RequestedSkillId && trainingRealization.slot2EquippedActNumber <= 0) {
+      reasons.push("slot 2 never came online");
+    }
+    if (trainingRealization.slot3RequestedSkillId && trainingRealization.slot3EquippedActNumber <= 0) {
+      reasons.push(
+        Number(report.failure.actNumber || 0) >= 4
+          ? "slot 3 capstone never came online by the late-game exam"
+          : "slot 3 capstone never came online"
+      );
+    }
+  }
+  if (Number(lastEncounter.powerRatio || 0) < 0.9) {
+    reasons.push("entered the failure encounter underpowered");
+  }
+  if (Number(lastEncounter.readySkillUnusedTurnRate || 0) >= 0.5) {
+    reasons.push("ready skills were left unused too often in the failure fight");
+  }
+  if (Number(lastEncounter.skillUseTurnRate || 0) <= 0.05 && Number(lastEncounter.slot2UseRate || 0) + Number(lastEncounter.slot3UseRate || 0) <= 0.05) {
+    reasons.push("equipped tactical skills barely fired in the failure fight");
+  }
+  if (reasons.length === 0) {
+    reasons.push("failure telemetry did not isolate one dominant cause");
+  }
+  return {
+    failed: true,
+    summary: reasons.slice(0, 2).join("; "),
+    reasons: reasons.slice(0, 4),
+    encounterName: String(report.failure.encounterName || lastEncounter.encounterName || ""),
+    actNumber: Number(report.failure.actNumber || 0),
+    powerRatio: Number(lastEncounter.powerRatio || 0),
   };
 }
 
@@ -449,6 +589,7 @@ function buildRunAnalysisSummary(
   const lastEncounter = encounterResults.length > 0 ? encounterResults[encounterResults.length - 1] : null;
   const lastBoss = [...encounterResults].reverse().find((encounter) => encounter.kind === "boss") || null;
   const finalBuild = report.summary?.finalBuild || buildEmptyFinalBuild();
+  const trainingRealization = buildTrainingRealizationSummary(requestedTrainingLoadout, skillBar, checkpoints);
   return {
     finalCheckpoint: finalCheckpoint
       ? {
@@ -472,6 +613,15 @@ function buildRunAnalysisSummary(
           heroPowerScore: Number(lastEncounter.heroPowerScore || 0),
           enemyPowerScore: Number(lastEncounter.enemyPowerScore || 0),
           powerRatio: Number(lastEncounter.powerRatio || 0),
+          skillActionRate: Number(lastEncounter.skillActionRate || 0),
+          skillUseTurnRate: Number(lastEncounter.skillUseTurnRate || 0),
+          readySkillUnusedTurnRate: Number(lastEncounter.readySkillUnusedTurnRate || 0),
+          slot1UseRate: Number(lastEncounter.slot1UseRate || 0),
+          slot2UseRate: Number(lastEncounter.slot2UseRate || 0),
+          slot3UseRate: Number(lastEncounter.slot3UseRate || 0),
+          beamDecisionRate: Number(lastEncounter.beamDecisionRate || 0),
+          averageBeamDepth: Number(lastEncounter.averageBeamDepth || 0),
+          beamOverrideRate: Number(lastEncounter.beamOverrideRate || 0),
         }
       : null,
     lastBoss: lastBoss
@@ -485,9 +635,44 @@ function buildRunAnalysisSummary(
           heroPowerScore: Number(lastBoss.heroPowerScore || 0),
           enemyPowerScore: Number(lastBoss.enemyPowerScore || 0),
           powerRatio: Number(lastBoss.powerRatio || 0),
+          skillActionRate: Number(lastBoss.skillActionRate || 0),
+          skillUseTurnRate: Number(lastBoss.skillUseTurnRate || 0),
+          readySkillUnusedTurnRate: Number(lastBoss.readySkillUnusedTurnRate || 0),
+          slot1UseRate: Number(lastBoss.slot1UseRate || 0),
+          slot2UseRate: Number(lastBoss.slot2UseRate || 0),
+          slot3UseRate: Number(lastBoss.slot3UseRate || 0),
+          beamDecisionRate: Number(lastBoss.beamDecisionRate || 0),
+          averageBeamDepth: Number(lastBoss.averageBeamDepth || 0),
+          beamOverrideRate: Number(lastBoss.beamOverrideRate || 0),
         }
       : null,
-    trainingRealization: buildTrainingRealizationSummary(requestedTrainingLoadout, skillBar),
+    trainingRealization,
+    failureAudit: buildFailureAuditSummary(
+      report,
+      trainingRealization,
+      lastEncounter
+        ? {
+            encounterId: lastEncounter.encounterId,
+            encounterName: lastEncounter.encounterName,
+            zoneTitle: lastEncounter.zoneTitle,
+            kind: lastEncounter.kind,
+            outcome: lastEncounter.outcome,
+            turns: Number(lastEncounter.turns || 0),
+            heroPowerScore: Number(lastEncounter.heroPowerScore || 0),
+            enemyPowerScore: Number(lastEncounter.enemyPowerScore || 0),
+            powerRatio: Number(lastEncounter.powerRatio || 0),
+            skillActionRate: Number(lastEncounter.skillActionRate || 0),
+            skillUseTurnRate: Number(lastEncounter.skillUseTurnRate || 0),
+            readySkillUnusedTurnRate: Number(lastEncounter.readySkillUnusedTurnRate || 0),
+            slot1UseRate: Number(lastEncounter.slot1UseRate || 0),
+            slot2UseRate: Number(lastEncounter.slot2UseRate || 0),
+            slot3UseRate: Number(lastEncounter.slot3UseRate || 0),
+            beamDecisionRate: Number(lastEncounter.beamDecisionRate || 0),
+            averageBeamDepth: Number(lastEncounter.averageBeamDepth || 0),
+            beamOverrideRate: Number(lastEncounter.beamOverrideRate || 0),
+          }
+        : null
+    ),
     finalBuild: {
       hero: { ...finalBuild.hero },
       mercenary: { ...finalBuild.mercenary },
@@ -659,6 +844,15 @@ export interface BalanceAggregateReport {
     averageEarlyDecisionScoreSpread: number;
     earlyCloseDecisionRate: number;
     averageEarlyEndTurnRegret: number;
+    skillActionRate: number;
+    skillUseTurnRate: number;
+    readySkillUnusedTurnRate: number;
+    slot1UseRate: number;
+    slot2UseRate: number;
+    slot3UseRate: number;
+    beamDecisionRate: number;
+    averageBeamDepth: number;
+    beamOverrideRate: number;
     decisionTension: BalanceDecisionTensionSummary;
   };
   encounterMetricsByKind: Record<string, {
@@ -678,6 +872,15 @@ export interface BalanceAggregateReport {
     averageEarlyDecisionScoreSpread: number;
     earlyCloseDecisionRate: number;
     averageEarlyEndTurnRegret: number;
+    skillActionRate: number;
+    skillUseTurnRate: number;
+    readySkillUnusedTurnRate: number;
+    slot1UseRate: number;
+    slot2UseRate: number;
+    slot3UseRate: number;
+    beamDecisionRate: number;
+    averageBeamDepth: number;
+    beamOverrideRate: number;
     decisionTension: BalanceDecisionTensionSummary;
   }>;
   strategyRoleCounts: Record<string, number>;
@@ -1016,6 +1219,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
     earlyDecisionScoreSpreadWeighted: number;
     earlyCloseDecisionWeighted: number;
     earlyEndTurnRegretWeighted: number;
+    skillActionWeighted: number;
+    skillUseTurnWeighted: number;
+    readySkillUnusedTurnWeighted: number;
+    slot1UseWeighted: number;
+    slot2UseWeighted: number;
+    slot3UseWeighted: number;
+    beamDecisionWeighted: number;
+    beamDepthWeighted: number;
+    beamOverrideWeighted: number;
   }> = {};
   records.forEach((record) => {
     if (record.combat) {
@@ -1039,6 +1251,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
           earlyDecisionScoreSpreadWeighted: 0,
           earlyCloseDecisionWeighted: 0,
           earlyEndTurnRegretWeighted: 0,
+          skillActionWeighted: 0,
+          skillUseTurnWeighted: 0,
+          readySkillUnusedTurnWeighted: 0,
+          slot1UseWeighted: 0,
+          slot2UseWeighted: 0,
+          slot3UseWeighted: 0,
+          beamDecisionWeighted: 0,
+          beamDepthWeighted: 0,
+          beamOverrideWeighted: 0,
         };
         const aggregate = byKind[kind];
         const weight = Math.max(1, Number(entry.runs || 1));
@@ -1059,6 +1280,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
         aggregate.earlyDecisionScoreSpreadWeighted += Number(entry.averageEarlyDecisionScoreSpread || 0) * weight;
         aggregate.earlyCloseDecisionWeighted += Number(entry.earlyCloseDecisionRate || 0) * weight;
         aggregate.earlyEndTurnRegretWeighted += Number(entry.averageEarlyEndTurnRegret || 0) * weight;
+        aggregate.skillActionWeighted += Number(entry.skillActionRate || 0) * weight;
+        aggregate.skillUseTurnWeighted += Number(entry.skillUseTurnRate || 0) * weight;
+        aggregate.readySkillUnusedTurnWeighted += Number(entry.readySkillUnusedTurnRate || 0) * weight;
+        aggregate.slot1UseWeighted += Number(entry.slot1UseRate || 0) * weight;
+        aggregate.slot2UseWeighted += Number(entry.slot2UseRate || 0) * weight;
+        aggregate.slot3UseWeighted += Number(entry.slot3UseRate || 0) * weight;
+        aggregate.beamDecisionWeighted += Number(entry.beamDecisionRate || 0) * weight;
+        aggregate.beamDepthWeighted += Number(entry.averageBeamDepth || 0) * weight;
+        aggregate.beamOverrideWeighted += Number(entry.beamOverrideRate || 0) * weight;
       });
       return;
     }
@@ -1083,6 +1313,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
         earlyDecisionScoreSpreadWeighted: 0,
         earlyCloseDecisionWeighted: 0,
         earlyEndTurnRegretWeighted: 0,
+        skillActionWeighted: 0,
+        skillUseTurnWeighted: 0,
+        readySkillUnusedTurnWeighted: 0,
+        slot1UseWeighted: 0,
+        slot2UseWeighted: 0,
+        slot3UseWeighted: 0,
+        beamDecisionWeighted: 0,
+        beamDepthWeighted: 0,
+        beamOverrideWeighted: 0,
       };
       const aggregate = byKind[kind];
       aggregate.count += 1;
@@ -1102,6 +1341,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
       aggregate.earlyDecisionScoreSpreadWeighted += Number(entry.averageEarlyDecisionScoreSpread || 0);
       aggregate.earlyCloseDecisionWeighted += Number(entry.earlyCloseDecisionRate || 0);
       aggregate.earlyEndTurnRegretWeighted += Number(entry.averageEarlyEndTurnRegret || 0);
+      aggregate.skillActionWeighted += Number(entry.skillActionRate || 0);
+      aggregate.skillUseTurnWeighted += Number(entry.skillUseTurnRate || 0);
+      aggregate.readySkillUnusedTurnWeighted += Number(entry.readySkillUnusedTurnRate || 0);
+      aggregate.slot1UseWeighted += Number(entry.slot1UseRate || 0);
+      aggregate.slot2UseWeighted += Number(entry.slot2UseRate || 0);
+      aggregate.slot3UseWeighted += Number(entry.slot3UseRate || 0);
+      aggregate.beamDecisionWeighted += Number(entry.beamDecisionRate || 0);
+      aggregate.beamDepthWeighted += Number(entry.averageBeamDepth || 0);
+      aggregate.beamOverrideWeighted += Number(entry.beamOverrideRate || 0);
     });
   });
   return Object.fromEntries(
@@ -1124,6 +1372,15 @@ function aggregateEncounterMetrics(records: BalanceRunRecord[]) {
         averageEarlyDecisionScoreSpread: roundTo(aggregate.earlyDecisionScoreSpreadWeighted / weight, 3),
         earlyCloseDecisionRate: roundTo(aggregate.earlyCloseDecisionWeighted / weight, 3),
         averageEarlyEndTurnRegret: roundTo(aggregate.earlyEndTurnRegretWeighted / weight, 3),
+        skillActionRate: roundTo(aggregate.skillActionWeighted / weight, 3),
+        skillUseTurnRate: roundTo(aggregate.skillUseTurnWeighted / weight, 3),
+        readySkillUnusedTurnRate: roundTo(aggregate.readySkillUnusedTurnWeighted / weight, 3),
+        slot1UseRate: roundTo(aggregate.slot1UseWeighted / weight, 3),
+        slot2UseRate: roundTo(aggregate.slot2UseWeighted / weight, 3),
+        slot3UseRate: roundTo(aggregate.slot3UseWeighted / weight, 3),
+        beamDecisionRate: roundTo(aggregate.beamDecisionWeighted / weight, 3),
+        averageBeamDepth: roundTo(aggregate.beamDepthWeighted / weight, 3),
+        beamOverrideRate: roundTo(aggregate.beamOverrideWeighted / weight, 3),
       };
       return [kind, {
         ...entry,
@@ -1982,6 +2239,15 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
   let earlyDecisionScoreSpreadTotal = 0;
   let earlyCloseDecisionTotal = 0;
   let earlyEndTurnRegretTotal = 0;
+  let skillActionRateTotal = 0;
+  let skillUseTurnRateTotal = 0;
+  let readySkillUnusedTurnRateTotal = 0;
+  let slot1UseRateTotal = 0;
+  let slot2UseRateTotal = 0;
+  let slot3UseRateTotal = 0;
+  let beamDecisionRateTotal = 0;
+  let averageBeamDepthTotal = 0;
+  let beamOverrideRateTotal = 0;
 
   records.forEach((record) => {
     const key = `${record.classId}:${record.policyId}:${record.targetArchetypeId || "natural"}:${record.commitmentMode}`;
@@ -2064,6 +2330,24 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
     earlyCloseDecisionTotal += (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.earlyCloseDecisionRate || 0), 0) / encounterDivisor;
     earlyEndTurnRegretTotal +=
       (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.averageEarlyEndTurnRegret || 0), 0) / encounterDivisor;
+    skillActionRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.skillActionRate || 0), 0) / encounterDivisor;
+    skillUseTurnRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.skillUseTurnRate || 0), 0) / encounterDivisor;
+    readySkillUnusedTurnRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.readySkillUnusedTurnRate || 0), 0) / encounterDivisor;
+    slot1UseRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.slot1UseRate || 0), 0) / encounterDivisor;
+    slot2UseRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.slot2UseRate || 0), 0) / encounterDivisor;
+    slot3UseRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.slot3UseRate || 0), 0) / encounterDivisor;
+    beamDecisionRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.beamDecisionRate || 0), 0) / encounterDivisor;
+    averageBeamDepthTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.averageBeamDepth || 0), 0) / encounterDivisor;
+    beamOverrideRateTotal +=
+      (record.summary.encounterResults || []).reduce((sum, entry) => sum + Number(entry.beamOverrideRate || 0), 0) / encounterDivisor;
     mergeCounts(rewardRoleCounts, record.summary.rewardRoleCounts);
     mergeCounts(strategyRoleCounts, record.summary.strategyRoleCounts);
   });
@@ -2078,6 +2362,15 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
     averageEarlyDecisionScoreSpread: roundTo(earlyDecisionScoreSpreadTotal / divisor, 3),
     earlyCloseDecisionRate: roundTo(earlyCloseDecisionTotal / divisor, 3),
     averageEarlyEndTurnRegret: roundTo(earlyEndTurnRegretTotal / divisor, 3),
+    skillActionRate: roundTo(skillActionRateTotal / divisor, 3),
+    skillUseTurnRate: roundTo(skillUseTurnRateTotal / divisor, 3),
+    readySkillUnusedTurnRate: roundTo(readySkillUnusedTurnRateTotal / divisor, 3),
+    slot1UseRate: roundTo(slot1UseRateTotal / divisor, 3),
+    slot2UseRate: roundTo(slot2UseRateTotal / divisor, 3),
+    slot3UseRate: roundTo(slot3UseRateTotal / divisor, 3),
+    beamDecisionRate: roundTo(beamDecisionRateTotal / divisor, 3),
+    averageBeamDepth: roundTo(averageBeamDepthTotal / divisor, 3),
+    beamOverrideRate: roundTo(beamOverrideRateTotal / divisor, 3),
   };
   return {
     experimentId: spec.experimentId,
@@ -2126,6 +2419,15 @@ export function aggregateBalanceRunRecords(spec: BalanceExperimentSpec, records:
       averageEarlyDecisionScoreSpread: overallDecisionMetrics.averageEarlyDecisionScoreSpread,
       earlyCloseDecisionRate: overallDecisionMetrics.earlyCloseDecisionRate,
       averageEarlyEndTurnRegret: overallDecisionMetrics.averageEarlyEndTurnRegret,
+      skillActionRate: overallDecisionMetrics.skillActionRate,
+      skillUseTurnRate: overallDecisionMetrics.skillUseTurnRate,
+      readySkillUnusedTurnRate: overallDecisionMetrics.readySkillUnusedTurnRate,
+      slot1UseRate: overallDecisionMetrics.slot1UseRate,
+      slot2UseRate: overallDecisionMetrics.slot2UseRate,
+      slot3UseRate: overallDecisionMetrics.slot3UseRate,
+      beamDecisionRate: overallDecisionMetrics.beamDecisionRate,
+      averageBeamDepth: overallDecisionMetrics.averageBeamDepth,
+      beamOverrideRate: overallDecisionMetrics.beamOverrideRate,
       decisionTension: buildDecisionTensionSummary(overallDecisionMetrics),
     },
     encounterMetricsByKind: aggregateEncounterMetrics(records),
@@ -2201,9 +2503,18 @@ function resolveMetricValue(report: BalanceAggregateReport, metricId: string): n
   if (metricId === "overall.average_early_decision_score_spread") { return report.overall.averageEarlyDecisionScoreSpread; }
   if (metricId === "overall.early_close_decision_rate") { return report.overall.earlyCloseDecisionRate; }
   if (metricId === "overall.average_early_end_turn_regret") { return report.overall.averageEarlyEndTurnRegret; }
+  if (metricId === "overall.skill_action_rate") { return report.overall.skillActionRate; }
+  if (metricId === "overall.skill_use_turn_rate") { return report.overall.skillUseTurnRate; }
+  if (metricId === "overall.ready_skill_unused_turn_rate") { return report.overall.readySkillUnusedTurnRate; }
+  if (metricId === "overall.slot1_use_rate") { return report.overall.slot1UseRate; }
+  if (metricId === "overall.slot2_use_rate") { return report.overall.slot2UseRate; }
+  if (metricId === "overall.slot3_use_rate") { return report.overall.slot3UseRate; }
+  if (metricId === "overall.beam_decision_rate") { return report.overall.beamDecisionRate; }
+  if (metricId === "overall.average_beam_depth") { return report.overall.averageBeamDepth; }
+  if (metricId === "overall.beam_override_rate") { return report.overall.beamOverrideRate; }
 
   const encounterMatch = metricId.match(
-    /^encounter\.(boss|miniboss|elite|battle)\.(average_turns|win_rate|average_power_ratio|opening_hand_full_spend_rate|average_turn1_unspent_energy|average_early_unspent_energy|average_early_meaningful_unplayed_rate|average_early_candidate_count|average_early_meaningful_candidate_count|average_early_decision_score_spread|early_close_decision_rate|average_early_end_turn_regret)$/
+    /^encounter\.(boss|miniboss|elite|battle)\.(average_turns|win_rate|average_power_ratio|opening_hand_full_spend_rate|average_turn1_unspent_energy|average_early_unspent_energy|average_early_meaningful_unplayed_rate|average_early_candidate_count|average_early_meaningful_candidate_count|average_early_decision_score_spread|early_close_decision_rate|average_early_end_turn_regret|skill_action_rate|skill_use_turn_rate|ready_skill_unused_turn_rate|slot1_use_rate|slot2_use_rate|slot3_use_rate|beam_decision_rate|average_beam_depth|beam_override_rate)$/
   );
   if (encounterMatch) {
     const [, kind, field] = encounterMatch;
@@ -2223,6 +2534,15 @@ function resolveMetricValue(report: BalanceAggregateReport, metricId: string): n
     if (field === "average_early_decision_score_spread") { return entry.averageEarlyDecisionScoreSpread; }
     if (field === "early_close_decision_rate") { return entry.earlyCloseDecisionRate; }
     if (field === "average_early_end_turn_regret") { return entry.averageEarlyEndTurnRegret; }
+    if (field === "skill_action_rate") { return entry.skillActionRate; }
+    if (field === "skill_use_turn_rate") { return entry.skillUseTurnRate; }
+    if (field === "ready_skill_unused_turn_rate") { return entry.readySkillUnusedTurnRate; }
+    if (field === "slot1_use_rate") { return entry.slot1UseRate; }
+    if (field === "slot2_use_rate") { return entry.slot2UseRate; }
+    if (field === "slot3_use_rate") { return entry.slot3UseRate; }
+    if (field === "beam_decision_rate") { return entry.beamDecisionRate; }
+    if (field === "average_beam_depth") { return entry.averageBeamDepth; }
+    if (field === "beam_override_rate") { return entry.beamOverrideRate; }
   }
 
   const groupMatch = metricId.match(/^group\.([a-z_]+)\.([a-z_]+)\.(win_rate|act5_rate|average_final_act)$/);
@@ -2405,16 +2725,34 @@ export function buildBalanceMarkdownReport(artifact: BalanceArtifact) {
 
   lines.push("", "## Decision Tension");
   lines.push(
-    `- overall: ${artifact.aggregate.overall.decisionTension.status} | candidates ${artifact.aggregate.overall.averageEarlyCandidateCount.toFixed(2)}, meaningful ${artifact.aggregate.overall.averageEarlyMeaningfulCandidateCount.toFixed(2)}, spread ${artifact.aggregate.overall.averageEarlyDecisionScoreSpread.toFixed(2)}, close ${(artifact.aggregate.overall.earlyCloseDecisionRate * 100).toFixed(1)}%, end-turn regret ${artifact.aggregate.overall.averageEarlyEndTurnRegret.toFixed(2)}`
+    `- overall: ${artifact.aggregate.overall.decisionTension.status} | candidates ${artifact.aggregate.overall.averageEarlyCandidateCount.toFixed(2)}, meaningful ${artifact.aggregate.overall.averageEarlyMeaningfulCandidateCount.toFixed(2)}, spread ${artifact.aggregate.overall.averageEarlyDecisionScoreSpread.toFixed(2)}, close ${(artifact.aggregate.overall.earlyCloseDecisionRate * 100).toFixed(1)}%, end-turn regret ${artifact.aggregate.overall.averageEarlyEndTurnRegret.toFixed(2)}, beam ${(artifact.aggregate.overall.beamDecisionRate * 100).toFixed(1)}%, override ${(artifact.aggregate.overall.beamOverrideRate * 100).toFixed(1)}%, depth ${artifact.aggregate.overall.averageBeamDepth.toFixed(2)}`
   );
   lines.push(`  notes: ${artifact.aggregate.overall.decisionTension.reasons.join("; ") || "none"}`);
+  lines.push(
+    `- skill usage: action rate ${artifact.aggregate.overall.skillActionRate.toFixed(2)}, turn-use ${(artifact.aggregate.overall.skillUseTurnRate * 100).toFixed(1)}%, ready-unused ${(artifact.aggregate.overall.readySkillUnusedTurnRate * 100).toFixed(1)}%, slots ${[
+      artifact.aggregate.overall.slot1UseRate,
+      artifact.aggregate.overall.slot2UseRate,
+      artifact.aggregate.overall.slot3UseRate,
+    ]
+      .map((value) => `${(value * 100).toFixed(1)}%`)
+      .join(" / ")}`
+  );
   ["boss", "miniboss", "elite", "battle"].forEach((kind) => {
     const entry = artifact.aggregate.encounterMetricsByKind[kind];
     if (!entry) {
       return;
     }
     lines.push(
-      `- ${kind}: ${entry.decisionTension.status} | candidates ${entry.averageEarlyCandidateCount.toFixed(2)}, meaningful ${entry.averageEarlyMeaningfulCandidateCount.toFixed(2)}, spread ${entry.averageEarlyDecisionScoreSpread.toFixed(2)}, close ${(entry.earlyCloseDecisionRate * 100).toFixed(1)}%, end-turn regret ${entry.averageEarlyEndTurnRegret.toFixed(2)}`
+      `- ${kind}: ${entry.decisionTension.status} | candidates ${entry.averageEarlyCandidateCount.toFixed(2)}, meaningful ${entry.averageEarlyMeaningfulCandidateCount.toFixed(2)}, spread ${entry.averageEarlyDecisionScoreSpread.toFixed(2)}, close ${(entry.earlyCloseDecisionRate * 100).toFixed(1)}%, end-turn regret ${entry.averageEarlyEndTurnRegret.toFixed(2)}, beam ${(entry.beamDecisionRate * 100).toFixed(1)}%, override ${(entry.beamOverrideRate * 100).toFixed(1)}%, depth ${entry.averageBeamDepth.toFixed(2)}`
+    );
+    lines.push(
+      `  skill usage: rate ${entry.skillActionRate.toFixed(2)}, turn-use ${(entry.skillUseTurnRate * 100).toFixed(1)}%, ready-unused ${(entry.readySkillUnusedTurnRate * 100).toFixed(1)}%, slots ${[
+        entry.slot1UseRate,
+        entry.slot2UseRate,
+        entry.slot3UseRate,
+      ]
+        .map((value) => `${(value * 100).toFixed(1)}%`)
+        .join(" / ")}`
     );
     lines.push(`  notes: ${entry.decisionTension.reasons.join("; ") || "none"}`);
   });
@@ -2498,6 +2836,15 @@ function buildCombatEncounterMetrics(encounters: Array<{
   averageEarlyDecisionScoreSpread?: number;
   earlyCloseDecisionRate?: number;
   averageEarlyEndTurnRegret?: number;
+  skillActionRate?: number;
+  skillUseTurnRate?: number;
+  readySkillUnusedTurnRate?: number;
+  slot1UseRate?: number;
+  slot2UseRate?: number;
+  slot3UseRate?: number;
+  beamDecisionRate?: number;
+  averageBeamDepth?: number;
+  beamOverrideRate?: number;
 }>) {
   const byKind: Record<string, {
     count: number;
@@ -2517,6 +2864,15 @@ function buildCombatEncounterMetrics(encounters: Array<{
     earlyDecisionScoreSpread: number;
     earlyCloseDecision: number;
     earlyEndTurnRegret: number;
+    skillActionRate: number;
+    skillUseTurnRate: number;
+    readySkillUnusedTurnRate: number;
+    slot1UseRate: number;
+    slot2UseRate: number;
+    slot3UseRate: number;
+    beamDecisionRate: number;
+    averageBeamDepth: number;
+    beamOverrideRate: number;
   }> = {};
 
   encounters.forEach((entry) => {
@@ -2539,6 +2895,15 @@ function buildCombatEncounterMetrics(encounters: Array<{
       earlyDecisionScoreSpread: 0,
       earlyCloseDecision: 0,
       earlyEndTurnRegret: 0,
+      skillActionRate: 0,
+      skillUseTurnRate: 0,
+      readySkillUnusedTurnRate: 0,
+      slot1UseRate: 0,
+      slot2UseRate: 0,
+      slot3UseRate: 0,
+      beamDecisionRate: 0,
+      averageBeamDepth: 0,
+      beamOverrideRate: 0,
     };
     const aggregate = byKind[kind];
     const weight = Math.max(1, Number(entry.runs || 1));
@@ -2559,6 +2924,15 @@ function buildCombatEncounterMetrics(encounters: Array<{
     aggregate.earlyDecisionScoreSpread += Number(entry.averageEarlyDecisionScoreSpread || 0) * weight;
     aggregate.earlyCloseDecision += Number(entry.earlyCloseDecisionRate || 0) * weight;
     aggregate.earlyEndTurnRegret += Number(entry.averageEarlyEndTurnRegret || 0) * weight;
+    aggregate.skillActionRate += Number(entry.skillActionRate || 0) * weight;
+    aggregate.skillUseTurnRate += Number(entry.skillUseTurnRate || 0) * weight;
+    aggregate.readySkillUnusedTurnRate += Number(entry.readySkillUnusedTurnRate || 0) * weight;
+    aggregate.slot1UseRate += Number(entry.slot1UseRate || 0) * weight;
+    aggregate.slot2UseRate += Number(entry.slot2UseRate || 0) * weight;
+    aggregate.slot3UseRate += Number(entry.slot3UseRate || 0) * weight;
+    aggregate.beamDecisionRate += Number(entry.beamDecisionRate || 0) * weight;
+    aggregate.averageBeamDepth += Number(entry.averageBeamDepth || 0) * weight;
+    aggregate.beamOverrideRate += Number(entry.beamOverrideRate || 0) * weight;
   });
 
   return Object.fromEntries(
@@ -2581,6 +2955,15 @@ function buildCombatEncounterMetrics(encounters: Array<{
         averageEarlyDecisionScoreSpread: roundTo(aggregate.earlyDecisionScoreSpread / weight, 3),
         earlyCloseDecisionRate: roundTo(aggregate.earlyCloseDecision / weight, 3),
         averageEarlyEndTurnRegret: roundTo(aggregate.earlyEndTurnRegret / weight, 3),
+        skillActionRate: roundTo(aggregate.skillActionRate / weight, 3),
+        skillUseTurnRate: roundTo(aggregate.skillUseTurnRate / weight, 3),
+        readySkillUnusedTurnRate: roundTo(aggregate.readySkillUnusedTurnRate / weight, 3),
+        slot1UseRate: roundTo(aggregate.slot1UseRate / weight, 3),
+        slot2UseRate: roundTo(aggregate.slot2UseRate / weight, 3),
+        slot3UseRate: roundTo(aggregate.slot3UseRate / weight, 3),
+        beamDecisionRate: roundTo(aggregate.beamDecisionRate / weight, 3),
+        averageBeamDepth: roundTo(aggregate.averageBeamDepth / weight, 3),
+        beamOverrideRate: roundTo(aggregate.beamOverrideRate / weight, 3),
       };
       return [kind, {
         ...entry,
@@ -2686,6 +3069,15 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     averageEarlyDecisionScoreSpread: Number(encounter.averageEarlyDecisionScoreSpread || 0),
     earlyCloseDecisionRate: Number(encounter.earlyCloseDecisionRate || 0),
     averageEarlyEndTurnRegret: Number(encounter.averageEarlyEndTurnRegret || 0),
+    skillActionRate: Number(encounter.skillActionRate || 0),
+    skillUseTurnRate: Number(encounter.skillUseTurnRate || 0),
+    readySkillUnusedTurnRate: Number(encounter.readySkillUnusedTurnRate || 0),
+    slot1UseRate: Number(encounter.slot1UseRate || 0),
+    slot2UseRate: Number(encounter.slot2UseRate || 0),
+    slot3UseRate: Number(encounter.slot3UseRate || 0),
+    beamDecisionRate: Number(encounter.beamDecisionRate || 0),
+    averageBeamDepth: Number(encounter.averageBeamDepth || 0),
+    beamOverrideRate: Number(encounter.beamOverrideRate || 0),
   }));
 
   const summary: PolicyRunSummary = {

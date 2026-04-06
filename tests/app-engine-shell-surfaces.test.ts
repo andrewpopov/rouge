@@ -385,7 +385,7 @@ test("expedition launch flow persists from hall through character select into to
   assert.match(root.innerHTML, /Draft Commit/);
   assert.match(root.innerHTML, /Town Arrival/);
   assert.match(root.innerHTML, /Preferred draft signal: Sorceress\./);
-  assert.match(root.innerHTML, /Starter skill plan:/);
+  assert.match(root.innerHTML, /Starter core skill plan:/);
   assert.match(root.innerHTML, /Open character draft once the hall signal is settled\./);
 
   appEngine.startCharacterSelect(state);

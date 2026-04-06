@@ -291,9 +291,10 @@ export const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
 }
 
 export interface CombatCandidateAction {
-  type: "card" | "melee" | "potion" | "end_turn"
+  type: "card" | "skill" | "melee" | "potion" | "end_turn"
   score: number
   instanceId?: string
+  slotKey?: RunSkillBarSlotKey
   targetId?: string
   potionTarget?: "hero" | "mercenary"
   afterShortfall?: number
@@ -326,6 +327,15 @@ export interface EncounterRunMetric {
   averageEarlyDecisionScoreSpread: number
   earlyCloseDecisionRate: number
   averageEarlyEndTurnRegret: number
+  skillActionRate: number
+  skillUseTurnRate: number
+  readySkillUnusedTurnRate: number
+  slot1UseRate: number
+  slot2UseRate: number
+  slot3UseRate: number
+  beamDecisionRate: number
+  averageBeamDepth: number
+  beamOverrideRate: number
 }
 
 export type ArchetypeCommitmentMode = "natural" | "committed"
@@ -408,6 +418,15 @@ export interface ProbeEncounterSummary {
   averageEarlyDecisionScoreSpread: number
   earlyCloseDecisionRate: number
   averageEarlyEndTurnRegret: number
+  skillActionRate: number
+  skillUseTurnRate: number
+  readySkillUnusedTurnRate: number
+  slot1UseRate: number
+  slot2UseRate: number
+  slot3UseRate: number
+  beamDecisionRate: number
+  averageBeamDepth: number
+  beamOverrideRate: number
 }
 
 export type CheckpointProbeProfile = "default" | "pressure"
@@ -534,6 +553,15 @@ export interface SafeZoneCheckpointSummary {
   }
   choiceCounts: Record<string, number>
   townActionCounts: Record<string, number>
+  trainingState: {
+    bankedSkillPoints: number
+    favoredTreeRank: number
+    unlockedSkillCount: number
+    unlockedSkillIds: string[]
+    slotStateLabel: string
+    equippedSkillIds: Record<RunSkillBarSlotKey, string>
+    equippedSkillNames: Record<RunSkillBarSlotKey, string>
+  }
   probes: ProbeEncounterSummary[]
   archetypeCommitment: {
     targetArchetypeId: string
@@ -669,6 +697,15 @@ export interface PolicyRunSummary {
     averageEarlyDecisionScoreSpread: number
     earlyCloseDecisionRate: number
     averageEarlyEndTurnRegret: number
+    skillActionRate: number
+    skillUseTurnRate: number
+    readySkillUnusedTurnRate: number
+    slot1UseRate: number
+    slot2UseRate: number
+    slot3UseRate: number
+    beamDecisionRate: number
+    averageBeamDepth: number
+    beamOverrideRate: number
   }>
   world: WorldProgressSummary
   finalBuild: FinalBuildSummary

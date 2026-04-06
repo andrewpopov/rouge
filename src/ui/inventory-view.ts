@@ -94,7 +94,7 @@
     return "";
   }
 
-  function buildSlot(
+  function buildPaperDollSlot(
     slotKey: LoadoutSlotKey,
     equipment: RunEquipmentState | null,
     content: GameContent,
@@ -121,6 +121,63 @@
           <span class="d2inv-slot__empty-label">${escapeHtml(label)}</span>
         `}
         ${buildEquipmentTooltip(equipment, content, escapeHtml)}
+      </div>
+    `;
+  }
+
+  function buildLoadoutPaperDollMarkup(
+    run: RunState,
+    loadout: ReturnType<typeof runtimeWindow.ROUGE_ITEM_CATALOG.buildHydratedLoadout>,
+    content: GameContent,
+    escapeHtml: (s: string) => string
+  ): string {
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
+    const figureSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
+    const figureMarkup = figureSrc
+      ? svgIcon(figureSrc, "d2inv-doll__figure-image", run.className)
+      : `<span class="d2inv-doll__figure-mark">${escapeHtml((run.className || "?").slice(0, 2).toUpperCase())}</span>`;
+
+    return `
+      <div class="d2inv-doll">
+        <div class="d2inv-doll__backdrop">
+          <div class="d2inv-doll__halo"></div>
+          <div class="d2inv-doll__figure">${figureMarkup}</div>
+          <div class="d2inv-doll__caption">
+            <span class="d2inv-doll__caption-label">Bound Steel</span>
+            <strong class="d2inv-doll__caption-value">${escapeHtml(run.className)}</strong>
+          </div>
+        </div>
+
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--helm">
+          ${buildPaperDollSlot("helm", loadout.helm, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--amulet">
+          ${buildPaperDollSlot("amulet", loadout.amulet, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--weapon">
+          ${buildPaperDollSlot("weapon", loadout.weapon, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--armor">
+          ${buildPaperDollSlot("armor", loadout.armor, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--shield">
+          ${buildPaperDollSlot("shield", loadout.shield, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--ring1">
+          ${buildPaperDollSlot("ring1", loadout.ring1, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--belt">
+          ${buildPaperDollSlot("belt", loadout.belt, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--ring2">
+          ${buildPaperDollSlot("ring2", loadout.ring2, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--gloves">
+          ${buildPaperDollSlot("gloves", loadout.gloves, content, escapeHtml)}
+        </div>
+        <div class="d2inv-doll__slot-wrap d2inv-doll__slot-wrap--boots">
+          ${buildPaperDollSlot("boots", loadout.boots, content, escapeHtml)}
+        </div>
       </div>
     `;
   }
@@ -510,6 +567,51 @@
     `;
   }
 
+  function buildFieldPackBloodlineMarkup(
+    services: UiRenderServices,
+    vm: ReturnType<typeof deriveInventoryModel>
+  ): string {
+    const { escapeHtml } = services.renderUtils;
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
+    const { run, derivedParty } = vm;
+    const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
+    const heroPortrait = heroPortraitSrc
+      ? svgIcon(heroPortraitSrc, "d2inv-hero__compact-portrait-image", run.className)
+      : `<span class="d2inv-hero__compact-monogram">${escapeHtml((run.className || "?").slice(0, 2).toUpperCase())}</span>`;
+
+    return `
+      <section class="d2inv-hero d2inv-hero--field-pack">
+        <div class="d2inv-hero__compact">
+          <div class="d2inv-hero__compact-portrait">
+            <div class="d2inv-hero__compact-eclipse"></div>
+            ${heroPortrait}
+          </div>
+          <div class="d2inv-hero__compact-copy">
+            <span class="d2inv-hero__compact-eyebrow">${escapeHtml(run.safeZoneName || "Safe Haven")}</span>
+            <strong class="d2inv-hero__compact-name">${escapeHtml(run.className)}</strong>
+            <span class="d2inv-hero__compact-role">Level ${run.level} · ${escapeHtml(run.actTitle || "Current route")}</span>
+            ${buildLifeMeter("Hero Life", derivedParty.hero.currentLife, derivedParty.hero.maxLife, escapeHtml, "hero")}
+          </div>
+        </div>
+
+        <div class="d2inv-hero__compact-meta">
+          <div class="d2inv-hero__compact-pill">
+            <span class="d2inv-hero__compact-pill-label">Deck</span>
+            <strong class="d2inv-hero__compact-pill-value">${run.deck?.length || 0}</strong>
+          </div>
+          <div class="d2inv-hero__compact-pill">
+            <span class="d2inv-hero__compact-pill-label">Belt</span>
+            <strong class="d2inv-hero__compact-pill-value">${run.belt.current}/${run.belt.max}</strong>
+          </div>
+          <div class="d2inv-hero__compact-pill">
+            <span class="d2inv-hero__compact-pill-label">Merc</span>
+            <strong class="d2inv-hero__compact-pill-value">${escapeHtml(run.mercenary.name || run.mercenary.role || "Mercenary")}</strong>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   function buildPackStageMarkup(
     appState: AppState,
     vm: ReturnType<typeof deriveInventoryModel>,
@@ -519,8 +621,29 @@
     const { run } = vm;
     const capacity = runtimeWindow.ROUGE_ITEM_LOADOUT.INVENTORY_CAPACITY;
     const carried = run.inventory?.carried || [];
+    const gearCount = carried.filter((entry) => entry.kind === ENTRY_KIND.EQUIPMENT).length;
+    const runeCount = carried.filter((entry) => entry.kind === ENTRY_KIND.RUNE).length;
+    const openSlots = Math.max(0, capacity - carried.length);
     const slots = Array.from({ length: capacity }, (_, index) => buildPackSlotCell(carried[index] || null, index, content, appState.ui.inventoryDetailEntryId || "", escapeHtml)).join("");
     const selectedEntry = carried.find((entry) => entry.entryId === appState.ui.inventoryDetailEntryId) || null;
+    const detailMarkup = selectedEntry
+      ? buildInventoryEntryDetailMarkup(selectedEntry, content, escapeHtml)
+      : `
+        <div class="d2inv-pack-detail d2inv-pack-detail--empty">
+          <div class="d2inv-pack-detail__head">
+            <div>
+              <span class="d2inv-pack-detail__eyebrow">Pack Dossier</span>
+              <strong class="d2inv-pack-detail__name">Select a carried piece.</strong>
+            </div>
+          </div>
+          <p class="d2inv-pack-detail__summary">Pin any slot to review its combat bonuses, sockets, rune fit, and whether it deserves a place in the active loadout before departure.</p>
+          <div class="d2inv-pack-detail__chips">
+            <span class="d2inv-pack-detail__chip">${gearCount} gear</span>
+            <span class="d2inv-pack-detail__chip">${runeCount} runes</span>
+            <span class="d2inv-pack-detail__chip">${openSlots} open slots</span>
+          </div>
+        </div>
+      `;
 
     return `
       <div class="d2inv-pack-stage">
@@ -543,10 +666,24 @@
         </div>
 
         <div class="d2inv-pack-board">
+          <div class="d2inv-pack-board__stats" aria-label="Pack manifest">
+            <div class="d2inv-pack-board__stat">
+              <span class="d2inv-pack-board__stat-label">Gear</span>
+              <strong class="d2inv-pack-board__stat-value">${gearCount}</strong>
+            </div>
+            <div class="d2inv-pack-board__stat">
+              <span class="d2inv-pack-board__stat-label">Runes</span>
+              <strong class="d2inv-pack-board__stat-value">${runeCount}</strong>
+            </div>
+            <div class="d2inv-pack-board__stat">
+              <span class="d2inv-pack-board__stat-label">Open</span>
+              <strong class="d2inv-pack-board__stat-value">${openSlots}</strong>
+            </div>
+          </div>
           <div class="d2inv-pack-board__grid">
             ${slots}
           </div>
-          ${buildInventoryEntryDetailMarkup(selectedEntry, content, escapeHtml)}
+          ${detailMarkup}
         </div>
       </div>
     `;
@@ -678,7 +815,7 @@
     return `
       <div class="d2inv__body d2inv__body--inventory">
         <div class="d2inv__rail">
-          ${buildHeroDossierMarkup(services, vm, "field-pack")}
+          ${buildFieldPackBloodlineMarkup(services, vm)}
 
           <section class="d2inv__panel d2inv__panel--loadout">
             <div class="d2inv__panel-head">
@@ -688,31 +825,7 @@
               </div>
             </div>
 
-            <div class="d2inv-doll">
-              <div class="d2inv-doll__row d2inv-doll__row--head">
-                ${buildSlot("helm", loadout.helm, content, escapeHtml)}
-              </div>
-              <div class="d2inv-doll__row d2inv-doll__row--shoulders">
-                ${buildSlot("amulet", loadout.amulet, content, escapeHtml)}
-              </div>
-              <div class="d2inv-doll__row d2inv-doll__row--torso">
-                ${buildSlot("weapon", loadout.weapon, content, escapeHtml)}
-                <div class="d2inv-doll__body">
-                  ${buildSlot("armor", loadout.armor, content, escapeHtml)}
-                </div>
-                ${buildSlot("shield", loadout.shield, content, escapeHtml)}
-              </div>
-              <div class="d2inv-doll__row d2inv-doll__row--lower">
-                ${buildSlot("ring1", loadout.ring1, content, escapeHtml)}
-                ${buildSlot("belt", loadout.belt, content, escapeHtml)}
-                ${buildSlot("ring2", loadout.ring2, content, escapeHtml)}
-              </div>
-              <div class="d2inv-doll__row d2inv-doll__row--feet">
-                ${buildSlot("gloves", loadout.gloves, content, escapeHtml)}
-                <div class="d2inv-doll__spacer"></div>
-                ${buildSlot("boots", loadout.boots, content, escapeHtml)}
-              </div>
-            </div>
+            ${buildLoadoutPaperDollMarkup(run, loadout, content, escapeHtml)}
           </section>
         </div>
 

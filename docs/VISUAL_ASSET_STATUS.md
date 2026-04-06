@@ -1,6 +1,6 @@
 # Visual Asset Status
 
-Last updated: April 2, 2026.
+Last updated: April 6, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -35,7 +35,35 @@ Current verdict:
 
 - strong enough for live use
 - no broad replacement pass needed
+- one targeted subject-art repair queue remains: `8` curated enemy or boss files are present on disk but intentionally disabled in the live runtime because they are judged broken or weak
 - fallback portrait and sprite folders are safeguards, not the quality baseline
+
+### Active Subject-Art Fix Queue
+
+The current exception to the “no broad replacement pass” rule is the explicit broken-sprite guardrail in `src/content/asset-map-data.ts`.
+
+Current targeted replacement queue:
+
+- `3` enemy replacements: `baal_s_minion`, `fire_tower`, `lightning_spire`
+- `5` boss replacements: `bishibosh`, `corpsefire`, `eyeback_the_unleashed`, `fire_eye`, `rakanishu`
+
+Important distinction:
+
+- these are not missing-file gaps
+- the current files already exist in `assets/curated/rouge-art`
+- the runtime skips them because the current versions are not considered live-quality enough
+
+Current staged review artifacts:
+
+- `tmp/imagegen/broken-non-card-art-sheet.png`
+- `tmp/imagegen/reference-non-card-art-sheet.png`
+- `tmp/imagegen/non_card_art_replace8_review.md`
+- `tmp/imagegen/non_card_art_replace8_gpt15low.jsonl`
+
+Current decision:
+
+- treat this as one selective eight-asset repair batch
+- do not reopen a broad enemy or boss replacement program beyond these flagged exceptions unless another live asset clearly fails in context
 
 ### 2. Icon Systems
 
@@ -141,18 +169,23 @@ There is no large required image-generation bucket left right now.
 
 The best remaining image work is selective:
 
-1. one-off replacement of a genuinely weak live asset if it stands out in context
-2. net-new art for future features or future content expansions
-3. luxury repaint work for map-like or poster-like surfaces if we want a premium presentation pass later
+1. replacement of the `8` explicitly broken unique enemy or boss sprites listed above
+2. one-off replacement of another genuinely weak live asset if it stands out in context
+3. net-new art for future features or future content expansions
+4. luxury repaint work for map-like or poster-like surfaces if we want a premium presentation pass later
 
 ## What Should Not Be Churned Right Now
 
 Do not start a broad replacement pass for:
 
 - class skill icons
-- hero, mercenary, enemy, or boss subject art
+- hero, mercenary, enemy, or boss subject art as a whole
 - combat backgrounds
 - the current item and rune buckets as a whole
+
+Allowed exception:
+
+- the `8` subject-art repair targets listed in the active fix queue above
 
 Those surfaces are either already strong or were just tested against replacement candidates that did not improve the live app.
 

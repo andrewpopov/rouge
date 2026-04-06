@@ -109,6 +109,7 @@ interface AppState {
     exploring: boolean;
     explorationEvent: ExplorationEvent | null;
     combatPileView: "" | "draw" | "discard" | "decklist";
+    combatLogOpen: boolean;
     scrollMapOpen: boolean;
     routeIntelOpen: boolean;
     actTransitionScrollOpen: boolean;

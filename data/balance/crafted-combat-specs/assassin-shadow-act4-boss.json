@@ -1,0 +1,36 @@
+{
+  "label": "Assassin Shadow vs Act IV Boss",
+  "classId": "assassin",
+  "seed": 19,
+  "actNumber": 4,
+  "targetLevel": 24,
+  "runsPerEncounter": 5,
+  "encounterId": "act_4_boss",
+  "addCardIds": [
+    "assassin_cloak_of_shadows",
+    "assassin_shadow_warrior",
+    "assassin_fade"
+  ],
+  "treeRanks": {
+    "assassin_shadow_disciplines": 6,
+    "assassin_traps": 1
+  },
+  "favoredTreeId": "assassin_shadow_disciplines",
+  "equippedSkillIds": {
+    "slot1": "assassin_shadow_feint",
+    "slot2": "assassin_shadow_warrior",
+    "slot3": "assassin_shadow_master"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act4",
+    "assassin",
+    "shadow",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking whether shadow setup and summon pressure matter in Act IV boss fights."
+  ]
+}

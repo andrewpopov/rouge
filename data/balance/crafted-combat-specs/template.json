@@ -1,0 +1,32 @@
+{
+  "label": "Template Crafted Combat Seed",
+  "classId": "sorceress",
+  "seed": 1,
+  "actNumber": 4,
+  "targetLevel": 24,
+  "maxTurns": 36,
+  "runsPerEncounter": 3,
+  "encounterId": "act_4_boss",
+  "addCardIds": [
+    "sorceress_fireball"
+  ],
+  "treeRanks": {
+    "sorceress_fire": 6
+  },
+  "favoredTreeId": "sorceress_fire",
+  "equippedSkillIds": {
+    "slot2": "sorceress_fireball",
+    "slot3": "sorceress_hydra"
+  },
+  "loadout": {
+    "weapon": "item_crystal_sword"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "template"
+  ],
+  "notes": [
+    "Copy this file and replace class, encounter, deck, and skill ids as needed."
+  ]
+}

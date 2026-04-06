@@ -54,6 +54,12 @@
       render();
       return true;
     }
+    if (appState.phase === appEngine.PHASES.ENCOUNTER && appState.ui.combatLogOpen && event.key === "Escape") {
+      event.preventDefault();
+      appState.ui.combatLogOpen = false;
+      render();
+      return true;
+    }
     if (appState.phase === appEngine.PHASES.ENCOUNTER && appState.ui.combatPileView && event.key === "Escape") {
       event.preventDefault();
       appState.ui.combatPileView = "";

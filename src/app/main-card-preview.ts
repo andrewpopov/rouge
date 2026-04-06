@@ -382,6 +382,12 @@
       };
     }
 
+    function getDeckLabel(skill: CombatEquippedSkillState): string {
+      if (skill.active) { return "Next Card"; }
+      if (skill.skillType === "summon") { return "Summon State"; }
+      return "Opening State";
+    }
+
     function buildSkillPreviewReadouts(combat: CombatState, slotKey: string) {
       const skill = combat.equippedSkills.find((entry) => entry.slotKey === slotKey);
       if (!skill) {
@@ -392,7 +398,7 @@
       if (exactReadouts) {
         return {
           ...exactReadouts,
-          deckLabel: exactReadouts.deck ? (skill.active ? "Next Card" : (skill.skillType === "summon" ? "Summon State" : "Opening State")) : "",
+          deckLabel: exactReadouts.deck ? getDeckLabel(skill) : "",
         };
       }
 
@@ -418,7 +424,7 @@
         mercenary: previewScopes.includes("party") || previewScopes.includes("mercenary") ? summary : "",
         enemyLine,
         deck,
-        deckLabel: deck ? (skill.active ? "Next Card" : (skill.skillType === "summon" ? "Summon State" : "Opening State")) : "",
+        deckLabel: deck ? getDeckLabel(skill) : "",
       };
     }
 
@@ -511,11 +517,13 @@
       const needsSelectedEnemy = previewScopes.includes("selected_enemy");
       if (needsSelectedEnemy && !previewEnemyEl) {
         deckChip.classList.add("combat-command__deck-target--hot");
-        deckChip.textContent = readouts.deck
-          ? `${previewTitle} -> ${readouts.deckLabel || "Choose Target"} · ${readouts.deck}`
-          : previewOutcome
-            ? `${previewTitle} -> Choose Target · ${previewOutcome}`
-            : `${previewTitle} -> Choose Target`;
+        let chipText = `${previewTitle} -> Choose Target`;
+        if (readouts.deck) {
+          chipText = `${previewTitle} -> ${readouts.deckLabel || "Choose Target"} · ${readouts.deck}`;
+        } else if (previewOutcome) {
+          chipText = `${previewTitle} -> Choose Target · ${previewOutcome}`;
+        }
+        deckChip.textContent = chipText;
         currentTargetPreviewSource = sourceEl;
         return;
       }

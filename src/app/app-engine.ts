@@ -117,6 +117,7 @@
         exploring: false,
         explorationEvent: null,
         combatPileView: "",
+        combatLogOpen: false,
         scrollMapOpen: false,
         routeIntelOpen: false,
         actTransitionScrollOpen: false,
@@ -417,6 +418,7 @@
     state.phase = PHASES.ENCOUNTER;
     state.ui.exploring = true;
     state.ui.combatPileView = "";
+    state.ui.combatLogOpen = false;
     state.ui.trainingView.open = false;
     runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
   }

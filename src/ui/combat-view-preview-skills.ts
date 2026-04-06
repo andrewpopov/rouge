@@ -45,6 +45,10 @@
   function getExactSkillModifierPreviewParts(skill: CombatEquippedSkillState, combat?: CombatState | null): string[] {
     const scale = getSkillTierScale(skill);
     switch (skill.skillId) {
+      case "amazon_call_the_shot":
+        return [`Next card +${scale + 1} damage`];
+      case "assassin_shadow_feint":
+        return ["Next card cost -1", `Next card +${scale + 1} damage`, `Next card Guard ${scale + 1}`];
       case "amazon_critical_strike":
         return [`Next card +${scale + 1} damage`];
       case "amazon_dodge":
@@ -76,6 +80,8 @@
         return weaponFamily.includes(token) ? [`Next card +${scale + 1} damage`] : ["Next card Guard 1"];
       }
       case "druid_lycanthropy":
+        return [`Next card +${scale + 1} damage`];
+      case "druid_primal_attunement":
         return [`Next card +${scale + 1} damage`];
       case "barbarian_increased_speed":
         return ["Next card cost -1", "Next card Draw 1", `Next card +${scale} damage`];
@@ -125,6 +131,8 @@
         return [`Next card Burn ${scale + 1}`];
       case "paladin_meditation":
         return ["Next card cost -1"];
+      case "paladin_sanctify":
+        return [`Next card +${scale + 1} damage`, `Next card Guard ${scale + 1}`];
       case "paladin_redemption":
         return [`Next card Guard ${scale + 1}`];
       case "paladin_salvation":
@@ -140,6 +148,8 @@
         return [`Next card Paralyze ${scale + 1}`];
       case "sorceress_blizzard":
         return [`Next card Freeze ${scale + 1}`];
+      case "sorceress_core_fire_bolt":
+        return ["Next card cost -1"];
       case "sorceress_frozen_orb":
         return [`Next card Freeze ${scale + 1}`, `Next card +${scale} damage`];
       case "sorceress_meteor":
@@ -268,6 +278,34 @@
     }
 
     switch (skill.skillId) {
+      case "amazon_call_the_shot":
+        return joinPreviewOutcome([`Merc mark +${3 + scale}`], exactModifierParts);
+      case "assassin_shadow_feint":
+        return joinPreviewOutcome([`Guard ${4 + scale}`], exactModifierParts);
+      case "barbarian_core_bash":
+        return `${5 + scale} dmg + Guard 2 if wounded`;
+      case "druid_primal_attunement":
+        return joinPreviewOutcome(
+          [`Guard ${3 + scale}`, combat.minions.length > 0 ? "Reinforce summon +1" : ""].filter(Boolean),
+          exactModifierParts
+        );
+      case "necromancer_raise_servant": {
+        if (combat.minions.length > 0) {
+          return `Reinforce summon +${scale + 1}`;
+        }
+        const servantEffect: CardEffect = {
+          kind: "summon_minion",
+          minionId: "necromancer_servant",
+          value: 1 + scale,
+          secondaryValue: 0,
+          duration: 2,
+        };
+        return joinPreviewOutcome([turns?.getSummonPreview?.(combat, servantEffect) || "Summon Servant"], exactModifierParts);
+      }
+      case "paladin_sanctify":
+        return joinPreviewOutcome([`Guard ${3 + scale} party`], exactModifierParts);
+      case "sorceress_core_fire_bolt":
+        return joinPreviewOutcome([`${3 + scale} dmg`], exactModifierParts);
       case "amazon_strafe":
         return `${(2 + scale) * Math.max(1, combat.enemies.filter((enemy) => enemy.alive).length)} dmg line + Draw 1`;
       case "amazon_lightning_fury":

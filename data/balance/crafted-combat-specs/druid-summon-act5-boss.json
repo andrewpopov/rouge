@@ -1,0 +1,36 @@
+{
+  "label": "Druid Summon vs Act V Boss",
+  "classId": "druid",
+  "seed": 29,
+  "actNumber": 5,
+  "targetLevel": 35,
+  "runsPerEncounter": 5,
+  "encounterId": "act_5_boss",
+  "addCardIds": [
+    "druid_raven",
+    "druid_oak_sage",
+    "druid_summon_grizzly"
+  ],
+  "treeRanks": {
+    "druid_summoning": 6,
+    "druid_elemental": 1
+  },
+  "favoredTreeId": "druid_summoning",
+  "equippedSkillIds": {
+    "slot1": "druid_primal_attunement",
+    "slot2": "druid_oak_sage",
+    "slot3": "druid_summon_grizzly"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act5",
+    "druid",
+    "summon",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking summon realization and late-fight board carry against Act V pressure."
+  ]
+}

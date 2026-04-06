@@ -238,6 +238,34 @@ test("runs seed the starter class skill into the learned list and slot 1", () =>
   assert.equal(state.run.progression.classProgression.equippedSkillBar.slot1SkillId, starterSkillId);
 });
 
+test("class progression uses explicit authored starter skills instead of alphabetical fallbacks", () => {
+  const { browserWindow, content } = createHarness();
+
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "amazon")?.starterSkillId, "amazon_call_the_shot");
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "assassin")?.starterSkillId, "assassin_shadow_feint");
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "barbarian")?.starterSkillId, "barbarian_core_bash");
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "druid")?.starterSkillId, "druid_primal_attunement");
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "necromancer")?.starterSkillId, "necromancer_raise_servant");
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "paladin")?.starterSkillId, "paladin_sanctify");
+  assert.equal(browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "sorceress")?.starterSkillId, "sorceress_core_fire_bolt");
+});
+
+test("starter deck seeding keeps starter slot skills separate from opening deck cards", () => {
+  const { browserWindow, content } = createHarness();
+
+  const amazonStarterDeck = browserWindow.ROUGE_CLASS_REGISTRY.getStarterDeckForClass(content, "amazon");
+  assert.equal(amazonStarterDeck.length, content.classStarterDecks.amazon.length);
+  assert.ok(!amazonStarterDeck.includes("amazon_call_the_shot"));
+  assert.ok(amazonStarterDeck.includes("amazon_fire_arrow"));
+  assert.ok(amazonStarterDeck.includes("amazon_magic_arrow"));
+
+  const necromancerStarterDeck = browserWindow.ROUGE_CLASS_REGISTRY.getStarterDeckForClass(content, "necromancer");
+  assert.equal(necromancerStarterDeck.length, content.classStarterDecks.necromancer.length);
+  assert.ok(!necromancerStarterDeck.includes("necromancer_raise_servant"));
+  assert.ok(necromancerStarterDeck.includes("necromancer_raise_skeleton"));
+  assert.ok(necromancerStarterDeck.includes("necromancer_clay_golem"));
+});
+
 test("training skills unlock and equip through bridge and capstone gates", () => {
   const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
   const state = appEngine.createAppState({

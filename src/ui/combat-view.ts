@@ -579,7 +579,7 @@
             </section>
           ` : ""}
 
-          ${pileRenderers.renderCombatLogPanel(combat, escapeHtml)}
+          ${pileRenderers.renderCombatLogPanel(combat, appState.ui.combatLogOpen, escapeHtml)}
         </div>
       </div>
 

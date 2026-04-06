@@ -364,6 +364,7 @@
       "barbarian_natural_resistance",
       "necromancer_bone_armor",
       "necromancer_summon_resist",
+      "paladin_sanctify",
       "paladin_meditation",
       "paladin_prayer",
       "paladin_resist_fire",
@@ -375,6 +376,7 @@
       "paladin_sanctuary",
     ]);
     const mercenarySkillIds = new Set([
+      "amazon_call_the_shot",
       "amazon_inner_sight",
       "amazon_jab",
       "barbarian_battle_command",
@@ -384,7 +386,9 @@
       "necromancer_attract",
     ]);
     const activeHeroSkillIds = new Set([
+      "barbarian_core_bash",
       "barbarian_grim_ward",
+      "druid_primal_attunement",
       "druid_shock_wave",
       "necromancer_bone_prison",
       "sorceress_chilling_armor",
@@ -410,6 +414,9 @@
       }
     }
     if (skill.skillType === "summon") {
+      scopes.add("minions");
+    }
+    if (skill.skillId === "druid_primal_attunement") {
       scopes.add("minions");
     }
     if (scopes.size === 0) {

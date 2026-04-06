@@ -1,0 +1,35 @@
+{
+  "label": "Paladin Offensive Auras vs Act V Boss",
+  "classId": "paladin",
+  "seed": 41,
+  "actNumber": 5,
+  "targetLevel": 35,
+  "runsPerEncounter": 5,
+  "encounterId": "act_5_boss",
+  "addCardIds": [
+    "paladin_holy_fire",
+    "paladin_conviction",
+    "paladin_fanaticism"
+  ],
+  "treeRanks": {
+    "paladin_offensive_auras": 6,
+    "paladin_defensive_auras": 1
+  },
+  "favoredTreeId": "paladin_offensive_auras",
+  "equippedSkillIds": {
+    "slot2": "paladin_concentration",
+    "slot3": "paladin_conviction"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act5",
+    "paladin",
+    "auras",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking aura-window pressure and capstone contribution in endgame boss checks."
+  ]
+}

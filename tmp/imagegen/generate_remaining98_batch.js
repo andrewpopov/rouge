@@ -83,6 +83,16 @@ const overrides = {
     subject: "one centered pair of assassin claws in guarded hands, no full body required",
     mood: "exact, disciplined, predatory, cold",
   },
+  assassin_tiger_strike: {
+    core: "a claw strike landing with the brief ghost-shape of a tiger tearing through the same line",
+    subject: "one centered assassin claw impact with a compact tiger-sigil slash",
+    mood: "predatory, explosive, exact, feral",
+  },
+  assassin_fire_blast: {
+    core: "a compact fire charge hurled from a shadowed hand and bursting at close range",
+    subject: "one centered thrown fire bomb or explosive ember orb, no full battlefield",
+    mood: "sudden, scorching, vicious, compact",
+  },
   assassin_psychic_hammer: {
     core: "an invisible mind-force blow striking like a hammer of pressure and stun",
     subject: "one centered psychic shock impact blooming from a hand or unseen strike",
@@ -107,6 +117,21 @@ const overrides = {
     core: "a trap line venting repeated sheets of fire across the ground like a hidden furnace mouth",
     subject: "one centered fire trap or rune vent sweeping a fan of flame outward",
     mood: "engineered, scorching, relentless, cunning",
+  },
+  assassin_fists_of_fire: {
+    core: "a burning martial strike with both fists wrapped in compact infernal flame",
+    subject: "one centered gauntleted or bare-handed punch igniting into a short fire trail",
+    mood: "hot, direct, explosive, disciplined",
+  },
+  assassin_cobra_strike: {
+    core: "a serpent-fast thrust carrying venom and lifestealing control in the same motion",
+    subject: "one centered lunge or claw strike with a compact cobra silhouette in the wake",
+    mood: "venomous, swift, predatory, precise",
+  },
+  assassin_claws_of_thunder: {
+    core: "a claw strike bursting into concentrated lightning at the instant of contact",
+    subject: "one centered claw impact wrapped in sharp blue-white thunder arcs",
+    mood: "electric, surgical, violent, exact",
   },
   assassin_lightning_sentry: {
     core: "an assassin sentry turret spitting disciplined forks of lightning over the whole field",
@@ -153,6 +178,16 @@ const overrides = {
     subject: "one centered black raven with cruel beak and omen-bright eyes",
     mood: "watchful, swift, ominous, precise",
   },
+  druid_firestorm: {
+    core: "multiple jets of druidic flame ripping across the ground in a chaotic but controlled wave",
+    subject: "one centered surge of branching ground-fire and ember spray, no full druid body",
+    mood: "eruptive, scorching, primal, fast",
+  },
+  druid_werewolf: {
+    core: "a werewolf maul landing with savage speed and blood-warm momentum",
+    subject: "one centered werewolf beast-warrior in mid-slash, no crowded battlefield",
+    mood: "feral, hungry, fast, brutal",
+  },
   druid_poison_creeper: {
     core: "a thorned vine-creature surging from the ground to bite and spread venom",
     subject: "one centered serpentine poison creeper of roots and fangs, no full druid body",
@@ -168,10 +203,20 @@ const overrides = {
     subject: "one centered close-up partial transformation into wolf-beast features, no busy scene",
     mood: "primal, feral, potent, transformative",
   },
+  druid_werebear: {
+    core: "a werebear crashing forward in a mauling guard-breaking slam",
+    subject: "one centered hulking werebear with one crushing paw or forearm strike",
+    mood: "massive, protective, savage, unstoppable",
+  },
   druid_oak_sage: {
     core: "an ancient oak spirit rising as a healing totem with a living heart of light",
     subject: "one centered oak sage spirit or bark totem, no full druid body",
     mood: "protective, ancient, restorative, solemn",
+  },
+  necromancer_teeth: {
+    core: "a spray of jagged bone teeth erupting forward like a fan of ivory knives",
+    subject: "one centered volley of bone shards or fangs blasting through darkness",
+    mood: "sharp, cruel, occult, sudden",
   },
   necromancer_bone_armor: {
     core: "an armor of interlocking bone plates locking around the necromancer like a grave shell",
@@ -233,6 +278,11 @@ const overrides = {
     subject: "one centered pair of gauntleted hands, bowed helm, or devotional aura over cracked stone",
     mood: "calm, restorative, devout, resolute",
   },
+  paladin_might: {
+    core: "a martial blessing of strength turning one strike into a sacred show of force",
+    subject: "one centered weapon arm or gauntlet swollen with restrained holy power",
+    mood: "empowered, martial, resolute, forceful",
+  },
   paladin_thorns: {
     core: "a sanctified aura of barbs and flame punishing anything that presses too close",
     subject: "one centered defensive halo of radiant thorns around armor or shield",
@@ -247,6 +297,16 @@ const overrides = {
     core: "a stance of absolute refusal turning shield and will into one immovable bastion",
     subject: "one centered shield wall pose or massive shield under radiant pressure",
     mood: "unyielding, protective, resolute, severe",
+  },
+  paladin_holy_bolt: {
+    core: "a straight lance of sanctified energy fired with surgical clarity into the dark",
+    subject: "one centered holy projectile or radiant bolt line, no full battlefield",
+    mood: "pure, precise, radiant, severe",
+  },
+  paladin_holy_fire: {
+    core: "a halo of consecrated flame washing outward from a knightly centerline",
+    subject: "one centered holy fire aura around armor or weapon, no full crowd scene",
+    mood: "radiant, scorching, protective, devout",
   },
   paladin_fanaticism: {
     core: "a righteous battle aura driving allies into perfect zeal and crushing enemy momentum",
@@ -278,6 +338,11 @@ const overrides = {
     subject: "one centered ring or dome of crackling lightning pressure",
     mood: "electrical, suppressive, arcane, tense",
   },
+  sorceress_inferno: {
+    core: "a continuous stream of sorcerous fire carving a bright furnace path through the dark",
+    subject: "one centered ribbon or cone of fire projected forward, no crowded battlefield",
+    mood: "scorching, relentless, controlled, arcane",
+  },
   sorceress_meteor: {
     core: "a meteor impact turning the battlefield into a crater of fire, slag, and shock",
     subject: "one centered descending meteor or fresh impact column, no full sorceress body",
@@ -306,8 +371,8 @@ const elementPalette = {
 
 function parseCards() {
   const assetMap = fs.readFileSync(path.join(repo, "src/content/asset-map-data.ts"), "utf8");
-  const illMatch = assetMap.match(/const CARD_ILLUSTRATIONS: Record<string, string> = \\{([\\s\\S]*?)\\n  \\};/);
-  const illustrated = new Set([...illMatch[1].matchAll(/^\\s*([a-z0-9_]+):\\s*`/gm)].map((m) => m[1]));
+  const illMatch = assetMap.match(/const CARD_ILLUSTRATIONS: Record<string, string> = \{([\s\S]*?)\n  \};/);
+  const illustrated = new Set([...illMatch[1].matchAll(/^\s*([a-z0-9_]+):\s*`/gm)].map((m) => m[1]));
   const files = [
     "src/content/class-cards-amazon.ts",
     "src/content/class-cards-assassin.ts",
@@ -319,10 +384,10 @@ function parseCards() {
   ];
   const cards = [];
   for (const file of files) {
-    const className = file.match(/class-cards-([a-z]+)\\.ts/)[1];
-    const lines = fs.readFileSync(path.join(repo, file), "utf8").split(/\\r?\\n/);
+    const className = file.match(/class-cards-([a-z]+)\.ts/)[1];
+    const lines = fs.readFileSync(path.join(repo, file), "utf8").split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
-      const m = lines[i].match(/^\\s*([a-z0-9_]+):\\s*\\{$/);
+      const m = lines[i].match(/^\s*([a-z0-9_]+):\s*\{$/);
       if (!m) continue;
       let depth = 1;
       const block = [lines[i]];
@@ -330,15 +395,15 @@ function parseCards() {
       for (; j < lines.length; j++) {
         const line = lines[j];
         block.push(line);
-        depth += (line.match(/\\{/g) || []).length;
-        depth -= (line.match(/\\}/g) || []).length;
+        depth += (line.match(/\{/g) || []).length;
+        depth -= (line.match(/\}/g) || []).length;
         if (depth === 0) break;
       }
       i = j;
-      const joined = block.join("\\n");
-      const id = (joined.match(/\\bid:\\s*\"([^\"]+)\"/) || [])[1];
-      const title = (joined.match(/\\btitle:\\s*\"([^\"]+)\"/) || [])[1];
-      const text = (joined.match(/\\btext:\\s*\"([^\"]+)\"/) || [])[1];
+      const joined = block.join("\n");
+      const id = (joined.match(/\bid:\s*"([^"]+)"/) || [])[1];
+      const title = (joined.match(/\btitle:\s*"([^"]+)"/) || [])[1];
+      const text = (joined.match(/\btext:\s*"([^"]+)"/) || [])[1];
       if (!id || !title || !text || illustrated.has(id)) continue;
       cards.push({ className, id, title, text });
     }
@@ -370,7 +435,7 @@ function detectCategory(card) {
 }
 
 function summonDescriptor(card) {
-  const name = ((card.text.match(/Summon ([^.]+)\\./) || [])[1] || card.title).toLowerCase();
+  const name = ((card.text.match(/Summon ([^.]+)\./) || [])[1] || card.title).toLowerCase();
   if (name.includes("valkyrie")) return "one centered valkyrie guardian with spear and shield, no summoner body";
   if (name.includes("raven")) return "one centered black raven spirit diving in a marking strike";
   if (name.includes("poison creeper")) return "one centered thorned vine-serpent erupting from the ground";
@@ -461,7 +526,7 @@ function buildPrompt(card) {
     `Materials/textures: ${materials}.`,
     "Constraints: no text, no logo, no frame, no watermark, no modern objects, no crowded battlefield unless the card absolutely requires a wide effect.",
     "Avoid: no cartoon style, no anime, no goofy proportions, no UI overlays, no generic stock-fantasy posing.",
-  ].join("\\n");
+  ].join("\n");
 }
 
 const cards = parseCards();
@@ -474,6 +539,6 @@ const lines = cards.map((card) =>
   }),
 );
 
-fs.writeFileSync(outPath, `${lines.join("\\n")}\\n`);
+fs.writeFileSync(outPath, `${lines.join("\n")}\n`);
 console.log(`wrote ${lines.length} jobs to ${outPath}`);
-console.log(lines.slice(0, 3).join("\\n"));
+console.log(lines.slice(0, 3).join("\n"));

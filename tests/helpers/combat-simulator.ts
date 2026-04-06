@@ -8,6 +8,7 @@ import {
   scoreWeaponProfile,
 } from "./balance-power-score";
 import { SIMULATION_SCORING_WEIGHTS } from "./run-progression-simulator-core";
+import { applySimulationTrainingLoadout } from "./run-progression-simulator";
 import {
   getEnemyStatusScore,
   getHeroDebuffScore,
@@ -109,6 +110,13 @@ interface SimulationBuildSummary {
     family: string;
     rarity: string;
   } | null;
+  training: {
+    favoredTreeId: string;
+    treeRanks: Record<string, number>;
+    unlockedSkillIds: string[];
+    equippedSkillIds: Record<RunSkillBarSlotKey, string>;
+    equippedSkillNames: Record<RunSkillBarSlotKey, string>;
+  };
   armorResistances: Array<{ type: DamageType; amount: number }>;
   armorImmunities: DamageType[];
   notes: string[];
@@ -142,6 +150,15 @@ interface EncounterSimulationSummary {
   averageEarlyDecisionScoreSpread: number;
   earlyCloseDecisionRate: number;
   averageEarlyEndTurnRegret: number;
+  skillActionRate: number;
+  skillUseTurnRate: number;
+  readySkillUnusedTurnRate: number;
+  slot1UseRate: number;
+  slot2UseRate: number;
+  slot3UseRate: number;
+  beamDecisionRate: number;
+  averageBeamDepth: number;
+  beamOverrideRate: number;
 }
 
 interface ScenarioBalanceReport {
@@ -169,6 +186,9 @@ interface ScenarioBalanceReport {
     averageEarlyDecisionScoreSpread?: number;
     earlyCloseDecisionRate?: number;
     averageEarlyEndTurnRegret?: number;
+    beamDecisionRate?: number;
+    averageBeamDepth?: number;
+    beamOverrideRate?: number;
   };
 }
 
@@ -194,6 +214,74 @@ export interface BalanceSimulationOptions {
   encounterLimit?: number;
 }
 
+export interface CraftedCombatSimulationSpec {
+  label?: string;
+  classId: string;
+  mercenaryId?: string;
+  seed?: number;
+  actNumber?: number;
+  targetLevel?: number;
+  maxTurns?: number;
+  runsPerEncounter?: number;
+  encounterId?: string;
+  encounterIds?: string[];
+  encounterSetId?: string;
+  encounterLimit?: number;
+  deckCardIds?: string[];
+  addCardIds?: string[];
+  favoredTreeId?: string;
+  treeRanks?: Record<string, number>;
+  unlockedSkillIds?: string[];
+  equippedSkillIds?: Partial<Record<RunSkillBarSlotKey, string>>;
+  bypassTrainingGates?: boolean;
+  loadout?: Partial<Record<LoadoutSlotKey, string | Partial<RunEquipmentState>>>;
+  potionCount?: number;
+  gold?: number;
+  heroOverrides?: {
+    maxLife?: number;
+    currentLife?: number;
+    maxEnergy?: number;
+    handSize?: number;
+    potionHeal?: number;
+    damageBonus?: number;
+    guardBonus?: number;
+    burnBonus?: number;
+  };
+  mercenaryOverrides?: {
+    maxLife?: number;
+    currentLife?: number;
+    attack?: number;
+  };
+  notes?: string[];
+}
+
+export interface CraftedCombatSimulationReport {
+  generatedAt: string;
+  label: string;
+  seed: number;
+  encounterSource: {
+    encounterIds: string[];
+    encounterSetId: string;
+    encounterSetLabel: string;
+    runsPerEncounter: number;
+  };
+  requested: {
+    classId: string;
+    mercenaryId: string;
+    actNumber: number;
+    targetLevel: number;
+    maxTurns: number;
+    deckSize: number;
+    favoredTreeId: string;
+    treeRanks: Record<string, number>;
+    equippedSkillIds: Partial<Record<RunSkillBarSlotKey, string>>;
+    bypassTrainingGates: boolean;
+  };
+  build: SimulationBuildSummary;
+  encounters: EncounterSimulationSummary[];
+  overall: ScenarioBalanceReport["overall"];
+}
+
 interface SimulatedBuildContext {
   harness: ReturnType<typeof createAppHarness>;
   state: AppState;
@@ -207,9 +295,10 @@ interface SimulatedBuildContext {
 }
 
 interface CombatCandidateAction {
-  type: "card" | "melee" | "potion" | "end_turn";
+  type: "card" | "skill" | "melee" | "potion" | "end_turn";
   score: number;
   instanceId?: string;
+  slotKey?: RunSkillBarSlotKey;
   targetId?: string;
   targetName?: string;
   potionTarget?: "hero" | "mercenary";
@@ -402,6 +491,281 @@ function getScenarioDefinitions(scenarioIds: string[] | undefined) {
 
 function getMercenaryIdForClass(classId: string) {
   return DEFAULT_MERCENARY_BY_CLASS[classId] || "rogue_scout";
+}
+
+function getAllClassSkills(harness: ReturnType<typeof createAppHarness>, classId: string) {
+  const progression = harness.classRegistry.getClassProgression(harness.content, classId) || null;
+  return progression ? progression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills) : [];
+}
+
+function buildTrainingSummary(harness: ReturnType<typeof createAppHarness>, run: RunState) {
+  const allSkills = getAllClassSkills(harness, run.classId);
+  const equippedSkillBar = run.progression?.classProgression?.equippedSkillBar || {
+    slot1SkillId: "",
+    slot2SkillId: "",
+    slot3SkillId: "",
+  };
+  const slotSkillId = (slotKey: RunSkillBarSlotKey) => String(equippedSkillBar[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "");
+  const slotSkillName = (slotKey: RunSkillBarSlotKey) => {
+    const skillId = slotSkillId(slotKey);
+    return allSkills.find((skill: RuntimeClassSkillDefinition) => skill.id === skillId)?.name || "";
+  };
+  return {
+    favoredTreeId: String(run.progression?.classProgression?.favoredTreeId || ""),
+    treeRanks: { ...(run.progression?.classProgression?.treeRanks || {}) },
+    unlockedSkillIds: [...(run.progression?.classProgression?.unlockedSkillIds || [])],
+    equippedSkillIds: {
+      slot1: slotSkillId("slot1"),
+      slot2: slotSkillId("slot2"),
+      slot3: slotSkillId("slot3"),
+    },
+    equippedSkillNames: {
+      slot1: slotSkillName("slot1"),
+      slot2: slotSkillName("slot2"),
+      slot3: slotSkillName("slot3"),
+    },
+  };
+}
+
+function applyRunLevelAndAct(harness: ReturnType<typeof createAppHarness>, run: RunState, targetLevel: number, actNumber: number) {
+  run.xp = Math.max(0, (targetLevel - 1) * 50);
+  run.level = Math.max(1, targetLevel);
+  run.currentActIndex = clamp(actNumber - 1, 0, run.acts.length - 1);
+  harness.browserWindow.ROUGE_RUN_ROUTE_BUILDER.syncCurrentActFields(run);
+  harness.browserWindow.ROUGE_RUN_PROGRESSION.syncLevelProgression(run);
+}
+
+function buildCraftedDeck(harness: ReturnType<typeof createAppHarness>, classId: string, spec: CraftedCombatSimulationSpec) {
+  const starterDeck = harness.classRegistry.getStarterDeckForClass(harness.content, classId);
+  const requestedDeck =
+    Array.isArray(spec.deckCardIds) && spec.deckCardIds.length > 0
+      ? spec.deckCardIds
+      : [...starterDeck, ...((Array.isArray(spec.addCardIds) ? spec.addCardIds : []))];
+  const deck = uniqueList(requestedDeck).map((cardId) => {
+    if (!harness.content.cardCatalog[cardId]) {
+      throw new Error(`Unknown crafted deck card: ${cardId}`);
+    }
+    return cardId;
+  });
+  if (deck.length === 0) {
+    throw new Error(`Crafted combat seed for ${classId} produced an empty deck.`);
+  }
+  return {
+    deck,
+    addedCards: deck.filter((cardId) => !starterDeck.includes(cardId)),
+  };
+}
+
+function applyCraftedTreeProgression(harness: ReturnType<typeof createAppHarness>, run: RunState, spec: CraftedCombatSimulationSpec) {
+  const requestedTreeRanks = spec.treeRanks || {};
+  const normalizedTreeRanks = Object.entries(requestedTreeRanks).reduce((result, [treeId, rank]) => {
+    const parsed = Math.max(0, Number(rank || 0));
+    if (parsed > 0) {
+      result[treeId] = parsed;
+    }
+    return result;
+  }, {} as Record<string, number>);
+
+  run.progression.classProgression.treeRanks = normalizedTreeRanks;
+  run.progression.classProgression.favoredTreeId = String(spec.favoredTreeId || run.progression.classProgression.favoredTreeId || "");
+  run.progression.classPointsSpent = Object.values(normalizedTreeRanks).reduce((sum, rank) => sum + Number(rank || 0), 0);
+  run.progression.classPointsAvailable = 0;
+  harness.browserWindow.ROUGE_RUN_PROGRESSION.syncUnlockedClassSkills(run, harness.content);
+}
+
+function validateCraftedSkillIds(harness: ReturnType<typeof createAppHarness>, classId: string, skillIds: string[]) {
+  const allSkillIds = new Set(getAllClassSkills(harness, classId).map((skill: RuntimeClassSkillDefinition) => skill.id));
+  skillIds.filter(Boolean).forEach((skillId) => {
+    if (!allSkillIds.has(skillId)) {
+      throw new Error(`Unknown crafted skill for ${classId}: ${skillId}`);
+    }
+  });
+}
+
+function applyCraftedTraining(harness: ReturnType<typeof createAppHarness>, state: AppState, spec: CraftedCombatSimulationSpec) {
+  if (!state.run) {
+    return;
+  }
+  const requestedSkillIds = uniqueList([
+    ...(Array.isArray(spec.unlockedSkillIds) ? spec.unlockedSkillIds : []),
+    ...Object.values(spec.equippedSkillIds || {}),
+  ].filter(Boolean));
+  validateCraftedSkillIds(harness, state.run.classId, requestedSkillIds);
+
+  const requestedLoadout = {
+    favoredTreeId: String(spec.favoredTreeId || ""),
+    unlockedSkillIds: requestedSkillIds,
+    equippedSkillIds: {
+      slot2: String(spec.equippedSkillIds?.slot2 || ""),
+      slot3: String(spec.equippedSkillIds?.slot3 || ""),
+    },
+  };
+
+  applySimulationTrainingLoadout(harness as ReturnType<typeof import("./run-progression-simulator").createQuietAppHarness>, state, requestedLoadout);
+
+  if (spec.bypassTrainingGates === false) {
+    if (spec.equippedSkillIds?.slot1) {
+      state.run.progression.classProgression.unlockedSkillIds = uniqueList([
+        ...(state.run.progression.classProgression.unlockedSkillIds || []),
+        spec.equippedSkillIds.slot1,
+      ]);
+      state.run.progression.classProgression.equippedSkillBar.slot1SkillId = spec.equippedSkillIds.slot1;
+    }
+    return;
+  }
+
+  state.run.progression.classProgression.unlockedSkillIds = uniqueList([
+    ...(state.run.progression.classProgression.unlockedSkillIds || []),
+    ...requestedSkillIds,
+  ]);
+  if (spec.favoredTreeId) {
+    state.run.progression.classProgression.favoredTreeId = spec.favoredTreeId;
+  }
+  (["slot1", "slot2", "slot3"] as RunSkillBarSlotKey[]).forEach((slotKey) => {
+    const skillId = String(spec.equippedSkillIds?.[slotKey] || "");
+    if (skillId) {
+      state.run!.progression.classProgression.equippedSkillBar[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] = skillId;
+    }
+  });
+}
+
+function applyCraftedLoadout(context: SimulatedBuildContext, spec: CraftedCombatSimulationSpec) {
+  const loadout = spec.loadout || {};
+  const itemCatalog = context.harness.browserWindow.ROUGE_ITEM_CATALOG;
+  let changed = false;
+  (Object.keys(loadout) as LoadoutSlotKey[]).forEach((slotKey) => {
+    const raw = loadout[slotKey];
+    if (!raw) {
+      return;
+    }
+    const normalizedSlot = slotKey === "ring1" || slotKey === "ring2" ? "ring" : slotKey;
+    const rawValue: Record<string, unknown> =
+      typeof raw === "string"
+        ? {
+            entryId: `crafted_${slotKey}`,
+            itemId: raw,
+            slot: normalizedSlot,
+            socketsUnlocked: 0,
+            insertedRunes: [],
+            runewordId: "",
+            rarity: "white",
+            rarityKind: itemCatalog.getRarityKind("white"),
+            rarityBonuses: [],
+            weaponAffixes: [],
+            armorAffixes: [],
+          }
+        : {
+            entryId: `crafted_${slotKey}`,
+            slot: normalizedSlot,
+            socketsUnlocked: 0,
+            insertedRunes: [],
+            runewordId: "",
+            rarity: "white",
+            rarityKind: itemCatalog.getRarityKind(String(raw.rarity || "white")),
+            rarityBonuses: [],
+            weaponAffixes: [],
+            armorAffixes: [],
+            ...raw,
+          };
+    const rawItemId = String(rawValue.itemId || "");
+    if (!rawItemId || !context.harness.content.itemCatalog?.[rawItemId]) {
+      throw new Error(`Unknown crafted loadout item for ${slotKey}: ${rawItemId}`);
+    }
+    const normalized = itemCatalog.normalizeEquipmentState(rawValue, normalizedSlot, context.harness.content);
+    if (!normalized) {
+      throw new Error(`Could not normalize crafted loadout for ${slotKey}.`);
+    }
+    (context.run.loadout as Record<string, RunEquipmentState | null>)[slotKey] = normalized;
+    changed = true;
+  });
+  if (changed) {
+    context.harness.itemSystem.hydrateRunLoadout(context.run, context.harness.content);
+    context.harness.itemSystem.hydrateRunInventory(context.run, context.harness.content, context.state.profile);
+  }
+}
+
+function applyCraftedStatOverrides(context: SimulatedBuildContext, spec: CraftedCombatSimulationSpec) {
+  const { run } = context;
+  if (Number.isFinite(Number(spec.gold))) {
+    run.gold = Math.max(0, Number(spec.gold || 0));
+  }
+  if (Number.isFinite(Number(spec.potionCount))) {
+    run.belt.max = Math.max(0, Number(spec.potionCount || 0));
+    run.belt.current = run.belt.max;
+  }
+  if (spec.heroOverrides) {
+    const hero = spec.heroOverrides;
+    if (Number.isFinite(Number(hero.maxLife))) {
+      run.hero.maxLife = Math.max(1, Number(hero.maxLife || 0));
+    }
+    if (Number.isFinite(Number(hero.maxEnergy))) {
+      run.hero.maxEnergy = Math.max(1, Number(hero.maxEnergy || 0));
+    }
+    if (Number.isFinite(Number(hero.handSize))) {
+      run.hero.handSize = Math.max(1, Number(hero.handSize || 0));
+    }
+    if (Number.isFinite(Number(hero.potionHeal))) {
+      run.hero.potionHeal = Math.max(1, Number(hero.potionHeal || 0));
+    }
+    if (Number.isFinite(Number(hero.damageBonus))) {
+      run.hero.damageBonus = Number(hero.damageBonus || 0);
+    }
+    if (Number.isFinite(Number(hero.guardBonus))) {
+      run.hero.guardBonus = Number(hero.guardBonus || 0);
+    }
+    if (Number.isFinite(Number(hero.burnBonus))) {
+      run.hero.burnBonus = Number(hero.burnBonus || 0);
+    }
+    run.hero.currentLife = Number.isFinite(Number(hero.currentLife))
+      ? Math.min(run.hero.maxLife, Math.max(1, Number(hero.currentLife || 0)))
+      : run.hero.maxLife;
+  } else {
+    run.hero.currentLife = run.hero.maxLife;
+  }
+
+  if (spec.mercenaryOverrides) {
+    const mercenary = spec.mercenaryOverrides;
+    if (Number.isFinite(Number(mercenary.maxLife))) {
+      run.mercenary.maxLife = Math.max(1, Number(mercenary.maxLife || 0));
+    }
+    if (Number.isFinite(Number(mercenary.attack))) {
+      run.mercenary.attack = Math.max(0, Number(mercenary.attack || 0));
+    }
+    run.mercenary.currentLife = Number.isFinite(Number(mercenary.currentLife))
+      ? Math.min(run.mercenary.maxLife, Math.max(1, Number(mercenary.currentLife || 0)))
+      : run.mercenary.maxLife;
+  } else {
+    run.mercenary.currentLife = run.mercenary.maxLife;
+  }
+}
+
+function buildEncounterEntryById(context: SimulatedBuildContext, encounterId: string): BalanceEncounterEntry {
+  const encounter = context.harness.content.encounterCatalog[encounterId];
+  if (!encounter) {
+    throw new Error(`Unknown encounter: ${encounterId}`);
+  }
+  let matchedZone: ZoneState | null = null;
+  context.run.acts.some((act) => {
+    return act.zones.some((zone) => {
+      if ((zone.encounterIds || []).includes(encounterId)) {
+        matchedZone = zone;
+        return true;
+      }
+      return false;
+    });
+  });
+  const hasBoss = encounter.enemies.some((enemy) => enemy.templateId.endsWith("_boss"));
+  const hasMiniboss = matchedZone?.kind === "miniboss";
+  const hasElite = !hasMiniboss && encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
+  return {
+    encounterId,
+    encounterName: encounter.name,
+    zoneTitle: matchedZone?.title || `Act ${context.run.actNumber} Encounter`,
+    zoneKind: matchedZone?.kind || (hasBoss ? "boss" : hasMiniboss ? "miniboss" : "battle"),
+    hasBoss,
+    hasMiniboss: Boolean(hasMiniboss),
+    hasElite,
+  };
 }
 
 function scoreItemForSlot(item: RuntimeItemDefinition, slotKey: LoadoutSlotKey, preferredFamilies: string[]) {
@@ -689,11 +1053,7 @@ function buildSimulatedRun(harness: ReturnType<typeof createAppHarness>, classId
 
   const deckBundle = buildScenarioDeck(harness, classId, scenario);
   state.run.deck = [...deckBundle.deck];
-  state.run.xp = Math.max(0, (scenario.targetLevel - 1) * 50);
-  state.run.level = scenario.targetLevel;
-  state.run.currentActIndex = clamp(scenario.actNumber - 1, 0, state.run.acts.length - 1);
-  harness.browserWindow.ROUGE_RUN_ROUTE_BUILDER.syncCurrentActFields(state.run);
-  harness.browserWindow.ROUGE_RUN_PROGRESSION.syncLevelProgression(state.run);
+  applyRunLevelAndAct(harness, state.run, scenario.targetLevel, scenario.actNumber);
   allocateAttributePoints(state.run, scenario);
   allocateClassPoints(harness, state.run, deckBundle.deck);
   equipScenarioLoadout({
@@ -800,6 +1160,7 @@ function uniqueEncounterEntries(entries: Array<BalanceEncounterEntry | null>) {
 
 function buildCombatStateForEncounter(context: SimulatedBuildContext, encounterId: string, seed: number) {
   const { harness, run, state } = context;
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId) || null;
   const overrides = harness.runFactory.createCombatOverrides(run, harness.content, state.profile);
   const combatBonuses = harness.itemSystem.buildCombatBonuses(run, harness.content);
   const armorProfile = harness.itemSystem.buildCombatMitigationProfile(run, harness.content) || null;
@@ -809,6 +1170,19 @@ function buildCombatStateForEncounter(context: SimulatedBuildContext, encounterI
   const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(weaponEquipment, harness.content) || null;
   const weaponFamily = harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(weaponItemId, harness.content) || "";
   const classPreferredFamilies = harness.classRegistry.getPreferredWeaponFamilies(run.classId) || [];
+  const allSkills = classProgression ? classProgression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills) : [];
+  const equippedSkillBar = run.progression?.classProgression?.equippedSkillBar || {
+    slot1SkillId: "",
+    slot2SkillId: "",
+    slot3SkillId: "",
+  };
+  const equippedSkills = (["slot1", "slot2", "slot3"] as RunSkillBarSlotKey[])
+    .map((slotKey) => {
+      const skillId = equippedSkillBar[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "";
+      const skill = allSkills.find((entry: RuntimeClassSkillDefinition) => entry.id === skillId) || null;
+      return skill ? { slotKey, skill } : null;
+    })
+    .filter(Boolean) as CombatSkillLoadoutEntry[];
 
   return harness.combatEngine.createCombatState({
     content: { ...harness.content, hero: overrides.heroState },
@@ -825,6 +1199,7 @@ function buildCombatStateForEncounter(context: SimulatedBuildContext, encounterI
     weaponProfile,
     armorProfile,
     classPreferredFamilies,
+    equippedSkills,
   });
 }
 
@@ -959,6 +1334,37 @@ function listCandidateActions(state: CombatState, content: GameContent, engine: 
     });
   });
 
+  state.equippedSkills
+    .filter((skill) => {
+      return (
+        skill.active &&
+        state.hero.energy >= skill.cost &&
+        skill.remainingCooldown <= 0 &&
+        (!skill.oncePerBattle || !skill.usedThisBattle) &&
+        (skill.chargeCount <= 0 || skill.chargesRemaining > 0)
+      );
+    })
+    .forEach((skill) => {
+      const wantsTarget = skill.skillType === "attack" || skill.skillType === "spell" || skill.skillType === "debuff";
+      if (wantsTarget) {
+        state.enemies.filter((enemy) => enemy.alive).slice(0, 3).forEach((enemy) => {
+          candidates.push({
+            type: "skill",
+            score: Number.NEGATIVE_INFINITY,
+            slotKey: skill.slotKey,
+            targetId: enemy.id,
+            targetName: enemy.name,
+          });
+        });
+        return;
+      }
+      candidates.push({
+        type: "skill",
+        score: Number.NEGATIVE_INFINITY,
+        slotKey: skill.slotKey,
+      });
+    });
+
   if (state.potions > 0) {
     if (state.hero.alive && state.hero.life < state.hero.maxLife) {
       candidates.push({ type: "potion", score: Number.NEGATIVE_INFINITY, potionTarget: "hero" });
@@ -992,6 +1398,8 @@ function scoreCandidateAction(candidate: CombatCandidateAction, state: CombatSta
   let result: ActionResult = { ok: false, message: "Unknown action." };
   if (candidate.type === "card" && candidate.instanceId) {
     result = engine.playCard(clone, content, candidate.instanceId, candidate.targetId || "");
+  } else if (candidate.type === "skill" && candidate.slotKey) {
+    result = engine.useSkill(clone, candidate.slotKey, candidate.targetId || "");
   } else if (candidate.type === "melee") {
     result = engine.meleeStrike(clone, content);
   } else if (candidate.type === "potion" && candidate.potionTarget) {
@@ -1053,6 +1461,9 @@ function chooseBestAction(state: CombatState, content: GameContent, engine: Comb
 function executeAction(action: CombatCandidateAction, state: CombatState, content: GameContent, engine: CombatEngineApi) {
   if (action.type === "card" && action.instanceId) {
     return engine.playCard(state, content, action.instanceId, action.targetId || "");
+  }
+  if (action.type === "skill" && action.slotKey) {
+    return engine.useSkill(state, action.slotKey, action.targetId || "");
   }
   if (action.type === "melee") {
     return engine.meleeStrike(state, content);
@@ -1137,6 +1548,15 @@ function summarizeEncounterRuns(
     averageEarlyDecisionScoreSpread: 0,
     earlyCloseDecisionRate: 0,
     averageEarlyEndTurnRegret: 0,
+    skillActionRate: 0,
+    skillUseTurnRate: 0,
+    readySkillUnusedTurnRate: 0,
+    slot1UseRate: 0,
+    slot2UseRate: 0,
+    slot3UseRate: 0,
+    beamDecisionRate: 0,
+    averageBeamDepth: 0,
+    beamOverrideRate: 0,
   };
 }
 
@@ -1276,6 +1696,7 @@ function buildSummary(context: SimulatedBuildContext): SimulationBuildSummary {
           rarity: weaponEquipment.rarity || "white",
         }
       : null,
+    training: buildTrainingSummary(harness, run),
     armorResistances: (armorProfile?.resistances || []).map((entry) => ({
       type: entry.type,
       amount: Number(entry.amount || 0),
@@ -1329,6 +1750,94 @@ function buildScenarioReport(context: SimulatedBuildContext, encounterSetId: str
   };
 }
 
+function buildCraftedRun(spec: CraftedCombatSimulationSpec): SimulatedBuildContext {
+  const harness = createQuietAppHarness();
+  const classDefinition = harness.classRegistry.getClassDefinition(harness.seedBundle, spec.classId);
+  if (!classDefinition) {
+    throw new Error(`Unknown class: ${spec.classId}`);
+  }
+  const mercenaryId = String(spec.mercenaryId || getMercenaryIdForClass(spec.classId));
+  const seed = Number.isFinite(Number(spec.seed)) ? Number(spec.seed) : hashString([spec.classId, spec.label || "crafted_combat"].join("|"));
+  const actNumber = clamp(Number(spec.actNumber || 5), 1, 5);
+  const targetLevel = Math.max(1, Number(spec.targetLevel || 35));
+  const maxTurns = Math.max(1, Number(spec.maxTurns || 36));
+  const deckBundle = buildCraftedDeck(harness, spec.classId, spec);
+  const scenario: BalanceScenarioDefinition = {
+    id: "crafted_seed",
+    label: String(spec.label || `${classDefinition.name} crafted combat seed`),
+    actNumber,
+    targetLevel,
+    deckAdditions: deckBundle.addedCards.length,
+    potionCount: Math.max(0, Number(spec.potionCount ?? 3)),
+    maxTurns,
+    attributeWeights: {
+      strength: 0.25,
+      dexterity: 0.25,
+      vitality: 0.25,
+      energy: 0.25,
+    },
+    rewardPackage: {
+      heroMaxLife: 0,
+      heroMaxEnergy: 0,
+      heroPotionHeal: 0,
+      mercenaryAttack: 0,
+      mercenaryMaxLife: 0,
+      extraPotions: 0,
+    },
+    rarityBySlot: {},
+    uniqueSlots: [],
+    notes: [...(spec.notes || []), `Crafted combat seed ${seed}`],
+  };
+
+  const state = harness.appEngine.createAppState({
+    content: harness.content,
+    seedBundle: harness.seedBundle,
+    combatEngine: harness.combatEngine,
+    randomFn: createSeededRandom(seed),
+  });
+  harness.appEngine.startCharacterSelect(state);
+  harness.appEngine.setSelectedClass(state, spec.classId);
+  harness.appEngine.setSelectedMercenary(state, mercenaryId);
+  const startResult = harness.appEngine.startRun(state);
+  if (!startResult.ok || !state.run) {
+    throw new Error(startResult.message || `Could not start crafted run for class ${spec.classId}.`);
+  }
+
+  state.run.seed = seed;
+  state.run.deck = [...deckBundle.deck];
+  applyRunLevelAndAct(harness, state.run, targetLevel, actNumber);
+  applyCraftedTreeProgression(harness, state.run, spec);
+  applyCraftedTraining(harness, state, spec);
+
+  const context: SimulatedBuildContext = {
+    harness,
+    state,
+    run: state.run,
+    scenario,
+    classId: spec.classId,
+    className: classDefinition.name,
+    mercenaryId,
+    deck: deckBundle.deck,
+    addedCards: deckBundle.addedCards,
+  };
+
+  applyCraftedLoadout(context, spec);
+  applyCraftedStatOverrides(context, spec);
+  return context;
+}
+
+function getCraftedEncounterEntries(context: SimulatedBuildContext, spec: CraftedCombatSimulationSpec) {
+  const directEncounterIds = uniqueList([
+    ...(spec.encounterId ? [spec.encounterId] : []),
+    ...(Array.isArray(spec.encounterIds) ? spec.encounterIds : []),
+  ]);
+  if (directEncounterIds.length > 0) {
+    return directEncounterIds.map((encounterId) => buildEncounterEntryById(context, encounterId));
+  }
+  const encounterSetId = String(spec.encounterSetId || "act5_endgame");
+  return getEncounterEntries(context, encounterSetId, Math.max(0, Number(spec.encounterLimit || 0)));
+}
+
 export function getBalanceScenarioDefinitions() {
   return Object.values(BALANCE_SCENARIOS).map((scenario) => ({ ...scenario }));
 }
@@ -1369,5 +1878,73 @@ export function runBalanceSimulationReport(options: BalanceSimulationOptions = {
     encounterSetLabel: ENCOUNTER_SET_LABELS[encounterSetId],
     runsPerEncounter,
     classReports,
+  };
+}
+
+export function runCraftedCombatSimulationReport(spec: CraftedCombatSimulationSpec): CraftedCombatSimulationReport {
+  const context = buildCraftedRun(spec);
+  const build = buildSummary(context);
+  const encounterEntries = getCraftedEncounterEntries(context, spec);
+  if (encounterEntries.length === 0) {
+    throw new Error("Crafted combat seed did not resolve any encounters.");
+  }
+  const runsPerEncounter = Math.max(1, Number(spec.runsPerEncounter || 1));
+  const encounters = encounterEntries.map((entry) => {
+    const runs = Array.from({ length: runsPerEncounter }, (_, index) => simulateEncounter(context, entry, index));
+    const summary = summarizeEncounterRuns(context.harness.content, entry, runs);
+    return {
+      ...summary,
+      kind: (entry.hasBoss ? "boss" : entry.hasMiniboss ? "miniboss" : entry.hasElite ? "elite" : "battle") as "boss" | "miniboss" | "elite" | "battle",
+      runs: runsPerEncounter,
+      powerDelta: roundTo(build.powerScore - summary.enemyPowerScore),
+      powerRatio: roundTo(build.powerScore / Math.max(1, summary.enemyPowerScore)),
+    };
+  });
+  const totalAttempts = Math.max(1, encounters.length * runsPerEncounter);
+  const wins = encounters.reduce((sum, encounter) => sum + encounter.wins, 0);
+  const losses = encounters.reduce((sum, encounter) => sum + encounter.losses, 0);
+  const timeouts = encounters.reduce((sum, encounter) => sum + encounter.timeouts, 0);
+  const resolvedEncounterIds = encounterEntries.map((entry) => entry.encounterId);
+  const encounterSetId = String(spec.encounterSetId || (resolvedEncounterIds.length === 1 ? resolvedEncounterIds[0] : "crafted_selection"));
+  const encounterSetLabel = ENCOUNTER_SET_LABELS[encounterSetId] || (resolvedEncounterIds.length === 1 ? encounterEntries[0].encounterName : "Crafted Selection");
+
+  return {
+    generatedAt: new Date().toISOString(),
+    label: String(spec.label || `${context.className} crafted combat seed`),
+    seed: Number(context.run.seed || 0),
+    encounterSource: {
+      encounterIds: resolvedEncounterIds,
+      encounterSetId,
+      encounterSetLabel,
+      runsPerEncounter,
+    },
+    requested: {
+      classId: context.classId,
+      mercenaryId: context.mercenaryId,
+      actNumber: context.scenario.actNumber,
+      targetLevel: context.scenario.targetLevel,
+      maxTurns: context.scenario.maxTurns,
+      deckSize: context.deck.length,
+      favoredTreeId: String(spec.favoredTreeId || ""),
+      treeRanks: { ...(spec.treeRanks || {}) },
+      equippedSkillIds: { ...(spec.equippedSkillIds || {}) },
+      bypassTrainingGates: spec.bypassTrainingGates !== false,
+    },
+    build,
+    encounters,
+    overall: {
+      winRate: wins / totalAttempts,
+      wins,
+      losses,
+      timeouts,
+      averageTurns: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageTurns * runsPerEncounter, 0) / totalAttempts),
+      averageHeroLifePct: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageHeroLifePct * runsPerEncounter, 0) / totalAttempts),
+      averageMercenaryLifePct: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageMercenaryLifePct * runsPerEncounter, 0) / totalAttempts),
+      averagePotionsRemaining: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averagePotionsRemaining * runsPerEncounter, 0) / totalAttempts),
+      averageEnemyLifePct: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageEnemyLifePct * runsPerEncounter, 0) / totalAttempts),
+      beamDecisionRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.beamDecisionRate * runsPerEncounter, 0) / totalAttempts),
+      averageBeamDepth: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageBeamDepth * runsPerEncounter, 0) / totalAttempts),
+      beamOverrideRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.beamOverrideRate * runsPerEncounter, 0) / totalAttempts),
+    },
   };
 }

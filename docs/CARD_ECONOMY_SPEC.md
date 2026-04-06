@@ -1,6 +1,6 @@
 # Card Economy Spec
 
-_Snapshot: 2026-03-06_
+_Snapshot: 2026-04-06_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -18,25 +18,55 @@ It answers four questions:
 3. What kinds of cards can towns sell?
 4. How do vendors complement class reward pools without replacing them?
 
+## Shared Foundation Pool Target
+
+Working target:
+
+- `10-15` shared cards across the whole roster.
+- this is the shared pool the team has been calling `core cards`
+- prefer `foundation cards` in design docs so the term does not conflict with `core skills`
+
+Foundation-card role:
+
+- patch weak hands
+- provide universally legible tactical glue
+- appear in starters, vendors, events, and fallback reward slots
+- support class decks without becoming the main source of replayability
+
+Hard rules:
+
+- foundation cards should not replace class identity
+- foundation cards should not become the main normal-reward backbone
+- foundation cards should cover universal verbs like brace, cycle, triage, anti-block, and tempo reset
+- class cards should still carry most engines, payoffs, and specialization
+
 ## Reward-Offer Structure
 
-Recommended default shape for an early battle card reward:
+STS-inspired default shape for a normal early battle card reward:
 
 - `3` choices total
-- `1` neutral/common option
-- `2` class reward-pool options
+- usually `3` class reward-pool options
+- occasionally `2` class reward-pool options plus `1` foundation option when the run needs a safe fallback or smoothing offer
 
 Rules:
 
 - neutral/common cards should always be legal from run start
+- foundation cards should not appear in every normal reward screen
 - tier-1 class cards should be legal from run start
 - higher-tier class cards should require tree investment and later act progression
 - town cards should be weaker and more curated than combat-earned class rewards
 - artifacts/relics should never be sold through town card stock
+- at most `1` foundation option should appear in a normal reward screen unless a special effect or event overrides this
+
+Recommended access pattern:
+
+- class cards should be the main output of combat rewards
+- foundation cards should show up mostly through starter shells, vendors, events, route-specific rewards, and fallback reward logic
+- boss or miniboss rewards may include a foundation option only when it solves a clear consistency or answer gap
 
 ## Neutral / Common Reward Pool
 
-These are the early shared cards that any class can add without committing to a tree.
+These are the shared foundation cards that any class can add without committing to a tree.
 
 | Card | Cost | Type | Copy Cap | Exact Text |
 |---|---:|---|---:|---|
@@ -52,7 +82,7 @@ These are the early shared cards that any class can add without committing to a 
 Pool role:
 
 - patch weak early hands
-- provide the baseline reward option that is never build-dead
+- provide the baseline option that is never build-dead when the reward builder needs one
 - give town vendors a legal card stock that works for both classes
 
 ## Town Card Economy Contract
@@ -176,6 +206,7 @@ Design role:
 ## Integration Notes
 
 - battle rewards should remain the main source of class identity
+- normal battle rewards should usually be class-first, not split evenly with foundation cards
 - minibosses and bosses should remain the main source of premium combat upgrades
 - town cards should help smooth a build, patch a weakness, or reinforce an invested tree
 - if a vendor offers a class card, it should usually match an already-invested tree

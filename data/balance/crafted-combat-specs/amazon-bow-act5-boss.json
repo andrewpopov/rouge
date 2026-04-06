@@ -1,0 +1,39 @@
+{
+  "label": "Amazon Bow vs Act V Boss",
+  "classId": "amazon",
+  "seed": 13,
+  "actNumber": 5,
+  "targetLevel": 35,
+  "runsPerEncounter": 5,
+  "encounterId": "act_5_boss",
+  "addCardIds": [
+    "amazon_multiple_shot",
+    "amazon_guided_arrow",
+    "amazon_freezing_arrow"
+  ],
+  "treeRanks": {
+    "amazon_bow_and_crossbow": 6,
+    "amazon_passive_and_magic": 2
+  },
+  "favoredTreeId": "amazon_bow_and_crossbow",
+  "equippedSkillIds": {
+    "slot2": "amazon_multiple_shot",
+    "slot3": "amazon_freezing_arrow"
+  },
+  "loadout": {
+    "weapon": "item_long_bow"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act5",
+    "amazon",
+    "bow",
+    "ranged",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking bow package pressure and capstone use against endgame boss timing."
+  ]
+}

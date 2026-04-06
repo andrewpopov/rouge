@@ -1,6 +1,6 @@
 # Class Deckbuilder Progression
 
-_Snapshot: 2026-04-04_
+_Snapshot: 2026-04-06_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -13,12 +13,14 @@ Documentation note:
 - Use `CLASS_SLOT2_BRIDGE_SKILL_SPECS.md` for the tree-specific `Slot 2` bridge pools that connect starters to capstones.
 - Use `CLASS_SLOT3_CAPSTONE_SKILL_SPECS.md` for the late-slot capstone skill candidates across the full roster.
 - Use `SKILL_UNLOCK_AND_GATING_RULES.md` for the exact slot timing, tree-commitment, and safe-zone equip rules that connect the starter, bridge, and capstone layers.
+- Use `CORE_SKILL_SYSTEM_SPEC.md` for the approved low-impact core-slot model, tree linkage, and no-shared-id separation from deck cards.
 - Use `SAFE_ZONE_TRAINING_SCREEN_SPEC.md` for the safe-zone and act-transition UI home that should own class-tree spending, skill unlocking, and skill equip decisions.
 - Use `SAFE_ZONE_TRAINING_RUNTIME_MODEL.md` for the concrete runtime-state, content-model, and action-surface changes needed to build that screen cleanly.
 - Use `SAFE_ZONE_TRAINING_TYPE_CHANGE_SPEC.md` for the exact type additions and semantic changes required in `content.d.ts`, `run.d.ts`, and `api.d.ts` before implementation starts.
 - Use `SAFE_ZONE_TRAINING_ACTION_DISPATCHER_CONTRACT.md` for the exact `data-action` contract and UI-versus-engine split for training interactions.
 - Use `SAFE_ZONE_TRAINING_IMPLEMENTATION_PLAN.md` for the file-by-file task list across runtime state, migrations, progression logic, app-engine, dispatcher, and UI.
 - Use `SKILLS_JSON_TRAINING_SCHEMA_PLAN.md` for the plan to turn `data/seeds/d2/skills.json` into the Rouge-authored starter or bridge or capstone skill catalog without losing its D2 reference value.
+- Use `CLASS_CARD_AUTHORING_MATRIX.md` for the per-class deck-package targets, lane health checks, and class-by-class card expansion order.
 - Use this document for the class, skill, deck, and upgrade-path combat model.
 - Use `D2_SPECIALIZATION_MODEL.md` for the one-tree specialization, utility-splash, and boss-prep rules that should shape class card rewrites.
 
@@ -222,7 +224,7 @@ These are implementation-grade starting kit specs for the first playable classes
 
 | Slot | Skill | Cost | Cooldown | Exact Text |
 |---|---|---:|---:|---|
-| 1 | `Bash` | 1 | 1 | `Deal 9 damage. If the target already took damage this turn, gain 3 Block.` |
+| 1 | `Rallying Bash` | 1 | 1 | `Deal 6 damage. If the target is already wounded, gain 2 Guard.` |
 
 #### Starting Deck (`14`)
 
@@ -239,7 +241,7 @@ These are implementation-grade starting kit specs for the first playable classes
 
 Opening pattern:
 
-- `Bash` gives Barbarian a reliable identity button every fight.
+- `Rallying Bash` gives Barbarian a reliable identity button every fight without duplicating the card pool name.
 - `War Shout` creates clear attack windows.
 - `Crushing Swing` and `Blood Rush` provide early burst choices.
 - The deck should feel aggressive, stable, and easy to understand on first run.
@@ -255,7 +257,7 @@ Preferred early upgrade-path direction:
 
 | Slot | Skill | Cost | Cooldown | Exact Text |
 |---|---|---:|---:|---|
-| 1 | `Fire Bolt` | 1 | 1 | `Deal 8 damage. If this is the first Spell you used this turn, gain 1 Energy.` |
+| 1 | `Kindle Bolt` | 1 | 1 | `Deal 4 fire damage. If you have not played a card yet this turn, your next card costs 1 less.` |
 
 #### Starting Deck (`14`)
 
@@ -272,7 +274,7 @@ Preferred early upgrade-path direction:
 
 Opening pattern:
 
-- `Fire Bolt` gives Sorceress a stable first-cast tempo tool.
+- `Kindle Bolt` gives Sorceress a stable first-cast tempo tool without sharing a live name with the card catalog.
 - `Focus` and `Warmth` smooth out spell turns.
 - `Cold Snap` gives defense without breaking spell identity.
 - `Arc Surge` provides the first multi-target payoff card.
@@ -467,7 +469,7 @@ Hard rules:
 
 Current runtime implementation still differs from this target model in places:
 
-- some starter skills are currently represented as class cards
+- slot-1 starter core skills now use dedicated skill ids and distinct player-facing names instead of sharing card ids or titles with the deck catalog
 - the live class roster is still smaller than the target roster
 - the live combat baseline still refills to a class-defined hand target each turn, while mana-derived class shells can start as high as `4` energy on a `5`-card opening hand
 - that means some early Rouge turns still allow "play nearly everything" sequencing, which is exactly the tension gap the next combat pass should address

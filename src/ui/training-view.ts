@@ -165,7 +165,10 @@
       return `<div class="training-empty-state">No class trees are available for this run.</div>`;
     }
 
-    const selectedSlotNumber = model.selectedSlot === "slot1" ? 1 : model.selectedSlot === "slot2" ? 2 : model.selectedSlot === "slot3" ? 3 : 0;
+    let selectedSlotNumber = 0;
+    if (model.selectedSlot === "slot1") { selectedSlotNumber = 1; }
+    else if (model.selectedSlot === "slot2") { selectedSlotNumber = 2; }
+    else if (model.selectedSlot === "slot3") { selectedSlotNumber = 3; }
     const selectedSlotModel = model.selectedSlot
       ? model.slots.find((slot) => slot.slotKey === model.selectedSlot) || null
       : null;
@@ -198,13 +201,14 @@
     ].filter((group) => group.skills.length > 0);
 
     if (groups.length === 0) {
-      const message = model.mode === "swap"
-        ? "Select an occupied Slot 2 or Slot 3 to review swap candidates for this tree."
-        : model.mode === "equip"
-          ? "No learned skills in this tree match the current slot focus yet."
-          : model.mode === "unlock"
-            ? "No unlock candidates are available in this tree right now."
-            : "No skills are available for the current training filter.";
+      let message = "No skills are available for the current training filter.";
+      if (model.mode === "swap") {
+        message = "Select an occupied Slot 2 or Slot 3 to review swap candidates for this tree.";
+      } else if (model.mode === "equip") {
+        message = "No learned skills in this tree match the current slot focus yet.";
+      } else if (model.mode === "unlock") {
+        message = "No unlock candidates are available in this tree right now.";
+      }
       return `<div class="training-empty-state">${escapeHtml(message)}</div>`;
     }
 
@@ -284,15 +288,18 @@
       `);
     }
 
-    const targetSlotKey = selectedSkill.slot === 1 ? "slot1" : selectedSkill.slot === 2 ? "slot2" : "slot3";
+    let targetSlotKey: RunSkillBarSlotKey = "slot3";
+    if (selectedSkill.slot === 1) { targetSlotKey = "slot1"; }
+    else if (selectedSkill.slot === 2) { targetSlotKey = "slot2"; }
     const targetSlot = model.slots.find((slot) => slot.slotNumber === selectedSkill.slot) || null;
     const alreadyEquipped = targetSlot?.equippedSkillId === selectedSkill.skillId;
     if ((selectedSkill.state === "unlocked" || selectedSkill.state === "equipped") && selectedSkill.slot !== 1 && targetSlot?.unlocked && !alreadyEquipped) {
       const swapMode = Boolean(targetSlot?.equippedSkillId) && model.mode === "swap";
       const actionName = swapMode ? "swap-training-skill" : "equip-training-skill";
-      const actionLabel = targetSlot?.equippedSkillId
-        ? (swapMode ? `Swap Into Slot ${selectedSkill.slot}` : `Replace Slot ${selectedSkill.slot}`)
-        : `Equip To Slot ${selectedSkill.slot}`;
+      let actionLabel = `Equip To Slot ${selectedSkill.slot}`;
+      if (targetSlot?.equippedSkillId) {
+        actionLabel = swapMode ? `Swap Into Slot ${selectedSkill.slot}` : `Replace Slot ${selectedSkill.slot}`;
+      }
         actions.push(`
           <button
             class="primary-btn"

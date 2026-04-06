@@ -198,11 +198,9 @@
     const equippedSkillId = run.progression?.classProgression?.equippedSkillBar?.[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "";
     const equippedSkill = getSkillDefinition(definition, equippedSkillId);
     const equippedSkillName = equippedSkill?.name || "";
-    const statusLabel = equippedSkill
-      ? "Equipped"
-      : unlocked
-        ? "Available"
-        : "Locked";
+    let statusLabel = "Locked";
+    if (equippedSkill) { statusLabel = "Equipped"; }
+    else if (unlocked) { statusLabel = "Available"; }
     return {
       slotKey, slotNumber: meta.slotNumber, roleLabel: meta.roleLabel, unlocked,
       statusLabel,

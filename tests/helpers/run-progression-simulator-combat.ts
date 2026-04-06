@@ -32,6 +32,15 @@ export interface SimulatedCombatResult {
   averageEarlyDecisionScoreSpread: number
   earlyCloseDecisionRate: number
   averageEarlyEndTurnRegret: number
+  skillActionRate: number
+  skillUseTurnRate: number
+  readySkillUnusedTurnRate: number
+  slot1UseRate: number
+  slot2UseRate: number
+  slot3UseRate: number
+  beamDecisionRate: number
+  averageBeamDepth: number
+  beamOverrideRate: number
 }
 
 interface TurnDecisionTelemetry {
@@ -45,6 +54,14 @@ interface TurnDecisionTelemetry {
   meaningfulCandidateCount: number
   decisionScoreSpread: number
   endTurnRegret: number
+  readySkillCount: number
+  skillActionsUsed: number
+  slot1Used: boolean
+  slot2Used: boolean
+  slot3Used: boolean
+  beamUsed: boolean
+  beamDepth: number
+  beamOverride: boolean
 }
 
 interface CombatActionChoiceStats {
@@ -56,11 +73,22 @@ interface CombatActionChoiceStats {
   scoreSpread: number
   endTurnScore: number
   endTurnRegret: number
+  beamUsed: boolean
+  beamDepth: number
+  beamOverride: boolean
 }
 
 const MEANINGFUL_DECISION_MARGIN = 8
 const CLOSE_DECISION_SPREAD_THRESHOLD = 6
 const PASS_REGRET_SIGNIFICANCE_THRESHOLD = 2
+const LOOKAHEAD_TARGET_LIMIT = 3
+
+interface BeamSearchConfig {
+  depth: number
+  beamWidth: number
+  expandPerNode: number
+  scoreDecay: number
+}
 
 export interface CombatSimulationHooks {
   slowStepThresholdMs?: number
@@ -200,6 +228,37 @@ export function getHeroDebuffScore(state: CombatState) {
   )
 }
 
+function scoreUnusedSkillOpportunity(skill: CombatEquippedSkillState) {
+  let score = skill.slot === 3 || skill.tier === "capstone" ? 10 : skill.slot === 2 || skill.tier === "bridge" ? 8 : 6
+  if (skill.family === "answer" || skill.family === "recovery" || skill.family === "commitment") {
+    score += 1
+  }
+  if (skill.skillType === "summon" || skill.skillType === "spell") {
+    score += 1
+  }
+  return score
+}
+
+function isSkillUsableForOpportunity(skill: CombatEquippedSkillState, availableEnergy: number) {
+  return (
+    skill.active &&
+    skill.cost <= Math.max(1, availableEnergy) &&
+    skill.remainingCooldown <= 0 &&
+    (!skill.oncePerBattle || !skill.usedThisBattle) &&
+    (skill.chargeCount <= 0 || skill.chargesRemaining > 0)
+  )
+}
+
+function isSkillReadyNow(skill: CombatEquippedSkillState, availableEnergy: number) {
+  return (
+    skill.active &&
+    skill.cost <= Math.max(0, availableEnergy) &&
+    skill.remainingCooldown <= 0 &&
+    (!skill.oncePerBattle || !skill.usedThisBattle) &&
+    (skill.chargeCount <= 0 || skill.chargesRemaining > 0)
+  )
+}
+
 function getMeaningfulUnplayedCount(
   state: CombatState,
   content: GameContent,
@@ -207,7 +266,7 @@ function getMeaningfulUnplayedCount(
   matchingProficiencies: Set<string>,
   startingEnergy: number
 ) {
-  return state.hand.reduce((count, entry) => {
+  const cardCount = state.hand.reduce((count, entry) => {
     const card = content.cardCatalog[entry.cardId]
     if (!card) {
       return count
@@ -216,6 +275,19 @@ function getMeaningfulUnplayedCount(
       return count
     }
     return scoreCard(card, policy, matchingProficiencies) >= 8 ? count + 1 : count
+  }, 0)
+  const skillCount = state.equippedSkills.reduce((count, skill) => {
+    if (!isSkillUsableForOpportunity(skill, startingEnergy)) {
+      return count
+    }
+    return scoreUnusedSkillOpportunity(skill) >= 8 ? count + 1 : count
+  }, 0)
+  return cardCount + skillCount
+}
+
+function getReadySkillCount(state: CombatState, availableEnergy: number) {
+  return state.equippedSkills.reduce((count, skill) => {
+    return isSkillReadyNow(skill, availableEnergy) ? count + 1 : count
   }, 0)
 }
 
@@ -232,8 +304,19 @@ function summarizeTurnTelemetry(turns: TurnDecisionTelemetry[]) {
     meaningfulCandidateCount: 0,
     decisionScoreSpread: 0,
     endTurnRegret: 0,
+    readySkillCount: 0,
+    skillActionsUsed: 0,
+    slot1Used: false,
+    slot2Used: false,
+    slot3Used: false,
+    beamUsed: false,
+    beamDepth: 0,
+    beamOverride: false,
   }
   const divisor = Math.max(1, earlyTurns.length)
+  const totalTurns = Math.max(1, turns.length)
+  const beamTurns = turns.filter((turn) => turn.beamUsed)
+  const readySkillTurns = turns.filter((turn) => turn.readySkillCount > 0)
   return {
     openingHandFullSpend: opening.endingHandSize === 0,
     openingHandCardsPlayed: opening.cardsPlayed,
@@ -255,6 +338,21 @@ function summarizeTurnTelemetry(turns: TurnDecisionTelemetry[]) {
       3
     ),
     averageEarlyEndTurnRegret: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.endTurnRegret, 0) / divisor, 3),
+    skillActionRate: roundTo(turns.reduce((sum, turn) => sum + turn.skillActionsUsed, 0) / totalTurns, 3),
+    skillUseTurnRate: roundTo(turns.filter((turn) => turn.skillActionsUsed > 0).length / totalTurns, 3),
+    readySkillUnusedTurnRate: roundTo(
+      readySkillTurns.filter((turn) => turn.skillActionsUsed === 0).length / Math.max(1, readySkillTurns.length),
+      3
+    ),
+    slot1UseRate: roundTo(turns.filter((turn) => turn.slot1Used).length / totalTurns, 3),
+    slot2UseRate: roundTo(turns.filter((turn) => turn.slot2Used).length / totalTurns, 3),
+    slot3UseRate: roundTo(turns.filter((turn) => turn.slot3Used).length / totalTurns, 3),
+    beamDecisionRate: roundTo(beamTurns.length / totalTurns, 3),
+    averageBeamDepth: roundTo(
+      beamTurns.reduce((sum, turn) => sum + turn.beamDepth, 0) / Math.max(1, beamTurns.length),
+      3
+    ),
+    beamOverrideRate: roundTo(turns.filter((turn) => turn.beamOverride).length / totalTurns, 3),
   }
 }
 
@@ -347,6 +445,64 @@ function getHandValue(state: CombatState, content: GameContent, policy: BuildPol
   return state.hand.reduce((sum, entry) => {
     return sum + Math.max(0, scoreCard(content.cardCatalog[entry.cardId], policy, matchingProficiencies))
   }, 0)
+}
+
+function getCombatActionKey(candidate: CombatCandidateAction) {
+  return [
+    candidate.type,
+    candidate.instanceId || "",
+    candidate.slotKey || "",
+    candidate.targetId || "",
+    candidate.potionTarget || "",
+  ].join(":")
+}
+
+function skillNeedsEnemyTarget(skill: CombatEquippedSkillState) {
+  return skill.skillType === "attack" || skill.skillType === "spell" || skill.skillType === "debuff"
+}
+
+function hasPreparedSkillWindow(state: CombatState) {
+  return Object.values(state.skillModifiers || {}).some((value) => Number(value || 0) > 0)
+}
+
+function hasReadyActiveSkill(state: CombatState) {
+  return state.equippedSkills.some((skill) => {
+    return (
+      skill.active &&
+      state.hero.energy >= skill.cost &&
+      skill.remainingCooldown <= 0 &&
+      (!skill.oncePerBattle || !skill.usedThisBattle) &&
+      (skill.chargeCount <= 0 || skill.chargesRemaining > 0)
+    )
+  })
+}
+
+function isBossEncounterState(state: CombatState) {
+  const encounterId = String(state.encounter?.id || "")
+  return encounterId.includes("_boss") || state.enemies.some((enemy) => enemy.alive && String(enemy.templateId || "").endsWith("_boss"))
+}
+
+function isDifficultEncounterState(state: CombatState) {
+  const encounterId = String(state.encounter?.id || "")
+  return (
+    isBossEncounterState(state) ||
+    encounterId.includes("_miniboss") ||
+    state.enemies.some((enemy) => enemy.alive && String(enemy.templateId || "").includes("_elite")) ||
+    hasChargeThreat(state) ||
+    getThreatPressure(state) >= 0.55
+  )
+}
+
+function getBeamSearchConfig(state: CombatState): BeamSearchConfig {
+  const deservesDeepSearch =
+    state.turn <= 4 || getThreatShortfall(state) > 0 || getThreatPressure(state) >= 0.5 || hasReadyActiveSkill(state) || hasPreparedSkillWindow(state)
+  if (isBossEncounterState(state) && deservesDeepSearch) {
+    return { depth: 3, beamWidth: 8, expandPerNode: 4, scoreDecay: 0.9 }
+  }
+  if (isDifficultEncounterState(state) && deservesDeepSearch) {
+    return { depth: 2, beamWidth: 6, expandPerNode: 3, scoreDecay: 0.88 }
+  }
+  return { depth: 0, beamWidth: 0, expandPerNode: 0, scoreDecay: 0 }
 }
 
 function scoreCombatStateDelta(
@@ -446,7 +602,7 @@ function scoreCombatStateDelta(
   return score
 }
 
-function listCandidateActions(
+function buildCandidateActions(
   state: CombatState,
   content: GameContent,
   engine: CombatEngineApi,
@@ -494,6 +650,37 @@ function listCandidateActions(
     })
   })
 
+  state.equippedSkills
+    .filter((skill) => {
+      return (
+        skill.active &&
+        state.hero.energy >= skill.cost &&
+        skill.remainingCooldown <= 0 &&
+        (!skill.oncePerBattle || !skill.usedThisBattle) &&
+        (skill.chargeCount <= 0 || skill.chargesRemaining > 0)
+      )
+    })
+    .forEach((skill) => {
+      if (skillNeedsEnemyTarget(skill) && state.enemies.some((enemy) => enemy.alive)) {
+        getPriorityEnemyTargets(state)
+          .slice(0, LOOKAHEAD_TARGET_LIMIT)
+          .forEach((enemy) => {
+            candidates.push({
+              type: "skill",
+              score: Number.NEGATIVE_INFINITY,
+              slotKey: skill.slotKey,
+              targetId: enemy.id,
+            })
+          })
+        return
+      }
+      candidates.push({
+        type: "skill",
+        score: Number.NEGATIVE_INFINITY,
+        slotKey: skill.slotKey,
+      })
+    })
+
   if (state.potions > 0) {
     if (state.hero.alive && state.hero.life < state.hero.maxLife) {
       candidates.push({ type: "potion", score: Number.NEGATIVE_INFINITY, potionTarget: "hero" })
@@ -508,41 +695,223 @@ function listCandidateActions(
   }
 
   candidates.push({ type: "end_turn", score: Number.NEGATIVE_INFINITY })
+  return candidates
+}
 
-  return candidates.map((candidate) => {
-    if (candidate.type === "end_turn") {
-      const clone = cloneCombatState(state)
-      engine.endTurn(clone)
-      const afterShortfall = getThreatShortfall(clone)
-      return {
-        ...candidate,
-        afterShortfall,
-        score: scoreCombatStateDelta(state, clone, content, "end_turn", policy, matchingProficiencies),
-      }
-    }
-
+function scoreCandidateActionImmediate(
+  candidate: CombatCandidateAction,
+  state: CombatState,
+  content: GameContent,
+  engine: CombatEngineApi,
+  policy: BuildPolicyDefinition,
+  matchingProficiencies: Set<string>
+) {
+  if (candidate.type === "end_turn") {
     const clone = cloneCombatState(state)
-    let result: ActionResult = { ok: false, message: "Unknown action." }
-    if (candidate.type === "card" && candidate.instanceId) {
-      result = engine.playCard(clone, content, candidate.instanceId, candidate.targetId || "")
-    } else if (candidate.type === "melee") {
-      result = engine.meleeStrike(clone, content)
-    } else if (candidate.type === "potion" && candidate.potionTarget) {
-      result = engine.usePotion(clone, candidate.potionTarget)
-    }
-
-    if (!result.ok) {
-      return { ...candidate, score: Number.NEGATIVE_INFINITY }
-    }
-
+    engine.endTurn(clone)
     const afterShortfall = getThreatShortfall(clone)
-
     return {
       ...candidate,
       afterShortfall,
-      score: scoreCombatStateDelta(state, clone, content, candidate.type, policy, matchingProficiencies),
+      score: scoreCombatStateDelta(state, clone, content, "end_turn", policy, matchingProficiencies),
     }
-  })
+  }
+
+  const clone = cloneCombatState(state)
+  let result: ActionResult = { ok: false, message: "Unknown action." }
+  if (candidate.type === "card" && candidate.instanceId) {
+    result = engine.playCard(clone, content, candidate.instanceId, candidate.targetId || "")
+  } else if (candidate.type === "skill" && candidate.slotKey) {
+    result = engine.useSkill(clone, candidate.slotKey, candidate.targetId || "")
+  } else if (candidate.type === "melee") {
+    result = engine.meleeStrike(clone, content)
+  } else if (candidate.type === "potion" && candidate.potionTarget) {
+    result = engine.usePotion(clone, candidate.potionTarget)
+  }
+
+  if (!result.ok) {
+    return { ...candidate, score: Number.NEGATIVE_INFINITY }
+  }
+
+  const afterShortfall = getThreatShortfall(clone)
+
+  return {
+    ...candidate,
+    afterShortfall,
+    score: scoreCombatStateDelta(state, clone, content, candidate.type, policy, matchingProficiencies),
+  }
+}
+
+function listCandidateActions(
+  state: CombatState,
+  content: GameContent,
+  engine: CombatEngineApi,
+  policy: BuildPolicyDefinition,
+  matchingProficiencies: Set<string>
+) {
+  return buildCandidateActions(state, content, engine, policy, matchingProficiencies)
+    .map((candidate) => scoreCandidateActionImmediate(candidate, state, content, engine, policy, matchingProficiencies))
+}
+
+interface BeamSearchNode {
+  state: CombatState
+  firstAction: CombatCandidateAction
+  sequenceScore: number
+  depth: number
+  terminalShortfall: number
+  terminal: boolean
+}
+
+interface BeamSearchChoice {
+  action: CombatCandidateAction
+  score: number
+  terminalShortfall: number
+}
+
+function getBeamNodeRank(node: BeamSearchNode, initialShortfall: number, chargeThreat: boolean) {
+  let rank = Number(node.sequenceScore)
+  const shortfallImprovement = Math.max(0, initialShortfall - node.terminalShortfall)
+  rank += shortfallImprovement * (chargeThreat ? 24 : 12)
+  if (node.terminalShortfall <= 0) {
+    rank += chargeThreat ? 80 : 40
+  }
+  return rank
+}
+
+function runBeamSearch(
+  state: CombatState,
+  content: GameContent,
+  engine: CombatEngineApi,
+  policy: BuildPolicyDefinition,
+  matchingProficiencies: Set<string>,
+  rootCandidates: CombatCandidateAction[],
+  config: BeamSearchConfig
+): BeamSearchChoice | null {
+  if (config.depth <= 0 || rootCandidates.length === 0) {
+    return null
+  }
+
+  const initialShortfall = getThreatShortfall(state)
+  const chargeThreat = hasChargeThreat(state)
+  const seedCandidates = [...rootCandidates]
+    .filter((candidate) => Number.isFinite(Number(candidate.score)))
+    .sort((left, right) => Number(right.score) - Number(left.score))
+  const rootKeys = new Set(
+    seedCandidates
+      .slice(0, config.beamWidth)
+      .map((candidate) => getCombatActionKey(candidate))
+  )
+  const bestSkill = seedCandidates.find((candidate) => candidate.type === "skill") || null
+  if (bestSkill) {
+    rootKeys.add(getCombatActionKey(bestSkill))
+  }
+  if (initialShortfall > 0) {
+    const bestThreatReducer =
+      seedCandidates
+        .filter((candidate) => Number.isFinite(Number(candidate.afterShortfall)))
+        .sort((left, right) => {
+          const shortfallDelta =
+            Number(left.afterShortfall ?? Number.POSITIVE_INFINITY) - Number(right.afterShortfall ?? Number.POSITIVE_INFINITY)
+          if (shortfallDelta !== 0) {
+            return shortfallDelta
+          }
+          return Number(right.score) - Number(left.score)
+        })[0] || null
+    if (bestThreatReducer) {
+      rootKeys.add(getCombatActionKey(bestThreatReducer))
+    }
+  }
+
+  let frontier: BeamSearchNode[] = seedCandidates
+    .filter((candidate) => rootKeys.has(getCombatActionKey(candidate)))
+    .map((candidate) => {
+      const clone = cloneCombatState(state)
+      const result = executeCombatAction(candidate, clone, content, engine)
+      if (!result.ok) {
+        return null
+      }
+      return {
+        state: clone,
+        firstAction: candidate,
+        sequenceScore: Number(candidate.score),
+        depth: 1,
+        terminalShortfall: getThreatShortfall(clone),
+        terminal: Boolean(clone.outcome) || clone.phase !== "player" || candidate.type === "end_turn",
+      }
+    })
+    .filter(Boolean) as BeamSearchNode[]
+
+  if (frontier.length === 0) {
+    return null
+  }
+
+  frontier = frontier
+    .sort((left, right) => getBeamNodeRank(right, initialShortfall, chargeThreat) - getBeamNodeRank(left, initialShortfall, chargeThreat))
+    .slice(0, config.beamWidth)
+
+  for (let depth = 1; depth < config.depth; depth += 1) {
+    const nextFrontier: BeamSearchNode[] = []
+    frontier.forEach((node) => {
+      if (node.terminal || node.depth >= config.depth) {
+        nextFrontier.push(node)
+        return
+      }
+
+      const candidates = buildCandidateActions(node.state, content, engine, policy, matchingProficiencies)
+        .map((candidate) => scoreCandidateActionImmediate(candidate, node.state, content, engine, policy, matchingProficiencies))
+        .filter((candidate) => Number.isFinite(Number(candidate.score)))
+        .sort((left, right) => Number(right.score) - Number(left.score))
+      const branchKeys = new Set(
+        candidates
+          .slice(0, config.expandPerNode)
+          .map((candidate) => getCombatActionKey(candidate))
+      )
+      const branchSkill = candidates.find((candidate) => candidate.type === "skill") || null
+      if (branchSkill) {
+        branchKeys.add(getCombatActionKey(branchSkill))
+      }
+
+      candidates
+        .filter((candidate) => branchKeys.has(getCombatActionKey(candidate)))
+        .forEach((candidate) => {
+          const clone = cloneCombatState(node.state)
+          const result = executeCombatAction(candidate, clone, content, engine)
+          if (!result.ok) {
+            return
+          }
+          nextFrontier.push({
+            state: clone,
+            firstAction: node.firstAction,
+            sequenceScore: roundTo(
+              node.sequenceScore + Number(candidate.score) * Math.pow(config.scoreDecay, node.depth),
+              3
+            ),
+            depth: node.depth + 1,
+            terminalShortfall: getThreatShortfall(clone),
+            terminal: Boolean(clone.outcome) || clone.phase !== "player" || candidate.type === "end_turn",
+          })
+        })
+    })
+
+    if (nextFrontier.length === 0) {
+      break
+    }
+
+    frontier = nextFrontier
+      .sort((left, right) => getBeamNodeRank(right, initialShortfall, chargeThreat) - getBeamNodeRank(left, initialShortfall, chargeThreat))
+      .slice(0, config.beamWidth)
+  }
+
+  const bestNode = [...frontier]
+    .sort((left, right) => getBeamNodeRank(right, initialShortfall, chargeThreat) - getBeamNodeRank(left, initialShortfall, chargeThreat))[0] || null
+
+  return bestNode
+    ? {
+        action: bestNode.firstAction,
+        score: bestNode.sequenceScore,
+        terminalShortfall: bestNode.terminalShortfall,
+      }
+    : null
 }
 
 function chooseBestCombatAction(
@@ -563,6 +932,7 @@ function chooseBestCombatActionWithStats(
   matchingProficiencies: Set<string>
 ) : CombatActionChoiceStats {
   const candidates = listCandidateActions(state, content, engine, policy, matchingProficiencies).sort((left, right) => right.score - left.score)
+  const beamConfig = getBeamSearchConfig(state)
   const best = candidates[0] || ({ type: "end_turn", score: 0 } as CombatCandidateAction)
   const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn") || null
   const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null
@@ -598,7 +968,13 @@ function chooseBestCombatActionWithStats(
   const chargeThreat = hasChargeThreat(state)
   const threatPressure = getThreatPressure(state)
   let action: CombatCandidateAction
-  if (
+  const beamChoice =
+    beamConfig.depth > 0 && activeFiniteCandidates.length > 1
+      ? runBeamSearch(state, content, engine, policy, matchingProficiencies, finiteCandidates, beamConfig)
+      : null
+  if (beamChoice) {
+    action = beamChoice.action
+  } else if (
     currentShortfall > 0 &&
     bestThreatReducer &&
     Number(bestThreatReducer.afterShortfall ?? Number.POSITIVE_INFINITY) < currentShortfall
@@ -617,6 +993,9 @@ function chooseBestCombatActionWithStats(
   } else {
     action = best
   }
+  const beamUsed = Boolean(beamChoice)
+  const beamDepth = beamUsed ? beamConfig.depth : 0
+  const beamOverride = beamUsed && getCombatActionKey(action) !== getCombatActionKey(best)
   return {
     action,
     candidateCount: candidates.length,
@@ -626,12 +1005,18 @@ function chooseBestCombatActionWithStats(
     scoreSpread,
     endTurnScore: Number.isFinite(endTurnScore) ? roundTo(endTurnScore, 3) : 0,
     endTurnRegret,
+    beamUsed,
+    beamDepth,
+    beamOverride,
   }
 }
 
 function executeCombatAction(action: CombatCandidateAction, state: CombatState, content: GameContent, engine: CombatEngineApi) {
   if (action.type === "card" && action.instanceId) {
     return engine.playCard(state, content, action.instanceId, action.targetId || "")
+  }
+  if (action.type === "skill" && action.slotKey) {
+    return engine.useSkill(state, action.slotKey, action.targetId || "")
   }
   if (action.type === "melee") {
     return engine.meleeStrike(state, content)
@@ -648,6 +1033,11 @@ function describeTraceAction(action: CombatCandidateAction, state: CombatState, 
     const card = entry ? content.cardCatalog[entry.cardId] : null
     const target = action.targetId ? state.enemies.find((enemy) => enemy.id === action.targetId) : null
     return target ? `Card: ${card?.title || entry?.cardId || action.instanceId} -> ${target.name}` : `Card: ${card?.title || entry?.cardId || action.instanceId}`
+  }
+  if (action.type === "skill" && action.slotKey) {
+    const skill = state.equippedSkills.find((entry) => entry.slotKey === action.slotKey) || null
+    const target = action.targetId ? state.enemies.find((enemy) => enemy.id === action.targetId) : null
+    return target ? `Skill: ${skill?.name || action.slotKey} -> ${target.name}` : `Skill: ${skill?.name || action.slotKey}`
   }
   if (action.type === "melee") {
     return "Melee strike"
@@ -783,6 +1173,7 @@ export function buildCombatStateForEncounter(
   seed: number,
   randomFn?: RandomFn
 ) {
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId) || null
   const overrides = harness.runFactory.createCombatOverrides(run, harness.content, profile)
   const combatBonuses = harness.itemSystem.buildCombatBonuses(run, harness.content)
   const armorProfile = harness.itemSystem.buildCombatMitigationProfile(run, harness.content) || null
@@ -792,6 +1183,19 @@ export function buildCombatStateForEncounter(
   const weaponProfile = harness.browserWindow.ROUGE_ITEM_CATALOG.buildEquipmentWeaponProfile(weaponEquipment, harness.content) || null
   const weaponFamily = harness.browserWindow.ROUGE_ITEM_CATALOG.getWeaponFamily(weaponItemId, harness.content) || ""
   const classPreferredFamilies = harness.classRegistry.getPreferredWeaponFamilies(run.classId) || []
+  const allSkills = classProgression ? classProgression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills) : []
+  const equippedSkillBar = run.progression?.classProgression?.equippedSkillBar || {
+    slot1SkillId: "",
+    slot2SkillId: "",
+    slot3SkillId: "",
+  }
+  const equippedSkills = (["slot1", "slot2", "slot3"] as RunSkillBarSlotKey[])
+    .map((slotKey) => {
+      const skillId = equippedSkillBar[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || ""
+      const skill = allSkills.find((entry: RuntimeClassSkillDefinition) => entry.id === skillId) || null
+      return skill ? { slotKey, skill } : null
+    })
+    .filter(Boolean) as CombatSkillLoadoutEntry[]
 
   return harness.combatEngine.createCombatState({
     content: { ...harness.content, hero: overrides.heroState },
@@ -808,6 +1212,7 @@ export function buildCombatStateForEncounter(
     weaponProfile,
     armorProfile,
     classPreferredFamilies,
+    equippedSkills,
   })
 }
 
@@ -841,6 +1246,14 @@ export function simulateEncounterWithRun(
       meaningfulCandidateCount: 0,
       decisionScoreSpread: 0,
       endTurnRegret: 0,
+      readySkillCount: getReadySkillCount(combatState, Number(combatState.hero.energy || 0)),
+      skillActionsUsed: 0,
+      slot1Used: false,
+      slot2Used: false,
+      slot3Used: false,
+      beamUsed: false,
+      beamDepth: 0,
+      beamOverride: false,
     }
     let actionsTaken = 0
     while (combatState.phase === "player" && !combatState.outcome && actionsTaken < actionLimitPerTurn) {
@@ -850,10 +1263,16 @@ export function simulateEncounterWithRun(
         telemetry.meaningfulCandidateCount = choice.meaningfulCandidateCount
         telemetry.decisionScoreSpread = choice.scoreSpread
         telemetry.endTurnRegret = choice.endTurnRegret
+        telemetry.beamUsed = choice.beamUsed
+        telemetry.beamDepth = choice.beamDepth
+        telemetry.beamOverride = choice.beamOverride
       }
       const result = executeCombatAction(choice.action, combatState, harness.content, harness.combatEngine)
       if (result.ok && choice.action.type === "card") {
         telemetry.cardsPlayed += 1
+      } else if (result.ok && choice.action.type === "skill") {
+        telemetry.skillActionsUsed += 1
+        telemetry[`${choice.action.slotKey}Used` as "slot1Used" | "slot2Used" | "slot3Used"] = true
       }
       actionsTaken += 1
       if (!result.ok || choice.action.type === "end_turn") {
@@ -949,6 +1368,14 @@ export function playStateCombat(
       meaningfulCandidateCount: 0,
       decisionScoreSpread: 0,
       endTurnRegret: 0,
+      readySkillCount: getReadySkillCount(state.combat, Number(state.combat.hero.energy || 0)),
+      skillActionsUsed: 0,
+      slot1Used: false,
+      slot2Used: false,
+      slot3Used: false,
+      beamUsed: false,
+      beamDepth: 0,
+      beamOverride: false,
     }
     if (Number(state.combat.turn || 0) === 0 || Number(state.combat.turn || 0) % 5 === 0) {
       hooks?.onProgress?.({
@@ -983,6 +1410,9 @@ export function playStateCombat(
         telemetry.meaningfulCandidateCount = choice.meaningfulCandidateCount
         telemetry.decisionScoreSpread = choice.scoreSpread
         telemetry.endTurnRegret = choice.endTurnRegret
+        telemetry.beamUsed = choice.beamUsed
+        telemetry.beamDepth = choice.beamDepth
+        telemetry.beamOverride = choice.beamOverride
       }
       const chooseElapsedMs = Date.now() - chooseStartedAt
       if (shouldLogAction || chooseElapsedMs >= slowStepThresholdMs) {
@@ -1001,6 +1431,9 @@ export function playStateCombat(
       const result = executeCombatAction(choice.action, state.combat, harness.content, harness.combatEngine)
       if (result.ok && choice.action.type === "card") {
         telemetry.cardsPlayed += 1
+      } else if (result.ok && choice.action.type === "skill") {
+        telemetry.skillActionsUsed += 1
+        telemetry[`${choice.action.slotKey}Used` as "slot1Used" | "slot2Used" | "slot3Used"] = true
       }
       const executeElapsedMs = Date.now() - executeStartedAt
       if (shouldLogAction || executeElapsedMs >= slowStepThresholdMs) {

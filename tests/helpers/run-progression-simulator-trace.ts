@@ -65,6 +65,37 @@ interface CheckpointSummaryOptions {
   probeEntries?: CheckpointProbeEntry[]
 }
 
+function buildCheckpointTrainingState(harness: AppHarness, run: RunState) {
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId)
+  const progressionSkills = Array.isArray(classProgression?.trees)
+    ? classProgression.trees.flatMap((tree) => tree.skills || [])
+    : []
+  const equippedSkillIds = {
+    slot1: String(run.progression?.classProgression?.equippedSkillBar?.slot1SkillId || ""),
+    slot2: String(run.progression?.classProgression?.equippedSkillBar?.slot2SkillId || ""),
+    slot3: String(run.progression?.classProgression?.equippedSkillBar?.slot3SkillId || ""),
+  }
+  const equippedSkillNames = {
+    slot1: progressionSkills.find((skill) => skill.id === equippedSkillIds.slot1)?.name || "",
+    slot2: progressionSkills.find((skill) => skill.id === equippedSkillIds.slot2)?.name || "",
+    slot3: progressionSkills.find((skill) => skill.id === equippedSkillIds.slot3)?.name || "",
+  }
+  const unlockedSkillIds = Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
+    ? [...run.progression.classProgression.unlockedSkillIds]
+    : []
+  const filledSlots = Object.values(equippedSkillIds).filter(Boolean).length
+  const favoredTreeId = String(run.progression?.classProgression?.favoredTreeId || "")
+  return {
+    bankedSkillPoints: Number(run.progression?.skillPointsAvailable || 0),
+    favoredTreeRank: Number(run.progression?.classProgression?.treeRanks?.[favoredTreeId] || 0),
+    unlockedSkillCount: unlockedSkillIds.length,
+    unlockedSkillIds,
+    slotStateLabel: `${filledSlots} / 3`,
+    equippedSkillIds,
+    equippedSkillNames,
+  }
+}
+
 type ProbeCandidate = CheckpointProbeEntry & {
   zoneRole: string
   nodeType: string
@@ -664,6 +695,18 @@ function summarizeProbeRuns(
       runs.reduce((sum, result) => sum + Number(result.averageEarlyEndTurnRegret || 0), 0) / divisor,
       3
     ),
+    skillActionRate: roundTo(runs.reduce((sum, result) => sum + Number(result.skillActionRate || 0), 0) / divisor, 3),
+    skillUseTurnRate: roundTo(runs.reduce((sum, result) => sum + Number(result.skillUseTurnRate || 0), 0) / divisor, 3),
+    readySkillUnusedTurnRate: roundTo(
+      runs.reduce((sum, result) => sum + Number(result.readySkillUnusedTurnRate || 0), 0) / divisor,
+      3
+    ),
+    slot1UseRate: roundTo(runs.reduce((sum, result) => sum + Number(result.slot1UseRate || 0), 0) / divisor, 3),
+    slot2UseRate: roundTo(runs.reduce((sum, result) => sum + Number(result.slot2UseRate || 0), 0) / divisor, 3),
+    slot3UseRate: roundTo(runs.reduce((sum, result) => sum + Number(result.slot3UseRate || 0), 0) / divisor, 3),
+    beamDecisionRate: roundTo(runs.reduce((sum, result) => sum + Number(result.beamDecisionRate || 0), 0) / divisor, 3),
+    averageBeamDepth: roundTo(runs.reduce((sum, result) => sum + Number(result.averageBeamDepth || 0), 0) / divisor, 3),
+    beamOverrideRate: roundTo(runs.reduce((sum, result) => sum + Number(result.beamOverrideRate || 0), 0) / divisor, 3),
   }
 }
 
@@ -820,6 +863,7 @@ export function buildCheckpointSummary(
     },
     choiceCounts: { ...progress.actionCounts },
     townActionCounts: { ...progress.townActionCounts },
+    trainingState: buildCheckpointTrainingState(harness, scoringRun),
     probes,
     archetypeCommitment: buildArchetypeCommitmentSnapshot(archetypePlan || null, laneMetrics),
   }
@@ -1008,6 +1052,33 @@ function buildEncounterMetricsByKind(encounters: EncounterRunMetric[]) {
           entries.reduce((sum, entry) => sum + Number(entry.averageEarlyEndTurnRegret || 0), 0) / count,
           3
         ),
+        skillActionRate: roundTo(
+          entries.reduce((sum, entry) => sum + Number(entry.skillActionRate || 0), 0) / count,
+          3
+        ),
+        skillUseTurnRate: roundTo(
+          entries.reduce((sum, entry) => sum + Number(entry.skillUseTurnRate || 0), 0) / count,
+          3
+        ),
+        readySkillUnusedTurnRate: roundTo(
+          entries.reduce((sum, entry) => sum + Number(entry.readySkillUnusedTurnRate || 0), 0) / count,
+          3
+        ),
+        slot1UseRate: roundTo(entries.reduce((sum, entry) => sum + Number(entry.slot1UseRate || 0), 0) / count, 3),
+        slot2UseRate: roundTo(entries.reduce((sum, entry) => sum + Number(entry.slot2UseRate || 0), 0) / count, 3),
+        slot3UseRate: roundTo(entries.reduce((sum, entry) => sum + Number(entry.slot3UseRate || 0), 0) / count, 3),
+        beamDecisionRate: roundTo(
+          entries.reduce((sum, entry) => sum + Number(entry.beamDecisionRate || 0), 0) / count,
+          3
+        ),
+        averageBeamDepth: roundTo(
+          entries.reduce((sum, entry) => sum + Number(entry.averageBeamDepth || 0), 0) / count,
+          3
+        ),
+        beamOverrideRate: roundTo(
+          entries.reduce((sum, entry) => sum + Number(entry.beamOverrideRate || 0), 0) / count,
+          3
+        ),
       }]
     })
   )
@@ -1114,5 +1185,14 @@ export function buildEncounterMetric(
     averageEarlyDecisionScoreSpread: Number(combatResult.averageEarlyDecisionScoreSpread || 0),
     earlyCloseDecisionRate: Number(combatResult.earlyCloseDecisionRate || 0),
     averageEarlyEndTurnRegret: Number(combatResult.averageEarlyEndTurnRegret || 0),
+    skillActionRate: Number(combatResult.skillActionRate || 0),
+    skillUseTurnRate: Number(combatResult.skillUseTurnRate || 0),
+    readySkillUnusedTurnRate: Number(combatResult.readySkillUnusedTurnRate || 0),
+    slot1UseRate: Number(combatResult.slot1UseRate || 0),
+    slot2UseRate: Number(combatResult.slot2UseRate || 0),
+    slot3UseRate: Number(combatResult.slot3UseRate || 0),
+    beamDecisionRate: Number(combatResult.beamDecisionRate || 0),
+    averageBeamDepth: Number(combatResult.averageBeamDepth || 0),
+    beamOverrideRate: Number(combatResult.beamOverrideRate || 0),
   }
 }

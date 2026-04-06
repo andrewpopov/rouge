@@ -5,6 +5,7 @@
     {
       "classId": "amazon",
       "className": "Amazon",
+      "starterSkillId": "amazon_call_the_shot",
       "trees": [
         {
           "id": "amazon_bow_and_crossbow",
@@ -287,6 +288,25 @@
           "name": "Passive and Magic",
           "skills": [
             {
+              "id": "amazon_call_the_shot",
+              "name": "Call the Shot",
+              "requiredLevel": 1,
+              "description": "Marks a target and readies the next precise follow-up.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Mark one enemy and tee up the next shot.",
+              "exactText": "Choose an enemy. Mark it for +4 mercenary damage and give your next card +2 damage.",
+              "isStarter": true
+            },
+            {
               "id": "amazon_inner_sight",
               "name": "Inner Sight",
               "requiredLevel": 1,
@@ -410,6 +430,7 @@
     {
       "classId": "assassin",
       "className": "Assassin",
+      "starterSkillId": "assassin_shadow_feint",
       "trees": [
         {
           "id": "assassin_martial_arts",
@@ -543,6 +564,25 @@
           "id": "assassin_shadow_disciplines",
           "name": "Shadow Disciplines",
           "skills": [
+            {
+              "id": "assassin_shadow_feint",
+              "name": "Shadow Feint",
+              "requiredLevel": 1,
+              "description": "Turns a guarded half-step into a sharper follow-up.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Gain Guard and sharpen the next Assassin follow-up.",
+              "exactText": "Gain 5 Guard. Your next card this turn costs 1 less and gains +2 damage or +2 Guard.",
+              "isStarter": true
+            },
             {
               "id": "assassin_claw_mastery",
               "name": "Claw Mastery",
@@ -808,11 +848,31 @@
     {
       "classId": "barbarian",
       "className": "Barbarian",
+      "starterSkillId": "barbarian_core_bash",
       "trees": [
         {
           "id": "barbarian_combat_skills",
           "name": "Combat",
           "skills": [
+            {
+              "id": "barbarian_core_bash",
+              "name": "Rallying Bash",
+              "requiredLevel": 1,
+              "description": "A reliable opening blow that rewards pressing an already-wounded foe.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "A steady opener that punishes wounded targets.",
+              "exactText": "Deal 6 damage. If the target is already wounded, gain 2 Guard.",
+              "isStarter": true
+            },
             {
               "id": "barbarian_bash",
               "name": "Bash",
@@ -1199,6 +1259,7 @@
     {
       "classId": "druid",
       "className": "Druid",
+      "starterSkillId": "druid_primal_attunement",
       "trees": [
         {
           "id": "druid_elemental",
@@ -1484,6 +1545,25 @@
           "name": "Summoning",
           "skills": [
             {
+              "id": "druid_primal_attunement",
+              "name": "Primal Attunement",
+              "requiredLevel": 1,
+              "description": "Steadies the Druid and deepens the next primal exchange.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Gain Guard, nurture the board, and empower the next card.",
+              "exactText": "Gain 4 Guard. Reinforce one summon by +1 if you control one. Your next card this turn gains +2 damage.",
+              "isStarter": true
+            },
+            {
               "id": "druid_raven",
               "name": "Raven",
               "requiredLevel": 1,
@@ -1600,6 +1680,7 @@
     {
       "classId": "necromancer",
       "className": "Necromancer",
+      "starterSkillId": "necromancer_raise_servant",
       "trees": [
         {
           "id": "necromancer_curses",
@@ -1871,6 +1952,25 @@
           "name": "Summoning",
           "skills": [
             {
+              "id": "necromancer_raise_servant",
+              "name": "Raise Servant",
+              "requiredLevel": 1,
+              "description": "Calls a disposable servant to the line or strengthens one already under your control.",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Put a short-lived servant on the field or reinforce your board.",
+              "exactText": "Summon a Servant for 2 turns. If you already control a summon, reinforce it by +2 instead.",
+              "isStarter": true
+            },
+            {
               "id": "necromancer_raise_skeleton",
               "name": "Raise Skeleton",
               "requiredLevel": 1,
@@ -2001,6 +2101,7 @@
     {
       "classId": "paladin",
       "className": "Paladin",
+      "starterSkillId": "paladin_sanctify",
       "trees": [
         {
           "id": "paladin_combat_skills",
@@ -2147,6 +2248,25 @@
           "id": "paladin_defensive_auras",
           "name": "Defensive Auras",
           "skills": [
+            {
+              "id": "paladin_sanctify",
+              "name": "Sanctify",
+              "requiredLevel": 1,
+              "description": "Spreads a brief ward across the front line and readies the next righteous swing.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Fortify the party and prime the next righteous play.",
+              "exactText": "You and your mercenary gain 4 Guard. Your next card this turn gains +2 damage or +2 Guard.",
+              "isStarter": true
+            },
             {
               "id": "paladin_prayer",
               "name": "Prayer",
@@ -2391,6 +2511,7 @@
     {
       "classId": "sorceress",
       "className": "Sorceress",
+      "starterSkillId": "sorceress_core_fire_bolt",
       "trees": [
         {
           "id": "sorceress_cold",
@@ -2546,6 +2667,25 @@
           "id": "sorceress_fire",
           "name": "Fire",
           "skills": [
+            {
+              "id": "sorceress_core_fire_bolt",
+              "name": "Kindle Bolt",
+              "requiredLevel": 1,
+              "description": "A disciplined bolt of fire that sets up the next cast.",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 1,
+              "tier": "starter",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Open with a cheap spell that smooths the next cast.",
+              "exactText": "Deal 4 fire damage. If you have not played a card yet this turn, your next card costs 1 less.",
+              "isStarter": true
+            },
             {
               "id": "sorceress_fire_bolt",
               "name": "Fire Bolt",

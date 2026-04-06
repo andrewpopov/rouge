@@ -272,6 +272,16 @@ test("balance artifact aggregates metrics and evaluates bands", () => {
   assert.ok(artifact.aggregate.coverageRate > 0);
   assert.ok(Array.isArray(artifact.bands));
   assert.equal(artifact.bands[0].status, "pass");
+  assert.ok(artifact.aggregate.overall.skillActionRate >= 0);
+  assert.ok(artifact.aggregate.overall.skillUseTurnRate >= 0);
+  assert.ok(artifact.aggregate.overall.readySkillUnusedTurnRate >= 0);
+  assert.ok(artifact.aggregate.overall.slot1UseRate >= 0);
+  assert.ok(artifact.aggregate.overall.slot2UseRate >= 0);
+  assert.ok(artifact.aggregate.overall.slot3UseRate >= 0);
+  assert.ok(artifact.aggregate.overall.beamDecisionRate >= 0);
+  assert.ok(artifact.aggregate.overall.averageBeamDepth >= 0);
+  assert.ok(artifact.aggregate.overall.beamOverrideRate >= 0);
+  assert.ok(artifact.aggregate.encounterMetricsByKind.boss?.beamDecisionRate >= 0);
 
   const missingBand = evaluateBalanceBands(artifact.aggregate, [
     { metricId: "group.amazon.aggressive.win_rate", label: "Missing group", min: 0.5 },
@@ -297,6 +307,32 @@ test("committed lane runs stay separated in aggregate reporting", () => {
   assert.equal(artifact.runs[0].targetArchetypeId, "sorceress_fire");
   assert.equal(artifact.aggregate.groups[0]?.targetArchetypeId, "sorceress_fire");
   assert.equal(artifact.aggregate.archetypes.committedLanes[0]?.targetArchetypeId, "sorceress_fire");
+});
+
+test("committed lane runs record training realization milestones", () => {
+  const catalog = getBalanceExperimentCatalog();
+  const spec: BalanceExperimentSpec = {
+    ...catalog.committed_archetype_campaign,
+    classIds: ["sorceress"],
+    policyIds: ["aggressive"],
+    seedOffsets: [0],
+    throughActNumber: 3,
+    targetArchetypeId: "sorceress_fire",
+    concurrency: 1,
+  };
+  const task = buildBalanceRunTasks(spec)[0];
+  const result = executeBalanceRunTask(spec, task);
+
+  assert.ok(result.record.requestedTrainingLoadout);
+  assert.ok(result.record.analysis?.trainingRealization);
+  assert.equal(result.record.analysis?.trainingRealization.favoredTreeRequested, "sorceress_fire");
+  assert.equal(result.record.analysis?.trainingRealization.slot2RequestedSkillId, task.trainingLoadout?.equippedSkillIds?.slot2 || "");
+  assert.equal(result.record.analysis?.trainingRealization.slot3RequestedSkillId, task.trainingLoadout?.equippedSkillIds?.slot3 || "");
+  assert.ok(result.record.analysis!.trainingRealization.maxSlotsFilled >= 1);
+  assert.ok(result.record.analysis!.trainingRealization.favoredTreeAlignedActNumber >= 0);
+  assert.ok(result.record.analysis!.trainingRealization.slot2UnlockedActNumber >= 0);
+  assert.ok(result.record.analysis!.trainingRealization.slot3UnlockedActNumber >= 0);
+  assert.equal(result.record.analysis?.failureAudit, null);
 });
 
 test("lane-specific metric bands resolve committed archetype values", () => {

@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: April 5, 2026.
+Last updated: April 6, 2026.
 
 ## Purpose
 
@@ -48,6 +48,7 @@ Implemented now:
 - deterministic seeded run creation, loot, town-service outcomes, combat simulation, skill-audit reporting, power-curve reporting, class-policy progression sweeps, and checkpoint reporting for active runewords or hand-size carry-through during balance work
 - tuned balance around the deterministic progression simulator, with the row-level committed ledger now serving as the primary balance surface instead of any single frozen matrix: [committed-ledger.json](/Users/andrew/proj/rouge/artifacts/balance/committed-ledger.json) and [committed-ledger.md](/Users/andrew/proj/rouge/artifacts/balance/committed-ledger.md) currently merge the newest known result for each `class / policy / lane / seed` row and now sit at `417 / 420` clears (`0.993`), backed by an append-only history dataset in [committed-history.json](/Users/andrew/proj/rouge/artifacts/balance/committed-history.json) and [committed-history.md](/Users/andrew/proj/rouge/artifacts/balance/committed-history.md) with `996` recorded row versions across those same `420` run keys; the tracked rescue wave for the current row set is complete, so the active balance phase has shifted from lane survival into deck-quality cleanup, payoff-monoculture cleanup, and targeted regression prevention, while large committed matrices remain periodic recalibration passes rather than the routine control loop
 - balance tooling now carries explicit training state and normalized analysis state through row artifacts: targeted runs can serialize `requestedTrainingLoadout`, final `skillBar`, final checkpoint power, last encounter or boss hero and enemy power, training realization, and final build summary, so reruns of the same row can be compared directly instead of inferred from deep blobs; the next broad recalibration should still be the training-aware committed matrix defined in [docs/BALANCE_MATRIX_SPEC.md](/Users/andrew/proj/rouge/docs/BALANCE_MATRIX_SPEC.md) instead of another mixed-contract broad sample
+- crafted combat sims now support hand-built character seeds for direct boss, elite, or encounter checks with explicit deck, training, gear, and stat overrides, using [docs/CRAFTED_COMBAT_SIM_WORKFLOW.md](/Users/andrew/proj/rouge/docs/CRAFTED_COMBAT_SIM_WORKFLOW.md) and the reusable spec library in [data/balance/crafted-combat-specs](/Users/andrew/proj/rouge/data/balance/crafted-combat-specs)
 - account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals or sovereign-annals or imperial-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange or merchant-principate or trade-hegemony economy pressure, training-grounds or war-college or paragon-doctrine or apex-doctrine or legend-doctrine or mythic-doctrine reward pivots, and cross-tree convergence bundles like `chronicle_exchange`, `war_annals`, `paragon_exchange`, `sovereign_exchange`, `legendary_annals`, `ascendant_exchange`, `imperial_exchange`, `immortal_annals`, and `mythic_exchange`
 - stronger shell UX with a navigable front-door account hall, a primary expedition wing, a vault or archive wing, a hall-to-character-select-to-safe-zone expedition launch flow, town navigators, service drilldowns, route-intel panels, a world-map route decision desk, a reward continuity desk, an act-transition delta wrapper, explicit reward or run-end delta reviews, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, interactive archived-run review from the account hall, a hall decision desk, a town prep comparison board, a safe-zone before-or-after desk for the highest-value town-prep actions, a run-end hall handoff, a shared account-meta continuity board across hall or town or map or reward or act-transition or run-end, and a shared charter or convergence drilldown layer across those same shell phases
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, departure-readiness framing, and before-or-after action treatment for the highest-value prep decisions
@@ -182,6 +183,7 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md)
 - [docs/CARD_ACTION_SURFACE_REVIEW.md](/Users/andrew/proj/rouge/docs/CARD_ACTION_SURFACE_REVIEW.md)
 - [docs/SKILL_ACTION_SURFACE_SYNTHESIS.md](/Users/andrew/proj/rouge/docs/SKILL_ACTION_SURFACE_SYNTHESIS.md)
+- [docs/CORE_SKILL_SYSTEM_SPEC.md](/Users/andrew/proj/rouge/docs/CORE_SKILL_SYSTEM_SPEC.md)
 - [docs/SKILL_TAXONOMY.md](/Users/andrew/proj/rouge/docs/SKILL_TAXONOMY.md)
 - [docs/CLASS_SKILL_BAR_BLUEPRINTS.md](/Users/andrew/proj/rouge/docs/CLASS_SKILL_BAR_BLUEPRINTS.md)
 - [docs/CLASS_STARTER_SKILL_BAR_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_STARTER_SKILL_BAR_SPECS.md)
@@ -197,8 +199,11 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/DECKBUILDER_PROGRESSION_AUDIT.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_PROGRESSION_AUDIT.md)
 - [docs/BALANCE_PLAN.md](/Users/andrew/proj/rouge/docs/BALANCE_PLAN.md)
 - [docs/BALANCE_EXECUTION_CHECKLIST.md](/Users/andrew/proj/rouge/docs/BALANCE_EXECUTION_CHECKLIST.md)
+- [docs/CRAFTED_COMBAT_SIM_WORKFLOW.md](/Users/andrew/proj/rouge/docs/CRAFTED_COMBAT_SIM_WORKFLOW.md)
 - [docs/OPTIMIZED_DECK_PROFILE.md](/Users/andrew/proj/rouge/docs/OPTIMIZED_DECK_PROFILE.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
+- [docs/CLASS_CARD_AUTHORING_MATRIX.md](/Users/andrew/proj/rouge/docs/CLASS_CARD_AUTHORING_MATRIX.md)
+- [docs/CLASS_CARD_EXECUTION_PLAN.md](/Users/andrew/proj/rouge/docs/CLASS_CARD_EXECUTION_PLAN.md)
 - [docs/D2_SPECIALIZATION_MODEL.md](/Users/andrew/proj/rouge/docs/D2_SPECIALIZATION_MODEL.md)
 - [docs/CLASS_IDENTITY_PATHS.md](/Users/andrew/proj/rouge/docs/CLASS_IDENTITY_PATHS.md)
 - [docs/DRUID_LANE_PACKAGES.md](/Users/andrew/proj/rouge/docs/DRUID_LANE_PACKAGES.md)

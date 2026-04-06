@@ -1140,6 +1140,24 @@ async function captureScreenshots(baseUrl) {
   }
 
   try {
+    const { context: combatLogContext, page: combatLogPage } = await openCombatFixturePage(browser, baseUrl, {
+      classId: "amazon",
+      mercenaryId: "rogue_scout",
+      handSize: 7,
+      boss: false,
+    });
+    await combatLogPage.locator('[data-action="toggle-combat-log"]').first().click();
+    await combatLogPage.waitForTimeout(250);
+    const combatLogShell = combatLogPage.locator(".combat-shell").first();
+    if (await combatLogShell.isVisible({ timeout: TIMEOUT }).catch(() => false)) {
+      await shotLocator(combatLogShell, "08d-combat-log-open");
+    }
+    await combatLogContext.close();
+  } catch (e) {
+    console.log("  ⚠ Combat log capture error:", e.message);
+  }
+
+  try {
     const { context: bossCombatContext, page: bossCombatPage } = await openCombatFixturePage(browser, baseUrl, {
       classId: "amazon",
       mercenaryId: "rogue_scout",

@@ -181,8 +181,8 @@
                 `Selected contract: ${selectedMercenaryLabel}.`,
                 `Deck profile: ${deckProfileId}.`,
                 starterSkill
-                  ? `Starter skill plan: ${starterSkill.name} opens the identity slot, with Tactical at Level 6 and Commitment at Level 12.`
-                  : "Starter skill plan locks the identity slot first, then opens Tactical at Level 6 and Commitment at Level 12.",
+                  ? `Starter core skill plan: ${starterSkill.name} opens the identity slot, with Tactical at Level 6 and Commitment at Level 12.`
+                  : "Starter core skill plan locks the identity slot first, then opens Tactical at Level 6 and Commitment at Level 12.",
                 draftFollowThrough,
               ],
               "log-list reward-list ledger-list"

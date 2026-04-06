@@ -1,6 +1,6 @@
 # Class Starter Skill Bar Specs
 
-_Snapshot: 2026-04-04_
+_Snapshot: 2026-04-06_
 
 ## Purpose
 
@@ -79,7 +79,7 @@ This is target design, not a claim that the live runtime already supports every 
 
 | Slot | Skill | Family | Cost | Cooldown | Exact Text |
 | --- | --- | --- | ---: | ---: | --- |
-| `1` | `Bash` | `State` | `1` | `1` | `Deal 9 damage. If the target already took damage this turn, gain 3 Block.` |
+| `1` | `Rallying Bash` | `State` | `1` | `1` | `Deal 6 damage. If the target is already wounded, gain 2 Guard.` |
 
 ### Candidate First Unlocks
 
@@ -91,7 +91,7 @@ This is target design, not a claim that the live runtime already supports every 
 
 ### Use
 
-- `Bash` stays the clean opener and identity button.
+- `Rallying Bash` stays the clean opener and identity button without colliding with the card title.
 - The first unlock should usually solve either aggression consistency or telegraph respect.
 
 ## Druid
@@ -163,7 +163,7 @@ This is target design, not a claim that the live runtime already supports every 
 
 | Slot | Skill | Family | Cost | Cooldown | Exact Text |
 | --- | --- | --- | ---: | ---: | --- |
-| `1` | `Fire Bolt` | `State` | `1` | `1` | `Deal 8 damage. If this is the first Spell you used this turn, gain 1 Energy.` |
+| `1` | `Kindle Bolt` | `State` | `1` | `1` | `Deal 4 fire damage. If you have not played a card yet this turn, your next card costs 1 less.` |
 
 ### Candidate First Unlocks
 
@@ -175,7 +175,7 @@ This is target design, not a claim that the live runtime already supports every 
 
 ### Use
 
-- `Fire Bolt` should stay the opener because it already teaches spell sequencing.
+- `Kindle Bolt` should stay the opener because it teaches spell sequencing without sharing a live title with the card pool.
 - The first unlock should decide whether the run leans toward fire payoff, cold safety, or lightning tempo.
 
 ## Roster-Level Check

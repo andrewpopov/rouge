@@ -31,6 +31,85 @@
 
   type CombatLogTone = "strike" | "status" | "surge" | "summon" | "loss" | "maneuver" | "report";
 
+  function sentenceCase(text: string): string {
+    if (!text) {
+      return text;
+    }
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function normalizeCombatLogEntry(entry: string): string {
+    let text = entry.trim();
+    if (!text) {
+      return "No exchanges yet.";
+    }
+
+    text = text
+      .replace(/\b[Tt]he Wanderer\b/g, "Wanderer")
+      .replace(/\s*—\s*/g, ". ")
+      .replace(/!+/g, ".")
+      .replace(/\s+\./g, ".")
+      .replace(/\.\s*\(/g, " (");
+
+    text = text.replace(
+      /^([^:]+):\s*A pack of (.+?) denizens blocks the path(?:\.)?$/i,
+      (_match, encounterName: string, denizens: string) => `${encounterName} begins. ${sentenceCase(denizens)} denizens block the path.`
+    );
+
+    text = text.replace(
+      /^A pack of (.+?) denizens blocks the path(?:\.)?$/i,
+      (_match, denizens: string) => `${sentenceCase(denizens)} denizens block the path.`
+    );
+
+    text = text.replace(
+      /^Wanderer enters with (\d+) Guard from contract route support(?:\.)?$/i,
+      (_match, guard: string) => `Route support: Wanderer enters with ${guard} Guard.`
+    );
+
+    text = text.replace(
+      /^(.+) enters with (\d+) Guard from contract route support(?:\.)?$/i,
+      (_match, allyName: string, guard: string) => `Route support: ${allyName} enters with ${guard} Guard.`
+    );
+
+    text = text.replace(
+      /^(.+) route support sharpens the Wanderer's attacks by (\d+)(?:\.)?$/i,
+      (_match, _allyName: string, bonus: string) => `Route support: Wanderer gains +${bonus} damage.`
+    );
+
+    text = text.replace(
+      /^(.+) route intel draws (\d+) extra card(s?) for the opening hand(?:\.)?$/i,
+      (_match, _allyName: string, drawn: string, plural: string) => `Route intel: Draw ${drawn} extra card${plural}.`
+    );
+
+    text = text.replace(
+      /^(.+) route perks active: (.+?)(?:\.)?$/i,
+      (_match, _allyName: string, perks: string) => `Route perks: ${perks}.`
+    );
+
+    text = text.replace(
+      /^Potion used on (.+) for (\d+)(?:\.)?$/i,
+      (_match, targetName: string, healed: string) => `Potion: Heal ${targetName} for ${healed}.`
+    );
+
+    text = text.replace(
+      /^The prepared skill window fades at end of turn(?:\.)?$/i,
+      "Prepared skill fades."
+    );
+
+    text = text.replace(
+      /^([^:]+):\s*([a-z])/,
+      (_match, prefix: string, firstChar: string) => `${prefix}: ${firstChar.toUpperCase()}`
+    );
+
+    text = text.replace(/\s{2,}/g, " ").trim();
+
+    if (!/[.!?]$/.test(text)) {
+      text += ".";
+    }
+
+    return text;
+  }
+
   function classifyCombatLogEntry(entry: string): { tone: CombatLogTone; icon: string; label: string } {
     const lower = entry.toLowerCase();
     if (lower.includes("encounter lost") || lower.includes(" falls") || lower.includes("falls.")) {
@@ -75,42 +154,56 @@
       );
   }
 
-  function renderCombatLogPanel(combat: CombatState, escapeHtml: (s: string) => string): string {
-    const latestEntry = combat.log[0] || "No exchanges yet.";
+  function renderCombatLogPanel(combat: CombatState, logOpen: boolean, escapeHtml: (s: string) => string): string {
+    const latestEntry = normalizeCombatLogEntry(combat.log[0] || "No exchanges yet.");
     const latestMeta = classifyCombatLogEntry(latestEntry);
 
     return `
-      <details class="combat-log" aria-label="Combat Log">
-        <summary class="combat-log__toggle">
-          <span class="combat-log__toggle-label">Combat Log</span>
+      <div class="combat-log${logOpen ? " combat-log--open" : ""}" aria-label="Combat Log">
+        <button type="button" class="combat-log__toggle" data-action="toggle-combat-log" aria-expanded="${logOpen ? "true" : "false"}" aria-controls="combat-log-panel">
+          <span class="combat-log__toggle-mark" aria-hidden="true">${latestMeta.icon}</span>
+          <span class="combat-log__toggle-label">Field Log</span>
           <span class="combat-log__toggle-latest">
             <span class="combat-log__toggle-icon" aria-hidden="true">${latestMeta.icon}</span>
-            <span class="combat-log__toggle-text">${escapeHtml(latestEntry)}</span>
+            <span class="combat-log__toggle-text">${formatCombatLogEntryText(latestEntry, escapeHtml)}</span>
           </span>
-          <span class="combat-log__toggle-count">${combat.log.length} event${combat.log.length === 1 ? "" : "s"}</span>
-        </summary>
-        ${combat.log.length > 0 ? `
-          <ol class="log-list combat-log-list">
-            ${combat.log.map((entry, index) => {
-              const { tone, icon, label } = classifyCombatLogEntry(entry);
-              return `
-                <li class="combat-log-entry combat-log-entry--${tone}${index === 0 ? " combat-log-entry--latest" : ""}">
-                  <div class="combat-log-entry__meta">
-                    <span class="combat-log-entry__when">${index === 0 ? "Latest" : `${index} beat${index === 1 ? "" : "s"} ago`}</span>
-                    <span class="combat-log-entry__tag">${escapeHtml(label)}</span>
-                  </div>
-                  <div class="combat-log-entry__line">
-                    <span class="combat-log-entry__icon" aria-hidden="true">${icon}</span>
-                    <p class="combat-log-entry__text">${formatCombatLogEntryText(entry, escapeHtml)}</p>
-                  </div>
-                </li>
-              `;
-            }).join("")}
-          </ol>
-        ` : `
-          <div class="combat-log__empty">No exchanges yet. The field is still holding its breath.</div>
-        `}
-      </details>
+          <span class="combat-log__toggle-count">${combat.log.length}</span>
+        </button>
+        ${logOpen ? `
+          <div class="combat-log__backdrop" data-action="close-combat-log" aria-hidden="true"></div>
+          <section class="combat-log__panel" id="combat-log-panel" aria-label="Field Log details">
+            <header class="combat-log__panel-head">
+              <div class="combat-log__panel-meta">
+                <span class="combat-log__panel-eyebrow">Field Log</span>
+                <h3 class="combat-log__panel-title">${combat.log.length} event${combat.log.length === 1 ? "" : "s"}</h3>
+              </div>
+              <button type="button" class="combat-log__panel-close" data-action="close-combat-log" aria-label="Close field log">Close</button>
+            </header>
+            ${combat.log.length > 0 ? `
+              <ol class="log-list combat-log-list">
+                ${combat.log.map((entry, index) => {
+                  const normalizedEntry = normalizeCombatLogEntry(entry);
+                  const { tone, icon, label } = classifyCombatLogEntry(normalizedEntry);
+                  return `
+                    <li class="combat-log-entry combat-log-entry--${tone}${index === 0 ? " combat-log-entry--latest" : ""}">
+                      <div class="combat-log-entry__meta">
+                        <span class="combat-log-entry__when">${index === 0 ? "Latest" : `${index} beat${index === 1 ? "" : "s"} ago`}</span>
+                        <span class="combat-log-entry__tag">${escapeHtml(label)}</span>
+                      </div>
+                      <div class="combat-log-entry__line">
+                        <span class="combat-log-entry__icon" aria-hidden="true">${icon}</span>
+                        <p class="combat-log-entry__text">${formatCombatLogEntryText(normalizedEntry, escapeHtml)}</p>
+                      </div>
+                    </li>
+                  `;
+                }).join("")}
+              </ol>
+            ` : `
+              <div class="combat-log__empty">No exchanges yet. The field is still holding its breath.</div>
+            `}
+          </section>
+        ` : ""}
+      </div>
     `;
   }
 

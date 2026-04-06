@@ -234,6 +234,133 @@ test("combat skills can arm the next card and spend their cooldown", () => {
   assert.ok(target.burn > burnBefore, "skill rider should carry onto the next card");
 });
 
+test("starter command skills can mark a target and prep the next card", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["amazon_magic_arrow"],
+    equippedSkills: [
+      {
+        slotKey: "slot1",
+        skill: {
+          id: "amazon_call_the_shot",
+          name: "Call the Shot",
+          requiredLevel: 1,
+          family: "command",
+          slot: 1,
+          tier: "starter",
+          cost: 1,
+          cooldown: 1,
+          summary: "Mark one enemy and tee up the next shot.",
+          exactText: "Choose an enemy. Mark it for +4 mercenary damage and give your next card +2 damage.",
+          active: true,
+          skillType: "debuff",
+          damageType: "none",
+        },
+      },
+    ],
+  });
+
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  state.hero.energy = 10;
+
+  const result = engine.useSkill(state, "slot1", target.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.mercenary.markedEnemyId, target.id);
+  assert.equal(state.mercenary.markBonus, 4);
+  assert.equal(state.skillModifiers.nextCardDamageBonus, 2);
+  assert.equal(target.life, target.maxLife, "Call the Shot should set up the line without dealing direct damage");
+});
+
+test("starter summon skills can reinforce an existing board instead of dropping through generic summon fallback", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot1",
+        skill: {
+          id: "necromancer_raise_servant",
+          name: "Raise Servant",
+          requiredLevel: 1,
+          family: "command",
+          slot: 1,
+          tier: "starter",
+          cost: 1,
+          cooldown: 1,
+          summary: "Put a short-lived servant on the field or reinforce your board.",
+          exactText: "Summon a Servant for 2 turns. If you already control a summon, reinforce it by +2 instead.",
+          active: true,
+          skillType: "summon",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+  state.hero.energy = 10;
+
+  let result = engine.useSkill(state, "slot1");
+  assert.equal(result.ok, true);
+  assert.equal(state.minions.length, 1);
+  assert.equal(state.minions[0].templateId, "necromancer_servant");
+  assert.equal(state.minions[0].power, 2);
+  assert.equal(state.minions[0].remainingTurns, 2);
+  assert.equal(state.minions[0].persistent, false);
+
+  const reinforceState = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot1",
+        skill: {
+          id: "necromancer_raise_servant",
+          name: "Raise Servant",
+          requiredLevel: 1,
+          family: "command",
+          slot: 1,
+          tier: "starter",
+          cost: 1,
+          cooldown: 1,
+          summary: "Put a short-lived servant on the field or reinforce your board.",
+          exactText: "Summon a Servant for 2 turns. If you already control a summon, reinforce it by +2 instead.",
+          active: true,
+          skillType: "summon",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+  reinforceState.hero.energy = 10;
+  reinforceState.minions.push({
+    id: "existing_skeleton",
+    templateId: "necromancer_skeleton",
+    name: "Skeleton",
+    skillLabel: "Rusty Slash",
+    actionKind: "attack",
+    targetRule: "selected_enemy",
+    power: 1,
+    secondaryValue: 0,
+    remainingTurns: 0,
+    persistent: true,
+  });
+
+  result = engine.useSkill(reinforceState, "slot1");
+  assert.equal(result.ok, true);
+  assert.equal(reinforceState.minions.length, 1);
+  assert.equal(reinforceState.minions[0].templateId, "necromancer_skeleton");
+  assert.equal(reinforceState.minions[0].power, 3);
+});
+
 test("passive class skills can shape the opener with class-specific effects", () => {
   const { content, engine } = createHarness();
   const state = engine.createCombatState({

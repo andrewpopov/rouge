@@ -1,6 +1,6 @@
 # Skill Taxonomy
 
-_Snapshot: 2026-04-05_
+_Snapshot: 2026-04-06_
 
 ## Purpose
 
@@ -16,6 +16,7 @@ It answers:
 Use it together with:
 
 - [SKILL_ACTION_SURFACE_SYNTHESIS.md](/Users/andrew/proj/rouge/docs/SKILL_ACTION_SURFACE_SYNTHESIS.md)
+- [CORE_SKILL_SYSTEM_SPEC.md](/Users/andrew/proj/rouge/docs/CORE_SKILL_SYSTEM_SPEC.md)
 - [CLASS_SKILL_BAR_BLUEPRINTS.md](/Users/andrew/proj/rouge/docs/CLASS_SKILL_BAR_BLUEPRINTS.md)
 - [CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
 - [DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md)

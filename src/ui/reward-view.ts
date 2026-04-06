@@ -238,6 +238,11 @@
     return `<img src="${escapeHtml(src)}" class="${cls}" alt="${escapeHtml(alt)}" loading="lazy" onerror="this.style.display='none'" />`;
   }
 
+  function decorativeImg(src: string, cls: string, escapeHtml: (value: unknown) => string): string {
+    if (!src) { return ""; }
+    return `<img src="${escapeHtml(src)}" class="${cls}" alt="" aria-hidden="true" loading="lazy" decoding="async" onerror="this.style.display='none'" />`;
+  }
+
   function getRewardLeadCopy(reward: RunReward, rewardContext: { title: string; lines: string[] }): string {
     const opener = reward.lines?.[0] || rewardContext.lines?.[0] || "The route pauses while you choose what this victory becomes.";
     if (reward.endsRun) {
@@ -294,7 +299,15 @@
     const cardId = cardEffect?.toCardId || cardEffect?.cardId || cardEffect?.fromCardId || "";
     if (cardId) {
       const card = content.cardCatalog?.[cardId];
+      const illustration = assets?.getCardIllustration?.(cardId);
       const sprite = assets?.getCardIcon(cardId, card?.effects);
+      if (illustration) {
+        return `
+          ${decorativeImg(illustration, "reward-choice-card__art-img reward-choice-card__art-img--illustration", escapeHtml)}
+          <div class="reward-choice-card__art-vignette" aria-hidden="true"></div>
+          ${sprite ? `<span class="reward-choice-card__sigil" aria-hidden="true">${svgIcon(sprite, "reward-choice-card__sigil-img", "", escapeHtml)}</span>` : ""}
+        `;
+      }
       if (sprite) {
         return svgIcon(sprite, "reward-choice-card__art-img reward-choice-card__art-img--card", card?.title || choice.title, escapeHtml);
       }
@@ -355,6 +368,11 @@
       event: "\u26A0",
       opportunity: "\u2726",
     };
+    function getClaimLabel(r: { endsRun?: boolean; endsAct?: boolean }): string {
+      if (r.endsRun) { return "Final Claim"; }
+      if (r.endsAct) { return "Act Crossing"; }
+      return "Immediate Claim";
+    }
     const kindIcon = REWARD_KIND_ICONS[reward.kind] || "\u2694";
     const heroPortraitSrc = assets?.getClassSprite(run.classId) || assets?.getClassPortrait(run.classId) || "";
     const combatBgSrc = runtimeWindow.__ROUGE_COMBAT_BG?.getCombatBackground(reward.zoneTitle) || "";
@@ -372,7 +390,7 @@
         [
           rewardContext.title,
           reward.clearsZone ? "Zone Clears" : "Route Continues",
-          reward.endsRun ? "Final Claim" : reward.endsAct ? "Act Crossing" : "Immediate Claim",
+          getClaimLabel(reward),
         ].filter(Boolean)
       )
     );

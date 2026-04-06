@@ -147,11 +147,9 @@
     const emblemSrc = templatedIllustration ? customIllustrationSrc : sigilSrc;
     const displayTitle = getDisplayCardTitle(cardId, card.title);
     const titleFitClass = getCardTitleFitClass(shellClass, displayTitle);
-    const genericTitleFitClass = displayTitle.length >= 16
-      ? " combat-card--title-very-long"
-      : displayTitle.length >= 13
-        ? " combat-card--title-long"
-        : "";
+    let genericTitleFitClass = "";
+    if (displayTitle.length >= 16) { genericTitleFitClass = " combat-card--title-very-long"; }
+    else if (displayTitle.length >= 13) { genericTitleFitClass = " combat-card--title-long"; }
     const fallbackRuleLines = card.effects
       .map((effect) => describeCompactEffect(effect))
       .slice(0, Math.max(1, maxRuleLines));

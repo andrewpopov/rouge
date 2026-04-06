@@ -72,6 +72,8 @@ const maxLineHotspots = [
   "src/ui/safe-zone-view.ts",
   "src/ui/world-map-view.ts",
   "src/app/main-card-preview.ts",
+  "src/ui/combat-view-renderers.ts",
+  "src/ui/action-dispatcher.ts",
 ];
 
 module.exports = [

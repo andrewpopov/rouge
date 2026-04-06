@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { clamp, toNumber } = runtimeWindow.ROUGE_UTILS;
@@ -156,6 +157,15 @@
       },
     },
   };
+  const EXPLICIT_STARTER_SKILL_IDS: Record<string, string> = {
+    amazon: "amazon_call_the_shot",
+    assassin: "assassin_shadow_feint",
+    barbarian: "barbarian_core_bash",
+    druid: "druid_primal_attunement",
+    necromancer: "necromancer_raise_servant",
+    paladin: "paladin_sanctify",
+    sorceress: "sorceress_core_fire_bolt",
+  };
 
   function getTreeMetadata(treeId: string, archetypeId: string) {
     const exact = TREE_METADATA[treeId];
@@ -197,7 +207,7 @@
     return Array.isArray(seedBundle?.skills?.classes) ? seedBundle.skills.classes : [];
   }
 
-  function sortSkillSeeds(skills: SkillSeedDefinition[]) {
+  function sortSkillSeeds(skills: SkillSeedDefinition[], starterSkillId = "") {
     const seenSkillIds = new Set();
     return (Array.isArray(skills) ? skills : [])
       .filter((skill) => skill?.id && skill?.name)
@@ -209,6 +219,11 @@
         return true;
       })
       .sort((left, right) => {
+        const leftIsStarter = Boolean(left?.isStarter) || left?.id === starterSkillId;
+        const rightIsStarter = Boolean(right?.isStarter) || right?.id === starterSkillId;
+        if (leftIsStarter !== rightIsStarter) {
+          return leftIsStarter ? -1 : 1;
+        }
         const levelDelta = Math.max(1, toNumber(left?.requiredLevel, 1)) - Math.max(1, toNumber(right?.requiredLevel, 1));
         if (levelDelta !== 0) {
           return levelDelta;
@@ -316,7 +331,7 @@
   }
 
   function normalizeTreeSkills(skills: SkillSeedDefinition[], archetypeId: string, starterSkillId: string) {
-    const sortedSkills = sortSkillSeeds(skills);
+    const sortedSkills = sortSkillSeeds(skills, starterSkillId);
     return sortedSkills
       .map((skill, index) => normalizeSkillDefinition(skill, index, sortedSkills.length, archetypeId, starterSkillId))
       .filter(Boolean);
@@ -330,6 +345,11 @@
       }
     }
     return "";
+  }
+
+  function resolveStarterSkillId(entry: ClassSkillsSeedEntry) {
+    const classId = String(entry?.classId || "");
+    return String(entry?.starterSkillId || EXPLICIT_STARTER_SKILL_IDS[classId] || getFallbackStarterSkillId(entry?.trees || []) || "");
   }
 
   function getTreeArchetype(treeName: string, index: number) {
@@ -374,7 +394,7 @@
         .filter((entry: ClassSkillsSeedEntry) => entry?.classId)
         .map((entry: ClassSkillsSeedEntry) => {
           const classDefinition = classesById[entry.classId] || null;
-          const starterSkillId = String(entry?.starterSkillId || getFallbackStarterSkillId(entry?.trees || []) || "");
+          const starterSkillId = resolveStarterSkillId(entry);
           const trees = (Array.isArray(entry.trees) ? entry.trees : [])
             .map((tree: SkillTreeSeedDefinition, index: number) => {
               const archetype = getTreeArchetype(tree?.name, index);
@@ -435,14 +455,54 @@
     return content.classDeckProfiles?.[classId] || "warrior";
   }
 
+  function normalizeStarterDeckCardId(cardId: string) {
+    return String(cardId || "").replace(/_plus$/, "");
+  }
+
+  function buildStarterDeckWithoutStarterCards(content: GameContent, classId: string, starterDeck: string[]) {
+    const starterSkillId = String(content?.classProgressionCatalog?.[classId]?.starterSkillId || EXPLICIT_STARTER_SKILL_IDS[classId] || "");
+    if (!starterSkillId) {
+      return [...starterDeck];
+    }
+
+    const normalizedStarterSkillId = normalizeStarterDeckCardId(starterSkillId);
+    const filteredDeck = starterDeck.filter((cardId) => normalizeStarterDeckCardId(cardId) !== normalizedStarterSkillId);
+    if (filteredDeck.length === starterDeck.length) {
+      return [...starterDeck];
+    }
+
+    const removedCount = starterDeck.length - filteredDeck.length;
+    const getCardTree = runtimeWindow.__ROUGE_SKILL_EVOLUTION?.getCardTree;
+    const starterTree = getCardTree?.(starterSkillId) || "";
+    const profileDeck = content?.starterDeckProfiles?.[getDeckProfileId(content, classId)] || [];
+    const replacementPool = [
+      ...filteredDeck.filter((cardId) => !starterTree || getCardTree?.(cardId) === starterTree),
+      ...filteredDeck,
+      ...profileDeck.filter((cardId) => normalizeStarterDeckCardId(cardId) !== normalizedStarterSkillId),
+    ].filter(Boolean);
+
+    if (replacementPool.length === 0) {
+      return filteredDeck;
+    }
+
+    const rebuiltDeck = [...filteredDeck];
+    for (let index = 0; index < removedCount; index += 1) {
+      rebuiltDeck.push(replacementPool[index % replacementPool.length]);
+    }
+    return rebuiltDeck;
+  }
+
   function getStarterDeckForClass(content: GameContent, classId: string) {
     const classDeck = content.classStarterDecks?.[classId];
     if (Array.isArray(classDeck) && classDeck.length > 0) {
-      return [...classDeck];
+      return buildStarterDeckWithoutStarterCards(content, classId, classDeck);
     }
     const profileId = getDeckProfileId(content, classId);
     const profileDeck = content.starterDeckProfiles?.[profileId];
-    return Array.isArray(profileDeck) && profileDeck.length > 0 ? [...profileDeck] : [...content.starterDeck];
+    if (Array.isArray(profileDeck) && profileDeck.length > 0) {
+      return buildStarterDeckWithoutStarterCards(content, classId, profileDeck);
+    }
+    return buildStarterDeckWithoutStarterCards(content, classId, content.starterDeck);
   }
 
   function createHeroFromClass(content: GameContent, classDefinition: ClassDefinition) {

@@ -51,6 +51,7 @@ Training/progression note:
 - row artifacts now also normalize analysis fields like final checkpoint power, last encounter or boss hero and enemy power, training realization, and final build summary
 - the next complete recalibration should be a training-aware committed matrix, not a mixed pre-training comparison
 - do not compare pre-training-bar rows against post-training-bar rows as if they were the same runtime contract
+- use [docs/CRAFTED_COMBAT_SIM_WORKFLOW.md](/Users/andrew/proj/rouge/docs/CRAFTED_COMBAT_SIM_WORKFLOW.md) when a skill or boss interaction needs a focused duel or boss-check before a full row rerun
 
 ## Do Now
 
@@ -108,6 +109,13 @@ Use focused smokes for:
 - duplicate-cap changes
 - boss-answer package changes
 - deck-quality cleanup changes
+
+Use crafted combat sims for:
+
+- bridge or capstone skill checks
+- boss-specific regression checks
+- direct encounter pressure debugging
+- “did the new skill matter?” validation before spending row budget
 
 ### 2. Re-run the smallest relevant row set after a local fix
 

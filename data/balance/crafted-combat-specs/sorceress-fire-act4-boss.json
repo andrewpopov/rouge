@@ -1,0 +1,40 @@
+{
+  "label": "Sorceress Fire vs Act IV Boss",
+  "classId": "sorceress",
+  "seed": 17,
+  "actNumber": 4,
+  "targetLevel": 24,
+  "runsPerEncounter": 5,
+  "encounterId": "act_4_boss",
+  "addCardIds": [
+    "sorceress_fireball",
+    "sorceress_meteor",
+    "sorceress_hydra",
+    "sorceress_inferno"
+  ],
+  "treeRanks": {
+    "sorceress_fire": 6,
+    "sorceress_cold": 1
+  },
+  "favoredTreeId": "sorceress_fire",
+  "equippedSkillIds": {
+    "slot1": "sorceress_core_fire_bolt",
+    "slot2": "sorceress_fireball",
+    "slot3": "sorceress_hydra"
+  },
+  "loadout": {
+    "weapon": "item_crystal_sword"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act4",
+    "sorceress",
+    "fire",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking Fire bridge/capstone behavior into The Cinder Tyrant."
+  ]
+}

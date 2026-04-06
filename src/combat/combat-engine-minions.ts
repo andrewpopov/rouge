@@ -23,6 +23,14 @@
       targetRule: "selected_enemy",
       persistent: true,
     },
+    necromancer_servant: {
+      id: "necromancer_servant",
+      name: "Servant",
+      skillLabel: "Rusty Slash",
+      actionKind: "attack",
+      targetRule: "selected_enemy",
+      persistent: false,
+    },
     necromancer_clay_golem: {
       id: "necromancer_clay_golem",
       name: "Clay Golem",

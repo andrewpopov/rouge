@@ -179,7 +179,7 @@
       case "drain_energy":
         return intentValue;
       case "corpse_explosion": {
-        const deadEnemies = combat.enemies.filter((enemy) => !enemy.alive && !enemy.consumed).length;
+        const deadEnemies = combat.enemies.filter((corpse) => !corpse.alive && !corpse.consumed).length;
         return deadEnemies > 0 ? Math.max(2, deadEnemies * intentValue) : intentValue;
       }
       case "consume_corpse":
@@ -294,8 +294,8 @@
       return { targetLabel: "", intentClass: "", stateLabel: "" };
     }
 
-    const isHardControlled = !!enemy && intent.kind !== "teleport" && (enemy.freeze > 0 || enemy.stun > 0);
-    const isParalyzedAttack = !!enemy && enemy.paralyze > 0 && ATTACK_INTENT_KINDS.has(intent.kind);
+    const isHardControlled = Boolean(enemy) && intent.kind !== "teleport" && (enemy.freeze > 0 || enemy.stun > 0);
+    const isParalyzedAttack = Boolean(enemy) && enemy.paralyze > 0 && ATTACK_INTENT_KINDS.has(intent.kind);
     const isChargeSetup = intent.kind === "charge";
 
     switch (intent.kind) {

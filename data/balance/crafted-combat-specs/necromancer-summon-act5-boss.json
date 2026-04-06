@@ -1,0 +1,39 @@
+{
+  "label": "Necromancer Summon vs Act V Boss",
+  "classId": "necromancer",
+  "seed": 31,
+  "actNumber": 5,
+  "targetLevel": 35,
+  "runsPerEncounter": 5,
+  "encounterId": "act_5_boss",
+  "addCardIds": [
+    "necromancer_raise_skeleton",
+    "necromancer_skeletal_mage",
+    "necromancer_revive"
+  ],
+  "treeRanks": {
+    "necromancer_summoning": 6,
+    "necromancer_poison_and_bone": 2
+  },
+  "favoredTreeId": "necromancer_summoning",
+  "equippedSkillIds": {
+    "slot1": "necromancer_raise_servant",
+    "slot2": "necromancer_skeletal_mage",
+    "slot3": "necromancer_revive"
+  },
+  "loadout": {
+    "weapon": "item_wand"
+  },
+  "potionCount": 3,
+  "bypassTrainingGates": true,
+  "tags": [
+    "boss",
+    "act5",
+    "necromancer",
+    "summon",
+    "skill-regression"
+  ],
+  "notes": [
+    "Use this when checking summon-bar realization and late-fight minion pressure into The Siege Tyrant."
+  ]
+}

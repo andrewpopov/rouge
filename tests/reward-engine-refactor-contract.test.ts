@@ -81,6 +81,25 @@ test("reward-engine archetype metadata stays stable for representative cards", (
   assert.equal(content.cardCatalog.rally_mercenary.splashRole, "utility_splash_ok");
 });
 
+test("paladin and sorceress authored class cards carry explicit reward metadata", () => {
+  const harness = createAppHarness();
+  const { content } = harness;
+
+  const authoredCardIds = Object.keys(content.cardCatalog).filter((cardId) => (
+    cardId.startsWith("paladin_") || cardId.startsWith("sorceress_")
+  ));
+
+  assert.ok(authoredCardIds.length > 0);
+
+  for (const cardId of authoredCardIds) {
+    const card = content.cardCatalog[cardId];
+    assert.ok(Array.isArray(card.behaviorTags) && card.behaviorTags.length > 0, `${cardId} should have behaviorTags`);
+    assert.ok(card.roleTag, `${cardId} should have roleTag`);
+    assert.ok(card.rewardRole, `${cardId} should have rewardRole`);
+    assert.ok(card.splashRole, `${cardId} should have splashRole`);
+  }
+});
+
 test("reward-engine opening reward choices stay deterministic for the same seeded amazon opener", () => {
   const { state, content, browserWindow, zone } = createAmazonRunFixture();
   const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({

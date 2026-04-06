@@ -320,6 +320,7 @@
           } else {
             pileId = "draw";
           }
+          appState.ui.combatLogOpen = false;
           appState.ui.combatPileView = appState.ui.combatPileView === pileId ? "" : pileId;
           render();
           return true;
@@ -328,6 +329,21 @@
       case "close-combat-pile":
         if (appState.ui.combatPileView) {
           appState.ui.combatPileView = "";
+          render();
+          return true;
+        }
+        return false;
+      case "toggle-combat-log":
+        if (appState.combat && appState.phase === appEngine.PHASES.ENCOUNTER) {
+          appState.ui.combatPileView = "";
+          appState.ui.combatLogOpen = !appState.ui.combatLogOpen;
+          render();
+          return true;
+        }
+        return false;
+      case "close-combat-log":
+        if (appState.ui.combatLogOpen) {
+          appState.ui.combatLogOpen = false;
           render();
           return true;
         }
