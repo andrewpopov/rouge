@@ -379,6 +379,36 @@
     return { text: `${label} +${delta}`, cssClass };
   }
 
+  function addStatusApplyFx(spriteEl: HTMLElement, kind: "burn" | "poison"): void {
+    if (kind === "burn") {
+      addTempClass(spriteEl, "sprite--status-burn-apply", 720);
+      return;
+    }
+    addTempClass(spriteEl, "sprite--status-poison-apply", 720);
+  }
+
+  function addStatusTickFx(spriteEl: HTMLElement, kind: "burn" | "poison"): void {
+    if (kind === "burn") {
+      addTempClass(spriteEl, "sprite--status-burn-tick", 720);
+      return;
+    }
+    addTempClass(spriteEl, "sprite--status-poison-tick", 720);
+  }
+
+  function getStatusApplyStamp(kind: "burn" | "poison"): { text: string; cssClass: string } {
+    if (kind === "burn") {
+      return { text: "Ignited", cssClass: "sprite__impact-stamp--burn" };
+    }
+    return { text: "Envenomed", cssClass: "sprite__impact-stamp--poison" };
+  }
+
+  function getStatusTickStamp(kind: "burn" | "poison"): { text: string; cssClass: string } {
+    if (kind === "burn") {
+      return { text: "Scorch", cssClass: "sprite__impact-stamp--burn" };
+    }
+    return { text: "Toxic", cssClass: "sprite__impact-stamp--poison" };
+  }
+
   function getHeroStatusCallouts(before: CombatSnapshot, after: CombatState) {
     const callouts = [];
     const burnGain = after.hero.heroBurn - before.heroStatus.burn;
@@ -418,12 +448,12 @@
   }
 
   function getEnemyStatusStamp(before: EnemySnapshot, after: CombatEnemyState): { text: string; cssClass: string } | null {
-    if (after.burn > before.burn) { return { text: "Burned", cssClass: "sprite__impact-stamp--status" }; }
-    if (after.poison > before.poison) { return { text: "Poisoned", cssClass: "sprite__impact-stamp--status" }; }
-    if (after.freeze > before.freeze) { return { text: "Frozen", cssClass: "sprite__impact-stamp--status" }; }
-    if (after.stun > before.stun) { return { text: "Stunned", cssClass: "sprite__impact-stamp--status" }; }
-    if (after.paralyze > before.paralyze) { return { text: "Paralyzed", cssClass: "sprite__impact-stamp--status" }; }
-    if (after.slow > before.slow) { return { text: "Slowed", cssClass: "sprite__impact-stamp--status" }; }
+    if (after.burn > before.burn) { return { text: "Burned", cssClass: "sprite__impact-stamp--burn" }; }
+    if (after.poison > before.poison) { return { text: "Poisoned", cssClass: "sprite__impact-stamp--poison" }; }
+    if (after.freeze > before.freeze) { return { text: "Frozen", cssClass: "sprite__impact-stamp--frost" }; }
+    if (after.stun > before.stun) { return { text: "Stunned", cssClass: "sprite__impact-stamp--shock" }; }
+    if (after.paralyze > before.paralyze) { return { text: "Paralyzed", cssClass: "sprite__impact-stamp--shock" }; }
+    if (after.slow > before.slow) { return { text: "Slowed", cssClass: "sprite__impact-stamp--frost" }; }
     return null;
   }
 
@@ -455,9 +485,9 @@
     if (!deckShell) { return; }
 
     const cardFan = deckShell.querySelector(".card-fan") as HTMLElement | null;
-    const readyPile = deckShell.querySelector("[data-combat-pile='ready']") as HTMLElement | null;
-    const drawPile = deckShell.querySelector("[data-combat-pile='draw']") as HTMLElement | null;
-    const discardPile = deckShell.querySelector("[data-combat-pile='discard']") as HTMLElement | null;
+    const readyPile = document.querySelector("[data-combat-pile='ready']") as HTMLElement | null;
+    const drawPile = document.querySelector("[data-combat-pile='draw']") as HTMLElement | null;
+    const discardPile = document.querySelector("[data-combat-pile='discard']") as HTMLElement | null;
 
     const readyDelta = after.hand.length - before.handCount;
     const drawChanged = before.drawPileCount !== after.drawPile.length;
@@ -570,6 +600,10 @@
         const statusCallouts = getEnemyStatusCallouts(old, enemy);
         const enemyImpactStamps = [];
         const statusStamp = getEnemyStatusStamp(old, enemy);
+        const burnApplied = enemy.burn > old.burn;
+        const poisonApplied = enemy.poison > old.poison;
+        const burnTicked = old.burn > enemy.burn && lifeLost > 0;
+        const poisonTicked = old.poison > enemy.poison && lifeLost > 0;
 
         if (lifeLost > 0) {
           totalDamageDealt += lifeLost;
@@ -607,26 +641,44 @@
           addTempClass(spriteEl, "sprite--status-surge", 550);
         }
 
+        if (burnApplied) {
+          addStatusApplyFx(spriteEl, "burn");
+          enemyImpactStamps.push(getStatusApplyStamp("burn"));
+        }
+
+        if (poisonApplied) {
+          addStatusApplyFx(spriteEl, "poison");
+          enemyImpactStamps.push(getStatusApplyStamp("poison"));
+        }
+
+        if (burnTicked) {
+          addStatusTickFx(spriteEl, "burn");
+          enemyImpactStamps.push(getStatusTickStamp("burn"));
+        }
+
+        if (poisonTicked) {
+          addStatusTickFx(spriteEl, "poison");
+          enemyImpactStamps.push(getStatusTickStamp("poison"));
+        }
+
         spawnQueuedCallouts(spriteEl, callouts);
 
-        if (options.playedCardEl) {
-          if (old.alive && !enemy.alive) {
-            enemyImpactStamps.push({ text: "Finished", cssClass: "sprite__impact-stamp--finisher" });
-          } else {
-            if (lifeLost > 0) {
-              enemyImpactStamps.push({ text: lifeLost >= enemy.maxLife * 0.3 ? "Crushed" : "Hit", cssClass: "sprite__impact-stamp--hit" });
-            } else if (guardLost > 0) {
-              enemyImpactStamps.push({ text: "Guard Shaved", cssClass: "sprite__impact-stamp--break" });
-            }
-            if (guardBroken) {
-              enemyImpactStamps.push({ text: "Broken", cssClass: "sprite__impact-stamp--break" });
-            } else if (statusStamp) {
-              enemyImpactStamps.push(statusStamp);
-            }
+        if (old.alive && !enemy.alive) {
+          enemyImpactStamps.push({ text: "Finished", cssClass: "sprite__impact-stamp--finisher" });
+        } else {
+          if (options.playedCardEl && lifeLost > 0 && !burnTicked && !poisonTicked) {
+            enemyImpactStamps.push({ text: lifeLost >= enemy.maxLife * 0.3 ? "Crushed" : "Hit", cssClass: "sprite__impact-stamp--hit" });
+          } else if (options.playedCardEl && guardLost > 0) {
+            enemyImpactStamps.push({ text: "Guard Shaved", cssClass: "sprite__impact-stamp--break" });
           }
-          if (enemyImpactStamps.length > 0) {
-            spawnQueuedImpactStamps(spriteEl, enemyImpactStamps);
+          if (guardBroken) {
+            enemyImpactStamps.push({ text: "Broken", cssClass: "sprite__impact-stamp--break" });
+          } else if (statusStamp && !burnApplied && !poisonApplied) {
+            enemyImpactStamps.push(statusStamp);
           }
+        }
+        if (enemyImpactStamps.length > 0) {
+          spawnQueuedImpactStamps(spriteEl, enemyImpactStamps);
         }
 
         if (old.alive && !enemy.alive) {
@@ -647,6 +699,10 @@
           const heroLifeLost = before.heroLife - after.hero.life;
           const heroGuardLost = before.heroGuard - after.hero.guard;
           const heroGuardGain = after.hero.guard - before.heroGuard;
+          const heroBurnApplied = after.hero.heroBurn > before.heroStatus.burn;
+          const heroPoisonApplied = after.hero.heroPoison > before.heroStatus.poison;
+          const heroBurnTicked = before.heroStatus.burn > after.hero.heroBurn && heroLifeLost > 0;
+          const heroPoisonTicked = before.heroStatus.poison > after.hero.heroPoison && heroLifeLost > 0;
           if (heroLifeLost > 0) {
             totalDamageTaken += heroLifeLost;
             heroCallouts.push({ text: `-${heroLifeLost}`, cssClass: "damage-number--damage" });
@@ -673,16 +729,30 @@
             heroCallouts.push(...heroStatusCallouts);
             addTempClass(heroSprite, "sprite--status-surge", 550);
           }
+          if (heroBurnApplied) {
+            addStatusApplyFx(heroSprite, "burn");
+            heroImpactStamps.push(getStatusApplyStamp("burn"));
+          }
+          if (heroPoisonApplied) {
+            addStatusApplyFx(heroSprite, "poison");
+            heroImpactStamps.push(getStatusApplyStamp("poison"));
+          }
+          if (heroBurnTicked) {
+            addStatusTickFx(heroSprite, "burn");
+            heroImpactStamps.push(getStatusTickStamp("burn"));
+          }
+          if (heroPoisonTicked) {
+            addStatusTickFx(heroSprite, "poison");
+            heroImpactStamps.push(getStatusTickStamp("poison"));
+          }
           spawnQueuedCallouts(heroSprite, heroCallouts);
-          if (options.playedCardEl) {
-            if (heroHealAmt > 0) {
-              heroImpactStamps.push({ text: "Recovered", cssClass: "sprite__impact-stamp--heal" });
-            } else if (heroGuardGain > 0) {
-              heroImpactStamps.push({ text: "Guarded", cssClass: "sprite__impact-stamp--guard" });
-            }
-            if (heroImpactStamps.length > 0) {
-              spawnQueuedImpactStamps(heroSprite, heroImpactStamps);
-            }
+          if (heroHealAmt > 0) {
+            heroImpactStamps.push({ text: "Recovered", cssClass: "sprite__impact-stamp--heal" });
+          } else if (heroGuardGain > 0) {
+            heroImpactStamps.push({ text: "Guarded", cssClass: "sprite__impact-stamp--guard" });
+          }
+          if (heroImpactStamps.length > 0) {
+            spawnQueuedImpactStamps(heroSprite, heroImpactStamps);
           }
         }
 

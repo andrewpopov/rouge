@@ -1,0 +1,375 @@
+{
+  "generatedAt": "2026-04-06T05:09:15.606Z",
+  "note": "AI-generated card art provenance for current Blood Rogue review batches.",
+  "entries": [
+    {
+      "output": "output/imagegen/mini-smoke3/amazon_slow_missiles_v1.png",
+      "exists": true,
+      "model": "gpt-image-1-mini",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_mini_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing incoming arrows or bolts suspended and turning sluggish in a field of occult wind, as if time itself has thickened around the hunter.\nSubject: one centered cluster of hostile missiles hanging in smoky air against a defensive arcane ward, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered silhouette, dark uncluttered edges, readable inside a small card art window.\nLighting/mood: defensive, uncanny, time-dilating, controlled.\nColor palette: cold iron, ash gray, dim ivory, muted blue-gray, soot black.\nMaterials/textures: feathered shafts, iron arrowheads, smoke, wind streaks, faint occult shimmer.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no bright neon magic."
+    },
+    {
+      "output": "output/imagegen/mini-smoke3/assassin_blades_of_ice_v1.png",
+      "exists": true,
+      "model": "gpt-image-1-mini",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_mini_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing twin assassin blades sweeping in a freezing cross-cut, shedding shards of ice and a thin halo of killing cold.\nSubject: one centered pair of curved blades or wrist blades crossing through darkness, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight central slash motif, dark uncluttered edges, very readable at small size.\nLighting/mood: cold, exact, silent, predatory.\nColor palette: glacial blue-white, ash silver, soot black, muted steel, faint cyan frost.\nMaterials/textures: sharpened metal, frost crystals, icy mist, shattered rime, dark leather.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no bright neon ice, no busy scene."
+    },
+    {
+      "output": "output/imagegen/mini-smoke3/barbarian_weapon_mastery_v1.png",
+      "exists": true,
+      "model": "gpt-image-1-mini",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_mini_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a battle-worn weapon held in a gauntleted grip like a sacred inheritance, surrounded by restrained signs of practiced mastery rather than wild spectacle.\nSubject: one centered heirloom weapon in a powerful grip, no full character body, no large background scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, close martial vignette, clear central silhouette, dark edges for card cropping.\nLighting/mood: seasoned, martial, grounded, commanding.\nColor palette: black iron, old bronze, dark leather, ember red, soot black.\nMaterials/textures: nicked steel, scarred leather wrap, gauntlet metal, sparks, ash.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no oversized magical glow, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/mini-smoke3-medium/amazon_slow_missiles_v1.png",
+      "exists": true,
+      "model": "gpt-image-1-mini",
+      "quality": "medium",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_mini_smoke3_medium.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing incoming arrows or bolts suspended and turning sluggish in a field of occult wind, as if time itself has thickened around the hunter.\nSubject: one centered cluster of hostile missiles hanging in smoky air against a defensive arcane ward, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered silhouette, dark uncluttered edges, readable inside a small card art window.\nLighting/mood: defensive, uncanny, time-dilating, controlled.\nColor palette: cold iron, ash gray, dim ivory, muted blue-gray, soot black.\nMaterials/textures: feathered shafts, iron arrowheads, smoke, wind streaks, faint occult shimmer.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no bright neon magic."
+    },
+    {
+      "output": "output/imagegen/mini-smoke3-medium/assassin_blades_of_ice_v1.png",
+      "exists": true,
+      "model": "gpt-image-1-mini",
+      "quality": "medium",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_mini_smoke3_medium.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing twin assassin blades sweeping in a freezing cross-cut, shedding shards of ice and a thin halo of killing cold.\nSubject: one centered pair of curved blades or wrist blades crossing through darkness, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight central slash motif, dark uncluttered edges, very readable at small size.\nLighting/mood: cold, exact, silent, predatory.\nColor palette: glacial blue-white, ash silver, soot black, muted steel, faint cyan frost.\nMaterials/textures: sharpened metal, frost crystals, icy mist, shattered rime, dark leather.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no bright neon ice, no busy scene."
+    },
+    {
+      "output": "output/imagegen/mini-smoke3-medium/barbarian_weapon_mastery_v1.png",
+      "exists": true,
+      "model": "gpt-image-1-mini",
+      "quality": "medium",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_mini_smoke3_medium.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a battle-worn weapon held in a gauntleted grip like a sacred inheritance, surrounded by restrained signs of practiced mastery rather than wild spectacle.\nSubject: one centered heirloom weapon in a powerful grip, no full character body, no large background scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, close martial vignette, clear central silhouette, dark edges for card cropping.\nLighting/mood: seasoned, martial, grounded, commanding.\nColor palette: black iron, old bronze, dark leather, ember red, soot black.\nMaterials/textures: nicked steel, scarred leather wrap, gauntlet metal, sparks, ash.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no oversized magical glow, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-smoke3/amazon_slow_missiles_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_low_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing incoming arrows or bolts suspended and turning sluggish in a field of occult wind, as if time itself has thickened around the hunter.\nSubject: one centered cluster of hostile missiles hanging in smoky air against a defensive arcane ward, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered silhouette, dark uncluttered edges, readable inside a small card art window.\nLighting/mood: defensive, uncanny, time-dilating, controlled.\nColor palette: cold iron, ash gray, dim ivory, muted blue-gray, soot black.\nMaterials/textures: feathered shafts, iron arrowheads, smoke, wind streaks, faint occult shimmer.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no bright neon magic."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-smoke3/assassin_blades_of_ice_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_low_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing twin assassin blades sweeping in a freezing cross-cut, shedding shards of ice and a thin halo of killing cold.\nSubject: one centered pair of curved blades or wrist blades crossing through darkness, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight central slash motif, dark uncluttered edges, very readable at small size.\nLighting/mood: cold, exact, silent, predatory.\nColor palette: glacial blue-white, ash silver, soot black, muted steel, faint cyan frost.\nMaterials/textures: sharpened metal, frost crystals, icy mist, shattered rime, dark leather.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no bright neon ice, no busy scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-smoke3/barbarian_weapon_mastery_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_low_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a battle-worn weapon held in a gauntleted grip like a sacred inheritance, surrounded by restrained signs of practiced mastery rather than wild spectacle.\nSubject: one centered heirloom weapon in a powerful grip, no full character body, no large background scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, close martial vignette, clear central silhouette, dark edges for card cropping.\nLighting/mood: seasoned, martial, grounded, commanding.\nColor palette: black iron, old bronze, dark leather, ember red, soot black.\nMaterials/textures: nicked steel, scarred leather wrap, gauntlet metal, sparks, ash.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no oversized magical glow, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-medium-smoke3/amazon_slow_missiles_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "medium",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_medium_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing incoming arrows or bolts suspended and turning sluggish in a field of occult wind, as if time itself has thickened around the hunter.\nSubject: one centered cluster of hostile missiles hanging in smoky air against a defensive arcane ward, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered silhouette, dark uncluttered edges, readable inside a small card art window.\nLighting/mood: defensive, uncanny, time-dilating, controlled.\nColor palette: cold iron, ash gray, dim ivory, muted blue-gray, soot black.\nMaterials/textures: feathered shafts, iron arrowheads, smoke, wind streaks, faint occult shimmer.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no bright neon magic."
+    },
+    {
+      "output": "output/imagegen/gpt15-medium-smoke3/assassin_blades_of_ice_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "medium",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_medium_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing twin assassin blades sweeping in a freezing cross-cut, shedding shards of ice and a thin halo of killing cold.\nSubject: one centered pair of curved blades or wrist blades crossing through darkness, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight central slash motif, dark uncluttered edges, very readable at small size.\nLighting/mood: cold, exact, silent, predatory.\nColor palette: glacial blue-white, ash silver, soot black, muted steel, faint cyan frost.\nMaterials/textures: sharpened metal, frost crystals, icy mist, shattered rime, dark leather.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no bright neon ice, no busy scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-medium-smoke3/barbarian_weapon_mastery_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "medium",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_medium_smoke3.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a battle-worn weapon held in a gauntleted grip like a sacred inheritance, surrounded by restrained signs of practiced mastery rather than wild spectacle.\nSubject: one centered heirloom weapon in a powerful grip, no full character body, no large background scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, close martial vignette, clear central silhouette, dark edges for card cropping.\nLighting/mood: seasoned, martial, grounded, commanding.\nColor palette: black iron, old bronze, dark leather, ember red, soot black.\nMaterials/textures: nicked steel, scarred leather wrap, gauntlet metal, sparks, ash.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no oversized magical glow, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-high-smoke1/assassin_blades_of_ice_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_gpt15_high_smoke1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing twin assassin blades sweeping in a freezing cross-cut, shedding shards of ice and a thin halo of killing cold.\nSubject: one centered pair of curved blades or wrist blades crossing through darkness, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight central slash motif, dark uncluttered edges, very readable at small size.\nLighting/mood: cold, exact, silent, predatory.\nColor palette: glacial blue-white, ash silver, soot black, muted steel, faint cyan frost.\nMaterials/textures: sharpened metal, frost crystals, icy mist, shattered rime, dark leather.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no bright neon ice, no busy scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_slow_missiles__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing incoming arrows or bolts suspended and turning sluggish in a field of occult wind, as if time itself has thickened around the hunter.\nSubject: one centered cluster of hostile missiles hanging in smoky air against a defensive arcane ward, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered silhouette, dark uncluttered edges, readable inside a small card art window.\nLighting/mood: defensive, uncanny, time-dilating, controlled.\nColor palette: cold iron, ash gray, dim ivory, muted blue-gray, soot black.\nMaterials/textures: feathered shafts, iron arrowheads, smoke, wind streaks, faint occult shimmer.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no bright neon magic."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_avoid__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a hunter's ghosted silhouette slipping cleanly through a killing zone, leaving layered afterimages as blades or arrows pass harmlessly by.\nSubject: one centered evasive silhouette with multiple motion echoes, no detailed face, no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, clear central figure, dark edges for card cropping, minimal background clutter.\nLighting/mood: agile, instinctive, untouchable, survivalist.\nColor palette: smoky ivory, dusky steel blue, soot black, worn leather brown.\nMaterials/textures: trailing cloth, smoke wisps, faint motion blur, cold metal flashes.\nConstraints: no text, no logo, no frame, no watermark, no extra figures, no modern objects.\nAvoid: no cartoon style, no anime, no gore, no busy action scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_penetrate__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a single lethal projectile punching through layered armor and shadow, with a subtle command-line or hunter's mark implying the mercenary will follow the opening.\nSubject: one centered piercing arrow or javelin driving through a marked weak point, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight martial vignette, strong central focal line, dark uncluttered edges.\nLighting/mood: precise, tactical, commanding, severe.\nColor palette: black iron, old bronze, dried crimson, pale gold, soot black.\nMaterials/textures: sharpened steel, fractured armor, faint sigil light, smoke, splintered impact dust.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no gore pile, no busy background."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_decoy__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a spectral hunting decoy or ghost lure drawing fire in the hunter's place, lit by a martial command glow rather than flashy magic.\nSubject: one centered phantom duplicate or ritual decoy being targeted by incoming missiles, no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one readable central lure figure, dark edges, simple backdrop.\nLighting/mood: cunning, protective, deceptive, disciplined.\nColor palette: ash gray, pale spectral ivory, muted leather brown, cold steel, ember dim gold.\nMaterials/textures: smoke, torn cloth, faint translucent edges, arrow trails, dust.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no neon magic, no crowded combat scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_deadly_strike__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a single execution strike landing exactly on a marked weak point, with lethal force bursting outward in a restrained flare of pale gold and dried crimson.\nSubject: one centered impact moment from a spear point, blade edge, or projectile, stylized and clean, not gory.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, high-contrast center, dark uncluttered edges, one dominant focal action.\nLighting/mood: decisive, merciless, elite, high-payoff.\nColor palette: dried crimson, pale gold, black iron, smoke gray, deep shadow.\nMaterials/textures: sparks, metal flash, fractured plate, cinder haze, faint command sigil glow.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no excessive gore, no busy battlefield background."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_evade__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a hunter whipping past an attack and answering in the same breath, the evasive motion and the counterstrike fused into one fluid lethal arc.\nSubject: one centered agile silhouette with a counter-thrust or counter-shot, no full battlefield, no detailed face.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, clear central gesture, motion carried diagonally but kept compact for card readability.\nLighting/mood: reactive, sharp, controlled, predatory.\nColor palette: smoky ivory, steel gray, muted crimson, blackened leather, soot black.\nMaterials/textures: motion blur, cloth streaks, steel glint, ash, faint slow-time haze.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no cartoon style, no anime, no gore, no busy scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/amazon_pierce__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a single brutal projectile or spear thrust punching through multiple layers in one straight unstoppable line.\nSubject: one centered piercing weapon path cutting through shield, armor, and shadow in sequence, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong central line, minimal background clutter, dark edges for cropping.\nLighting/mood: unstoppable, disciplined, terminal, severe.\nColor palette: black iron, old bronze, pale gold, dried blood red, soot black.\nMaterials/textures: cracked plate, wood shaft, steel tip, smoke, fractured sparks.\nConstraints: no text, no logo, no frame, no watermark, no extra figures, no modern objects.\nAvoid: no cartoon style, no anime, no excessive gore, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/assassin_blades_of_ice__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing twin assassin blades sweeping in a freezing cross-cut, shedding shards of ice and a thin halo of killing cold.\nSubject: one centered pair of curved blades or wrist blades crossing through darkness, no full character body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight central slash motif, dark uncluttered edges, very readable at small size.\nLighting/mood: cold, exact, silent, predatory.\nColor palette: glacial blue-white, ash silver, soot black, muted steel, faint cyan frost.\nMaterials/textures: sharpened metal, frost crystals, icy mist, shattered rime, dark leather.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no bright neon ice, no busy scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/barbarian_weapon_mastery__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a battle-worn weapon held in a gauntleted grip like a sacred inheritance, surrounded by restrained signs of practiced mastery rather than wild spectacle.\nSubject: one centered heirloom weapon in a powerful grip, no full character body, no large background scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, close martial vignette, clear central silhouette, dark edges for card cropping.\nLighting/mood: seasoned, martial, grounded, commanding.\nColor palette: black iron, old bronze, dark leather, ember red, soot black.\nMaterials/textures: nicked steel, scarred leather wrap, gauntlet metal, sparks, ash.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern weapons.\nAvoid: no cartoon style, no anime, no oversized magical glow, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/barbarian_steel_skin__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a barbarian's scarred arm, shoulder, or torso hardening into iron-like resilience under impact, as if flesh has become tempered metal.\nSubject: one centered close-up of hardened battle-worn physique or armor-like skin resisting a blow, no full body.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, tight protective vignette, simple backdrop, dark uncluttered edges.\nLighting/mood: resilient, immovable, brutal, protective.\nColor palette: blackened steel, ash gray, dried blood, old bronze, soot black.\nMaterials/textures: scar tissue, forged-metal sheen, leather straps, sparks, dust, battered surfaces.\nConstraints: no text, no logo, no frame, no watermark, no extra figures, no modern objects.\nAvoid: no cartoon style, no anime, no glossy superhero look, no busy action scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/barbarian_battle_instinct__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a barbarian entering perfect battle flow, with one crushing weapon swing at the center and a faint tactical shockwave spreading outward through ash and enemies' silhouettes.\nSubject: one centered warrior silhouette and weapon arc, compact enough for card art, no detailed battlefield crowd.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant central action, dark edges, readable at thumbnail size.\nLighting/mood: ferocious, lucid, commanding, unstoppable.\nColor palette: ember orange, black iron, smoke gray, dried crimson, muted gold.\nMaterials/textures: weapon sparks, ash plume, shockwave dust, leather, scarred steel.\nConstraints: no text, no logo, no frame, no watermark, no extra heroes, no modern objects.\nAvoid: no cartoon style, no anime, no giant crowd scene, no neon magic."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12/barbarian_unyielding__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing an unbroken barbarian stance weathering a storm of force, wrapped in a wall of iron resolve and slowing dread.\nSubject: one centered braced warrior silhouette or upper-body stance that reads as immovable endurance, no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong central pose, dark uncluttered edges, minimal background clutter.\nLighting/mood: indomitable, protective, severe, relentless.\nColor palette: soot black, iron gray, ember red, worn bronze, ash ivory.\nMaterials/textures: battered metal, leather, smoke, shield-like force haze, sparks, dust.\nConstraints: no text, no logo, no frame, no watermark, no extra figures, no modern objects.\nAvoid: no cartoon style, no anime, no glossy fantasy hero pose, no busy scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12-reroll/amazon_avoid__gpt15low_v2.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_reroll_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing an amazon huntress surviving a lethal volley through pure discipline and footwork, folding into a low defensive slip while arrows and spearpoints carve through the empty space she just vacated.\nSubject: one centered athletic female huntress in worn leather armor with uncovered hair or a tight braid, low sidestep or crouched slip posture, no hood, no afterimage clones, no counterattack, no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, compact central figure, strong negative space around the body, dark uncluttered edges, readable at small card size.\nLighting/mood: alert, defensive, controlled, survivalist.\nColor palette: ash gray, cold steel, worn leather brown, smoke ivory, soot black.\nMaterials/textures: leather straps, arrow shafts, iron tips, dust, wind-scoured cloth, faint impact grit.\nConstraints: no text, no logo, no frame, no watermark, no extra heroes, no modern objects.\nAvoid: no hooded rogue, no spectral duplicate, no ghost magic, no weapon swing, no busy action scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12-reroll/amazon_decoy__gpt15low_v2.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_reroll_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a hunter's decoy lure taking the full enemy volley in the party's place, like a false target planted with ruthless fieldcraft.\nSubject: one centered ritual decoy or target effigy mounted on a spear-stake and dressed in torn amazon gear, arrows and thrown blades converging on it, the real hunter absent or only implied, no living full-body hero.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant central lure object, dark edges, simple dusty backdrop, very readable silhouette.\nLighting/mood: cunning, protective, deceptive, disciplined.\nColor palette: pale bone ivory, ash gray, weathered leather brown, cold iron, ember dim gold.\nMaterials/textures: splintered wood, leather wraps, torn cloth, arrow trails, dust, faint false-target glow.\nConstraints: no text, no logo, no frame, no watermark, no extra characters, no modern objects.\nAvoid: no hooded phantom person, no realistic human face, no crowded battlefield, no neon magic, no anime."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-gap12-reroll/barbarian_battle_instinct__gpt15low_v2.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_gap12_reroll_batch1.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a barbarian's battle instinct taking over at the exact killing moment, with one brutal primary strike landing while his stance, gaze, and surrounding debris make it clear he already senses every other threat in the melee.\nSubject: one centered barbarian warrior with visible face or profile, bare arms or furred shoulders, massive axe or sword in a decisive strike, secondary enemy silhouettes or weapons thrown off balance at the perimeter, no robed figure, no full crowd.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, dominant torso-and-weapon composition, strong central impact, compact enemy hints near the edges, readable at thumbnail size.\nLighting/mood: ferocious, lucid, commanding, predatory.\nColor palette: black iron, ash gray, dried blood red, old bronze, ember orange.\nMaterials/textures: scarred steel, fur, leather, dust burst, shattered grit, weapon sparks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no wizard fire ring, no robed silhouette, no abstract ghost figure, no giant battle crowd, no neon magic."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/druid_fissure__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing the earth splitting open into a burning fault line beneath unseen enemies, with molten fire venting upward in a disciplined druidic pattern rather than random chaos.\nSubject: one centered volcanic fissure tearing through dark ground, no full character body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant central rupture, dark edges, simple backdrop, readable at small size.\nLighting/mood: primal, eruptive, controlled, punishing.\nColor palette: ember orange, char black, basalt gray, molten gold, smoke red.\nMaterials/textures: cracked earth, liquid fire, ash plume, glowing stone, cinder dust.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon lava, no bright rainbow magic, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/druid_heart_of_wolverine__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing the summoned Heart of Wolverine as a fierce predatory spirit totem, half beast and half omen, radiating pack aggression and hunter's focus.\nSubject: one centered spectral wolverine spirit or savage beast-heart totem with clawed energy and a marked gaze, no full druid body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered creature silhouette, dark uncluttered edges, compact enough for card readability.\nLighting/mood: feral, protective, relentless, empowering.\nColor palette: ember red, wild gold, ash brown, soot black, bone ivory.\nMaterials/textures: coarse fur, spectral smoke, carved totem grain, claw sparks, drifting ash.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cute animal look, no cartoon mascot, no bright neon spirit effects, no full battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/druid_summon_grizzly__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a summoned grizzly crashing forward as a living fortress, with one mauling swipe and a sense of sheltering bulk behind the violence.\nSubject: one centered massive grizzly bear in mid-maul, no druid present, no crowd scene, the creature should read as both attacker and protector.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, huge central beast silhouette, dark edges, simple environment, readable at card size.\nLighting/mood: brutal, protective, primal, unstoppable.\nColor palette: dark umber, black fur, old bronze, dried blood, ash gray.\nMaterials/textures: heavy fur, claws, saliva mist, churned dirt, leather scraps, dust.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cute wildlife painting, no cartoon bear, no bright forest daylight, no crowded battle backdrop."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/necromancer_corpse_explosion__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a corpse detonating into a ring of hellfire and bone fragments, with the blast reading as necromantic weaponry rather than gore spectacle.\nSubject: one centered corpse-burst or charred skeletal explosion, no full necromancer body, no crowded battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant blast shape, dark edges, controlled clutter for thumbnail readability.\nLighting/mood: vicious, occult, explosive, grim.\nColor palette: dead ivory, ember orange, soot black, ash gray, bruised crimson.\nMaterials/textures: bone shards, cinders, burned cloth, smoke bloom, charred flesh silhouettes.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no excessive gore pile, no goofy zombie look, no cartoon fire, no busy war scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/necromancer_bone_spear__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a single jagged spear of bone launched with impossible force, like a sacred relic turned into a killing bolt.\nSubject: one centered bone spear flying or striking through darkness, no full necromancer body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one strong central line, tight martial vignette, dark uncluttered edges.\nLighting/mood: lethal, austere, precise, supernatural.\nColor palette: dead ivory, soot black, grave gray, pale gold, dried blood red.\nMaterials/textures: polished bone, hairline cracks, dust, splinter fragments, occult haze.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon skeletons, no goofy skull motifs everywhere, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/necromancer_revive__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a revived horror hauling itself upright from the grave with unstoppable force, half cadaver and half siege beast.\nSubject: one centered revived horror or grave-born brute emerging upward, no full necromancer body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant hulking figure, dark edges, readable at small size.\nLighting/mood: grim, heavy, relentless, protective.\nColor palette: grave green-gray, dead ivory, soot black, rust brown, faint ember red.\nMaterials/textures: torn burial cloth, cracked bone, stitched flesh, dirt spray, rusted metal scraps.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no comedic zombie, no clean superhero monster, no crowded graveyard army, no neon effects."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/paladin_blessed_hammer__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a sanctified hammer orbiting in a lethal holy arc, turning divine force into a relentless sweeping weapon.\nSubject: one centered glowing war hammer or paired hammer arcs circling through darkness, no full paladin body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong central hammer silhouette with circular motion, dark uncluttered edges, readable at card size.\nLighting/mood: righteous, forceful, disciplined, radiant.\nColor palette: pale gold, old bronze, stone gray, soot black, ivory light.\nMaterials/textures: hammered metal, sacred glow, motion trails, dust, faint rune sparks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon holy symbols, no cheesy angel wings, no busy cathedral scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/paladin_holy_shield__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a holy shield flaring into a dome of sanctified force while hostile shapes break against it.\nSubject: one centered shield or shield-bearing forearm with radiant barrier bloom, no full-body paladin hero, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, compact central bulwark shape, dark edges, simple backdrop, clear thumbnail read.\nLighting/mood: protective, radiant, resolute, immovable.\nColor palette: pale ivory, gold leaf, stone gray, soot black, faint steel blue.\nMaterials/textures: dented metal, sacred light, dust, sparks, cracked stone fragments.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no bright cartoon glow, no superhero comic shield pose, no crowded battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/paladin_fist_of_the_heavens__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a column of heavenly wrath punching down into a single doomed target, with healing radiance folded into the same strike.\nSubject: one centered vertical blast of divine force striking downward, no full paladin body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong vertical focal beam, dark edges, clean silhouette, readable at small size.\nLighting/mood: judgmental, exalted, cleansing, severe.\nColor palette: white-gold, pale blue-white, old bronze, storm gray, soot black.\nMaterials/textures: sacred lightning, vaporized dust, shattered stone, sparks, radiant mist.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cheesy angel imagery, no cartoon lightning bolt, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/sorceress_fireball__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a dense fireball hurled like a contained sun, with layered heat and cinder wake around its lethal core.\nSubject: one centered fireball projectile or close impact moment, no full sorceress body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant fiery sphere, dark edges, clean silhouette, readable at card size.\nLighting/mood: scorching, focused, explosive, arcane.\nColor palette: ember orange, molten gold, black smoke, crimson cinder, soot black.\nMaterials/textures: flame tongues, ash, heat shimmer, cinders, burned air.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon flame emoji look, no neon fantasy spell spam, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/sorceress_blizzard__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a killing blizzard descending in layered sheets of ice and wind, freezing the whole field into a controlled whiteout.\nSubject: one centered storm vortex of ice shards and snow pressure, no full sorceress body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong central storm mass, dark outer vignette, readable at thumbnail size.\nLighting/mood: relentless, cold, oppressive, controlled.\nColor palette: glacial white, steel blue, ash gray, pale cyan, soot black.\nMaterials/textures: blowing snow, ice shards, frost mist, frozen air, sleet streaks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cute winter fantasy, no bright neon ice, no crowded scene."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/sorceress_frozen_orb__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a frozen orb at the moment it blooms outward, shedding rings of cutting ice and locking the air solid around it.\nSubject: one centered icy orb with expanding shard halo, no full sorceress body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one strong centered sphere, dark edges, compact silhouette, readable at small size.\nLighting/mood: elegant, merciless, supernatural, cold.\nColor palette: blue-white, pale cyan, ash silver, soot black, frosted steel.\nMaterials/textures: crystalline ice, frost bloom, vapor, frozen dust, radial shard trails.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no sci-fi energy ball, no neon glow toy look, no busy battlefield."
+    },
+    {
+      "output": "output/imagegen/gpt15-low-marquee-batch2/sorceress_hydra__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/card_art_marquee_batch2.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a hydra conjuration looming over the field, its multiple heads exhaling layered fire like a summoned siege engine.\nSubject: one centered hydra of living flame and scale, no full sorceress body, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong central monster silhouette with readable heads, dark uncluttered edges, clear at card size.\nLighting/mood: domineering, infernal, arcane, devastating.\nColor palette: ember orange, volcanic red, soot black, brass gold, char gray.\nMaterials/textures: scaled hide, flame breath, smoke plumes, molten saliva, cinders.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon dragon mascot, no bright rainbow fire, no crowded battlefield."
+    }
+  ]
+}

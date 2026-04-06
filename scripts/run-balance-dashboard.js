@@ -2,11 +2,19 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const {
+  getBalanceDatabasePath,
+  openBalanceDatabase,
+  readBalanceArtifactFromDatabase,
+  readBalanceArtifactIndexFromDatabase,
+  readBalanceJobStateByArtifactPath,
+} = require("./balance-db.js");
 
 const ROOT = path.resolve(__dirname, "..");
 
 function parseArgs(argv) {
   const parsed = {
+    dbPath: getBalanceDatabasePath(ROOT),
     indexPath: path.join(ROOT, "artifacts", "balance", "index.json"),
     latestJobPath: path.join(ROOT, "artifacts", "balance", "latest-orchestrator-job.json"),
     output: path.join(ROOT, "artifacts", "balance", "dashboard.md"),
@@ -18,6 +26,11 @@ function parseArgs(argv) {
     const next = argv[index + 1];
     if (arg === "--index" && next) {
       parsed.indexPath = path.resolve(ROOT, next);
+      index += 1;
+      continue;
+    }
+    if (arg === "--db" && next) {
+      parsed.dbPath = path.resolve(ROOT, next);
       index += 1;
       continue;
     }
@@ -46,12 +59,24 @@ function loadJson(filePath, fallback) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-function buildDashboard(indexEntries, latestJob) {
+function loadArtifact(artifactPath, db) {
+  if (db) {
+    const fromDb = readBalanceArtifactFromDatabase(db, artifactPath);
+    if (fromDb) {
+      return fromDb;
+    }
+  }
+  return loadJson(artifactPath || "", null);
+}
+
+function buildDashboard(indexEntries, latestJob, db) {
   const activeJob = latestJob
     ? (() => {
         const jobStatePath = latestJob.output ? latestJob.output.replace(/\.json$/i, ".job.json") : "";
-        const jobState = loadJson(jobStatePath, null);
-        const artifact = loadJson(latestJob.output || "", null);
+        const jobState = db && latestJob.output
+          ? readBalanceJobStateByArtifactPath(db, latestJob.output) || loadJson(jobStatePath, null)
+          : loadJson(jobStatePath, null);
+        const artifact = loadArtifact(latestJob.output || "", db);
         return {
           ...latestJob,
           jobState,
@@ -67,7 +92,7 @@ function buildDashboard(indexEntries, latestJob) {
     : null;
 
   const latestArtifacts = (Array.isArray(indexEntries) ? indexEntries : []).slice(0, 10).map((entry) => {
-    const artifact = loadJson(entry.artifactPath || "", null);
+    const artifact = loadArtifact(entry.artifactPath || "", db);
     const overall = artifact?.aggregate?.overall || {};
     const committedLanes = [...(artifact?.aggregate?.archetypes?.committedLanes || [])]
       .sort((left, right) =>
@@ -218,19 +243,30 @@ function buildMarkdown(dashboard) {
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
-  const dashboard = buildDashboard(
-    loadJson(options.indexPath, []),
-    loadJson(options.latestJobPath, null)
-  );
+  const db = openBalanceDatabase({ dbPath: options.dbPath, readonly: true });
+  try {
+    const indexEntries = db
+      ? readBalanceArtifactIndexFromDatabase(db, { limit: 10 })
+      : loadJson(options.indexPath, []);
+    const dashboard = buildDashboard(
+      indexEntries.length > 0 ? indexEntries : loadJson(options.indexPath, []),
+      loadJson(options.latestJobPath, null),
+      db
+    );
 
-  if (options.json) {
-    console.log(JSON.stringify(dashboard, null, 2));
-    return;
+    if (options.json) {
+      console.log(JSON.stringify(dashboard, null, 2));
+      return;
+    }
+
+    fs.mkdirSync(path.dirname(options.output), { recursive: true });
+    fs.writeFileSync(options.output, buildMarkdown(dashboard));
+    console.log(options.output);
+  } finally {
+    if (db) {
+      db.close();
+    }
   }
-
-  fs.mkdirSync(path.dirname(options.output), { recursive: true });
-  fs.writeFileSync(options.output, buildMarkdown(dashboard));
-  console.log(options.output);
 }
 
 main();

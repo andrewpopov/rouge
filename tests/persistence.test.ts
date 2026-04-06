@@ -4,6 +4,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createAppHarness as createHarness } from "./helpers/browser-harness";
 
+function flushAsyncWork(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
 // ---------------------------------------------------------------------------
 // Snapshot round-trip
 // ---------------------------------------------------------------------------
@@ -235,6 +239,77 @@ test("saveProfileToStorage and loadProfileFromStorage round-trip", () => {
   const loaded = persistence.loadProfileFromStorage(storage);
   assert.ok(loaded);
   assert.equal(loaded.meta.progression.highestLevel, 12);
+});
+
+test("initializeProfileStore uses backend profile persistence for authenticated users", async () => {
+  const { persistence, browserWindow, storage } = createHarness();
+  const backendProfile = persistence.createEmptyProfile();
+  backendProfile.meta.progression.highestLevel = 18;
+
+  const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
+  let savedProfilePayload = "";
+  (browserWindow as Window & Record<string, unknown>).fetch = async (input: string, init?: RequestInit) => {
+    fetchCalls.push({ input, init });
+    if (!init?.method || init.method === "GET") {
+      return {
+        ok: true,
+        async json() {
+          return {
+            ok: true,
+            profile: persistence.serializeProfile(backendProfile),
+          };
+        },
+      } as unknown as Response;
+    }
+    savedProfilePayload = String(init.body || "");
+    return {
+      ok: true,
+      async json() {
+        return { ok: true };
+      },
+    } as unknown as Response;
+  };
+  (browserWindow as Window & Record<string, unknown>).ROGUE_AUTH = {
+    initializeGoogleAuth() {},
+    async checkSession() {},
+    async handleCredentialResponse() {},
+    renderSignInButton() {},
+    async signOut() {},
+    getAuthState() {
+      return {
+        user: {
+          googleId: "gid-backend",
+          email: "backend@example.com",
+          name: "Backend Hero",
+          avatarUrl: "",
+        },
+        loading: false,
+        ready: true,
+      };
+    },
+    onAuthChange() {},
+    async waitUntilReady() {},
+  };
+
+  await persistence.initializeProfileStore();
+
+  const loaded = persistence.loadProfileFromStorage();
+  assert.ok(loaded);
+  assert.equal(loaded.meta.progression.highestLevel, 18);
+  assert.equal(storage.getItem(persistence.PROFILE_STORAGE_KEY), null);
+
+  loaded.meta.progression.highestLevel = 19;
+  const saveResult = persistence.saveProfileToStorage(loaded);
+  assert.equal(saveResult.ok, true);
+  await flushAsyncWork();
+  await flushAsyncWork();
+
+  assert.equal(fetchCalls[0].input, "/api/profile");
+  assert.equal(fetchCalls.some((call) => call.init?.method === "PUT"), true);
+  const savedBody = JSON.parse(savedProfilePayload) as { profile: string };
+  const restored = persistence.restoreProfile(savedBody.profile);
+  assert.ok(restored);
+  assert.equal(restored.profile.meta.progression.highestLevel, 19);
 });
 
 test("loadProfileFromStorage returns null from empty storage", () => {

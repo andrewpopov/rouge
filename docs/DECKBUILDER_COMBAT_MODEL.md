@@ -8,6 +8,8 @@ Documentation note:
 - Use `DECKBUILDER_PROGRESSION_AUDIT.md` for the live runtime gaps against this target model.
 - Use `OPTIMIZED_DECK_PROFILE.md` for the target late-game deck shape and the intended build journey from starter shell to finished deck.
 - Use `CLASS_DECKBUILDER_PROGRESSION.md` for class-specific deck and skill guidance.
+- Use `SKILL_ACTION_SURFACE_SYNTHESIS.md` for deciding which benchmark-derived mechanics belong on fixed skills versus deck cards.
+- Use `SKILL_TAXONOMY.md` for the canonical fixed-skill families and slot roles.
 - Use `D2_SPECIALIZATION_MODEL.md` for one-tree specialization and utility-splash rules.
 - Use `COMBAT_DECISION_DESIGN.md` for turn-to-turn hand and enemy-intent design rules.
 - Use `COMBAT_FOUNDATION.md` for current combat runtime truth.
@@ -566,6 +568,7 @@ This model implies:
 
 These were the main external references for this model:
 
+- [Benchmark action-surface source index](/Users/andrew/proj/rouge/docs/wiki/inspirations/DECKBUILDER_ACTION_SURFACE_SOURCES.md)
 - [Slay the Spire GDC talk transcript notes](https://lilys.ai/en/notes/138321)
 - [Official Monster Train site](https://www.themonstertrain.com/story)
 - [Monster Train on Steam](https://store.steampowered.com/app/1102190/Monster_Train/)

@@ -40,8 +40,12 @@
     barbarian_battle_orders: "warcries",
     barbarian_war_cry: "warcries",
     barbarian_sword_mastery: "masteries",
+    barbarian_weapon_mastery: "masteries",
     barbarian_iron_skin: "masteries",
     barbarian_natural_resistance: "masteries",
+    barbarian_steel_skin: "masteries",
+    barbarian_battle_instinct: "masteries",
+    barbarian_unyielding: "masteries",
 
     // Necromancer
     necromancer_teeth: "poison_bone",
@@ -51,7 +55,7 @@
     necromancer_bone_spirit: "poison_bone",
     necromancer_bone_wall: "poison_bone",
     necromancer_poison_dagger: "poison_bone",
-    necromancer_skeletal_mage: "poison_bone",
+    necromancer_skeletal_mage: "summoning",
     necromancer_poison_nova: "poison_bone",
     necromancer_amplify_damage: "curses",
     necromancer_iron_maiden: "curses",
@@ -75,16 +79,24 @@
     amazon_power_strike: "javelin",
     amazon_charged_strike: "javelin",
     amazon_lightning_fury: "javelin",
+    amazon_slow_missiles: "passive",
+    amazon_avoid: "passive",
+    amazon_decoy: "passive",
+    amazon_evade: "passive",
+    amazon_deadly_strike: "passive",
+    amazon_penetrate: "passive",
     amazon_inner_sight: "passive",
     amazon_dodge: "passive",
     amazon_critical_strike: "passive",
     amazon_valkyrie: "passive",
+    amazon_pierce: "passive",
 
     // Assassin
     assassin_tiger_strike: "martial_arts",
     assassin_cobra_strike: "martial_arts",
     assassin_fists_of_fire: "martial_arts",
     assassin_claws_of_thunder: "martial_arts",
+    assassin_blades_of_ice: "martial_arts",
     assassin_phoenix_strike: "martial_arts",
     assassin_fire_blast: "traps",
     assassin_wake_of_fire: "traps",
@@ -156,7 +168,8 @@
     sorceress_fire_bolt:   { targetId: "sorceress_fireball",         requiredTier: 2, requiredActMin: 2 },
     sorceress_fireball:    { targetId: "sorceress_meteor",           requiredTier: 3, requiredActMin: 3 },
     // Sorceress Fire (DoT path)
-    sorceress_inferno:     { targetId: "sorceress_hydra",            requiredTier: 4, requiredActMin: 4 },
+    sorceress_inferno:     { targetId: "sorceress_meteor",           requiredTier: 3, requiredActMin: 3 },
+    sorceress_meteor:      { targetId: "sorceress_hydra",            requiredTier: 4, requiredActMin: 4 },
     // Sorceress Lightning
     sorceress_charged_bolt: { targetId: "sorceress_static_field",    requiredTier: 2, requiredActMin: 2 },
     sorceress_static_field: { targetId: "sorceress_chain_lightning", requiredTier: 3, requiredActMin: 3 },
@@ -174,7 +187,10 @@
     barbarian_shout:         { targetId: "barbarian_battle_orders",  requiredTier: 3, requiredActMin: 3 },
     barbarian_battle_orders: { targetId: "barbarian_war_cry",        requiredTier: 4, requiredActMin: 4 },
     // Barbarian Masteries
-    barbarian_sword_mastery: { targetId: "barbarian_leap",           requiredTier: 2, requiredActMin: 2 },
+    barbarian_sword_mastery:      { targetId: "barbarian_weapon_mastery",   requiredTier: 2, requiredActMin: 2 },
+    barbarian_weapon_mastery:     { targetId: "barbarian_battle_instinct",  requiredTier: 4, requiredActMin: 4 },
+    barbarian_iron_skin:          { targetId: "barbarian_steel_skin",       requiredTier: 3, requiredActMin: 3 },
+    barbarian_natural_resistance: { targetId: "barbarian_unyielding",       requiredTier: 4, requiredActMin: 4 },
 
     // Necromancer Poison & Bone (burst path)
     necromancer_teeth:            { targetId: "necromancer_corpse_explosion", requiredTier: 2, requiredActMin: 2 },
@@ -182,13 +198,13 @@
     necromancer_bone_spear:       { targetId: "necromancer_bone_spirit",     requiredTier: 4, requiredActMin: 4 },
     // Necromancer Poison & Bone (poison path)
     necromancer_bone_wall:      { targetId: "necromancer_poison_dagger",   requiredTier: 2, requiredActMin: 2 },
-    necromancer_poison_dagger:  { targetId: "necromancer_skeletal_mage",   requiredTier: 3, requiredActMin: 3 },
-    necromancer_skeletal_mage:  { targetId: "necromancer_poison_nova",     requiredTier: 4, requiredActMin: 4 },
+    necromancer_poison_dagger:  { targetId: "necromancer_poison_nova",     requiredTier: 4, requiredActMin: 4 },
+    necromancer_skeletal_mage:  { targetId: "necromancer_revive",          requiredTier: 4, requiredActMin: 4 },
     // Necromancer Curses
     necromancer_amplify_damage: { targetId: "necromancer_iron_maiden",     requiredTier: 2, requiredActMin: 2 },
     necromancer_iron_maiden:    { targetId: "necromancer_decrepify",       requiredTier: 3, requiredActMin: 3 },
     // Necromancer Summoning
-    necromancer_raise_skeleton: { targetId: "necromancer_clay_golem",      requiredTier: 2, requiredActMin: 2 },
+    necromancer_raise_skeleton: { targetId: "necromancer_skeletal_mage",   requiredTier: 2, requiredActMin: 2 },
     necromancer_clay_golem:     { targetId: "necromancer_blood_golem",     requiredTier: 3, requiredActMin: 3 },
     necromancer_blood_golem:    { targetId: "necromancer_revive",          requiredTier: 4, requiredActMin: 4 },
 
@@ -204,12 +220,18 @@
     amazon_power_strike:   { targetId: "amazon_charged_strike",  requiredTier: 3, requiredActMin: 3 },
     amazon_charged_strike: { targetId: "amazon_lightning_fury",  requiredTier: 4, requiredActMin: 4 },
     // Amazon Passive
-    amazon_inner_sight: { targetId: "amazon_valkyrie",           requiredTier: 3, requiredActMin: 3 },
+    amazon_inner_sight:     { targetId: "amazon_penetrate",      requiredTier: 2, requiredActMin: 2 },
+    amazon_critical_strike: { targetId: "amazon_deadly_strike",  requiredTier: 3, requiredActMin: 3 },
+    amazon_dodge:           { targetId: "amazon_avoid",          requiredTier: 2, requiredActMin: 2 },
+    amazon_avoid:           { targetId: "amazon_evade",          requiredTier: 3, requiredActMin: 3 },
+    amazon_penetrate:       { targetId: "amazon_valkyrie",       requiredTier: 3, requiredActMin: 3 },
+    amazon_deadly_strike:   { targetId: "amazon_pierce",         requiredTier: 4, requiredActMin: 4 },
 
     // Assassin Martial Arts
     assassin_tiger_strike:    { targetId: "assassin_cobra_strike",      requiredTier: 2, requiredActMin: 2 },
     assassin_cobra_strike:    { targetId: "assassin_claws_of_thunder",  requiredTier: 3, requiredActMin: 3 },
-    assassin_claws_of_thunder: { targetId: "assassin_phoenix_strike",   requiredTier: 4, requiredActMin: 4 },
+    assassin_fists_of_fire:   { targetId: "assassin_blades_of_ice",     requiredTier: 3, requiredActMin: 3 },
+    assassin_blades_of_ice:   { targetId: "assassin_phoenix_strike",    requiredTier: 4, requiredActMin: 4 },
     // Assassin Traps
     assassin_fire_blast:       { targetId: "assassin_wake_of_fire",     requiredTier: 2, requiredActMin: 2 },
     assassin_wake_of_fire:     { targetId: "assassin_lightning_sentry", requiredTier: 3, requiredActMin: 3 },
@@ -217,7 +239,8 @@
     // Assassin Shadow
     assassin_psychic_hammer: { targetId: "assassin_burst_of_speed",     requiredTier: 2, requiredActMin: 2 },
     assassin_burst_of_speed: { targetId: "assassin_fade",               requiredTier: 3, requiredActMin: 3 },
-    assassin_claw_mastery:   { targetId: "assassin_shadow_warrior",     requiredTier: 3, requiredActMin: 3 },
+    assassin_claw_mastery:   { targetId: "assassin_blade_shield",       requiredTier: 2, requiredActMin: 2 },
+    assassin_blade_shield:   { targetId: "assassin_shadow_warrior",     requiredTier: 4, requiredActMin: 4 },
 
     // Druid Elemental (fire path)
     druid_firestorm:      { targetId: "druid_molten_boulder", requiredTier: 2, requiredActMin: 2 },
@@ -246,8 +269,9 @@
     paladin_defiance: { targetId: "paladin_holy_freeze", requiredTier: 3, requiredActMin: 3 },
     // Paladin Offensive Auras
     paladin_might:      { targetId: "paladin_holy_fire",   requiredTier: 2, requiredActMin: 2 },
-    paladin_holy_fire:  { targetId: "paladin_fanaticism",  requiredTier: 4, requiredActMin: 4 },
-    paladin_thorns:     { targetId: "paladin_conviction",  requiredTier: 4, requiredActMin: 4 },
+    paladin_holy_fire:  { targetId: "paladin_fanaticism",  requiredTier: 3, requiredActMin: 3 },
+    paladin_thorns:     { targetId: "paladin_fanaticism",  requiredTier: 3, requiredActMin: 3 },
+    paladin_fanaticism: { targetId: "paladin_conviction",  requiredTier: 4, requiredActMin: 4 },
   };
 
   // ── Evolution cost by target tier ──
@@ -331,6 +355,25 @@
         ? refinedTargetId
         : evolution.targetId;
     return { ...evolution, targetId };
+  }
+
+  function getEvolutionTerminalCardId(cardId: string): string {
+    const refinedCard = normalizeCardId(cardId) !== cardId;
+    let currentCardId = normalizeCardId(cardId);
+    const seen = new Set<string>();
+    while (EVOLUTION_CHAINS[currentCardId] && !seen.has(currentCardId)) {
+      seen.add(currentCardId);
+      currentCardId = normalizeCardId(EVOLUTION_CHAINS[currentCardId].targetId);
+    }
+
+    const refinedTerminalId = `${currentCardId}_plus`;
+    const terminalExists =
+      Boolean(runtimeWindow.ROUGE_GAME_CONTENT?.cardCatalog?.[refinedTerminalId]) ||
+      Boolean(runtimeWindow.__ROUGE_CLASS_CARDS?.classCardCatalog?.[refinedTerminalId]);
+    if (refinedCard && terminalExists) {
+      return refinedTerminalId;
+    }
+    return currentCardId;
   }
 
   function getEvolutionCost(targetTier: number): number {
@@ -471,6 +514,7 @@
     getCardProficiency,
     getCardTree,
     getEvolution,
+    getEvolutionTerminalCardId,
     getEvolutionCost,
     getGenericUpgrades,
     getMaxUpgradeSlots,

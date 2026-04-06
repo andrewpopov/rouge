@@ -14,17 +14,17 @@
   const TRAINING_SLOT_META = {
     slot1: {
       slotNumber: 1 as const,
-      roleLabel: "Starter",
+      roleLabel: "Identity",
       lockedLabel: "Always available from the start of the run.",
     },
     slot2: {
       slotNumber: 2 as const,
-      roleLabel: "Bridge",
+      roleLabel: "Tactical",
       lockedLabel: "Unlocks at Level 6 with 3 points in a tree.",
     },
     slot3: {
       slotNumber: 3 as const,
-      roleLabel: "Capstone",
+      roleLabel: "Commitment",
       lockedLabel: "Unlocks at Level 12 with 6 points in a favored tree and one learned bridge skill.",
     },
   };
@@ -187,6 +187,9 @@
       || (slotKey === "slot3" && skill.slot === 3);
     if (!slotMatch) {
       return false;
+    }
+    if (slotKey === "slot1") {
+      return Boolean(definition?.starterSkillId) && skillId === definition.starterSkillId;
     }
     if (!(run.progression?.classProgression?.unlockedSkillIds || []).includes(skillId)) {
       return false;
@@ -535,4 +538,3 @@
   };
 
 })();
-

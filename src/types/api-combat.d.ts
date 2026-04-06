@@ -14,8 +14,10 @@ interface CombatEngineApi {
     weaponProfile?: WeaponCombatProfile | null;
     armorProfile?: ArmorMitigationProfile | null;
     classPreferredFamilies?: string[];
+    equippedSkills?: CombatSkillLoadoutEntry[] | null;
   }): CombatState;
   playCard(state: CombatState, content: GameContent, instanceId: string, targetId?: string): ActionResult;
+  useSkill(state: CombatState, slotKey: RunSkillBarSlotKey, targetId?: string): ActionResult;
   endTurn(state: CombatState): ActionResult;
   usePotion(state: CombatState, targetId: "hero" | "mercenary"): ActionResult;
   meleeStrike(state: CombatState, content: GameContent): ActionResult;
@@ -142,8 +144,12 @@ interface CombatCardEffectsApi {
 
 interface IncomingPressureSummary {
   attackers: number;
+  suppressedAttackers: number;
   damage: number;
+  lifeDamage: number;
+  guardBlocked: number;
   tags: string[];
+  suppressedTags: string[];
   lineThreat: boolean;
 }
 
@@ -162,14 +168,21 @@ interface CombatViewPreviewApi {
   ): string;
   buildMeleePreviewOutcome(combat: CombatState, selectedEnemy: CombatEnemyState | null): string;
   derivePreviewScopes(card: CardDefinition): string[];
+  deriveSkillPreviewScopes(skill: CombatEquippedSkillState): string[];
+  getExactSkillModifierPreviewParts(skill: CombatEquippedSkillState, combat?: CombatState | null): string[];
   describePreviewScopes(scopes: string[]): string;
+  buildSkillPreviewOutcome(
+    combat: CombatState,
+    skill: CombatEquippedSkillState,
+    selectedEnemy: CombatEnemyState | null
+  ): string;
   summarizePreviewOutcome(previewOutcome: string): string;
 }
 
 interface CombatViewPressureApi {
   buildEmptyPressureSummary(): IncomingPressureSummary;
   buildIncomingPressure(combat: CombatState): { hero: IncomingPressureSummary; mercenary: IncomingPressureSummary };
-  buildEnemyIntentPresentation(combat: CombatState, intent: EnemyIntent | null): { targetLabel: string; intentClass: string };
+  buildEnemyIntentPresentation(combat: CombatState, enemy: CombatEnemyState | null): { targetLabel: string; intentClass: string; stateLabel: string };
   renderIncomingPressure(summary: IncomingPressureSummary, escapeHtml: (s: string) => string): string;
 }
 
@@ -183,6 +196,7 @@ interface CombatViewRenderersApi {
     extraStatusHtml: string;
     incomingPressureHtml: string;
     threatened: boolean;
+    persistentAfflictions?: { burn?: number; poison?: number };
     escapeHtml: (s: string) => string;
   }): string;
   renderMinionRack(minions: CombatMinionState[], escapeHtml: (s: string) => string, variant?: "stage" | "command"): string;
@@ -198,13 +212,20 @@ interface CombatViewRenderersApi {
   renderHandCard(config: {
     instance: { instanceId: string; cardId: string };
     index: number;
-    cardCount: number;
     card: CardDefinition;
     effectiveCost: number;
     previewOutcome: string;
+    maxRuleLines?: number;
     stateClass: string;
     stateLabel: string;
     cantPlay: boolean;
+    escapeHtml: (s: string) => string;
+  }): string;
+  renderPileCard(config: {
+    instance: { instanceId: string; cardId: string };
+    card: CardDefinition;
+    effectiveCost: number;
+    stateLabel: string;
     escapeHtml: (s: string) => string;
   }): string;
   renderCombatLogPanel(combat: CombatState, escapeHtml: (s: string) => string): string;

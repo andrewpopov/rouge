@@ -5,6 +5,8 @@
   const THEMED_CARD_ICON_BASE = `${THEMED_ICON_BASE}/cards`;
   const THEMED_ENEMY_ICON_BASE = `${THEMED_ICON_BASE}/enemies`;
   const THEMED_UI_ICON_BASE = `${THEMED_ICON_BASE}/ui`;
+  const CARD_ILLUSTRATION_BASE = "./assets/curated/card-illustrations";
+  const CARD_FRAME_BASE = "./assets/curated/card-frames";
   const UNIQUE_ART_BASE = "./assets/curated/rouge-art";
   const SKILL_ICON_BASE = "./assets/curated/skill-icons";
   const SPRITE_BASE = "./assets/curated/sprites";
@@ -59,16 +61,22 @@
     amazon_fire_arrow: `${SKILL_ICON_BASE}/amazon/fire_arrow.png`,
     amazon_dodge: `${SKILL_ICON_BASE}/amazon/dodge.png`,
     amazon_critical_strike: `${SKILL_ICON_BASE}/amazon/critical_strike.png`,
+    amazon_avoid: `${SKILL_ICON_BASE}/amazon/avoid.png`,
     amazon_cold_arrow: `${SKILL_ICON_BASE}/amazon/cold_arrow.png`,
+    amazon_decoy: `${SKILL_ICON_BASE}/amazon/decoy.png`,
     amazon_multiple_shot: `${SKILL_ICON_BASE}/amazon/multiple_shot.png`,
+    amazon_penetrate: `${SKILL_ICON_BASE}/amazon/penetrate.png`,
     amazon_power_strike: `${SKILL_ICON_BASE}/amazon/power_strike.png`,
     amazon_exploding_arrow: `${SKILL_ICON_BASE}/amazon/exploding_arrow.png`,
+    amazon_slow_missiles: `${SKILL_ICON_BASE}/amazon/slow_missiles.png`,
     amazon_guided_arrow: `${SKILL_ICON_BASE}/amazon/guided_arrow.png`,
     amazon_charged_strike: `${SKILL_ICON_BASE}/amazon/charged_strike.png`,
+    amazon_evade: `${SKILL_ICON_BASE}/amazon/evade.png`,
     amazon_strafe: `${SKILL_ICON_BASE}/amazon/strafe.png`,
     amazon_valkyrie: `${SKILL_ICON_BASE}/amazon/valkyrie.png`,
     amazon_freezing_arrow: `${SKILL_ICON_BASE}/amazon/freezing_arrow.png`,
     amazon_lightning_fury: `${SKILL_ICON_BASE}/amazon/lightning_fury.png`,
+    amazon_pierce: `${SKILL_ICON_BASE}/amazon/pierce.png`,
     assassin_tiger_strike: `${SKILL_ICON_BASE}/assassin/tiger_strike.png`,
     assassin_fire_blast: `${SKILL_ICON_BASE}/assassin/fire_blast.png`,
     assassin_claw_mastery: `${SKILL_ICON_BASE}/assassin/claw_mastery.png`,
@@ -79,6 +87,7 @@
     assassin_burst_of_speed: `${SKILL_ICON_BASE}/assassin/burst_of_speed.png`,
     assassin_wake_of_fire: `${SKILL_ICON_BASE}/assassin/wake_of_fire.png`,
     assassin_cobra_strike: `${SKILL_ICON_BASE}/assassin/cobra_strike.png`,
+    assassin_blades_of_ice: `${SKILL_ICON_BASE}/assassin/blades_of_ice.png`,
     assassin_claws_of_thunder: `${SKILL_ICON_BASE}/assassin/claws_of_thunder.png`,
     assassin_fade: `${SKILL_ICON_BASE}/assassin/fade.png`,
     assassin_lightning_sentry: `${SKILL_ICON_BASE}/assassin/lightning_sentry.png`,
@@ -155,6 +164,52 @@
     `${THEMED_CARD_ICON_BASE}/15_ghost.svg`,
     `${THEMED_CARD_ICON_BASE}/17_grim-reaper.svg`,
   ];
+
+  const CARD_ILLUSTRATIONS: Record<string, string> = {
+    rally_mercenary: `${THEMED_CARD_ICON_BASE}/08_gauntlet.svg`,
+    amazon_magic_arrow: `${CARD_ILLUSTRATION_BASE}/amazon_magic_arrow.png`,
+    amazon_jab: `${CARD_ILLUSTRATION_BASE}/amazon_jab_v2.png`,
+    amazon_inner_sight: `${CARD_ILLUSTRATION_BASE}/amazon_inner_sight_v2.png`,
+    amazon_fire_arrow: `${CARD_ILLUSTRATION_BASE}/amazon_fire_arrow.png`,
+    amazon_dodge: `${CARD_ILLUSTRATION_BASE}/amazon_dodge.png`,
+    amazon_critical_strike: `${CARD_ILLUSTRATION_BASE}/amazon_critical_strike_v2.png`,
+    amazon_avoid: `${CARD_ILLUSTRATION_BASE}/amazon_avoid__gpt15low_v2.png`,
+    amazon_slow_missiles: `${CARD_ILLUSTRATION_BASE}/amazon_slow_missiles__gpt15low_v1.png`,
+    amazon_decoy: `${CARD_ILLUSTRATION_BASE}/amazon_decoy__gpt15low_v2.png`,
+    amazon_penetrate: `${CARD_ILLUSTRATION_BASE}/amazon_penetrate__gpt15low_v1.png`,
+    amazon_deadly_strike: `${CARD_ILLUSTRATION_BASE}/amazon_deadly_strike__gpt15low_v1.png`,
+    amazon_evade: `${CARD_ILLUSTRATION_BASE}/amazon_evade__gpt15low_v1.png`,
+    amazon_pierce: `${CARD_ILLUSTRATION_BASE}/amazon_pierce__gpt15low_v1.png`,
+    assassin_blades_of_ice: `${CARD_ILLUSTRATION_BASE}/assassin_blades_of_ice__gpt15low_v1.png`,
+    barbarian_weapon_mastery: `${CARD_ILLUSTRATION_BASE}/barbarian_weapon_mastery__gpt15low_v1.png`,
+    barbarian_steel_skin: `${CARD_ILLUSTRATION_BASE}/barbarian_steel_skin__gpt15low_v1.png`,
+    barbarian_battle_instinct: `${CARD_ILLUSTRATION_BASE}/barbarian_battle_instinct__gpt15low_v2.png`,
+    barbarian_unyielding: `${CARD_ILLUSTRATION_BASE}/barbarian_unyielding__gpt15low_v1.png`,
+    druid_fissure: `${CARD_ILLUSTRATION_BASE}/druid_fissure__gpt15low_v1.png`,
+    druid_heart_of_wolverine: `${CARD_ILLUSTRATION_BASE}/druid_heart_of_wolverine__gpt15low_v1.png`,
+    druid_summon_grizzly: `${CARD_ILLUSTRATION_BASE}/druid_summon_grizzly__gpt15low_v1.png`,
+    necromancer_corpse_explosion: `${CARD_ILLUSTRATION_BASE}/necromancer_corpse_explosion__gpt15low_v1.png`,
+    necromancer_bone_spear: `${CARD_ILLUSTRATION_BASE}/necromancer_bone_spear__gpt15low_v1.png`,
+    necromancer_revive: `${CARD_ILLUSTRATION_BASE}/necromancer_revive__gpt15low_v1.png`,
+    paladin_blessed_hammer: `${CARD_ILLUSTRATION_BASE}/paladin_blessed_hammer__gpt15low_v1.png`,
+    paladin_holy_shield: `${CARD_ILLUSTRATION_BASE}/paladin_holy_shield__gpt15low_v1.png`,
+    paladin_fist_of_the_heavens: `${CARD_ILLUSTRATION_BASE}/paladin_fist_of_the_heavens__gpt15low_v1.png`,
+    sorceress_fireball: `${CARD_ILLUSTRATION_BASE}/sorceress_fireball__gpt15low_v1.png`,
+    sorceress_blizzard: `${CARD_ILLUSTRATION_BASE}/sorceress_blizzard__gpt15low_v1.png`,
+    sorceress_frozen_orb: `${CARD_ILLUSTRATION_BASE}/sorceress_frozen_orb__gpt15low_v1.png`,
+    sorceress_hydra: `${CARD_ILLUSTRATION_BASE}/sorceress_hydra__gpt15low_v1.png`,
+  };
+
+  const CARD_FRAMES: Record<string, string> = {
+    attack: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    summon: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    guard: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    affliction: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    draw: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    setup: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    support: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+    utility: `${CARD_FRAME_BASE}/frame_assault_shortlist_b.png`,
+  };
 
   const ENEMY_SVGS = [
     `${THEMED_ENEMY_ICON_BASE}/01_diablo-skull.svg`,
@@ -519,9 +574,13 @@
 
   runtimeWindow.__ROUGE_ASSET_MAP_DATA = {
     UNIQUE_ART_BASE,
+    CARD_ILLUSTRATION_BASE,
+    CARD_FRAME_BASE,
     SPRITE_BASE,
     PORTRAIT_BASE,
     CARD_ICONS,
+    CARD_ILLUSTRATIONS,
+    CARD_FRAMES,
     ATTACK_ICONS,
     SKILL_ICONS,
     ENEMY_SVGS,

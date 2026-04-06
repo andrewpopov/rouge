@@ -181,6 +181,7 @@ Target-state combat should preserve these rules even as counts and classes evolv
 - `skills.json` already drives live class-tree unlocks and spend validation; the next step is broader class identity and later-tree depth
 - manual stat allocation is already live; keep it only while it continues to create real build tension beyond the training system
 - boss rewards and account-tree gates should remain major inflection points for class, gear, or economy growth
+- the safe-zone training surface should become the dedicated home for class-tree spending, skill unlock visibility, and `Slot 2` or `Slot 3` equip decisions rather than scattering those decisions across reward or map or combat screens; see [SAFE_ZONE_TRAINING_SCREEN_SPEC.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_SCREEN_SPEC.md), [SAFE_ZONE_TRAINING_RUNTIME_MODEL.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_RUNTIME_MODEL.md), and [SAFE_ZONE_TRAINING_IMPLEMENTATION_PLAN.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_IMPLEMENTATION_PLAN.md)
 
 ### 6.3 Economy direction
 

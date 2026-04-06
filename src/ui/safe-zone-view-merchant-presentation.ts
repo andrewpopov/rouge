@@ -427,6 +427,18 @@
   ): string {
     const sections = buildNpcServiceSections(npc, themeKey);
     const overview = getServiceOverview(themeKey);
+    const trainingCallout = themeKey === "cain"
+      ? `
+        <section class="merchant-service-intel merchant-service-intel--training">
+          <div class="merchant-service-intel__copy">
+            <p class="merchant-service-intel__eyebrow">Skill Bar</p>
+            <h4 class="merchant-service-intel__title">Open the bloodline training screen.</h4>
+            <p class="merchant-service-intel__body">Learn bridge and capstone skills, review slot gates, and equip the current bar without leaving camp.</p>
+          </div>
+          <button class="primary-btn" data-action="open-training-view" data-training-source="safe_zone">Open Training</button>
+        </section>
+      `
+      : "";
 
     return `
       <div class="merchant-service-shell">
@@ -437,6 +449,7 @@
             <p class="merchant-service-intel__body">${escapeHtml(overview.copy)}</p>
           </div>
         </section>
+        ${trainingCallout}
         ${sections.map((section) => buildServiceSection(section, themeKey, escapeHtml)).join("")}
       </div>
     `;

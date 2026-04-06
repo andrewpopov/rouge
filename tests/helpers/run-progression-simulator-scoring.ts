@@ -438,9 +438,37 @@ function scoreDeckConstructionState(harness: AppHarness, run: RunState, policy: 
   return total
 }
 
-function scoreRunewordProgress(harness: AppHarness, run: RunState) {
+function getArchetypeRunewordAdjustment(
+  archetypeId: string,
+  slot: "weapon" | "armor",
+  runewordId: string
+) {
+  if (!archetypeId || !runewordId) {
+    return 1
+  }
+
+  if (archetypeId === "barbarian_combat_masteries") {
+    if (slot === "weapon" && runewordId === "black") {
+      return 0.45
+    }
+    if (slot === "armor" && runewordId === "stealth") {
+      return 1.2
+    }
+  }
+
+  return 1
+}
+
+function scoreRunewordProgress(
+  harness: AppHarness,
+  run: RunState,
+  archetypePlan?: RunArchetypeSimulationPlan | null
+) {
   const itemCatalog = harness.browserWindow.ROUGE_ITEM_CATALOG
   const loadout = itemCatalog.buildHydratedLoadout(run, harness.content)
+  const targetArchetypeId =
+    archetypePlan?.targetArchetypeId ||
+    String(run.progression?.classProgression?.favoredTreeId || "")
 
   function getRunewordPower(runeword: RuntimeRunewordDefinition | null) {
     if (!runeword) {
@@ -464,7 +492,8 @@ function scoreRunewordProgress(harness: AppHarness, run: RunState) {
 
     const currentRuneword = itemCatalog.getRunewordDefinition(harness.content, equipment.runewordId || "")
     const currentPower = getRunewordPower(currentRuneword)
-    const targetPower = getRunewordPower(targetRuneword)
+    const runewordAdjustment = getArchetypeRunewordAdjustment(targetArchetypeId, slot, targetRuneword.id)
+    const targetPower = getRunewordPower(targetRuneword) * runewordAdjustment
     const targetSocketCount = Math.max(1, Number(targetRuneword.socketCount || 0))
     const insertedRunes = Array.isArray(equipment.insertedRunes) ? equipment.insertedRunes : []
     const prefixLength = insertedRunes.reduce((count: number, runeId: string, index: number) => {
@@ -653,7 +682,7 @@ export function evaluateRunScore(
     getLoadoutTierScore(harness, scoringRun) +
     scoreWeaponProfileForDeck(weaponProfile || undefined, deckStats.proficiencyCounts) * policy.weaponWeight +
     scoreArmorProfile(armorProfile || undefined) * policy.armorWeight +
-    scoreRunewordProgress(harness, scoringRun) +
+    scoreRunewordProgress(harness, scoringRun, options.archetypePlan || null) +
     scoreDeckConstructionState(harness, scoringRun, policy) +
     scoreArchetypePlan(harness, scoringRun, policy, options.archetypePlan || null) +
     Number(scoringRun.progression?.skillPointsAvailable || 0) * policy.bankedSkillPointWeight +
@@ -783,13 +812,23 @@ function scoreTownActionStrategicBias(
     }
     if (onPrimary && roleTag === "payoff") {
       total -= 18
-      if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 5) {
-        total += 34 + (duplicateCount - 4) * 18
+      if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 4) {
+        total += 34 + (duplicateCount - 3) * 18
       }
     } else if (onPrimary && roleTag === "setup") {
       total -= 10
       if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 6) {
         total += 8 + (duplicateCount - 5) * 8
+      }
+    } else if (onPrimary && roleTag === "answer") {
+      total -= 8
+      if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 5) {
+        total += 24 + (duplicateCount - 4) * 14
+      }
+    } else if (onPrimary && roleTag === "support") {
+      total -= 6
+      if (beforeReinforcementDeficit <= 0 && Number(beforeRun.actNumber || 1) >= 4 && duplicateCount >= 5) {
+        total += 22 + (duplicateCount - 4) * 14
       }
     } else if (onSupport && (roleTag === "support" || roleTag === "salvage")) {
       total -= 6
@@ -832,9 +871,62 @@ function scoreTownActionStrategicBias(
       const targetDuplicateCount = Number(afterDeck.duplicateCounts[targetBaseCardId] || 0)
       const targetCard = targetBaseCardId ? getScoringCardDefinition(harness, targetBaseCardId) : null
       const targetRoleTag = ((targetCard?.roleTag as CardRoleTag | undefined) || "answer")
-      const payoffDuplicateCap = Number(beforeRun.actNumber || 1) >= 4 ? 4 : 3
+      let payoffDuplicateCap = Number(beforeRun.actNumber || 1) >= 4 ? 3 : 2
+      if (targetBaseCardId === "sorceress_hydra") {
+        payoffDuplicateCap = 2
+      }
+      if (targetBaseCardId === "sorceress_lightning_mastery") {
+        payoffDuplicateCap = beforeDeck.buildPath?.primaryTrees?.includes("lightning") ? 3 : 1
+      }
+      if (targetBaseCardId === "amazon_pierce") {
+        payoffDuplicateCap = beforeDeck.buildPath?.primaryTrees?.includes("passive") ? 3 : 2
+      }
+      if (targetBaseCardId === "paladin_conviction") {
+        payoffDuplicateCap = 2
+      }
+      if (targetBaseCardId === "assassin_shadow_warrior" && !beforeDeck.buildPath?.primaryTrees?.includes("shadow")) {
+        payoffDuplicateCap = 1
+      }
+      if (targetBaseCardId === "assassin_shadow_warrior" && beforeDeck.buildPath?.primaryTrees?.includes("shadow")) {
+        payoffDuplicateCap = 2
+      }
+      if (targetBaseCardId === "assassin_phoenix_strike" && !beforeDeck.buildPath?.primaryTrees?.includes("martial_arts")) {
+        payoffDuplicateCap = 1
+      }
+      if (targetBaseCardId === "barbarian_berserk") {
+        payoffDuplicateCap = 1
+      }
+      if (targetBaseCardId === "necromancer_revive") {
+        payoffDuplicateCap = 1
+      }
+      if (targetBaseCardId === "druid_fury") {
+        payoffDuplicateCap = 2
+      }
+      if (targetBaseCardId === "druid_armageddon") {
+        payoffDuplicateCap = 2
+      }
+      if (targetBaseCardId === "druid_summon_grizzly") {
+        payoffDuplicateCap = 3
+      }
+      if (targetBaseCardId === "druid_heart_of_wolverine") {
+        payoffDuplicateCap = 3
+      }
+      if (targetBaseCardId === "sorceress_frozen_orb") {
+        payoffDuplicateCap = 3
+      }
       if (targetRoleTag === "payoff" && targetDuplicateCount > payoffDuplicateCap) {
         total -= (targetDuplicateCount - payoffDuplicateCap) * 48
+      } else if (
+        (targetBaseCardId === "barbarian_weapon_mastery" ||
+          targetBaseCardId === "barbarian_steel_skin" ||
+          targetBaseCardId === "barbarian_unyielding") &&
+        targetDuplicateCount > 3
+      ) {
+        total -= (targetDuplicateCount - 3) * 40
+      } else if (targetRoleTag === "support" && Number(beforeRun.actNumber || 1) >= 4 && targetDuplicateCount > 4) {
+        total -= (targetDuplicateCount - 4) * 36
+      } else if (targetRoleTag === "answer" && Number(beforeRun.actNumber || 1) >= 4 && targetDuplicateCount > 4) {
+        total -= (targetDuplicateCount - 4) * 32
       } else if (targetDuplicateCount > 4) {
         total -= (targetDuplicateCount - 4) * 18
       }

@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: April 1, 2026.
+Last updated: April 5, 2026.
 
 ## Purpose
 
@@ -46,7 +46,8 @@ Implemented now:
 - socketed weapon and armor progression with carried inventory, stash transfer, rune insertion, broader item or rune or runeword catalogs, a higher late-game loot band, socket-ready late vendor stock, milestone-aware rune routing or pricing across carried and stash-planned bases, treasury-exchange late-market leverage plus direct vendor-to-stash consignment, sovereign-tier market pressure through `merchant_principate`, `sovereign_exchange`, and `ascendant_exchange`, third-wave market pressure through `trade_hegemony`, `imperial_exchange`, and `mythic_exchange`, profile-owned runeword planning charters plus archive-backed charter ledgers and stash-ready charter staging summaries that steer vendor and reward curation, archive-backed repeat-forge pricing or rune-routing pressure once a charter is already proven, live planning-id sanitization against the current runeword catalog during hydrate or archive review or town routing, cross-tree convergence pressure like `chronicle_exchange`, `sovereign_exchange`, `legendary_annals`, `ascendant_exchange`, `imperial_exchange`, `immortal_annals`, and `mythic_exchange`, profile-aware reward-side replacement curation, quest-driven runeforge rewards that can equip a compatible base and finish the socket or rune recipe through the shared reward seam, boss-guaranteed rune drops plus missing-rune weighting in loot and vendor stock for unfinished runeword projects, combat bonus handoff, a live white or blue or yellow or brown rarity ladder, typed weapon-damage and status-affix rolls, armor resistances with unique-only immunities, unique-only bonus seams like `+1` hand size, and weapon-family combat profiles that grant proficiency-matched attack and support bonuses plus on-hit Burn or Freeze or Shock or Slow or Crushing effects for families like bows, crossbows, javelins, spears, maces, polearms, staves, and wands
 - act-zone loot tables with per-entry drop weights, difficulty-scaled drop counts, boss-biased unique drops, and class-aware vendor or reward-side weapon replacement pressure
 - deterministic seeded run creation, loot, town-service outcomes, combat simulation, skill-audit reporting, power-curve reporting, class-policy progression sweeps, and checkpoint reporting for active runewords or hand-size carry-through during balance work
-- tuned balance around the deterministic progression simulator, with current aggressive optimized builds generally living near the intended clear band while weaker policies can fail as early as Act I against the Briar Matron
+- tuned balance around the deterministic progression simulator, with the row-level committed ledger now serving as the primary balance surface instead of any single frozen matrix: [committed-ledger.json](/Users/andrew/proj/rouge/artifacts/balance/committed-ledger.json) and [committed-ledger.md](/Users/andrew/proj/rouge/artifacts/balance/committed-ledger.md) currently merge the newest known result for each `class / policy / lane / seed` row and now sit at `417 / 420` clears (`0.993`), backed by an append-only history dataset in [committed-history.json](/Users/andrew/proj/rouge/artifacts/balance/committed-history.json) and [committed-history.md](/Users/andrew/proj/rouge/artifacts/balance/committed-history.md) with `996` recorded row versions across those same `420` run keys; the tracked rescue wave for the current row set is complete, so the active balance phase has shifted from lane survival into deck-quality cleanup, payoff-monoculture cleanup, and targeted regression prevention, while large committed matrices remain periodic recalibration passes rather than the routine control loop
+- balance tooling now carries explicit training state and normalized analysis state through row artifacts: targeted runs can serialize `requestedTrainingLoadout`, final `skillBar`, final checkpoint power, last encounter or boss hero and enemy power, training realization, and final build summary, so reruns of the same row can be compared directly instead of inferred from deep blobs; the next broad recalibration should still be the training-aware committed matrix defined in [docs/BALANCE_MATRIX_SPEC.md](/Users/andrew/proj/rouge/docs/BALANCE_MATRIX_SPEC.md) instead of another mixed-contract broad sample
 - account progression trees across archive, economy, and mastery now include prerequisite-aware capstones and live gates like chronicle-vault or heroic-annals or mythic-annals or eternal-annals or sovereign-annals or imperial-annals retention, salvage-tithe or artisan-stock or brokerage-charter or treasury-exchange or merchant-principate or trade-hegemony economy pressure, training-grounds or war-college or paragon-doctrine or apex-doctrine or legend-doctrine or mythic-doctrine reward pivots, and cross-tree convergence bundles like `chronicle_exchange`, `war_annals`, `paragon_exchange`, `sovereign_exchange`, `legendary_annals`, `ascendant_exchange`, `imperial_exchange`, `immortal_annals`, and `mythic_exchange`
 - stronger shell UX with a navigable front-door account hall, a primary expedition wing, a vault or archive wing, a hall-to-character-select-to-safe-zone expedition launch flow, town navigators, service drilldowns, route-intel panels, a world-map route decision desk, a reward continuity desk, an act-transition delta wrapper, explicit reward or run-end delta reviews, live unlock or tutorial or account-summary surfacing, focused-tree review or control surfaces, direct front-door preferred-class or settings or tutorial or runeword-planning controls, charter-ledger review, interactive archived-run review from the account hall, a hall decision desk, a town prep comparison board, a safe-zone before-or-after desk for the highest-value town-prep actions, a run-end hall handoff, a shared account-meta continuity board across hall or town or map or reward or act-transition or run-end, and a shared charter or convergence drilldown layer across those same shell phases
 - safe-zone services for healing, belt refill, mercenary hire or replace or revive, vendor refresh or buy or sell or consign to stash, inventory or stash actions, departure-readiness framing, and before-or-after action treatment for the highest-value prep decisions
@@ -68,6 +69,10 @@ Not implemented now:
 Use the deterministic simulator tooling for balance checks instead of one-off feel tuning.
 
 - current snapshot and latest interpretation live in [artifacts/balance/latest.md](/Users/andrew/proj/rouge/artifacts/balance/latest.md)
+- use [docs/BALANCE_PLAN.md](/Users/andrew/proj/rouge/docs/BALANCE_PLAN.md) as the operating plan for which suites matter, what order to tune in, and what counts as success
+- use [docs/BALANCE_EXECUTION_CHECKLIST.md](/Users/andrew/proj/rouge/docs/BALANCE_EXECUTION_CHECKLIST.md) as the short working checklist for the current balance phase
+- use [docs/BALANCE_LANE_BOARD.md](/Users/andrew/proj/rouge/docs/BALANCE_LANE_BOARD.md) as the current lane-by-lane snapshot from the merged committed ledger
+- use [docs/BALANCE_MATRIX_SPEC.md](/Users/andrew/proj/rouge/docs/BALANCE_MATRIX_SPEC.md) as the source of truth for what the periodic complete matrix should contain in the training-aware runtime
 - `npm run sim:skill-audit` audits card-value outliers by tier, cost, and role
 - `npm run sim:balance -- --class barbarian,sorceress --scenario mainline_conservative,mainline_rewarded --set act5_endgame --runs 8` measures encounter win rate, turn length, and party-vs-enemy power on fixed endgame sets
 - `npm run sim:progression -- --class barbarian,sorceress --policy aggressive --through-act 3 --probe-runs 0` runs a deterministic campaign checkpoint sim and now reports active runewords at each safe zone
@@ -79,7 +84,10 @@ Near-term combat direction lives in [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](
 
 - keep visible enemy intent as the main fairness tool for tactical turns
 - use energy to force meaningful sequencing choices instead of letting early hands dump trivially
-- use [docs/DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md) as the source of truth for the hybrid gameplay model: STS for turn tension, Monster Train for reinforcement and upgrade pressure, Diablo II for class identity and matchup-prep structure
+- use [docs/DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md) as the source of truth for the hybrid gameplay model: `Slay the Spire` and `Monster Train` are now the primary deckbuilder design anchors, while Diablo II remains the class-identity and matchup-prep anchor
+- treat `Slay the Spire` as the main source for card-state manipulation, temporary combat mutation, and next-card rule tension
+- treat `Monster Train` as the main source for persistent engine state, trigger language, and package readability
+- treat the other reviewed deckbuilders as secondary calibration references, not equal-weight structure sources
 - use [docs/DECKBUILDER_PROGRESSION_AUDIT.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_PROGRESSION_AUDIT.md) as the live-gap audit for reward screens, evolutions, deck surgery, and merchant reinforcement
 - use [docs/OPTIMIZED_DECK_PROFILE.md](/Users/andrew/proj/rouge/docs/OPTIMIZED_DECK_PROFILE.md) as the target-state definition of what a strong late-game deck should look like and whether the path to it felt earned
 - use [docs/D2_SPECIALIZATION_MODEL.md](/Users/andrew/proj/rouge/docs/D2_SPECIALIZATION_MODEL.md) as the source of truth for one-tree specialization, utility splash rules, and soft-counter boss prep
@@ -87,7 +95,7 @@ Near-term combat direction lives in [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](
 - use [docs/COMBAT_DECISION_DESIGN.md](/Users/andrew/proj/rouge/docs/COMBAT_DECISION_DESIGN.md) as the target-state reference for hand tension, skill-card roles, and enemy-intent design
 - use [docs/COMBAT_DECISION_AUDIT.md](/Users/andrew/proj/rouge/docs/COMBAT_DECISION_AUDIT.md) as the current prioritized gap list for starter cards, enemy verbs, and encounter decision depth
 
-The current rule is to rerun the relevant sweep after major combat, loot, or class-card changes, then freeze balance unless the new deterministic sample shows a clear outlier.
+The current rule is to rerun the smallest relevant row set after major combat, loot, or class-card changes, regenerate the committed ledger, and only escalate to a broader matrix when the row-level picture is unclear or a systemic regression is suspected.
 
 ## Documentation Layers
 
@@ -172,11 +180,28 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/ROADMAP_EPICS.md](/Users/andrew/proj/rouge/docs/ROADMAP_EPICS.md)
 - [docs/GAME_ENGINE_FLOW_PLAN.md](/Users/andrew/proj/rouge/docs/GAME_ENGINE_FLOW_PLAN.md)
 - [docs/DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md)
+- [docs/CARD_ACTION_SURFACE_REVIEW.md](/Users/andrew/proj/rouge/docs/CARD_ACTION_SURFACE_REVIEW.md)
+- [docs/SKILL_ACTION_SURFACE_SYNTHESIS.md](/Users/andrew/proj/rouge/docs/SKILL_ACTION_SURFACE_SYNTHESIS.md)
+- [docs/SKILL_TAXONOMY.md](/Users/andrew/proj/rouge/docs/SKILL_TAXONOMY.md)
+- [docs/CLASS_SKILL_BAR_BLUEPRINTS.md](/Users/andrew/proj/rouge/docs/CLASS_SKILL_BAR_BLUEPRINTS.md)
+- [docs/CLASS_STARTER_SKILL_BAR_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_STARTER_SKILL_BAR_SPECS.md)
+- [docs/CLASS_SLOT2_BRIDGE_SKILL_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_SLOT2_BRIDGE_SKILL_SPECS.md)
+- [docs/CLASS_SLOT3_CAPSTONE_SKILL_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_SLOT3_CAPSTONE_SKILL_SPECS.md)
+- [docs/SKILL_UNLOCK_AND_GATING_RULES.md](/Users/andrew/proj/rouge/docs/SKILL_UNLOCK_AND_GATING_RULES.md)
+- [docs/SAFE_ZONE_TRAINING_SCREEN_SPEC.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_SCREEN_SPEC.md)
+- [docs/SAFE_ZONE_TRAINING_RUNTIME_MODEL.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_RUNTIME_MODEL.md)
+- [docs/SAFE_ZONE_TRAINING_TYPE_CHANGE_SPEC.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_TYPE_CHANGE_SPEC.md)
+- [docs/SAFE_ZONE_TRAINING_ACTION_DISPATCHER_CONTRACT.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_ACTION_DISPATCHER_CONTRACT.md)
+- [docs/SAFE_ZONE_TRAINING_IMPLEMENTATION_PLAN.md](/Users/andrew/proj/rouge/docs/SAFE_ZONE_TRAINING_IMPLEMENTATION_PLAN.md)
+- [docs/SKILLS_JSON_TRAINING_SCHEMA_PLAN.md](/Users/andrew/proj/rouge/docs/SKILLS_JSON_TRAINING_SCHEMA_PLAN.md)
 - [docs/DECKBUILDER_PROGRESSION_AUDIT.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_PROGRESSION_AUDIT.md)
+- [docs/BALANCE_PLAN.md](/Users/andrew/proj/rouge/docs/BALANCE_PLAN.md)
+- [docs/BALANCE_EXECUTION_CHECKLIST.md](/Users/andrew/proj/rouge/docs/BALANCE_EXECUTION_CHECKLIST.md)
 - [docs/OPTIMIZED_DECK_PROFILE.md](/Users/andrew/proj/rouge/docs/OPTIMIZED_DECK_PROFILE.md)
 - [docs/CLASS_DECKBUILDER_PROGRESSION.md](/Users/andrew/proj/rouge/docs/CLASS_DECKBUILDER_PROGRESSION.md)
 - [docs/D2_SPECIALIZATION_MODEL.md](/Users/andrew/proj/rouge/docs/D2_SPECIALIZATION_MODEL.md)
 - [docs/CLASS_IDENTITY_PATHS.md](/Users/andrew/proj/rouge/docs/CLASS_IDENTITY_PATHS.md)
+- [docs/DRUID_LANE_PACKAGES.md](/Users/andrew/proj/rouge/docs/DRUID_LANE_PACKAGES.md)
 - [docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_BUILD_IDENTITY_DESIGN.md)
 - [docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md](/Users/andrew/proj/rouge/docs/STRATEGIC_GAMEPLAY_EXECUTION_PLAN.md)
 - [docs/CLASS_STRATEGY_GUIDE_SYSTEM.md](/Users/andrew/proj/rouge/docs/CLASS_STRATEGY_GUIDE_SYSTEM.md)
@@ -184,6 +209,7 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md)
 - [docs/CLASS_REWARD_TIERS.md](/Users/andrew/proj/rouge/docs/CLASS_REWARD_TIERS.md)
 - [docs/CLASS_CAPSTONES.md](/Users/andrew/proj/rouge/docs/CLASS_CAPSTONES.md)
+- [docs/wiki/inspirations/DECKBUILDER_ACTION_SURFACE_SOURCES.md](/Users/andrew/proj/rouge/docs/wiki/inspirations/DECKBUILDER_ACTION_SURFACE_SOURCES.md)
 - [docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md](/Users/andrew/proj/rouge/docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md)
 - [docs/VISUAL_DESIGN_TRD.md](/Users/andrew/proj/rouge/docs/VISUAL_DESIGN_TRD.md)
 - [docs/ui-redesign-plan.md](/Users/andrew/proj/rouge/docs/ui-redesign-plan.md)

@@ -19,7 +19,7 @@ import {
   runProgressionFromBalanceSnapshotToken,
   traceFromBalanceSnapshotToken,
 } from "./helpers/balance-orchestration";
-import { createQuietAppHarness, createProgressionSimulationSeed, createSimulationState } from "./helpers/run-progression-simulator";
+import { applySimulationTrainingLoadout, createQuietAppHarness, createProgressionSimulationSeed, createSimulationState } from "./helpers/run-progression-simulator";
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const ORCHESTRATOR_SCRIPT = path.join(ROOT, "scripts", "run-balance-orchestrator.js");
@@ -70,6 +70,41 @@ test("committed archetype suites expand one task per named lane", () => {
     tasks.map((task) => task.targetArchetypeId).sort(),
     ["sorceress_cold", "sorceress_fire", "sorceress_lightning"]
   );
+  assert.equal(tasks.every((task) => task.trainingLoadout?.favoredTreeId === task.targetArchetypeId), true);
+  assert.equal(tasks.every((task) => Boolean(task.trainingLoadout?.equippedSkillIds?.slot2)), true);
+  assert.equal(tasks.every((task) => Boolean(task.trainingLoadout?.equippedSkillIds?.slot3)), true);
+});
+
+test("simulation training loadouts unlock and equip bridge/capstone skills once gates are met", () => {
+  const harness = createQuietAppHarness();
+  const seed = createProgressionSimulationSeed("sorceress", "aggressive", 2, 0);
+  const state = createSimulationState(harness, "sorceress", seed);
+  const progression = harness.classRegistry.getClassProgression(harness.content, "sorceress");
+  const fireTree = progression?.trees.find((tree) => tree.id === "sorceress_fire");
+  const bridgeSkill = fireTree?.skills.find((skill) => skill.slot === 2 || skill.tier === "bridge");
+  const capstoneSkill = fireTree?.skills.find((skill) => skill.slot === 3 || skill.tier === "capstone");
+
+  assert.ok(state.run);
+  assert.ok(fireTree);
+  assert.ok(bridgeSkill);
+  assert.ok(capstoneSkill);
+
+  state.run.level = Math.max(12, Number(capstoneSkill.requiredLevel || 0));
+  state.run.progression.classProgression.treeRanks = { sorceress_fire: 6 };
+
+  applySimulationTrainingLoadout(harness, state, {
+    favoredTreeId: "sorceress_fire",
+    equippedSkillIds: {
+      slot2: bridgeSkill.id,
+      slot3: capstoneSkill.id,
+    },
+  });
+
+  assert.equal(state.run.progression.classProgression.favoredTreeId, "sorceress_fire");
+  assert.ok(state.run.progression.classProgression.unlockedSkillIds.includes(bridgeSkill.id));
+  assert.ok(state.run.progression.classProgression.unlockedSkillIds.includes(capstoneSkill.id));
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot2SkillId, bridgeSkill.id);
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot3SkillId, capstoneSkill.id);
 });
 
 test("class progression trees expose behavior and counter tags", () => {
@@ -87,7 +122,7 @@ test("class progression trees expose behavior and counter tags", () => {
     true
   );
   assert.equal(archetypeCatalog.sorceress.sorceress_fire.targetBand, "flagship");
-  assert.equal(archetypeCatalog.sorceress.sorceress_fire.splashRole, "hybrid_only");
+  assert.equal(archetypeCatalog.sorceress.sorceress_fire.splashRole, "utility_splash_ok");
   assert.ok(archetypeCatalog.sorceress.sorceress_fire.behaviorTags.includes("payoff"));
 });
 
@@ -147,6 +182,7 @@ test("balance snapshot tokens restore and resume progression", () => {
       probeRuns: 0,
       maxCombatTurns: 24,
       seedOffset: 0,
+      trainingLoadout: null,
       progress: {
         actionCounts: {},
         townActionCounts: {},
@@ -210,6 +246,12 @@ test("balance run task captures boss snapshots and trace payloads", () => {
   const trace = traceFromBalanceSnapshotToken(bossSnapshot!.token, spec.maxCombatTurns);
   assert.equal(trace.mode, "combat");
   assert.ok(trace.encounterId);
+  assert.ok(result.record.skillBar);
+  assert.equal(result.record.skillBar?.slotStateLabel, "1 / 3");
+  assert.ok(result.record.skillBar?.equippedSkillIds.slot1);
+  assert.ok(Array.isArray(result.record.skillBar?.unlockedSkillIds));
+  assert.ok(result.record.analysis?.finalCheckpoint);
+  assert.ok(result.record.analysis?.lastBoss);
 });
 
 test("balance artifact aggregates metrics and evaluates bands", () => {

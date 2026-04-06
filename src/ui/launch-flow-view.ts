@@ -81,6 +81,28 @@
       lastPlayedClass?.name || (profileSummary.lastPlayedClassId ? humanizeId(profileSummary.lastPlayedClassId) : "No archived run yet");
     const selectedMercenaryLabel = selectedMercenary?.name || "Choose a companion";
     const deckProfileId = selectedClassId ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getDeckProfileId?.(appState.content, selectedClassId) || "Unset" : "Unset";
+    const classProgression = selectedClassId
+      ? runtimeWindow.ROUGE_CLASS_REGISTRY?.getClassProgression?.(appState.content, selectedClassId) || null
+      : null;
+    const progressionSkills = Array.isArray(classProgression?.trees)
+      ? classProgression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills || [])
+      : [];
+    const starterSkill = progressionSkills.find((skill: RuntimeClassSkillDefinition) => {
+      return skill.id === classProgression?.starterSkillId || skill.isStarter || (skill.slot === 1 && skill.tier === "starter");
+    }) || null;
+    const equippedSkillIds = appState.run
+      ? [
+          appState.run.progression?.classProgression?.equippedSkillBar?.slot1SkillId || "",
+          appState.run.progression?.classProgression?.equippedSkillBar?.slot2SkillId || "",
+          appState.run.progression?.classProgression?.equippedSkillBar?.slot3SkillId || "",
+        ].filter(Boolean)
+      : [];
+    const equippedSkillNames = equippedSkillIds
+      .map((skillId) => progressionSkills.find((skill: RuntimeClassSkillDefinition) => skill.id === skillId)?.name || humanizeId(skillId))
+      .filter(Boolean);
+    const skillBarStateLabel = appState.run
+      ? `${equippedSkillIds.length}/3 Slots`
+      : starterSkill?.name || "Starter Skill";
     const townName = appState.run?.safeZoneName || ZONE_NAME.FORSAKEN_PALISADE;
     const routeLabel = appState.run?.actTitle || "Blackwood Route";
     const hallBlocked = Boolean(profileSummary.hasActiveRun);
@@ -151,13 +173,16 @@
               ${buildStat("Class", selectedClassLabel)}
               ${buildStat("Merc", selectedMercenaryLabel)}
               ${buildStat("Deck", deckProfileId)}
-              ${buildStat("Focus", accountSummary.focusedTreeTitle || "Unset")}
+              ${buildStat("Skill Bar", skillBarStateLabel)}
             </div>
             ${buildStringList(
               [
                 `Selected class: ${selectedClassLabel}.`,
                 `Selected contract: ${selectedMercenaryLabel}.`,
                 `Deck profile: ${deckProfileId}.`,
+                starterSkill
+                  ? `Starter skill plan: ${starterSkill.name} opens the identity slot, with Tactical at Level 6 and Commitment at Level 12.`
+                  : "Starter skill plan locks the identity slot first, then opens Tactical at Level 6 and Commitment at Level 12.",
                 draftFollowThrough,
               ],
               "log-list reward-list ledger-list"
@@ -180,6 +205,9 @@
                 appState.run
                   ? `Current launch carries ${selectedClassLabel} with ${selectedMercenaryLabel}.`
                   : "The drafted hero and contract carry straight into the first town pass.",
+                appState.run
+                  ? `Current skill bar: ${equippedSkillIds.length}/3 slots, ${equippedSkillNames.join(" / ") || "starter slot only"}.`
+                  : "Starter skill bar carries straight into town and expands through training gates at Levels 6 and 12.",
                 "The first town pass groups recovery, supply, stash, training, and departure review before the map opens.",
                 townFollowThrough,
               ],

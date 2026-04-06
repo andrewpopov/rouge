@@ -4,6 +4,7 @@ import zlib from "node:zlib";
 import { createAppHarness } from "./browser-harness";
 import { runBalanceSimulationReport, type BalanceSimulationReport } from "./combat-simulator";
 import {
+  applySimulationTrainingLoadout,
   createQuietAppHarness,
   createProgressionSimulationSeed,
   createSimulationState,
@@ -12,8 +13,10 @@ import {
   getTrackedRandomState,
   runProgressionPolicyFromState,
   traceCombatStateWithPolicy,
+  type PolicySimulationReport,
   type PolicyRunSummary,
   type RunProgressionContinuationContext,
+  type RunProgressionTrainingLoadout,
   type SafeZoneCheckpointSummary,
   type SimulationFailureSummary,
 } from "./run-progression-simulator";
@@ -97,6 +100,7 @@ export interface BalanceRunTask {
   targetArchetypeId?: string;
   targetArchetypeLabel?: string;
   targetBand?: BalanceArchetypeTargetBand;
+  trainingLoadout?: RunProgressionTrainingLoadout | null;
 }
 
 export interface BalanceArchetypeCatalogEntry extends RewardEngineArchetypeCatalogEntry {
@@ -168,6 +172,99 @@ export interface BalanceRunRecord {
   failure: SimulationFailureSummary | null;
   durationMs: number;
   completedAt: string;
+  requestedTrainingLoadout?: RunProgressionTrainingLoadout | null;
+  skillBar?: {
+    favoredTreeId: string;
+    unlockedSkillCount: number;
+    unlockedSkillIds: string[];
+    unlockedSkillNames: string[];
+    slotStateLabel: string;
+    equippedSkillIds: Record<RunSkillBarSlotKey, string>;
+    equippedSkillNames: Record<RunSkillBarSlotKey, string>;
+  };
+  analysis?: {
+    finalCheckpoint: {
+      checkpointId: string;
+      checkpointKind: "safe_zone" | "pre_boss";
+      actNumber: number;
+      level: number;
+      powerScore: number;
+      bossReadinessScore: number;
+      bossAdjustedPowerScore: number;
+    } | null;
+    lastEncounter: {
+      encounterId: string;
+      encounterName: string;
+      zoneTitle: string;
+      kind: string;
+      outcome: string;
+      turns: number;
+      heroPowerScore: number;
+      enemyPowerScore: number;
+      powerRatio: number;
+    } | null;
+    lastBoss: {
+      encounterId: string;
+      encounterName: string;
+      zoneTitle: string;
+      kind: string;
+      outcome: string;
+      turns: number;
+      heroPowerScore: number;
+      enemyPowerScore: number;
+      powerRatio: number;
+    } | null;
+    trainingRealization: {
+      favoredTreeRequested: string;
+      favoredTreeActual: string;
+      favoredTreeMatched: boolean;
+      requestedUnlockedSkillIds: string[];
+      actualUnlockedSkillIds: string[];
+      slot2RequestedSkillId: string;
+      slot2ActualSkillId: string;
+      slot2Matched: boolean;
+      slot3RequestedSkillId: string;
+      slot3ActualSkillId: string;
+      slot3Matched: boolean;
+      fullyRealized: boolean;
+    } | null;
+    finalBuild: {
+      hero: {
+        maxLife: number;
+        maxEnergy: number;
+        handSize: number;
+        potionHeal: number;
+        damageBonus: number;
+        guardBonus: number;
+        burnBonus: number;
+      };
+      mercenary: {
+        name: string;
+        maxLife: number;
+        attack: number;
+      };
+      weaponName: string;
+      weaponFamily: string;
+      armorName: string;
+      favoredTreeId: string;
+      favoredTreeName: string;
+      dominantArchetypeId: string;
+      dominantArchetypeLabel: string;
+      secondaryArchetypeId: string;
+      secondaryArchetypeLabel: string;
+      deckFamily: string;
+      targetShapeFit: number;
+      starterShellCardsRemaining: number;
+      reinforcedCardCount: number;
+      deckSize: number;
+      activeRunewords: string[];
+      counterCoverageTags: string[];
+      offTreeUtilityCount: number;
+      offTreeDamageCount: number;
+      topCards: string[];
+      centerpieceCards: string[];
+    };
+  };
   checkpoints: SafeZoneCheckpointSummary[];
   summary: PolicyRunSummary;
   snapshots: Record<string, BalanceSnapshotReference>;
@@ -258,6 +355,195 @@ export interface BalanceRunRecord {
       averageEarlyEndTurnRegret?: number;
     }>;
   } | null;
+}
+
+function buildRunSkillBarSummary(
+  harness: ReturnType<typeof createQuietAppHarness>,
+  run: RunState | null | undefined
+): BalanceRunRecord["skillBar"] {
+  if (!run) {
+    return undefined;
+  }
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId);
+  const progressionSkills = Array.isArray(classProgression?.trees)
+    ? classProgression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills || [])
+    : [];
+  const equippedSkillIds = {
+    slot1: run.progression?.classProgression?.equippedSkillBar?.slot1SkillId || "",
+    slot2: run.progression?.classProgression?.equippedSkillBar?.slot2SkillId || "",
+    slot3: run.progression?.classProgression?.equippedSkillBar?.slot3SkillId || "",
+  };
+  const equippedSkillNames = {
+    slot1: progressionSkills.find((skill: RuntimeClassSkillDefinition) => skill.id === equippedSkillIds.slot1)?.name || "",
+    slot2: progressionSkills.find((skill: RuntimeClassSkillDefinition) => skill.id === equippedSkillIds.slot2)?.name || "",
+    slot3: progressionSkills.find((skill: RuntimeClassSkillDefinition) => skill.id === equippedSkillIds.slot3)?.name || "",
+  };
+  const unlockedSkillCount = Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
+    ? run.progression.classProgression.unlockedSkillIds.length
+    : 0;
+  const unlockedSkillIds = Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
+    ? [...run.progression.classProgression.unlockedSkillIds]
+    : [];
+  const unlockedSkillNames = unlockedSkillIds
+    .map((skillId) => progressionSkills.find((skill: RuntimeClassSkillDefinition) => skill.id === skillId)?.name || "")
+    .filter(Boolean);
+  const filledSlots = Object.values(equippedSkillIds).filter(Boolean).length;
+  return {
+    favoredTreeId: String(run.progression?.classProgression?.favoredTreeId || ""),
+    unlockedSkillCount,
+    unlockedSkillIds,
+    unlockedSkillNames,
+    slotStateLabel: `${filledSlots} / 3`,
+    equippedSkillIds,
+    equippedSkillNames,
+  };
+}
+
+function buildTrainingRealizationSummary(
+  requestedTrainingLoadout: RunProgressionTrainingLoadout | null | undefined,
+  skillBar: BalanceRunRecord["skillBar"]
+): NonNullable<BalanceRunRecord["analysis"]>["trainingRealization"] {
+  if (!requestedTrainingLoadout && !skillBar) {
+    return null;
+  }
+  const requestedUnlockedSkillIds = Array.isArray(requestedTrainingLoadout?.unlockedSkillIds)
+    ? requestedTrainingLoadout.unlockedSkillIds.filter(Boolean)
+    : [];
+  const actualUnlockedSkillIds = Array.isArray(skillBar?.unlockedSkillIds)
+    ? skillBar.unlockedSkillIds.filter(Boolean)
+    : [];
+  const slot2RequestedSkillId = String(requestedTrainingLoadout?.equippedSkillIds?.slot2 || "");
+  const slot3RequestedSkillId = String(requestedTrainingLoadout?.equippedSkillIds?.slot3 || "");
+  const slot2ActualSkillId = String(skillBar?.equippedSkillIds?.slot2 || "");
+  const slot3ActualSkillId = String(skillBar?.equippedSkillIds?.slot3 || "");
+  const favoredTreeRequested = String(requestedTrainingLoadout?.favoredTreeId || "");
+  const favoredTreeActual = String(skillBar?.favoredTreeId || "");
+  const slot2Matched = !slot2RequestedSkillId || slot2RequestedSkillId === slot2ActualSkillId;
+  const slot3Matched = !slot3RequestedSkillId || slot3RequestedSkillId === slot3ActualSkillId;
+  const favoredTreeMatched = !favoredTreeRequested || favoredTreeRequested === favoredTreeActual;
+  const unlockedMatched = requestedUnlockedSkillIds.every((skillId) => actualUnlockedSkillIds.includes(skillId));
+  return {
+    favoredTreeRequested,
+    favoredTreeActual,
+    favoredTreeMatched,
+    requestedUnlockedSkillIds,
+    actualUnlockedSkillIds,
+    slot2RequestedSkillId,
+    slot2ActualSkillId,
+    slot2Matched,
+    slot3RequestedSkillId,
+    slot3ActualSkillId,
+    slot3Matched,
+    fullyRealized: favoredTreeMatched && slot2Matched && slot3Matched && unlockedMatched,
+  };
+}
+
+function buildRunAnalysisSummary(
+  report: PolicySimulationReport,
+  requestedTrainingLoadout: RunProgressionTrainingLoadout | null | undefined,
+  skillBar: BalanceRunRecord["skillBar"]
+): BalanceRunRecord["analysis"] {
+  const checkpoints = Array.isArray(report.checkpoints) ? report.checkpoints : [];
+  const finalCheckpoint = checkpoints.length > 0 ? checkpoints[checkpoints.length - 1] : null;
+  const encounterResults = Array.isArray(report.summary?.encounterResults) ? report.summary.encounterResults : [];
+  const lastEncounter = encounterResults.length > 0 ? encounterResults[encounterResults.length - 1] : null;
+  const lastBoss = [...encounterResults].reverse().find((encounter) => encounter.kind === "boss") || null;
+  const finalBuild = report.summary?.finalBuild || buildEmptyFinalBuild();
+  return {
+    finalCheckpoint: finalCheckpoint
+      ? {
+          checkpointId: finalCheckpoint.checkpointId,
+          checkpointKind: finalCheckpoint.checkpointKind,
+          actNumber: Number(finalCheckpoint.actNumber || 0),
+          level: Number(finalCheckpoint.level || 0),
+          powerScore: Number(finalCheckpoint.powerScore || 0),
+          bossReadinessScore: Number(finalCheckpoint.bossReadinessScore || 0),
+          bossAdjustedPowerScore: Number(finalCheckpoint.bossAdjustedPowerScore || 0),
+        }
+      : null,
+    lastEncounter: lastEncounter
+      ? {
+          encounterId: lastEncounter.encounterId,
+          encounterName: lastEncounter.encounterName,
+          zoneTitle: lastEncounter.zoneTitle,
+          kind: lastEncounter.kind,
+          outcome: lastEncounter.outcome,
+          turns: Number(lastEncounter.turns || 0),
+          heroPowerScore: Number(lastEncounter.heroPowerScore || 0),
+          enemyPowerScore: Number(lastEncounter.enemyPowerScore || 0),
+          powerRatio: Number(lastEncounter.powerRatio || 0),
+        }
+      : null,
+    lastBoss: lastBoss
+      ? {
+          encounterId: lastBoss.encounterId,
+          encounterName: lastBoss.encounterName,
+          zoneTitle: lastBoss.zoneTitle,
+          kind: lastBoss.kind,
+          outcome: lastBoss.outcome,
+          turns: Number(lastBoss.turns || 0),
+          heroPowerScore: Number(lastBoss.heroPowerScore || 0),
+          enemyPowerScore: Number(lastBoss.enemyPowerScore || 0),
+          powerRatio: Number(lastBoss.powerRatio || 0),
+        }
+      : null,
+    trainingRealization: buildTrainingRealizationSummary(requestedTrainingLoadout, skillBar),
+    finalBuild: {
+      hero: { ...finalBuild.hero },
+      mercenary: { ...finalBuild.mercenary },
+      weaponName: finalBuild.weapon?.name || "",
+      weaponFamily: finalBuild.weapon?.family || "",
+      armorName: finalBuild.armor?.name || "",
+      favoredTreeId: finalBuild.favoredTreeId || "",
+      favoredTreeName: finalBuild.favoredTreeName || "",
+      dominantArchetypeId: finalBuild.dominantArchetypeId || "",
+      dominantArchetypeLabel: finalBuild.dominantArchetypeLabel || "",
+      secondaryArchetypeId: finalBuild.secondaryArchetypeId || "",
+      secondaryArchetypeLabel: finalBuild.secondaryArchetypeLabel || "",
+      deckFamily: finalBuild.deckProfile?.deckFamily || "",
+      targetShapeFit: Number(finalBuild.deckProfile?.targetShapeFit || 0),
+      starterShellCardsRemaining: Number(finalBuild.deckProfile?.starterShellCardsRemaining || 0),
+      reinforcedCardCount: Number(finalBuild.deckProfile?.reinforcedCardCount || 0),
+      deckSize: Number(finalBuild.deckSize || 0),
+      activeRunewords: [...(finalBuild.activeRunewords || [])],
+      counterCoverageTags: [...(finalBuild.counterCoverageTags || [])],
+      offTreeUtilityCount: Number(finalBuild.offTreeUtilityCount || 0),
+      offTreeDamageCount: Number(finalBuild.offTreeDamageCount || 0),
+      topCards: [...(finalBuild.topCards || [])],
+      centerpieceCards: Array.isArray(finalBuild.deckProfile?.centerpieceCards)
+        ? finalBuild.deckProfile.centerpieceCards
+          .map((entry: { title?: string; cardId?: string }) => entry.title || entry.cardId)
+          .filter(Boolean)
+        : [],
+    },
+  };
+}
+
+function buildTaskTrainingLoadout(
+  harness: ReturnType<typeof createQuietAppHarness>,
+  classId: string,
+  targetArchetypeId?: string
+): RunProgressionTrainingLoadout | null {
+  const treeId = String(targetArchetypeId || "");
+  if (!treeId) {
+    return null;
+  }
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, classId);
+  const targetTree = classProgression?.trees?.find((tree: RuntimeClassTreeDefinition) => tree.id === treeId) || null;
+  if (!targetTree) {
+    return null;
+  }
+  const bridgeSkill = targetTree.skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 2 || skill.tier === "bridge") || null;
+  const capstoneSkill = targetTree.skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 3 || skill.tier === "capstone") || null;
+  const unlockedSkillIds = [bridgeSkill?.id || "", capstoneSkill?.id || ""].filter(Boolean);
+  return {
+    favoredTreeId: targetTree.id,
+    unlockedSkillIds,
+    equippedSkillIds: {
+      slot2: bridgeSkill?.id || "",
+      slot3: capstoneSkill?.id || "",
+    },
+  };
 }
 
 export interface BalanceBandEvaluation {
@@ -603,6 +889,7 @@ export function createSyntheticBalanceRunRecord(
     },
     durationMs: Number(options.durationMs || 0),
     completedAt: new Date().toISOString(),
+    requestedTrainingLoadout: task.trainingLoadout || null,
     checkpoints: [],
     summary,
     snapshots: {},
@@ -1126,6 +1413,7 @@ export function getBalanceExperimentCatalog(): Record<string, BalanceExperimentS
 
 export function buildBalanceRunTasks(spec: BalanceExperimentSpec): BalanceRunTask[] {
   const tasks: BalanceRunTask[] = [];
+  const harness = createQuietAppHarness();
   const policyIds =
     spec.scenarioType === "combat_balance"
       ? (spec.scenarioIds && spec.scenarioIds.length > 0 ? spec.scenarioIds : spec.policyIds)
@@ -1153,6 +1441,7 @@ export function buildBalanceRunTasks(spec: BalanceExperimentSpec): BalanceRunTas
             targetArchetypeId: targetEntry?.archetypeId,
             targetArchetypeLabel: targetEntry?.label,
             targetBand: targetEntry?.targetBand,
+            trainingLoadout: buildTaskTrainingLoadout(harness, classId, targetEntry?.archetypeId),
           });
         });
       });
@@ -2446,6 +2735,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     failure: null,
     durationMs: 0,
     completedAt: new Date().toISOString(),
+    requestedTrainingLoadout: task.trainingLoadout || null,
     checkpoints: [],
     summary,
     snapshots: {},
@@ -2615,8 +2905,11 @@ export function executeBalanceRunTask(
   const startedAt = Date.now();
   let report;
   let className = task.classId;
+  let finalRun: RunState | null = null;
+  let finalHarness: ReturnType<typeof createQuietAppHarness> | null = null;
   if (options.snapshotToken) {
     const { harness, state, envelope } = restoreBalanceSnapshotToken(options.snapshotToken);
+    applySimulationTrainingLoadout(harness, state, task.trainingLoadout || envelope.simulation?.continuationContext?.trainingLoadout || null);
     className = state.run?.className || envelope.snapshot.run?.className || task.classId;
     report = runProgressionPolicyFromState(
       harness,
@@ -2629,12 +2922,18 @@ export function executeBalanceRunTask(
       task.seedOffset,
       envelope.simulation?.continuationContext || undefined,
       hooks,
-      archetypePlan
+      archetypePlan,
+      "default",
+      task.trainingLoadout || envelope.simulation?.continuationContext?.trainingLoadout || null
     );
+    finalRun = state.run;
+    finalHarness = harness;
   } else {
     const harness = createQuietAppHarness();
     const seed = createProgressionSimulationSeed(task.classId, task.policyId, spec.throughActNumber, task.seedOffset);
-    const state = createSimulationState(harness, task.classId, seed);
+    const state = createSimulationState(harness, task.classId, seed, {
+      trainingLoadout: task.trainingLoadout || null,
+    });
     className = state.run?.className || task.classId;
     report = runProgressionPolicyFromState(
       harness,
@@ -2647,10 +2946,15 @@ export function executeBalanceRunTask(
       task.seedOffset,
       undefined,
       hooks,
-      archetypePlan
+      archetypePlan,
+      "default",
+      task.trainingLoadout || null
     );
+    finalRun = state.run;
+    finalHarness = harness;
   }
   const durationMs = Date.now() - startedAt;
+  const finalSkillBar = finalHarness ? buildRunSkillBarSummary(finalHarness, finalRun) : undefined;
 
   const record: BalanceRunRecord = {
     runKey: buildRunKeyString(task.runKey),
@@ -2671,6 +2975,9 @@ export function executeBalanceRunTask(
     failure: report.failure || null,
     durationMs,
     completedAt: new Date().toISOString(),
+    requestedTrainingLoadout: task.trainingLoadout || null,
+    skillBar: finalSkillBar,
+    analysis: buildRunAnalysisSummary(report, task.trainingLoadout || null, finalSkillBar),
     checkpoints: clone(report.checkpoints || []),
     summary: clone(report.summary),
     snapshots,

@@ -303,6 +303,13 @@
     state.ui.selectedClassId = snapshot.selectedClassId || state.run.classId || state.ui.selectedClassId;
     state.ui.selectedMercenaryId = snapshot.selectedMercenaryId || state.run.mercenary.id || state.ui.selectedMercenaryId;
     resetFrontDoorUi(state);
+    state.ui.trainingView.open = false;
+    state.ui.trainingView.source = "";
+    state.ui.trainingView.selectedTreeId = "";
+    state.ui.trainingView.selectedSkillId = "";
+    state.ui.trainingView.compareSkillId = "";
+    state.ui.trainingView.selectedSlot = "";
+    state.ui.trainingView.mode = "browse";
     state.combat = null;
     state.phase = normalizeLoadedPhase(snapshot.phase);
     state.error = "";

@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-04-06T05:09:15.607Z",
+  "note": "Promoted live card illustrations generated during the gpt-image-1.5 low review passes.",
+  "model": "gpt-image-1.5",
+  "quality": "low",
+  "size": "1024x1536",
+  "entries": [
+    {
+      "asset": "assets/curated/card-illustrations/amazon_slow_missiles__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/amazon_slow_missiles__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/amazon_avoid__gpt15low_v2.png",
+      "source": "output/imagegen/gpt15-low-gap12-reroll/amazon_avoid__gpt15low_v2.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/amazon_penetrate__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/amazon_penetrate__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/amazon_decoy__gpt15low_v2.png",
+      "source": "output/imagegen/gpt15-low-gap12-reroll/amazon_decoy__gpt15low_v2.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/amazon_deadly_strike__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/amazon_deadly_strike__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/amazon_evade__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/amazon_evade__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/amazon_pierce__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/amazon_pierce__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/assassin_blades_of_ice__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/assassin_blades_of_ice__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/barbarian_weapon_mastery__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/barbarian_weapon_mastery__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/barbarian_steel_skin__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/barbarian_steel_skin__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/barbarian_battle_instinct__gpt15low_v2.png",
+      "source": "output/imagegen/gpt15-low-gap12-reroll/barbarian_battle_instinct__gpt15low_v2.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/barbarian_unyielding__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-gap12/barbarian_unyielding__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/druid_fissure__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/druid_fissure__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/druid_heart_of_wolverine__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/druid_heart_of_wolverine__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/druid_summon_grizzly__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/druid_summon_grizzly__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/necromancer_corpse_explosion__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/necromancer_corpse_explosion__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/necromancer_bone_spear__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/necromancer_bone_spear__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/necromancer_revive__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/necromancer_revive__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/paladin_blessed_hammer__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/paladin_blessed_hammer__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/paladin_holy_shield__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/paladin_holy_shield__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/paladin_fist_of_the_heavens__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/paladin_fist_of_the_heavens__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/sorceress_fireball__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/sorceress_fireball__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/sorceress_blizzard__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/sorceress_blizzard__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/sorceress_frozen_orb__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/sorceress_frozen_orb__gpt15low_v1.png",
+      "exists": true
+    },
+    {
+      "asset": "assets/curated/card-illustrations/sorceress_hydra__gpt15low_v1.png",
+      "source": "output/imagegen/gpt15-low-marquee-batch2/sorceress_hydra__gpt15low_v1.png",
+      "exists": true
+    }
+  ]
+}

@@ -209,20 +209,38 @@
     backdrop.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
   });
 
+  async function syncProfileAfterAuthChange(): Promise<void> {
+    if (!runtimeContent) {
+      render();
+      return;
+    }
+    await window.ROUGE_PERSISTENCE?.initializeProfileStore?.(runtimeContent);
+    if (appState) {
+      const nextProfile = window.ROUGE_PERSISTENCE?.loadProfileFromStorage?.(undefined, runtimeContent) || appState.profile;
+      appState.profile = nextProfile;
+      appState.ui.selectedClassId = window.__ROUGE_APP_ENGINE_RUN.getPreferredClassId(appState.registries.classes, nextProfile);
+    }
+    render();
+  }
+
   if (window.ROGUE_AUTH) {
     window.ROGUE_AUTH.initializeGoogleAuth();
-    window.ROGUE_AUTH.onAuthChange(() => render());
+    window.ROGUE_AUTH.onAuthChange(() => {
+      void syncProfileAfterAuthChange();
+    });
   }
 
   render();
 
   seedLoader
     .loadSeedBundle()
-    .then((seedBundle) => {
+    .then(async (seedBundle) => {
       const classRuntimeContent = classRegistry.createRuntimeContent(baseContent, seedBundle);
       const itemizedContent = itemSystem.createRuntimeContent(classRuntimeContent, seedBundle);
       runtimeContent = encounterRegistry.createRuntimeContent(itemizedContent, seedBundle);
       runtimeSeedBundle = seedBundle;
+      await window.ROGUE_AUTH?.waitUntilReady?.();
+      await window.ROUGE_PERSISTENCE?.initializeProfileStore?.(runtimeContent);
       appState = appEngine.createAppState({
         content: runtimeContent,
         seedBundle,

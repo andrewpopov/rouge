@@ -5,9 +5,22 @@
 
   let authState: RogueAuthState = { user: null, loading: true, ready: false };
   const listeners: Array<() => void> = [];
+  let readyResolved = false;
+  let resolveReady: (() => void) | null = null;
+  const readyPromise = new Promise<void>((resolve) => {
+    resolveReady = resolve;
+  });
 
   function notifyListeners(): void {
     listeners.forEach((fn) => { try { fn(); } catch { /* listener error */ } });
+  }
+
+  function markReady(): void {
+    if (!readyResolved && authState.ready) {
+      readyResolved = true;
+      resolveReady?.();
+      resolveReady = null;
+    }
   }
 
   function getAuthState(): RogueAuthState {
@@ -30,6 +43,7 @@
     } catch {
       authState = { user: null, loading: false, ready: true };
     }
+    markReady();
     notifyListeners();
   }
 
@@ -82,6 +96,10 @@
     }
   }
 
+  function waitUntilReady(): Promise<void> {
+    return authState.ready ? Promise.resolve() : readyPromise;
+  }
+
   async function signOut(): Promise<void> {
     const gis = (runtimeWindow as unknown as Record<string, unknown>).google as
       | { accounts: { id: { disableAutoSelect: () => void } } }
@@ -108,5 +126,6 @@
     signOut,
     getAuthState,
     onAuthChange,
+    waitUntilReady,
   };
 })();

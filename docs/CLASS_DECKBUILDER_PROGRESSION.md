@@ -1,11 +1,24 @@
 # Class Deckbuilder Progression
 
-_Snapshot: 2026-03-31_
+_Snapshot: 2026-04-04_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
 - Use `PROJECT_MASTER.md` plus `COMBAT_FOUNDATION.md` for the current-build overview.
 - Use `DECKBUILDER_COMBAT_MODEL.md` for the overall STS or Monster Train or D2 hybrid gameplay spine.
+- Use `SKILL_ACTION_SURFACE_SYNTHESIS.md` for the benchmark-derived split between fixed-skill mechanics and deck-card mechanics.
+- Use `SKILL_TAXONOMY.md` for the canonical Rouge fixed-skill families and class bias map.
+- Use `CLASS_SKILL_BAR_BLUEPRINTS.md` for the per-class `3`-slot bar blueprint and family mix.
+- Use `CLASS_STARTER_SKILL_BAR_SPECS.md` for the exact starter skill texts and first-unlock candidates across the full roster.
+- Use `CLASS_SLOT2_BRIDGE_SKILL_SPECS.md` for the tree-specific `Slot 2` bridge pools that connect starters to capstones.
+- Use `CLASS_SLOT3_CAPSTONE_SKILL_SPECS.md` for the late-slot capstone skill candidates across the full roster.
+- Use `SKILL_UNLOCK_AND_GATING_RULES.md` for the exact slot timing, tree-commitment, and safe-zone equip rules that connect the starter, bridge, and capstone layers.
+- Use `SAFE_ZONE_TRAINING_SCREEN_SPEC.md` for the safe-zone and act-transition UI home that should own class-tree spending, skill unlocking, and skill equip decisions.
+- Use `SAFE_ZONE_TRAINING_RUNTIME_MODEL.md` for the concrete runtime-state, content-model, and action-surface changes needed to build that screen cleanly.
+- Use `SAFE_ZONE_TRAINING_TYPE_CHANGE_SPEC.md` for the exact type additions and semantic changes required in `content.d.ts`, `run.d.ts`, and `api.d.ts` before implementation starts.
+- Use `SAFE_ZONE_TRAINING_ACTION_DISPATCHER_CONTRACT.md` for the exact `data-action` contract and UI-versus-engine split for training interactions.
+- Use `SAFE_ZONE_TRAINING_IMPLEMENTATION_PLAN.md` for the file-by-file task list across runtime state, migrations, progression logic, app-engine, dispatcher, and UI.
+- Use `SKILLS_JSON_TRAINING_SCHEMA_PLAN.md` for the plan to turn `data/seeds/d2/skills.json` into the Rouge-authored starter or bridge or capstone skill catalog without losing its D2 reference value.
 - Use this document for the class, skill, deck, and upgrade-path combat model.
 - Use `D2_SPECIALIZATION_MODEL.md` for the one-tree specialization, utility-splash, and boss-prep rules that should shape class card rewrites.
 
@@ -405,39 +418,28 @@ Lightning tier-1 role:
 - create an early energy and sequencing identity without needing full combo density
 - give Sorceress a path into chain-cast and board-control play
 
-## Early Skill Unlock Options
+## Skill Unlock Timing
 
-These are the first skill-bar unlock candidates that should sit behind early tree investment.
+The skill-bar timing model is now defined by the dedicated skill unlock spec:
 
-### Barbarian
+- [SKILL_UNLOCK_AND_GATING_RULES.md](/Users/andrew/proj/rouge/docs/SKILL_UNLOCK_AND_GATING_RULES.md)
 
-| Tree | Skill | Cost | Cooldown | Exact Text |
-|---|---|---:|---:|---|
-| `Combat Skills` | `Double Swing` | 1 | 1 | `Deal 5 damage twice.` |
-| `Combat Skills` | `Leap` | 1 | 2 | `Gain 8 Block. Your next Attack this turn deals +5 damage.` |
-| `Warcries` | `Howl` | 1 | 2 | `All non-boss enemies deal 4 less damage next turn.` |
-| `Warcries` | `Battle Cry` | 1 | 2 | `One enemy deals 6 less damage next turn. Your next Attack against it deals +5 damage.` |
+The short version is:
 
-Barbarian tier-1 skill rule:
+- `Slot 1` is always available from the first fight
+- `Slot 2` should open at the first safe zone where the run is `Level 6+` and has `3+` points in at least one tree
+- `Slot 3` should open at the first safe zone where the run is `Level 12+`, has `6+` points in a favored tree, and already unlocked a bridge skill from that tree
 
-- `Combat Masteries` should not add early skill-bar actives
-- it should focus on passive ranks and mastery-themed card unlocks instead
+Important rule:
 
-### Sorceress
+- do not vary slot timing by class in the first implementation
+- class identity should come from the content of the slots, not from one class unlocking a second slot earlier than another
 
-| Tree | Skill | Cost | Cooldown | Exact Text |
-|---|---|---:|---:|---|
-| `Fire` | `Fire Ball` | 2 | 1 | `Deal 13 damage. Apply 2 Burn.` |
-| `Fire` | `Inferno` | 1 | 2 | `Deal 5 damage to all enemies. Apply 1 Burn to all enemies.` |
-| `Cold` | `Frozen Armor` | 1 | 3 | `Gain 10 Block. The next enemy that attacks you this turn gains 2 Chill.` |
-| `Cold` | `Frost Nova` | 2 | 2 | `Deal 5 damage to all enemies. Apply 1 Chill to all enemies.` |
-| `Lightning` | `Charged Bolt` | 1 | 1 | `Deal 4 damage 3 times, randomly split among enemies.` |
-| `Lightning` | `Static Field` | 1 | 2 | `Deal 7 damage to all enemies. Elites and bosses take 4 instead.` |
+Use these companion docs for the actual skill pools:
 
-Sorceress tier-1 skill rule:
-
-- Sorceress should reach its second equipped skill slot earlier than Barbarian if the run is leaning spell-heavy
-- the first spell-bar expansion should reinforce tree commitment, not turn every tree into a splash package
+- [CLASS_STARTER_SKILL_BAR_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_STARTER_SKILL_BAR_SPECS.md)
+- [CLASS_SLOT2_BRIDGE_SKILL_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_SLOT2_BRIDGE_SKILL_SPECS.md)
+- [CLASS_SLOT3_CAPSTONE_SKILL_SPECS.md](/Users/andrew/proj/rouge/docs/CLASS_SLOT3_CAPSTONE_SKILL_SPECS.md)
 
 ## Deckbuilder vs Roguelite Contract
 

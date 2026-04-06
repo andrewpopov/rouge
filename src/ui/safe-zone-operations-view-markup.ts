@@ -212,7 +212,7 @@
       .join("");
   }
 
-  function buildOperationsMarkupFromModel(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string {
+  function buildOperationsSectionsFromModel(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices) {
     const common = runtimeWindow.ROUGE_UI_COMMON;
     const commonWithPrep = common as UiCommonApi & {
       buildTownPrepOutcomeMarkup?: (
@@ -277,7 +277,21 @@
     const worldLedgerMarkup = buildWorldLedgerMarkup(worldLedgerLines, services.renderUtils);
     const departureBriefingMarkup = buildDepartureBriefingMarkup(departureBriefingLines, services.renderUtils);
     const loadoutBenchMarkup = buildLoadoutBenchMarkup(run, appState.content, services.renderUtils);
+    const prepDeskMarkup = commonWithPrep.buildTownPrepOutcomeMarkup?.(
+      run,
+      derivedParty,
+      {
+        healer: healerActions,
+        quartermaster: quartermasterActions,
+        progression: progressionActions,
+        vendor: vendorActions,
+        mercenary: mercenaryActions,
+      },
+      accountSummary,
+      services.renderUtils
+    ) || "";
     const accountMetaMarkup = `
+      <article class="panel battle-panel" id="town-account">
         ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
           copy:
             "Town keeps the same account-meta board live beside run-local prep, so archive pressure, charter staging, mastery focus, and convergence readiness stay readable before you leave again.",
@@ -290,13 +304,37 @@
           convergenceFollowThrough:
             "If convergence pressure is ready, review the progression focus here before you spend gold or depart again.",
         })}
-
         <div class="panel-head">
           <h2>Account Progression Focus</h2>
           <p>Town now exposes the live archive, economy, and mastery lanes that are shaping vendor pressure, archive retention, and reward pivots. Focus changes still route through the account seam, not the shell.</p>
         </div>
         ${common.buildAccountTreeReviewMarkup(accountSummary, services.renderUtils)}
-      `;
+        ${buildPrepComparisonMarkup(model, appState, services)}
+        <div class="feature-grid feature-grid-wide town-operations-grid">
+          <article class="feature-card">
+            <strong>World Ledger</strong>
+            <div class="entity-stat-grid">
+              ${buildStat("Quest", questOutcomeCount)}
+              ${buildStat("Shrine", shrineOutcomeCount)}
+              ${buildStat("Aftermath", eventOutcomeCount)}
+              ${buildStat("Opportunity", opportunityOutcomeCount)}
+            </div>
+            ${worldLedgerMarkup}
+          </article>
+          <article class="feature-card">
+            <strong>Town Economy</strong>
+            <div class="entity-stat-grid">
+              ${buildStat("Vendor", vendorStock)}
+              ${buildStat("Refresh", vendorRefreshes)}
+              ${buildStat("Carried", carriedEntries)}
+              ${buildStat("Stash", stashEntries)}
+            </div>
+            <p>Vendor stock, carried inventory, and profile stash all resolve through town actions here instead of leaking into map or combat UI.</p>
+          </article>
+        </div>
+      </article>
+    `;
+
     const debugLedgerMarkup = debugEnabled
       ? `
         <section class="panel flow-panel town-debug-ledger" id="town-debug-ledger">
@@ -357,35 +395,10 @@
             </article>
           </div>
         </section>
-
-        ${buildPrepComparisonMarkup(model, appState, services)}
-
-        <div class="feature-grid feature-grid-wide town-operations-grid">
-          <article class="feature-card">
-            <strong>World Ledger</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Quest", questOutcomeCount)}
-              ${buildStat("Shrine", shrineOutcomeCount)}
-              ${buildStat("Aftermath", eventOutcomeCount)}
-              ${buildStat("Opportunity", opportunityOutcomeCount)}
-            </div>
-            ${worldLedgerMarkup}
-          </article>
-          <article class="feature-card">
-            <strong>Town Economy</strong>
-            <div class="entity-stat-grid">
-              ${buildStat("Vendor", vendorStock)}
-              ${buildStat("Refresh", vendorRefreshes)}
-              ${buildStat("Carried", carriedEntries)}
-              ${buildStat("Stash", stashEntries)}
-            </div>
-            <p>Vendor stock, carried inventory, and profile stash all resolve through town actions here instead of leaking into map or combat UI.</p>
-          </article>
-        </div>
       `
       : "";
 
-    return `
+    const departureMarkup = `
       <article class="panel battle-panel" id="town-departure">
         <div class="panel-head">
           <h2>Departure Board</h2>
@@ -425,23 +438,12 @@
             ${departureBriefingMarkup}
           </article>
         </div>
+        ${prepDeskMarkup}
+      </article>
+    `;
 
-        ${
-          commonWithPrep.buildTownPrepOutcomeMarkup?.(
-            run,
-            derivedParty,
-            {
-              healer: healerActions,
-              quartermaster: quartermasterActions,
-              progression: progressionActions,
-              vendor: vendorActions,
-              mercenary: mercenaryActions,
-            },
-            accountSummary,
-            services.renderUtils
-          ) || ""
-        }
-
+    const loadoutMarkup = `
+      <article class="panel battle-panel" id="town-loadout-panel">
         <div class="panel-head">
           <h2>Loadout Bench</h2>
           <p>Read the build before you leave. Equipped gear, sockets, runes, and runewords already feed the next combat state.</p>
@@ -470,7 +472,11 @@
             <p>${escapeHtml(`Current loadout summary: ${derivedParty.loadoutLines.join(" / ") || "No equipment equipped yet."}`)}</p>
           </article>
         </div>
+      </article>
+    `;
 
+    const servicesMarkup = `
+      <article class="panel battle-panel" id="town-services">
         <div class="panel-head">
           <h2>Camp Services</h2>
           <p>Use this plain-language view when you want to see the desks that matter before you leave: healing, training, trade, mercenary support, and the final departure check.</p>
@@ -558,13 +564,25 @@
             services.renderUtils
           )}
         </div>
-        ${debugLedgerMarkup}
-        ${accountMetaMarkup}
       </article>
     `;
+
+    return {
+      departure: departureMarkup,
+      loadout: loadoutMarkup,
+      services: servicesMarkup,
+      account: accountMetaMarkup,
+      debug: debugLedgerMarkup,
+    };
+  }
+
+  function buildOperationsMarkupFromModel(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string {
+    const sections = buildOperationsSectionsFromModel(model, appState, services);
+    return `${sections.departure}${sections.loadout}${sections.services}${sections.account}${sections.debug}`;
   }
 
   runtimeWindow.__ROUGE_SAFE_ZONE_OPS_MARKUP = {
+    buildOperationsSectionsFromModel,
     buildOperationsMarkupFromModel,
     buildPrepComparisonMarkup,
     buildWorldLedgerMarkup,

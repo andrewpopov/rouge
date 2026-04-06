@@ -2,6 +2,7 @@
   type CardTextLine = { short: string; full: string };
   type CardTextApi = {
     describeCompactEffect(effect: CardEffect): CardTextLine;
+    buildFullCardText?(effects: CardEffect[], maxLines?: number): string;
     formatCompactRuleLine(
       line: string,
       escapeHtml: (value: string) => string,
@@ -30,6 +31,7 @@
 
   type CombatCardRoleKey = "attack" | "guard" | "affliction" | "draw" | "summon" | "setup" | "support" | "utility";
   type CombatCardFamilyKey = "attack" | "skill" | "hex" | "summon";
+  type CombatCardShellClass = "fan-card" | "dl-card";
 
   function deriveCombatCardRole(card: CardDefinition): { key: CombatCardRoleKey; label: string } {
     const kinds = new Set(card.effects.map((effect) => effect.kind));
@@ -90,10 +92,14 @@
     return cardText?.formatCompactRuleLine(line, escapeHtml, valueClass, keywordClass) || escapeHtml(line);
   }
 
-  function getHandCardTitleFitClass(title: string): string {
-    if (title.length >= 16) { return " fan-card--title-very-long"; }
-    if (title.length >= 13) { return " fan-card--title-long"; }
+  function getCardTitleFitClass(shellClass: CombatCardShellClass, title: string): string {
+    if (title.length >= 16) { return ` ${shellClass}--title-very-long`; }
+    if (title.length >= 13) { return ` ${shellClass}--title-long`; }
     return "";
+  }
+
+  function getHandCardTitleFitClass(title: string): string {
+    return getCardTitleFitClass("fan-card", title);
   }
 
   function getDisplayCardTitle(cardId: string, title: string): string {
@@ -101,6 +107,110 @@
     const baseId = upgraded ? cardId.slice(0, -5) : cardId;
     const mapped = CARD_DISPLAY_TITLES[baseId] || title;
     return upgraded && !mapped.endsWith("+") ? `${mapped}+` : mapped;
+  }
+
+  function renderCombatCardComponent({
+    shellClass,
+    rootTag,
+    rootAttrs = "",
+    rootStyle = "",
+    extraRootClasses = "",
+    headerRightHtml = "",
+    cardId,
+    card,
+    effectiveCost,
+    escapeHtml,
+    maxRuleLines = 4,
+  }: {
+    shellClass: CombatCardShellClass;
+    rootTag: "article" | "button";
+    rootAttrs?: string;
+    rootStyle?: string;
+    extraRootClasses?: string;
+    headerRightHtml?: string;
+    cardId: string;
+    card: CardDefinition;
+    effectiveCost: number;
+    escapeHtml: (s: string) => string;
+    maxRuleLines?: number;
+  }): string {
+    const assets = runtimeWindow.ROUGE_ASSET_MAP;
+    const element = getCardElement(card);
+    const isUpgraded = cardId.endsWith("_plus");
+    const sigilSrc = assets ? assets.getCardIcon(cardId, card.effects) : "";
+    const customIllustrationSrc = assets?.getCardIllustration ? assets.getCardIllustration(cardId) : null;
+    const templatedIllustration = isTemplatedIllustrationSrc(customIllustrationSrc);
+    const role = deriveCombatCardRole(card);
+    const family = deriveCombatCardFamily(card, role);
+    const frameSrc = assets?.getCardFrame ? assets.getCardFrame(role.key) : null;
+    const typeLine = family.label;
+    const emblemSrc = templatedIllustration ? customIllustrationSrc : sigilSrc;
+    const displayTitle = getDisplayCardTitle(cardId, card.title);
+    const titleFitClass = getCardTitleFitClass(shellClass, displayTitle);
+    const genericTitleFitClass = displayTitle.length >= 16
+      ? " combat-card--title-very-long"
+      : displayTitle.length >= 13
+        ? " combat-card--title-long"
+        : "";
+    const fallbackRuleLines = card.effects
+      .map((effect) => describeCompactEffect(effect))
+      .slice(0, Math.max(1, maxRuleLines));
+    const rulesText = Array.isArray(card.effects) && card.effects.length > 0
+      ? (cardText?.buildFullCardText?.(card.effects, maxRuleLines) || fallbackRuleLines.map((line) => line.full).join(" "))
+      : card.text;
+    const shellVariant = shellClass === "dl-card" ? "deck" : "hand";
+    const rootClassName = `${shellClass} combat-card combat-card--${shellVariant}${extraRootClasses} ${shellClass}--${element} combat-card--${element} ${shellClass}--role-${role.key} combat-card--role-${role.key} ${shellClass}--family-${family.key} combat-card--family-${family.key}${isUpgraded ? ` ${shellClass}--upgraded combat-card--upgraded` : ""}${customIllustrationSrc ? ` ${shellClass}--illustrated combat-card--illustrated` : ` ${shellClass}--icon-forward combat-card--icon-forward`}${templatedIllustration ? ` ${shellClass}--templated combat-card--templated` : ""}${frameSrc ? ` ${shellClass}--framed combat-card--framed` : ""}${titleFitClass}${genericTitleFitClass}`;
+    const styleParts = [
+      rootStyle.trim(),
+      frameSrc ? `--card-frame-url:url('${escapeHtml(frameSrc)}')` : "",
+    ].filter(Boolean);
+    const styleAttr = styleParts.length > 0 ? `style="${styleParts.join("; ")}"` : "";
+    const artFrameModeClasses = `${customIllustrationSrc ? " combat-card__art-frame--illustrated" : " combat-card__art-frame--sigil"}${templatedIllustration ? " combat-card__art-frame--templated" : ""}`;
+    const emblemIconClass = `combat-card__art-emblem-icon combat-card__art-emblem-icon--${element}${templatedIllustration ? " combat-card__art-emblem-icon--templated" : ""}`;
+    const illustrationClass = `combat-card__art-illustration combat-card__art-illustration--${element}${templatedIllustration ? " combat-card__art-illustration--templated" : ""}`;
+    const rulesParagraphClass = "combat-card__rules-paragraph";
+    const valueClass = "combat-card__text-value";
+    const keywordClass = "combat-card__text-keyword";
+    const rulesHtml = `<p class="${rulesParagraphClass}">${formatCompactRuleLine(rulesText, escapeHtml, valueClass, keywordClass)}</p>`;
+    const emblemInner = `
+      <div class="combat-card__art-emblem">
+        ${emblemSrc ? svgIcon(emblemSrc, emblemIconClass, card.title) : `<div class="combat-card__art-fallback" aria-hidden="true">${card.target === "enemy" ? "\u2694" : "\u{1F6E1}"}</div>`}
+      </div>
+    `;
+    const artInner = customIllustrationSrc ? `
+      ${templatedIllustration ? emblemInner : ""}
+      <img src="${customIllustrationSrc}" class="${illustrationClass}" alt="" aria-hidden="true" loading="eager" decoding="async" onerror="this.style.display='none'" />
+      ${sigilSrc ? `<span class="combat-card__sigil">${svgIcon(sigilSrc, `combat-card__sigil-icon combat-card__sigil-icon--${element}`, card.title)}</span>` : ""}
+    ` : emblemInner;
+
+    return `
+      <${rootTag} class="${rootClassName.trim()}"${rootAttrs ? ` ${rootAttrs}` : ""}${styleAttr ? ` ${styleAttr}` : ""}>
+        <div class="combat-card__surface">
+          <div class="combat-card__header">
+            <div class="combat-card__cost ${effectiveCost < card.cost ? `${shellClass}__cost--discounted combat-card__cost--discounted` : ""}">${effectiveCost}</div>
+            <div class="combat-card__title-ribbon">
+              <span class="combat-card__name" title="${escapeHtml(card.title)}">
+                <span class="combat-card__name-text">${escapeHtml(displayTitle)}</span>
+              </span>
+            </div>
+            ${headerRightHtml}
+          </div>
+          <div class="combat-card__art">
+            <div class="combat-card__art-frame${artFrameModeClasses}">
+              ${artInner}
+            </div>
+          </div>
+          <div class="combat-card__type-line">
+            <span class="combat-card__type-label">${escapeHtml(typeLine)}</span>
+          </div>
+          <div class="combat-card__body">
+            <div class="combat-card__rules">
+              ${rulesHtml}
+            </div>
+          </div>
+        </div>
+      </${rootTag}>
+    `;
   }
 
   function getAfflictionStateClasses(options: { burn?: number; poison?: number }): string {
@@ -377,7 +487,7 @@
     if (!isDead && (heavyIntentKinds.has(enemy.currentIntent?.kind) || ((enemy.currentIntent?.value || 0) >= 7 && intentTone === "sprite__intent--damage"))) {
       intentTone = `${intentTone} sprite__intent--heavy`.trim();
     }
-    const intentPresentation = pressure.buildEnemyIntentPresentation(combat, enemy.currentIntent);
+    const intentPresentation = pressure.buildEnemyIntentPresentation(combat, enemy);
     const intentClasses = [intentTone, intentPresentation.intentClass].filter(Boolean).join(" ");
     const effectItems = [
       enemy.guard > 0 ? { css: "sprite__effect--guard", icon: assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}", value: String(enemy.guard), label: `Guard ${enemy.guard}` } : null,
@@ -399,7 +509,7 @@
       <button class="sprite sprite--enemy ${enemyTierClass} ${enemyStageClass} ${isSelected ? "sprite--targeted" : ""} ${isMarked ? "sprite--marked" : ""} ${isDead ? "sprite--dead" : ""} ${afflictionStateClasses}"
               data-action="select-enemy" data-enemy-id="${escapeHtml(enemy.id)}" data-enemy-name="${escapeHtml(enemy.name)}"
               ${isDead || hasOutcome ? "disabled" : ""}>
-        ${!isDead && !hasOutcome ? `<div class="sprite__intent ${intentClasses}"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span>${intentPresentation.targetLabel ? `<span class="sprite__intent-target">${escapeHtml(intentPresentation.targetLabel)}</span>` : ""}</div>` : ""}
+        ${!isDead && !hasOutcome ? `<div class="sprite__intent ${intentClasses}"><span class="sprite__intent-icon">${intentSvg || "\u2753"}</span><span class="sprite__intent-label">${escapeHtml(intentDesc)}</span>${intentPresentation.targetLabel ? `<span class="sprite__intent-target">${escapeHtml(intentPresentation.targetLabel)}</span>` : ""}${intentPresentation.stateLabel ? `<span class="sprite__intent-state">${escapeHtml(intentPresentation.stateLabel)}</span>` : ""}</div>` : ""}
         ${enemyBadgeRail}
         <div class="sprite__figure sprite__figure--enemy">${afflictionLayerHtml}${assets ? svgIcon(enemyIcon, "sprite__portrait sprite__portrait--enemy", enemy.name) : escapeHtml(enemy.name.charAt(0))}</div>
         <div class="sprite__bars">
@@ -439,39 +549,15 @@
     cantPlay: boolean;
     escapeHtml: (s: string) => string;
   }): string {
-    const assets = runtimeWindow.ROUGE_ASSET_MAP;
-    const element = getCardElement(card);
-    const isUpgraded = instance.cardId.endsWith("_plus");
     const previewScopes = preview.derivePreviewScopes(card);
     const previewLabel = preview.describePreviewScopes(previewScopes);
     const rotation = 0;
     const translateY = 0;
-    const sigilSrc = assets ? assets.getCardIcon(instance.cardId, card.effects) : "";
-    const customIllustrationSrc = assets?.getCardIllustration ? assets.getCardIllustration(instance.cardId) : null;
-    const templatedIllustration = isTemplatedIllustrationSrc(customIllustrationSrc);
-    const role = deriveCombatCardRole(card);
-    const family = deriveCombatCardFamily(card, role);
-    const frameSrc = assets?.getCardFrame ? assets.getCardFrame(role.key) : null;
-    const typeLine = family.label;
-    const emblemSrc = templatedIllustration ? customIllustrationSrc : sigilSrc;
-    const displayTitle = getDisplayCardTitle(instance.cardId, card.title);
-    const titleFitClass = getHandCardTitleFitClass(displayTitle);
-    const cardStyle = `--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${index}${frameSrc ? `; --card-frame-url:url('${escapeHtml(frameSrc)}')` : ""}`;
-    const ruleLines = card.effects
-      .map((effect) => describeCompactEffect(effect))
-      .slice(0, Math.max(1, maxRuleLines));
-    const rulesText = ruleLines.length > 0
-      ? ruleLines.map((line) => line.full).join(" ")
-      : card.text;
-    const cardRulesHtml = `<p class="fan-card__rules-paragraph">${formatCompactRuleLine(rulesText, escapeHtml, "fan-card__text-value", "fan-card__text-keyword")}</p>`;
-    const emblemInner = `
-      <div class="fan-card__art-emblem">
-        ${emblemSrc ? svgIcon(emblemSrc, `fan-card__art-emblem-icon fan-card__art-emblem-icon--${element}${templatedIllustration ? " fan-card__art-emblem-icon--templated" : ""}`, card.title) : `<div class="fan-card__art-fallback" aria-hidden="true">${card.target === "enemy" ? "\u2694" : "\u{1F6E1}"}</div>`}
-      </div>
-    `;
-    return `
-      <button class="fan-card ${cantPlay ? "fan-card--disabled" : "fan-card--playable"} ${stateClass} fan-card--${element} fan-card--role-${role.key} fan-card--family-${family.key}${isUpgraded ? " fan-card--upgraded" : ""}${customIllustrationSrc ? " fan-card--illustrated" : " fan-card--icon-forward"}${templatedIllustration ? " fan-card--templated" : ""}${frameSrc ? " fan-card--framed" : ""}${titleFitClass}"
-              data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
+    const cardStyle = `--fan-rotate:${rotation}deg; --fan-lift:${translateY}px; --fan-index:${index}`;
+    return renderCombatCardComponent({
+      shellClass: "fan-card",
+      rootTag: "button",
+      rootAttrs: `data-action="play-card" data-instance-id="${escapeHtml(instance.instanceId)}"
               data-card-id="${escapeHtml(instance.cardId)}"
               data-card-title="${escapeHtml(card.title)}"
               data-card-target="${escapeHtml(card.target)}"
@@ -479,40 +565,15 @@
               data-preview-scope="${escapeHtml(previewScopes.join(","))}"
               data-preview-label="${escapeHtml(previewLabel)}"
               data-preview-outcome="${escapeHtml(previewOutcome)}"
-              title="${escapeHtml(stateLabel || card.text)}"
-              style="${cardStyle}">
-        <div class="fan-card__surface">
-          <div class="fan-card__header">
-            <div class="fan-card__cost ${effectiveCost < card.cost ? "fan-card__cost--discounted" : ""}">${effectiveCost}</div>
-            <div class="fan-card__title-ribbon">
-              <div class="fan-card__name" title="${escapeHtml(card.title)}">
-                <span class="fan-card__name-text">${escapeHtml(displayTitle)}</span>
-              </div>
-            </div>
-          </div>
-          <div class="fan-card__art">
-            <div class="fan-card__art-stage fan-card__art-stage--${element}${customIllustrationSrc ? " fan-card__art-stage--illustrated" : " fan-card__art-stage--sigil"}${templatedIllustration ? " fan-card__art-stage--templated" : ""}">
-              ${customIllustrationSrc ? `
-                ${templatedIllustration ? emblemInner : ""}
-                <img src="${customIllustrationSrc}" class="fan-card__art-illustration fan-card__art-illustration--${element}${templatedIllustration ? " fan-card__art-illustration--templated" : ""}" alt="" aria-hidden="true" loading="eager" decoding="async" onerror="this.style.display='none'" />
-                ${sigilSrc ? `<span class="fan-card__sigil">${svgIcon(sigilSrc, `fan-card__sigil-icon fan-card__sigil-icon--${element}`, card.title)}</span>` : ""}
-              ` : `
-                ${emblemInner}
-              `}
-              <div class="fan-card__art-rim" aria-hidden="true"></div>
-            </div>
-          </div>
-          <div class="fan-card__type-line">
-            <span class="fan-card__type-label">${escapeHtml(typeLine)}</span>
-          </div>
-          <div class="fan-card__copy">
-            <div class="fan-card__rules">
-              <div class="fan-card__desc">${cardRulesHtml}</div>
-            </div>
-          </div>
-        </div>
-      </button>
-    `;
+              title="${escapeHtml(stateLabel || card.text)}"`,
+      rootStyle: cardStyle,
+      extraRootClasses: `${cantPlay ? " fan-card--disabled" : " fan-card--playable"} ${stateClass}`,
+      cardId: instance.cardId,
+      card,
+      effectiveCost,
+      escapeHtml,
+      maxRuleLines,
+    });
   }
 
   runtimeWindow.__ROUGE_COMBAT_VIEW_RENDERERS = {
@@ -520,11 +581,13 @@
     renderMinionRack,
     renderEnemySprite,
     renderHandCard,
+    renderCombatCardComponent,
     svgIcon,
     getCardElement,
     isTemplatedIllustrationSrc,
     deriveCombatCardRole,
     deriveCombatCardFamily,
+    getCardTitleFitClass,
     getHandCardTitleFitClass,
     getDisplayCardTitle,
     describeCompactEffect,

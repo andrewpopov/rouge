@@ -250,6 +250,7 @@ interface PersistenceApi {
   getAccountProgressSummary(profile: ProfileState | null, content?: GameContent | null): ProfileAccountSummary;
   getRunHistoryCapacity(profile: ProfileState | null): number;
   recordRunHistory(profile: ProfileState, run: RunState, outcome: RunHistoryEntry["outcome"], content?: GameContent | null): void;
+  initializeProfileStore(content?: GameContent | null): Promise<void>;
   saveToStorage(snapshot: RunSnapshotEnvelope | string, storage?: StorageLike | null): ActionResult;
   loadFromStorage(storage?: StorageLike | null): RunSnapshotEnvelope | null;
   hasSavedSnapshot(storage?: StorageLike | null): boolean;
@@ -385,6 +386,7 @@ interface AppEngineApi {
   setTrainingMode(state: AppState, mode: TrainingViewMode): void;
   unlockTrainingSkill(state: AppState, skillId: string): ActionResult;
   equipTrainingSkill(state: AppState, slotKey: RunSkillBarSlotKey, skillId: string): ActionResult;
+  swapTrainingSkill(state: AppState, slotKey: RunSkillBarSlotKey, skillId: string): ActionResult;
   selectZone(state: AppState, zoneId: string): ActionResult;
   debugSkipEncounter(state: AppState): ActionResult;
   syncEncounterOutcome(state: AppState): ActionResult;

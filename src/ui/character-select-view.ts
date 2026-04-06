@@ -109,6 +109,12 @@
                 unlockBonusPerThreshold: {},
                 skills: [] as RuntimeClassSkillDefinition[],
               }));
+          const progressionSkills = normalizedTrees.flatMap((tree) => tree.skills || []);
+          const starterSkill = progressionSkills.find((skill) => {
+            return skill.id === progression?.starterSkillId || skill.isStarter || (skill.slot === 1 && skill.tier === "starter");
+          }) || null;
+          const starterSkillSummary = starterSkill?.summary
+            || "Open with a fixed identity skill, then unlock a tactical slot at Level 6 and a commitment slot at Level 12.";
           const pathCards = normalizedTrees
             .map((tree) =>
               buildTreeCard(
@@ -150,6 +156,67 @@
           const tagMarkup = playstyleTags.length > 0
             ? playstyleTags.map((tag) => buildSelectorChip(tag, "tag", escapeHtml)).join("")
             : buildSelectorChip("Adaptive", "tag", escapeHtml);
+          const selectorTabs = [
+            { id: "overview", label: "Overview", detail: "pitch and identity" },
+            { id: "kit", label: "Kit", detail: "stats and starter bar" },
+            { id: "playstyle", label: "Playstyle", detail: "ratings and hook" },
+            { id: "paths", label: "Paths", detail: "lane guides" },
+          ] as const;
+          const activeSelectorTab = selectorTabs.some((tab) => tab.id === appState.ui.characterSelectTab)
+            ? appState.ui.characterSelectTab
+            : "overview";
+          const selectorTabIndex = Math.max(0, selectorTabs.findIndex((tab) => tab.id === activeSelectorTab));
+          const activeSelectorTabDef = selectorTabs[selectorTabIndex] || selectorTabs[0];
+          const prevSelectorTab = selectorTabs[(selectorTabIndex - 1 + selectorTabs.length) % selectorTabs.length];
+          const nextSelectorTab = selectorTabs[(selectorTabIndex + 1) % selectorTabs.length];
+          const selectorTabNav = `
+            <div class="campfire-selection-shell__tab-nav" aria-label="Character details tabs">
+              <div class="campfire-selection-shell__tab-status">
+                <span class="campfire-selection-shell__tab-status-count">Detail ${selectorTabIndex + 1} / ${selectorTabs.length}</span>
+                <span class="campfire-selection-shell__tab-status-copy">Swipe through the bloodline brief with the arrows.</span>
+              </div>
+              <div class="campfire-selection-shell__tab-controls">
+                <button
+                  class="campfire-selection-shell__tab-shift"
+                  data-action="shift-character-select-tab"
+                  data-direction="backward"
+                  aria-label="Previous detail tab"
+                >
+                  &larr; ${escapeHtml(prevSelectorTab.label)}
+                </button>
+                <button
+                  class="campfire-selection-shell__tab-active-card"
+                  data-action="select-character-select-tab"
+                  data-character-select-tab="${escapeHtml(activeSelectorTabDef.id)}"
+                  aria-pressed="true"
+                >
+                  <span class="campfire-selection-shell__tab-label">${escapeHtml(activeSelectorTabDef.label)}</span>
+                  <span class="campfire-selection-shell__tab-detail">${escapeHtml(activeSelectorTabDef.detail)}</span>
+                </button>
+                <button
+                  class="campfire-selection-shell__tab-shift"
+                  data-action="shift-character-select-tab"
+                  data-direction="forward"
+                  aria-label="Next detail tab"
+                >
+                  ${escapeHtml(nextSelectorTab.label)} &rarr;
+                </button>
+              </div>
+              <div class="campfire-selection-shell__tab-strip" aria-label="Character detail list">
+                ${selectorTabs.map((tab) => `
+                  <button
+                    class="campfire-selection-shell__tab ${tab.id === activeSelectorTab ? "campfire-selection-shell__tab--active" : ""}"
+                    data-action="select-character-select-tab"
+                    data-character-select-tab="${escapeHtml(tab.id)}"
+                    aria-pressed="${tab.id === activeSelectorTab ? "true" : "false"}"
+                  >
+                    <span class="campfire-selection-shell__tab-label">${escapeHtml(tab.label)}</span>
+                    <span class="campfire-selection-shell__tab-detail">${escapeHtml(tab.detail)}</span>
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          `;
           const supportInfoMarkup = `
             <div class="campfire-selection-shell__support-block">
               <p class="campfire-section-label">Base Attributes</p>
@@ -168,6 +235,17 @@
               <div class="campfire-selection-shell__weapon-row">
                 ${weaponBadges}
               </div>
+            </div>
+            <div class="campfire-selection-shell__support-block">
+              <p class="campfire-section-label">Starter Skill Bar</p>
+              <div class="campfire-selection-shell__support-row campfire-selection-shell__support-row--three-up">
+                ${buildSupportChip("Identity", starterSkill?.name || "Starter Skill", escapeHtml)}
+                ${buildSupportChip("Tactical", "Level 6", escapeHtml)}
+                ${buildSupportChip("Commitment", "Level 12", escapeHtml)}
+              </div>
+              <p class="campfire-selection-shell__support-copy">
+                ${escapeHtml(starterSkillSummary)} Tactical opens once a tree reaches 3 points. Commitment opens once a favored tree reaches 6 points and you have learned a bridge skill.
+              </p>
             </div>
           `;
           const detailMarkup = `
@@ -228,47 +306,57 @@
 
           return `
             <div class="campfire-selection-shell">
-              <div class="campfire-selection-shell__identity-band">
-                <div class="campfire-selection-shell__headline">
-                  <h2 class="campfire-selection-shell__name">${escapeHtml(selectedClass.name)}</h2>
-                  <div class="campfire-selection-shell__badges">
-                    ${buildSelectorChip(roleLabel, "role", escapeHtml)}
-                    ${buildSelectorChip(`${complexity} Complexity`, "complexity", escapeHtml)}
-                    ${buildBadge(deckProfileLabel, "cleared")}
-                  </div>
-                </div>
-                <p class="campfire-selection-shell__decision">${escapeHtml(selectionPitch)}</p>
-                <p class="campfire-selection-shell__flavor">${escapeHtml(flavor)}</p>
-              </div>
+              ${selectorTabNav}
 
-              <div class="campfire-selection-shell__support-card">
-                ${supportInfoMarkup}
-              </div>
-
-              <div class="campfire-selection-shell__comparison-band">
-                <div class="campfire-selection-shell__profile-card">
-                  <div class="campfire-selection-shell__profile-header">
-                    <p class="campfire-section-label">How It Plays</p>
-                    <div class="campfire-selection-shell__tags">
-                      ${tagMarkup}
+              <section class="campfire-selection-shell__panel ${activeSelectorTab === "overview" ? "campfire-selection-shell__panel--active" : ""}" data-character-panel="overview">
+                <div class="campfire-selection-shell__identity-band">
+                  <div class="campfire-selection-shell__headline">
+                    <h2 class="campfire-selection-shell__name">${escapeHtml(selectedClass.name)}</h2>
+                    <div class="campfire-selection-shell__badges">
+                      ${buildSelectorChip(roleLabel, "role", escapeHtml)}
+                      ${buildSelectorChip(`${complexity} Complexity`, "complexity", escapeHtml)}
+                      ${buildBadge(deckProfileLabel, "cleared")}
                     </div>
                   </div>
-                  <div class="campfire-selection-shell__ratings">
-                    ${profileRatingsMarkup}
-                  </div>
-                  <p class="campfire-selection-shell__hook">${escapeHtml(coreHook)}</p>
+                  <p class="campfire-selection-shell__decision">${escapeHtml(selectionPitch)}</p>
+                  <p class="campfire-selection-shell__flavor">${escapeHtml(flavor)}</p>
                 </div>
-              </div>
+              </section>
 
-              <div class="campfire-selection-shell__paths-band">
-                <div class="campfire-selection-shell__paths-header">
-                  <p class="campfire-section-label">Signature Paths</p>
-                  <p class="campfire-selection-shell__paths-note">Open any lane for the full guide.</p>
+              <section class="campfire-selection-shell__panel ${activeSelectorTab === "kit" ? "campfire-selection-shell__panel--active" : ""}" data-character-panel="kit">
+                <div class="campfire-selection-shell__support-card">
+                  ${supportInfoMarkup}
                 </div>
-                <div class="class-tree-list class-tree-list--selector">
-                  ${pathCards}
+              </section>
+
+              <section class="campfire-selection-shell__panel ${activeSelectorTab === "playstyle" ? "campfire-selection-shell__panel--active" : ""}" data-character-panel="playstyle">
+                <div class="campfire-selection-shell__comparison-band">
+                  <div class="campfire-selection-shell__profile-card">
+                    <div class="campfire-selection-shell__profile-header">
+                      <p class="campfire-section-label">How It Plays</p>
+                      <div class="campfire-selection-shell__tags">
+                        ${tagMarkup}
+                      </div>
+                    </div>
+                    <div class="campfire-selection-shell__ratings">
+                      ${profileRatingsMarkup}
+                    </div>
+                    <p class="campfire-selection-shell__hook">${escapeHtml(coreHook)}</p>
+                  </div>
                 </div>
-              </div>
+              </section>
+
+              <section class="campfire-selection-shell__panel ${activeSelectorTab === "paths" ? "campfire-selection-shell__panel--active" : ""}" data-character-panel="paths">
+                <div class="campfire-selection-shell__paths-band">
+                  <div class="campfire-selection-shell__paths-header">
+                    <p class="campfire-section-label">Signature Paths</p>
+                    <p class="campfire-selection-shell__paths-note">Open any lane for the full guide.</p>
+                  </div>
+                  <div class="class-tree-list class-tree-list--selector">
+                    ${pathCards}
+                  </div>
+                </div>
+              </section>
 
               <div class="campfire-selection-shell__footer-row">
                 <div class="campfire-selection-shell__support-footer">
@@ -303,6 +391,40 @@
            </div>
          </div>`;
 
+    const unlockedClasses = appState.registries.classes.filter((entry) => !unlockRules || unlockRules.isClassUnlocked(appState.profile, entry.id));
+    const activeClassIndex = Math.max(0, unlockedClasses.findIndex((entry) => entry.id === appState.ui.selectedClassId));
+    const activeCycleClass = unlockedClasses[activeClassIndex] || unlockedClasses[0] || null;
+    const prevCycleClass = unlockedClasses.length > 1
+      ? unlockedClasses[(activeClassIndex - 1 + unlockedClasses.length) % unlockedClasses.length]
+      : activeCycleClass;
+    const nextCycleClass = unlockedClasses.length > 1
+      ? unlockedClasses[(activeClassIndex + 1) % unlockedClasses.length]
+      : activeCycleClass;
+    const mobileHeroNav = activeCycleClass ? `
+      <div class="campfire-lineup-mobile-nav" aria-label="Choose your hero">
+        <button
+          class="campfire-lineup-mobile-nav__btn"
+          data-action="select-class"
+          data-class-id="${escapeHtml(prevCycleClass?.id || activeCycleClass.id)}"
+          ${unlockedClasses.length <= 1 ? "disabled" : ""}
+        >
+          &larr; ${escapeHtml(prevCycleClass?.name || activeCycleClass.name)}
+        </button>
+        <div class="campfire-lineup-mobile-nav__status">
+          <span class="campfire-lineup-mobile-nav__count">Bloodline ${activeClassIndex + 1} / ${unlockedClasses.length}</span>
+          <strong class="campfire-lineup-mobile-nav__name">${escapeHtml(activeCycleClass.name)}</strong>
+        </div>
+        <button
+          class="campfire-lineup-mobile-nav__btn"
+          data-action="select-class"
+          data-class-id="${escapeHtml(nextCycleClass?.id || activeCycleClass.id)}"
+          ${unlockedClasses.length <= 1 ? "disabled" : ""}
+        >
+          ${escapeHtml(nextCycleClass?.name || activeCycleClass.name)} &rarr;
+        </button>
+      </div>
+    ` : "";
+
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
       <div class="campfire-screen">
@@ -320,6 +442,7 @@
                 <div class="campfire-lineup">
                   ${heroSprites}
                 </div>
+                ${mobileHeroNav}
               </div>
             </div>
           </div>

@@ -17,9 +17,14 @@ interface TrainingSlotViewModel {
   slotNumber: 1 | 2 | 3;
   roleLabel: string;
   unlocked: boolean;
+  statusLabel: string;
   gateLabel: string;
   equippedSkillId: string;
   equippedSkillName: string;
+  family: SkillFamilyId | "";
+  cost: number;
+  cooldown: number;
+  shortRuleText: string;
 }
 
 interface TrainingSkillViewModel {
@@ -50,6 +55,8 @@ interface TrainingTreeViewModel {
   favoredForCapstone: boolean;
   bridgeReady: boolean;
   capstoneReady: boolean;
+  commitmentBadgeLabels: string[];
+  nextMilestoneLabel: string;
   skills: TrainingSkillViewModel[];
 }
 
@@ -57,7 +64,13 @@ interface TrainingScreenModel {
   classId: string;
   className: string;
   level: number;
+  mode: TrainingViewMode;
   favoredTreeId: string;
+  skillPointsAvailable: number;
+  classPointsAvailable: number;
+  attributePointsAvailable: number;
+  slotStateLabel: string;
+  nextSlotGateLabel: string;
   selectedTreeId: string;
   selectedSkillId: string;
   compareSkillId: string;
@@ -82,12 +95,14 @@ interface AppState {
   ui: {
     selectedClassId: string;
     selectedMercenaryId: string;
+    characterSelectTab: "overview" | "kit" | "playstyle" | "paths";
     reviewedHistoryIndex: number;
     confirmAbandonSavedRun: boolean;
     hallExpanded: boolean;
     hallSection: string;
     spellbookOpen: boolean;
     townFocus: string;
+    townOverviewTab: "departure" | "loadout" | "services" | "account" | "districts" | "debug";
     inventoryOpen: boolean;
     inventoryTab: string;
     inventoryDetailEntryId: string;

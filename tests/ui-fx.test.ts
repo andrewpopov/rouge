@@ -240,6 +240,710 @@ test("play-card action through dispatcher is handled for a card in hand", () => 
   assert.equal(handled, true, "play-card action should be handled");
 });
 
+test("combat skill action renders and can be triggered through the dispatcher", () => {
+  const { state, root, render, actionDispatcher, appEngine, combatEngine, createActionTarget, syncCombatResultAndRender, browserWindow } =
+    startRunAndEnterCombat(createHarness());
+
+  const activeSkill = state.combat.equippedSkills.find((skill) => skill.active);
+  assert.ok(activeSkill, "expected an active equipped combat skill");
+  const targetEnemy = state.combat.enemies.find((enemy: CombatEnemyState) => enemy.alive);
+  assert.ok(targetEnemy);
+  state.combat.selectedEnemyId = targetEnemy.id;
+  state.combat.hero.energy = 10;
+
+  render();
+  assert.match(root.innerHTML, /data-action="use-combat-skill"/);
+
+  const handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "use-combat-skill", slotKey: activeSkill.slotKey }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender,
+  });
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+
+  assert.equal(handled, true);
+  assert.ok(activeSkill.remainingCooldown > 0 || activeSkill.usedThisBattle, "skill should enter cooldown or spend its battle use");
+});
+
+test("combat skill rail renders preview metadata and capstone summaries for summon skills", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "sorceress");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "sorceress_hydra",
+          name: "Hydra",
+          requiredLevel: 30,
+          family: "commitment",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Summon a hydra that breathes across the line.",
+          exactText: "Summon Hydra.",
+          active: true,
+          skillType: "summon",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /Hydra/);
+  assert.match(root.innerHTML, /Capstone/);
+  assert.match(root.innerHTML, /Summon a hydra that breathes across the line\./);
+  assert.match(root.innerHTML, /data-preview-scope="minions"/);
+  assert.match(root.innerHTML, /data-preview-outcome="Summon Hydra.*Next card Burn 4"/);
+});
+
+test("combat skill preview api distinguishes line capstones from summon capstones", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+
+  const whirlwindSkill: CombatEquippedSkillState = {
+    slotKey: "slot3",
+    skillId: "barbarian_whirlwind",
+    name: "Whirlwind",
+    family: "commitment",
+    slot: 3,
+    tier: "capstone",
+    cost: 2,
+    cooldown: 4,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Attack the whole line.",
+    exactText: "Hit all enemies.",
+    active: true,
+    skillType: "attack",
+    damageType: "physical",
+  };
+  const hydraSkill: CombatEquippedSkillState = {
+    slotKey: "slot3",
+    skillId: "sorceress_hydra",
+    name: "Hydra",
+    family: "commitment",
+    slot: 3,
+    tier: "capstone",
+    cost: 2,
+    cooldown: 4,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Summon Hydra.",
+    exactText: "Summon Hydra.",
+    active: true,
+    skillType: "summon",
+    damageType: "fire",
+  };
+
+  const whirlwindScopes = preview.deriveSkillPreviewScopes(whirlwindSkill);
+  const hydraScopes = preview.deriveSkillPreviewScopes(hydraSkill);
+  const whirlwindOutcome = preview.buildSkillPreviewOutcome(combat, whirlwindSkill, combat.enemies.find((enemy) => enemy.alive) || null);
+  const hydraOutcome = preview.buildSkillPreviewOutcome(combat, hydraSkill, combat.enemies.find((enemy) => enemy.alive) || null);
+  const hydraModifiers = preview.getExactSkillModifierPreviewParts(hydraSkill);
+
+  assert.equal(Array.from(whirlwindScopes).join(","), "enemy_line");
+  assert.equal(Array.from(hydraScopes).join(","), "minions");
+  assert.match(whirlwindOutcome, /dmg line/);
+  assert.match(hydraOutcome, /Summon Hydra/);
+  assert.match(hydraOutcome, /Next card Burn 4/);
+  assert.equal(Array.from(hydraModifiers).join(","), "Next card Burn 4");
+});
+
+test("combat skill preview api exposes mixed target and line scopes for hybrid strike skills", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const selectedEnemy = combat.enemies.find((enemy) => enemy.alive) || null;
+
+  const phoenixSkill: CombatEquippedSkillState = {
+    slotKey: "slot3",
+    skillId: "assassin_phoenix_strike",
+    name: "Phoenix Strike",
+    family: "commitment",
+    slot: 3,
+    tier: "capstone",
+    cost: 2,
+    cooldown: 4,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Strike a target and set the whole line ablaze.",
+    exactText: "Blast one enemy and burn the full line.",
+    active: true,
+    skillType: "attack",
+    damageType: "fire",
+  };
+  const fistSkill: CombatEquippedSkillState = {
+    slotKey: "slot3",
+    skillId: "paladin_fist_of_the_heavens",
+    name: "Fist of the Heavens",
+    family: "commitment",
+    slot: 3,
+    tier: "capstone",
+    cost: 2,
+    cooldown: 4,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Smite one target and rattle the whole line.",
+    exactText: "Deal heavy lightning damage and paralyze enemies.",
+    active: true,
+    skillType: "spell",
+    damageType: "lightning",
+  };
+
+  assert.equal(Array.from(preview.deriveSkillPreviewScopes(phoenixSkill)).join(","), "enemy_line,selected_enemy");
+  assert.equal(Array.from(preview.deriveSkillPreviewScopes(fistSkill)).join(","), "enemy_line,selected_enemy");
+  assert.match(preview.buildSkillPreviewOutcome(combat, phoenixSkill, selectedEnemy), /Burn 4 line/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, phoenixSkill, selectedEnemy), /Next card \+3 damage/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, fistSkill, selectedEnemy), /Paralyze 4 line/);
+});
+
+test("combat skill rail renders mixed target and line preview metadata for hybrid capstones", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "assassin");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "assassin_phoenix_strike",
+          name: "Phoenix Strike",
+          requiredLevel: 30,
+          family: "commitment",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Strike one target and ignite the whole line.",
+          exactText: "Blast the target, then burn every enemy.",
+          active: true,
+          skillType: "attack",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /Phoenix Strike/);
+  assert.match(root.innerHTML, /data-preview-scope="enemy_line,selected_enemy"/);
+  assert.match(root.innerHTML, /data-preview-outcome="8 dmg \+ Burn 4 line \+ Next card Burn 5 \+ Next card \+3 damage"/);
+});
+
+test("combat skill preview api exposes party, mercenary, and hero support scopes for support signatures", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const selectedEnemy = combat.enemies.find((enemy) => enemy.alive) || null;
+
+  const sanctuarySkill: CombatEquippedSkillState = {
+    slotKey: "slot2",
+    skillId: "paladin_sanctuary",
+    name: "Sanctuary",
+    family: "answer",
+    slot: 2,
+    tier: "bridge",
+    cost: 1,
+    cooldown: 3,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Drive back a target and shelter the party.",
+    exactText: "Damage one target, slow it, and guard the party.",
+    active: true,
+    skillType: "spell",
+    damageType: "magic",
+  };
+  const battleCommandSkill: CombatEquippedSkillState = {
+    slotKey: "slot2",
+    skillId: "barbarian_battle_command",
+    name: "Battle Command",
+    family: "command",
+    slot: 2,
+    tier: "bridge",
+    cost: 1,
+    cooldown: 3,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Sharpen the next sequence.",
+    exactText: "Draw, empower the mercenary, and arm the next card.",
+    active: true,
+    skillType: "buff",
+    damageType: "none",
+  };
+  const energyShieldSkill: CombatEquippedSkillState = {
+    slotKey: "slot2",
+    skillId: "sorceress_energy_shield",
+    name: "Energy Shield",
+    family: "state",
+    slot: 2,
+    tier: "bridge",
+    cost: 1,
+    cooldown: 3,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Fortify the caster.",
+    exactText: "Gain guard, heal, and arm the next card.",
+    active: true,
+    skillType: "buff",
+    damageType: "none",
+  };
+
+  assert.equal(Array.from(preview.deriveSkillPreviewScopes(sanctuarySkill)).join(","), "party,selected_enemy");
+  assert.equal(Array.from(preview.deriveSkillPreviewScopes(battleCommandSkill)).join(","), "mercenary,hero");
+  assert.equal(Array.from(preview.deriveSkillPreviewScopes(energyShieldSkill)).join(","), "hero");
+  assert.match(preview.buildSkillPreviewOutcome(combat, sanctuarySkill, selectedEnemy), /Guard 6 party/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, battleCommandSkill, selectedEnemy), /Merc \+5/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, battleCommandSkill, selectedEnemy), /Next card \+3 damage/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, battleCommandSkill, selectedEnemy), /Next card cost -1/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, energyShieldSkill, selectedEnemy), /Guard 8/);
+  assert.match(preview.buildSkillPreviewOutcome(combat, energyShieldSkill, selectedEnemy), /Next card Guard 4/);
+});
+
+test("combat skill preview skills expose exact opener state for passive skills", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const skillPreview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW_SKILLS;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  combat.weaponFamily = "sword";
+
+  const warmthSkill: CombatEquippedSkillState = {
+    slotKey: "slot1",
+    skillId: "sorceress_warmth",
+    name: "Warmth",
+    family: "state",
+    slot: 1,
+    tier: "starter",
+    cost: 0,
+    cooldown: 0,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Warm the opening line.",
+    exactText: "Heal, boost burn, and arm the next fire card.",
+    active: false,
+    skillType: "buff",
+    damageType: "fire",
+  };
+  const summonResistSkill: CombatEquippedSkillState = {
+    slotKey: "slot1",
+    skillId: "necromancer_summon_resist",
+    name: "Summon Resist",
+    family: "state",
+    slot: 1,
+    tier: "starter",
+    cost: 0,
+    cooldown: 0,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Ward the party and future summons.",
+    exactText: "Strengthen summons and guard the party.",
+    active: false,
+    skillType: "buff",
+    damageType: "none",
+  };
+  const swordMasterySkill: CombatEquippedSkillState = {
+    slotKey: "slot1",
+    skillId: "barbarian_sword_mastery",
+    name: "Sword Mastery",
+    family: "state",
+    slot: 1,
+    tier: "starter",
+    cost: 0,
+    cooldown: 0,
+    remainingCooldown: 0,
+    chargeCount: 0,
+    chargesRemaining: 0,
+    oncePerBattle: false,
+    usedThisBattle: false,
+    summary: "Open with sword discipline.",
+    exactText: "Gain opener value when aligned with swords.",
+    active: false,
+    skillType: "buff",
+    damageType: "none",
+  };
+
+  const warmthOpening = skillPreview.buildPassiveSkillOpeningPreview(combat, warmthSkill);
+  const summonResistOpening = skillPreview.buildPassiveSkillOpeningPreview(combat, summonResistSkill);
+
+  assert.equal(Array.from(warmthOpening.hero).join(","), "Heal 3,Burn +2");
+  assert.equal(Array.from(warmthOpening.deck).join(","), "Next card cost -1,Next card Burn 1");
+  assert.match(preview.buildSkillPreviewOutcome(combat, warmthSkill, null), /Heal 3 \+ Burn \+2 \+ Next card cost -1 \+ Next card Burn 1/);
+
+  assert.equal(Array.from(summonResistOpening.hero).join(","), "Guard 4");
+  assert.equal(Array.from(summonResistOpening.mercenary).join(","), "Guard 3");
+  assert.equal(Array.from(summonResistOpening.deck).join(","), "Next card Guard 2,Summon power +2,Summon riders +1");
+  assert.match(preview.buildSkillPreviewOutcome(combat, summonResistSkill, null), /Summon power \+2/);
+
+  assert.equal(Array.from(preview.getExactSkillModifierPreviewParts(swordMasterySkill, combat)).join(","), "Next card +2 damage");
+});
+
+test("incoming pressure reflects control states, guard absorption, and setup-only charge intents", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const pressure = browserWindow.__ROUGE_COMBAT_VIEW_PRESSURE;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const baseEnemy = combat.enemies[0];
+  assert.ok(baseEnemy, "expected a baseline enemy to clone");
+
+  combat.hero.guard = 4;
+  combat.mercenary.guard = 1;
+  combat.enemies = [
+    {
+      ...baseEnemy,
+      id: "enemy_frozen_preview",
+      name: "Frozen Raider",
+      freeze: 1,
+      stun: 0,
+      paralyze: 0,
+      guard: 0,
+      burn: 0,
+      poison: 0,
+      slow: 0,
+      buffedAttack: 0,
+      traits: [],
+      currentIntent: { kind: "attack", label: "Frozen Swipe", value: 8, target: "hero" },
+      intents: [{ kind: "attack", label: "Frozen Swipe", value: 8, target: "hero" }],
+    },
+    {
+      ...baseEnemy,
+      id: "enemy_paralyzed_preview",
+      name: "Paralyzed Shaman",
+      freeze: 0,
+      stun: 0,
+      paralyze: 1,
+      guard: 0,
+      burn: 0,
+      poison: 0,
+      slow: 0,
+      buffedAttack: 0,
+      traits: [],
+      currentIntent: { kind: "attack_lightning_all", label: "Sparkline", value: 6, target: "all_allies" },
+      intents: [{ kind: "attack_lightning_all", label: "Sparkline", value: 6, target: "all_allies" }],
+    },
+    {
+      ...baseEnemy,
+      id: "enemy_charge_preview",
+      name: "Charging Brute",
+      freeze: 0,
+      stun: 0,
+      paralyze: 0,
+      guard: 0,
+      burn: 0,
+      poison: 0,
+      slow: 0,
+      buffedAttack: 0,
+      traits: [],
+      currentIntent: { kind: "charge", label: "Linebreaker Charge", value: 10, target: "hero" },
+      intents: [{ kind: "charge", label: "Linebreaker Charge", value: 10, target: "hero" }],
+    },
+  ];
+
+  const incoming = pressure.buildIncomingPressure(combat);
+
+  assert.equal(incoming.hero.attackers, 1);
+  assert.equal(incoming.hero.suppressedAttackers, 1);
+  assert.equal(incoming.hero.damage, 3);
+  assert.equal(incoming.hero.guardBlocked, 3);
+  assert.equal(incoming.hero.lifeDamage, 0);
+  assert.deepEqual(Array.from(incoming.hero.tags), ["Shock", "Charge"]);
+  assert.equal(incoming.hero.lineThreat, true);
+
+  assert.equal(incoming.mercenary.attackers, 1);
+  assert.equal(incoming.mercenary.suppressedAttackers, 0);
+  assert.equal(incoming.mercenary.damage, 3);
+  assert.equal(incoming.mercenary.guardBlocked, 1);
+  assert.equal(incoming.mercenary.lifeDamage, 2);
+  assert.deepEqual(Array.from(incoming.mercenary.tags), ["Shock"]);
+  assert.equal(incoming.mercenary.lineThreat, true);
+
+  const heroHtml = pressure.renderIncomingPressure(incoming.hero, browserWindow.ROUGE_RENDER_UTILS.escapeHtml);
+  assert.match(heroHtml, /Line Fire/);
+  assert.match(heroHtml, /guard holds/);
+  assert.match(heroHtml, /1 controlled/);
+  assert.match(heroHtml, /Charge/);
+});
+
+test("incoming pressure renders controlled state when hard crowd control suppresses all active threats", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const pressure = browserWindow.__ROUGE_COMBAT_VIEW_PRESSURE;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const baseEnemy = combat.enemies[0];
+  assert.ok(baseEnemy, "expected a baseline enemy to clone");
+
+  combat.enemies = [
+    {
+      ...baseEnemy,
+      id: "enemy_stunned_preview",
+      name: "Stunned Marauder",
+      freeze: 0,
+      stun: 1,
+      paralyze: 0,
+      guard: 0,
+      burn: 0,
+      poison: 0,
+      slow: 0,
+      buffedAttack: 0,
+      traits: [],
+      currentIntent: { kind: "attack_burn", label: "Searing Claw", value: 7, target: "hero" },
+      intents: [{ kind: "attack_burn", label: "Searing Claw", value: 7, target: "hero" }],
+    },
+  ];
+
+  const incoming = pressure.buildIncomingPressure(combat);
+  const heroHtml = pressure.renderIncomingPressure(incoming.hero, browserWindow.ROUGE_RENDER_UTILS.escapeHtml);
+
+  assert.equal(incoming.hero.attackers, 0);
+  assert.equal(incoming.hero.suppressedAttackers, 1);
+  assert.deepEqual(Array.from(incoming.hero.suppressedTags), ["Burn"]);
+  assert.match(heroHtml, /Controlled/);
+  assert.match(heroHtml, /1 controlled/);
+  assert.match(heroHtml, /Burn/);
+});
+
+test("enemy intent chips reflect controlled, hindered, and setup states", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const renderers = browserWindow.__ROUGE_COMBAT_VIEW_RENDERERS;
+  const combat = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+  });
+  const baseEnemy = combat.enemies[0];
+  assert.ok(baseEnemy, "expected a baseline enemy to clone");
+  const escapeHtml = browserWindow.ROUGE_RENDER_UTILS.escapeHtml;
+
+  const frozenEnemy: CombatEnemyState = {
+    ...baseEnemy,
+    id: "enemy_frozen_intent",
+    name: "Frozen Marauder",
+    freeze: 1,
+    stun: 0,
+    paralyze: 0,
+    currentIntent: { kind: "attack", label: "Rake", value: 7, target: "hero" },
+    intents: [{ kind: "attack", label: "Rake", value: 7, target: "hero" }],
+  };
+  const chargeEnemy: CombatEnemyState = {
+    ...baseEnemy,
+    id: "enemy_charge_intent",
+    name: "Charging Hulk",
+    freeze: 0,
+    stun: 0,
+    paralyze: 0,
+    currentIntent: { kind: "charge", label: "Linebreaker Charge", value: 12, target: "all_allies" },
+    intents: [{ kind: "charge", label: "Linebreaker Charge", value: 12, target: "all_allies" }],
+  };
+  const paralyzedEnemy: CombatEnemyState = {
+    ...baseEnemy,
+    id: "enemy_paralyzed_intent",
+    name: "Paralyzed Warlock",
+    freeze: 0,
+    stun: 0,
+    paralyze: 1,
+    currentIntent: { kind: "attack_lightning", label: "Shock Bolt", value: 8, target: "hero" },
+    intents: [{ kind: "attack_lightning", label: "Shock Bolt", value: 8, target: "hero" }],
+  };
+
+  const frozenHtml = renderers.renderEnemySprite(
+    combat,
+    frozenEnemy,
+    false,
+    false,
+    false,
+    combatEngine.describeIntent(frozenEnemy.currentIntent),
+    escapeHtml,
+  );
+  const chargeHtml = renderers.renderEnemySprite(
+    combat,
+    chargeEnemy,
+    false,
+    false,
+    false,
+    combatEngine.describeIntent(chargeEnemy.currentIntent),
+    escapeHtml,
+  );
+  const paralyzedHtml = renderers.renderEnemySprite(
+    combat,
+    paralyzedEnemy,
+    false,
+    false,
+    false,
+    combatEngine.describeIntent(paralyzedEnemy.currentIntent),
+    escapeHtml,
+  );
+
+  assert.match(frozenHtml, /sprite__intent--controlled/);
+  assert.match(frozenHtml, /Frozen/);
+  assert.match(chargeHtml, /sprite__intent--setup/);
+  assert.match(chargeHtml, /Next Turn/);
+  assert.match(paralyzedHtml, /sprite__intent--hindered/);
+  assert.match(paralyzedHtml, /Paralyzed/);
+});
+
+test("minion rack entries render hover preview metadata for summon actions", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "necromancer");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat.minions = [
+    {
+      id: "minion_preview_hydra",
+      templateId: "sorceress_hydra",
+      name: "Hydra",
+      skillLabel: "Hydra Breath",
+      actionKind: "attack_all_burn",
+      targetRule: "all_enemies",
+      power: 5,
+      secondaryValue: 3,
+      remainingTurns: 0,
+      persistent: true,
+    },
+  ];
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /data-preview-minion-id="minion_preview_hydra"/);
+  assert.match(root.innerHTML, /data-preview-scope="enemy_line"/);
+  assert.match(root.innerHTML, /data-preview-title="Hydra · Hydra Breath"/);
+  assert.match(root.innerHTML, /data-preview-outcome="5 line \+ Burn 3"/);
+});
+
 test("select-enemy action updates selectedEnemyId without re-rendering", () => {
   const { state, actionDispatcher, appEngine, combatEngine, createActionTarget, browserWindow } =
     startRunAndEnterCombat(createHarness());
@@ -487,6 +1191,74 @@ test("combat view renders combat screen when not exploring", () => {
 
   assert.ok(root.innerHTML.includes("combat-screen"), "should render combat screen");
   assert.ok(root.innerHTML.includes("fan-card") || root.innerHTML.includes("play-card"), "should show playable cards");
+});
+
+test("combat header readout includes selected enemy control and target state", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "barbarian");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+
+  const targetEnemy = state.combat.enemies.find((enemy: CombatEnemyState) => enemy.alive);
+  assert.ok(targetEnemy, "expected a selected enemy");
+  targetEnemy.currentIntent = { kind: "charge", label: "Linebreaker Charge", value: 12, target: "all_allies" };
+  targetEnemy.intents = [{ kind: "charge", label: "Linebreaker Charge", value: 12, target: "all_allies" }];
+  state.combat.selectedEnemyId = targetEnemy.id;
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /Next Turn · Linebreaker Charge/);
+  assert.match(root.innerHTML, /Party/);
+});
+
+test("combat command summary shows live summon-state bonuses", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "necromancer");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat.summonPowerBonus = 2;
+  state.combat.summonSecondaryBonus = 1;
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /Summon power \+2/);
+  assert.match(root.innerHTML, /Summon riders \+1/);
 });
 
 test("world map view renders zone waypoints and edges", () => {

@@ -35,6 +35,45 @@
     restoreSnapshotIntoState,
   } = runtimeWindow.__ROUGE_APP_ENGINE_RUN;
 
+  function resetTrainingView(state: AppState): void {
+    state.ui.trainingView = {
+      open: false,
+      source: "",
+      selectedTreeId: "",
+      selectedSkillId: "",
+      compareSkillId: "",
+      selectedSlot: "",
+      mode: "browse",
+    };
+  }
+
+  function canUseTraining(state: AppState): boolean {
+    return Boolean(state.run) && (state.phase === PHASES.SAFE_ZONE || state.phase === PHASES.ACT_TRANSITION);
+  }
+
+  function buildCombatSkillLoadout(run: RunState | null, content: GameContent): CombatSkillLoadoutEntry[] {
+    if (!run) {
+      return [];
+    }
+    const classProgression = runtimeWindow.ROUGE_CLASS_REGISTRY?.getClassProgression?.(content, run.classId) || null;
+    if (!classProgression) {
+      return [];
+    }
+    const skillIdsBySlot = run.progression?.classProgression?.equippedSkillBar || {
+      slot1SkillId: "",
+      slot2SkillId: "",
+      slot3SkillId: "",
+    };
+    const allSkills = classProgression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills);
+    return (["slot1", "slot2", "slot3"] as RunSkillBarSlotKey[])
+      .map((slotKey) => {
+        const skillId = skillIdsBySlot[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "";
+        const skill = allSkills.find((entry: RuntimeClassSkillDefinition) => entry.id === skillId) || null;
+        return skill ? { slotKey, skill } : null;
+      })
+      .filter(Boolean) as CombatSkillLoadoutEntry[];
+  }
+
   function createAppState({
     content,
     seedBundle,
@@ -64,20 +103,34 @@
       ui: {
         selectedClassId: getPreferredClassId(classes, profile),
         selectedMercenaryId: mercenaries[0]?.id || "",
+        characterSelectTab: "overview",
         reviewedHistoryIndex: 0,
         confirmAbandonSavedRun: false,
         hallExpanded: false,
         hallSection: "",
+        spellbookOpen: false,
         townFocus: "",
+        townOverviewTab: "departure",
         inventoryOpen: false,
         inventoryTab: "",
         inventoryDetailEntryId: "",
         exploring: false,
         explorationEvent: null,
+        combatPileView: "",
         scrollMapOpen: false,
         routeIntelOpen: false,
         actTransitionScrollOpen: false,
+        trainingView: {
+          open: false,
+          source: "",
+          selectedTreeId: "",
+          selectedSkillId: "",
+          compareSkillId: "",
+          selectedSlot: "",
+          mode: "browse",
+        },
         runSummaryStep: "finale",
+        runSummaryStepDirection: "none",
       },
       profile,
       run: null,
@@ -104,7 +157,9 @@
 
   function startCharacterSelect(state: AppState): void {
     resetFrontDoorUi(state);
+    resetTrainingView(state);
     state.ui.selectedClassId = getPreferredClassId(state.registries.classes, state.profile);
+    state.ui.characterSelectTab = "overview";
     state.phase = PHASES.CHARACTER_SELECT;
     state.error = "";
     state.combat = null;
@@ -136,6 +191,7 @@
     state.run.town.vendor.stock = [];
     runtimeWindow.ROUGE_ITEM_SYSTEM?.hydrateRunInventory?.(state.run, state.content, state.profile);
     resetFrontDoorUi(state);
+    resetTrainingView(state);
     state.phase = PHASES.SAFE_ZONE;
     state.combat = null;
     state.error = "";
@@ -275,6 +331,7 @@
         state.run.guide.seenIntroActNumbers.push(introActNumber);
       }
     }
+    resetTrainingView(state);
     state.ui.routeIntelOpen = false;
     state.phase = PHASES.WORLD_MAP;
     state.error = "";
@@ -286,6 +343,7 @@
     if (state.phase !== PHASES.WORLD_MAP || !state.run) {
       return { ok: false, message: "You are not on the world map." };
     }
+    state.ui.townOverviewTab = "departure";
     state.phase = PHASES.SAFE_ZONE;
     state.error = "";
     persistRunIfPossible(state);
@@ -293,7 +351,23 @@
   }
 
   function useTownAction(state: AppState, actionId: string): ActionResult {
-    if (state.phase !== PHASES.SAFE_ZONE || !state.run) {
+    if (!state.run) {
+      return { ok: false, message: "Town actions are only available in the safe zone." };
+    }
+
+    if (actionId.startsWith("progression_") && state.phase === PHASES.ACT_TRANSITION) {
+      const result = runtimeWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, actionId, state.content);
+      if (!result.ok) {
+        state.error = result.message || "Training action failed.";
+        return result;
+      }
+      getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
+      state.error = "";
+      persistRunIfPossible(state);
+      return result;
+    }
+
+    if (state.phase !== PHASES.SAFE_ZONE) {
       return { ok: false, message: "Town actions are only available in the safe zone." };
     }
 
@@ -322,6 +396,7 @@
     const weaponProfile = runtimeWindow.ROUGE_ITEM_CATALOG?.buildEquipmentWeaponProfile?.(weaponEquipment, state.content) || null;
     const weaponFamily = runtimeWindow.ROUGE_ITEM_CATALOG?.getWeaponFamily?.(weaponItemId, state.content) || "";
     const classPreferred = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(state.run.classId) || [];
+    const equippedSkills = buildCombatSkillLoadout(state.run, state.content);
     state.combat = state.combatEngine.createCombatState({
       content: { ...state.content, hero: overrides.heroState },
       encounterId,
@@ -337,9 +412,12 @@
       weaponProfile,
       armorProfile,
       classPreferredFamilies: classPreferred,
+      equippedSkills,
     });
     state.phase = PHASES.ENCOUNTER;
     state.ui.exploring = true;
+    state.ui.combatPileView = "";
+    state.ui.trainingView.open = false;
     runtimeWindow.ROUGE_DEBUG = state.profile?.meta?.settings?.debugMode || null;
   }
 
@@ -401,6 +479,7 @@
 
     if (state.combat.outcome === "defeat") {
       state.ui.runSummaryStep = "finale";
+      state.ui.runSummaryStepDirection = "none";
       state.phase = PHASES.RUN_FAILED;
       recordRunHistory(state, RUN_OUTCOME.FAILED);
       return { ok: true };
@@ -441,6 +520,7 @@
 
     if (reward.endsRun || runFactory.runIsComplete(state.run)) {
       state.ui.runSummaryStep = "finale";
+      state.ui.runSummaryStepDirection = "none";
       state.phase = PHASES.RUN_COMPLETE;
       recordRunHistory(state, RUN_OUTCOME.COMPLETED);
       return { ok: true };
@@ -509,14 +589,152 @@
       return { ok: false, message: "Cannot advance acts right now." };
     }
     getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
+    resetTrainingView(state);
     state.phase = PHASES.SAFE_ZONE;
     persistRunIfPossible(state);
     return { ok: true };
   }
 
+  function openTrainingView(state: AppState, source: TrainingViewSource = ""): ActionResult {
+    if (!canUseTraining(state)) {
+      state.error = "Training is only available in the safe zone or at act transition.";
+      return { ok: false, message: state.error };
+    }
+
+    const model = runtimeWindow.ROUGE_RUN_PROGRESSION.buildTrainingScreenModel(state, state.content);
+    if (!model) {
+      state.error = "Training is not available for this run.";
+      return { ok: false, message: state.error };
+    }
+
+    state.ui.trainingView.open = true;
+    state.ui.trainingView.source = source || (state.phase === PHASES.ACT_TRANSITION ? "act_transition" : "safe_zone");
+    state.ui.trainingView.selectedTreeId = state.ui.trainingView.selectedTreeId || model.selectedTreeId;
+    state.ui.trainingView.selectedSkillId = state.ui.trainingView.selectedSkillId || model.selectedSkillId;
+    state.ui.trainingView.compareSkillId = "";
+    state.ui.trainingView.selectedSlot = state.ui.trainingView.selectedSlot || model.selectedSlot;
+    state.ui.trainingView.mode = state.ui.trainingView.mode || "browse";
+    state.error = "";
+    return { ok: true };
+  }
+
+  function closeTrainingView(state: AppState): void {
+    resetTrainingView(state);
+    state.error = "";
+  }
+
+  function selectTrainingTree(state: AppState, treeId: string): void {
+    state.ui.trainingView.selectedTreeId = treeId || "";
+    state.ui.trainingView.selectedSkillId = "";
+    state.ui.trainingView.compareSkillId = "";
+    state.ui.trainingView.mode = "browse";
+  }
+
+  function selectTrainingSkill(state: AppState, skillId: string): void {
+    state.ui.trainingView.selectedSkillId = skillId || "";
+    if (state.ui.trainingView.compareSkillId === skillId) {
+      state.ui.trainingView.compareSkillId = "";
+    }
+  }
+
+  function selectTrainingSlot(state: AppState, slotKey: "" | RunSkillBarSlotKey): void {
+    state.ui.trainingView.selectedSlot = slotKey || "";
+    if (slotKey) {
+      state.ui.trainingView.mode = slotKey === "slot1" ? "browse" : "equip";
+    }
+  }
+
+  function setTrainingCompare(state: AppState, skillId: string): void {
+    state.ui.trainingView.compareSkillId = skillId || "";
+  }
+
+  function setTrainingMode(state: AppState, mode: TrainingViewMode): void {
+    if (mode === "swap" && state.run) {
+      const equipped = state.run.progression?.classProgression?.equippedSkillBar;
+      if (!state.ui.trainingView.selectedSlot || state.ui.trainingView.selectedSlot === "slot1") {
+        if (equipped?.slot2SkillId) {
+          state.ui.trainingView.selectedSlot = "slot2";
+        } else if (equipped?.slot3SkillId) {
+          state.ui.trainingView.selectedSlot = "slot3";
+        }
+      }
+    }
+    state.ui.trainingView.mode = mode;
+  }
+
+  function unlockTrainingSkill(state: AppState, skillId: string): ActionResult {
+    if (!canUseTraining(state) || !state.run) {
+      state.error = "Training is not available right now.";
+      return { ok: false, message: state.error };
+    }
+
+    const result = runtimeWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, state.content, skillId);
+    if (!result.ok) {
+      state.error = result.message || "Skill learning failed.";
+      return result;
+    }
+
+    state.ui.trainingView.selectedSkillId = skillId;
+    state.ui.trainingView.mode = "equip";
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
+    state.error = "";
+    persistRunIfPossible(state);
+    return result;
+  }
+
+  function equipTrainingSkill(state: AppState, slotKey: RunSkillBarSlotKey, skillId: string): ActionResult {
+    if (!canUseTraining(state) || !state.run) {
+      state.error = "Training is not available right now.";
+      return { ok: false, message: state.error };
+    }
+
+    const result = runtimeWindow.ROUGE_RUN_PROGRESSION.equipTrainingSkill(state.run, state.content, slotKey, skillId);
+    if (!result.ok) {
+      state.error = result.message || "Skill equip failed.";
+      return result;
+    }
+
+    state.ui.trainingView.selectedSlot = slotKey;
+    state.ui.trainingView.selectedSkillId = skillId;
+    state.ui.trainingView.mode = "browse";
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
+    state.error = "";
+    persistRunIfPossible(state);
+    return result;
+  }
+
+  function swapTrainingSkill(state: AppState, slotKey: RunSkillBarSlotKey, skillId: string): ActionResult {
+    if (!canUseTraining(state) || !state.run) {
+      state.error = "Training is not available right now.";
+      return { ok: false, message: state.error };
+    }
+
+    const currentSkillId = state.run.progression?.classProgression?.equippedSkillBar?.[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "";
+    if (!currentSkillId) {
+      state.error = `There is no equipped skill in ${slotKey} to swap yet.`;
+      return { ok: false, message: state.error };
+    }
+
+    const result = runtimeWindow.ROUGE_RUN_PROGRESSION.equipTrainingSkill(state.run, state.content, slotKey, skillId);
+    if (!result.ok) {
+      state.error = result.message || "Skill swap failed.";
+      return result;
+    }
+
+    state.ui.trainingView.selectedSlot = slotKey;
+    state.ui.trainingView.selectedSkillId = skillId;
+    state.ui.trainingView.mode = "swap";
+    getPersistence()?.syncProfileMetaFromRun?.(state.profile, state.run);
+    state.error = "";
+    persistRunIfPossible(state);
+    return { ok: true, message: result.message || "Skill swapped." };
+  }
+
   function returnToFrontDoor(state: AppState): void {
     resetFrontDoorUi(state);
+    resetTrainingView(state);
     state.ui.runSummaryStep = "finale";
+    state.ui.runSummaryStepDirection = "none";
     state.phase = PHASES.FRONT_DOOR;
     state.run = null;
     state.combat = null;
@@ -557,6 +775,16 @@
     claimRewardAndAdvance,
     continueActGuide,
     continueActTransition,
+    openTrainingView,
+    closeTrainingView,
+    selectTrainingTree,
+    selectTrainingSkill,
+    selectTrainingSlot,
+    setTrainingCompare,
+    setTrainingMode,
+    unlockTrainingSkill,
+    equipTrainingSkill,
+    swapTrainingSkill,
     returnToFrontDoor,
   };
 })();

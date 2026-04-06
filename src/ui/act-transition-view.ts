@@ -125,6 +125,18 @@
     const destinationBrief = getDestinationBrief(run.actNumber, nextTown);
     const nextActPosterSrc = actVisuals.getPosterSrc(destinationActNumber) || "";
     const scrollDropCopy = getScrollDropCopy(run.actNumber, run.bossName, nextTown);
+    const trainingModel = runtimeWindow.ROUGE_RUN_PROGRESSION?.buildTrainingScreenModel?.(appState, appState.content) || null;
+    const skillBarSummary = trainingModel
+      ? `${trainingModel.slotStateLabel} Slots`
+      : "Unavailable";
+    const skillBarNames = trainingModel?.slots
+      .filter((slot: TrainingSlotViewModel) => Boolean(slot.equippedSkillName))
+      .map((slot: TrainingSlotViewModel) => slot.equippedSkillName)
+      .join(" / ") || "";
+    const skillBarFollowThrough = skillBarNames
+      ? `${skillBarSummary}. ${skillBarNames}.`
+      : trainingModel?.nextSlotGateLabel || "Review training before the next act opens.";
+    const trainingOverlay = runtimeWindow.ROUGE_TRAINING_VIEW?.buildTrainingOverlay?.(appState, services) || "";
     const scrollOverlay = appState.ui.actTransitionScrollOpen ? `
       <div class="act-transition-scroll-overlay" data-action="close-act-transition-scroll">
         <div class="act-transition-scroll-overlay__panel" data-action="noop">
@@ -176,6 +188,10 @@
               <div class="act-transition-chip">
                 <span class="act-transition-chip__label">Coin</span>
                 <strong class="act-transition-chip__value">${run.gold}g</strong>
+              </div>
+              <div class="act-transition-chip">
+                <span class="act-transition-chip__label">Skill Bar</span>
+                <strong class="act-transition-chip__value">${escapeHtml(skillBarSummary)}</strong>
               </div>
             </div>
           </header>
@@ -235,9 +251,11 @@
                 <h2 class="act-transition-destination__town">${escapeHtml(nextTown)}</h2>
                 <p class="act-transition-destination__act">${escapeHtml(nextAct?.title || "The Final Reckoning")}</p>
                 <p class="act-transition-destination__brief">${escapeHtml(destinationBrief)}</p>
+                <p class="act-transition-destination__brief act-transition-destination__brief--minor">${escapeHtml(`Skill Bar: ${skillBarFollowThrough}`)}</p>
               </div>
 
               <div class="cutscene__cta">
+                <button class="neutral-btn act-transition__secondary-btn" data-action="open-training-view" data-training-source="act_transition">Review Training</button>
                 <button class="primary-btn act-transition__cta-btn" data-action="continue-act-transition">Ride for ${escapeHtml(nextTown)}</button>
               </div>
             </aside>
@@ -245,6 +263,7 @@
         </div>
       </div>
       ${scrollOverlay}
+      ${trainingOverlay}
       ${common.buildAccountMetaContinuityMarkup(appState, accountSummary, services.renderUtils, {
         copy:
           "The act handoff now keeps archive pressure, charter staging, mastery focus, and convergence pressure visible while the expedition shifts between acts.",

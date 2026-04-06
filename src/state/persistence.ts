@@ -1,7 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
-  const { toNumber } = runtimeWindow.ROUGE_UTILS;
+  const { deepClone, toNumber } = runtimeWindow.ROUGE_UTILS;
   const {
     SCHEMA_VERSION,
     STORAGE_KEY,
@@ -22,8 +22,8 @@
     restoreSnapshot,
     serializeProfile,
     restoreProfile,
-    saveProfileToStorage,
-    loadProfileFromStorage,
+    saveProfileToStorage: saveProfileToBrowserStorage,
+    loadProfileFromStorage: loadProfileFromBrowserStorage,
   } = runtimeWindow.__ROUGE_PERSISTENCE_CORE;
 
   const {
@@ -31,6 +31,155 @@
     getAccountProgressSummary,
     buildRunHistoryEntry,
   } = runtimeWindow.__ROUGE_PERSISTENCE_SUMMARIES;
+
+  const backendProfileStore = {
+    initialized: false,
+    currentUserId: "",
+    cachedProfile: null as ProfileState | null,
+    syncPromise: null as Promise<void> | null,
+    savePromise: null as Promise<void> | null,
+    queuedSerializedProfile: null as string | null,
+  };
+
+  function isDefaultStorageProvider(storage: StorageLike | null | undefined) {
+    return !storage || storage === getDefaultStorage();
+  }
+
+  function cloneProfile(profile: ProfileState | null, content: GameContent | null = null) {
+    if (!profile) {
+      return null;
+    }
+    const restored = restoreProfile(serializeProfile(profile, content), content)?.profile || null;
+    return restored ? deepClone(restored) : deepClone(profile);
+  }
+
+  function getAuthState(): RogueAuthState {
+    return runtimeWindow.ROGUE_AUTH?.getAuthState?.() || { user: null, loading: false, ready: true };
+  }
+
+  function canUseBackendProfileStore(storage: StorageLike | null | undefined) {
+    const auth = getAuthState();
+    return isDefaultStorageProvider(storage) && Boolean(auth.ready && auth.user && runtimeWindow.fetch);
+  }
+
+  async function readProfileFromBackend(content: GameContent | null = null) {
+    const response = await runtimeWindow.fetch("/api/profile", {
+      credentials: "same-origin",
+    });
+    const data = await response.json();
+    const payload = typeof data === "object" && data ? (data as { ok?: boolean; profile?: unknown }) : {};
+    if (payload.ok === false) {
+      return null;
+    }
+    return payload.profile ? restoreProfile(payload.profile, content)?.profile || null : null;
+  }
+
+  async function writeProfileToBackend(serializedProfile: string) {
+    const response = await runtimeWindow.fetch("/api/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ profile: serializedProfile }),
+    });
+    const data = await response.json();
+    if (typeof data === "object" && data && (data as { ok?: boolean }).ok === false) {
+      throw new Error("Backend profile save failed.");
+    }
+  }
+
+  function queueBackendProfileSave(serializedProfile: string) {
+    backendProfileStore.queuedSerializedProfile = serializedProfile;
+    if (backendProfileStore.savePromise) {
+      return;
+    }
+    backendProfileStore.savePromise = (async () => {
+      while (backendProfileStore.queuedSerializedProfile) {
+        const nextSerializedProfile = backendProfileStore.queuedSerializedProfile;
+        backendProfileStore.queuedSerializedProfile = null;
+        try {
+          await writeProfileToBackend(nextSerializedProfile);
+        } catch {
+          backendProfileStore.queuedSerializedProfile = backendProfileStore.queuedSerializedProfile || nextSerializedProfile;
+          break;
+        }
+      }
+    })().finally(() => {
+      backendProfileStore.savePromise = null;
+      if (backendProfileStore.queuedSerializedProfile) {
+        queueBackendProfileSave(backendProfileStore.queuedSerializedProfile);
+      }
+    });
+  }
+
+  async function initializeProfileStore(content: GameContent | null = null) {
+    if (backendProfileStore.syncPromise) {
+      return backendProfileStore.syncPromise;
+    }
+
+    backendProfileStore.syncPromise = (async () => {
+      await runtimeWindow.ROGUE_AUTH?.waitUntilReady?.();
+      const auth = getAuthState();
+      const previousCachedProfile = cloneProfile(backendProfileStore.cachedProfile, content);
+
+      if (!auth.user || !runtimeWindow.fetch) {
+        if (backendProfileStore.currentUserId && previousCachedProfile) {
+          saveProfileToBrowserStorage(previousCachedProfile, getDefaultStorage(), content);
+        }
+        backendProfileStore.initialized = true;
+        backendProfileStore.currentUserId = "";
+        backendProfileStore.cachedProfile = loadProfileFromBrowserStorage(undefined, content) || previousCachedProfile || null;
+        return;
+      }
+
+      if (backendProfileStore.initialized && backendProfileStore.currentUserId === auth.user.googleId && backendProfileStore.cachedProfile) {
+        return;
+      }
+
+      const browserProfile = loadProfileFromBrowserStorage(undefined, content);
+      const backendProfile = await readProfileFromBackend(content).catch((): ProfileState | null => null);
+
+      if (backendProfile) {
+        backendProfileStore.cachedProfile = cloneProfile(backendProfile, content);
+      } else if (browserProfile) {
+        backendProfileStore.cachedProfile = cloneProfile(browserProfile, content);
+        queueBackendProfileSave(serializeProfile(browserProfile, content));
+      } else {
+        backendProfileStore.cachedProfile = createEmptyProfile();
+      }
+
+      backendProfileStore.initialized = true;
+      backendProfileStore.currentUserId = auth.user.googleId;
+    })().finally(() => {
+      backendProfileStore.syncPromise = null;
+    });
+
+    return backendProfileStore.syncPromise;
+  }
+
+  function saveProfileToStorage(
+    profile: ProfileState | ProfileEnvelope | string,
+    storage: StorageLike | null = getDefaultStorage(),
+    content: GameContent | null = null
+  ) {
+    if (!canUseBackendProfileStore(storage)) {
+      return saveProfileToBrowserStorage(profile, storage, content);
+    }
+
+    const serialized = typeof profile === "string" ? profile : serializeProfile(profile, content);
+    const restored = restoreProfile(serialized, content)?.profile || null;
+    backendProfileStore.cachedProfile = cloneProfile(restored, content);
+    backendProfileStore.initialized = true;
+    backendProfileStore.currentUserId = getAuthState().user?.googleId || "";
+    queueBackendProfileSave(serialized);
+    return { ok: true };
+  }
+
+  function loadProfileFromStorage(storage: StorageLike | null = getDefaultStorage(), content: GameContent | null = null) {
+    if (!canUseBackendProfileStore(storage)) {
+      return loadProfileFromBrowserStorage(storage, content);
+    }
+    return cloneProfile(backendProfileStore.cachedProfile, content);
+  }
 
   function unlockProfileEntries(profile: ProfileState, category: ProfileUnlockCategory, ids: string[]) {
     ensureMeta(profile);
@@ -281,6 +430,7 @@
     getAccountProgressSummary,
     getRunHistoryCapacity,
     recordRunHistory,
+    initializeProfileStore,
     saveToStorage,
     loadFromStorage,
     hasSavedSnapshot,

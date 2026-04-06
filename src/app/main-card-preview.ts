@@ -61,11 +61,13 @@
       hero: string;
       mercenary: string;
       enemyLine: Record<string, string>;
+      deck: string;
+      deckLabel: string;
     } {
       const instance = combat.hand.find((entry) => entry.instanceId === instanceId);
       const card = instance ? content.cardCatalog[instance.cardId] : null;
       if (!instance || !card) {
-        return { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} };
+        return { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {}, deck: "", deckLabel: "" };
       }
 
       const selectedEnemy = combat.enemies.find((enemy) => enemy.id === combat.selectedEnemyId && enemy.alive) || null;
@@ -194,13 +196,15 @@
         hero: formatPreviewParts(heroParts),
         mercenary: formatPreviewParts(mercParts),
         enemyLine: Object.fromEntries(Array.from(lineParts.entries()).map(([enemyId, parts]) => [enemyId, formatPreviewParts(parts)])),
+        deck: "",
+        deckLabel: "",
       };
     }
 
     function buildMeleePreviewReadouts(combat: CombatState) {
       const selectedEnemy = combat.enemies.find((enemy) => enemy.id === combat.selectedEnemyId && enemy.alive) || null;
       if (!selectedEnemy || !combat.weaponDamageBonus) {
-        return { targetEnemyId: "", selectedEnemy: "" };
+        return { targetEnemyId: "", selectedEnemy: "", deck: "", deckLabel: "" };
       }
       const preferred = Array.isArray(combat.classPreferredFamilies) ? combat.classPreferredFamilies : [];
       const familyMatch = preferred.includes(combat.weaponFamily || "");
@@ -217,6 +221,8 @@
           dealt > 0 ? `${dealt} strike` : "",
           blocked > 0 ? `${blocked} guard` : "",
         ].filter(Boolean)),
+        deck: "",
+        deckLabel: "",
       };
     }
 
@@ -258,6 +264,8 @@
       hero: string;
       mercenary: string;
       enemyLine: Record<string, string>;
+      deck: string;
+      deckLabel: string;
     } | null {
       const result = runtimeWindow.__ROUGE_MAIN_SKILL_PREVIEW_READOUTS?.buildExactSkillPreviewReadouts?.(
         combat, skill, { appendPreviewPart, formatPreviewParts, applyPreviewEnemyDamage }
@@ -265,13 +273,13 @@
       if (!result) {
         return null;
       }
-      return result as unknown as { targetEnemyId: string; selectedEnemy: string; hero: string; mercenary: string; enemyLine: Record<string, string> };
+      return { ...(result as unknown as { targetEnemyId: string; selectedEnemy: string; hero: string; mercenary: string; enemyLine: Record<string, string>; deck: string }), deckLabel: "" };
     }
 
     function buildMinionPreviewReadouts(combat: CombatState, minionId: string) {
       const minion = Array.isArray(combat.minions) ? combat.minions.find((entry) => entry.id === minionId) : null;
       if (!minion) {
-        return { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string> };
+        return { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string>, deck: "", deckLabel: "" };
       }
 
       const targetEnemy = chooseMinionPreviewTarget(combat, minion);
@@ -369,18 +377,23 @@
         hero: formatPreviewParts(heroParts),
         mercenary: formatPreviewParts(mercParts),
         enemyLine: Object.fromEntries(Array.from(lineParts.entries()).map(([enemyId, parts]) => [enemyId, formatPreviewParts(parts)])),
+        deck: "",
+        deckLabel: "",
       };
     }
 
     function buildSkillPreviewReadouts(combat: CombatState, slotKey: string) {
       const skill = combat.equippedSkills.find((entry) => entry.slotKey === slotKey);
       if (!skill) {
-        return { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string> };
+        return { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string>, deck: "", deckLabel: "" };
       }
 
       const exactReadouts = buildExactSkillPreviewReadouts(combat, skill);
       if (exactReadouts) {
-        return exactReadouts;
+        return {
+          ...exactReadouts,
+          deckLabel: exactReadouts.deck ? (skill.active ? "Next Card" : (skill.skillType === "summon" ? "Summon State" : "Opening State")) : "",
+        };
       }
 
       const previewApi = window.__ROUGE_COMBAT_VIEW_PREVIEW;
@@ -388,6 +401,7 @@
       const previewScopes = previewApi?.deriveSkillPreviewScopes?.(skill) || [];
       const previewOutcome = previewApi?.buildSkillPreviewOutcome?.(combat, skill, selectedEnemy) || skill.summary || "";
       const summary = previewApi?.summarizePreviewOutcome?.(previewOutcome) || previewOutcome;
+      const deck = formatPreviewParts((previewApi?.getExactSkillModifierPreviewParts?.(skill, combat) || []) as string[]);
       const enemyLine: Record<string, string> = {};
       if (previewScopes.includes("enemy_line")) {
         combat.enemies
@@ -403,6 +417,8 @@
         hero: previewScopes.includes("party") || previewScopes.includes("hero") ? summary : "",
         mercenary: previewScopes.includes("party") || previewScopes.includes("mercenary") ? summary : "",
         enemyLine,
+        deck,
+        deckLabel: deck ? (skill.active ? "Next Card" : (skill.skillType === "summon" ? "Summon State" : "Opening State")) : "",
       };
     }
 
@@ -473,7 +489,7 @@
       if (!deckChip) {
         return;
       }
-      let readouts = { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string> };
+      let readouts = { targetEnemyId: "", selectedEnemy: "", hero: "", mercenary: "", enemyLine: {} as Record<string, string>, deck: "", deckLabel: "" };
       if (getAppState()?.combat) {
         if (sourceEl.dataset.action === "melee-strike") {
           readouts = { ...buildMeleePreviewReadouts(getAppState().combat), hero: "", mercenary: "", enemyLine: {} as Record<string, string> };
@@ -495,9 +511,11 @@
       const needsSelectedEnemy = previewScopes.includes("selected_enemy");
       if (needsSelectedEnemy && !previewEnemyEl) {
         deckChip.classList.add("combat-command__deck-target--hot");
-        deckChip.textContent = previewOutcome
-          ? `${previewTitle} -> Choose Target · ${previewOutcome}`
-          : `${previewTitle} -> Choose Target`;
+        deckChip.textContent = readouts.deck
+          ? `${previewTitle} -> ${readouts.deckLabel || "Choose Target"} · ${readouts.deck}`
+          : previewOutcome
+            ? `${previewTitle} -> Choose Target · ${previewOutcome}`
+            : `${previewTitle} -> Choose Target`;
         currentTargetPreviewSource = sourceEl;
         return;
       }
@@ -537,7 +555,9 @@
       }
 
       deckChip.classList.add("combat-command__deck-target--hot");
-      if (previewScopes.length === 1 && previewScopes[0] === "selected_enemy" && previewEnemyEl) {
+      if (readouts.deck) {
+        deckChip.textContent = `${previewTitle} -> ${readouts.deckLabel || "Next Card"} · ${readouts.deck}`;
+      } else if (previewScopes.length === 1 && previewScopes[0] === "selected_enemy" && previewEnemyEl) {
         const enemyName = previewEnemyEl.dataset.enemyName || "Target";
         deckChip.textContent = previewOutcome
           ? `${previewTitle} -> ${enemyName} · ${previewOutcome}`

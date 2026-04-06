@@ -367,6 +367,16 @@
     const noteLines = Array.from(new Set([...(reward.lines || []), ...(rewardContext.lines || [])])).filter(Boolean).slice(0, 2);
     const companionLife = `${run.mercenary.currentLife}/${run.mercenary.maxLife}`;
     const choiceCountLabel = `${reward.choices.length} path${reward.choices.length === 1 ? "" : "s"} ready`;
+    const headerChips = Array.from(
+      new Set(
+        [
+          rewardContext.title,
+          reward.clearsZone ? "Zone Clears" : "Route Continues",
+          reward.endsRun ? "Final Claim" : reward.endsAct ? "Act Crossing" : "Immediate Claim",
+        ].filter(Boolean)
+      )
+    );
+    const PATH_LABELS = ["Path I", "Path II", "Path III", "Path IV"];
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -385,13 +395,20 @@
               <span class="reward-header__eyebrow">${escapeHtml(reward.zoneTitle)} · Encounter ${reward.encounterNumber}</span>
               <h1 class="reward-header__title">${escapeHtml(reward.title)}</h1>
               <p class="reward-header__copy">${escapeHtml(getRewardLeadCopy(reward, rewardContext))}</p>
+              <div class="reward-header__chips">
+                ${headerChips.map((chip) => `<span class="reward-header__chip">${escapeHtml(chip)}</span>`).join("")}
+              </div>
+            </div>
+
+            <aside class="reward-header__rail">
+              <span class="reward-header__rail-label">Spoils Ledger</span>
               <div class="reward-header__grants">
                 <span class="reward-grant reward-grant--gold"><span class="reward-grant__label">Gold</span><strong>+${reward.grants.gold}</strong></span>
                 <span class="reward-grant reward-grant--xp"><span class="reward-grant__label">XP</span><strong>+${reward.grants.xp}</strong></span>
                 <span class="reward-grant reward-grant--potions"><span class="reward-grant__label">Potions</span><strong>+${reward.grants.potions}</strong></span>
                 <span class="reward-grant reward-grant--life"><span class="reward-grant__label">Life</span><strong>${run.hero.currentLife}/${run.hero.maxLife}</strong></span>
               </div>
-            </div>
+            </aside>
           </header>
 
           <section class="reward-stage">
@@ -442,7 +459,7 @@
               </div>
 
               <div class="reward-choice-grid">
-                ${reward.choices.map((choice) => {
+                ${reward.choices.map((choice, index) => {
                   const icons = getEffectIcons(choice, appState.content);
                   const { RARITY } = runtimeWindow.ROUGE_ITEM_CATALOG;
                   const choiceRarity = choice.effects?.find((effect) => effect.rarity)?.rarity || RARITY.WHITE;
@@ -455,20 +472,33 @@
                   const category = getCategoryTag(choice);
                   const categoryClass = `reward-choice-card--${category.toLowerCase()}`;
                   const featureLines = getChoiceFeatureLines(choice, run, appState.content);
+                  const pathLabel = PATH_LABELS[index] || `Path ${index + 1}`;
                   return `
                     <button class="reward-choice-card ${rarityClass} ${categoryClass}" data-action="claim-reward-choice" data-choice-id="${escapeHtml(choice.id)}">
                       <div class="reward-choice-card__top">
+                        <span class="reward-choice-card__path">${escapeHtml(pathLabel)}</span>
                         <span class="reward-choice-card__category">${category}</span>
                         <span class="reward-choice-card__icons">${icons.join(" ")}</span>
                       </div>
                       <div class="reward-choice-card__art">
                         ${getChoiceVisualMarkup(choice, appState.content, escapeHtml)}
                       </div>
-                      <div class="reward-choice-card__name">${escapeHtml(choice.title)}</div>
-                      <div class="reward-choice-card__sub">${escapeHtml(choice.subtitle)}</div>
-                      <div class="reward-choice-card__desc">${escapeHtml(choice.description)}</div>
-                      ${featureLines.length > 0 ? `<div class="reward-choice-card__deltas">${featureLines.map((line) => `<span class="reward-choice-card__delta">${escapeHtml(line)}</span>`).join("")}</div>` : ""}
-                      <div class="reward-choice-card__cta">Claim this path</div>
+                      <div class="reward-choice-card__body">
+                        <div class="reward-choice-card__name">${escapeHtml(choice.title)}</div>
+                        <div class="reward-choice-card__sub">${escapeHtml(choice.subtitle)}</div>
+                        <div class="reward-choice-card__desc">${escapeHtml(choice.description)}</div>
+                      </div>
+                      ${
+                        featureLines.length > 0
+                          ? `
+                            <div class="reward-choice-card__outcome">
+                              <div class="reward-choice-card__outcome-label">Immediate Mutation</div>
+                              <div class="reward-choice-card__deltas">${featureLines.map((line) => `<span class="reward-choice-card__delta">${escapeHtml(line)}</span>`).join("")}</div>
+                            </div>
+                          `
+                          : ""
+                      }
+                      <div class="reward-choice-card__cta">Claim This Path <span aria-hidden="true">→</span></div>
                     </button>
                   `;
                 }).join("")}

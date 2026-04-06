@@ -2,6 +2,8 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { ENTRY_KIND } = runtimeWindow.ROUGE_CONSTANTS;
   const { formatTimestamp, getPhaseTone, getRunOutcomeTone } = runtimeWindow.__ROUGE_HALL_VIEW_SECTIONS;
+  type DecklistEntry = { cardId: string; card: CardDefinition; count: number; locations: string[] };
+  type DecklistBand = { label: string; costKey: number; entries: DecklistEntry[] };
 
   function getStashPreviewLines(profile: ProfileState, content: GameContent): string[] {
     const entries = Array.isArray(profile?.stash?.entries) ? profile.stash.entries.slice(0, runtimeWindow.ROUGE_LIMITS.STASH_PREVIEW_ENTRIES) : [];
@@ -62,10 +64,128 @@
     return { savedRunSummary, runCount, recentRuns, lastRun, stashCount, unlockCount };
   }
 
+  function buildCostBands(entries: DecklistEntry[]): DecklistBand[] {
+    const bandMap = new Map<number, DecklistEntry[]>();
+    for (const entry of entries) {
+      const costKey = Math.min(4, Math.max(0, entry.card.cost));
+      if (!bandMap.has(costKey)) {
+        bandMap.set(costKey, []);
+      }
+      bandMap.get(costKey)!.push(entry);
+    }
+
+    return [...bandMap.entries()]
+      .sort((left, right) => left[0] - right[0])
+      .map(([costKey, bandEntries]) => ({
+        label: `${costKey >= 4 ? "4+" : costKey} Cost`,
+        costKey,
+        entries: bandEntries.sort((left, right) => {
+          const titleDelta = left.card.title.replace(/\+$/, "").localeCompare(right.card.title.replace(/\+$/, ""));
+          if (titleDelta !== 0) {
+            return titleDelta;
+          }
+          const leftUpgrade = left.cardId.endsWith("_plus") ? 1 : 0;
+          const rightUpgrade = right.cardId.endsWith("_plus") ? 1 : 0;
+          return leftUpgrade - rightUpgrade;
+        }),
+      }));
+  }
+
+  function buildSpellbookOverlay(appState: AppState, services: UiRenderServices): string {
+    if (!appState.ui.spellbookOpen) {
+      return "";
+    }
+
+    const renderers = runtimeWindow.__ROUGE_COMBAT_VIEW_RENDERERS_DECKLIST;
+    const archetypes = runtimeWindow.__ROUGE_REWARD_ENGINE_ARCHETYPES;
+    const { escapeHtml } = services.renderUtils;
+    if (!renderers?.renderDecklistGroup) {
+      return "";
+    }
+
+    const classLabelMap = new Map<string, string>(
+      (Array.isArray(appState.registries.classes) ? appState.registries.classes : []).map((entry) => [
+        entry.id,
+        String((entry as ClassDefinition & { className?: unknown; name?: unknown }).className
+          || (entry as ClassDefinition & { name?: unknown }).name
+          || entry.id),
+      ])
+    );
+    const grouped = new Map<string, DecklistEntry[]>();
+
+    Object.entries(appState.content.cardCatalog || {}).forEach(([cardId, card]) => {
+      if (!card) {
+        return;
+      }
+      const classId = archetypes?.getCardClassId?.(cardId, card) || "";
+      const key = classId || "shared";
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push({ cardId, card, count: 1, locations: [] });
+    });
+
+    const preferredOrder = ["shared", ...(Array.isArray(appState.registries.classes) ? appState.registries.classes.map((entry) => entry.id) : [])];
+    const orderedKeys = [
+      ...preferredOrder.filter((key) => grouped.has(key)),
+      ...[...grouped.keys()].filter((key) => !preferredOrder.includes(key)).sort((left, right) => left.localeCompare(right)),
+    ];
+
+    const sections = orderedKeys.map((key) => {
+      const entries = grouped.get(key) || [];
+      return {
+        id: key,
+        label: key === "shared" ? "Shared Arsenal" : (classLabelMap.get(key) || key),
+        eyebrow: key === "shared" ? "Core Library" : "Class Library",
+        count: entries.length,
+        bands: buildCostBands(entries),
+      };
+    });
+
+    const totalCards = sections.reduce((sum, section) => sum + section.count, 0);
+    const upgradedCards = Object.keys(appState.content.cardCatalog || {}).filter((cardId) => cardId.endsWith("_plus")).length;
+    const baseCards = Math.max(0, totalCards - upgradedCards);
+    const classPills = sections.map((section) => `
+      <span class="dl-comp-pill spellbook-overlay__class-pill">${escapeHtml(section.label)} ${section.count}</span>
+    `).join("");
+
+    return `
+      <div class="decklist-overlay spellbook-overlay" data-action="close-spellbook">
+        <div class="decklist-overlay__panel spellbook-overlay__panel" data-action="noop">
+          <div class="decklist-overlay__head">
+            <div class="decklist-overlay__meta">
+              <span class="decklist-overlay__eyebrow">Grand Spellbook</span>
+              <h3 class="decklist-overlay__title">${totalCards} cards · ${baseCards} base · ${upgradedCards} upgrades</h3>
+              <div class="decklist-overlay__composition">
+                ${classPills}
+              </div>
+            </div>
+            <button type="button" class="neutral-btn decklist-overlay__close" data-action="close-spellbook">Close</button>
+          </div>
+          <div class="decklist-overlay__body spellbook-overlay__body">
+            ${sections.map((section) => `
+              <section class="spellbook-overlay__section" id="spellbook-section-${escapeHtml(section.id)}">
+                <header class="spellbook-overlay__section-head">
+                  <div>
+                    <p class="spellbook-overlay__section-eyebrow">${escapeHtml(section.eyebrow)}</p>
+                    <h4 class="spellbook-overlay__section-title">${escapeHtml(section.label)}</h4>
+                  </div>
+                  <span class="spellbook-overlay__section-count">${section.count} cards</span>
+                </header>
+                ${section.bands.map((band) => renderers.renderDecklistGroup(band, escapeHtml)).join("")}
+              </section>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderWelcomeScreen(root: HTMLElement, appState: AppState, services: UiRenderServices): void {
     const { escapeHtml, buildBadge, buildStat } = services.renderUtils;
     const vm = deriveWelcomeModel(appState, services);
     const { savedRunSummary, runCount, recentRuns, lastRun, stashCount, unlockCount } = vm;
+    const spellbookOverlay = buildSpellbookOverlay(appState, services);
 
     const savedRunCard = savedRunSummary
       ? `<section class="panel flow-panel welcome-saved-run">
@@ -122,6 +242,14 @@
             </span>
             <span class="welcome-menu-arrow">\u203a</span>
           </button>
+          <button class="welcome-menu-item" data-action="open-spellbook">
+            <span class="welcome-menu-icon">\u{1F4D6}</span>
+            <span class="welcome-menu-body">
+              <span class="welcome-menu-label">Spellbook</span>
+              <span class="welcome-menu-detail">Audit every card, upgrade, and current frame in one place.</span>
+            </span>
+            <span class="welcome-menu-arrow">\u203a</span>
+          </button>
         </nav>`
       : "";
 
@@ -160,12 +288,17 @@
     } else if (runCount > 0) {
       instructionText = "Choose a hero, bind your runes, and march back through five acts of blood-soaked combat.";
     }
+    const spellbookButton = `<button class="neutral-btn welcome-spellbook-btn" data-action="open-spellbook">Open Spellbook</button>`;
     const heroActionMarkup = savedRunSummary
-      ? `<p class="welcome-hero-note">A live expedition already waits in the hall below. Resume it there before drafting another contract.</p>`
+      ? `<div class="welcome-hero-actions">
+          <p class="welcome-hero-note">A live expedition already waits in the hall below. Resume it there before drafting another contract.</p>
+          ${spellbookButton}
+        </div>`
       : `<div class="welcome-hero-actions">
           <button class="primary-btn welcome-cta" data-action="start-character-select">
             <span class="welcome-cta__label">${runCount > 0 ? "New Expedition" : "Begin Expedition"}</span>
           </button>
+          ${spellbookButton}
         </div>`;
 
     root.innerHTML = `
@@ -196,6 +329,7 @@
         ${menuItems}
         ${!savedRunSummary ? recentRunStrip : ""}
       </div>
+      ${spellbookOverlay}
     `;
 
     if (!auth.user && runtimeWindow.ROGUE_AUTH?.renderSignInButton && root.querySelector) {
@@ -223,6 +357,7 @@
     const stashPreviewLines = getStashPreviewLines(appState.profile, appState.content);
     const recentRunMarkup = buildRecentRunMarkup(appState.profile, services.renderUtils);
     const expeditionSection = expeditionView.buildExpeditionSectionMarkup(appState, services, savedRunSummary);
+    const spellbookOverlay = buildSpellbookOverlay(appState, services);
     const section = appState.ui.hallSection || "overview";
     const tabClass = (s: string) => s !== section ? "hall-section hall-section--hidden" : "hall-section";
     const sectionMeta: Record<string, { title: string; copy: string }> = {
@@ -288,6 +423,9 @@
             <div>
               <p class="hall-nav-shell__eyebrow">Navigator</p>
               <h2 class="hall-nav-shell__title">${escapeHtml(currentSectionMeta.title)}</h2>
+              <div class="hall-nav-shell__actions">
+                <button class="neutral-btn hall-nav-shell__spellbook-btn" data-action="open-spellbook">Open Spellbook</button>
+              </div>
             </div>
             <p class="hall-nav-shell__copy">${escapeHtml(currentSectionMeta.copy)}</p>
           </div>
@@ -345,6 +483,7 @@
         </div>
         </div>
       </div>
+      ${spellbookOverlay}
     `;
   }
 

@@ -164,6 +164,7 @@
       mercenaryActions,
       accountSummary,
     } = operations;
+    const trainingModel = runtimeWindow.ROUGE_RUN_PROGRESSION?.buildTrainingScreenModel?.(appState, appState.content) || null;
     const townFocus = appState.ui.townFocus;
 
     const cainRescued = run.actNumber >= 2 || (run.acts || []).some((act) =>
@@ -226,10 +227,20 @@
           <div data-action="noop">${runtimeWindow.ROUGE_INVENTORY_VIEW.buildInventoryMarkup(appState, services)}</div>
         </div>`
       : "";
+    const trainingOverlay = runtimeWindow.ROUGE_TRAINING_VIEW?.buildTrainingOverlay?.(appState, services) || "";
 
     const mapSrc = `./assets/curated/town-maps/act${run.actNumber > 5 ? 1 : run.actNumber}.webp`;
     const nextZoneLabel = routeSnapshot.nextZone?.title || "World Map";
     const townIntro = `${run.safeZoneName} still holds beneath the blood sky. Settle your affairs, choose a guide, and decide how the road will open toward ${nextZoneLabel}.`;
+    const skillBarSummary = trainingModel
+      ? `${trainingModel.slotStateLabel} Slots`
+      : "Unavailable";
+    const skillBarEquippedNames = trainingModel?.slots
+      .filter((slot: TrainingSlotViewModel) => Boolean(slot.equippedSkillName))
+      .map((slot: TrainingSlotViewModel) => slot.equippedSkillName)
+      .slice(0, 2)
+      .join(" / ") || "";
+    const skillBarMeta = skillBarEquippedNames || trainingModel?.nextSlotGateLabel || "Open training to review unlock gates.";
     const statusBar = `
       <div class="town-status">
         <div class="town-status__card">
@@ -248,9 +259,14 @@
           <span class="town-status__label">Next Trail</span>
           <span class="town-status__value">${escapeHtml(nextZoneLabel)}</span>
         </div>
+        <div class="town-status__card">
+          <span class="town-status__label">Skill Bar</span>
+          <span class="town-status__value">${escapeHtml(skillBarSummary)}</span>
+          <span class="town-status__meta">${escapeHtml(skillBarMeta)}</span>
+        </div>
       </div>
     `;
-    const operationsMarkup = operationsApi.buildOperationsMarkup(appState, services, operations);
+    const operationsSections = operationsApi.buildOperationsSections(appState, services, operations);
     const debugEnabled = appState.profile?.meta?.settings?.debugMode?.enabled ?? false;
     const townLedgerActionCount = [
       healerActions,
@@ -273,16 +289,74 @@
       stashActions.length > 0,
       mercenaryActions.length > 0,
     ].filter(Boolean).length;
-    const townLedgerJumpRow = `
-      <nav class="town-operations-jump-row" aria-label="Camp overview sections">
-        <a class="neutral-btn" href="#town-departure">Departure Board</a>
-        <a class="neutral-btn" href="#town-prep-outcomes">Prep Desk</a>
-        <a class="neutral-btn" href="#town-loadout">Loadout Bench</a>
-        <a class="neutral-btn" href="#town-drilldowns">Camp Services</a>
-        <a class="neutral-btn" href="#town-districts">Town Districts</a>
-        ${debugEnabled ? '<a class="neutral-btn" href="#town-debug-ledger">Debug Ledger</a>' : ""}
+    const townOverviewTabs = [
+      { id: "departure", label: "Departure", detail: "route and prep" },
+      { id: "loadout", label: "Loadout", detail: "gear and runes" },
+      { id: "services", label: "Services", detail: "desks and readiness" },
+      { id: "account", label: "Account", detail: "archive and pressure" },
+      { id: "districts", label: "Districts", detail: "every camp lane" },
+      ...(debugEnabled ? [{ id: "debug", label: "Debug", detail: "QA ledger" }] : []),
+    ];
+    const activeTownOverviewTab = townOverviewTabs.some((tab) => tab.id === appState.ui.townOverviewTab)
+      ? appState.ui.townOverviewTab
+      : "departure";
+    const townOverviewTabNav = `
+      <nav class="town-operations-tab-row" aria-label="Camp overview tabs">
+        ${townOverviewTabs.map((tab) => `
+          <button
+            class="town-operations-tab ${tab.id === activeTownOverviewTab ? "town-operations-tab--active" : ""}"
+            data-action="select-town-overview-tab"
+            data-town-overview-tab="${escapeHtml(tab.id)}"
+            aria-pressed="${tab.id === activeTownOverviewTab ? "true" : "false"}"
+          >
+            <span class="town-operations-tab__label">${escapeHtml(tab.label)}</span>
+            <span class="town-operations-tab__detail">${escapeHtml(tab.detail)}</span>
+          </button>
+        `).join("")}
       </nav>
     `;
+    const districtsMarkup = `
+      <article class="panel battle-panel" id="town-districts">
+        <div class="panel-head">
+          <h2>Town Districts</h2>
+          <p>Every service lane in camp, grouped by what you can actually do there right now.</p>
+        </div>
+        <div class="district-grid">
+          ${buildDistrictMarkup("Recovery & Supplies", [...healerActions, ...quartermasterActions], (action) => services.renderUtils.buildTownActionCard(action))}
+          ${buildDistrictMarkup("Training Hall", progressionActions, (action) => services.renderUtils.buildTownActionCard(action))}
+          ${buildDistrictMarkup("Vendor Arcade", vendorActions, (action) => services.renderUtils.buildTownActionCard(action))}
+          ${buildDistrictMarkup("Field Pack", inventoryActions, (action) => services.renderUtils.buildTownActionCard(action))}
+          ${buildDistrictMarkup("Profile Vault", stashActions, (action) => services.renderUtils.buildTownActionCard(action))}
+          ${buildDistrictMarkup("Mercenary Barracks", mercenaryActions, (action) => services.renderUtils.buildMercenaryActionCard(action))}
+        </div>
+        <div class="safe-zone-cta">
+          <div>
+            <p class="eyebrow">Departure Gate</p>
+            <h3>${escapeHtml(routeSnapshot.nextZone?.title || "World Map")}</h3>
+          </div>
+          <button class="primary-btn" data-action="leave-safe-zone">Step Onto The World Map</button>
+        </div>
+      </article>
+    `;
+    const townOverviewPanels: Record<string, string> = {
+      departure: `
+        <div class="town-operations-tab-stack">
+          ${common.buildExpeditionLaunchFlowMarkup(appState, accountSummary, services.renderUtils, {
+            currentStep: "town",
+            copy: "",
+            hallFollowThrough: "",
+            draftFollowThrough: "",
+            townFollowThrough: "Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route.",
+          })}
+          ${operationsSections.departure}
+        </div>
+      `,
+      loadout: operationsSections.loadout,
+      services: operationsSections.services,
+      account: operationsSections.account,
+      districts: districtsMarkup,
+      debug: operationsSections.debug,
+    };
 
     root.innerHTML = `
       ${common.renderNotice(appState, services.renderUtils)}
@@ -323,6 +397,7 @@
       </div>
       ${npcOverlay}
       ${inventoryOverlay}
+      ${trainingOverlay}
       <details class="town-operations-details">
         <summary class="town-operations-toggle">
           <span class="town-operations-toggle__chevron" aria-hidden="true">\u25B8</span>
@@ -371,37 +446,9 @@
               </article>
             </div>
           </header>
-          ${townLedgerJumpRow}
-          <section class="safe-zone-grid">
-            ${common.buildExpeditionLaunchFlowMarkup(appState, accountSummary, services.renderUtils, {
-              currentStep: "town",
-              copy: "",
-              hallFollowThrough: "",
-              draftFollowThrough: "",
-              townFollowThrough: "Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route.",
-            })}
-            ${operationsMarkup}
-            <article class="panel battle-panel" id="town-districts">
-              <div class="panel-head">
-                <h2>Town Districts</h2>
-                <p>Every service lane in camp, grouped by what you can actually do there right now.</p>
-              </div>
-              <div class="district-grid">
-                ${buildDistrictMarkup("Recovery & Supplies", [...healerActions, ...quartermasterActions], (action) => services.renderUtils.buildTownActionCard(action))}
-                ${buildDistrictMarkup("Training Hall", progressionActions, (action) => services.renderUtils.buildTownActionCard(action))}
-                ${buildDistrictMarkup("Vendor Arcade", vendorActions, (action) => services.renderUtils.buildTownActionCard(action))}
-                ${buildDistrictMarkup("Field Pack", inventoryActions, (action) => services.renderUtils.buildTownActionCard(action))}
-                ${buildDistrictMarkup("Profile Vault", stashActions, (action) => services.renderUtils.buildTownActionCard(action))}
-                ${buildDistrictMarkup("Mercenary Barracks", mercenaryActions, (action) => services.renderUtils.buildMercenaryActionCard(action))}
-              </div>
-              <div class="safe-zone-cta">
-                <div>
-                  <p class="eyebrow">Departure Gate</p>
-                  <h3>${escapeHtml(routeSnapshot.nextZone?.title || "World Map")}</h3>
-                </div>
-                <button class="primary-btn" data-action="leave-safe-zone">Step Onto The World Map</button>
-              </div>
-            </article>
+          ${townOverviewTabNav}
+          <section class="town-operations-tab-panel">
+            ${townOverviewPanels[activeTownOverviewTab] || townOverviewPanels.departure}
           </section>
         </div>
       </details>

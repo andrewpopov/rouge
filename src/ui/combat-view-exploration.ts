@@ -120,12 +120,17 @@
   ];
 
   function getCardElement(card: CardDefinition): string {
-    const text = card.text.toLowerCase();
-    if (text.includes("fire") || text.includes("burn")) {return "fire";}
-    if (text.includes("cold") || text.includes("ice") || text.includes("frost") || text.includes("freeze")) {return "ice";}
-    if (text.includes("lightning")) {return "lightning";}
-    if (text.includes("poison")) {return "poison";}
-    if (text.includes("magic") || text.includes("arcane")) {return "arcane";}
+    const title = `${card.title} ${card.id}`.toLowerCase();
+    const effects = Array.isArray(card.effects) ? card.effects : [];
+    if (effects.some((effect) => effect.kind === "apply_burn" || effect.kind === "apply_burn_all")) {return "fire";}
+    if (effects.some((effect) => effect.kind === "apply_freeze" || effect.kind === "apply_freeze_all")) {return "ice";}
+    if (effects.some((effect) => effect.kind === "apply_paralyze" || effect.kind === "apply_paralyze_all")) {return "lightning";}
+    if (effects.some((effect) => effect.kind === "apply_poison" || effect.kind === "apply_poison_all")) {return "poison";}
+    if (title.includes("fire") || title.includes("flame") || title.includes("ember") || title.includes("ashen")) {return "fire";}
+    if (title.includes("cold") || title.includes("ice") || title.includes("frost") || title.includes("freeze")) {return "ice";}
+    if (title.includes("lightning") || title.includes("storm") || title.includes("shock")) {return "lightning";}
+    if (title.includes("poison") || title.includes("venom") || title.includes("plague")) {return "poison";}
+    if (title.includes("magic") || title.includes("arcane")) {return "arcane";}
     if (card.effects?.some((e) => e.kind === "damage" || e.kind === "damage_all")) {return "physical";}
     return "support";
   }

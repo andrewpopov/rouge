@@ -34,6 +34,11 @@
       specializationStage: "exploratory",
       treeRanks: {},
       unlockedSkillIds: [],
+      equippedSkillBar: {
+        slot1SkillId: "",
+        slot2SkillId: "",
+        slot3SkillId: "",
+      },
       archetypeScores: {},
       offTreeUtilityCount: 0,
       offTreeDamageCount: 0,

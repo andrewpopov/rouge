@@ -36,10 +36,8 @@ test("combat view renders energy orb with label text", () => {
     bootState: { status: "ready", error: "" },
   });
 
-  assert.match(root.innerHTML, /energy-orb__label/);
-  assert.match(root.innerHTML, /Energy/);
-  assert.match(root.innerHTML, /energy-orb__value/);
-  assert.match(root.innerHTML, /energy-orb__max/);
+  assert.match(root.innerHTML, /resource-chip--energy/);
+  assert.match(root.innerHTML, /combat-header__resource-strip/);
 });
 
 test("combat view End Turn button has no encounter number", () => {

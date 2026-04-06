@@ -4,9 +4,9 @@
   const {
     TRAINING_SLOT_META, getClassProgression, listClassTrees, getTreeRank,
     getSkillTreeForSkill, getSkillDefinition,
-    isTreeFavoredForCapstone,
+    hasLearnedBridgeSkill, isTreeFavoredForCapstone,
     isBridgeSlotUnlocked, isCapstoneSlotUnlocked, isTrainingSlotUnlocked,
-    getSkillEligibility, isSkillEquippableInSlot,
+    getSkillEligibility, isSkillEquippableInSlot, getTreeNextUnlockLabel,
     syncUnlockedClassSkills, buildProgressionBonuses, getProgressionSummary,
     applyTrainingRank,
   } = h;
@@ -34,6 +34,47 @@
       actionLabel: canSpend ? "Spend" : "Locked",
       disabled: !canSpend,
     };
+  }
+
+  function getNextSlotGateLabel(run: RunState, definition: RuntimeClassProgressionDefinition | null) {
+    if (!isTrainingSlotUnlocked(run, definition, "slot2")) {
+      return "Slot 2 opens at Level 6 and 3 points in any tree.";
+    }
+    if (!isTrainingSlotUnlocked(run, definition, "slot3")) {
+      return "Slot 3 opens at Level 12 with 6 points in a favored tree and one bridge skill from that tree.";
+    }
+    return "All three skill slots are open for this run.";
+  }
+
+  function getTreeCommitmentBadgeLabels(
+    run: RunState,
+    definition: RuntimeClassProgressionDefinition | null,
+    tree: RuntimeClassTreeDefinition
+  ) {
+    const badges: string[] = [];
+    const rank = getTreeRank(run, tree.id);
+    if (isBridgeSlotUnlocked(run, tree)) {
+      badges.push("Bridge Ready");
+    } else {
+      const pointsNeeded = Math.max(0, 3 - rank);
+      badges.push(pointsNeeded > 0 ? `Needs ${pointsNeeded} More Point${pointsNeeded === 1 ? "" : "s"}` : "Bridge Locked");
+    }
+    if (isTreeFavoredForCapstone(run, definition, tree.id)) {
+      badges.push("Favored Tree");
+    } else {
+      badges.push("Tie Broken By 2+ Needed");
+    }
+    if (isCapstoneSlotUnlocked(run, definition, tree)) {
+      badges.push("Capstone Ready");
+    } else if (rank < 6) {
+      const pointsNeeded = Math.max(0, 6 - rank);
+      badges.push(`Needs ${pointsNeeded} More Point${pointsNeeded === 1 ? "" : "s"}`);
+    } else if (!hasLearnedBridgeSkill(run, tree)) {
+      badges.push("Learn Bridge Skill");
+    } else {
+      badges.push("Capstone Locked");
+    }
+    return badges;
   }
 
   function buildAttributeAction(run: RunState, attribute: string, title: string, description: string, previewLines: string[]) {
@@ -155,11 +196,22 @@
     const meta = TRAINING_SLOT_META[slotKey];
     const unlocked = isTrainingSlotUnlocked(run, definition, slotKey);
     const equippedSkillId = run.progression?.classProgression?.equippedSkillBar?.[`${slotKey}SkillId` as keyof RunEquippedSkillBarState] || "";
-    const equippedSkillName = getSkillDefinition(definition, equippedSkillId)?.name || "";
+    const equippedSkill = getSkillDefinition(definition, equippedSkillId);
+    const equippedSkillName = equippedSkill?.name || "";
+    const statusLabel = equippedSkill
+      ? "Equipped"
+      : unlocked
+        ? "Available"
+        : "Locked";
     return {
       slotKey, slotNumber: meta.slotNumber, roleLabel: meta.roleLabel, unlocked,
+      statusLabel,
       gateLabel: unlocked ? `${meta.roleLabel} slot is ready.` : meta.lockedLabel,
       equippedSkillId, equippedSkillName,
+      family: equippedSkill?.family || "",
+      cost: Math.max(0, toBonusValue(equippedSkill?.cost)),
+      cooldown: Math.max(0, toBonusValue(equippedSkill?.cooldown)),
+      shortRuleText: equippedSkill?.summary || (unlocked ? `No ${meta.roleLabel.toLowerCase()} skill equipped yet.` : meta.lockedLabel),
     };
   }
 
@@ -211,6 +263,14 @@
       ? selectedSkill.id : selectedTree?.skills[0]?.id || "";
     const compareSkillId = getSkillDefinition(definition, appState.ui.trainingView.compareSkillId || "")
       ? appState.ui.trainingView.compareSkillId : "";
+    const skillPointsAvailable = Math.max(0, toBonusValue(run.progression?.skillPointsAvailable));
+    const classPointsAvailable = Math.max(0, toBonusValue(run.progression?.classPointsAvailable));
+    const attributePointsAvailable = Math.max(0, toBonusValue(run.progression?.attributePointsAvailable));
+    const slots = [
+      buildTrainingSlotViewModel(run, definition, "slot1"),
+      buildTrainingSlotViewModel(run, definition, "slot2"),
+      buildTrainingSlotViewModel(run, definition, "slot3"),
+    ];
     const treeModels = trees.map((tree: RuntimeClassTreeDefinition) => ({
       treeId: tree.id, treeName: tree.name,
       rank: getTreeRank(run, tree.id),
@@ -218,6 +278,8 @@
       favoredForCapstone: isTreeFavoredForCapstone(run, definition, tree.id),
       bridgeReady: isBridgeSlotUnlocked(run, tree),
       capstoneReady: isCapstoneSlotUnlocked(run, definition, tree),
+      commitmentBadgeLabels: getTreeCommitmentBadgeLabels(run, definition, tree),
+      nextMilestoneLabel: getTreeNextUnlockLabel(run, definition, tree),
       skills: tree.skills.map((skill: RuntimeClassSkillDefinition) => buildTrainingSkillViewModel(run, definition, tree, skill)),
     }));
     const flattenedSkills = treeModels.flatMap((tree: TrainingTreeViewModel) => tree.skills);
@@ -225,14 +287,14 @@
     const compareSkill = flattenedSkills.find((skill: TrainingSkillViewModel) => skill.skillId === compareSkillId) || null;
     return {
       classId: run.classId, className: run.className, level: run.level,
+      mode: appState.ui.trainingView.mode || "browse",
       favoredTreeId: run.progression?.classProgression?.favoredTreeId || "",
+      skillPointsAvailable, classPointsAvailable, attributePointsAvailable,
+      slotStateLabel: `${slots.filter((slot: TrainingSlotViewModel) => slot.unlocked).length} / 3`,
+      nextSlotGateLabel: getNextSlotGateLabel(run, definition),
       selectedTreeId: selectedTreeId || "", selectedSkillId: selectedSkillModel?.skillId || "",
       compareSkillId: compareSkill?.skillId || "", selectedSlot: appState.ui.trainingView.selectedSlot || "",
-      slots: [
-        buildTrainingSlotViewModel(run, definition, "slot1"),
-        buildTrainingSlotViewModel(run, definition, "slot2"),
-        buildTrainingSlotViewModel(run, definition, "slot3"),
-      ],
+      slots,
       trees: treeModels, selectedSkill: selectedSkillModel, compareSkill,
       progressionActions: listProgressionActions(run, content),
     };
@@ -258,6 +320,9 @@
     const definition = getClassProgression(content, run.classId);
     const skill = getSkillDefinition(definition, skillId);
     if (!skill) { return { ok: false, message: "That skill is not available for this class." }; }
+    if (slotKey === "slot1") {
+      return { ok: false, message: "Slot 1 is fixed to the starter skill for this run." };
+    }
     syncUnlockedClassSkills(run, content);
     if (!isSkillEquippableInSlot(run, definition, slotKey, skillId)) {
       return { ok: false, message: `${skill.name} cannot be equipped in that slot yet.` };

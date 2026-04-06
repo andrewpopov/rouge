@@ -34,15 +34,16 @@ test("replaying a summon card reinforces the existing minion", () => {
   const state = createState(harness);
   state.hero.energy = 99;
 
+  const targetId = state.enemies[0].id;
   const firstInstanceId = addCardToHand(state, "necromancer_raise_skeleton");
-  harness.engine.playCard(state, harness.content, firstInstanceId);
+  harness.engine.playCard(state, harness.content, firstInstanceId, targetId);
 
   assert.equal(state.minions.length, 1);
   assert.equal(state.minions[0].templateId, "necromancer_skeleton");
   const powerBefore = state.minions[0].power;
 
   const secondInstanceId = addCardToHand(state, "necromancer_raise_skeleton");
-  harness.engine.playCard(state, harness.content, secondInstanceId);
+  harness.engine.playCard(state, harness.content, secondInstanceId, targetId);
 
   assert.equal(state.minions.length, 1, "replays should not create duplicate summon bodies");
   assert.ok(state.minions[0].power > powerBefore, "replay should reinforce the existing minion");

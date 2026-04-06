@@ -38,11 +38,12 @@
     const handSizeClass = cardCount <= 5
       ? "card-fan--large"
       : "card-fan--overflow";
+    const handOverflowing = cardCount > 5;
 
     return {
       run, combat, zone, selectedEnemy, markedEnemy, phaseText,
       zoneName, zoneEnv, encounterNum, encounterTotal,
-      cardCount, drawPileCount, discardPileCount, activePileView, canMelee, hasOutcome, handSizeClass,
+      cardCount, drawPileCount, discardPileCount, activePileView, canMelee, hasOutcome, handSizeClass, handOverflowing,
     };
   }
 
@@ -57,7 +58,7 @@
     const { escapeHtml } = services.renderUtils;
     const vm = deriveCombatViewModel(appState, services);
     const { COMBAT_PHASE, COMBAT_OUTCOME } = runtimeWindow.ROUGE_CONSTANTS;
-    const { run, combat, selectedEnemy, markedEnemy, phaseText, zoneName, zoneEnv, encounterNum, encounterTotal, cardCount, drawPileCount, discardPileCount, activePileView, canMelee, hasOutcome, handSizeClass } = vm;
+    const { run, combat, selectedEnemy, markedEnemy, phaseText, zoneName, zoneEnv, encounterNum, encounterTotal, cardCount, drawPileCount, discardPileCount, activePileView, canMelee, hasOutcome, handSizeClass, handOverflowing } = vm;
     const activeMinions = Array.isArray(combat.minions) ? combat.minions : [];
     const minionRackMarkup = activeMinions.length > 0
       ? renderers.renderMinionRack(activeMinions, escapeHtml, "command")
@@ -69,6 +70,7 @@
     const heroPortrait = assets ? `<img src="${assets.getClassSprite(run.classId) || assets.getClassPortrait(run.classId) || ""}" class="sprite__portrait" alt="${escapeHtml(run.className)}" loading="lazy" onerror="this.style.display='none'" />` : escapeHtml(run.className.charAt(0));
     const mercPortrait = assets ? `<img src="${assets.getMercenarySprite(combat.mercenary.id) || ""}" class="sprite__portrait" alt="${escapeHtml(combat.mercenary.role)}" loading="lazy" onerror="this.style.display='none'" />` : escapeHtml(combat.mercenary.role.charAt(0));
     const selectedEnemyIntent = selectedEnemy ? services.combatEngine.describeIntent(selectedEnemy.currentIntent) : "";
+    const selectedEnemyIntentPresentation = selectedEnemy ? pressure.buildEnemyIntentPresentation(combat, selectedEnemy) : null;
     const handNeedsTarget = combat.hand.some((instance) => {
       const card = appState.content.cardCatalog[instance.cardId];
       if (!card || card.target !== "enemy") { return false; }
@@ -94,7 +96,12 @@
     } else if (selectedEnemy) {
       const guardSuffix = selectedEnemy.guard > 0 ? `, ${selectedEnemy.guard} guard` : "";
       const commitmentSuffix = markedEnemy?.id === selectedEnemy.id ? ", mercenary committed." : ".";
-      briefCopy = `${selectedEnemyIntent}. ${selectedEnemy.life}/${selectedEnemy.maxLife} life${guardSuffix}${commitmentSuffix}`;
+      const intentFragments = [
+        selectedEnemyIntentPresentation?.stateLabel || "",
+        selectedEnemyIntent,
+        selectedEnemyIntentPresentation?.targetLabel || "",
+      ].filter(Boolean);
+      briefCopy = `${intentFragments.join(" · ")}. ${selectedEnemy.life}/${selectedEnemy.maxLife} life${guardSuffix}${commitmentSuffix}`;
     } else if (markedEnemy) {
       briefCopy = `${markedEnemy.name} is marked for the mercenary. Lock a target or keep shaping the hand.`;
     } else if (combat.phase === COMBAT_PHASE.PLAYER) {
@@ -169,6 +176,12 @@
     }
     if ((combat.skillModifiers?.nextCardParalyze || 0) > 0) {
       skillPrepParts.push(`Paralyze ${combat.skillModifiers.nextCardParalyze}`);
+    }
+    if ((combat.summonPowerBonus || 0) > 0) {
+      skillPrepParts.push(`Summon power +${combat.summonPowerBonus}`);
+    }
+    if ((combat.summonSecondaryBonus || 0) > 0) {
+      skillPrepParts.push(`Summon riders +${combat.summonSecondaryBonus}`);
     }
     const skillPrepSummary = skillPrepParts.join(" · ");
     const skillButtonsMarkup = combat.equippedSkills.length > 0 ? `
@@ -414,50 +427,57 @@
 
           <section class="combat-command">
             <div class="combat-command__deck-shell">
-              <div class="combat-command__deck-head">
-                <div class="combat-command__deck-meta">
-                  <span class="combat-command__deck-label">War Hand</span>
-                  <span class="combat-command__deck-count">${cardCount} card${cardCount === 1 ? "" : "s"} ready</span>
+              <div class="combat-command__hand-layout">
+                <div class="combat-command__hand-rail">
+                  <div class="combat-command__hand-identity">
+                    <span class="combat-command__hand-label">War Hand</span>
+                    <span class="combat-command__hand-count" title="${cardCount} cards ready">${cardCount}</span>
+                  </div>
+                  ${deckTargetChip ? `<span class="combat-command__hand-target" data-default-chip="${escapeHtml(deckTargetChip)}">${escapeHtml(deckTargetChip)}</span>` : ""}
+                  ${skillButtonsMarkup ? `<div class="combat-command__hand-skills">${skillButtonsMarkup}</div>` : ""}
                 </div>
-                ${deckTargetChip ? `<span class="combat-command__deck-target" data-default-chip="${escapeHtml(deckTargetChip)}">${escapeHtml(deckTargetChip)}</span>` : ""}
-              </div>
-              <div class="card-fan ${handSizeClass}" style="--card-count:${cardCount}">
-                ${combat.hand.map((instance, i) => {
-                  const card = appState.content.cardCatalog[instance.cardId];
-                  const effectiveCost = preview.getEffectiveCardCost(combat, appState.content, instance, card);
-                  const previewOutcome = preview.buildCardPreviewOutcome(combat, instance, card, selectedEnemy);
-                  const requiresTarget = card.target === "enemy";
-                  const cantPlay = hasOutcome || combat.phase !== COMBAT_PHASE.PLAYER || combat.hero.energy < effectiveCost || (requiresTarget && !selectedEnemy);
-                  let stateClass = "";
-                  let stateLabel = "";
-                  if (hasOutcome) {
-                    stateClass = "fan-card--spent";
-                    stateLabel = "Spent";
-                  } else if (combat.phase !== COMBAT_PHASE.PLAYER) {
-                    stateClass = "fan-card--waiting";
-                    stateLabel = "Wait";
-                  } else if (combat.hero.energy < effectiveCost) {
-                    stateClass = "fan-card--unpowered";
-                    stateLabel = "No energy";
-                  } else if (requiresTarget && !selectedEnemy) {
-                    stateClass = "fan-card--needs-target";
-                    stateLabel = "Need target";
-                  } else if (requiresTarget && selectedEnemy) {
-                    stateClass = "fan-card--target-ready";
-                  }
-                  return renderers.renderHandCard({
-                    instance,
-                    index: i,
-                    card,
-                    effectiveCost,
-                    previewOutcome,
-                    maxRuleLines: 4,
-                    stateClass,
-                    stateLabel,
-                    cantPlay,
-                    escapeHtml,
-                  });
-                }).join("")}
+                <div class="combat-command__hand-cards${handOverflowing ? " combat-command__hand-cards--scrollable" : ""}">
+                  ${handOverflowing ? `<button type="button" class="combat-command__hand-scroll combat-command__hand-scroll--back" data-action="scroll-hand-cards" data-direction="backward" aria-label="Show earlier cards" title="Show earlier cards">\u2190</button>` : ""}
+                  <div class="card-fan ${handSizeClass}" style="--card-count:${cardCount}">
+                    ${combat.hand.map((instance, i) => {
+                      const card = appState.content.cardCatalog[instance.cardId];
+                      const effectiveCost = preview.getEffectiveCardCost(combat, appState.content, instance, card);
+                      const previewOutcome = preview.buildCardPreviewOutcome(combat, instance, card, selectedEnemy);
+                      const requiresTarget = card.target === "enemy";
+                      const cantPlay = hasOutcome || combat.phase !== COMBAT_PHASE.PLAYER || combat.hero.energy < effectiveCost || (requiresTarget && !selectedEnemy);
+                      let stateClass = "";
+                      let stateLabel = "";
+                      if (hasOutcome) {
+                        stateClass = "fan-card--spent";
+                        stateLabel = "Spent";
+                      } else if (combat.phase !== COMBAT_PHASE.PLAYER) {
+                        stateClass = "fan-card--waiting";
+                        stateLabel = "Wait";
+                      } else if (combat.hero.energy < effectiveCost) {
+                        stateClass = "fan-card--unpowered";
+                        stateLabel = "No energy";
+                      } else if (requiresTarget && !selectedEnemy) {
+                        stateClass = "fan-card--needs-target";
+                        stateLabel = "Need target";
+                      } else if (requiresTarget && selectedEnemy) {
+                        stateClass = "fan-card--target-ready";
+                      }
+                      return renderers.renderHandCard({
+                        instance,
+                        index: i,
+                        card,
+                        effectiveCost,
+                        previewOutcome,
+                        maxRuleLines: 4,
+                        stateClass,
+                        stateLabel,
+                        cantPlay,
+                        escapeHtml,
+                      });
+                    }).join("")}
+                  </div>
+                  ${handOverflowing ? `<button type="button" class="combat-command__hand-scroll combat-command__hand-scroll--forward" data-action="scroll-hand-cards" data-direction="forward" aria-label="Show later cards" title="Show later cards">\u2192</button>` : ""}
+                </div>
               </div>
             </div>
 
@@ -469,7 +489,7 @@
                   aria-expanded="${activePileView === "decklist" ? "true" : "false"}"
                   title="View full decklist">
                   <span class="combat-command__deck-card-title">Deck</span>
-                  <span class="combat-command__deck-card-total">${drawPileCount + discardPileCount + cardCount} in cycle</span>
+                  <span class="combat-command__deck-card-total">${drawPileCount + discardPileCount + cardCount} cycle</span>
                 </button>
                 <div class="combat-command__deck-piles">
                   <span class="combat-command__pile combat-command__pile--ready" data-combat-pile="ready" title="Cards in hand">
@@ -512,7 +532,6 @@
                   </button>
                 </div>
               </div>
-              ${skillButtonsMarkup}
               ${minionRackMarkup ? minionRackMarkup : ""}
               ${canMelee ? `<button class="combat-action-btn combat-action-btn--melee" data-action="melee-strike" data-preview-target="enemy" data-preview-title="Melee Strike" data-preview-outcome="${escapeHtml(preview.buildMeleePreviewOutcome(combat, selectedEnemy))}">\u2694 Strike (${combat.weaponDamageBonus})</button>` : ""}
               <button class="end-turn-btn combat-action-btn combat-action-btn--end-turn" data-action="end-turn"

@@ -28,7 +28,7 @@ export const POLICY_ARCHETYPE_PRIORITIES: Record<string, Record<string, string[]
     amazon: ["amazon_bow_and_crossbow", "amazon_javelin_and_spear"],
     assassin: ["assassin_martial_arts", "assassin_traps"],
     barbarian: ["barbarian_combat_skills", "barbarian_warcries"],
-    druid: ["druid_elemental", "druid_shape_shifting"],
+    druid: ["druid_elemental", "druid_shape_shifting", "druid_summoning"],
     necromancer: ["necromancer_poison_and_bone", "necromancer_curses"],
     paladin: ["paladin_combat_skills", "paladin_offensive_auras"],
     sorceress: ["sorceress_lightning", "sorceress_fire"],
@@ -296,6 +296,7 @@ export interface CombatCandidateAction {
   instanceId?: string
   targetId?: string
   potionTarget?: "hero" | "mercenary"
+  afterShortfall?: number
 }
 
 export interface EncounterRunMetric {
@@ -714,6 +715,12 @@ export interface RunProgressionSimulationOptions {
   commitCheckpoint?: ArchetypeCommitCheckpoint
 }
 
+export interface RunProgressionTrainingLoadout {
+  favoredTreeId?: string
+  unlockedSkillIds?: string[]
+  equippedSkillIds?: Partial<Record<RunSkillBarSlotKey, string>>
+}
+
 export interface TrackedRandomFn extends RandomFn {
   getState(): number
   getSeed(): number
@@ -726,6 +733,7 @@ export interface RunProgressionContinuationContext {
   probeRuns: number
   maxCombatTurns: number
   seedOffset: number
+  trainingLoadout: RunProgressionTrainingLoadout | null
   progress: PolicyProgressSummary
   checkpoints: SafeZoneCheckpointSummary[]
   failure: SimulationFailureSummary | null

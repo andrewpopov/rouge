@@ -11,7 +11,7 @@
     getTrainingRankCount,
   } = runtimeWindow.ROUGE_RUN_STATE;
 
-  const CURRENT_SCHEMA_VERSION = 5;
+  const CURRENT_SCHEMA_VERSION = 6;
 
   function ensureStringArray(value: unknown) {
     return Array.isArray(value) ? value.filter((entry: unknown) => typeof entry === "string") : [];
@@ -92,6 +92,7 @@
     const source = ensureObjectRecord(classProgression);
     const treeRanks = ensureObjectRecord(source.treeRanks);
     const archetypeScores = ensureObjectRecord(source.archetypeScores);
+    const equippedSkillBar = ensureObjectRecord(source.equippedSkillBar);
     return {
       favoredTreeId: typeof source.favoredTreeId === "string" ? source.favoredTreeId : "",
       primaryTreeId: typeof source.primaryTreeId === "string" ? source.primaryTreeId : "",
@@ -108,6 +109,11 @@
           .map(([treeId, rank]) => [treeId, toNumber(rank, 0)])
       ),
       unlockedSkillIds: ensureStringArray(source.unlockedSkillIds),
+      equippedSkillBar: {
+        slot1SkillId: typeof equippedSkillBar.slot1SkillId === "string" ? equippedSkillBar.slot1SkillId : "",
+        slot2SkillId: typeof equippedSkillBar.slot2SkillId === "string" ? equippedSkillBar.slot2SkillId : "",
+        slot3SkillId: typeof equippedSkillBar.slot3SkillId === "string" ? equippedSkillBar.slot3SkillId : "",
+      },
       archetypeScores: Object.fromEntries(
         Object.entries(archetypeScores)
           .filter(([archetypeId]) => typeof archetypeId === "string" && archetypeId)
@@ -443,6 +449,27 @@
     };
   }
 
+  function migrateV5ToV6(envelope: Record<string, any>) {
+    const run: Record<string, any> = deepClone(envelope.run);
+    run.world = ensureWorld(run.world);
+    run.progression = ensureProgression(run, run.progression);
+    run.summary = ensureSummary(run.summary);
+    run.inventory = ensureInventory(run, run.inventory);
+    run.town = ensureTown(run.town);
+    run.loadout = ensureObjectRecord(run.loadout);
+    ensureLoadoutEntryIds(run);
+    syncLevelProgression(run);
+
+    return {
+      schemaVersion: 6,
+      savedAt: envelope.savedAt,
+      phase: envelope.phase,
+      selectedClassId: envelope.selectedClassId,
+      selectedMercenaryId: envelope.selectedMercenaryId,
+      run,
+    };
+  }
+
   function migrateSnapshot(snapshot: unknown): RunSnapshotEnvelope | null {
     const normalized = normalizeSnapshotEnvelope(snapshot);
     if (!normalized) {
@@ -466,6 +493,10 @@
       }
       if (envelope.schemaVersion === 4) {
         envelope = migrateV4ToV5(envelope);
+        continue;
+      }
+      if (envelope.schemaVersion === 5) {
+        envelope = migrateV5ToV6(envelope);
         continue;
       }
       return null;

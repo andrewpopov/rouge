@@ -49,6 +49,11 @@ interface HallViewArchiveApi {
 }
 
 interface SafeZoneOpsMarkupApi {
+  buildOperationsSectionsFromModel(
+    model: SafeZoneOperationsModel,
+    appState: AppState,
+    services: UiRenderServices
+  ): Record<"departure" | "loadout" | "services" | "account" | "debug", string>;
   buildOperationsMarkupFromModel(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string;
   buildPrepComparisonMarkup(model: SafeZoneOperationsModel, appState: AppState, services: UiRenderServices): string;
   buildWorldLedgerMarkup(worldLedgerLines: string[], renderUtils: RenderUtilsApi): string;

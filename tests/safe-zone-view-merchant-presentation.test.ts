@@ -152,6 +152,7 @@ test("merchant presentation layouts group cain and healer services into their th
   assert.match(cainMarkup, /Consult/);
   assert.match(cainMarkup, /Rites/);
   assert.match(cainMarkup, /Bloodline Training/);
+  assert.match(cainMarkup, /open-training-view/);
   assert.match(cainMarkup, /merchant-service-card__preview/);
 
   const healerMarkup = presentation.buildNpcServiceLayout(

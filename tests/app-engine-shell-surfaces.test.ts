@@ -241,14 +241,14 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
     baseContent: browserWindow.ROUGE_GAME_CONTENT,
     bootState: { status: "ready", error: "" },
   });
-  assert.match(root.innerHTML, /Town Districts/);
+  assert.match(root.innerHTML, /Districts/);
   assert.match(root.innerHTML, /Departure Board/);
   assert.match(root.innerHTML, /Camp Overview/);
   assert.match(root.innerHTML, /Prep Desk/);
-  assert.match(root.innerHTML, /Loadout Bench/);
-  assert.match(root.innerHTML, /Camp Services/);
-  assert.match(root.innerHTML, /Ready To Leave Town\?/);
-  assert.match(root.innerHTML, /Mercenary Barracks/);
+  assert.match(root.innerHTML, /Loadout/);
+  assert.match(root.innerHTML, /Services/);
+  assert.match(root.innerHTML, /Departure Checklist/);
+  assert.match(root.innerHTML, /Contract Captain/);
   assert.doesNotMatch(root.innerHTML, /Account Signals/);
   assert.doesNotMatch(root.innerHTML, /Prep Comparison Board/);
   assert.doesNotMatch(root.innerHTML, /World Ledger/);
@@ -355,6 +355,8 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Act \d+ Complete/);
   assert.match(root.innerHTML, /cutscene/);
   assert.match(root.innerHTML, /continue-act-transition/);
+  assert.match(root.innerHTML, /Skill Bar/);
+  assert.match(root.innerHTML, /1 \/ 3/);
 });
 
 test("expedition launch flow persists from hall through character select into town", () => {
@@ -383,15 +385,27 @@ test("expedition launch flow persists from hall through character select into to
   assert.match(root.innerHTML, /Draft Commit/);
   assert.match(root.innerHTML, /Town Arrival/);
   assert.match(root.innerHTML, /Preferred draft signal: Sorceress\./);
+  assert.match(root.innerHTML, /Starter skill plan:/);
   assert.match(root.innerHTML, /Open character draft once the hall signal is settled\./);
 
   appEngine.startCharacterSelect(state);
   appEngine.setSelectedClass(state, "sorceress");
   appEngine.setSelectedMercenary(state, "iron_wolf");
   render();
+  const classProgression = browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "sorceress");
+  const starterSkill = classProgression?.trees
+    ?.flatMap((tree) => tree.skills || [])
+    ?.find((skill) => skill.id === classProgression?.starterSkillId || skill.isStarter || (skill.slot === 1 && skill.tier === "starter"));
+  const starterSkillName = starterSkill?.name || "Starter Skill";
   assert.match(root.innerHTML, /Choose Your Hero/);
   assert.match(root.innerHTML, /Sorceress/);
   assert.match(root.innerHTML, /Begin Hunt/);
+  assert.match(root.innerHTML, /Starter Skill Bar/);
+  assert.match(root.innerHTML, /Identity/);
+  assert.match(root.innerHTML, /Level 6/);
+  assert.match(root.innerHTML, /Level 12/);
+  assert.ok(starterSkill);
+  assert.match(root.innerHTML, new RegExp(starterSkillName));
 
   appEngine.startRun(state);
   render();
@@ -399,7 +413,11 @@ test("expedition launch flow persists from hall through character select into to
   assert.match(root.innerHTML, /Expedition Launch Flow/);
   assert.match(root.innerHTML, new RegExp(`Town arrival: ${state.run.safeZoneName}\\.`));
   assert.match(root.innerHTML, new RegExp(`Current launch carries Sorceress with ${selectedMercenaryName}\\.`));
+  assert.match(root.innerHTML, /Current skill bar:/);
   assert.match(root.innerHTML, /Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route\./);
+  assert.match(root.innerHTML, /Skill Bar/);
+  assert.match(root.innerHTML, /1 \/ 3 Slots/);
+  assert.match(root.innerHTML, new RegExp(starterSkillName));
 });
 
 test("safe-zone shell turns priority town prep actions into before-or-after reads", () => {

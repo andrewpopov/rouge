@@ -11,7 +11,7 @@ const DIST_DIR = path.resolve(__dirname, "../../dist");
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SESSION_SECRET = process.env.ROGUE_SESSION_SECRET || "dev-secret-change-me";
-const MAX_BODY_SIZE = 16 * 1024;
+const MAX_BODY_SIZE = 5 * 1024 * 1024;
 
 if (IS_PRODUCTION && SESSION_SECRET === "dev-secret-change-me") {
   console.error("FATAL: ROGUE_SESSION_SECRET must be set in production. Exiting.");
@@ -178,6 +178,20 @@ function sendJson(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+function requireAuthenticatedSession(req, res) {
+  const session = verifySession(getSessionCookie(req));
+  if (!session?.sub || !db) {
+    sendJson(res, 401, { ok: false, error: "Authentication required" });
+    return null;
+  }
+  const user = db.getUserByGoogleId(session.sub);
+  if (!user) {
+    sendJson(res, 401, { ok: false, error: "Unknown session" });
+    return null;
+  }
+  return { session, user };
+}
+
 function verifyGoogleToken(idToken) {
   return new Promise((resolve, reject) => {
     const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
@@ -256,6 +270,56 @@ async function handleApiRoute(req, res, url) {
   if (route === "/api/auth/logout" && req.method === "POST") {
     setSessionCookie(res, "deleted", 0);
     sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (route === "/api/profile" && req.method === "GET") {
+    const authenticated = requireAuthenticatedSession(req, res);
+    if (!authenticated) {
+      return;
+    }
+    const profile = db.getProfileByGoogleId(authenticated.session.sub);
+    sendJson(res, 200, {
+      ok: true,
+      profile: profile?.profile_json || null,
+      schemaVersion: Number(profile?.schema_version || 0),
+      updatedAt: profile?.updated_at || "",
+    });
+    return;
+  }
+
+  if (route === "/api/profile" && req.method === "PUT") {
+    const authenticated = requireAuthenticatedSession(req, res);
+    if (!authenticated) {
+      return;
+    }
+    try {
+      const body = await parseJsonBody(req);
+      const rawProfile = body?.profile;
+      if (!rawProfile) {
+        sendJson(res, 400, { ok: false, error: "Missing profile payload" });
+        return;
+      }
+      const serializedProfile = typeof rawProfile === "string" ? rawProfile : JSON.stringify(rawProfile);
+      let parsedProfile = null;
+      try {
+        parsedProfile = JSON.parse(serializedProfile);
+      } catch {
+        sendJson(res, 400, { ok: false, error: "Profile payload must be valid JSON" });
+        return;
+      }
+      const storedProfile = db.upsertProfileByGoogleId(
+        authenticated.session.sub,
+        serializedProfile,
+        Number(parsedProfile?.schemaVersion || 0)
+      );
+      sendJson(res, 200, {
+        ok: true,
+        updatedAt: storedProfile?.updated_at || "",
+      });
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : "Invalid profile payload" });
+    }
     return;
   }
 

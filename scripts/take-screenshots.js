@@ -713,8 +713,151 @@ function buildWorldMapFixture({ actNumber = 1, classId = "amazon", mercenaryId =
   };
 }
 
+function buildCombatFixture({ classId = "amazon", mercenaryId = "rogue_scout", handSize = 7 } = {}) {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, runFactory, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, classId);
+  appEngine.setSelectedMercenary(state, mercenaryId);
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+  if (!appEngine.leaveSafeZone(state).ok) {
+    return null;
+  }
+
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0]?.id;
+  if (!openingZoneId || !appEngine.selectZone(state, openingZoneId).ok || !state.combat) {
+    return null;
+  }
+
+  state.ui.exploring = false;
+  state.combat.hero.handSize = Math.max(state.combat.hero.handSize, handSize);
+  while (state.combat.hand.length < handSize && state.combat.drawPile.length > 0) {
+    const nextCard = state.combat.drawPile.shift();
+    if (nextCard) {
+      state.combat.hand.push(nextCard);
+    }
+  }
+  const firstEnemy = state.combat.enemies.find((enemy) => enemy.alive) || null;
+  if (firstEnemy) {
+    state.combat.selectedEnemyId = firstEnemy.id;
+    state.combat.mercenary.markedEnemyId = firstEnemy.id;
+  }
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
+function buildBossCombatFixture({ classId = "amazon", mercenaryId = "rogue_scout", handSize = 6 } = {}) {
+  let createAppHarness;
+  try {
+    ({ createAppHarness } = require(GENERATED_HARNESS_PATH));
+  } catch {
+    return null;
+  }
+
+  const { appEngine, combatEngine, content, persistence, runFactory, seedBundle } = createAppHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, classId);
+  appEngine.setSelectedMercenary(state, mercenaryId);
+  if (!appEngine.startRun(state).ok) {
+    return null;
+  }
+
+  const runtimeWindow = global.window || {};
+  const bossZone = runFactory.getCurrentZones(state.run).find((zone) => zone.kind === "boss");
+  const encounterId = bossZone?.encounterIds?.[0] || "act_1_boss";
+  const overrides = runFactory.createCombatOverrides(state.run, state.content, state.profile);
+  overrides.heroState.handSize = Math.max(overrides.heroState.handSize, handSize);
+  const mercenaryRouteBonuses = runtimeWindow.__ROUGE_APP_ENGINE_RUN?.buildMercenaryRouteCombatBonuses?.(state.run, state.content) || {};
+  const combatBonuses = runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatBonuses?.(state.run, state.content) || {};
+  const armorProfile = runtimeWindow.ROUGE_ITEM_SYSTEM?.buildCombatMitigationProfile?.(state.run, state.content) || null;
+  const weaponEquipment = state.run.loadout?.weapon || null;
+  const weaponItemId = weaponEquipment?.itemId || "";
+  const weaponItem = runtimeWindow.ROUGE_ITEM_CATALOG?.getItemDefinition?.(state.content, weaponItemId) || null;
+  const weaponProfile = runtimeWindow.ROUGE_ITEM_CATALOG?.buildEquipmentWeaponProfile?.(weaponEquipment, state.content) || null;
+  const weaponFamily = runtimeWindow.ROUGE_ITEM_CATALOG?.getWeaponFamily?.(weaponItemId, state.content) || "";
+  const classPreferred = runtimeWindow.ROUGE_CLASS_REGISTRY?.getPreferredWeaponFamilies?.(state.run.classId) || [];
+
+  state.run.activeZoneId = bossZone?.id || state.run.activeZoneId;
+  state.run.activeEncounterId = encounterId;
+  state.combat = state.combatEngine.createCombatState({
+    content: { ...state.content, hero: overrides.heroState },
+    encounterId,
+    mercenaryId: state.run.mercenary.id,
+    heroState: overrides.heroState,
+    mercenaryState: { ...overrides.mercenaryState, ...mercenaryRouteBonuses },
+    starterDeck: overrides.starterDeck,
+    initialPotions: overrides.initialPotions,
+    randomFn: state.randomFn,
+    weaponFamily,
+    weaponName: weaponItem?.name || "",
+    weaponDamageBonus: combatBonuses.heroDamageBonus || 0,
+    weaponProfile,
+    armorProfile,
+    classPreferredFamilies: classPreferred,
+  });
+  state.phase = appEngine.PHASES.ENCOUNTER;
+  state.ui.exploring = false;
+  while (state.combat.hand.length < handSize && state.combat.drawPile.length > 0) {
+    const nextCard = state.combat.drawPile.shift();
+    if (nextCard) {
+      state.combat.hand.push(nextCard);
+    }
+  }
+  const bossEnemy = state.combat.enemies.find((enemy) => enemy.templateId.endsWith("_boss") && enemy.alive) || state.combat.enemies.find((enemy) => enemy.alive) || null;
+  if (bossEnemy) {
+    state.combat.selectedEnemyId = bossEnemy.id;
+    state.combat.mercenary.markedEnemyId = bossEnemy.id;
+  }
+
+  const snapshotValue = appEngine.saveRunSnapshot(state);
+  if (!snapshotValue) {
+    return null;
+  }
+  state.profile.activeRunSnapshot = persistence.restoreSnapshot(snapshotValue);
+
+  return {
+    profileKey: persistence.PROFILE_STORAGE_KEY,
+    profileValue: persistence.serializeProfile(state.profile, content),
+    snapshotKey: persistence.STORAGE_KEY,
+    snapshotValue,
+  };
+}
+
 async function openFixturePage(browser, baseUrl, fixture) {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
   await context.addInitScript((savedFixture) => {
     localStorage.clear();
     localStorage.setItem(savedFixture.profileKey, savedFixture.profileValue);
@@ -730,6 +873,23 @@ async function openFixturePage(browser, baseUrl, fixture) {
     await continueSavedRun.click();
   }
   await page.waitForTimeout(700);
+  return { context, page };
+}
+
+async function openCombatFixturePage(browser, baseUrl, options) {
+  const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+  await page.route("**/favicon.ico", (route) => route.fulfill({ status: 204, body: "" }));
+  await page.goto(baseUrl);
+  await page.waitForFunction(() => window.__ROUGE_SCREENSHOT_HELPERS?.ready === true, { timeout: TIMEOUT * 2 });
+  const loaded = await page.evaluate((fixtureOptions) => {
+    return window.__ROUGE_SCREENSHOT_HELPERS?.loadCombatFixture?.(fixtureOptions) || false;
+  }, options);
+  if (!loaded) {
+    throw new Error("Combat fixture could not be loaded.");
+  }
+  await page.waitForTimeout(500);
   return { context, page };
 }
 
@@ -750,7 +910,7 @@ async function captureTownNpcOverlay(page, npcId, screenshotName) {
 
 async function captureScreenshots(baseUrl) {
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
 
@@ -773,6 +933,16 @@ async function captureScreenshots(baseUrl) {
   // ── 01. Title screen ──
   await shot(page, "01-title-screen");
 
+  // ── 01a. Spellbook ──
+  if (await tryClick(page, "Open Spellbook", 400)) {
+    const spellbookOverlay = page.locator(".spellbook-overlay__panel").first();
+    if (await spellbookOverlay.isVisible().catch(() => false)) {
+      await shotLocator(spellbookOverlay, "01a-spellbook");
+      await page.locator('[data-action="close-spellbook"]').last().click().catch(() => {});
+      await page.waitForTimeout(250);
+    }
+  }
+
   // ── 02. Character select ──
   if (!(await tryClick(page, "Begin Expedition", 500)) &&
       !(await tryClick(page, "New Expedition", 500))) {
@@ -782,6 +952,11 @@ async function captureScreenshots(baseUrl) {
   }
   await page.waitForTimeout(400);
   await shot(page, "02-character-select", { fullPage: true });
+  await page.setViewportSize({ width: 430, height: 980 });
+  await page.waitForTimeout(250);
+  await shot(page, "02a-character-select-mobile", { fullPage: true });
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.waitForTimeout(250);
 
   // ── 03. Enter town ──
   if (!(await tryClick(page, /Begin Hunt|Begin Run|Enter .* Encampment|Enter Encampment/, 500))) {
@@ -790,6 +965,19 @@ async function captureScreenshots(baseUrl) {
     return;
   }
   await shot(page, "03-town");
+  try {
+    const townDetailsToggle = page.locator(".town-operations-toggle").first();
+    if (await townDetailsToggle.isVisible().catch(() => false)) {
+      await townDetailsToggle.click();
+      await page.waitForTimeout(350);
+      const townDetailsSurface = page.locator(".town-operations-surface").first();
+      if (await townDetailsSurface.isVisible().catch(() => false)) {
+        await shotLocator(townDetailsSurface, "03a-town-overview-tabs");
+      }
+    }
+  } catch (e) {
+    console.log("  ⚠ Town details tab capture error:", e.message);
+  }
 
   // ── 04. Town service desks ──
   try {
@@ -918,10 +1106,59 @@ async function captureScreenshots(baseUrl) {
     }
   }
 
+  try {
+    const { context: sevenCardContext, page: sevenCardPage } = await openCombatFixturePage(browser, baseUrl, {
+      classId: "amazon",
+      mercenaryId: "rogue_scout",
+      handSize: 7,
+      boss: false,
+    });
+    const sevenCardCombatShell = sevenCardPage.locator(".combat-shell").first();
+    if (await sevenCardCombatShell.isVisible({ timeout: TIMEOUT }).catch(() => false)) {
+      await shotLocator(sevenCardCombatShell, "08a-combat-seven-card");
+    }
+    await sevenCardContext.close();
+  } catch (e) {
+    console.log("  ⚠ 7-card combat capture error:", e.message);
+  }
+
+  try {
+    const { context: decklistContext, page: decklistPage } = await openCombatFixturePage(browser, baseUrl, {
+      classId: "amazon",
+      mercenaryId: "rogue_scout",
+      handSize: 7,
+      boss: false,
+      openPile: "decklist",
+    });
+    const decklistOverlay = decklistPage.locator(".decklist-overlay__panel").first();
+    if (await decklistOverlay.isVisible({ timeout: TIMEOUT }).catch(() => false)) {
+      await shotLocator(decklistOverlay, "08c-combat-decklist");
+    }
+    await decklistContext.close();
+  } catch (e) {
+    console.log("  ⚠ Decklist combat capture error:", e.message);
+  }
+
+  try {
+    const { context: bossCombatContext, page: bossCombatPage } = await openCombatFixturePage(browser, baseUrl, {
+      classId: "amazon",
+      mercenaryId: "rogue_scout",
+      handSize: 6,
+      boss: true,
+    });
+    const bossCombatShell = bossCombatPage.locator(".combat-shell").first();
+    if (await bossCombatShell.isVisible({ timeout: TIMEOUT }).catch(() => false)) {
+      await shotLocator(bossCombatShell, "08b-combat-boss");
+    }
+    await bossCombatContext.close();
+  } catch (e) {
+    console.log("  ⚠ Boss combat capture error:", e.message);
+  }
+
   // ── 10. Act transition ──
   const actTransitionFixture = buildActTransitionFixture();
   if (actTransitionFixture) {
-    const transitionContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const transitionContext = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
     await transitionContext.addInitScript((fixture) => {
       localStorage.clear();
       localStorage.setItem(fixture.profileKey, fixture.profileValue);
@@ -958,7 +1195,7 @@ async function captureScreenshots(baseUrl) {
   // ── 11. Run summary ──
   const runSummaryFixture = buildRunSummaryFixture();
   if (runSummaryFixture) {
-    const summaryContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const summaryContext = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
     await summaryContext.addInitScript((fixture) => {
       localStorage.clear();
       localStorage.setItem(fixture.profileKey, fixture.profileValue);
@@ -1002,7 +1239,7 @@ async function captureScreenshots(baseUrl) {
 
   const runFailedFixture = buildRunFailedSummaryFixture();
   if (runFailedFixture) {
-    const failedContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const failedContext = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
     await failedContext.addInitScript((fixture) => {
       localStorage.clear();
       localStorage.setItem(fixture.profileKey, fixture.profileValue);

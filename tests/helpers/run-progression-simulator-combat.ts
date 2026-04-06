@@ -84,37 +84,82 @@ export interface CombatSimulationHooks {
 }
 
 export function getIncomingThreat(state: CombatState) {
-  return state.enemies.reduce((sum, enemy) => {
-    if (!enemy.alive || !enemy.currentIntent) {
-      return sum
-    }
-    const intent = enemy.currentIntent
-    if (ATTACK_INTENT_KINDS.has(intent.kind)) {
-      const aoeMultiplier =
-        intent.kind === "attack_all" || intent.kind === "attack_burn_all" || intent.kind === "attack_lightning_all" || intent.kind === "attack_poison_all"
-          ? 1.35
-          : 1
-      const statusBonus =
-        intent.kind === "attack_burn" || intent.kind === "attack_burn_all" || intent.kind === "attack_poison" || intent.kind === "attack_poison_all" || intent.kind === "attack_chill"
-          ? 2
-          : intent.kind === "drain_energy"
-            ? 1
+  return getIncomingThreatProfile(state).totalThreat
+}
+
+export function getIncomingThreatProfile(state: CombatState) {
+  return state.enemies.reduce(
+    (profile, enemy) => {
+      if (!enemy.alive || !enemy.currentIntent) {
+        return profile
+      }
+      const intent = enemy.currentIntent
+      const projectedFatalAilment = enemy.burn + enemy.poison >= enemy.life
+      let pendingDeathBurstThreat = 0
+      if (projectedFatalAilment && Array.isArray(enemy.traits)) {
+        if (enemy.traits.includes("death_explosion")) {
+          pendingDeathBurstThreat += Math.max(1, Math.floor(enemy.maxLife * 0.3))
+        }
+        if (enemy.traits.includes("fire_enchanted")) {
+          pendingDeathBurstThreat += Math.max(1, Math.floor(enemy.maxLife * 0.25))
+        }
+      }
+      if (ATTACK_INTENT_KINDS.has(intent.kind)) {
+        const aoeMultiplier =
+          intent.kind === "attack_all" || intent.kind === "attack_burn_all" || intent.kind === "attack_lightning_all" || intent.kind === "attack_poison_all"
+            ? 1.35
+            : 1
+        const statusBonus =
+          intent.kind === "attack_burn" || intent.kind === "attack_burn_all" || intent.kind === "attack_poison" || intent.kind === "attack_poison_all" || intent.kind === "attack_chill"
+            ? 2
+            : intent.kind === "drain_energy"
+              ? 1
+              : 0
+        const guardedThreat = (Number(intent.value || 0) + statusBonus) * aoeMultiplier
+        return {
+          totalThreat: profile.totalThreat + guardedThreat + pendingDeathBurstThreat,
+          guardedThreat: profile.guardedThreat + guardedThreat,
+          bypassGuardThreat: profile.bypassGuardThreat + pendingDeathBurstThreat,
+        }
+      }
+      if (intent.kind === "charge") {
+        const aoeMultiplier = intent.target === "all_allies" ? 1.4 : 1.1
+        const typedThreatBonus =
+          intent.damageType === "fire" || intent.damageType === "poison" || intent.damageType === "lightning" || intent.damageType === "cold"
+            ? 2
             : 0
-      return sum + (Number(intent.value || 0) + statusBonus) * aoeMultiplier
-    }
-    if (intent.kind === "charge") {
-      const aoeMultiplier = intent.target === "all_allies" ? 1.4 : 1.1
-      const typedThreatBonus =
-        intent.damageType === "fire" || intent.damageType === "poison" || intent.damageType === "lightning" || intent.damageType === "cold"
-          ? 2
-          : 0
-      return sum + (Number(intent.value || 0) + typedThreatBonus) * aoeMultiplier
-    }
-    if (intent.kind === "curse_amplify" || intent.kind === "curse_weaken") {
-      return sum + 3
-    }
-    return sum
-  }, 0)
+        const guardedThreat = (Number(intent.value || 0) + typedThreatBonus) * aoeMultiplier
+        return {
+          totalThreat: profile.totalThreat + guardedThreat + pendingDeathBurstThreat,
+          guardedThreat: profile.guardedThreat + guardedThreat,
+          bypassGuardThreat: profile.bypassGuardThreat + pendingDeathBurstThreat,
+        }
+      }
+      if (intent.kind === "curse_amplify" || intent.kind === "curse_weaken") {
+        return {
+          totalThreat: profile.totalThreat + 3 + pendingDeathBurstThreat,
+          guardedThreat: profile.guardedThreat + 3,
+          bypassGuardThreat: profile.bypassGuardThreat + pendingDeathBurstThreat,
+        }
+      }
+
+      return {
+        totalThreat: profile.totalThreat + pendingDeathBurstThreat,
+        guardedThreat: profile.guardedThreat,
+        bypassGuardThreat: profile.bypassGuardThreat + pendingDeathBurstThreat,
+      }
+    },
+    { totalThreat: 0, guardedThreat: 0, bypassGuardThreat: 0 }
+  )
+}
+
+export function getThreatShortfall(state: CombatState) {
+  const profile = getIncomingThreatProfile(state)
+  const lifeAfterBypass = state.hero.life - profile.bypassGuardThreat
+  const bypassShortfall = lifeAfterBypass <= 0 ? 1 + Math.max(0, -lifeAfterBypass) : 0
+  const guardedCapacity = Math.max(0, lifeAfterBypass) + state.hero.guard
+  const guardedShortfall = Math.max(0, profile.guardedThreat - guardedCapacity)
+  return bypassShortfall + guardedShortfall
 }
 
 export function hasChargeThreat(state: CombatState) {
@@ -122,7 +167,12 @@ export function hasChargeThreat(state: CombatState) {
 }
 
 export function getThreatPressure(state: CombatState) {
-  return getIncomingThreat(state) / Math.max(1, state.hero.life + state.hero.guard)
+  const profile = getIncomingThreatProfile(state)
+  const lifeAfterBypass = Math.max(0, state.hero.life - profile.bypassGuardThreat)
+  const guardedCapacity = lifeAfterBypass + state.hero.guard
+  const bypassPressure = profile.bypassGuardThreat / Math.max(1, state.hero.life)
+  const guardedPressure = profile.guardedThreat / Math.max(1, guardedCapacity)
+  return bypassPressure + guardedPressure
 }
 
 export function getEnemyStatusScore(state: CombatState) {
@@ -307,41 +357,58 @@ function scoreCombatStateDelta(
   policy: BuildPolicyDefinition,
   matchingProficiencies: Set<string>
 ) {
+  const beforeThreatProfile = getIncomingThreatProfile(before)
+  const afterThreatProfile = getIncomingThreatProfile(after)
+  const beforeBypassRatio = beforeThreatProfile.totalThreat > 0 ? beforeThreatProfile.bypassGuardThreat / beforeThreatProfile.totalThreat : 0
+  const afterBypassRatio = afterThreatProfile.totalThreat > 0 ? afterThreatProfile.bypassGuardThreat / afterThreatProfile.totalThreat : 0
+  const guardValueFactor = Math.max(0.15, 1 - Math.max(beforeBypassRatio, afterBypassRatio))
   const beforeEnemyLife = before.enemies.reduce((sum, enemy) => sum + enemy.life, 0)
   const beforeEnemyGuard = before.enemies.reduce((sum, enemy) => sum + enemy.guard, 0)
   const afterEnemyLife = after.enemies.reduce((sum, enemy) => sum + enemy.life, 0)
   const afterEnemyGuard = after.enemies.reduce((sum, enemy) => sum + enemy.guard, 0)
   const beforeLivingEnemies = before.enemies.filter((enemy) => enemy.alive).length
   const afterLivingEnemies = after.enemies.filter((enemy) => enemy.alive).length
-  const beforeThreat = getIncomingThreat(before)
-  const afterThreat = getIncomingThreat(after)
-  const beforeShortfall = Math.max(0, beforeThreat - (before.hero.life + before.hero.guard))
-  const afterShortfall = Math.max(0, afterThreat - (after.hero.life + after.hero.guard))
+  const beforeShortfall = getThreatShortfall(before)
+  const afterShortfall = getThreatShortfall(after)
   const beforePressure = getThreatPressure(before)
   const afterPressure = getThreatPressure(after)
   const chargeThreat = hasChargeThreat(before)
   const beforeSafeFromThreat = beforeShortfall <= 0
   const afterSafeFromThreat = afterShortfall <= 0
+  const underImmediateThreat = beforeShortfall > 0 || (chargeThreat && beforePressure >= 0.55)
+  const shortfallWeight = underImmediateThreat ? (chargeThreat ? 22 : 12) : (chargeThreat ? 14 : 7)
 
   let score =
     (beforeEnemyLife - afterEnemyLife) * 3.4 +
     (beforeEnemyGuard - afterEnemyGuard) * 1.0 +
     (after.hero.life - before.hero.life) * 2.3 +
-    (after.hero.guard - before.hero.guard) * (1.6 + policy.heroGuardWeight * 0.2) +
+    (after.hero.guard - before.hero.guard) * (1.6 + policy.heroGuardWeight * 0.2) * guardValueFactor +
     (after.mercenary.life - before.mercenary.life) * 0.9 +
-    (after.mercenary.guard - before.mercenary.guard) * 0.7 +
+    (after.mercenary.guard - before.mercenary.guard) * 0.7 * guardValueFactor +
     (beforeLivingEnemies - afterLivingEnemies) * 45 +
     (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.5 +
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
-    (beforeShortfall - afterShortfall) * (chargeThreat ? 14 : 7) +
+    (beforeShortfall - afterShortfall) * shortfallWeight +
     (beforePressure - afterPressure) * (chargeThreat ? 42 : 18) +
     (getHandValue(after, content, policy, matchingProficiencies) - getHandValue(before, content, policy, matchingProficiencies)) * 0.12
 
   if (!beforeSafeFromThreat && afterSafeFromThreat) {
-    score += chargeThreat ? 42 : 18
+    score += chargeThreat ? 90 : 45
+  }
+  if (beforeSafeFromThreat && !afterSafeFromThreat) {
+    score -= chargeThreat ? 100 : 50
+  }
+  if (!beforeSafeFromThreat && !afterSafeFromThreat) {
+    score += (beforeShortfall - afterShortfall) * (chargeThreat ? 18 : 10)
   }
   if (chargeThreat && after.hero.guard > before.hero.guard && afterShortfall < beforeShortfall) {
-    score += 10
+    score += 18
+  }
+  if (afterThreatProfile.bypassGuardThreat > beforeThreatProfile.bypassGuardThreat) {
+    score -= (afterThreatProfile.bypassGuardThreat - beforeThreatProfile.bypassGuardThreat) * 0.9
+  }
+  if (afterThreatProfile.bypassGuardThreat > 0 && after.hero.life < before.hero.life) {
+    score -= (before.hero.life - after.hero.life) * 1.4
   }
 
   if (after.mercenary.markedEnemyId && !before.mercenary.markedEnemyId) {
@@ -357,7 +424,7 @@ function scoreCombatStateDelta(
   }
   if (actionType === "potion") {
     score -= 5
-    if (before.hero.life <= beforeThreat || before.hero.life / Math.max(1, before.hero.maxLife) <= 0.35) {
+    if (beforeShortfall > 0 || before.hero.life / Math.max(1, before.hero.maxLife) <= 0.35) {
       score += 18
     }
     if (chargeThreat && beforePressure >= 0.55) {
@@ -368,9 +435,12 @@ function scoreCombatStateDelta(
     }
   }
   if (actionType === "end_turn") {
-    score -= 2 + afterShortfall * 2
+    score -= 2 + afterShortfall * (underImmediateThreat ? 5 : 2)
     if (chargeThreat) {
       score -= 10 + afterPressure * 8
+    }
+    if (!afterSafeFromThreat) {
+      score -= chargeThreat ? 40 : 18
     }
   }
   return score
@@ -443,8 +513,10 @@ function listCandidateActions(
     if (candidate.type === "end_turn") {
       const clone = cloneCombatState(state)
       engine.endTurn(clone)
+      const afterShortfall = getThreatShortfall(clone)
       return {
         ...candidate,
+        afterShortfall,
         score: scoreCombatStateDelta(state, clone, content, "end_turn", policy, matchingProficiencies),
       }
     }
@@ -463,8 +535,11 @@ function listCandidateActions(
       return { ...candidate, score: Number.NEGATIVE_INFINITY }
     }
 
+    const afterShortfall = getThreatShortfall(clone)
+
     return {
       ...candidate,
+      afterShortfall,
       score: scoreCombatStateDelta(state, clone, content, candidate.type, policy, matchingProficiencies),
     }
   })
@@ -493,6 +568,20 @@ function chooseBestCombatActionWithStats(
   const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null
   const finiteCandidates = candidates.filter((candidate) => Number.isFinite(Number(candidate.score)))
   const activeFiniteCandidates = finiteCandidates.filter((candidate) => candidate.type !== "end_turn")
+  const currentShortfall = getThreatShortfall(state)
+  const bestThreatReducer =
+    currentShortfall > 0
+      ? [...activeFiniteCandidates]
+          .filter((candidate) => Number.isFinite(Number(candidate.afterShortfall)))
+          .sort((left, right) => {
+            const shortfallDelta =
+              Number(left.afterShortfall ?? Number.POSITIVE_INFINITY) - Number(right.afterShortfall ?? Number.POSITIVE_INFINITY)
+            if (shortfallDelta !== 0) {
+              return shortfallDelta
+            }
+            return Number(right.score) - Number(left.score)
+          })[0] || null
+      : null
   const bestActiveScore = Number(bestActiveCandidate?.score ?? Number.NEGATIVE_INFINITY)
   const endTurnScore = Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY)
   const meaningfulFloor = Math.max(bestActiveScore - MEANINGFUL_DECISION_MARGIN, endTurnScore + PASS_REGRET_SIGNIFICANCE_THRESHOLD)
@@ -509,7 +598,13 @@ function chooseBestCombatActionWithStats(
   const chargeThreat = hasChargeThreat(state)
   const threatPressure = getThreatPressure(state)
   let action: CombatCandidateAction
-  if (best.score < 1) {
+  if (
+    currentShortfall > 0 &&
+    bestThreatReducer &&
+    Number(bestThreatReducer.afterShortfall ?? Number.POSITIVE_INFINITY) < currentShortfall
+  ) {
+    action = bestThreatReducer
+  } else if (best.score < 1) {
     if (
       bestActiveCandidate &&
       (chargeThreat || threatPressure >= 0.45) &&

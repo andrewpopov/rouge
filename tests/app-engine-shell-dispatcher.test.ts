@@ -336,3 +336,112 @@ test("action dispatcher drives runeword planning controls through the front-door
   assert.match(root.innerHTML, /Lionheart/);
   assert.equal(persistence.loadProfileFromStorage()?.meta.planning.armorRunewordId, "lionheart");
 });
+
+test("action dispatcher opens and closes the training overlay from the safe zone", () => {
+  const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, createActionTarget, seedBundle } =
+    createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+  render();
+
+  let handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "open-training-view", trainingSource: "safe_zone" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender: render,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.ui.trainingView.open, true);
+  assert.match(root.innerHTML, /Skill Training/);
+  assert.match(root.innerHTML, /Current Build Summary/);
+  assert.match(root.innerHTML, /Slot 2 opens at Level 6/);
+  assert.match(root.innerHTML, /Identity/);
+  assert.match(root.innerHTML, /Tactical/);
+  assert.match(root.innerHTML, /Commitment/);
+
+  handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "close-training-view" }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender: render,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.ui.trainingView.open, false);
+});
+
+test("action dispatcher routes swap-training-skill through the training overlay flow", () => {
+  const { actionDispatcher, appEngine, appShell, browserWindow, content, combatEngine, createActionTarget, seedBundle } =
+    createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  const render = () => {
+    appShell.render(root, {
+      appState: state,
+      baseContent: browserWindow.ROUGE_GAME_CONTENT,
+      bootState: { status: "ready", error: "" },
+    });
+  };
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  const classProgression = browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "amazon");
+  assert.ok(classProgression);
+  const firstBridge = classProgression.trees[0].skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 2);
+  const secondBridge = classProgression.trees[1].skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 2);
+  assert.ok(firstBridge);
+  assert.ok(secondBridge);
+
+  state.run.level = 12;
+  state.run.progression.classPointsAvailable = 8;
+  for (let index = 0; index < 3; index += 1) {
+    browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${classProgression.trees[0].id}`, content);
+    browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${classProgression.trees[1].id}`, content);
+  }
+  browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, firstBridge.id);
+  browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, secondBridge.id);
+  appEngine.equipTrainingSkill(state, "slot2", firstBridge.id);
+  appEngine.openTrainingView(state, "safe_zone");
+  appEngine.setTrainingMode(state, "swap");
+  appEngine.selectTrainingTree(state, classProgression.trees[1].id);
+  render();
+  assert.match(root.innerHTML, new RegExp(`Would replace ${firstBridge.name} in Slot 2`));
+
+  const handled = actionDispatcher.handleClick({
+    target: createActionTarget({ action: "swap-training-skill", slotKey: "slot2", skillId: secondBridge.id }),
+    appState: state,
+    appEngine,
+    combatEngine,
+    render,
+    syncCombatResultAndRender: render,
+  });
+  assert.equal(handled, true);
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot2SkillId, secondBridge.id);
+  assert.equal(state.ui.trainingView.mode, "swap");
+});

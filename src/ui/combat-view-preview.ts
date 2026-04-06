@@ -514,6 +514,8 @@
     buildMeleePreviewOutcome,
     derivePreviewScopes,
     deriveSkillPreviewScopes,
+    getExactSkillModifierPreviewParts: (skill: CombatEquippedSkillState, combat?: CombatState | null) =>
+      runtimeWindow.__ROUGE_COMBAT_VIEW_PREVIEW_SKILLS?.getExactSkillModifierPreviewParts?.(skill, combat) || [],
     describePreviewScopes,
     buildSkillPreviewOutcome,
     summarizePreviewOutcome,

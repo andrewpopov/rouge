@@ -127,6 +127,14 @@ test("applyBlacksmithAction refine keeps class cards on their evolution path", (
   assert.ok(state.run.deck.includes("barbarian_stun_plus"));
 });
 
+test("skill evolution terminal helper follows a card to its capstone, including refined chains", () => {
+  const { browserWindow } = createRunState();
+  const evo = browserWindow.__ROUGE_SKILL_EVOLUTION;
+
+  assert.equal(evo.getEvolutionTerminalCardId("assassin_claw_mastery"), "assassin_shadow_warrior");
+  assert.equal(evo.getEvolutionTerminalCardId("paladin_holy_fire_plus"), "paladin_conviction_plus");
+});
+
 // ── Sage ──
 
 test("buildSageActions includes identify, purge, and transform actions", () => {

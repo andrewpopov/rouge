@@ -772,6 +772,24 @@
     state.hand = [];
   }
 
+  function clearSkillModifiers(state: CombatState) {
+    state.skillModifiers = {
+      nextCardCostReduction: 0,
+      nextCardDamageBonus: 0,
+      nextCardBurn: 0,
+      nextCardPoison: 0,
+      nextCardSlow: 0,
+      nextCardFreeze: 0,
+      nextCardParalyze: 0,
+      nextCardDraw: 0,
+      nextCardGuard: 0,
+    };
+  }
+
+  function hasSkillModifiers(state: CombatState) {
+    return Object.values(state.skillModifiers || {}).some((value) => value > 0);
+  }
+
   function shuffleInPlace<T>(items: T[], randomFn: RandomFn) {
     for (let index = items.length - 1; index > 0; index -= 1) {
       const swapIndex = Math.floor(randomFn() * (index + 1));
@@ -836,6 +854,12 @@
     }
     state.hero.energy = energyThisTurn;
 
+    state.equippedSkills.forEach((skill: CombatEquippedSkillState) => {
+      if (skill.remainingCooldown > 0) {
+        skill.remainingCooldown = Math.max(0, skill.remainingCooldown - 1);
+      }
+    });
+
     // Card draw: apply chill (draw 1 fewer)
     let drawCount = Math.max(0, state.hero.handSize - state.hand.length);
     if (state.hero.chill > 0 && state.turn > 1) {
@@ -852,6 +876,11 @@
   function endTurn(state: CombatState) {
     if (state.phase !== COMBAT_PHASE.PLAYER || state.outcome) {
       return { ok: false, message: "The turn cannot end right now." };
+    }
+
+    if (hasSkillModifiers(state)) {
+      appendLog(state, "The prepared skill window fades at end of turn.");
+      clearSkillModifiers(state);
     }
 
     discardHand(state);

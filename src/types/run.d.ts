@@ -177,6 +177,14 @@ interface RunAttributeState {
   energy: number;
 }
 
+type RunSkillBarSlotKey = "slot1" | "slot2" | "slot3";
+
+interface RunEquippedSkillBarState {
+  slot1SkillId: string;
+  slot2SkillId: string;
+  slot3SkillId: string;
+}
+
 interface RunClassProgressionState {
   favoredTreeId: string;
   primaryTreeId: string;
@@ -184,6 +192,7 @@ interface RunClassProgressionState {
   specializationStage: RunSpecializationStage;
   treeRanks: Record<string, number>;
   unlockedSkillIds: string[];
+  equippedSkillBar: RunEquippedSkillBarState;
   archetypeScores: Record<string, number>;
   offTreeUtilityCount: number;
   offTreeDamageCount: number;

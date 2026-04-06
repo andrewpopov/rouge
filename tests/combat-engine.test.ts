@@ -179,6 +179,311 @@ test("ritual cadence modifiers can retune covenant bosses into warding or recove
   assert.equal(support.guard, 9);
 });
 
+test("combat skills can arm the next card and spend their cooldown", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    starterDeck: ["amazon_magic_arrow"],
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "test_fire_tempo",
+          name: "Fire Tempo",
+          requiredLevel: 1,
+          family: "trigger_arming",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Arm the next card with fire pressure.",
+          exactText: "Deal a little damage, then empower the next card.",
+          active: true,
+          skillType: "spell",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+
+  const target = state.enemies.find((enemy) => enemy.alive);
+  const card = state.hand.find((entry) => entry.cardId === "amazon_magic_arrow");
+  assert.ok(target);
+  assert.ok(card);
+  state.selectedEnemyId = target.id;
+  state.hero.energy = 10;
+
+  const burnBefore = target.burn;
+  const energyBeforeSkill = state.hero.energy;
+  const useResult = engine.useSkill(state, "slot2", target.id);
+  assert.equal(useResult.ok, true);
+  assert.equal(state.hero.energy, energyBeforeSkill - 1);
+  assert.equal(state.equippedSkills[0].remainingCooldown, 2);
+  assert.ok(state.skillModifiers.nextCardDamageBonus > 0);
+  assert.ok(state.skillModifiers.nextCardCostReduction > 0);
+
+  const energyBeforeCard = state.hero.energy;
+  const playResult = engine.playCard(state, content, card.instanceId, target.id);
+  assert.equal(playResult.ok, true);
+  assert.ok(state.hero.energy >= energyBeforeCard - 1, "next-card cost reduction should apply");
+  assert.equal(state.skillModifiers.nextCardDamageBonus, 0);
+  assert.equal(state.skillModifiers.nextCardCostReduction, 0);
+  assert.ok(target.burn > burnBefore, "skill rider should carry onto the next card");
+});
+
+test("passive class skills can shape the opener with class-specific effects", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    heroState: { life: 12 },
+    equippedSkills: [
+      {
+        slotKey: "slot1",
+        skill: {
+          id: "sorceress_warmth",
+          name: "Warmth",
+          requiredLevel: 1,
+          family: "state",
+          slot: 1,
+          tier: "starter",
+          cost: 1,
+          cooldown: 2,
+          summary: "Warm the opener.",
+          exactText: "Heal and empower fire cards.",
+          active: false,
+          skillType: "passive",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+
+  assert.ok(state.hero.life > 12, "Warmth should heal at combat start");
+  assert.ok(state.hero.burnBonus > 0, "Warmth should improve fire pressure");
+  assert.ok(state.skillModifiers.nextCardCostReduction > 0, "Warmth should prep the next card");
+});
+
+test("summon class skills can create real combat minions", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "necromancer_raise_skeleton",
+          name: "Raise Skeleton",
+          requiredLevel: 1,
+          family: "command",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Raise a skeleton ally.",
+          exactText: "Summon a skeleton.",
+          active: true,
+          skillType: "summon",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+
+  state.hero.energy = 10;
+  const result = engine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  assert.equal(state.minions.length, 1);
+  assert.equal(state.minions[0].templateId, "necromancer_skeleton");
+});
+
+test("custom area skills can affect the whole enemy line", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "sorceress_frost_nova",
+          name: "Frost Nova",
+          requiredLevel: 6,
+          family: "conversion",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 3,
+          summary: "Freeze the line.",
+          exactText: "Hit all enemies with cold.",
+          active: true,
+          skillType: "spell",
+          damageType: "cold",
+        },
+      },
+    ],
+  });
+
+  state.hero.energy = 10;
+  const result = engine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  const frozenCount = state.enemies.filter((enemy) => enemy.freeze > 0).length;
+  assert.ok(frozenCount >= 2, "Frost Nova should freeze multiple enemies");
+});
+
+test("capstone passive skills can shape the opener with mastery-specific bonuses", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "sorceress_fire_mastery",
+          name: "Fire Mastery",
+          requiredLevel: 30,
+          family: "commitment",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Master the fire line.",
+          exactText: "Passive fire mastery.",
+          active: false,
+          skillType: "passive",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+
+  assert.ok(state.hero.burnBonus >= 5, "Fire Mastery should intensify burn pressure at combat start");
+  assert.ok(state.skillModifiers.nextCardBurn >= 5, "Fire Mastery should prep a stronger burn rider");
+});
+
+test("capstone summon skills can create persistent summon endpoints", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "sorceress_hydra",
+          name: "Hydra",
+          requiredLevel: 30,
+          family: "commitment",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Summon a hydra.",
+          exactText: "Summon Hydra.",
+          active: true,
+          skillType: "summon",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+
+  state.hero.energy = 10;
+  const result = engine.useSkill(state, "slot3");
+  assert.equal(result.ok, true);
+  assert.equal(state.minions.length, 1);
+  assert.equal(state.minions[0].templateId, "sorceress_hydra");
+});
+
+test("capstone line attacks can hit every enemy in the encounter", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "barbarian_whirlwind",
+          name: "Whirlwind",
+          requiredLevel: 30,
+          family: "commitment",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Hit the whole line.",
+          exactText: "Attack all enemies.",
+          active: true,
+          skillType: "attack",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+
+  state.hero.energy = 10;
+  const before = state.enemies.map((enemy) => enemy.life);
+  const result = engine.useSkill(state, "slot3");
+  assert.equal(result.ok, true);
+  const damaged = state.enemies.filter((enemy, index) => enemy.life < before[index]).length;
+  assert.ok(damaged >= 2, "Whirlwind should damage multiple enemies");
+});
+
+test("capstone support skills can debuff the full enemy line and prep the next card", () => {
+  const { content, engine } = createHarness();
+  const state = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "paladin_conviction",
+          name: "Conviction",
+          requiredLevel: 30,
+          family: "commitment",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Expose the enemy line.",
+          exactText: "Debuff all enemies.",
+          active: true,
+          skillType: "aura",
+          damageType: "none",
+        },
+      },
+    ],
+  });
+
+  state.hero.energy = 10;
+  const result = engine.useSkill(state, "slot3");
+  assert.equal(result.ok, true);
+  const slowed = state.enemies.filter((enemy) => enemy.slow > 0).length;
+  assert.ok(slowed >= 2, "Conviction should debuff the enemy line");
+  assert.ok(state.skillModifiers.nextCardDamageBonus > 0, "Conviction should prep the next card");
+});
+
 test("elite onslaught modifiers push elite packs into their harder follow-up without advancing non-elites", () => {
   const { content, engine } = createHarness();
   const customContent = {

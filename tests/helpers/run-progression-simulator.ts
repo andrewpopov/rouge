@@ -30,6 +30,7 @@ import {
   type RunArchetypeSimulationPlan,
   type RunProgressionContinuationContext,
   type RunProgressionSimulationOptions,
+  type RunProgressionTrainingLoadout,
   type RunProgressionSimulationReport,
   type SafeZoneCheckpointSummary,
   type SimulationFailureSummary,
@@ -57,10 +58,12 @@ export {
 }
 
 export type {
+  PolicySimulationReport,
   PolicyRunSummary,
   RunArchetypeSimulationPlan,
   RunProgressionContinuationContext,
   RunProgressionSimulationOptions,
+  RunProgressionTrainingLoadout,
   RunProgressionSimulationReport,
   SafeZoneCheckpointSummary,
   SimulationFailureSummary,
@@ -115,6 +118,51 @@ function getSimulationAssumptions(archetypePlan: RunArchetypeSimulationPlan | nu
     )
   }
   return assumptions
+}
+
+export function applySimulationTrainingLoadout(
+  harness: ReturnType<typeof createQuietAppHarness>,
+  state: AppState,
+  trainingLoadout?: RunProgressionTrainingLoadout | null
+) {
+  if (!state.run || !trainingLoadout) {
+    return
+  }
+  const progressionApi = harness.browserWindow.ROUGE_RUN_PROGRESSION
+  if (!progressionApi) {
+    return
+  }
+  const run = state.run
+  const favoredTreeId = String(trainingLoadout.favoredTreeId || "")
+  const treeRanks = run.progression?.classProgression?.treeRanks || {}
+  if (favoredTreeId && Number(treeRanks[favoredTreeId] || 0) > 0) {
+    run.progression.classProgression.favoredTreeId = favoredTreeId
+  }
+
+  progressionApi.syncUnlockedClassSkills(run, harness.content)
+
+  const requestedUnlocks = [
+    ...(Array.isArray(trainingLoadout.unlockedSkillIds) ? trainingLoadout.unlockedSkillIds : []),
+    ...Object.values(trainingLoadout.equippedSkillIds || {}),
+  ].filter(Boolean)
+
+  requestedUnlocks.forEach((skillId) => {
+    progressionApi.unlockTrainingSkill(run, harness.content, skillId)
+  })
+
+  ;(["slot2", "slot3"] as RunSkillBarSlotKey[]).forEach((slotKey) => {
+    const skillId = trainingLoadout.equippedSkillIds?.[slotKey]
+    if (!skillId) {
+      return
+    }
+    progressionApi.unlockTrainingSkill(run, harness.content, skillId)
+    progressionApi.equipTrainingSkill(run, harness.content, slotKey, skillId)
+  })
+
+  if (favoredTreeId && Number(treeRanks[favoredTreeId] || 0) > 0) {
+    run.progression.classProgression.favoredTreeId = favoredTreeId
+  }
+  progressionApi.syncUnlockedClassSkills(run, harness.content)
 }
 
 function syncCommittedArchetypePreference(
@@ -392,7 +440,10 @@ function chooseNextZone(run: RunState, reachableZones: ZoneState[]) {
 export function createSimulationState(
   harness: ReturnType<typeof createQuietAppHarness>,
   classId: string,
-  seed: number
+  seed: number,
+  options: {
+    trainingLoadout?: RunProgressionTrainingLoadout | null
+  } = {}
 ) {
   const mercenaryId = getMercenaryIdForClass(classId)
   const state = harness.appEngine.createAppState({
@@ -408,6 +459,7 @@ export function createSimulationState(
   if (!startResult.ok || !state.run) {
     throw new Error(startResult.message || `Could not start run for class ${classId}.`)
   }
+  applySimulationTrainingLoadout(harness, state, options.trainingLoadout)
   return state
 }
 
@@ -442,7 +494,8 @@ export function runProgressionPolicyFromState(
   continuation?: Partial<RunProgressionContinuationContext>,
   hooks?: PolicySimulationHooks,
   archetypePlanInput?: Partial<RunArchetypeSimulationPlan> | null,
-  checkpointProbeProfile: CheckpointProbeProfile = "default"
+  checkpointProbeProfile: CheckpointProbeProfile = "default",
+  trainingLoadoutInput: RunProgressionTrainingLoadout | null = null
 ): PolicySimulationReport {
   const PHASES = harness.appEngine.PHASES
   const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : []
@@ -456,6 +509,7 @@ export function runProgressionPolicyFromState(
   const archetypePlan = continuation?.archetypePlan
     ? buildArchetypeSimulationPlan(harness, classId, continuation.archetypePlan)
     : buildArchetypeSimulationPlan(harness, classId, archetypePlanInput)
+  const requestedTrainingLoadout = continuation?.trainingLoadout || trainingLoadoutInput || null
   let blockedTownRecoverySignature = ""
 
   const getTownRecoverySignature = () => {
@@ -478,6 +532,7 @@ export function runProgressionPolicyFromState(
     probeRuns,
     maxCombatTurns,
     seedOffset,
+    trainingLoadout: requestedTrainingLoadout ? JSON.parse(JSON.stringify(requestedTrainingLoadout)) as RunProgressionTrainingLoadout : null,
     progress,
     checkpoints,
     failure,
@@ -515,12 +570,14 @@ export function runProgressionPolicyFromState(
 
   if (!continuation) {
     syncCommittedArchetypePreference(state, archetypePlan)
+    applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
     updateArchetypeCommitmentLock(state, archetypePlan)
     reportOperation("started", "optimize_safe_zone", 0, "initial")
     const optimizeStartedAt = Date.now()
     optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, 24, archetypePlan, {
       onTownActionApplied: (actionId) => countTownAction(progress, actionId),
     })
+    applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
     reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "initial")
     reportOperation("started", "build_checkpoint", 0, "initial")
     const checkpointStartedAt = Date.now()
@@ -566,6 +623,7 @@ export function runProgressionPolicyFromState(
     })
   } else {
     syncCommittedArchetypePreference(state, archetypePlan)
+    applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
     updateArchetypeCommitmentLock(state, archetypePlan)
     hooks?.onInitialized?.({
       state,
@@ -633,12 +691,14 @@ export function runProgressionPolicyFromState(
         reportOperation("completed", "return_to_safe_zone", Date.now() - returnStartedAt, returnResult.ok ? `act ${state.run?.actNumber || 0}` : returnResult.message || "failed")
         if (returnResult.ok) {
           syncCommittedArchetypePreference(state, archetypePlan)
+          applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
           updateArchetypeCommitmentLock(state, archetypePlan)
           reportOperation("started", "optimize_safe_zone", 0, "town return")
           const optimizeStartedAt = Date.now()
           optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan, {
             onTownActionApplied: (actionId) => countTownAction(progress, actionId),
           })
+          applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
           reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "town return")
           const postRecoverySignature = getTownRecoverySignature()
           blockedTownRecoverySignature = postRecoverySignature === townRecoverySignature ? postRecoverySignature : ""
@@ -902,12 +962,14 @@ export function runProgressionPolicyFromState(
         throw new Error(continueResult.message || "Could not continue act transition.")
       }
       syncCommittedArchetypePreference(state, archetypePlan)
+      applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
       updateArchetypeCommitmentLock(state, archetypePlan)
       reportOperation("started", "optimize_safe_zone", 0, "act transition")
       const optimizeStartedAt = Date.now()
       optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan, {
         onTownActionApplied: (actionId) => countTownAction(progress, actionId),
       })
+      applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
       reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "act transition")
       reportOperation("started", "build_checkpoint", 0, `act ${state.run.actNumber}`)
       const checkpointStartedAt = Date.now()

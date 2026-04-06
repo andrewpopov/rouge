@@ -89,6 +89,44 @@ interface CombatEnemyState {
   cooldowns?: Record<number, number>;
 }
 
+interface CombatSkillModifierState {
+  nextCardCostReduction: number;
+  nextCardDamageBonus: number;
+  nextCardBurn: number;
+  nextCardPoison: number;
+  nextCardSlow: number;
+  nextCardFreeze: number;
+  nextCardParalyze: number;
+  nextCardDraw: number;
+  nextCardGuard: number;
+}
+
+interface CombatSkillLoadoutEntry {
+  slotKey: RunSkillBarSlotKey;
+  skill: RuntimeClassSkillDefinition;
+}
+
+interface CombatEquippedSkillState {
+  slotKey: RunSkillBarSlotKey;
+  skillId: string;
+  name: string;
+  family: SkillFamilyId;
+  slot: ClassSkillSlotNumber;
+  tier: ClassSkillTier;
+  cost: number;
+  cooldown: number;
+  remainingCooldown: number;
+  chargeCount: number;
+  chargesRemaining: number;
+  oncePerBattle: boolean;
+  usedThisBattle: boolean;
+  summary: string;
+  exactText: string;
+  active: boolean;
+  skillType: SkillTypeId;
+  damageType: SkillDamageTypeId;
+}
+
 interface CombatState {
   encounter: EncounterDefinition;
   randomFn: RandomFn;
@@ -104,6 +142,8 @@ interface CombatState {
   drawPile: CardInstance[];
   discardPile: CardInstance[];
   hand: CardInstance[];
+  equippedSkills: CombatEquippedSkillState[];
+  skillModifiers: CombatSkillModifierState;
   log: string[];
   selectedEnemyId: string;
   meleeUsed?: boolean;
@@ -113,6 +153,8 @@ interface CombatState {
   weaponProfile?: WeaponCombatProfile | null;
   armorProfile?: ArmorMitigationProfile | null;
   classPreferredFamilies?: string[];
+  summonPowerBonus: number;
+  summonSecondaryBonus: number;
   deckCardIds: string[];
   cardsPlayed: number;
   potionsUsed: number;

@@ -111,6 +111,7 @@ test("rogue auth initializes Google identity and restores an authenticated sessi
 
   harness.auth.initializeGoogleAuth();
   await flushAuthWork();
+  await harness.auth.waitUntilReady();
   await harness.auth.checkSession();
 
   assert.equal(harness.initializeCalls.length, 1);

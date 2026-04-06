@@ -265,9 +265,9 @@ function createCombatFxHarness(): CombatFxHarness {
   stage.setSelectorAll(".stage__allies .sprite:not(.sprite--dead)", [heroSprite, mercSprite]);
   allies.setSelectorAll(".sprite", [heroSprite, mercSprite]);
   deckShell.setSelector(".card-fan", cardFan);
-  deckShell.setSelector("[data-combat-pile='ready']", readyPile);
-  deckShell.setSelector("[data-combat-pile='draw']", drawPile);
-  deckShell.setSelector("[data-combat-pile='discard']", discardPile);
+  document.setSelector("[data-combat-pile='ready']", readyPile);
+  document.setSelector("[data-combat-pile='draw']", drawPile);
+  document.setSelector("[data-combat-pile='discard']", discardPile);
 
   const sandbox = {
     window: {

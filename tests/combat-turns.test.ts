@@ -441,8 +441,8 @@ test("matching weapon proficiencies boost support skills as well as attacks", ()
 
   harness.engine.playCard(state, harness.content, card.instanceId);
 
-  assert.equal(state.hero.life, state.hero.maxLife - 3);
-  assert.equal(state.hero.guard, 7);
+  assert.equal(state.hero.life, state.hero.maxLife - 2);
+  assert.equal(state.hero.guard, 9);
 });
 
 test("preferred weapon families amplify matching support skill bonuses", () => {
@@ -467,8 +467,8 @@ test("preferred weapon families amplify matching support skill bonuses", () => {
 
   harness.engine.playCard(state, harness.content, card.instanceId);
 
-  assert.equal(state.hero.life, state.hero.maxLife - 2);
-  assert.equal(state.hero.guard, 8);
+  assert.equal(state.hero.life, state.hero.maxLife - 1);
+  assert.equal(state.hero.guard, 10);
 });
 
 test("preferred weapon family adds the same helper lift to matching attack and support bonuses", () => {

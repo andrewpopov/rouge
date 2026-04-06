@@ -178,15 +178,15 @@ test("reward engine annotates cards with archetype tags and reward roles", { con
 
   browserWindow.ROUGE_REWARD_ENGINE.annotateCardRewardMetadata(content);
 
-  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_magic_arrow", content), "engine");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_magic_arrow", content), "foundation");
   assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_dodge", content), "support");
-  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_freezing_arrow", content), "tech");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("amazon_freezing_arrow", content), "engine");
   assert.deepEqual(
     Array.from(browserWindow.ROUGE_REWARD_ENGINE.getCardArchetypeTags("amazon_magic_arrow", content)),
-    ["amazon_bow_and_crossbow", "amazon_passive_and_magic"]
+    ["amazon_bow_and_crossbow"]
   );
-  assert.equal(content.cardCatalog.amazon_magic_arrow.rewardRole, "engine");
-  assert.deepEqual(Array.from(content.cardCatalog.amazon_magic_arrow.archetypeTags || []), ["amazon_bow_and_crossbow", "amazon_passive_and_magic"]);
+  assert.equal(content.cardCatalog.amazon_magic_arrow.rewardRole, "foundation");
+  assert.deepEqual(Array.from(content.cardCatalog.amazon_magic_arrow.archetypeTags || []), ["amazon_bow_and_crossbow"]);
 });
 
 test("favored tree identity stays sticky until a new tree meaningfully overtakes it", () => {
@@ -215,6 +215,163 @@ test("favored tree identity stays sticky until a new tree meaningfully overtakes
   result = browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, "progression_tree_barbarian_warcries", content);
   assert.equal(result.ok, true);
   assert.equal(state.run.progression.classProgression.favoredTreeId, "barbarian_warcries");
+});
+
+test("runs seed the starter class skill into the learned list and slot 1", () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  const classProgression = browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "amazon");
+  const starterSkillId = classProgression?.starterSkillId || "";
+
+  assert.ok(starterSkillId);
+  assert.ok(state.run.progression.classProgression.unlockedSkillIds.includes(starterSkillId));
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot1SkillId, starterSkillId);
+});
+
+test("training skills unlock and equip through bridge and capstone gates", () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  const classProgression = browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "amazon");
+  assert.ok(classProgression);
+  const primaryTree = classProgression.trees[0];
+  const secondaryTree = classProgression.trees[1];
+  const bridgeSkill = primaryTree.skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 2);
+  const capstoneSkill = primaryTree.skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 3);
+  assert.ok(primaryTree);
+  assert.ok(secondaryTree);
+  assert.ok(bridgeSkill);
+  assert.ok(capstoneSkill);
+
+  let result = browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, bridgeSkill.id);
+  assert.equal(result.ok, false);
+  assert.match(result.message || "", /Requires Level 6|Requires Level/);
+
+  state.run.level = Math.max(12, capstoneSkill.requiredLevel);
+  state.run.progression.classPointsAvailable = 11;
+  for (let index = 0; index < 6; index += 1) {
+    browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${primaryTree.id}`, content);
+  }
+  for (let index = 0; index < 5; index += 1) {
+    browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${secondaryTree.id}`, content);
+  }
+
+  result = browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, bridgeSkill.id);
+  assert.equal(result.ok, true);
+  result = browserWindow.ROUGE_RUN_PROGRESSION.equipTrainingSkill(state.run, content, "slot2", bridgeSkill.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot2SkillId, bridgeSkill.id);
+
+  result = browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, capstoneSkill.id);
+  assert.equal(result.ok, false);
+  assert.match(result.message || "", /favored lead/);
+
+  state.run.progression.classPointsAvailable = 1;
+  browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${primaryTree.id}`, content);
+
+  result = browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, capstoneSkill.id);
+  assert.equal(result.ok, true);
+  result = browserWindow.ROUGE_RUN_PROGRESSION.equipTrainingSkill(state.run, content, "slot3", capstoneSkill.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot3SkillId, capstoneSkill.id);
+
+  result = browserWindow.ROUGE_RUN_PROGRESSION.equipTrainingSkill(state.run, content, "slot1", classProgression.starterSkillId);
+  assert.equal(result.ok, false);
+  assert.match(result.message || "", /Slot 1 is fixed/);
+});
+
+test("training screen model exposes the documented header and commitment data", () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+  appEngine.openTrainingView(state, "safe_zone");
+
+  const model = browserWindow.ROUGE_RUN_PROGRESSION.buildTrainingScreenModel(state, content);
+  assert.ok(model);
+  assert.equal(model.slotStateLabel, "1 / 3");
+  assert.match(model.nextSlotGateLabel, /Slot 2 opens at Level 6/);
+  assert.equal(model.slots[0].roleLabel, "Identity");
+  assert.equal(model.slots[0].statusLabel, "Equipped");
+  assert.ok(model.slots[0].shortRuleText.length > 0);
+  assert.equal(model.skillPointsAvailable, state.run.progression.skillPointsAvailable);
+  assert.equal(model.classPointsAvailable, state.run.progression.classPointsAvailable);
+  assert.equal(model.attributePointsAvailable, state.run.progression.attributePointsAvailable);
+  assert.ok(model.trees[0].commitmentBadgeLabels.length > 0);
+  assert.ok(model.trees[0].nextMilestoneLabel.length > 0);
+});
+
+test("training swap mode prefers occupied tactical slots and can replace an equipped bridge skill", () => {
+  const { browserWindow, content, combatEngine, appEngine, seedBundle } = createHarness();
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0,
+  });
+
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "amazon");
+  appEngine.startRun(state);
+
+  const classProgression = browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "amazon");
+  assert.ok(classProgression);
+  const primaryTree = classProgression.trees[0];
+  const secondaryTree = classProgression.trees[1];
+  const firstBridge = primaryTree.skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 2);
+  const secondBridge = secondaryTree.skills.find((skill: RuntimeClassSkillDefinition) => skill.slot === 2);
+  assert.ok(firstBridge);
+  assert.ok(secondBridge);
+
+  state.run.level = 12;
+  state.run.progression.classPointsAvailable = 8;
+  for (let index = 0; index < 3; index += 1) {
+    browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${primaryTree.id}`, content);
+    browserWindow.ROUGE_RUN_PROGRESSION.applyProgressionAction(state.run, `progression_tree_${secondaryTree.id}`, content);
+  }
+
+  let result = browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, firstBridge.id);
+  assert.equal(result.ok, true);
+  result = browserWindow.ROUGE_RUN_PROGRESSION.unlockTrainingSkill(state.run, content, secondBridge.id);
+  assert.equal(result.ok, true);
+
+  result = appEngine.equipTrainingSkill(state, "slot2", firstBridge.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot2SkillId, firstBridge.id);
+
+  appEngine.setTrainingMode(state, "swap");
+  assert.equal(state.ui.trainingView.selectedSlot, "slot2");
+
+  result = appEngine.swapTrainingSkill(state, "slot2", secondBridge.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.run.progression.classProgression.equippedSkillBar.slot2SkillId, secondBridge.id);
+  assert.equal(state.ui.trainingView.mode, "swap");
 });
 
 test("equipment rewards persist on the run and feed the next encounter state", () => {

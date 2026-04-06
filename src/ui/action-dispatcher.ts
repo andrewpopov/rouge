@@ -4,6 +4,8 @@
   const { doCombatAction, addTempClass } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_COMBAT_FX;
   const { spawnRewardParticles } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_REWARD_FX;
   const { handleKeydown, setRunSummaryStep } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_KEYBOARD;
+  const CHARACTER_SELECT_TAB_ORDER = ["overview", "kit", "playstyle", "paths"] as const;
+  const TOWN_OVERVIEW_TAB_ORDER = ["departure", "loadout", "services", "account", "districts", "debug"] as const;
 
   function getActionTarget(target: EventTarget | null): HTMLElement | null {
     return target instanceof Element ? target.closest("[data-action]") as HTMLElement | null : null;
@@ -59,6 +61,23 @@
         appEngine.setSelectedClass(appState, actionEl.dataset.classId || "");
         render();
         return true;
+      case "select-character-select-tab": {
+        const nextTab = actionEl.dataset.characterSelectTab || "overview";
+        if (CHARACTER_SELECT_TAB_ORDER.includes(nextTab as typeof CHARACTER_SELECT_TAB_ORDER[number])) {
+          appState.ui.characterSelectTab = nextTab as typeof CHARACTER_SELECT_TAB_ORDER[number];
+          render();
+          return true;
+        }
+        return false;
+      }
+      case "shift-character-select-tab": {
+        const direction = actionEl.dataset.direction === "backward" ? -1 : 1;
+        const currentIndex = Math.max(0, CHARACTER_SELECT_TAB_ORDER.indexOf(appState.ui.characterSelectTab));
+        const nextIndex = (currentIndex + direction + CHARACTER_SELECT_TAB_ORDER.length) % CHARACTER_SELECT_TAB_ORDER.length;
+        appState.ui.characterSelectTab = CHARACTER_SELECT_TAB_ORDER[nextIndex];
+        render();
+        return true;
+      }
       case "open-bloodline-record": {
         const modal = document.querySelector("[data-record-modal]") as HTMLElement | null;
         if (modal) {
@@ -133,6 +152,15 @@
         appState.ui.townFocus = "";
         render();
         return true;
+      case "select-town-overview-tab": {
+        const nextTab = actionEl.dataset.townOverviewTab || "departure";
+        if (TOWN_OVERVIEW_TAB_ORDER.includes(nextTab as typeof TOWN_OVERVIEW_TAB_ORDER[number])) {
+          appState.ui.townOverviewTab = nextTab as typeof TOWN_OVERVIEW_TAB_ORDER[number];
+          render();
+          return true;
+        }
+        return false;
+      }
       case "open-training-view":
         appEngine.openTrainingView(appState, actionEl.dataset.trainingSource === "act_transition" ? "act_transition" : "safe_zone");
         render();
@@ -164,7 +192,7 @@
         return true;
       }
       case "set-training-compare":
-        appEngine.setTrainingCompare(appState, actionEl.dataset.skillId || "");
+        appEngine.setTrainingCompare(appState, actionEl.dataset.compareSkillId || actionEl.dataset.skillId || "");
         render();
         return true;
       case "clear-training-compare":
@@ -179,6 +207,13 @@
         const rawSlotKey = actionEl.dataset.slotKey || "";
         const slotKey = rawSlotKey === "slot1" || rawSlotKey === "slot2" || rawSlotKey === "slot3" ? rawSlotKey : "slot1";
         appEngine.equipTrainingSkill(appState, slotKey, actionEl.dataset.skillId || "");
+        render();
+        return true;
+      }
+      case "swap-training-skill": {
+        const rawSlotKey = actionEl.dataset.slotKey || "";
+        const slotKey = rawSlotKey === "slot1" || rawSlotKey === "slot2" || rawSlotKey === "slot3" ? rawSlotKey : "slot1";
+        appEngine.swapTrainingSkill(appState, slotKey, actionEl.dataset.skillId || "");
         render();
         return true;
       }
@@ -297,6 +332,23 @@
           return true;
         }
         return false;
+      case "scroll-hand-cards": {
+        const handLayout = actionEl.closest(".combat-command__hand-layout") as HTMLElement | null;
+        const fan = handLayout?.querySelector(".card-fan") as HTMLElement | null;
+        if (!fan) {
+          return false;
+        }
+        const direction = actionEl.dataset.direction === "backward" ? -1 : 1;
+        const firstCard = fan.querySelector(".fan-card") as HTMLElement | null;
+        const computed = runtimeWindow.getComputedStyle(fan);
+        const gap = Number.parseFloat(computed.columnGap || computed.gap || "0") || 0;
+        const cardWidth = firstCard?.getBoundingClientRect().width || Math.max(140, fan.clientWidth * 0.72);
+        fan.scrollBy({
+          left: direction * (cardWidth + gap),
+          behavior: "smooth",
+        });
+        return true;
+      }
       case "play-card":
         if (appState.combat) {
           const instanceId = actionEl.dataset.instanceId || "";

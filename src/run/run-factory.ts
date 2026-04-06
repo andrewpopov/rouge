@@ -114,6 +114,11 @@
         unlockedSkillIds: Array.isArray(run.progression?.classProgression?.unlockedSkillIds)
           ? [...run.progression.classProgression.unlockedSkillIds]
           : [],
+        equippedSkillBar: {
+          slot1SkillId: run.progression?.classProgression?.equippedSkillBar?.slot1SkillId || "",
+          slot2SkillId: run.progression?.classProgression?.equippedSkillBar?.slot2SkillId || "",
+          slot3SkillId: run.progression?.classProgression?.equippedSkillBar?.slot3SkillId || "",
+        },
         archetypeScores: { ...(run.progression?.classProgression?.archetypeScores || {}) },
         counterCoverageTags: Array.isArray(run.progression?.classProgression?.counterCoverageTags)
           ? [...run.progression.classProgression.counterCoverageTags]

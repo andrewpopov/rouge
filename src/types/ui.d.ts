@@ -379,6 +379,11 @@ interface InventoryViewApi {
 interface SafeZoneOperationsViewApi {
   createOperationsModel(appState: AppState, services: UiRenderServices): SafeZoneOperationsModel;
   buildOperationsMarkup(appState: AppState, services: UiRenderServices, model?: SafeZoneOperationsModel): string;
+  buildOperationsSections(
+    appState: AppState,
+    services: UiRenderServices,
+    model?: SafeZoneOperationsModel
+  ): Record<"departure" | "loadout" | "services" | "account" | "debug", string>;
 }
 
 interface AppShellRenderConfig {
@@ -533,6 +538,7 @@ interface RogueAuthApi {
   signOut(): Promise<void>;
   getAuthState(): RogueAuthState;
   onAuthChange(fn: () => void): void;
+  waitUntilReady(): Promise<void>;
 }
 
 interface Window {
@@ -703,6 +709,8 @@ interface Window {
   __ROUGE_COMBAT_VIEW_PREVIEW: CombatViewPreviewApi;
   __ROUGE_COMBAT_VIEW_PREVIEW_SKILLS: {
     buildSkillPreviewOutcome(combat: CombatState, skill: CombatEquippedSkillState, selectedEnemy: CombatEnemyState | null): string;
+    buildPassiveSkillOpeningPreview(combat: CombatState, skill: CombatEquippedSkillState): { hero: string[]; mercenary: string[]; deck: string[] };
+    getExactSkillModifierPreviewParts(skill: CombatEquippedSkillState, combat?: CombatState | null): string[];
   };
   __ROUGE_COMBAT_VIEW_PRESSURE: CombatViewPressureApi;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

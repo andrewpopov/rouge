@@ -3,6 +3,19 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
+const {
+  appendBalanceHistoryRows,
+  getBalanceHistoryStorePath,
+  summarizeRunForHistory,
+} = require("./balance-ledger-utils.js");
+const {
+  getBalanceDatabasePath,
+  insertBalanceHistoryRow,
+  openBalanceDatabase,
+  readBalanceArtifactFromDatabase,
+  upsertBalanceArtifact,
+  upsertBalanceJobState,
+} = require("./balance-db.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const HELPER_PATH = path.join(ROOT, "generated", "tests", "helpers", "balance-orchestration.js");
@@ -15,10 +28,13 @@ function parseArgs(argv) {
     output: "",
     reportPath: "",
     indexPath: path.join(ROOT, "artifacts", "balance", "index.json"),
+    dbPath: getBalanceDatabasePath(ROOT),
+    historyStorePath: getBalanceHistoryStorePath(ROOT),
     jobPath: "",
     tracesDir: "",
     baselinePath: "",
     stopAfter: 0,
+    direct: false,
     json: false,
     token: "",
     tokenFile: "",
@@ -74,6 +90,16 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === "--db" && next) {
+      parsed.dbPath = path.resolve(ROOT, next);
+      index += 1;
+      continue;
+    }
+    if (arg === "--history-store" && next) {
+      parsed.historyStorePath = path.resolve(ROOT, next);
+      index += 1;
+      continue;
+    }
     if (arg === "--job" && next) {
       parsed.jobPath = path.resolve(ROOT, next);
       index += 1;
@@ -92,6 +118,10 @@ function parseArgs(argv) {
     if (arg === "--stop-after" && next) {
       parsed.stopAfter = Math.max(0, Number.parseInt(next, 10) || 0);
       index += 1;
+      continue;
+    }
+    if (arg === "--direct") {
+      parsed.direct = true;
       continue;
     }
     if (arg === "--token" && next) {
@@ -225,7 +255,9 @@ function defaultArtifactPaths(spec, parsed) {
   const reportPath = parsed.reportPath || output.replace(/\.json$/i, ".md");
   const jobPath = parsed.jobPath || output.replace(/\.json$/i, ".job.json");
   const tracesDir = parsed.tracesDir || output.replace(/\.json$/i, "-traces");
-  return { output, reportPath, jobPath, tracesDir };
+  const dbPath = parsed.dbPath || getBalanceDatabasePath(ROOT);
+  const historyStorePath = parsed.historyStorePath || getBalanceHistoryStorePath(ROOT);
+  return { output, reportPath, indexPath: parsed.indexPath, jobPath, tracesDir, dbPath, historyStorePath };
 }
 
 function applyOverrides(spec, parsed) {
@@ -295,9 +327,9 @@ function loadSpec(parsed, helper) {
   return applyOverrides(catalog[suiteId], parsed);
 }
 
-function loadExistingArtifact(outputPath) {
+function loadExistingArtifact(outputPath, db) {
   if (!outputPath || !fs.existsSync(outputPath)) {
-    return null;
+    return db ? readBalanceArtifactFromDatabase(db, outputPath) : null;
   }
   return loadJson(outputPath);
 }
@@ -347,24 +379,38 @@ function buildPendingTasks(mode, tasks, existingArtifact, slowThresholdMs) {
   });
 }
 
-function buildArtifactState(helper, spec, outputPath) {
-  const existing = loadExistingArtifact(outputPath);
+function buildArtifactState(helper, spec, outputPath, db) {
+  const existing = loadExistingArtifact(outputPath, db);
   const baselineArtifact =
     spec.baselineArtifactPath && fs.existsSync(spec.baselineArtifactPath) ? loadJson(spec.baselineArtifactPath) : null;
   const artifact = existing || helper.buildBalanceArtifact(spec, [], baselineArtifact);
   return { artifact, baselineArtifact };
 }
 
-function writeArtifactBundle(helper, spec, records, paths, baselineArtifact) {
+function writeArtifactBundle(helper, spec, records, paths, baselineArtifact, db) {
   const artifact = helper.buildBalanceArtifact(spec, records, baselineArtifact);
   writeJson(paths.output, artifact);
   writeText(paths.reportPath, helper.buildBalanceMarkdownReport(artifact));
   upsertIndex(paths.indexPath, paths.output, artifact);
+  if (db) {
+    upsertBalanceArtifact(db, paths.output, artifact, {
+      reportPath: paths.reportPath,
+      indexPath: paths.indexPath,
+      jobPath: paths.jobPath,
+      tracesDir: paths.tracesDir,
+    });
+  }
   return artifact;
 }
 
-function writeJobState(paths, state) {
+function writeJobState(paths, state, db) {
   writeJson(paths.jobPath, state);
+  if (db) {
+    upsertBalanceJobState(db, state, {
+      artifactPath: paths.output,
+      jobPath: paths.jobPath,
+    });
+  }
 }
 
 function buildChildTaskPayload(spec, task) {
@@ -378,7 +424,7 @@ function runTaskChild(taskJson) {
   console.log(JSON.stringify(result));
 }
 
-async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselineArtifact, parsed) {
+async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselineArtifact, parsed, db) {
   const runMap = new Map();
   (existingArtifact?.runs || []).forEach((record) => runMap.set(record.runKey, record));
   const totalRuns = helper.buildBalanceRunTasks(spec).length;
@@ -406,7 +452,7 @@ async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselin
       pendingRunKeys,
       failedRunKeys: records.filter((record) => record.outcome === "run_failed").map((record) => record.runKey),
       slowRunKeys: records.filter((record) => Number(record.durationMs || 0) >= Number(spec.slowRunThresholdMs || 0) && Number(spec.slowRunThresholdMs || 0) > 0).map((record) => record.runKey),
-    });
+    }, db);
   };
 
   const persistResult = (result) => {
@@ -421,9 +467,37 @@ async function runTaskPool(helper, spec, tasks, paths, existingArtifact, baselin
     runMap.set(result.record.runKey, result.record);
     completedNewRuns += 1;
     completedRuns = runMap.size;
-    writeArtifactBundle(helper, spec, [...runMap.values()], paths, baselineArtifact);
+    const historyRow = summarizeRunForHistory(result.record, {
+      experimentId: spec.experimentId,
+      scenarioType: spec.scenarioType,
+      generatedAt: result.record.completedAt || new Date().toISOString(),
+      artifactPath: paths.output,
+    });
+    if (db) {
+      insertBalanceHistoryRow(db, historyRow, { runRecord: result.record });
+    }
+    writeArtifactBundle(helper, spec, [...runMap.values()], paths, baselineArtifact, db);
+    appendBalanceHistoryRows(
+      [historyRow],
+      { historyPath: paths.historyStorePath }
+    );
     updateJob();
   };
+
+  if (parsed.direct) {
+    while (queue.length > 0) {
+      if (parsed.stopAfter > 0 && completedNewRuns >= parsed.stopAfter) {
+        break;
+      }
+      const task = queue.shift();
+      if (!task) {
+        break;
+      }
+      const result = helper.executeBalanceRunTask(spec, task);
+      persistResult(result);
+    }
+    return;
+  }
 
   await new Promise((resolve, reject) => {
     let active = 0;
@@ -539,11 +613,14 @@ function handleTraceFromToken(helper, parsed) {
   }
 }
 
-function handleReport(helper, parsed) {
+function handleReport(helper, parsed, db) {
   if (!parsed.output) {
     throw new Error("report mode requires --output pointing to an existing artifact");
   }
-  const artifact = loadJson(parsed.output);
+  const artifact = loadExistingArtifact(parsed.output, db);
+  if (!artifact) {
+    throw new Error(`report mode could not find artifact at ${parsed.output}`);
+  }
   const spec = artifact.experiment;
   const baselineArtifact =
     parsed.baselinePath && fs.existsSync(parsed.baselinePath) ? loadJson(parsed.baselinePath) :
@@ -556,6 +633,14 @@ function handleReport(helper, parsed) {
   writeJson(paths.output, rebuilt);
   writeText(paths.reportPath, helper.buildBalanceMarkdownReport(rebuilt));
   upsertIndex(paths.indexPath, paths.output, rebuilt);
+  if (db) {
+    upsertBalanceArtifact(db, paths.output, rebuilt, {
+      reportPath: paths.reportPath,
+      indexPath: paths.indexPath,
+      jobPath: paths.jobPath,
+      tracesDir: paths.tracesDir,
+    });
+  }
   if (parsed.json) {
     console.log(JSON.stringify(rebuilt, null, 2));
   } else {
@@ -577,40 +662,56 @@ async function main() {
     return;
   }
 
-  if (parsed.mode === "report") {
-    handleReport(helper, parsed);
-    return;
-  }
+  const db = openBalanceDatabase({ dbPath: parsed.dbPath });
+  try {
+    if (parsed.mode === "report") {
+      handleReport(helper, parsed, db);
+      return;
+    }
 
-  const spec = loadSpec(parsed, helper);
-  const paths = {
-    ...defaultArtifactPaths(spec, parsed),
-    indexPath: parsed.indexPath,
-  };
-  const { artifact: existingArtifact, baselineArtifact } = buildArtifactState(helper, spec, paths.output);
-  const tasks = helper.buildBalanceRunTasks(spec);
-  const pendingTasks = buildPendingTasks(parsed.mode, tasks, existingArtifact, spec.slowRunThresholdMs);
+    const spec = loadSpec(parsed, helper);
+    const paths = defaultArtifactPaths(spec, parsed);
+    const { artifact: existingArtifact, baselineArtifact } = buildArtifactState(helper, spec, paths.output, db);
+    if (existingArtifact && !fs.existsSync(paths.output)) {
+      writeJson(paths.output, existingArtifact);
+      writeText(paths.reportPath, helper.buildBalanceMarkdownReport(existingArtifact));
+      upsertIndex(paths.indexPath, paths.output, existingArtifact);
+      upsertBalanceArtifact(db, paths.output, existingArtifact, {
+        reportPath: paths.reportPath,
+        indexPath: paths.indexPath,
+        jobPath: paths.jobPath,
+        tracesDir: paths.tracesDir,
+      });
+    }
+    const tasks = helper.buildBalanceRunTasks(spec);
+    const pendingTasks = buildPendingTasks(parsed.mode, tasks, existingArtifact, spec.slowRunThresholdMs);
 
-  writeJobState(paths, {
-    startedAt: existingArtifact?.generatedAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    mode: parsed.mode,
-    experimentId: spec.experimentId,
-    artifactPath: paths.output,
-    totalRuns: tasks.length,
-    completedRuns: Array.isArray(existingArtifact?.runs) ? existingArtifact.runs.length : 0,
-    pendingRunKeys: pendingTasks.map((task) => `${task.runKey.experimentId}:${task.runKey.scenarioType}:${task.runKey.classId}:${task.runKey.policyId}:${task.runKey.seedOffset}`),
-    failedRunKeys: Array.isArray(existingArtifact?.runs) ? existingArtifact.runs.filter((record) => record.outcome === "run_failed").map((record) => record.runKey) : [],
-    slowRunKeys: Array.isArray(existingArtifact?.runs) ? existingArtifact.runs.filter((record) => Number(record.durationMs || 0) >= Number(spec.slowRunThresholdMs || 0) && Number(spec.slowRunThresholdMs || 0) > 0).map((record) => record.runKey) : [],
-  });
+    writeJobState(paths, {
+      startedAt: existingArtifact?.generatedAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      mode: parsed.mode,
+      experimentId: spec.experimentId,
+      artifactPath: paths.output,
+      totalRuns: tasks.length,
+      completedRuns: Array.isArray(existingArtifact?.runs) ? existingArtifact.runs.length : 0,
+      pendingRunKeys: pendingTasks.map((task) => `${task.runKey.experimentId}:${task.runKey.scenarioType}:${task.runKey.classId}:${task.runKey.policyId}:${task.runKey.seedOffset}`),
+      failedRunKeys: Array.isArray(existingArtifact?.runs) ? existingArtifact.runs.filter((record) => record.outcome === "run_failed").map((record) => record.runKey) : [],
+      slowRunKeys: Array.isArray(existingArtifact?.runs) ? existingArtifact.runs.filter((record) => Number(record.durationMs || 0) >= Number(spec.slowRunThresholdMs || 0) && Number(spec.slowRunThresholdMs || 0) > 0).map((record) => record.runKey) : [],
+    }, db);
 
-  await runTaskPool(helper, spec, pendingTasks, paths, existingArtifact, baselineArtifact, parsed);
+    await runTaskPool(helper, spec, pendingTasks, paths, existingArtifact, baselineArtifact, parsed, db);
 
-  const finalArtifact = loadJson(paths.output);
-  if (parsed.json) {
-    console.log(JSON.stringify(finalArtifact, null, 2));
-  } else {
-    console.log(`Completed ${finalArtifact.runs.length}/${tasks.length} runs -> ${paths.output}`);
+    const finalArtifact = loadExistingArtifact(paths.output, db);
+    if (!finalArtifact) {
+      throw new Error(`Missing final artifact at ${paths.output}`);
+    }
+    if (parsed.json) {
+      console.log(JSON.stringify(finalArtifact, null, 2));
+    } else {
+      console.log(`Completed ${finalArtifact.runs.length}/${tasks.length} runs -> ${paths.output}`);
+    }
+  } finally {
+    db.close();
   }
 }
 

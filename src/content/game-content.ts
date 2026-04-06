@@ -1,6 +1,20 @@
 /* eslint-disable max-lines */
 (() => {
-  const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  type CardTextLine = { short: string; full: string };
+  type CardTextApi = {
+    keywordHints: Record<string, string>;
+    describeCompactEffect(effect: CardEffect): CardTextLine;
+    buildCompactCardText(effects: CardEffect[]): string;
+    buildFullCardText(effects: CardEffect[], maxLines?: number): string;
+    formatCompactRuleLine(
+      line: string,
+      escapeHtml: (value: string) => string,
+      valueClass: string,
+      keywordClass: string
+    ): string;
+  };
+
+  const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window & { ROUGE_CARD_TEXT?: CardTextApi };
 
   const { hero, mercenaryCatalog } = runtimeWindow.__ROUGE_GC_MERCENARIES;
   const { consequenceEncounterPackages } = runtimeWindow.__ROUGE_GC_ENCOUNTERS;
@@ -272,57 +286,128 @@
     return parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
   }
 
-  function describeCardEffect(effect: CardEffect): string {
+  const CARD_TEXT_KEYWORD_HINTS: Record<string, string> = {
+    strike: "Deal this much damage to the target.",
+    volley: "Deal this much damage to all enemies.",
+    summon: "Create this allied minion.",
+    guard: "Block incoming damage before it hits Life.",
+    heal: "Restore this much Life.",
+    aid: "Restore this much Life to your mercenary.",
+    draw: "Draw this many cards from your deck.",
+    weaken: "Your mercenary deals this much bonus damage to that target.",
+    rally: "Your mercenary's next attack gains this much bonus damage.",
+    burn: "Applies Burn over time.",
+    poison: "Applies Poison over time.",
+    slow: "Applies Slow to the target.",
+    freeze: "Applies Freeze to the target.",
+    stun: "Applies Stun to the target.",
+    paralyze: "Applies Paralyze to the target.",
+  };
+
+  function describeCompactCardEffect(effect: CardEffect): CardTextLine {
     switch (effect.kind) {
       case "damage":
-        return `Deal ${effect.value} damage`;
+        return { short: `Strike ${effect.value}`, full: `Deal ${effect.value} damage.` };
       case "damage_all":
-        return `Deal ${effect.value} damage to all enemies`;
+        return { short: `Volley ${effect.value}`, full: `Deal ${effect.value} damage to all enemies.` };
       case "summon_minion": {
         const minionName = formatMinionName(effect.minionId) || "Minion";
-        return `Summon ${minionName}`;
+        return { short: `Summon ${minionName}`, full: `Summon ${minionName}.` };
       }
       case "gain_guard_self":
-        return `Gain ${effect.value} Guard`;
+        return { short: `Guard ${effect.value}`, full: `Gain ${effect.value} Guard.` };
       case "gain_guard_party":
-        return `You and your mercenary gain ${effect.value} Guard`;
+        return { short: `Guard All ${effect.value}`, full: `You and your mercenary gain ${effect.value} Guard.` };
       case "heal_hero":
-        return `Heal ${effect.value}`;
+        return { short: `Heal ${effect.value}`, full: `Heal ${effect.value}.` };
       case "heal_mercenary":
-        return `Heal your mercenary ${effect.value}`;
+        return { short: `Aid ${effect.value}`, full: `Heal your mercenary ${effect.value}.` };
       case "draw":
-        return `Draw ${effect.value} card${effect.value === 1 ? "" : "s"}`;
+        return { short: `Draw ${effect.value}`, full: `Draw ${effect.value} card${effect.value === 1 ? "" : "s"}.` };
       case "mark_enemy_for_mercenary":
-        return `Your mercenary deals +${effect.value} to this target`;
+        return { short: `Weaken +${effect.value}`, full: `Your mercenary deals +${effect.value} to this target.` };
       case "buff_mercenary_next_attack":
-        return `Mercenary next attack +${effect.value}`;
+        return { short: `Rally +${effect.value}`, full: `Mercenary next attack +${effect.value}.` };
       case "apply_burn":
-        return `Apply ${effect.value} Burn`;
+        return { short: `Burn ${effect.value}`, full: `Apply ${effect.value} Burn.` };
       case "apply_burn_all":
-        return `Apply ${effect.value} Burn to all enemies`;
+        return { short: `Burn All ${effect.value}`, full: `Apply ${effect.value} Burn to all enemies.` };
       case "apply_poison":
-        return `Apply ${effect.value} Poison`;
+        return { short: `Poison ${effect.value}`, full: `Apply ${effect.value} Poison.` };
       case "apply_poison_all":
-        return `Apply ${effect.value} Poison to all enemies`;
+        return { short: `Poison All ${effect.value}`, full: `Apply ${effect.value} Poison to all enemies.` };
       case "apply_slow":
-        return `Apply ${effect.value} Slow`;
+        return { short: `Slow ${effect.value}`, full: `Apply ${effect.value} Slow.` };
       case "apply_slow_all":
-        return `Apply ${effect.value} Slow to all enemies`;
+        return { short: `Slow All ${effect.value}`, full: `Apply ${effect.value} Slow to all enemies.` };
       case "apply_freeze":
-        return `Apply ${effect.value} Freeze`;
+        return { short: `Freeze ${effect.value}`, full: `Apply ${effect.value} Freeze.` };
       case "apply_freeze_all":
-        return `Apply ${effect.value} Freeze to all enemies`;
+        return { short: `Freeze All ${effect.value}`, full: `Apply ${effect.value} Freeze to all enemies.` };
       case "apply_stun":
-        return `Apply ${effect.value} Stun`;
+        return { short: `Stun ${effect.value}`, full: `Apply ${effect.value} Stun.` };
       case "apply_stun_all":
-        return `Apply ${effect.value} Stun to all enemies`;
+        return { short: `Stun All ${effect.value}`, full: `Apply ${effect.value} Stun to all enemies.` };
       case "apply_paralyze":
-        return `Apply ${effect.value} Paralyze`;
+        return { short: `Paralyze ${effect.value}`, full: `Apply ${effect.value} Paralyze.` };
       case "apply_paralyze_all":
-        return `Apply ${effect.value} Paralyze to all enemies`;
+        return { short: `Paralyze All ${effect.value}`, full: `Apply ${effect.value} Paralyze to all enemies.` };
       default:
-        return "";
+        return { short: "Special", full: "Special effect." };
     }
+  }
+
+  function buildCardTextLines(effects: CardEffect[]): CardTextLine[] {
+    const lines: CardTextLine[] = [];
+
+    for (let index = 0; index < effects.length; index += 1) {
+      const effect = effects[index];
+
+      if (effect.kind === "damage" || effect.kind === "damage_all") {
+        let totalDamage = effect.value;
+        let hitCount = 1;
+        let cursor = index + 1;
+        while (cursor < effects.length && effects[cursor].kind === effect.kind) {
+          totalDamage += effects[cursor].value;
+          hitCount += 1;
+          cursor += 1;
+        }
+
+        if (hitCount > 1) {
+          const targetText = effect.kind === "damage_all" ? " to all enemies" : "";
+          const keyword = effect.kind === "damage_all" ? "Volley" : "Strike";
+          const hitLabel = hitCount === 1 ? "hit" : "hits";
+          lines.push({
+            short: `${keyword} ${totalDamage} (${hitCount} ${hitLabel})`,
+            full: `Deal ${totalDamage} damage${targetText} in ${hitCount} ${hitLabel}.`,
+          });
+          index = cursor - 1;
+          continue;
+        }
+      }
+
+      lines.push(describeCompactCardEffect(effect));
+    }
+
+    return lines;
+  }
+
+  function formatCompactRuleLine(
+    line: string,
+    escapeHtml: (value: string) => string,
+    valueClass: string,
+    keywordClass: string
+  ): string {
+    let html = escapeHtml(line)
+      .replace(/([+-]?\d+)/g, `<span class="${valueClass}">$1</span>`);
+
+    html = html.replace(/\b(Strike|Volley|Summon|Guard|Heal|Aid|Draw|Weaken|Rally|Burn|Poison|Slow|Freeze|Stun|Paralyze)\b/gi, (match) => {
+      const hint = CARD_TEXT_KEYWORD_HINTS[match.toLowerCase()];
+      const titleAttr = hint ? ` title="${escapeHtml(hint)}"` : "";
+      return `<span class="${keywordClass}"${titleAttr}>${match}</span>`;
+    });
+
+    return html;
   }
 
   function boostRefinedEffectValue(effect: CardEffect): CardEffect {
@@ -365,12 +450,30 @@
     return upgraded;
   }
 
-  function buildCardText(effects: CardEffect[]): string {
-    return effects
-      .map((effect) => describeCardEffect(effect))
+  function joinCardTextLines(lines: CardTextLine[], mode: "short" | "full", maxLines?: number): string {
+    return lines
+      .slice(0, typeof maxLines === "number" ? Math.max(1, maxLines) : lines.length)
+      .map((line) => line[mode])
       .filter(Boolean)
       .join(". ")
       .concat(".");
+  }
+
+  function buildCardText(effects: CardEffect[]): string {
+    return joinCardTextLines(buildCardTextLines(effects), "short");
+  }
+
+  function buildFullCardText(effects: CardEffect[], maxLines?: number): string {
+    return joinCardTextLines(buildCardTextLines(effects), "full", maxLines);
+  }
+
+  function normalizeCatalogCardText(catalog: Record<string, CardDefinition>): void {
+    Object.values(catalog).forEach((card) => {
+      if (!card || !Array.isArray(card.effects)) {
+        return;
+      }
+      card.text = buildCardText(card.effects);
+    });
   }
 
   function createGeneratedPlusVariant(card: CardDefinition): CardDefinition {
@@ -398,6 +501,15 @@
   // Merge class-specific skill cards into the card catalog
   Object.assign(cardCatalog, classCardCatalog);
   addGeneratedPlusVariants(cardCatalog);
+  normalizeCatalogCardText(cardCatalog);
+
+  runtimeWindow.ROUGE_CARD_TEXT = {
+    keywordHints: CARD_TEXT_KEYWORD_HINTS,
+    describeCompactEffect: describeCompactCardEffect,
+    buildCompactCardText: buildCardText,
+    buildFullCardText,
+    formatCompactRuleLine,
+  };
 
   const starterDeck = [
     "quick_slash",
