@@ -97,12 +97,12 @@ test("applyBlacksmithAction rejects when gold is insufficient", () => {
 test("applyBlacksmithAction refine replaces a card with its plus version", () => {
   const { state, content, deckServices } = createRunState();
   state.run.gold = 999;
-  state.run.deck.unshift("quick_slash");
-  const quickSlashCountBefore = state.run.deck.filter((cardId) => cardId === "quick_slash").length;
-  const result = deckServices.applyBlacksmithAction(state.run, content, "blacksmith_refine_quick_slash");
+  state.run.deck.unshift("swing");
+  const swingCountBefore = state.run.deck.filter((cardId) => cardId === "swing").length;
+  const result = deckServices.applyBlacksmithAction(state.run, content, "blacksmith_refine_swing");
   assert.equal(result.ok, true);
-  assert.ok(state.run.deck.includes("quick_slash_plus"));
-  assert.equal(state.run.deck.filter((cardId) => cardId === "quick_slash").length, quickSlashCountBefore - 1);
+  assert.ok(state.run.deck.includes("swing_plus"));
+  assert.equal(state.run.deck.filter((cardId) => cardId === "swing").length, swingCountBefore - 1);
 });
 
 test("applyBlacksmithAction refine keeps class cards on their evolution path", () => {

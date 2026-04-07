@@ -356,7 +356,10 @@ test("combat fx direct harness animates enemy-phase sequencing and the return to
     () => {
       combat.turn = 2;
       combat.phase = "player";
-      combat.log = ["Fallen attacks Hero.", "Earlier log line."];
+      combat.log = [
+        { turn: 2, phase: "enemy", actor: "enemy", actorName: "Fallen", action: "intent", tone: "strike", message: "Fallen attacks Hero.", effects: [] } as CombatLogEntry,
+        { turn: 1, phase: "player", actor: "environment", actorName: "", action: "setup", tone: "report", message: "Earlier log line.", effects: [] } as CombatLogEntry,
+      ];
       combat.hand = [
         { instanceId: "hand_1", cardId: "ready_card_1" } as CardInstance,
         { instanceId: "hand_2", cardId: "ready_card_2" } as CardInstance,

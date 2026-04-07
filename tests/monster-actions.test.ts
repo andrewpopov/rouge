@@ -115,7 +115,7 @@ test("resolveMonsterIntent handles charge by telegraphing and gaining guard", ()
   harness.engine.endTurn(state);
 
   assert.equal(caster.guard, 4);
-  assert.ok(state.log.some((l: string) => l.includes("charging Poison Wave")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("charging Poison Wave")));
 });
 
 test("resolveMonsterIntent handles attack_burn", () => {
@@ -182,7 +182,7 @@ test("resolveMonsterIntent handles attack_lightning", () => {
   harness.engine.endTurn(state);
 
   assert.ok(state.hero.life < heroBefore, "hero should take lightning damage");
-  assert.ok(state.log.some((l: string) => l.includes("lightning damage")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("lightning damage")));
 });
 
 test("resolveMonsterIntent handles attack_chill", () => {
@@ -199,7 +199,7 @@ test("resolveMonsterIntent handles attack_chill", () => {
   harness.engine.endTurn(state);
 
   // Chill may have been decremented during processHeroDebuffs on next turn, but check log
-  assert.ok(state.log.some((l: string) => l.includes("Chill")), "log should mention chill");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Chill")), "log should mention chill");
 });
 
 test("resolveMonsterIntent handles curse_amplify", () => {
@@ -216,7 +216,7 @@ test("resolveMonsterIntent handles curse_amplify", () => {
   harness.engine.endTurn(state);
 
   // Amplify may be decremented at turn start, but log should confirm it was applied
-  assert.ok(state.log.some((l: string) => l.includes("Amplify") || l.includes("amplif")), "log should mention amplify");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Amplify") || entry.message.includes("amplif")), "log should mention amplify");
 });
 
 test("resolveMonsterIntent handles curse_weaken", () => {
@@ -232,7 +232,7 @@ test("resolveMonsterIntent handles curse_weaken", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("Decrepify") || l.includes("reduced")), "log should mention weaken");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Decrepify") || entry.message.includes("reduced")), "log should mention weaken");
 });
 
 test("resolveMonsterIntent handles drain_energy", () => {
@@ -248,7 +248,7 @@ test("resolveMonsterIntent handles drain_energy", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("drain") || l.includes("Drain")), "log should mention drain");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("drain") || entry.message.includes("Drain")), "log should mention drain");
 });
 
 test("resolveMonsterIntent handles buff_allies_attack", () => {
@@ -265,7 +265,7 @@ test("resolveMonsterIntent handles buff_allies_attack", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("buff")), "log should mention buff");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("buff")), "log should mention buff");
 });
 
 test("resolveMonsterIntent handles consume_corpse with dead enemy", () => {
@@ -289,7 +289,7 @@ test("resolveMonsterIntent handles consume_corpse with dead enemy", () => {
   harness.engine.endTurn(state);
 
   assert.equal(corpse.consumed, true, "corpse should be consumed");
-  assert.ok(state.log.some((l: string) => l.includes("consume") || l.includes("Consume") || l.includes("corpse")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("consume") || entry.message.includes("Consume") || entry.message.includes("corpse")));
 });
 
 test("resolveMonsterIntent handles consume_corpse fallback when no corpses", () => {
@@ -308,7 +308,7 @@ test("resolveMonsterIntent handles consume_corpse fallback when no corpses", () 
   harness.engine.endTurn(state);
 
   assert.ok(state.hero.life <= heroBefore, "hero should take fallback attack");
-  assert.ok(state.log.some((l: string) => l.includes("no corpse")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("no corpse")));
 });
 
 test("resolveMonsterIntent handles corpse_explosion with dead enemies", () => {
@@ -333,7 +333,7 @@ test("resolveMonsterIntent handles corpse_explosion with dead enemies", () => {
   harness.engine.endTurn(state);
 
   assert.ok(state.hero.life < heroBefore, "hero should take explosion damage");
-  assert.ok(state.log.some((l: string) => l.includes("detonates") || l.includes("corpse")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("detonates") || entry.message.includes("corpse")));
 });
 
 test("resolveMonsterIntent handles attack_burn_all", () => {
@@ -369,7 +369,7 @@ test("processModifierOnAttack applies cursed aura amplify", () => {
   harness.engine.endTurn(state);
 
   // Amplify should have been applied and log entry created
-  assert.ok(state.log.some((l: string) => l.includes("Cursed") || l.includes("amplif")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Cursed") || entry.message.includes("amplif")));
 });
 
 test("processModifierOnHit lightning enchanted deals damage back", () => {
@@ -413,7 +413,7 @@ test("processDeathTraits handles death_explosion", () => {
     harness.engine.playCard(state, harness.content, damageCard.instanceId, enemy.id);
     if (!enemy.alive) {
       assert.ok(state.hero.life < heroBefore, "hero should take explosion damage on death");
-      assert.ok(state.log.some((l: string) => l.includes("EXPLODES")));
+      assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("EXPLODES")));
     }
   }
 });
@@ -457,7 +457,7 @@ test("processDeathTraits handles death_spawn", () => {
     harness.engine.playCard(state, harness.content, damageCard.instanceId, enemy.id);
     if (!enemy.alive) {
       assert.ok(state.enemies.length > enemyCountBefore, "should spawn enemies on death");
-      assert.ok(state.log.some((l: string) => l.includes("spawn") || l.includes("burst")));
+      assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("spawn") || entry.message.includes("burst")));
     }
   }
 });
@@ -510,7 +510,7 @@ test("cooldown system prevents intent from firing twice in a row", () => {
   harness.engine.endTurn(state);
 
   // Should see a cooldown log entry
-  assert.ok(state.log.some((l: string) => l.includes("cooldown")), "should mention cooldown in log");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("cooldown")), "should mention cooldown in log");
 });
 
 test("processHeroDebuffs reduces burn stacks and deals damage", () => {

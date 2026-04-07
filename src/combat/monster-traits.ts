@@ -3,9 +3,21 @@
 
   const MAX_ENEMIES_IN_COMBAT = 6;
 
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
   function _appendLog(state: CombatState, message: string) {
-    state.log.unshift(message);
-    state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
+    combatLog.appendLog(state, message);
+  }
+  function _logCombat(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }) {
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
   }
 
   function _hasTrait(enemy: CombatEnemyState, trait: MonsterTraitKind) {
@@ -149,18 +161,33 @@
     if (enemy.traits.includes("death_explosion")) {
       const explosionDamage = Math.max(1, Math.floor(enemy.maxLife * 0.3));
       const dealt = dealHeroDamage(state, explosionDamage, "physical", true);
-      _appendLog(state, `${enemy.name} EXPLODES for ${dealt} damage! (bypasses Guard)`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait", tone: "loss",
+        message: `${enemy.name} EXPLODES for ${dealt} damage! (bypasses Guard)`,
+        effects: [{ target: "hero", targetName: "The Wanderer", damage: dealt, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
         state.hero.guard = 0;
-        _appendLog(state, "The Wanderer falls. Encounter lost.");
+        _logCombat(state, {
+          actor: "environment", actorName: "",
+          action: "death", tone: "loss",
+          message: "The Wanderer falls. Encounter lost.",
+          effects: [{ target: "hero", targetName: "The Wanderer", killed: true, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+        });
       }
     }
 
     if (enemy.traits.includes("death_poison")) {
       const stacks = 2;
       applyHeroPoison(state, stacks);
-      _appendLog(state, `${enemy.name}'s corpse releases a poison cloud! (${stacks} Poison on hero)`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait", tone: "status",
+        message: `${enemy.name}'s corpse releases a poison cloud! (${stacks} Poison on hero)`,
+        effects: [{ target: "hero", targetName: "The Wanderer", statusApplied: { kind: "poison", stacks }, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
     }
 
     if (enemy.traits.includes("death_spawn")) {
@@ -197,24 +224,43 @@
           };
           state.enemies.push(spawn);
         }
-        _appendLog(state, `${enemy.name} bursts open, spawning ${spawnCount} creature${spawnCount > 1 ? "s" : ""}!`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "summon", tone: "summon",
+          message: `${enemy.name} bursts open, spawning ${spawnCount} creature${spawnCount > 1 ? "s" : ""}!`,
+        });
       }
     }
 
     if (enemy.traits.includes(TRAIT.FIRE_ENCHANTED)) {
       const fireDamage = Math.max(1, Math.floor(enemy.maxLife * 0.25));
       const dealt = dealHeroDamage(state, fireDamage, "fire", true);
-      _appendLog(state, `${enemy.name} erupts in flame for ${dealt} fire damage! (bypasses Guard)`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait", tone: "loss",
+        message: `${enemy.name} erupts in flame for ${dealt} fire damage! (bypasses Guard)`,
+        effects: [{ target: "hero", targetName: "The Wanderer", damage: dealt, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
         state.hero.guard = 0;
-        _appendLog(state, "The Wanderer falls. Encounter lost.");
+        _logCombat(state, {
+          actor: "environment", actorName: "",
+          action: "death", tone: "loss",
+          message: "The Wanderer falls. Encounter lost.",
+          effects: [{ target: "hero", targetName: "The Wanderer", killed: true, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+        });
       }
     }
 
     if (enemy.traits.includes(TRAIT.COLD_ENCHANTED)) {
       applyHeroChill(state, 2);
-      _appendLog(state, `${enemy.name} releases a Frost Nova! (2 Chill on hero)`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait", tone: "status",
+        message: `${enemy.name} releases a Frost Nova! (2 Chill on hero)`,
+        effects: [{ target: "hero", targetName: "The Wanderer", statusApplied: { kind: "chill", stacks: 2 }, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
     }
   }
 
@@ -268,7 +314,11 @@
     }
 
     if (spawnCount > 0) {
-      _appendLog(state, `${enemy.name} enters with ${spawnCount} ${config.spawnName}${spawnCount > 1 ? "s" : ""}!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "summon", tone: "summon",
+        message: `${enemy.name} enters with ${spawnCount} ${config.spawnName}${spawnCount > 1 ? "s" : ""}!`,
+      });
     }
   }
 
@@ -282,7 +332,12 @@
     if (state.hero.heroBurn > 0) {
       const burnDmg = state.hero.heroBurn;
       const dealt = dealHeroDamage(state, burnDmg, "fire", true);
-      _appendLog(state, `The Wanderer takes ${dealt} Burn damage.`);
+      _logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "status_tick", tone: "status",
+        message: `The Wanderer takes ${dealt} Burn damage.`,
+        effects: [{ target: "hero", targetName: "The Wanderer", damage: dealt, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
       state.hero.heroBurn = Math.max(0, state.hero.heroBurn - 1);
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
@@ -294,7 +349,12 @@
     if (state.hero.heroPoison > 0) {
       const poisonDmg = state.hero.heroPoison;
       const dealt = dealHeroDamage(state, poisonDmg, "poison", true);
-      _appendLog(state, `The Wanderer takes ${dealt} Poison damage.`);
+      _logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "status_tick", tone: "status",
+        message: `The Wanderer takes ${dealt} Poison damage.`,
+        effects: [{ target: "hero", targetName: "The Wanderer", damage: dealt, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
       state.hero.heroPoison = Math.max(0, state.hero.heroPoison - 1);
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
@@ -304,22 +364,38 @@
     }
 
     if (state.hero.chill > 0) {
-      _appendLog(state, `The Wanderer is Chilled — draws 1 fewer card.`);
+      _logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "status_tick", tone: "status",
+        message: `The Wanderer is Chilled — draws 1 fewer card.`,
+      });
       state.hero.chill = Math.max(0, state.hero.chill - 1);
     }
 
     if (state.hero.energyDrain > 0) {
-      _appendLog(state, `The Wanderer is drained — 1 less Energy this turn.`);
+      _logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "status_tick", tone: "status",
+        message: `The Wanderer is drained — 1 less Energy this turn.`,
+      });
       state.hero.energyDrain = Math.max(0, state.hero.energyDrain - 1);
     }
 
     if (state.hero.amplify > 0) {
-      _appendLog(state, `Amplify Damage active — the Wanderer takes increased damage.`);
+      _logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "status_tick", tone: "status",
+        message: `Amplify Damage active — the Wanderer takes increased damage.`,
+      });
       state.hero.amplify = Math.max(0, state.hero.amplify - 1);
     }
 
     if (state.hero.weaken > 0) {
-      _appendLog(state, `Decrepify active — the Wanderer deals reduced damage.`);
+      _logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "status_tick", tone: "status",
+        message: `Decrepify active — the Wanderer deals reduced damage.`,
+      });
       state.hero.weaken = Math.max(0, state.hero.weaken - 1);
     }
   }

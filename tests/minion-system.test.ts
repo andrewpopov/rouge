@@ -73,7 +73,7 @@ test("temporary trap minions expire after taking their last action", () => {
   const totalLifeAfter = state.enemies.reduce((sum, enemy) => sum + enemy.life, 0);
   assert.ok(totalLifeAfter < totalLifeBefore, "the trap should damage the enemy line before expiring");
   assert.equal(state.minions.length, 0, "the trap should leave the field when its duration ends");
-  assert.ok(state.log.some((entry) => entry.includes("fades from the field")), "the expiration should be logged");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("fades from the field")), "the expiration should be logged");
 });
 
 test("minion cap blocks new summon types while previews surface the limit", () => {
@@ -128,5 +128,5 @@ test("minion cap blocks new summon types while previews surface the limit", () =
   harness.combatEngine.playCard(state, harness.content, instanceId);
 
   assert.equal(state.minions.length, turns.MAX_ACTIVE_MINIONS, "new minion types should be blocked at the cap");
-  assert.ok(state.log.some((entry) => entry.includes("Minion limit reached")), "the blocked summon should be logged");
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Minion limit reached")), "the blocked summon should be logged");
 });

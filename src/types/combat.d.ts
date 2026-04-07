@@ -1,3 +1,85 @@
+type CombatLogAction =
+  | "card_play"
+  | "skill_use"
+  | "melee"
+  | "potion"
+  | "intent"
+  | "trait"
+  | "status_tick"
+  | "summon"
+  | "death"
+  | "modifier"
+  | "approach"
+  | "setup"
+  | "turn_start"
+  | "turn_end";
+
+type CombatLogTone = "strike" | "status" | "surge" | "summon" | "loss" | "maneuver" | "report";
+
+interface CombatLogEffect {
+  target: "hero" | "mercenary" | "enemy" | "minion";
+  targetId?: string;
+  targetName: string;
+  damage?: number;
+  guardDamage?: number;
+  healing?: number;
+  guardApplied?: number;
+  statusApplied?: { kind: string; stacks: number };
+  killed?: boolean;
+  lifeAfter: number;
+  guardAfter: number;
+}
+
+interface CombatLogEntry {
+  turn: number;
+  phase: "setup" | "player" | "enemy";
+  actor: "hero" | "mercenary" | "minion" | "enemy" | "environment";
+  actorId?: string;
+  actorName: string;
+  action: CombatLogAction;
+  actionId?: string;
+  tone: CombatLogTone;
+  message: string;
+  effects: CombatLogEffect[];
+}
+
+type CombatLogDefeatCause = "burst" | "attrition" | "merc_collapse" | "timeout" | "unknown";
+
+interface CombatLogSummary {
+  totalEntries: number;
+  totalTurns: number;
+  outcome: string;
+  defeatCause: CombatLogDefeatCause | null;
+  byActor: Record<string, number>;
+  byAction: Record<string, number>;
+  byTone: Record<string, number>;
+  heroActions: number;
+  mercenaryActions: number;
+  enemyActions: number;
+  cardsPlayed: number;
+  skillsUsed: number;
+  potionsUsed: number;
+  enemyIntents: number;
+  deaths: number;
+  statusEffects: number;
+}
+
+interface CombatLogApi {
+  createLogEntry(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }): CombatLogEntry;
+  appendLogEntry(state: CombatState, entry: CombatLogEntry): void;
+  appendLog(state: CombatState, message: string): void;
+  summarizeCombatLog(state: CombatState): CombatLogSummary;
+}
+
 interface CardInstance {
   instanceId: string;
   cardId: string;
@@ -144,7 +226,7 @@ interface CombatState {
   hand: CardInstance[];
   equippedSkills: CombatEquippedSkillState[];
   skillModifiers: CombatSkillModifierState;
-  log: string[];
+  log: CombatLogEntry[];
   selectedEnemyId: string;
   meleeUsed?: boolean;
   weaponFamily?: string;

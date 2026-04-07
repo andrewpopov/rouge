@@ -229,7 +229,7 @@ test("quest runeforge rewards follow the run's dominant weapon archetype when a 
     "amazon_magic_arrow",
     "amazon_cold_arrow",
     "amazon_multiple_shot",
-    "second_wind",
+    "field_dressing",
   ];
   browserWindow.ROUGE_REWARD_ENGINE.syncArchetypeScores(state.run, content);
 
@@ -774,7 +774,7 @@ test("shrine opportunity lanes unlock separately and can feed mercenary route pe
   assert.equal(state.combat.mercenary.contractOpeningDraw, 1);
   assert.equal(state.combat.hero.damageBonus, 1);
   assert.equal(state.combat.hand.length, state.combat.hero.handSize + 1);
-  assert.ok(state.combat.log.some((line) => line.includes("Forward Spotters")));
+  assert.ok(state.combat.log.some((entry: CombatLogEntry) => entry.message.includes("Forward Spotters")));
 });
 
 test("mercenary route perks can scale hero-facing guard support by act", () => {

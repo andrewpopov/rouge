@@ -32,7 +32,7 @@
     turn: number;
     phase: CombatPhase;
     outcome: CombatOutcome | null;
-    log: string[];
+    log: CombatLogEntry[];
     handCount: number;
     drawPileCount: number;
     discardPileCount: number;
@@ -230,20 +230,20 @@
     runtimeWindow.ROUGE_VIEW_LIFECYCLE.managedTimeout(() => notice.remove(), 980);
   }
 
-  function getNewLogEntries(beforeLog: string[], afterLog: string[]): string[] {
+  function getNewLogEntries(beforeLog: CombatLogEntry[], afterLog: CombatLogEntry[]): string[] {
     if (beforeLog.length === 0) {
-      return [...afterLog];
+      return afterLog.map((entry) => entry.message);
     }
 
     let boundary = afterLog.length;
     for (let index = 0; index < afterLog.length; index += 1) {
-      if (afterLog[index] !== beforeLog[0]) {
+      if (afterLog[index].message !== beforeLog[0].message) {
         continue;
       }
 
       let matches = true;
       for (let offset = 0; offset < beforeLog.length && index + offset < afterLog.length; offset += 1) {
-        if (afterLog[index + offset] !== beforeLog[offset]) {
+        if (afterLog[index + offset].message !== beforeLog[offset].message) {
           matches = false;
           break;
         }
@@ -254,7 +254,7 @@
       }
     }
 
-    return afterLog.slice(0, boundary);
+    return afterLog.slice(0, boundary).map((entry) => entry.message);
   }
 
   function trimActionLabel(label: string): string {

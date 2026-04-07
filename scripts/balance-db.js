@@ -44,6 +44,11 @@ function ensureSchema(db) {
       last_boss_power_ratio REAL NOT NULL,
       training_fully_realized INTEGER NOT NULL,
       slot3_skill_id TEXT NOT NULL,
+      defeat_cause TEXT NOT NULL DEFAULT '',
+      avg_cards_played REAL NOT NULL DEFAULT 0,
+      avg_enemy_actions REAL NOT NULL DEFAULT 0,
+      avg_status_effects REAL NOT NULL DEFAULT 0,
+      combat_log_summary_json TEXT NOT NULL DEFAULT '{}',
       source_artifact_path TEXT NOT NULL,
       source_generated_at TEXT NOT NULL,
       history_row_json TEXT NOT NULL,
@@ -102,6 +107,19 @@ function ensureSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_balance_job_state_updated_at
       ON balance_job_state (updated_at DESC);
   `);
+
+  // Migrate existing tables: add combat log columns if missing
+  const columns = db.prepare("PRAGMA table_info(balance_run_history)").all();
+  const columnNames = new Set(columns.map((col) => col.name));
+  if (!columnNames.has("defeat_cause")) {
+    db.exec(`
+      ALTER TABLE balance_run_history ADD COLUMN defeat_cause TEXT NOT NULL DEFAULT '';
+      ALTER TABLE balance_run_history ADD COLUMN avg_cards_played REAL NOT NULL DEFAULT 0;
+      ALTER TABLE balance_run_history ADD COLUMN avg_enemy_actions REAL NOT NULL DEFAULT 0;
+      ALTER TABLE balance_run_history ADD COLUMN avg_status_effects REAL NOT NULL DEFAULT 0;
+      ALTER TABLE balance_run_history ADD COLUMN combat_log_summary_json TEXT NOT NULL DEFAULT '{}';
+    `);
+  }
 }
 
 function openBalanceDatabase(options = {}) {
@@ -178,6 +196,11 @@ function insertBalanceHistoryRow(db, historyRow, options = {}) {
       last_boss_power_ratio,
       training_fully_realized,
       slot3_skill_id,
+      defeat_cause,
+      avg_cards_played,
+      avg_enemy_actions,
+      avg_status_effects,
+      combat_log_summary_json,
       source_artifact_path,
       source_generated_at,
       history_row_json,
@@ -207,6 +230,11 @@ function insertBalanceHistoryRow(db, historyRow, options = {}) {
       @last_boss_power_ratio,
       @training_fully_realized,
       @slot3_skill_id,
+      @defeat_cause,
+      @avg_cards_played,
+      @avg_enemy_actions,
+      @avg_status_effects,
+      @combat_log_summary_json,
       @source_artifact_path,
       @source_generated_at,
       @history_row_json,
@@ -237,6 +265,11 @@ function insertBalanceHistoryRow(db, historyRow, options = {}) {
     last_boss_power_ratio: toNumber(historyRow.lastBoss?.powerRatio || 0),
     training_fully_realized: historyRow.trainingRealization?.fullyRealized ? 1 : 0,
     slot3_skill_id: String(historyRow.skillBar?.equippedSkillIds?.slot3 || ""),
+    defeat_cause: String(historyRow.combatLogSummary?.defeatCause || historyRow.defeatCause || ""),
+    avg_cards_played: toNumber(historyRow.combatLogSummary?.cardsPlayed || historyRow.avgCardsPlayed || 0),
+    avg_enemy_actions: toNumber(historyRow.combatLogSummary?.enemyActions || historyRow.avgEnemyActions || 0),
+    avg_status_effects: toNumber(historyRow.combatLogSummary?.statusEffects || historyRow.avgStatusEffects || 0),
+    combat_log_summary_json: stringifyJson(historyRow.combatLogSummary, "{}"),
     source_artifact_path: String(historyRow.sourceArtifactPath || ""),
     source_generated_at: String(historyRow.sourceGeneratedAt || ""),
     history_row_json: stringifyJson(historyRow, "{}"),

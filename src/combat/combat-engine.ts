@@ -6,6 +6,7 @@
     summonMinion: _summonMinion, _shuffleInPlace: shuffleInPlace,
   } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
   const { clamp, parseInteger } = runtimeWindow.ROUGE_UTILS;
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
 
   function makeCardInstance(state: CombatState, cardId: string) {
     const instanceId = `card_${state.nextCardInstanceId}`;
@@ -475,10 +476,15 @@
 
     addSkillModifiers(state, modifiers);
     const cleanSegments = segments.filter(Boolean);
-    appendLog(
-      state,
-      `${skill.name} shapes the opening hand: ${cleanSegments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`
-    );
+    const message = `${skill.name} shapes the opening hand: ${cleanSegments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`;
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "skill_use",
+      actionId: skill.skillId,
+      tone: "report",
+      message,
+    }));
     return true;
   }
 
@@ -533,7 +539,15 @@
 
     addDamageTypeRider(modifiers, skill.damageType, scale);
     addSkillModifiers(state, modifiers);
-    appendLog(state, `${skill.name} shapes the opening hand: ${segments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`);
+    const message = `${skill.name} shapes the opening hand: ${segments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`;
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "skill_use",
+      actionId: skill.skillId,
+      tone: "report",
+      message,
+    }));
   }
 
 })();

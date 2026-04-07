@@ -7,8 +7,21 @@
   function applyGuard(target: CombatEnemyState, value: number) {
     runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS.applyGuard(target, value);
   }
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
   function appendLog(state: CombatState, message: string) {
-    runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS.appendLog(state, message);
+    combatLog.appendLog(state, message);
+  }
+  function logCombat(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }) {
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
   }
 
   function advanceEnemyIntent(enemy: CombatEnemyState, steps: number) {
@@ -185,7 +198,7 @@
       if (modifier.kind === MODIFIER_KIND.FORTIFIED_LINE) {
         const guardValue = Math.max(0, parseInteger(modifier.value, 0));
         state.enemies.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
-        appendLog(state, `${state.encounter.name} begins fortified. The enemy line gains ${guardValue} Guard.`);
+        logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} begins fortified. The enemy line gains ${guardValue} Guard.` });
         return;
       }
 
@@ -194,7 +207,7 @@
         const ambushers = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RAIDER || enemy.role === ENEMY_ROLE.RANGED);
         ambushers.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, stepCount));
         if (ambushers.length > 0) {
-          appendLog(state, `${state.encounter.name} opens as an ambush. Raider and ranged enemies shift their first intent.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens as an ambush. Raider and ranged enemies shift their first intent.` });
         }
         return;
       }
@@ -206,7 +219,7 @@
         });
         escortTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         if (escortTargets.length > 0) {
-          appendLog(state, `${state.encounter.name} forms an escort bulwark. Elite and support enemies gain ${guardValue} Guard.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} forms an escort bulwark. Elite and support enemies gain ${guardValue} Guard.` });
         }
         return;
       }
@@ -216,7 +229,7 @@
         const backlineTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.SUPPORT || enemy.role === ENEMY_ROLE.RANGED);
         backlineTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         if (backlineTargets.length > 0) {
-          appendLog(state, `${state.encounter.name} establishes a backline screen. Ranged and support enemies gain ${guardValue} Guard.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} establishes a backline screen. Ranged and support enemies gain ${guardValue} Guard.` });
         }
         return;
       }
@@ -226,7 +239,7 @@
         const vanguardTargets = state.enemies.filter((enemy: CombatEnemyState) => enemy.role === ENEMY_ROLE.RAIDER || enemy.role === ENEMY_ROLE.BRUTE);
         vanguardTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, stepCount));
         if (vanguardTargets.length > 0) {
-          appendLog(state, `${state.encounter.name} surges forward. Raider and brute enemies shift their first intent.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} surges forward. Raider and brute enemies shift their first intent.` });
         }
         return;
       }
@@ -238,7 +251,7 @@
         });
         commandTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, stepCount));
         if (commandTargets.length > 0) {
-          appendLog(state, `${state.encounter.name} opens under escort command. Elite and support enemies advance their script.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens under escort command. Elite and support enemies advance their script.` });
         }
         return;
       }
@@ -255,10 +268,7 @@
         escortTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, value));
         escortTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, 1));
         if (escortTargets.length > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} rotates its escorts. Non-boss escorts gain ${value} Guard and advance their opening script.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} rotates its escorts. Non-boss escorts gain ${value} Guard and advance their opening script.` });
         }
         return;
       }
@@ -278,10 +288,7 @@
           return count + (boostEnemyIntentValues(enemy, reserveIntentKinds, value) ? 1 : 0);
         }, 0);
         if (reserveTargets.length > 0 || boostedCount > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} calls up court reserves. Elite and backline escorts gain ${value} Guard and their opening pressure intensifies by ${value}.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} calls up court reserves. Elite and backline escorts gain ${value} Guard and their opening pressure intensifies by ${value}.` });
         }
         return;
       }
@@ -293,7 +300,7 @@
           return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
         if (boostedCount > 0) {
-          appendLog(state, `${state.encounter.name} establishes crossfire lanes. Ranged enemies hit ${damageBonus} harder.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} establishes crossfire lanes. Ranged enemies hit ${damageBonus} harder.` });
         }
         return;
       }
@@ -305,7 +312,7 @@
           return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
         if (boostedCount > 0) {
-          appendLog(state, `${state.encounter.name} beats war drums. Raider and brute enemies hit ${damageBonus} harder.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} beats war drums. Raider and brute enemies hit ${damageBonus} harder.` });
         }
         return;
       }
@@ -317,7 +324,7 @@
           return count + (boostEnemyIntentValues(enemy, HEALING_INTENT_KINDS, healingBonus) ? 1 : 0);
         }, 0);
         if (boostedCount > 0) {
-          appendLog(state, `${state.encounter.name} opens under triage command. Support enemies restore ${healingBonus} more life.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens under triage command. Support enemies restore ${healingBonus} more life.` });
         }
         return;
       }
@@ -331,7 +338,7 @@
           return count + (boostEnemyIntentValues(enemy, HEALING_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (guardTargets.length > 0 || boostedCount > 0) {
-          appendLog(state, `${state.encounter.name} forms a triage screen. Support enemies gain ${value} Guard and restore ${value} more life.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} forms a triage screen. Support enemies gain ${value} Guard and restore ${value} more life.` });
         }
         return;
       }
@@ -348,10 +355,7 @@
           return count + (boostEnemyIntentValues(enemy, LINEBREAKER_INTENT_KINDS, damageBonus) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} drills a linebreaker charge. Heavy enemies shift into breach scripts and their guard-breaking hits intensify by ${damageBonus}.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} drills a linebreaker charge. Heavy enemies shift into breach scripts and their guard-breaking hits intensify by ${damageBonus}.` });
         }
         return;
       }
@@ -372,10 +376,7 @@
           }
         });
         if (ritualTargets.length > 0 || retunedCount > 0 || boostedCount > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} opens under ritual cadence. Support and boss enemies gain ${value} Guard and their warding rites intensify by ${value}.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens under ritual cadence. Support and boss enemies gain ${value} Guard and their warding rites intensify by ${value}.` });
         }
         return;
       }
@@ -388,7 +389,7 @@
           boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, damageBonus);
         });
         if (eliteTargets.length > 0) {
-          appendLog(state, `${state.encounter.name} opens under elite onslaught. Elite enemies advance their script and hit ${damageBonus} harder.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens under elite onslaught. Elite enemies advance their script and hit ${damageBonus} harder.` });
         }
         return;
       }
@@ -401,7 +402,7 @@
           return count + (boostEnemyIntentValues(enemy, ATTACK_INTENT_KINDS, value) ? 1 : 0);
         }, 0);
         if (backlineTargets.length > 0 || boostedCount > 0) {
-          appendLog(state, `${state.encounter.name} opens from a sniper nest. Backline enemies gain ${value} Guard and ranged attackers hit ${value} harder.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens from a sniper nest. Backline enemies gain ${value} Guard and ranged attackers hit ${value} harder.` });
         }
         return;
       }
@@ -424,10 +425,7 @@
           return count + (boostEnemyIntentValues(enemy, bossIntentKinds, value) ? 1 : 0);
         }, 0);
         if (bossTargets.length > 0 || backlineTargets.length > 0 || boostedCount > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} raises a boss screen. The boss gains ${value} Guard, escorts gain ${value} Guard, and the boss opener intensifies by ${value}.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} raises a boss screen. The boss gains ${value} Guard, escorts gain ${value} Guard, and the boss opener intensifies by ${value}.` });
         }
         return;
       }
@@ -442,10 +440,7 @@
           return count + (setEnemyOpenerToFirstMatchingKind(enemy, PRESSURE_INTENT_KINDS) ? 1 : 0);
         }, 0);
         if (retunedCount > 0 || boostedCount > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} drives a boss onslaught. The boss shifts into its first attack script and hits ${value} harder.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} drives a boss onslaught. The boss shifts into its first attack script and hits ${value} harder.` });
         }
         return;
       }
@@ -466,10 +461,7 @@
         }, 0);
         const retunedCount = bossRetunedCount + rangedRetunedCount;
         if (retunedCount > 0 || boostedCount > 0) {
-          appendLog(
-            state,
-            `${state.encounter.name} opens in a boss salvo. The boss and ranged escorts shift into attack scripts and hit ${value} harder.`
-          );
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} opens in a boss salvo. The boss and ranged escorts shift into attack scripts and hit ${value} harder.` });
         }
         return;
       }
@@ -482,7 +474,7 @@
         marchTargets.forEach((enemy: CombatEnemyState) => applyGuard(enemy, guardValue));
         marchTargets.forEach((enemy: CombatEnemyState) => advanceEnemyIntent(enemy, 1));
         if (marchTargets.length > 0) {
-          appendLog(state, `${state.encounter.name} advances in phalanx formation. Brute and elite enemies gain ${guardValue} Guard and advance their script.`);
+          logCombat(state, { actor: "environment", actorName: "", action: "modifier", tone: "report", message: `${state.encounter.name} advances in phalanx formation. Brute and elite enemies gain ${guardValue} Guard and advance their script.` });
         }
       }
     });

@@ -291,7 +291,7 @@ test("meleeStrike with weapon family match deals bonus damage", () => {
 
   harness.engine.meleeStrike(state, harness.content);
   assert.ok(target.life < lifeBefore, "enemy should take damage");
-  assert.ok(state.log.some((l: string) => l.includes("proficient")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("proficient")));
 });
 
 test("meleeStrike with weaken debuff reduces damage", () => {
@@ -390,7 +390,7 @@ test("typed weapon damage applies as a separate packet on matching attack cards"
   harness.engine.playCard(state, harness.content, card.instanceId, target.id);
 
   assert.equal(lifeBefore - target.life, 8);
-  assert.ok(state.log.some((line: string) => /fire damage/i.test(line)));
+  assert.ok(state.log.some((entry: CombatLogEntry) => /fire damage/i.test(entry.message)));
 });
 
 test("weapon proficiency bonuses do not apply to attacks with other proficiencies", () => {
@@ -709,7 +709,7 @@ test("thorns retaliation respects physical mitigation and guard", () => {
 
   assert.equal(state.hero.guard, 0);
   assert.equal(heroLifeBefore - state.hero.life, 0);
-  assert.ok(state.log.some((line: string) => line.includes("thorns deal 1 damage back")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("thorns deal 1 damage back")));
 });
 
 test("meleeStrike applies crushing weapon effects after the base hit", () => {
@@ -798,7 +798,7 @@ test("endTurn handles swift/extra_fast enemies acting twice", () => {
 
   if (!state.outcome) {
     // Swift enemy should have acted twice, so should see "strikes again" in log
-    assert.ok(state.log.some((l: string) => l.includes("strikes again") || l.includes("Swift")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("strikes again") || entry.message.includes("Swift")));
   }
 });
 
@@ -811,7 +811,7 @@ test("endTurn handles frozen enemies (skip turn)", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("Frozen")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Frozen")));
 });
 
 test("endTurn handles stunned enemies (skip turn)", () => {
@@ -823,7 +823,7 @@ test("endTurn handles stunned enemies (skip turn)", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("Stunned")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Stunned")));
 });
 
 test("endTurn handles burn DOT on enemies", () => {
@@ -880,7 +880,7 @@ test("endTurn handles regeneration trait", () => {
   harness.engine.endTurn(state);
 
   if (enemy.alive && !state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("regenerates")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("regenerates")));
   }
 });
 
@@ -903,7 +903,7 @@ test("endTurn handles frenzy trait below 50% HP", () => {
   harness.engine.endTurn(state);
 
   if (!state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("FRENZY")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("FRENZY")));
   }
 });
 
@@ -917,7 +917,7 @@ test("endTurn handles paralyzed enemy (weakened attack)", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("Paralyzed")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Paralyzed")));
 });
 
 test("endTurn handles slow (enemy repeats intent)", () => {
@@ -948,7 +948,7 @@ test("endTurn resolves enemy guard intent", () => {
 
   if (enemy.alive && !state.outcome) {
     // Guard should have been applied
-    assert.ok(state.log.some((l: string) => l.includes("Guard")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Guard")));
   }
 });
 
@@ -969,7 +969,7 @@ test("endTurn resolves enemy heal_ally intent", () => {
   harness.engine.endTurn(state);
 
   if (healer.alive && !state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("heals") || l.includes("Heal")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("heals") || entry.message.includes("Heal")));
   }
 });
 
@@ -1001,7 +1001,7 @@ test("endTurn resolves sunder_attack intent (removes guard)", () => {
   harness.engine.endTurn(state);
 
   if (!state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("shattering") || l.includes("Sunder")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("shattering") || entry.message.includes("Sunder")));
   }
 });
 
@@ -1018,7 +1018,7 @@ test("endTurn resolves drain_attack intent (heals enemy)", () => {
   harness.engine.endTurn(state);
 
   if (enemy.alive && !state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("heals") || l.includes("Drain")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("heals") || entry.message.includes("Drain")));
   }
 });
 
@@ -1033,7 +1033,7 @@ test("endTurn resolves guard_allies intent", () => {
   harness.engine.endTurn(state);
 
   if (!state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("fortifies") || l.includes("Fortify")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("fortifies") || entry.message.includes("Fortify")));
   }
 });
 
@@ -1051,7 +1051,7 @@ test("endTurn resolves heal_and_guard intent", () => {
   harness.engine.endTurn(state);
 
   if (enemy.alive && !state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("Rally") || l.includes("Guard")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Rally") || entry.message.includes("Guard")));
   }
 });
 
@@ -1066,7 +1066,7 @@ test("endTurn resolves attack_and_guard intent", () => {
   harness.engine.endTurn(state);
 
   if (!state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("Bash") || l.includes("Guard")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Bash") || entry.message.includes("Guard")));
   }
 });
 
@@ -1087,7 +1087,7 @@ test("endTurn resolves heal_allies intent", () => {
   harness.engine.endTurn(state);
 
   if (!state.outcome) {
-    assert.ok(state.log.some((l: string) => l.includes("Mass Heal") || l.includes("restores")));
+    assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Mass Heal") || entry.message.includes("restores")));
   }
 });
 
@@ -1102,7 +1102,7 @@ test("endTurn with extra_strong trait amplifies enemy attack", () => {
   state.phase = "player" as CombatPhase;
   harness.engine.endTurn(state);
 
-  assert.ok(state.log.some((l: string) => l.includes("Extra Strong")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Extra Strong")));
 });
 
 test("chooseEnemyTarget picks mercenary when lowest_life and merc has less HP", () => {

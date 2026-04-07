@@ -32,7 +32,7 @@ test("playCard spends energy and damages the selected enemy", () => {
     randomFn: () => 0,
   });
   const target = state.enemies[0];
-  state.hand = [{ instanceId: "card_test", cardId: "quick_slash" }];
+  state.hand = [{ instanceId: "card_test", cardId: "swing" }];
   state.hero.energy = 3;
 
   const result = engine.playCard(state, content, "card_test", target.id);
@@ -102,7 +102,7 @@ test("createCombatState accepts run-state overrides for hero, mercenary, deck, a
       life: 18,
       attack: 6,
     },
-    starterDeck: ["fire_bolt", "fire_bolt", "multishot", "second_wind"],
+    starterDeck: ["kick", "kick", "guard_stance", "field_dressing"],
     initialPotions: 1,
     randomFn: () => 0,
   });
@@ -194,9 +194,9 @@ test("mercenary contract bonuses can add opening guard and deterministic damage 
   assert.equal(state.hero.damageBonus, 1);
   assert.equal(state.hand.length, state.hero.handSize + 1);
   assert.equal(state.mercenary.guard, 2);
-  assert.ok(state.log.some((line) => line.includes("Forward Spotters")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Forward Spotters")));
 
-  state.hand = [{ instanceId: "card_test", cardId: "quick_slash" }];
+  state.hand = [{ instanceId: "card_test", cardId: "swing" }];
   state.hero.energy = 3;
   const cardResult = engine.playCard(state, content, "card_test", target.id);
   assert.equal(cardResult.ok, true);

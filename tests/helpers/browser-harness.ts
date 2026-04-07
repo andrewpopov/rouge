@@ -25,6 +25,7 @@ const SHARED_RUNTIME_FILES = [
   "src/content/class-cards.js",
   "src/content/skill-evolution-trees.js",
   "src/content/game-content.js",
+  "src/combat/combat-log.js",
   "src/combat/combat-modifiers.js",
   "src/combat/monster-traits.js",
   "src/combat/combat-engine-monster-actions.js",

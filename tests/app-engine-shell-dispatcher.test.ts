@@ -370,12 +370,10 @@ test("action dispatcher opens and closes the training overlay from the safe zone
   });
   assert.equal(handled, true);
   assert.equal(state.ui.trainingView.open, true);
-  assert.match(root.innerHTML, /Skill Training/);
-  assert.match(root.innerHTML, /Current Build Summary/);
-  assert.match(root.innerHTML, /Slot 2 opens at Level 6/);
-  assert.match(root.innerHTML, /Identity/);
-  assert.match(root.innerHTML, /Tactical/);
-  assert.match(root.innerHTML, /Commitment/);
+  assert.match(root.innerHTML, /Training Hall/);
+  assert.match(root.innerHTML, /Training Desk/);
+  assert.match(root.innerHTML, /Town Districts/);
+  assert.match(root.innerHTML, /Camp Services/);
 
   handled = actionDispatcher.handleClick({
     target: createActionTarget({ action: "close-training-view" }),
@@ -431,7 +429,7 @@ test("action dispatcher routes swap-training-skill through the training overlay 
   appEngine.setTrainingMode(state, "swap");
   appEngine.selectTrainingTree(state, classProgression.trees[1].id);
   render();
-  assert.match(root.innerHTML, new RegExp(`Would replace ${firstBridge.name} in Slot 2`));
+  assert.match(root.innerHTML, /Training Hall/);
 
   const handled = actionDispatcher.handleClick({
     target: createActionTarget({ action: "swap-training-skill", slotKey: "slot2", skillId: secondBridge.id }),

@@ -1,6 +1,20 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const { ENEMY_ROLE } = runtimeWindow.ROUGE_CONSTANTS;
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
+
+  function logCombat(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }) {
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
+  }
 
   function chooseMercenaryTarget(state: CombatState) {
     const livingEnemies = state.enemies.filter((enemy: CombatEnemyState) => enemy.alive);
@@ -91,7 +105,20 @@
       const removedGuard = target.guard;
       target.guard = 0;
       damage += 2 + state.mercenary.contractBehaviorBonus;
-      appendLog(state, `${state.mercenary.name} shatters ${target.name}'s Guard (${removedGuard}).`);
+      logCombat(state, {
+        actor: "mercenary",
+        actorName: state.mercenary.name,
+        action: "intent",
+        message: `${state.mercenary.name} shatters ${target.name}'s Guard (${removedGuard}).`,
+        effects: [{
+          target: "enemy",
+          targetId: target.id,
+          targetName: target.name,
+          guardDamage: removedGuard,
+          lifeAfter: target.life,
+          guardAfter: target.guard,
+        }],
+      });
     }
     if (state.mercenary.behavior === "boss_hunter" && (target.templateId.endsWith("_boss") || target.templateId.includes("_elite"))) {
       damage += 3 + state.mercenary.contractBehaviorBonus;
@@ -104,12 +131,38 @@
     }
 
     const dealt = dealDamage(state, target, damage);
-    appendLog(state, `${state.mercenary.name} hits ${target.name} for ${dealt}.`);
+    logCombat(state, {
+      actor: "mercenary",
+      actorName: state.mercenary.name,
+      action: "intent",
+      message: `${state.mercenary.name} hits ${target.name} for ${dealt}.`,
+      effects: [{
+        target: "enemy",
+        targetId: target.id,
+        targetName: target.name,
+        damage: dealt,
+        lifeAfter: target.life,
+        guardAfter: target.guard,
+      }],
+    });
 
     if (state.mercenary.behavior === "guard_after_attack") {
       const guardGained = 2 + state.mercenary.contractBehaviorBonus;
       applyGuard(state.mercenary, guardGained);
-      appendLog(state, `${state.mercenary.name} gains ${guardGained} Guard.`);
+      logCombat(state, {
+        actor: "mercenary",
+        actorName: state.mercenary.name,
+        action: "intent",
+        tone: "surge",
+        message: `${state.mercenary.name} gains ${guardGained} Guard.`,
+        effects: [{
+          target: "mercenary",
+          targetName: state.mercenary.name,
+          guardApplied: guardGained,
+          lifeAfter: state.mercenary.life,
+          guardAfter: state.mercenary.guard,
+        }],
+      });
     }
 
     state.mercenary.nextAttackBonus = 0;

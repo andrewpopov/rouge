@@ -96,7 +96,7 @@ test("early deck identity can infer the dominant archetype before a favored tree
     "amazon_power_strike",
     "amazon_charged_strike",
     "amazon_dodge",
-    "second_wind",
+    "field_dressing",
   ];
 
   const zone = {
@@ -151,7 +151,7 @@ test("archetype scoring prioritizes primary-tree commitment over support splashe
     "druid_armageddon",
     "druid_oak_sage",
     "druid_summon_grizzly",
-    "second_wind",
+    "field_dressing",
   ];
 
   browserWindow.ROUGE_REWARD_ENGINE.syncArchetypeScores(state.run, content);
@@ -452,7 +452,7 @@ test("equipment rewards persist on the run and feed the next encounter state", (
 
   const target = state.combat.enemies[0];
   if ((combatBonuses.heroGuardBonus || 0) > 0) {
-    state.combat.hand = [{ instanceId: "card_guard", cardId: "shield_slam" }];
+    state.combat.hand = [{ instanceId: "card_guard", cardId: "measured_swing" }];
     state.combat.hero.energy = 3;
     combatEngine.playCard(state.combat, content, "card_guard", target.id);
     assert.equal(state.combat.hero.guard, 4 + (combatBonuses.heroGuardBonus || 0));
@@ -460,7 +460,7 @@ test("equipment rewards persist on the run and feed the next encounter state", (
   }
 
   if ((combatBonuses.heroDamageBonus || 0) > 0) {
-    state.combat.hand = [{ instanceId: "card_damage", cardId: "quick_slash" }];
+    state.combat.hand = [{ instanceId: "card_damage", cardId: "swing" }];
     state.combat.hero.energy = 3;
     combatEngine.playCard(state.combat, content, "card_damage", target.id);
     assert.equal(target.life, target.maxLife - (7 + (combatBonuses.heroDamageBonus || 0)));
@@ -468,10 +468,10 @@ test("equipment rewards persist on the run and feed the next encounter state", (
   }
 
   if ((combatBonuses.heroBurnBonus || 0) > 0) {
-    state.combat.hand = [{ instanceId: "card_burn", cardId: "fire_bolt" }];
+    state.combat.hand = [{ instanceId: "card_burn", cardId: "throw_oil" }];
     state.combat.hero.energy = 3;
     combatEngine.playCard(state.combat, content, "card_burn", target.id);
-    assert.equal(target.burn, 2 + (combatBonuses.heroBurnBonus || 0));
+    assert.equal(target.burn, 1 + (combatBonuses.heroBurnBonus || 0));
     return;
   }
 
@@ -1124,13 +1124,13 @@ test("vendor stock shifts toward the dominant archetype weapon family", () => {
     "amazon_magic_arrow",
     "amazon_cold_arrow",
     "amazon_multiple_shot",
-    "second_wind",
+    "field_dressing",
   ]);
   const javelinState = createAmazonState([
     "amazon_jab",
     "amazon_power_strike",
     "amazon_charged_strike",
-    "second_wind",
+    "field_dressing",
   ]);
 
   const getFirstWeaponFamily = (state: AppState) => {
@@ -1335,7 +1335,7 @@ test("upgrade rewards can upgrade a card already in the deck through the app flo
   appEngine.startCharacterSelect(state);
   appEngine.setSelectedClass(state, "paladin");
   appEngine.startRun(state);
-  state.run.deck = ["quick_slash"];
+  state.run.deck = ["swing"];
   appEngine.leaveSafeZone(state);
 
   const [openingZone, hubZone, branchMinibossZone] = runFactory.getCurrentZones(state.run);
@@ -1350,16 +1350,16 @@ test("upgrade rewards can upgrade a card already in the deck through the app flo
   appEngine.syncEncounterOutcome(state);
 
   const upgradeChoice: RewardChoice = {
-    id: "manual_upgrade_quick_slash",
+    id: "manual_upgrade_swing",
     kind: "upgrade",
-    title: "Upgrade Quick Slash",
+    title: "Upgrade Swing",
     subtitle: "Sharpen Skill",
-    description: content.cardCatalog.quick_slash_plus.text,
+    description: content.cardCatalog.swing_plus.text,
     previewLines: [
-      "Replace 1x Quick Slash with Quick Slash+.",
+      "Replace 1x Swing with Swing+.",
       "Keep deck size the same.",
     ],
-    effects: [{ kind: "upgrade_card", fromCardId: "quick_slash", toCardId: "quick_slash_plus" }],
+    effects: [{ kind: "upgrade_card", fromCardId: "swing", toCardId: "swing_plus" }],
   };
   state.run.pendingReward.choices = [upgradeChoice];
   const upgradeEffect = upgradeChoice.effects.find((effect) => effect.kind === "upgrade_card");
@@ -1387,7 +1387,7 @@ test("late-run reward choices shift away from extra card adds when the deck is a
   appEngine.setSelectedClass(state, "paladin");
   appEngine.startRun(state);
 
-  state.run.deck = Array.from({ length: 32 }, () => "quick_slash");
+  state.run.deck = Array.from({ length: 32 }, () => "swing");
   const openingZone = runFactory.getCurrentZones(state.run)[0];
   const rewardChoices = browserWindow.ROUGE_REWARD_ENGINE.buildRewardChoices({
     content,

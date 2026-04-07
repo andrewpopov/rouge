@@ -25,6 +25,70 @@ test("balance simulator produces an Act V endgame report", () => {
   assert.ok(scenario.encounters[0].enemyPowerScore > 0);
   assert.ok(scenario.encounters[0].powerRatio > 0);
   assert.ok(scenario.overall.winRate >= 0 && scenario.overall.winRate <= 1);
+
+  const encounter = scenario.encounters[0];
+  assert.ok(encounter.averageLogEntries > 0, "encounter should have log entries");
+  assert.ok(encounter.averageCardsPlayed > 0, "encounter should track cards played");
+  assert.ok(encounter.averageEnemyActions > 0, "encounter should track enemy actions");
+  assert.ok(encounter.averageStatusEffects >= 0, "encounter should track status effects");
+  assert.ok(typeof encounter.defeatCauses === "object", "encounter should have defeat causes");
+});
+
+test("combat log produces structured entries usable by both game UI and sim", () => {
+  const { createAppHarness } = require("./helpers/browser-harness");
+  const harness = createAppHarness();
+  const engine = harness.combatEngine;
+  const combatLog = harness.browserWindow.__ROUGE_COMBAT_LOG as CombatLogApi;
+
+  const state = engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0.5,
+  });
+
+  assert.ok(state.log.length > 0, "combat should start with log entries");
+
+  const firstEntry = state.log[0];
+  assert.ok(firstEntry.turn !== undefined, "entry should have turn");
+  assert.ok(firstEntry.phase !== undefined, "entry should have phase");
+  assert.ok(firstEntry.actor !== undefined, "entry should have actor");
+  assert.ok(firstEntry.action !== undefined, "entry should have action");
+  assert.ok(firstEntry.tone !== undefined, "entry should have tone");
+  assert.ok(typeof firstEntry.message === "string", "entry should have message string");
+  assert.ok(Array.isArray(firstEntry.effects), "entry should have effects array");
+
+  // Play a card to generate a card_play entry
+  const playableCard = state.hand.find((card: CardInstance) => {
+    const def = harness.content.cardCatalog[card.cardId];
+    return def && Number(def.cost || 0) <= state.hero.energy;
+  });
+  if (playableCard) {
+    const target = state.enemies.find((enemy: CombatEnemyState) => enemy.alive);
+    engine.playCard(state, harness.content, playableCard.instanceId, target?.id || "");
+  }
+
+  engine.endTurn(state);
+
+  const summary = combatLog.summarizeCombatLog(state);
+  assert.ok(summary.totalEntries > 0, "summary should have entries");
+  assert.ok(summary.totalTurns >= 1, "summary should track turns");
+  assert.ok(typeof summary.outcome === "string", "summary should have outcome");
+  assert.ok(typeof summary.byActor === "object", "summary should have byActor breakdown");
+  assert.ok(typeof summary.byAction === "object", "summary should have byAction breakdown");
+  assert.ok(typeof summary.byTone === "object", "summary should have byTone breakdown");
+
+  // Verify enriched action types are populated
+  assert.ok(summary.enemyActions > 0, "enemies should have taken actions after endTurn");
+  assert.ok((summary.byAction["intent"] || 0) > 0, "should have intent actions from enemies");
+  assert.ok((summary.byAction["turn_start"] || 0) > 0, "should have turn_start entries");
+  if (playableCard) {
+    assert.ok(summary.cardsPlayed > 0, "should have card_play actions after playing a card");
+  }
+
+  // Verify actors are properly attributed
+  assert.ok((summary.byActor["enemy"] || 0) > 0, "should have enemy actor entries");
+  assert.ok((summary.byActor["environment"] || 0) > 0, "should have environment actor entries");
 });
 
 test("crafted combat simulator runs a hand-built seed against a direct encounter", () => {

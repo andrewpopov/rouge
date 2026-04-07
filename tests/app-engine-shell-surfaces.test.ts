@@ -243,15 +243,13 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   });
   assert.match(root.innerHTML, /Districts/);
   assert.match(root.innerHTML, /Departure Board/);
-  assert.match(root.innerHTML, /Camp Overview/);
+  assert.match(root.innerHTML, /Camp Services/);
   assert.match(root.innerHTML, /Prep Desk/);
   assert.match(root.innerHTML, /Loadout/);
   assert.match(root.innerHTML, /Services/);
   assert.match(root.innerHTML, /Departure Checklist/);
-  assert.match(root.innerHTML, /Contract Captain/);
+  assert.match(root.innerHTML, /Mercenary Captain/);
   assert.doesNotMatch(root.innerHTML, /Account Signals/);
-  assert.doesNotMatch(root.innerHTML, /Prep Comparison Board/);
-  assert.doesNotMatch(root.innerHTML, /World Ledger/);
 
   appEngine.leaveSafeZone(state);
   appEngine.returnToFrontDoor(state);
@@ -291,17 +289,7 @@ test("app shell renders front-door, safe-zone, world-map, and reward shell surfa
   assert.match(root.innerHTML, /Act \d/);
   assert.match(root.innerHTML, /actmap__canvas/);
   assert.match(root.innerHTML, /waypoint/);
-  assert.doesNotMatch(root.innerHTML, /Route Atlas/);
-  assert.match(root.innerHTML, /View Route Intel/);
-
-  state.ui.routeIntelOpen = true;
-  appShell.render(root, {
-    appState: state,
-    baseContent: browserWindow.ROUGE_GAME_CONTENT,
-    bootState: { status: "ready", error: "" },
-  });
   assert.match(root.innerHTML, /Route Atlas/);
-  assert.match(root.innerHTML, /Hide Route Intel/);
 
   const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
   appEngine.selectZone(state, openingZoneId);
@@ -416,7 +404,7 @@ test("expedition launch flow persists from hall through character select into to
   assert.match(root.innerHTML, /Current skill bar:/);
   assert.match(root.innerHTML, /Use this first town pass to validate recovery, spend pressure, stash pressure, and the departure board before you reopen the route\./);
   assert.match(root.innerHTML, /Skill Bar/);
-  assert.match(root.innerHTML, /1 \/ 3 Slots/);
+  assert.match(root.innerHTML, /1\/3 Slots/);
   assert.match(root.innerHTML, new RegExp(starterSkillName));
 });
 

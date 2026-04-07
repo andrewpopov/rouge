@@ -66,10 +66,10 @@ test("reward-engine archetype metadata stays stable for representative cards", (
     "telegraph_respect",
   ]);
 
-  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("quick_slash", content), "foundation");
-  assertNormalizedEqual(content.cardCatalog.quick_slash.behaviorTags, ["pressure"]);
-  assertNormalizedEqual(content.cardCatalog.quick_slash.counterTags, []);
-  assert.equal(content.cardCatalog.quick_slash.splashRole, "primary_only");
+  assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("swing", content), "foundation");
+  assertNormalizedEqual(content.cardCatalog.swing.behaviorTags, ["pressure"]);
+  assertNormalizedEqual(content.cardCatalog.swing.counterTags, []);
+  assert.equal(content.cardCatalog.swing.splashRole, "primary_only");
 
   assert.equal(browserWindow.ROUGE_REWARD_ENGINE.getCardRewardRole("rally_mercenary", content), "foundation");
   assertNormalizedEqual(content.cardCatalog.rally_mercenary.behaviorTags, ["mitigation", "protection", "salvage"]);
@@ -111,23 +111,23 @@ test("reward-engine opening reward choices stay deterministic for the same seede
     profile: state.profile,
   });
 
-  assert.equal(zone.id, "act_1_blighted_moors");
+  assert.equal(zone.id, "act_1_blood_moor");
   assert.equal(zone.zoneRole, "opening");
   assertNormalizedEqual(
     rewardChoices.map((choice) => choice.id),
     [
-      "reward_card_amazon_power_strike",
-      "reward_loot_act_1_blighted_moors_1",
-      "reward_boon_field_training",
+      "reward_card_amazon_lightning_bolt",
+      "reward_loot_act_1_blood_moor_1",
+      "reward_boon_mercenary_drill",
     ]
   );
   assertNormalizedEqual(
     rewardChoices.map((choice) => choice.subtitle),
-    ["Engine Skill", "Zone Loot Table", "Hero Boon"]
+    ["Engine Skill", "Zone Loot Table", "Companion Boon"]
   );
   assert.equal(rewardChoices[0].previewLines[0], "Role: Engine.");
-  assert.equal(rewardChoices[1].previewLines[0], "Blighted Moors rolled 1 loot drop at target tier 1.");
-  assert.equal(rewardChoices[2].previewLines[0], "Hero max Life +6.");
+  assert.equal(rewardChoices[1].previewLines[0], "Blood Moor rolled 1 loot drop at target tier 1.");
+  assert.equal(rewardChoices[2].previewLines[0], "Mercenary attack +1.");
 });
 
 test("reward-engine specialization snapshot stays stable for a fresh amazon run", () => {

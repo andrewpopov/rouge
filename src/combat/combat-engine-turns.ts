@@ -77,8 +77,21 @@
   const REGENERATION_AMOUNT = 2;
 
   function appendLog(state: CombatState, message: string) {
-    state.log.unshift(message);
-    state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
+    runtimeWindow.__ROUGE_COMBAT_LOG.appendLog(state, message);
+  }
+
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
+  function logCombat(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }) {
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
   }
 
   function getLivingEnemies(state: CombatState) {
@@ -158,7 +171,12 @@
         return;
       }
       const dealt = dealDamage(state, target, minion.power);
-      appendLog(state, `${actionLabel} on ${target.name} for ${dealt}.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel} on ${target.name} for ${dealt}.`,
+        effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+      });
       return;
     }
 
@@ -170,7 +188,12 @@
       const dealt = dealDamage(state, target, minion.power);
       state.mercenary.markedEnemyId = target.id;
       state.mercenary.markBonus = Math.max(state.mercenary.markBonus, minion.secondaryValue);
-      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and marks it for +${minion.secondaryValue} mercenary damage.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel} on ${target.name} for ${dealt} and marks it for +${minion.secondaryValue} mercenary damage.`,
+        effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+      });
       return;
     }
 
@@ -181,7 +204,12 @@
       }
       const dealt = dealDamage(state, target, minion.power);
       target.poison = Math.max(0, target.poison + minion.secondaryValue);
-      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and applies ${minion.secondaryValue} Poison.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel} on ${target.name} for ${dealt} and applies ${minion.secondaryValue} Poison.`,
+        effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, statusApplied: { kind: "poison", stacks: minion.secondaryValue }, lifeAfter: target.life, guardAfter: target.guard }],
+      });
       return;
     }
 
@@ -195,7 +223,16 @@
       if (state.mercenary.alive) {
         applyGuard(state.mercenary, minion.secondaryValue);
       }
-      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and grants ${minion.secondaryValue} Guard to the party.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel} on ${target.name} for ${dealt} and grants ${minion.secondaryValue} Guard to the party.`,
+        effects: [
+          { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+          { target: "hero", targetName: "the Wanderer", guardApplied: minion.secondaryValue, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
+          ...(state.mercenary.alive ? [{ target: "mercenary" as const, targetName: state.mercenary.name, guardApplied: minion.secondaryValue, lifeAfter: state.mercenary.life, guardAfter: state.mercenary.guard }] : []),
+        ],
+      });
       return;
     }
 
@@ -206,14 +243,30 @@
       }
       const dealt = dealDamage(state, target, minion.power);
       const healed = healEntity(state.hero, minion.secondaryValue);
-      appendLog(state, `${actionLabel} on ${target.name} for ${dealt} and heals the Wanderer for ${healed}.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel} on ${target.name} for ${dealt} and heals the Wanderer for ${healed}.`,
+        effects: [
+          { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+          { target: "hero", targetName: "the Wanderer", healing: healed, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
+        ],
+      });
       return;
     }
 
     if (minion.actionKind === "heal_party") {
       const heroHealed = healEntity(state.hero, minion.power);
       const mercHealed = state.mercenary.alive ? healEntity(state.mercenary, minion.power) : 0;
-      appendLog(state, `${actionLabel}, healing the party for ${heroHealed + mercHealed}.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel}, healing the party for ${heroHealed + mercHealed}.`,
+        effects: [
+          { target: "hero", targetName: "the Wanderer", healing: heroHealed, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
+          ...(mercHealed > 0 ? [{ target: "mercenary" as const, targetName: state.mercenary.name, healing: mercHealed, lifeAfter: state.mercenary.life, guardAfter: state.mercenary.guard }] : []),
+        ],
+      });
       return;
     }
 
@@ -223,7 +276,15 @@
       if (state.mercenary.alive) {
         applyGuard(state.mercenary, minion.secondaryValue);
       }
-      appendLog(state, `${actionLabel}, granting the mercenary +${minion.power} attack and ${minion.secondaryValue} Guard to the party.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel}, granting the mercenary +${minion.power} attack and ${minion.secondaryValue} Guard to the party.`,
+        effects: [
+          { target: "hero", targetName: "the Wanderer", guardApplied: minion.secondaryValue, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
+          ...(state.mercenary.alive ? [{ target: "mercenary" as const, targetName: state.mercenary.name, guardApplied: minion.secondaryValue, lifeAfter: state.mercenary.life, guardAfter: state.mercenary.guard }] : []),
+        ],
+      });
       return;
     }
 
@@ -233,13 +294,21 @@
         return;
       }
       let totalDamage = 0;
+      const burnEffects: CombatLogEffect[] = [];
       livingEnemies.forEach((enemy: CombatEnemyState) => {
-        totalDamage += dealDamage(state, enemy, minion.power);
+        const dmg = dealDamage(state, enemy, minion.power);
+        totalDamage += dmg;
         if (enemy.alive) {
           enemy.burn = Math.max(0, enemy.burn + minion.secondaryValue);
         }
+        burnEffects.push({ target: "enemy", targetId: enemy.id, targetName: enemy.name, damage: dmg, statusApplied: { kind: "burn", stacks: minion.secondaryValue }, lifeAfter: enemy.life, guardAfter: enemy.guard });
       });
-      appendLog(state, `${actionLabel}, scorching the line for ${totalDamage} total damage and ${minion.secondaryValue} Burn.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel}, scorching the line for ${totalDamage} total damage and ${minion.secondaryValue} Burn.`,
+        effects: burnEffects,
+      });
       return;
     }
 
@@ -249,13 +318,21 @@
         return;
       }
       let totalDamage = 0;
+      const paraEffects: CombatLogEffect[] = [];
       livingEnemies.forEach((enemy: CombatEnemyState) => {
-        totalDamage += dealDamage(state, enemy, minion.power);
+        const dmg = dealDamage(state, enemy, minion.power);
+        totalDamage += dmg;
         if (enemy.alive) {
           enemy.paralyze = Math.max(0, enemy.paralyze + Math.max(1, minion.secondaryValue));
         }
+        paraEffects.push({ target: "enemy", targetId: enemy.id, targetName: enemy.name, damage: dmg, statusApplied: { kind: "paralyze", stacks: Math.max(1, minion.secondaryValue) }, lifeAfter: enemy.life, guardAfter: enemy.guard });
       });
-      appendLog(state, `${actionLabel}, blasting the line for ${totalDamage} total damage and ${Math.max(1, minion.secondaryValue)} Paralyze.`);
+      logCombat(state, {
+        actor: "minion", actorName: minion.name, actorId: minion.id,
+        action: "intent", actionId: minion.actionKind,
+        message: `${actionLabel}, blasting the line for ${totalDamage} total damage and ${Math.max(1, minion.secondaryValue)} Paralyze.`,
+        effects: paraEffects,
+      });
     }
   }
 
@@ -271,7 +348,11 @@
       if (!minion.persistent) {
         minion.remainingTurns = Math.max(0, minion.remainingTurns - 1);
         if (minion.remainingTurns <= 0) {
-          appendLog(state, `${minion.name} fades from the field.`);
+          logCombat(state, {
+            actor: "minion", actorName: minion.name, actorId: minion.id,
+            action: "death", tone: "report",
+            message: `${minion.name} fades from the field.`,
+          });
         }
       }
       if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
@@ -323,7 +404,11 @@
     if ((entity as CombatEnemyState).freeze) { (entity as CombatEnemyState).freeze = 0; }
     if ((entity as CombatEnemyState).stun) { (entity as CombatEnemyState).stun = 0; }
     if ((entity as CombatEnemyState).paralyze) { (entity as CombatEnemyState).paralyze = 0; }
-    appendLog(state, `${entity.name} falls.`);
+    logCombat(state, {
+      actor: "environment", actorName: "",
+      action: "death", tone: "loss",
+      message: `${entity.name} falls.`,
+    });
 
     // Process death traits for enemies
     if (isEnemy) {
@@ -334,7 +419,11 @@
       getLivingEnemies(state).forEach((ally: CombatEnemyState) => {
         if (ally.id !== deadEnemy.id && hasTrait(ally, "flee_on_ally_death")) {
           ally.stun = Math.max(ally.stun, 1);
-          appendLog(state, `${ally.name} panics and flees!`);
+          logCombat(state, {
+            actor: "enemy", actorName: ally.name, actorId: ally.id,
+            action: "death", tone: "maneuver",
+            message: `${ally.name} panics and flees!`,
+          });
         }
       });
     }
@@ -409,7 +498,12 @@
         dealDamage(state, state.hero, thornsDamage, "physical");
         const thornsDealt = (heroLifeBefore - state.hero.life) + (heroGuardBefore - state.hero.guard);
         if (thornsDealt > 0) {
-          appendLog(state, `${entity.name}'s thorns deal ${thornsDealt} damage back!`);
+          logCombat(state, {
+            actor: "enemy", actorName: entity.name, actorId: (entity as CombatEnemyState).id,
+            action: "trait", tone: "strike",
+            message: `${entity.name}'s thorns deal ${thornsDealt} damage back!`,
+            effects: [{ target: "hero", targetName: "the Wanderer", damage: thornsDealt, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+          });
         }
       }
     }
@@ -474,15 +568,23 @@
     if (!state.hero.alive || state.hero.life <= 0) {
       state.phase = COMBAT_PHASE.DEFEAT;
       state.outcome = COMBAT_OUTCOME.DEFEAT;
-      if (!state.log.some((l: string) => l.includes("Encounter lost"))) {
-        appendLog(state, "The Wanderer falls. Encounter lost.");
+      if (!state.log.some((entry: CombatLogEntry) => entry.message.includes("Encounter lost"))) {
+        logCombat(state, {
+          actor: "environment", actorName: "",
+          action: "death", tone: "loss",
+          message: "The Wanderer falls. Encounter lost.",
+        });
       }
       return true;
     }
     if (getLivingEnemies(state).length === 0) {
       state.phase = COMBAT_PHASE.VICTORY;
       state.outcome = COMBAT_OUTCOME.VICTORY;
-      appendLog(state, `${state.encounter.name} cleared.`);
+      logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "setup", tone: "report",
+        message: `${state.encounter.name} cleared.`,
+      });
       return true;
     }
     return false;
@@ -520,7 +622,12 @@
       const target = chooseEnemyTarget(state, "hero");
       if (target) {
         const dealt = dealDamage(state, target, fallbackValue);
-        appendLog(state, `${enemy.name} attacks ${target.name} for ${dealt}. (${intent.label} on cooldown)`);
+        logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "intent", tone: "strike",
+          message: `${enemy.name} attacks ${target.name} for ${dealt}. (${intent.label} on cooldown)`,
+          effects: [{ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+        });
       }
       return;
     }
@@ -530,14 +637,24 @@
       const regenAmount = REGENERATION_AMOUNT;
       const healed = healEntity(enemy, regenAmount);
       if (healed > 0) {
-        appendLog(state, `${enemy.name} regenerates ${healed} HP.`);
+        logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "trait",
+          message: `${enemy.name} regenerates ${healed} HP.`,
+          effects: [{ target: "enemy", targetId: enemy.id, targetName: enemy.name, healing: healed, lifeAfter: enemy.life, guardAfter: enemy.guard }],
+        });
       }
     }
 
     // ── DOT: Burn (fire) ──
     if (enemy.burn > 0) {
       const burnDamage = dealDamage(state, enemy, enemy.burn);
-      appendLog(state, `${enemy.name} takes ${burnDamage} Burn damage.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "status_tick",
+        message: `${enemy.name} takes ${burnDamage} Burn damage.`,
+        effects: [{ target: "enemy", targetId: enemy.id, targetName: enemy.name, damage: burnDamage, lifeAfter: enemy.life, guardAfter: enemy.guard }],
+      });
       enemy.burn = Math.max(0, enemy.burn - 1);
       if (!enemy.alive) { return; }
     }
@@ -546,7 +663,12 @@
     if (enemy.poison > 0) {
       const poisonDamage = Math.max(0, Math.floor(enemy.poison));
       enemy.life = Math.max(0, enemy.life - poisonDamage);
-      appendLog(state, `${enemy.name} takes ${poisonDamage} Poison damage.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "status_tick",
+        message: `${enemy.name} takes ${poisonDamage} Poison damage.`,
+        effects: [{ target: "enemy", targetId: enemy.id, targetName: enemy.name, damage: poisonDamage, lifeAfter: enemy.life, guardAfter: enemy.guard }],
+      });
       enemy.poison = Math.max(0, enemy.poison - 1);
       if (enemy.life <= 0 && enemy.alive) {
         handleDefeat(state, enemy);
@@ -564,14 +686,22 @@
 
     // ── CC: Freeze (skip turn) ──
     if (!ignoresHardCrowdControl && enemy.freeze > 0) {
-      appendLog(state, `${enemy.name} is Frozen and cannot act.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "status_tick", tone: "status",
+        message: `${enemy.name} is Frozen and cannot act.`,
+      });
       enemy.freeze = Math.max(0, enemy.freeze - 1);
       return;
     }
 
     // ── CC: Stun (skip turn, consumed) ──
     if (!ignoresHardCrowdControl && enemy.stun > 0) {
-      appendLog(state, `${enemy.name} is Stunned and cannot act.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "status_tick", tone: "status",
+        message: `${enemy.name} is Stunned and cannot act.`,
+      });
       enemy.stun = 0;
       return;
     }
@@ -590,18 +720,30 @@
 
     if (isFrenzied && ATTACK_INTENT_KINDS.has(intent.kind)) {
       intentValue = Math.floor(intentValue * 1.5);
-      appendLog(state, `${enemy.name} is in a FRENZY!`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait",
+        message: `${enemy.name} is in a FRENZY!`,
+      });
     }
 
     if (hasTrait(enemy, TRAIT.EXTRA_STRONG) && ATTACK_INTENT_KINDS.has(intent.kind)) {
       intentValue = Math.floor(intentValue * 1.5);
-      appendLog(state, `${enemy.name} hits with Extra Strong force!`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait",
+        message: `${enemy.name} hits with Extra Strong force!`,
+      });
     }
 
     if (enemy.paralyze > 0) {
       if (ATTACK_INTENT_KINDS.has(intent.kind)) {
         intentValue = Math.max(1, Math.floor(intentValue / 2));
-        appendLog(state, `${enemy.name} is Paralyzed — attack weakened.`);
+        logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "status_tick", tone: "status",
+          message: `${enemy.name} is Paralyzed — attack weakened.`,
+        });
       }
       enemy.paralyze = Math.max(0, enemy.paralyze - 1);
     }
@@ -615,7 +757,12 @@
 
     if (intent.kind === "guard") {
       applyGuard(enemy, intent.value);
-      appendLog(state, `${enemy.name} uses ${intent.label} and gains ${intent.value} Guard.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label} and gains ${intent.value} Guard.`,
+        effects: [{ target: "enemy", targetId: enemy.id, targetName: enemy.name, guardApplied: intent.value, lifeAfter: enemy.life, guardAfter: enemy.guard }],
+      });
       return;
     }
 
@@ -624,7 +771,12 @@
       livingEnemies.forEach((livingEnemy: CombatEnemyState) => {
         applyGuard(livingEnemy, intent.value);
       });
-      appendLog(state, `${enemy.name} uses ${intent.label} and fortifies the enemy line.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label} and fortifies the enemy line.`,
+        effects: livingEnemies.map((e: CombatEnemyState) => ({ target: "enemy" as const, targetId: e.id, targetName: e.name, guardApplied: intent.value, lifeAfter: e.life, guardAfter: e.guard })),
+      });
       return;
     }
 
@@ -635,25 +787,36 @@
           .sort((left: CombatEnemyState, right: CombatEnemyState) => left.life - right.life)[0] || null;
       if (target) {
         const healed = healEntity(target, intent.value);
-        appendLog(state, `${enemy.name} uses ${intent.label} and heals ${target.name} for ${healed}.`);
+        logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "intent", actionId: intent.kind,
+          message: `${enemy.name} uses ${intent.label} and heals ${target.name} for ${healed}.`,
+          effects: [{ target: "enemy", targetId: target.id, targetName: target.name, healing: healed, lifeAfter: target.life, guardAfter: target.guard }],
+        });
       }
       return;
     }
 
     if (intent.kind === "heal_allies") {
       const livingEnemies = getLivingEnemies(state);
+      const healEffects: CombatLogEffect[] = [];
       const healedTargets = livingEnemies
         .map((target: CombatEnemyState) => {
           const healed = healEntity(target, intent.value);
+          if (healed > 0) {
+            healEffects.push({ target: "enemy", targetId: target.id, targetName: target.name, healing: healed, lifeAfter: target.life, guardAfter: target.guard });
+          }
           return healed > 0 ? `${target.name} for ${healed}` : "";
         })
         .filter(Boolean);
-      appendLog(
-        state,
-        healedTargets.length > 0
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: healedTargets.length > 0
           ? `${enemy.name} uses ${intent.label} and restores ${healedTargets.join(", ")}.`
-          : `${enemy.name} uses ${intent.label}, but the enemy line is already healthy.`
-      );
+          : `${enemy.name} uses ${intent.label}, but the enemy line is already healthy.`,
+        effects: healEffects,
+      });
       return;
     }
 
@@ -664,22 +827,37 @@
           .sort((left: CombatEnemyState, right: CombatEnemyState) => left.life - right.life)[0] || null;
       const healed = target ? healEntity(target, intent.value) : 0;
       const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 2)));
-      appendLog(
-        state,
-        target
+      const healGuardEffects: CombatLogEffect[] = [
+        { target: "enemy", targetId: enemy.id, targetName: enemy.name, guardApplied: guardGained, lifeAfter: enemy.life, guardAfter: enemy.guard },
+      ];
+      if (target && healed > 0) {
+        healGuardEffects.unshift({ target: "enemy", targetId: target.id, targetName: target.name, healing: healed, lifeAfter: target.life, guardAfter: target.guard });
+      }
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: target
           ? `${enemy.name} uses ${intent.label}, restoring ${target.name} for ${healed} and gaining ${guardGained} Guard.`
-          : `${enemy.name} uses ${intent.label} and gains ${guardGained} Guard.`
-      );
+          : `${enemy.name} uses ${intent.label} and gains ${guardGained} Guard.`,
+        effects: healGuardEffects,
+      });
       return;
     }
 
     if (intent.kind === "attack_all") {
       const partyTargets = [state.hero, state.mercenary].filter((target: CombatHeroState | CombatMercenaryState) => target?.alive);
+      const attackAllEffects: CombatLogEffect[] = [];
       const segments = partyTargets.map((target) => {
         const dealt = dealDamage(state, target, intentValue);
+        attackAllEffects.push({ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
         return `${target.name} for ${dealt}`;
       });
-      appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}.`,
+        effects: attackAllEffects,
+      });
       return;
     }
 
@@ -690,7 +868,15 @@
       }
       const dealt = dealDamage(state, target, intentValue);
       const guardGained = applyGuard(enemy, intent.secondaryValue || Math.max(2, Math.ceil(intentValue / 2)));
-      appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and gains ${guardGained} Guard.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and gains ${guardGained} Guard.`,
+        effects: [
+          { target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+          { target: "enemy", targetId: enemy.id, targetName: enemy.name, guardApplied: guardGained, lifeAfter: enemy.life, guardAfter: enemy.guard },
+        ],
+      });
       return;
     }
 
@@ -702,7 +888,12 @@
       const removedGuard = target.guard;
       target.guard = 0;
       const dealt = dealDamage(state, target, intentValue);
-      appendLog(state, `${enemy.name} uses ${intent.label}, shattering ${removedGuard} Guard and hitting ${target.name} for ${dealt}.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label}, shattering ${removedGuard} Guard and hitting ${target.name} for ${dealt}.`,
+        effects: [{ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, guardDamage: removedGuard, lifeAfter: target.life, guardAfter: target.guard }],
+      });
       return;
     }
 
@@ -713,7 +904,15 @@
       }
       const dealt = dealDamage(state, target, intentValue);
       const healed = healEntity(enemy, intent.secondaryValue || Math.max(1, Math.ceil(dealt / 2)));
-      appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and heals ${healed}.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and heals ${healed}.`,
+        effects: [
+          { target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+          { target: "enemy", targetId: enemy.id, targetName: enemy.name, healing: healed, lifeAfter: enemy.life, guardAfter: enemy.guard },
+        ],
+      });
       return;
     }
 
@@ -723,7 +922,12 @@
         return;
       }
       const dealt = dealDamage(state, target, intentValue);
-      appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt}.`);
+      logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind,
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt}.`,
+        effects: [{ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+      });
     }
   }
 
@@ -819,7 +1023,12 @@
       ...applyWeaponEffects(state, target.alive ? [target] : [], ""),
     ];
     state.meleeUsed = true;
-    appendLog(state, `Melee strike hits ${target.name} for ${dealt}${familyMatch ? " (proficient)" : ""}.${weaponSegments.length > 0 ? ` ${weaponSegments.join(" ")}` : ""}`);
+    logCombat(state, {
+      actor: "hero", actorName: "the Wanderer",
+      action: "melee",
+      message: `Melee strike hits ${target.name} for ${dealt}${familyMatch ? " (proficient)" : ""}.${weaponSegments.length > 0 ? ` ${weaponSegments.join(" ")}` : ""}`,
+      effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+    });
     checkOutcome(state);
     return { ok: true, message: "Melee strike landed." };
   }
@@ -842,7 +1051,11 @@
       if (!state.hero.alive) {
         state.phase = COMBAT_PHASE.DEFEAT;
         state.outcome = COMBAT_OUTCOME.DEFEAT;
-        appendLog(state, "The Wanderer falls. Encounter lost.");
+        logCombat(state, {
+          actor: "environment", actorName: "",
+          action: "death", tone: "loss",
+          message: "The Wanderer falls. Encounter lost.",
+        });
         return;
       }
     }
@@ -870,7 +1083,11 @@
     if (!getLivingEnemies(state).some((enemy: CombatEnemyState) => enemy.id === state.selectedEnemyId)) {
       state.selectedEnemyId = getFirstLivingEnemyId(state);
     }
-    appendLog(state, `Turn ${state.turn} begins.`);
+    logCombat(state, {
+      actor: "environment", actorName: "",
+      action: "turn_start", tone: "report",
+      message: `Turn ${state.turn} begins.`,
+    });
   }
 
   function endTurn(state: CombatState) {
@@ -879,7 +1096,11 @@
     }
 
     if (hasSkillModifiers(state)) {
-      appendLog(state, "The prepared skill window fades at end of turn.");
+      logCombat(state, {
+        actor: "environment", actorName: "",
+        action: "turn_end", tone: "report",
+        message: "The prepared skill window fades at end of turn.",
+      });
       clearSkillModifiers(state);
     }
 
@@ -908,7 +1129,11 @@
       // Swift / Extra Fast trait: execute action a second time
       if ((hasTrait(enemy, "swift") || hasTrait(enemy, TRAIT.EXTRA_FAST)) && enemy.alive) {
         const label = hasTrait(enemy, "swift") ? "Swift" : "Extra Fast";
-        appendLog(state, `${enemy.name} strikes again! (${label})`);
+        logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "intent", tone: "strike",
+          message: `${enemy.name} strikes again! (${label})`,
+        });
         resolveEnemyAction(state, enemy);
         if (enemy.alive) {
           monsterActions.processModifierOnAttack(state, enemy);
@@ -945,7 +1170,12 @@
     state.potions -= 1;
     state.potionsUsed += 1;
     const healed = healEntity(target, state.hero.potionHeal);
-    appendLog(state, `Potion used on ${target.name} for ${healed}.`);
+    logCombat(state, {
+      actor: "hero", actorName: "the Wanderer",
+      action: "potion",
+      message: `Potion used on ${target.name} for ${healed}.`,
+      effects: [{ target: targetId === "mercenary" ? "mercenary" : "hero", targetName: target.name, healing: healed, lifeAfter: target.life, guardAfter: target.guard }],
+    });
     return { ok: true, message: "Potion used." };
   }
 

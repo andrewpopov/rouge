@@ -218,6 +218,30 @@ function summarizeFinalBuild(run) {
   };
 }
 
+function summarizeCombatLogForHistory(run) {
+  const logSummary = run?.combatLogSummary || run?.combat?.logSummary || run?.logSummary || null;
+  if (!logSummary) {
+    return null;
+  }
+  return {
+    totalEntries: toNumber(logSummary.totalEntries || 0),
+    totalTurns: toNumber(logSummary.totalTurns || 0),
+    outcome: String(logSummary.outcome || ""),
+    defeatCause: String(logSummary.defeatCause || ""),
+    cardsPlayed: toNumber(logSummary.cardsPlayed || 0),
+    skillsUsed: toNumber(logSummary.skillsUsed || 0),
+    potionsUsed: toNumber(logSummary.potionsUsed || 0),
+    heroActions: toNumber(logSummary.heroActions || 0),
+    mercenaryActions: toNumber(logSummary.mercenaryActions || 0),
+    enemyActions: toNumber(logSummary.enemyActions || 0),
+    enemyIntents: toNumber(logSummary.enemyIntents || 0),
+    deaths: toNumber(logSummary.deaths || 0),
+    statusEffects: toNumber(logSummary.statusEffects || 0),
+    byAction: logSummary.byAction || {},
+    byTone: logSummary.byTone || {},
+  };
+}
+
 function buildHistoryRowId(row) {
   return [
     String(row.runKey || row.rowKey || ""),
@@ -278,6 +302,7 @@ function summarizeRunForHistory(run, artifactMeta = {}) {
     lastEncounter,
     lastBoss,
     finalBuild,
+    combatLogSummary: summarizeCombatLogForHistory(run),
     sourceArtifactPath: String(artifactMeta.artifactPath || ""),
     sourceGeneratedAt: String(artifactMeta.generatedAt || ""),
   };

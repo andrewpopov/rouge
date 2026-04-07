@@ -661,6 +661,7 @@ interface Window {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_MONSTER_TRAITS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __ROUGE_COMBAT_LOG: CombatLogApi;
   __ROUGE_COMBAT_MONSTER_ACTIONS: Record<string, any>;
   __ROUGE_COMBAT_MERCENARY: CombatMercenaryApi;
   __ROUGE_COMBAT_WEAPON_SCALING: CombatWeaponScalingApi;

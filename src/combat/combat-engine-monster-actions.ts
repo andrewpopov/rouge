@@ -6,9 +6,24 @@
 
   const MAX_ENEMIES_IN_COMBAT = 6;
 
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
   function _appendLog(state: CombatState, message: string) {
-    state.log.unshift(message);
-    state.log = state.log.slice(0, runtimeWindow.ROUGE_LIMITS.COMBAT_LOG_SIZE);
+    combatLog.appendLog(state, message);
+  }
+  function _logCombat(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }) {
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
+  }
+  function _targetKind(state: CombatState, target: CombatHeroState | CombatMercenaryState): "hero" | "mercenary" {
+    return target === state.hero ? "hero" : "mercenary";
   }
 
   function _getLivingEnemies(state: CombatState) {
@@ -35,7 +50,12 @@
     }
     if (enemy.traits.includes(TRAIT.CURSED)) {
       applyHeroAmplify(state, 2);
-      _appendLog(state, `${enemy.name}'s Cursed aura amplifies damage on the Wanderer!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait", tone: "status",
+        message: `${enemy.name}'s Cursed aura amplifies damage on the Wanderer!`,
+        effects: [{ target: "hero", targetName: "the Wanderer", statusApplied: { kind: "amplify", stacks: 2 }, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
     }
     if (enemy.traits.includes(TRAIT.COLD_ENCHANTED)) {
       applyHeroChill(state, 1);
@@ -45,7 +65,12 @@
     }
     if (enemy.traits.includes(TRAIT.MANA_BURN)) {
       applyHeroEnergyDrain(state, 1);
-      _appendLog(state, `${enemy.name}'s Mana Burn drains the Wanderer's energy!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "trait", tone: "status",
+        message: `${enemy.name}'s Mana Burn drains the Wanderer's energy!`,
+        effects: [{ target: "hero", targetName: "the Wanderer", statusApplied: { kind: "energyDrain", stacks: 1 }, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
     }
   }
 
@@ -59,12 +84,22 @@
       const boltDamage = 2;
       const dealt = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.dealDirectDamage?.(state, state.hero, boltDamage, "lightning") || 0;
       if (dealt > 0) {
-        _appendLog(state, `${enemy.name}'s lightning arc zaps the Wanderer for ${dealt}!`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "trait", tone: "strike",
+          message: `${enemy.name}'s lightning arc zaps the Wanderer for ${dealt}!`,
+          effects: [{ target: "hero", targetName: "the Wanderer", damage: dealt, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+        });
       }
       if (state.hero.life <= 0 && state.hero.alive) {
         state.hero.alive = false;
         state.hero.guard = 0;
-        _appendLog(state, "The Wanderer falls. Encounter lost.");
+        _logCombat(state, {
+          actor: "environment", actorName: "",
+          action: "death", tone: "loss",
+          message: "The Wanderer falls. Encounter lost.",
+          effects: [{ target: "hero", targetName: "the Wanderer", killed: true, lifeAfter: 0, guardAfter: 0 }],
+        });
       }
     }
   }
@@ -103,13 +138,23 @@
         target.paralyze = 0;
         target.intentIndex = 0;
         target.currentIntent = { ...target.intents[0] };
-        _appendLog(state, `${enemy.name} uses ${intent.label} and resurrects ${target.name}!`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "intent", actionId: intent.kind, tone: "summon",
+          message: `${enemy.name} uses ${intent.label} and resurrects ${target.name}!`,
+          effects: [{ target: "enemy", targetId: target.id, targetName: target.name, healing: target.life, lifeAfter: target.life, guardAfter: 0 }],
+        });
         putIntentOnCooldown(enemy);
       } else {
         const fallbackTarget = chooseTarget(state, "hero");
         if (fallbackTarget) {
           const dealt = dealDamage(state, fallbackTarget, intentValue);
-          _appendLog(state, `${enemy.name} has no allies to resurrect — attacks ${fallbackTarget.name} for ${dealt}.`);
+          _logCombat(state, {
+            actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+            action: "intent", actionId: intent.kind, tone: "strike",
+            message: `${enemy.name} has no allies to resurrect — attacks ${fallbackTarget.name} for ${dealt}.`,
+            effects: [{ target: _targetKind(state, fallbackTarget), targetName: fallbackTarget.name, damage: dealt, lifeAfter: fallbackTarget.life, guardAfter: fallbackTarget.guard }],
+          });
         }
       }
       return true;
@@ -153,10 +198,18 @@
           };
           state.enemies.push(spawn);
         }
-        _appendLog(state, `${enemy.name} uses ${intent.label} and spawns ${actualCount} minion${actualCount === 1 ? "" : "s"}!`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "summon", actionId: intent.kind, tone: "summon",
+          message: `${enemy.name} uses ${intent.label} and spawns ${actualCount} minion${actualCount === 1 ? "" : "s"}!`,
+        });
         putIntentOnCooldown(enemy);
       } else {
-        _appendLog(state, `${enemy.name} tries to summon but the field is full.`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "summon", actionId: intent.kind, tone: "report",
+          message: `${enemy.name} tries to summon but the field is full.`,
+        });
       }
       return true;
     }
@@ -173,10 +226,12 @@
         scope = "the mercenary";
       }
       const damageType = intent.damageType ? ` ${intent.damageType}` : "";
-      _appendLog(
-        state,
-        `${enemy.name} begins charging ${intent.label}. ${scope} will take ${intent.value}${damageType} damage next turn.${guardGained > 0 ? ` ${enemy.name} gains ${guardGained} Guard.` : ""}`
-      );
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} begins charging ${intent.label}. ${scope} will take ${intent.value}${damageType} damage next turn.${guardGained > 0 ? ` ${enemy.name} gains ${guardGained} Guard.` : ""}`,
+        effects: guardGained > 0 ? [{ target: "enemy", targetId: enemy.id, targetName: enemy.name, guardApplied: guardGained, lifeAfter: enemy.life, guardAfter: enemy.guard }] : [],
+      });
       return true;
     }
 
@@ -186,7 +241,12 @@
       enemy.stun = 0;
       enemy.paralyze = 0;
       runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.applyGuard?.(enemy, Math.max(0, intent.value));
-      _appendLog(state, `${enemy.name} uses ${intent.label}, blinking out of reach and gaining ${Math.max(0, intent.value)} Guard.`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "maneuver",
+        message: `${enemy.name} uses ${intent.label}, blinking out of reach and gaining ${Math.max(0, intent.value)} Guard.`,
+        effects: [{ target: "enemy", targetId: enemy.id, targetName: enemy.name, guardApplied: Math.max(0, intent.value), lifeAfter: enemy.life, guardAfter: enemy.guard }],
+      });
       return true;
     }
 
@@ -196,19 +256,32 @@
       const dealt = dealDamage(state, target, intentValue, "fire");
       const burnStacks = intent.secondaryValue || 2;
       applyHeroBurn(state, burnStacks);
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts ${burnStacks} Burn!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts ${burnStacks} Burn!`,
+        effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard, statusApplied: { kind: "burn", stacks: burnStacks } }],
+      });
       return true;
     }
 
     if (intent.kind === "attack_burn_all") {
       const partyTargets = _getLivingPartyTargets(state);
+      const allEffects: CombatLogEffect[] = [];
       const segments = partyTargets.map((target) => {
         const dealt = dealDamage(state, target, intentValue, "fire");
+        allEffects.push({ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
         return `${target.name} for ${dealt}`;
       });
       const burnStacks = intent.secondaryValue || 2;
       applyHeroBurn(state, burnStacks);
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")} and inflicts ${burnStacks} Burn!`);
+      if (allEffects.length > 0) { allEffects[0].statusApplied = { kind: "burn", stacks: burnStacks }; }
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${segments.join(" and ")} and inflicts ${burnStacks} Burn!`,
+        effects: allEffects,
+      });
       return true;
     }
 
@@ -218,19 +291,32 @@
       const dealt = dealDamage(state, target, intentValue, "poison");
       const poisonStacks = intent.secondaryValue || 2;
       applyHeroPoison(state, poisonStacks);
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts ${poisonStacks} Poison!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts ${poisonStacks} Poison!`,
+        effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard, statusApplied: { kind: "poison", stacks: poisonStacks } }],
+      });
       return true;
     }
 
     if (intent.kind === "attack_poison_all") {
       const partyTargets = _getLivingPartyTargets(state);
+      const allEffects: CombatLogEffect[] = [];
       const segments = partyTargets.map((target) => {
         const dealt = dealDamage(state, target, intentValue, "poison");
+        allEffects.push({ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
         return `${target.name} for ${dealt}`;
       });
       const poisonStacks = intent.secondaryValue || 2;
       applyHeroPoison(state, poisonStacks);
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")} and inflicts ${poisonStacks} Poison!`);
+      if (allEffects.length > 0) { allEffects[0].statusApplied = { kind: "poison", stacks: poisonStacks }; }
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${segments.join(" and ")} and inflicts ${poisonStacks} Poison!`,
+        effects: allEffects,
+      });
       return true;
     }
 
@@ -238,17 +324,29 @@
       const target = chooseTarget(state, intent.target);
       if (!target) { return true; }
       const dealt = dealDamage(state, target, intentValue, "lightning");
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} lightning damage!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} lightning damage!`,
+        effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+      });
       return true;
     }
 
     if (intent.kind === "attack_lightning_all") {
       const partyTargets = _getLivingPartyTargets(state);
+      const allEffects: CombatLogEffect[] = [];
       const segments = partyTargets.map((target) => {
         const dealt = dealDamage(state, target, intentValue, "lightning");
+        allEffects.push({ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
         return `${target.name} for ${dealt}`;
       });
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${segments.join(" and ")}!`,
+        effects: allEffects,
+      });
       return true;
     }
 
@@ -258,14 +356,24 @@
       const dealt = dealDamage(state, target, intentValue, "cold");
       const chillStacks = intent.secondaryValue || 1;
       applyHeroChill(state, chillStacks);
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts Chill!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "strike",
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and inflicts Chill!`,
+        effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard, statusApplied: { kind: "chill", stacks: chillStacks } }],
+      });
       return true;
     }
 
     if (intent.kind === "curse_amplify") {
       const stacks = intent.value || 2;
       applyHeroAmplify(state, stacks);
-      _appendLog(state, `${enemy.name} casts ${intent.label} — the Wanderer takes increased damage for ${stacks} turns!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "status",
+        message: `${enemy.name} casts ${intent.label} — the Wanderer takes increased damage for ${stacks} turns!`,
+        effects: [{ target: "hero", targetName: "the Wanderer", statusApplied: { kind: "amplify", stacks }, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
       putIntentOnCooldown(enemy);
       return true;
     }
@@ -273,7 +381,12 @@
     if (intent.kind === "curse_weaken") {
       const stacks = intent.value || 2;
       applyHeroWeaken(state, stacks);
-      _appendLog(state, `${enemy.name} casts ${intent.label} — the Wanderer deals reduced damage for ${stacks} turns!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "status",
+        message: `${enemy.name} casts ${intent.label} — the Wanderer deals reduced damage for ${stacks} turns!`,
+        effects: [{ target: "hero", targetName: "the Wanderer", statusApplied: { kind: "weaken", stacks }, lifeAfter: state.hero.life, guardAfter: state.hero.guard }],
+      });
       putIntentOnCooldown(enemy);
       return true;
     }
@@ -283,7 +396,12 @@
       if (!target) { return true; }
       const dealt = dealDamage(state, target, intentValue);
       applyHeroEnergyDrain(state, 1);
-      _appendLog(state, `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and drains Energy!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "status",
+        message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and drains Energy!`,
+        effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard, statusApplied: { kind: "energyDrain", stacks: 1 } }],
+      });
       return true;
     }
 
@@ -292,7 +410,11 @@
       livingAllies.forEach((ally: CombatEnemyState) => {
         ally.buffedAttack = (ally.buffedAttack || 0) + intent.value;
       });
-      _appendLog(state, `${enemy.name} uses ${intent.label} — buffing allies' next attack by +${intent.value}!`);
+      _logCombat(state, {
+        actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+        action: "intent", actionId: intent.kind, tone: "surge",
+        message: `${enemy.name} uses ${intent.label} — buffing allies' next attack by +${intent.value}!`,
+      });
       putIntentOnCooldown(enemy);
       return true;
     }
@@ -305,12 +427,25 @@
         const healed = healEntity(enemy, Math.floor(enemy.maxLife * 0.25));
         const target = chooseTarget(state, "hero");
         const dealt = target ? dealDamage(state, target, intentValue) : 0;
-        _appendLog(state, `${enemy.name} consumes ${corpse.name}'s corpse, heals ${healed}, and spits remains for ${dealt}!`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "intent", actionId: intent.kind, tone: "surge",
+          message: `${enemy.name} consumes ${corpse.name}'s corpse, heals ${healed}, and spits remains for ${dealt}!`,
+          effects: [
+            { target: "enemy", targetId: enemy.id, targetName: enemy.name, healing: healed, lifeAfter: enemy.life, guardAfter: enemy.guard },
+            ...(target ? [{ target: _targetKind(state, target) as CombatLogEffect["target"], targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }] : []),
+          ],
+        });
       } else {
         const target = chooseTarget(state, "hero");
         if (target) {
           const dealt = dealDamage(state, target, intentValue);
-          _appendLog(state, `${enemy.name} finds no corpse — attacks ${target.name} for ${dealt}.`);
+          _logCombat(state, {
+            actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+            action: "intent", actionId: intent.kind, tone: "strike",
+            message: `${enemy.name} finds no corpse — attacks ${target.name} for ${dealt}.`,
+            effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+          });
         }
       }
       return true;
@@ -321,16 +456,28 @@
       if (deadCount > 0) {
         const explosionDamage = Math.max(2, deadCount * intent.value);
         const partyTargets = [state.hero, state.mercenary].filter((t: CombatHeroState | CombatMercenaryState) => t?.alive);
+        const allEffects: CombatLogEffect[] = [];
         const segments = partyTargets.map((target) => {
           const dealt = dealDamage(state, target, explosionDamage);
+          allEffects.push({ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
           return `${target.name} for ${dealt}`;
         });
-        _appendLog(state, `${enemy.name} detonates ${deadCount} corpse${deadCount > 1 ? "s" : ""}, hitting ${segments.join(" and ")}!`);
+        _logCombat(state, {
+          actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+          action: "intent", actionId: intent.kind, tone: "strike",
+          message: `${enemy.name} detonates ${deadCount} corpse${deadCount > 1 ? "s" : ""}, hitting ${segments.join(" and ")}!`,
+          effects: allEffects,
+        });
       } else {
         const target = chooseTarget(state, "hero");
         if (target) {
           const dealt = dealDamage(state, target, intentValue);
-          _appendLog(state, `${enemy.name} finds no corpses — attacks ${target.name} for ${dealt}.`);
+          _logCombat(state, {
+            actor: "enemy", actorName: enemy.name, actorId: enemy.id,
+            action: "intent", actionId: intent.kind, tone: "strike",
+            message: `${enemy.name} finds no corpses — attacks ${target.name} for ${dealt}.`,
+            effects: [{ target: _targetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+          });
         }
       }
       return true;

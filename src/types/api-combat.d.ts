@@ -107,7 +107,7 @@ interface CombatTurnsApi {
   } | null;
   getMinionSkillSummary(minion: CombatMinionState): string;
   getSummonPreview(state: CombatState | null, effect: CardEffect): string;
-  appendLog(state: CombatState, message: string): void;
+  appendLog(state: CombatState, message: string | CombatLogEntry): void;
   drawCards(state: CombatState, count: number): number;
   discardHand(state: CombatState): void;
   getWeaponAttackBonus(state: CombatState, cardId: string): number;

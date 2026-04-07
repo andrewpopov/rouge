@@ -101,7 +101,7 @@ test("encounter registry keeps representative encounter definitions stable", () 
     },
     {
       id: "act_4_boss",
-      name: "The Cinder Tyrant",
+      name: "Diablo",
       enemyCount: 4,
       modifiers: ["boss_screen:6", "escort_bulwark:3"],
       askTags: ["anti_fire_pressure", "telegraph_respect"],

@@ -1,6 +1,19 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
   const h = runtimeWindow.__ROUGE_COMBAT_ENGINE_HELPERS;
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
+  function logCombat(state: CombatState, params: {
+    actor: CombatLogEntry["actor"];
+    actorName: string;
+    actorId?: string;
+    action: CombatLogAction;
+    actionId?: string;
+    tone?: CombatLogTone;
+    message: string;
+    effects?: CombatLogEffect[];
+  }) {
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
+  }
   const {
     applyGuard, appendLog, drawCards, healEntity, dealDamage,
     clearSkillModifiers, addSkillModifiers,
@@ -152,10 +165,14 @@
     if (segments.length === 0) {
       segments.push("changes the line of play");
     }
-    appendLog(
-      state,
-      `${skill.name}: ${segments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`
-    );
+    const message = `${skill.name}: ${segments.join(", ")}${getSkillPreparationSummary(state.skillModifiers) ? ` (${getSkillPreparationSummary(state.skillModifiers)}).` : "."}`;
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "skill_use",
+      actionId: skill.skillId,
+      message,
+    }));
 
     if (targetEnemy?.id) {
       state.selectedEnemyId = targetEnemy.id;
@@ -208,7 +225,13 @@
     });
 
     state.discardPile.push(cardInstance);
-    appendLog(state, summarizeCardEffect(card, segments));
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "card_play",
+      actionId: card.id,
+      message: summarizeCardEffect(card, segments),
+    }));
     if (hasSkillModifiers(state)) {
       clearSkillModifiers(state);
     }
@@ -238,28 +261,28 @@
 
     if (state.mercenary.contractHeroStartGuard > 0) {
       applyGuard(state.hero, state.mercenary.contractHeroStartGuard);
-      appendLog(state, `The Wanderer enters with ${state.mercenary.contractHeroStartGuard} Guard from contract route support.`);
+      logCombat(state, { actor: "mercenary", actorName: state.mercenary.name, action: "setup", message: `The Wanderer enters with ${state.mercenary.contractHeroStartGuard} Guard from contract route support.`, effects: [] });
     }
 
     if (state.mercenary.contractHeroDamageBonus > 0) {
       state.hero.damageBonus += state.mercenary.contractHeroDamageBonus;
-      appendLog(state, `${state.mercenary.name} route support sharpens the Wanderer's attacks by ${state.mercenary.contractHeroDamageBonus}.`);
+      logCombat(state, { actor: "mercenary", actorName: state.mercenary.name, action: "setup", message: `${state.mercenary.name} route support sharpens the Wanderer's attacks by ${state.mercenary.contractHeroDamageBonus}.`, effects: [] });
     }
 
     if (state.mercenary.contractOpeningDraw > 0) {
       const drawn = drawCards(state, state.mercenary.contractOpeningDraw);
       if (drawn > 0) {
-        appendLog(state, `${state.mercenary.name} route intel draws ${drawn} extra card${drawn === 1 ? "" : "s"} for the opening hand.`);
+        logCombat(state, { actor: "mercenary", actorName: state.mercenary.name, action: "setup", message: `${state.mercenary.name} route intel draws ${drawn} extra card${drawn === 1 ? "" : "s"} for the opening hand.`, effects: [] });
       }
     }
 
     if (state.mercenary.contractStartGuard > 0) {
       applyGuard(state.mercenary, state.mercenary.contractStartGuard);
-      appendLog(state, `${state.mercenary.name} enters with ${state.mercenary.contractStartGuard} Guard from contract route support.`);
+      logCombat(state, { actor: "mercenary", actorName: state.mercenary.name, action: "setup", message: `${state.mercenary.name} enters with ${state.mercenary.contractStartGuard} Guard from contract route support.`, effects: [] });
     }
 
     if (state.mercenary.contractPerkLabels.length > 0) {
-      appendLog(state, `${state.mercenary.name} route perks active: ${state.mercenary.contractPerkLabels.join(", ")}.`);
+      logCombat(state, { actor: "mercenary", actorName: state.mercenary.name, action: "setup", message: `${state.mercenary.name} route perks active: ${state.mercenary.contractPerkLabels.join(", ")}.`, effects: [] });
     }
   }
 
@@ -314,7 +337,7 @@
       hand: [] as CardInstance[],
       equippedSkills: (Array.isArray(equippedSkills) ? equippedSkills : []).map((entry) => createCombatSkill(entry)),
       skillModifiers: createEmptySkillModifiers(),
-      log: [] as string[],
+      log: [] as CombatLogEntry[],
       selectedEnemyId: "",
       meleeUsed: false,
       weaponFamily,
@@ -345,7 +368,7 @@
 
     state.drawPile = createDeck(state, content, starterDeck);
     state.selectedEnemyId = getFirstLivingEnemyId(state);
-    appendLog(state, `${encounter.name}: ${encounter.description}`);
+    logCombat(state, { actor: "environment", actorName: "", action: "setup", message: `${encounter.name}: ${encounter.description}`, effects: [] });
     applyEncounterModifiers(state);
     startPlayerTurn(state);
     applyMercenaryContractBonuses(state);

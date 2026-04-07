@@ -159,6 +159,11 @@ interface EncounterSimulationSummary {
   beamDecisionRate: number;
   averageBeamDepth: number;
   beamOverrideRate: number;
+  defeatCauses: Record<string, number>;
+  averageLogEntries: number;
+  averageEnemyActions: number;
+  averageCardsPlayed: number;
+  averageStatusEffects: number;
 }
 
 interface ScenarioBalanceReport {
@@ -421,6 +426,47 @@ const BALANCE_SCENARIOS: Record<string, BalanceScenarioDefinition> = {
     notes: [
       "Assumes a full-combat run and a single high-impact unique weapon drop.",
       "Still avoids runes and runewords so the estimate stays below a true max-roll build.",
+    ],
+  },
+  hyper_optimized: {
+    id: "hyper_optimized",
+    label: "Hyper-Optimized Ceiling",
+    actNumber: 5,
+    targetLevel: 65,
+    deckAdditions: 12,
+    potionCount: 6,
+    maxTurns: 36,
+    attributeWeights: {
+      strength: 0.6,
+      dexterity: 0.05,
+      vitality: 0.2,
+      energy: 0.15,
+    },
+    rewardPackage: {
+      heroMaxLife: 40,
+      heroMaxEnergy: 2,
+      heroPotionHeal: 6,
+      mercenaryAttack: 4,
+      mercenaryMaxLife: 16,
+      extraPotions: 2,
+    },
+    rarityBySlot: {
+      weapon: "brown",
+      armor: "brown",
+      helm: "yellow",
+      shield: "yellow",
+      gloves: "yellow",
+      boots: "yellow",
+      belt: "yellow",
+      ring: "yellow",
+      amulet: "yellow",
+    },
+    uniqueSlots: ["weapon", "armor"],
+    notes: [
+      "Models the absolute ceiling: perfect luck, all side branches cleared, every boss boon taken.",
+      "Uses 12 deck additions to simulate aggressive reward drafting and lane commitment.",
+      "Two unique equipment drops, max reward package, aggressive attribute allocation.",
+      "Use this to identify what the strongest possible builds look like and whether they break encounters.",
     ],
   },
 };
@@ -1500,6 +1546,7 @@ function simulateEncounter(context: SimulatedBuildContext, entry: BalanceEncount
 
   const remainingEnemyLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.life, 0);
   const enemyMaxLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.maxLife, 0);
+  const logSummary = context.harness.browserWindow.__ROUGE_COMBAT_LOG.summarizeCombatLog(combatState);
   return {
     outcome: combatState.outcome || "timeout",
     turns: combatState.turn,
@@ -1507,6 +1554,7 @@ function simulateEncounter(context: SimulatedBuildContext, entry: BalanceEncount
     mercenaryLifePct: combatState.mercenary.maxLife > 0 ? combatState.mercenary.life / combatState.mercenary.maxLife : 0,
     potionsRemaining: combatState.potions,
     enemyLifePct: enemyMaxLife > 0 ? remainingEnemyLife / enemyMaxLife : 0,
+    logSummary,
   };
 }
 
@@ -1557,7 +1605,23 @@ function summarizeEncounterRuns(
     beamDecisionRate: 0,
     averageBeamDepth: 0,
     beamOverrideRate: 0,
+    defeatCauses: aggregateDefeatCauses(runs),
+    averageLogEntries: roundTo(runs.reduce((sum, result) => sum + result.logSummary.totalEntries, 0) / divisor),
+    averageEnemyActions: roundTo(runs.reduce((sum, result) => sum + result.logSummary.enemyActions, 0) / divisor),
+    averageCardsPlayed: roundTo(runs.reduce((sum, result) => sum + result.logSummary.cardsPlayed, 0) / divisor),
+    averageStatusEffects: roundTo(runs.reduce((sum, result) => sum + result.logSummary.statusEffects, 0) / divisor),
   };
+}
+
+function aggregateDefeatCauses(runs: ReturnType<typeof simulateEncounter>[]): Record<string, number> {
+  const causes: Record<string, number> = {};
+  for (const run of runs) {
+    const cause = run.logSummary.defeatCause;
+    if (cause) {
+      causes[cause] = (causes[cause] || 0) + 1;
+    }
+  }
+  return causes;
 }
 
 function buildSummary(context: SimulatedBuildContext): SimulationBuildSummary {

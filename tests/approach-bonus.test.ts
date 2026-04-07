@@ -25,7 +25,7 @@ test("applyBonus guard bonus increases hero guard", () => {
   const guardBefore = state.hero.guard;
   approachBonus.applyBonus(state, "guard:5");
   assert.equal(state.hero.guard, guardBefore + 5);
-  assert.ok(state.log.some((msg: string) => msg.includes("Careful approach")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Careful approach")));
 });
 
 test("applyBonus damage bonus increases hero damageBonus", () => {
@@ -41,7 +41,7 @@ test("applyBonus damage bonus increases hero damageBonus", () => {
   const damageBefore = state.hero.damageBonus;
   approachBonus.applyBonus(state, "damage:2");
   assert.equal(state.hero.damageBonus, damageBefore + 2);
-  assert.ok(state.log.some((msg: string) => msg.includes("Aggressive charge")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Aggressive charge")));
 });
 
 test("applyBonus energy bonus increases hero energy", () => {
@@ -57,7 +57,7 @@ test("applyBonus energy bonus increases hero energy", () => {
   const energyBefore = state.hero.energy;
   approachBonus.applyBonus(state, "energy:1");
   assert.equal(state.hero.energy, energyBefore + 1);
-  assert.ok(state.log.some((msg: string) => msg.includes("Strategic positioning")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Strategic positioning")));
 });
 
 test("applyBonus potion bonus increases potions", () => {
@@ -73,7 +73,7 @@ test("applyBonus potion bonus increases potions", () => {
   const potionsBefore = state.potions;
   approachBonus.applyBonus(state, "potion:1");
   assert.equal(state.potions, potionsBefore + 1);
-  assert.ok(state.log.some((msg: string) => msg.includes("Scavenged supplies")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Scavenged supplies")));
 });
 
 test("applyBonus guard_bonus increases hero guardBonus", () => {
@@ -89,7 +89,7 @@ test("applyBonus guard_bonus increases hero guardBonus", () => {
   const guardBonusBefore = state.hero.guardBonus;
   approachBonus.applyBonus(state, "guard_bonus:1");
   assert.equal(state.hero.guardBonus, guardBonusBefore + 1);
-  assert.ok(state.log.some((msg: string) => msg.includes("Fortified stance")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Fortified stance")));
 });
 
 test("applyBonus burn_bonus increases hero burnBonus", () => {
@@ -105,7 +105,7 @@ test("applyBonus burn_bonus increases hero burnBonus", () => {
   const burnBonusBefore = state.hero.burnBonus;
   approachBonus.applyBonus(state, "burn_bonus:1");
   assert.equal(state.hero.burnBonus, burnBonusBefore + 1);
-  assert.ok(state.log.some((msg: string) => msg.includes("Infernal preparation")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Infernal preparation")));
 });
 
 test("applyBonus draw bonus draws extra cards", () => {
@@ -121,7 +121,7 @@ test("applyBonus draw bonus draws extra cards", () => {
   const handBefore = state.hand.length;
   approachBonus.applyBonus(state, "draw:1");
   assert.ok(state.hand.length >= handBefore);
-  assert.ok(state.log.some((msg: string) => msg.includes("Tactical insight")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Tactical insight")));
 });
 
 test("applyBonus with invalid combat state does not throw", () => {

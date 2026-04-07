@@ -50,38 +50,51 @@
       if (typeof console !== "undefined") { console.warn("[approach-bonus] applyBonus called with invalid combat state"); }
       return;
     }
-    const { applyGuard, appendLog, drawCards } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    const { applyGuard, drawCards } = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
+    const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
+    function logCombat(state: CombatState, params: {
+      actor: CombatLogEntry["actor"];
+      actorName: string;
+      actorId?: string;
+      action: CombatLogAction;
+      actionId?: string;
+      tone?: CombatLogTone;
+      message: string;
+      effects?: CombatLogEffect[];
+    }) {
+      combatLog.appendLogEntry(state, combatLog.createLogEntry(state, params));
+    }
     const [kind, rawVal] = bonusId.split(":");
     const v = parseInt(rawVal, 10) || 0;
 
     switch (kind) {
       case BONUS_KIND.GUARD:
         applyGuard(combat.hero, v);
-        appendLog(combat, `Careful approach. +${v} Guard.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Careful approach. +${v} Guard.`, effects: [] });
         break;
       case BONUS_KIND.GUARD_BONUS:
         combat.hero.guardBonus += v;
-        appendLog(combat, `Fortified stance. +${v} Guard per card.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Fortified stance. +${v} Guard per card.`, effects: [] });
         break;
       case BONUS_KIND.DAMAGE:
         combat.hero.damageBonus += v;
-        appendLog(combat, `Aggressive charge. +${v} Damage.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Aggressive charge. +${v} Damage.`, effects: [] });
         break;
       case BONUS_KIND.BURN_BONUS:
         combat.hero.burnBonus += v;
-        appendLog(combat, `Infernal preparation. +${v} Burn per card.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Infernal preparation. +${v} Burn per card.`, effects: [] });
         break;
       case BONUS_KIND.DRAW:
         drawCards(combat, v);
-        appendLog(combat, `Tactical insight. Drew ${v} extra card${v > 1 ? "s" : ""}.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Tactical insight. Drew ${v} extra card${v > 1 ? "s" : ""}.`, effects: [] });
         break;
       case BONUS_KIND.ENERGY:
         combat.hero.energy += v;
-        appendLog(combat, `Strategic positioning. +${v} Energy.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Strategic positioning. +${v} Energy.`, effects: [] });
         break;
       case BONUS_KIND.POTION:
         combat.potions += v;
-        appendLog(combat, `Scavenged supplies. +${v} Potion.`);
+        logCombat(combat, { actor: "environment", actorName: "", action: "approach", message: `Scavenged supplies. +${v} Potion.`, effects: [] });
         break;
     }
   }

@@ -2,6 +2,8 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const combatLog = runtimeWindow.__ROUGE_COMBAT_LOG;
+
   // Skill resolution extracted from combat-engine.ts
   // Handles per-skill-ID active skill logic for summon, area, hybrid, and support skills.
 
@@ -126,10 +128,14 @@
 
     h.addSkillModifiers(state, modifiers);
     const prep = h.getSkillPreparationSummary(state.skillModifiers);
-    h.appendLog(
-      state,
-      `${skill.name}: ${segments.join(", ")}${prep ? ` (${prep}).` : "."}`
-    );
+    const message = `${skill.name}: ${segments.join(", ")}${prep ? ` (${prep}).` : "."}`;
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "skill_use",
+      actionId: skill.skillId,
+      message,
+    }));
     if (targetEnemy?.id) {
       state.selectedEnemyId = targetEnemy.id;
     }
@@ -175,7 +181,13 @@
     const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
     const h = runtimeWindow.__ROUGE_COMBAT_ENGINE_HELPERS;
     const result = turns.summonMinion(state, effect);
-    h.appendLog(state, `${skill.name}: ${result}`);
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "skill_use",
+      actionId: skill.skillId,
+      message: `${skill.name}: ${result}`,
+    }));
     turns.checkOutcome(state);
     return true;
   }
@@ -520,10 +532,14 @@
 
     h.addSkillModifiers(state, modifiers);
     const prep = h.getSkillPreparationSummary(state.skillModifiers);
-    h.appendLog(
-      state,
-      `${skill.name}: ${segments.join(", ")}${prep ? ` (${prep}).` : "."}`
-    );
+    const message = `${skill.name}: ${segments.join(", ")}${prep ? ` (${prep}).` : "."}`;
+    combatLog.appendLogEntry(state, combatLog.createLogEntry(state, {
+      actor: "hero",
+      actorName: "the Wanderer",
+      action: "skill_use",
+      actionId: skill.skillId,
+      message,
+    }));
     if (targetEnemy?.id) {
       state.selectedEnemyId = targetEnemy.id;
     }

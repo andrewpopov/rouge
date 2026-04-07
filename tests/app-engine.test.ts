@@ -22,7 +22,7 @@ test("startRun creates a class-derived run and enters the safe zone", () => {
   assert.equal(state.run.classId, "sorceress");
   assert.equal(state.run.hero.name, "Sorceress");
   assert.equal(state.run.hero.maxEnergy, 4);
-  assert.equal(state.run.safeZoneName, "Forsaken Palisade");
+  assert.equal(state.run.safeZoneName, "Rogue Encampment");
   assert.equal(state.run.acts.length, 5);
   assert.deepEqual(state.run.deck, content.classStarterDecks.sorceress);
   assert.ok(Object.keys(content.generatedActEncounterIds).length >= 5);
@@ -118,7 +118,7 @@ test("safe-zone services can heal, refill, and change mercenary contracts withou
     .find((action: TownAction) => action.id === "quartermaster_deck_surgery_locked");
   assert.equal(quartermasterSurgery, undefined);
 
-  const blackPit = state.run.acts[0]?.zones?.find((zone) => zone.title === "Black Pit");
+  const blackPit = state.run.acts[0]?.zones?.find((zone) => zone.title === "Den of Evil");
   assert.ok(blackPit);
   blackPit.cleared = true;
   quartermasterSurgery = browserWindow.ROUGE_TOWN_SERVICES

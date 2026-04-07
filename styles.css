@@ -22276,6 +22276,105 @@ button.combat-command__pile-stack:focus-visible {
   color: #f0b8a1;
 }
 
+.combat-log-entry__meta-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.combat-log-entry__actor {
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.combat-log-entry__actor--hero {
+  color: #9ad4f0;
+}
+
+.combat-log-entry__actor--mercenary {
+  color: #a8d4a0;
+}
+
+.combat-log-entry__actor--enemy {
+  color: #f0a8a0;
+}
+
+.combat-log-entry__actor--minion {
+  color: #c4a8e8;
+}
+
+.combat-log-entry__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+  padding-left: 32px;
+}
+
+.combat-log-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.combat-log-chip--damage {
+  color: #f4a89c;
+  background: rgba(180, 50, 40, 0.24);
+  border-color: rgba(180, 50, 40, 0.2);
+}
+
+.combat-log-chip--healing {
+  color: #a0e8a8;
+  background: rgba(40, 140, 60, 0.24);
+  border-color: rgba(40, 140, 60, 0.2);
+}
+
+.combat-log-chip--guard {
+  color: #a0c8f0;
+  background: rgba(40, 80, 160, 0.24);
+  border-color: rgba(40, 80, 160, 0.2);
+}
+
+.combat-log-chip--status {
+  color: #f0d0a0;
+  background: rgba(160, 100, 30, 0.24);
+  border-color: rgba(160, 100, 30, 0.2);
+}
+
+.combat-log-chip--kill {
+  color: #f08080;
+  background: rgba(160, 30, 30, 0.28);
+  border-color: rgba(160, 30, 30, 0.24);
+}
+
+.combat-log-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.combat-log-divider__label {
+  font-size: 0.48rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(228, 190, 168, 0.44);
+  padding: 2px 10px;
+  border-top: 1px solid rgba(228, 190, 168, 0.1);
+  border-bottom: 1px solid rgba(228, 190, 168, 0.1);
+}
+
 .combat-log__empty {
   margin: 10px 12px 12px;
   padding: 14px 16px;

@@ -41,6 +41,7 @@ export interface SimulatedCombatResult {
   beamDecisionRate: number
   averageBeamDepth: number
   beamOverrideRate: number
+  logSummary: CombatLogSummary
 }
 
 interface TurnDecisionTelemetry {
@@ -1153,7 +1154,8 @@ export function traceCombatStateWithPolicy(
     }
 
     turnTrace.end = snapshotTraceState(combatState, harness.content)
-    turnTrace.log = [...combatState.log].slice(0, 16).reverse()
+    turnTrace.log = [...combatState.log].slice(0, 16).reverse().map((entry: CombatLogEntry) => entry.message)
+    turnTrace.logEntries = [...combatState.log].slice(0, 16).reverse()
     turns.push(turnTrace)
   }
 
@@ -1161,7 +1163,8 @@ export function traceCombatStateWithPolicy(
     outcome: combatState.outcome || "timeout",
     turns,
     finalState: snapshotTraceState(combatState, harness.content),
-    recentLog: [...combatState.log].slice(0, 24).reverse(),
+    recentLog: [...combatState.log].slice(0, 24).reverse().map((entry: CombatLogEntry) => entry.message),
+    recentLogEntries: [...combatState.log].slice(0, 24).reverse(),
   }
 }
 
@@ -1297,6 +1300,7 @@ export function simulateEncounterWithRun(
   const remainingEnemyLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.life, 0)
   const enemyMaxLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.maxLife, 0)
   const telemetrySummary = summarizeTurnTelemetry(turnTelemetry)
+  const logSummary = harness.browserWindow.__ROUGE_COMBAT_LOG.summarizeCombatLog(combatState)
   return {
     outcome: combatState.outcome || "timeout",
     turns: combatState.turn,
@@ -1304,6 +1308,7 @@ export function simulateEncounterWithRun(
     mercenaryLifePct: combatState.mercenary.maxLife > 0 ? combatState.mercenary.life / combatState.mercenary.maxLife : 0,
     enemyLifePct: enemyMaxLife > 0 ? remainingEnemyLife / enemyMaxLife : 0,
     ...telemetrySummary,
+    logSummary,
   }
 }
 
@@ -1509,6 +1514,7 @@ export function playStateCombat(
   })
   const remainingEnemyLife = state.combat.enemies.reduce((sum, enemy) => sum + Number(enemy.life || 0), 0)
   const telemetrySummary = summarizeTurnTelemetry(turnTelemetry)
+  const logSummary = harness.browserWindow.__ROUGE_COMBAT_LOG.summarizeCombatLog(state.combat)
   return {
     outcome: state.combat.outcome || "defeat",
     turns: Number(state.combat.turn || 0),
@@ -1519,5 +1525,6 @@ export function playStateCombat(
         : 0,
     enemyLifePct: startingEnemyLife > 0 ? roundTo((remainingEnemyLife / startingEnemyLife) * 100) : 0,
     ...telemetrySummary,
+    logSummary,
   }
 }

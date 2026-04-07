@@ -29,7 +29,15 @@
     });
   }
 
-  type CombatLogTone = "strike" | "status" | "surge" | "summon" | "loss" | "maneuver" | "report";
+  const TONE_PRESENTATION: Record<CombatLogTone, { icon: string; label: string }> = {
+    strike: { icon: "\u2694", label: "Strike" },
+    status: { icon: "\u2727", label: "Affliction" },
+    surge: { icon: "\u26E8", label: "Surge" },
+    summon: { icon: "\u2726", label: "Summon" },
+    loss: { icon: "\u2620", label: "Loss" },
+    maneuver: { icon: "\u21BB", label: "Shift" },
+    report: { icon: "\u2022", label: "Report" },
+  };
 
   function sentenceCase(text: string): string {
     if (!text) {
@@ -38,8 +46,8 @@
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  function normalizeCombatLogEntry(entry: string): string {
-    let text = entry.trim();
+  function normalizeCombatLogMessage(message: string): string {
+    let text = message.trim();
     if (!text) {
       return "No exchanges yet.";
     }
@@ -110,43 +118,31 @@
     return text;
   }
 
-  function classifyCombatLogEntry(entry: string): { tone: CombatLogTone; icon: string; label: string } {
-    const lower = entry.toLowerCase();
-    if (lower.includes("encounter lost") || lower.includes(" falls") || lower.includes("falls.")) {
-      return { tone: "loss", icon: "\u2620", label: "Loss" };
-    }
-    if (lower.includes("explodes") || lower.includes("erupts in flame") || lower.includes("frost nova")) {
-      return { tone: "loss", icon: "\u2739", label: "Burst" };
-    }
-    if (lower.includes("resurrect") || lower.includes("spawn") || lower.includes("summon")) {
-      return { tone: "summon", icon: "\u2726", label: "Summon" };
-    }
-    if (
-      lower.includes("burn") ||
-      lower.includes("poison") ||
-      lower.includes("chill") ||
-      lower.includes("freeze") ||
-      lower.includes("stun") ||
-      lower.includes("paralyze") ||
-      lower.includes("amplifies") ||
-      lower.includes("drains")
-    ) {
-      return { tone: "status", icon: "\u2727", label: "Affliction" };
-    }
-    if (lower.includes("guard") || lower.includes("heal") || lower.includes("heals") || lower.includes("gains")) {
-      return { tone: "surge", icon: "\u26E8", label: "Surge" };
-    }
-    if (lower.includes("charging") || lower.includes("flees") || lower.includes("blinking") || lower.includes("teleport")) {
-      return { tone: "maneuver", icon: "\u21BB", label: "Shift" };
-    }
-    if (lower.includes("uses") || lower.includes("attacks") || lower.includes("deals") || lower.includes("zaps")) {
-      return { tone: "strike", icon: "\u2694", label: "Strike" };
-    }
-    return { tone: "report", icon: "\u2022", label: "Report" };
+  const ACTOR_LABEL: Record<string, string> = {
+    hero: "Wanderer",
+    mercenary: "Companion",
+    enemy: "Enemy",
+    minion: "Summon",
+    environment: "",
+  };
+
+  const EFFECT_STATUS_ICON: Record<string, string> = {
+    burn: "\u{1F525}",
+    poison: "\u2620",
+    chill: "\u2744",
+    freeze: "\u2744",
+    stun: "\u26A1",
+    paralyze: "\u26A1",
+    slow: "\u23F3",
+  };
+
+  function getEntryPresentation(entry: CombatLogEntry): { tone: CombatLogTone; icon: string; label: string } {
+    const presentation = TONE_PRESENTATION[entry.tone] || TONE_PRESENTATION.report;
+    return { tone: entry.tone, icon: presentation.icon, label: presentation.label };
   }
 
-  function formatCombatLogEntryText(entry: string, escapeHtml: (s: string) => string): string {
-    return escapeHtml(entry)
+  function formatCombatLogEntryText(message: string, escapeHtml: (s: string) => string): string {
+    return escapeHtml(message)
       .replace(/(\d+)/g, '<span class="combat-log-entry__value">$1</span>')
       .replace(
         /\b(Burn|Poison|Chill|Freeze|Stun|Paralyze|Slow|Guard|damage|fire|lightning|cold|energy|heals?|drains?|spawns?|resurrects?)\b/gi,
@@ -154,9 +150,56 @@
       );
   }
 
+  function renderEffectChips(entry: CombatLogEntry, escapeHtml: (s: string) => string): string {
+    if (!entry.effects || entry.effects.length === 0) {
+      return "";
+    }
+    const chips: string[] = [];
+    for (const effect of entry.effects) {
+      if (effect.damage && effect.damage > 0) {
+        chips.push(`<span class="combat-log-chip combat-log-chip--damage">${effect.damage} dmg</span>`);
+      }
+      if (effect.healing && effect.healing > 0) {
+        chips.push(`<span class="combat-log-chip combat-log-chip--healing">+${effect.healing} hp</span>`);
+      }
+      if (effect.guardApplied && effect.guardApplied > 0) {
+        chips.push(`<span class="combat-log-chip combat-log-chip--guard">+${effect.guardApplied} guard</span>`);
+      }
+      if (effect.guardDamage && effect.guardDamage > 0) {
+        chips.push(`<span class="combat-log-chip combat-log-chip--damage">${effect.guardDamage} guard broken</span>`);
+      }
+      if (effect.statusApplied) {
+        const statusIcon = EFFECT_STATUS_ICON[effect.statusApplied.kind] || "";
+        chips.push(
+          `<span class="combat-log-chip combat-log-chip--status">${statusIcon} ${escapeHtml(effect.statusApplied.kind)} ${effect.statusApplied.stacks}</span>`
+        );
+      }
+      if (effect.killed) {
+        chips.push(`<span class="combat-log-chip combat-log-chip--kill">\u2620 ${escapeHtml(effect.targetName)}</span>`);
+      }
+    }
+    if (chips.length === 0) {
+      return "";
+    }
+    return `<div class="combat-log-entry__chips">${chips.join("")}</div>`;
+  }
+
+  function renderActorTag(entry: CombatLogEntry, escapeHtml: (s: string) => string): string {
+    if (entry.actor === "environment") {
+      return "";
+    }
+    const name = entry.actorName
+      ? escapeHtml(entry.actorName.replace(/\b[Tt]he\s+/g, ""))
+      : ACTOR_LABEL[entry.actor] || "";
+    if (!name) {
+      return "";
+    }
+    return `<span class="combat-log-entry__actor combat-log-entry__actor--${entry.actor}">${name}</span>`;
+  }
+
   function renderCombatLogPanel(combat: CombatState, logOpen: boolean, escapeHtml: (s: string) => string): string {
-    const latestEntry = normalizeCombatLogEntry(combat.log[0] || "No exchanges yet.");
-    const latestMeta = classifyCombatLogEntry(latestEntry);
+    const latestMessage = combat.log[0] ? normalizeCombatLogMessage(combat.log[0].message) : "No exchanges yet.";
+    const latestMeta = combat.log[0] ? getEntryPresentation(combat.log[0]) : TONE_PRESENTATION.report;
 
     return `
       <div class="combat-log${logOpen ? " combat-log--open" : ""}" aria-label="Combat Log">
@@ -165,7 +208,7 @@
           <span class="combat-log__toggle-label">Field Log</span>
           <span class="combat-log__toggle-latest">
             <span class="combat-log__toggle-icon" aria-hidden="true">${latestMeta.icon}</span>
-            <span class="combat-log__toggle-text">${formatCombatLogEntryText(latestEntry, escapeHtml)}</span>
+            <span class="combat-log__toggle-text">${formatCombatLogEntryText(latestMessage, escapeHtml)}</span>
           </span>
           <span class="combat-log__toggle-count">${combat.log.length}</span>
         </button>
@@ -181,20 +224,29 @@
             </header>
             ${combat.log.length > 0 ? `
               <ol class="log-list combat-log-list">
-                ${combat.log.map((entry, index) => {
-                  const normalizedEntry = normalizeCombatLogEntry(entry);
-                  const { tone, icon, label } = classifyCombatLogEntry(normalizedEntry);
+                ${combat.log.map((entry: CombatLogEntry, index: number) => {
+                  const normalizedMessage = normalizeCombatLogMessage(entry.message);
+                  const { tone, icon, label } = getEntryPresentation(entry);
+                  const nextEntry = combat.log[index + 1] as CombatLogEntry | undefined;
+                  const showTurnDivider = nextEntry && nextEntry.turn < entry.turn && entry.turn > 0;
+                  const actorTag = renderActorTag(entry, escapeHtml);
+                  const chips = renderEffectChips(entry, escapeHtml);
                   return `
                     <li class="combat-log-entry combat-log-entry--${tone}${index === 0 ? " combat-log-entry--latest" : ""}">
                       <div class="combat-log-entry__meta">
                         <span class="combat-log-entry__when">${index === 0 ? "Latest" : `${index} beat${index === 1 ? "" : "s"} ago`}</span>
-                        <span class="combat-log-entry__tag">${escapeHtml(label)}</span>
+                        <span class="combat-log-entry__meta-right">
+                          ${actorTag}
+                          <span class="combat-log-entry__tag">${escapeHtml(label)}</span>
+                        </span>
                       </div>
                       <div class="combat-log-entry__line">
                         <span class="combat-log-entry__icon" aria-hidden="true">${icon}</span>
-                        <p class="combat-log-entry__text">${formatCombatLogEntryText(normalizedEntry, escapeHtml)}</p>
+                        <p class="combat-log-entry__text">${formatCombatLogEntryText(normalizedMessage, escapeHtml)}</p>
                       </div>
+                      ${chips}
                     </li>
+                    ${showTurnDivider ? `<li class="combat-log-divider" aria-hidden="true"><span class="combat-log-divider__label">Turn ${nextEntry.turn}</span></li>` : ""}
                   `;
                 }).join("")}
               </ol>
