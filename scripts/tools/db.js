@@ -1,77 +1,89 @@
 const path = require("path");
-const Database = require("better-sqlite3");
+const { PrismaClient } = require("@prisma/client");
 
-const DB_PATH = path.resolve(__dirname, "../../data/users.db");
+const DB_PATH = path.resolve(__dirname, "../../data/rouge.db");
 
-let _db = null;
+let _prisma = null;
 
 function getDb() {
-  if (!_db) {
-    _db = new Database(DB_PATH);
-    _db.pragma("journal_mode = WAL");
-    _db.pragma("foreign_keys = ON");
-    _db.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        google_id TEXT PRIMARY KEY,
-        email TEXT NOT NULL,
-        name TEXT NOT NULL DEFAULT '',
-        avatar_url TEXT NOT NULL DEFAULT '',
-        first_seen TEXT NOT NULL DEFAULT (datetime('now')),
-        last_seen TEXT NOT NULL DEFAULT (datetime('now')),
-        visit_count INTEGER NOT NULL DEFAULT 1
-      );
-
-      CREATE TABLE IF NOT EXISTS profiles (
-        google_id TEXT PRIMARY KEY,
-        profile_json TEXT NOT NULL,
-        schema_version INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (google_id) REFERENCES users(google_id) ON DELETE CASCADE
-      )
-    `);
+  if (!_prisma) {
+    _prisma = new PrismaClient({
+      datasources: {
+        db: { url: `file:${DB_PATH}` },
+      },
+      log: [],
+    });
   }
-  return _db;
+  return _prisma;
 }
 
-function upsertUser(googleId, email, name, avatarUrl) {
+async function upsertUser(googleId, email, name, avatarUrl) {
   const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO users (google_id, email, name, avatar_url)
-    VALUES (?, ?, ?, ?)
-    ON CONFLICT(google_id) DO UPDATE SET
-      email = excluded.email,
-      name = excluded.name,
-      avatar_url = excluded.avatar_url,
-      last_seen = datetime('now'),
-      visit_count = visit_count + 1
-  `);
-  stmt.run(googleId, email, name || "", avatarUrl || "");
-  return getUserByGoogleId(googleId);
+  const user = await db.user.upsert({
+    where: { googleId },
+    create: {
+      googleId,
+      email,
+      name: name || "",
+      avatarUrl: avatarUrl || "",
+    },
+    update: {
+      email,
+      name: name || "",
+      avatarUrl: avatarUrl || "",
+      lastSeen: new Date(),
+      visitCount: { increment: 1 },
+    },
+  });
+  return user;
 }
 
-function getUserByGoogleId(googleId) {
+async function getUserByGoogleId(googleId) {
   const db = getDb();
-  return db.prepare("SELECT * FROM users WHERE google_id = ?").get(googleId) || null;
+  return db.user.findUnique({ where: { googleId } });
 }
 
-function upsertProfileByGoogleId(googleId, profileJson, schemaVersion = 0) {
+async function upsertProfileByGoogleId(googleId, profileJson, schemaVersion = 0) {
   const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO profiles (google_id, profile_json, schema_version)
-    VALUES (?, ?, ?)
-    ON CONFLICT(google_id) DO UPDATE SET
-      profile_json = excluded.profile_json,
-      schema_version = excluded.schema_version,
-      updated_at = datetime('now')
-  `);
-  stmt.run(googleId, String(profileJson || ""), Number(schemaVersion || 0));
-  return getProfileByGoogleId(googleId);
+  const existing = await db.profile.findUnique({ where: { userId: googleId } });
+  if (existing) {
+    return db.profile.update({
+      where: { userId: googleId },
+      data: {
+        profileJson: String(profileJson || ""),
+        schemaVersion: Number(schemaVersion || 0),
+      },
+    });
+  }
+  return db.profile.create({
+    data: {
+      userId: googleId,
+      profileJson: String(profileJson || ""),
+      schemaVersion: Number(schemaVersion || 0),
+    },
+  });
 }
 
-function getProfileByGoogleId(googleId) {
+async function getProfileByGoogleId(googleId) {
   const db = getDb();
-  return db.prepare("SELECT * FROM profiles WHERE google_id = ?").get(googleId) || null;
+  const profile = await db.profile.findUnique({ where: { userId: googleId } });
+  if (!profile) {
+    return null;
+  }
+  return {
+    google_id: googleId,
+    profile_json: profile.profileJson,
+    schema_version: profile.schemaVersion,
+    created_at: profile.createdAt.toISOString(),
+    updated_at: profile.updatedAt.toISOString(),
+  };
+}
+
+async function disconnect() {
+  if (_prisma) {
+    await _prisma.$disconnect();
+    _prisma = null;
+  }
 }
 
 module.exports = {
@@ -80,4 +92,5 @@ module.exports = {
   getUserByGoogleId,
   upsertProfileByGoogleId,
   getProfileByGoogleId,
+  disconnect,
 };

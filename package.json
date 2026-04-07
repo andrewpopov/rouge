@@ -56,6 +56,8 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0"
+    "@prisma/client": "^6.19.3",
+    "better-sqlite3": "^12.8.0",
+    "prisma": "^6.19.3"
   }
 }

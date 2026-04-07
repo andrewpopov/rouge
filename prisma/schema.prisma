@@ -1,0 +1,249 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth & Identity ───────────────────────────────────────────────────────────
+
+model User {
+  googleId    String   @id @map("google_id")
+  email       String
+  name        String   @default("")
+  avatarUrl   String   @default("") @map("avatar_url")
+  firstSeen   DateTime @default(now()) @map("first_seen")
+  lastSeen    DateTime @default(now()) @map("last_seen")
+  visitCount  Int      @default(1) @map("visit_count")
+
+  profile Profile?
+
+  @@map("users")
+}
+
+// ─── Game State ────────────────────────────────────────────────────────────────
+
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String?  @unique @map("user_id")
+  schemaVersion   Int      @default(1)
+  profileJson     String   @default("{}") @map("profile_json")
+  stashJson       String   @default("{}")
+  metaJson        String   @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user        User?   @relation(fields: [userId], references: [googleId], onDelete: Cascade)
+  runs        Run[]
+  runHistory  RunHistoryEntry[]
+
+  @@map("profiles")
+}
+
+model Run {
+  id               String   @id @default(cuid())
+  profileId        String
+  seed             Int
+  classId          String
+  className        String
+  actNumber        Int      @default(1)
+  level            Int      @default(1)
+  gold             Int      @default(0)
+  outcome          String   @default("in_progress")
+  stateJson        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  profile          Profile       @relation(fields: [profileId], references: [id])
+  checkpoints      Checkpoint[]
+  encounters       Encounter[]
+  combatLogs       CombatLog[]
+
+  @@index([profileId, updatedAt])
+  @@index([classId, outcome])
+  @@map("runs")
+}
+
+model Checkpoint {
+  id                      String   @id @default(cuid())
+  runId                   String
+  kind                    String
+  actNumber               Int
+  level                   Int
+  powerScore              Float    @default(0)
+  bossReadinessScore      Float    @default(0)
+  bossAdjustedPowerScore  Float    @default(0)
+  stateSnapshotJson       String
+  createdAt               DateTime @default(now())
+
+  run Run @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, actNumber])
+  @@map("checkpoints")
+}
+
+model Encounter {
+  id                String   @id @default(cuid())
+  runId             String
+  encounterId       String
+  encounterName     String
+  zoneTitle         String
+  kind              String
+  actNumber         Int
+  outcome           String
+  turns             Int
+  heroPowerScore    Float    @default(0)
+  enemyPowerScore   Float    @default(0)
+  powerRatio        Float    @default(0)
+  heroLifePct       Float    @default(0)
+  mercenaryLifePct  Float    @default(0)
+  enemyLifePct      Float    @default(0)
+  createdAt         DateTime @default(now())
+
+  run        Run          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  combatLogs CombatLog[]
+
+  @@index([runId, actNumber])
+  @@index([encounterId, outcome])
+  @@map("encounters")
+}
+
+model CombatLog {
+  id              String   @id @default(cuid())
+  runId           String
+  encounterId     String?
+  totalEntries    Int      @default(0)
+  totalTurns      Int      @default(0)
+  outcome         String
+  defeatCause     String?
+  cardsPlayed     Int      @default(0)
+  skillsUsed      Int      @default(0)
+  potionsUsed     Int      @default(0)
+  heroActions     Int      @default(0)
+  mercenaryActions Int     @default(0)
+  enemyActions    Int      @default(0)
+  enemyIntents    Int      @default(0)
+  deaths          Int      @default(0)
+  statusEffects   Int      @default(0)
+  byActionJson    String   @default("{}")
+  byToneJson      String   @default("{}")
+  entriesJson     String?
+  createdAt       DateTime @default(now())
+
+  run       Run        @relation(fields: [runId], references: [id], onDelete: Cascade)
+  encounter Encounter? @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([encounterId])
+  @@index([outcome, defeatCause])
+  @@map("combat_logs")
+}
+
+model RunHistoryEntry {
+  id              String   @id @default(cuid())
+  profileId       String
+  classId         String
+  className       String
+  outcome         String
+  finalActNumber  Int
+  finalLevel      Int
+  seed            Int
+  durationMs      Int      @default(0)
+  summaryJson     String   @default("{}")
+  completedAt     DateTime @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, completedAt])
+  @@index([classId, outcome])
+  @@map("run_history")
+}
+
+// ─── Balance Sim ───────────────────────────────────────────────────────────────
+
+model BalanceRunHistory {
+  historyRowId            String @id @map("history_row_id")
+  runKey                  String @map("run_key")
+  experimentId            String @map("experiment_id")
+  scenarioType            String @map("scenario_type")
+  classId                 String @map("class_id")
+  className               String @map("class_name")
+  policyId                String @map("policy_id")
+  policyLabel             String @map("policy_label")
+  seedOffset              Int    @map("seed_offset")
+  targetArchetypeId       String @map("target_archetype_id")
+  targetArchetypeLabel    String @map("target_archetype_label")
+  targetBand              String @map("target_band")
+  commitmentMode          String @map("commitment_mode")
+  outcome                 String
+  finalActNumber          Int    @map("final_act_number")
+  finalLevel              Int    @map("final_level")
+  failureEncounterName    String @map("failure_encounter_name")
+  failureZoneTitle        String @map("failure_zone_title")
+  completedAt             String @map("completed_at")
+  durationMs              Int    @map("duration_ms")
+  finalCheckpointPowerScore Float @map("final_checkpoint_power_score")
+  lastBossPowerRatio      Float  @map("last_boss_power_ratio")
+  trainingFullyRealized   Int    @map("training_fully_realized")
+  slot3SkillId            String @map("slot3_skill_id")
+  defeatCause             String @default("") @map("defeat_cause")
+  avgCardsPlayed          Float  @default(0) @map("avg_cards_played")
+  avgEnemyActions         Float  @default(0) @map("avg_enemy_actions")
+  avgStatusEffects        Float  @default(0) @map("avg_status_effects")
+  combatLogSummaryJson    String @default("{}") @map("combat_log_summary_json")
+  sourceArtifactPath      String @map("source_artifact_path")
+  sourceGeneratedAt       String @map("source_generated_at")
+  historyRowJson          String @map("history_row_json")
+  runRecordJson           String? @map("run_record_json")
+  insertedAt              String @default("") @map("inserted_at")
+
+  @@index([runKey, completedAt, sourceGeneratedAt, historyRowId], map: "idx_balance_run_history_run_key")
+  @@index([sourceArtifactPath, completedAt, historyRowId], map: "idx_balance_run_history_artifact")
+  @@index([experimentId, scenarioType, completedAt], map: "idx_balance_run_history_experiment")
+  @@map("balance_run_history")
+}
+
+model BalanceArtifact {
+  artifactPath           String @id @map("artifact_path")
+  experimentId           String @map("experiment_id")
+  title                  String
+  scenarioType           String @map("scenario_type")
+  generatedAt            String @map("generated_at")
+  reportPath             String @map("report_path")
+  indexPath              String @map("index_path")
+  jobPath                String @map("job_path")
+  tracesDir              String @map("traces_dir")
+  runCount               Int    @map("run_count")
+  completedRuns          Int    @map("completed_runs")
+  coverageRate           Float  @map("coverage_rate")
+  overallWinRate         Float  @map("overall_win_rate")
+  aggregateJson          String @map("aggregate_json")
+  bandsJson              String @map("bands_json")
+  baselineComparisonJson String @map("baseline_comparison_json")
+  artifactJson           String @map("artifact_json")
+  updatedAt              String @default("") @map("updated_at")
+
+  @@index([generatedAt], map: "idx_balance_artifacts_generated_at")
+  @@index([experimentId, scenarioType, generatedAt], map: "idx_balance_artifacts_experiment")
+  @@map("balance_artifacts")
+}
+
+model BalanceJobState {
+  artifactPath       String @id @map("artifact_path")
+  experimentId       String @map("experiment_id")
+  mode               String
+  jobPath            String @map("job_path")
+  startedAt          String @map("started_at")
+  updatedAt          String @map("updated_at")
+  totalRuns          Int    @map("total_runs")
+  completedRuns      Int    @map("completed_runs")
+  pendingRunKeysJson String @map("pending_run_keys_json")
+  failedRunKeysJson  String @map("failed_run_keys_json")
+  slowRunKeysJson    String @map("slow_run_keys_json")
+  stateJson          String @map("state_json")
+
+  @@index([updatedAt], map: "idx_balance_job_state_updated_at")
+  @@map("balance_job_state")
+}

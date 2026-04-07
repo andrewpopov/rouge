@@ -4,6 +4,9 @@ dist/
 generated/
 *.tsbuildinfo
 
+# Environment
+.env
+
 # OS/editor
 .DS_Store
 *.swp
@@ -55,3 +58,5 @@ data/users.db
 # Sprite backup dirs
 assets/curated/sprites/enemies/_originals/
 assets/curated/sprites/enemies/_replaced/
+
+/src/generated/prisma

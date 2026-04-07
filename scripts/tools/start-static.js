@@ -178,13 +178,13 @@ function sendJson(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
-function requireAuthenticatedSession(req, res) {
+async function requireAuthenticatedSession(req, res) {
   const session = verifySession(getSessionCookie(req));
   if (!session?.sub || !db) {
     sendJson(res, 401, { ok: false, error: "Authentication required" });
     return null;
   }
-  const user = db.getUserByGoogleId(session.sub);
+  const user = await db.getUserByGoogleId(session.sub);
   if (!user) {
     sendJson(res, 401, { ok: false, error: "Unknown session" });
     return null;
@@ -216,10 +216,10 @@ function verifyGoogleToken(idToken) {
 
 function formatUserResponse(row) {
   return {
-    googleId: row.google_id,
+    googleId: row.googleId || row.google_id,
     email: row.email,
     name: row.name,
-    avatarUrl: row.avatar_url,
+    avatarUrl: row.avatarUrl || row.avatar_url,
   };
 }
 
@@ -243,7 +243,7 @@ async function handleApiRoute(req, res, url) {
         sendJson(res, 403, { ok: false, error: "Invalid audience" });
         return;
       }
-      const user = db.upsertUser(tokenInfo.sub, tokenInfo.email, tokenInfo.name || "", tokenInfo.picture || "");
+      const user = await db.upsertUser(tokenInfo.sub, tokenInfo.email, tokenInfo.name || "", tokenInfo.picture || "");
       setSessionCookie(res, signSession(tokenInfo.sub), 30 * 24 * 60 * 60);
       sendJson(res, 200, { ok: true, user: formatUserResponse(user) });
     } catch (err) {
@@ -258,7 +258,7 @@ async function handleApiRoute(req, res, url) {
       sendJson(res, 200, { authenticated: false });
       return;
     }
-    const user = db.getUserByGoogleId(session.sub);
+    const user = await db.getUserByGoogleId(session.sub);
     if (!user) {
       sendJson(res, 200, { authenticated: false });
       return;
@@ -274,11 +274,11 @@ async function handleApiRoute(req, res, url) {
   }
 
   if (route === "/api/profile" && req.method === "GET") {
-    const authenticated = requireAuthenticatedSession(req, res);
+    const authenticated = await requireAuthenticatedSession(req, res);
     if (!authenticated) {
       return;
     }
-    const profile = db.getProfileByGoogleId(authenticated.session.sub);
+    const profile = await db.getProfileByGoogleId(authenticated.session.sub);
     sendJson(res, 200, {
       ok: true,
       profile: profile?.profile_json || null,
@@ -289,7 +289,7 @@ async function handleApiRoute(req, res, url) {
   }
 
   if (route === "/api/profile" && req.method === "PUT") {
-    const authenticated = requireAuthenticatedSession(req, res);
+    const authenticated = await requireAuthenticatedSession(req, res);
     if (!authenticated) {
       return;
     }
@@ -308,14 +308,14 @@ async function handleApiRoute(req, res, url) {
         sendJson(res, 400, { ok: false, error: "Profile payload must be valid JSON" });
         return;
       }
-      const storedProfile = db.upsertProfileByGoogleId(
+      const storedProfile = await db.upsertProfileByGoogleId(
         authenticated.session.sub,
         serializedProfile,
         Number(parsedProfile?.schemaVersion || 0)
       );
       sendJson(res, 200, {
         ok: true,
-        updatedAt: storedProfile?.updated_at || "",
+        updatedAt: storedProfile?.updated_at || storedProfile?.updatedAt || "",
       });
     } catch (err) {
       sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : "Invalid profile payload" });
