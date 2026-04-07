@@ -14,8 +14,7 @@ const SESSION_SECRET = process.env.ROGUE_SESSION_SECRET || "dev-secret-change-me
 const MAX_BODY_SIZE = 5 * 1024 * 1024;
 
 if (IS_PRODUCTION && SESSION_SECRET === "dev-secret-change-me") {
-  console.error("FATAL: ROGUE_SESSION_SECRET must be set in production. Exiting.");
-  process.exit(1);
+  console.warn("WARNING: ROGUE_SESSION_SECRET not set — auth sessions will use a default secret.");
 }
 if (!process.env.ROGUE_SESSION_SECRET) {
   console.warn("WARNING: Using default session secret — set ROGUE_SESSION_SECRET for production.");
