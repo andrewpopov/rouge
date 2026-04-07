@@ -425,6 +425,7 @@ interface ActionHandlerContext {
 interface CombatFxActionOptions {
   playedCardEl?: HTMLElement | null;
   sequenceEnemyPhase?: boolean;
+  actionType?: "card" | "skill" | "melee" | "potion" | "end_turn";
 }
 
 interface ActionDispatcherCombatFxApi {
@@ -662,6 +663,25 @@ interface Window {
   __ROUGE_MONSTER_TRAITS: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   __ROUGE_COMBAT_LOG: CombatLogApi;
+  __ROUGE_COMBAT_AUDIO: {
+    cardPlay(): void;
+    hit(damage: number): void;
+    guardBlock(): void;
+    guardBreak(): void;
+    enemyDeath(): void;
+    heal(): void;
+    statusApply(): void;
+    turnStart(): void;
+    victory(): void;
+    defeat(): void;
+    skillUse(): void;
+    meleeStrike(): void;
+    potionUse(): void;
+    summon(): void;
+    setMuted(value: boolean): void;
+    setVolume(value: number): void;
+    isMuted(): boolean;
+  };
   __ROUGE_COMBAT_MONSTER_ACTIONS: Record<string, any>;
   __ROUGE_COMBAT_MERCENARY: CombatMercenaryApi;
   __ROUGE_COMBAT_WEAPON_SCALING: CombatWeaponScalingApi;

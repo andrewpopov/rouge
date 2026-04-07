@@ -1194,5 +1194,6 @@ export function buildEncounterMetric(
     beamDecisionRate: Number(combatResult.beamDecisionRate || 0),
     averageBeamDepth: Number(combatResult.averageBeamDepth || 0),
     beamOverrideRate: Number(combatResult.beamOverrideRate || 0),
+    combatLogSummary: combatResult.logSummary || null,
   }
 }

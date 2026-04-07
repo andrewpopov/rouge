@@ -11001,6 +11001,41 @@ button.waypoint:hover {
   87% { transform: translateX(-1px); }
 }
 
+.sprite--knockback {
+  animation: damage-knockback 0.4s ease-out;
+}
+
+@keyframes damage-knockback {
+  0% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(10px) scale(0.95) rotate(2deg); }
+  50% { transform: translateX(6px) scale(0.97) rotate(1deg); }
+  100% { transform: translateX(0) scale(1) rotate(0); }
+}
+
+.sprite--stagger {
+  animation: guard-stagger 0.5s ease-out;
+}
+
+@keyframes guard-stagger {
+  0% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(6px) scale(0.94) rotate(3deg); }
+  30% { transform: translateX(-4px) scale(0.96) rotate(-2deg); }
+  50% { transform: translateX(3px) scale(0.98) rotate(1deg); }
+  100% { transform: translateX(0) scale(1) rotate(0); }
+}
+
+.sprite--death-burst {
+  animation: death-burst 0.6s ease-out forwards;
+}
+
+@keyframes death-burst {
+  0% { transform: scale(1) rotate(0); opacity: 1; filter: brightness(1); }
+  15% { transform: scale(1.15) rotate(0); opacity: 1; filter: brightness(2.5); }
+  40% { transform: scale(1.1) rotate(3deg); opacity: 0.8; filter: brightness(1.5); }
+  70% { transform: scale(0.7) rotate(-5deg); opacity: 0.3; filter: brightness(0.8) grayscale(1); }
+  100% { transform: scale(0.5) rotate(-8deg); opacity: 0.08; filter: brightness(0.5) grayscale(1); }
+}
+
 /* ── Floating damage numbers ── */
 
 .damage-number {

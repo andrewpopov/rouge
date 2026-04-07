@@ -302,6 +302,7 @@ export interface BalanceRunRecord {
       centerpieceCards: string[];
     };
   };
+  combatLogSummary?: CombatLogSummary | null;
   checkpoints: SafeZoneCheckpointSummary[];
   summary: PolicyRunSummary;
   snapshots: Record<string, BalanceSnapshotReference>;
@@ -576,6 +577,59 @@ function buildFailureAuditSummary(
     actNumber: Number(report.failure.actNumber || 0),
     powerRatio: Number(lastEncounter.powerRatio || 0),
   };
+}
+
+function aggregateRunCombatLogSummary(report: PolicySimulationReport): CombatLogSummary | null {
+  const encounters = Array.isArray(report.summary?.encounterResults) ? report.summary.encounterResults : [];
+  const logs = encounters
+    .map((encounter: { combatLogSummary?: CombatLogSummary | null }) => encounter.combatLogSummary)
+    .filter(Boolean) as CombatLogSummary[];
+  if (logs.length === 0) {
+    return null;
+  }
+  const merged: CombatLogSummary = {
+    totalEntries: 0,
+    totalTurns: 0,
+    outcome: report.outcome || "",
+    defeatCause: null,
+    byActor: {},
+    byAction: {},
+    byTone: {},
+    heroActions: 0,
+    mercenaryActions: 0,
+    enemyActions: 0,
+    cardsPlayed: 0,
+    skillsUsed: 0,
+    potionsUsed: 0,
+    enemyIntents: 0,
+    deaths: 0,
+    statusEffects: 0,
+  };
+  for (const log of logs) {
+    merged.totalEntries += log.totalEntries;
+    merged.totalTurns += log.totalTurns;
+    merged.heroActions += log.heroActions;
+    merged.mercenaryActions += log.mercenaryActions;
+    merged.enemyActions += log.enemyActions;
+    merged.cardsPlayed += log.cardsPlayed;
+    merged.skillsUsed += log.skillsUsed;
+    merged.potionsUsed += log.potionsUsed;
+    merged.enemyIntents += log.enemyIntents;
+    merged.deaths += log.deaths;
+    merged.statusEffects += log.statusEffects;
+    for (const [key, value] of Object.entries(log.byActor)) {
+      merged.byActor[key] = (merged.byActor[key] || 0) + value;
+    }
+    for (const [key, value] of Object.entries(log.byAction)) {
+      merged.byAction[key] = (merged.byAction[key] || 0) + value;
+    }
+    for (const [key, value] of Object.entries(log.byTone)) {
+      merged.byTone[key] = (merged.byTone[key] || 0) + value;
+    }
+  }
+  const lastLog = logs[logs.length - 1];
+  merged.defeatCause = lastLog.defeatCause;
+  return merged;
 }
 
 function buildRunAnalysisSummary(
@@ -1093,6 +1147,7 @@ export function createSyntheticBalanceRunRecord(
     durationMs: Number(options.durationMs || 0),
     completedAt: new Date().toISOString(),
     requestedTrainingLoadout: task.trainingLoadout || null,
+    combatLogSummary: null,
     checkpoints: [],
     summary,
     snapshots: {},
@@ -3078,6 +3133,7 @@ function createCombatBalanceRecord(spec: BalanceExperimentSpec, task: BalanceRun
     beamDecisionRate: Number(encounter.beamDecisionRate || 0),
     averageBeamDepth: Number(encounter.averageBeamDepth || 0),
     beamOverrideRate: Number(encounter.beamOverrideRate || 0),
+    combatLogSummary: null as CombatLogSummary | null,
   }));
 
   const summary: PolicyRunSummary = {
@@ -3370,6 +3426,7 @@ export function executeBalanceRunTask(
     requestedTrainingLoadout: task.trainingLoadout || null,
     skillBar: finalSkillBar,
     analysis: buildRunAnalysisSummary(report, task.trainingLoadout || null, finalSkillBar),
+    combatLogSummary: aggregateRunCombatLogSummary(report),
     checkpoints: clone(report.checkpoints || []),
     summary: clone(report.summary),
     snapshots,

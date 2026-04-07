@@ -336,6 +336,7 @@ export interface EncounterRunMetric {
   beamDecisionRate: number
   averageBeamDepth: number
   beamOverrideRate: number
+  combatLogSummary: CombatLogSummary | null
 }
 
 export type ArchetypeCommitmentMode = "natural" | "committed"

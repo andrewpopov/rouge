@@ -389,7 +389,7 @@
             appState.combat,
             () => combatEngine.playCard(appState.combat, appState.content, instanceId, targetId),
             syncCombatResultAndRender,
-            { playedCardEl: actionEl }
+            { playedCardEl: actionEl, actionType: "card" }
           );
         }
         return true;
@@ -400,7 +400,8 @@
           doCombatAction(
             appState.combat,
             () => combatEngine.useSkill(appState.combat, slotKey, appState.combat?.selectedEnemyId || ""),
-            syncCombatResultAndRender
+            syncCombatResultAndRender,
+            { actionType: "skill" }
           );
         }
         return true;
@@ -409,7 +410,8 @@
           doCombatAction(
             appState.combat,
             () => combatEngine.meleeStrike(appState.combat, appState.content),
-            syncCombatResultAndRender
+            syncCombatResultAndRender,
+            { actionType: "melee" }
           );
         }
         return true;
@@ -419,7 +421,7 @@
             appState.combat,
             () => combatEngine.endTurn(appState.combat),
             syncCombatResultAndRender,
-            { sequenceEnemyPhase: true }
+            { sequenceEnemyPhase: true, actionType: "end_turn" }
           );
         }
         return true;
@@ -428,7 +430,8 @@
           doCombatAction(
             appState.combat,
             () => combatEngine.usePotion(appState.combat, "hero"),
-            syncCombatResultAndRender
+            syncCombatResultAndRender,
+            { actionType: "potion" }
           );
         }
         return true;
@@ -437,7 +440,8 @@
           doCombatAction(
             appState.combat,
             () => combatEngine.usePotion(appState.combat, "mercenary"),
-            syncCombatResultAndRender
+            syncCombatResultAndRender,
+            { actionType: "potion" }
           );
         }
         return true;

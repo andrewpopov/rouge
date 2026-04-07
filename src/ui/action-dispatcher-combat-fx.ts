@@ -4,6 +4,7 @@
   interface CombatFxActionOptions {
     playedCardEl?: HTMLElement | null;
     sequenceEnemyPhase?: boolean;
+    actionType?: "card" | "skill" | "melee" | "potion" | "end_turn";
   }
 
   interface HeroStatusSnapshot {
@@ -580,7 +581,11 @@
 
       let totalDamageDealt = 0;
       let totalDamageTaken = 0;
+      let totalGuardBlocked = 0;
+      let totalHealing = 0;
       let anyEnemyKilled = false;
+      let anyGuardBroken = false;
+      let anyStatusApplied = false;
 
       // Check enemy damage
       const enemySprites = Array.from(stage.querySelectorAll(".sprite--enemy")) as HTMLElement[];
@@ -611,7 +616,11 @@
           callouts.push({ text: `-${lifeLost}`, cssClass: isBig ? "damage-number--big-damage" : "damage-number--damage" });
           addTempClass(spriteEl, "sprite--hit", 400);
           addTempClass(spriteEl, "sprite--shake", 350);
+          if (isBig) {
+            addTempClass(spriteEl, "sprite--knockback", 400);
+          }
         } else if (guardLost > 0) {
+          totalGuardBlocked += guardLost;
           callouts.push({ text: `-${guardLost}`, cssClass: "damage-number--guard" });
           addTempClass(spriteEl, "sprite--shake", 350);
         }
@@ -627,8 +636,10 @@
         }
 
         if (guardBroken) {
+          anyGuardBroken = true;
           callouts.push({ text: "Break", cssClass: "damage-number--break" });
           addTempClass(spriteEl, "sprite--guard-broken", 500);
+          addTempClass(spriteEl, "sprite--stagger", 500);
         }
 
         if (!old.alive && enemy.alive) {
@@ -642,11 +653,13 @@
         }
 
         if (burnApplied) {
+          anyStatusApplied = true;
           addStatusApplyFx(spriteEl, "burn");
           enemyImpactStamps.push(getStatusApplyStamp("burn"));
         }
 
         if (poisonApplied) {
+          anyStatusApplied = true;
           addStatusApplyFx(spriteEl, "poison");
           enemyImpactStamps.push(getStatusApplyStamp("poison"));
         }
@@ -683,6 +696,7 @@
 
         if (old.alive && !enemy.alive) {
           anyEnemyKilled = true;
+          addTempClass(spriteEl, "sprite--death-burst", 600);
         }
       }
 
@@ -717,6 +731,7 @@
           }
           const heroHealAmt = after.hero.life - before.heroLife;
           if (heroHealAmt > 0) {
+            totalHealing += heroHealAmt;
             heroCallouts.push({ text: `+${heroHealAmt}`, cssClass: "damage-number--heal" });
             addTempClass(heroSprite, "sprite--healed", 500);
           }
@@ -797,6 +812,32 @@
         }
       }
 
+      // Audio feedback
+      const audio = runtimeWindow.__ROUGE_COMBAT_AUDIO;
+      if (audio) {
+        if (anyEnemyKilled) {
+          audio.enemyDeath();
+        } else if (totalDamageDealt > 0) {
+          audio.hit(totalDamageDealt);
+        }
+        if (anyGuardBroken) {
+          audio.guardBreak();
+        } else if (totalGuardBlocked > 0 && totalDamageDealt === 0) {
+          audio.guardBlock();
+        }
+        if (totalHealing > 0) {
+          audio.heal();
+        }
+        if (anyStatusApplied) {
+          audio.statusApply();
+        }
+        if (after.outcome === "victory") {
+          setTimeout(() => audio.victory(), 300);
+        } else if (after.outcome === "defeat") {
+          setTimeout(() => audio.defeat(), 300);
+        }
+      }
+
       // Screen shake on big hits or kills
       if (screen && (totalDamageDealt + totalDamageTaken >= 15 || anyEnemyKilled)) {
         addTempClass(screen, "combat-screen--shake", 350);
@@ -820,6 +861,14 @@
     const snapshot = captureCombatSnapshot(combat);
     if (options.playedCardEl) {
       spawnPlayedCardFx(options.playedCardEl);
+    }
+    const audio = runtimeWindow.__ROUGE_COMBAT_AUDIO;
+    if (audio && options.actionType) {
+      if (options.actionType === "card") { audio.cardPlay(); }
+      else if (options.actionType === "skill") { audio.skillUse(); }
+      else if (options.actionType === "melee") { audio.meleeStrike(); }
+      else if (options.actionType === "potion") { audio.potionUse(); }
+      else if (options.actionType === "end_turn" && snapshot.phase === "player") { audio.turnStart(); }
     }
     action();
     syncAndRender();
