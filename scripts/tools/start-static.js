@@ -48,19 +48,20 @@ try {
   console.warn("SQLite db module not available — auth endpoints disabled");
 }
 
-// Kill any previous server on this port
-try {
-  const pids = execSync(`lsof -ti tcp:${PORT}`, { encoding: "utf-8" }).trim();
-  if (pids) {
-    for (const pid of pids.split("\n")) {
-      try { process.kill(Number(pid), "SIGKILL"); } catch (_) {}
+// Kill any previous server on this port (skip under PM2 — it manages lifecycle)
+if (!process.env.PM2_HOME && !process.env.pm_id) {
+  try {
+    const pids = execSync(`lsof -ti tcp:${PORT}`, { encoding: "utf-8" }).trim();
+    if (pids) {
+      for (const pid of pids.split("\n")) {
+        try { process.kill(Number(pid), "SIGKILL"); } catch (_) {}
+      }
+      execSync("sleep 0.5");
+      console.log(`Killed previous process(es) on port ${PORT}`);
     }
-    // Wait for port to be released
-    execSync("sleep 0.5");
-    console.log(`Killed previous process(es) on port ${PORT}`);
+  } catch (_) {
+    // No process on port — nothing to kill
   }
-} catch (_) {
-  // No process on port — nothing to kill
 }
 
 const MIME_TYPES = {
