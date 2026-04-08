@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runBalanceSimulationReport, runCraftedCombatSimulationReport } from "./helpers/combat-simulator";
 import { applyClassStrategy, BUILD_POLICIES } from "./helpers/run-progression-simulator-core";
+import { runProgressionSimulationReport } from "./helpers/run-progression-simulator";
 
 test("balance simulator produces an Act V endgame report", () => {
   const report = runBalanceSimulationReport({
@@ -254,4 +255,40 @@ test("crafted combat simulator runs a hand-built seed against a direct encounter
   assert.equal(report.encounters.length, 1);
   assert.equal(report.encounters[0].encounterId, "act_4_boss");
   assert.ok(report.encounters[0].powerRatio > 0);
+});
+
+test("full campaign run: each class plays through Act 5 with class strategy", () => {
+  const report = runProgressionSimulationReport({
+    classIds: ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"],
+    policyIds: ["aggressive"],
+    throughActNumber: 5,
+    probeRuns: 0,
+    maxCombatTurns: 36,
+  });
+
+  console.log("  === Full Campaign Results (aggressive + class strategy) ===");
+  for (const classReport of report.classReports) {
+    const pr = classReport.policyReports[0];
+    if (!pr) { continue; }
+    const outcome = pr.outcome === "run_complete" ? "CLEARED" : `FAILED act ${pr.finalActNumber}`;
+    const level = pr.finalLevel;
+    const deckSize = pr.summary?.finalBuild?.deckSize || 0;
+    const weapon = pr.summary?.finalBuild?.weapon?.name || "unarmed";
+    const tree = pr.summary?.finalBuild?.favoredTreeName || "none";
+    const archetype = pr.summary?.finalBuild?.dominantArchetypeLabel || pr.summary?.finalBuild?.primaryTreeId || "none";
+    const encounters = pr.summary?.encounterResults?.length || 0;
+    const bossWins = (pr.summary?.encounterResults || []).filter((e: { kind?: string; outcome?: string }) => e.kind === "boss" && e.outcome === "victory").length;
+    const bossTotal = (pr.summary?.encounterResults || []).filter((e: { kind?: string }) => e.kind === "boss").length;
+    const failZone = pr.failure?.zoneTitle || "";
+    const failEnc = pr.failure?.encounterName || "";
+    console.log(`  ${classReport.className.padEnd(14)} ${outcome.padEnd(16)} Lv${String(level).padEnd(4)} deck:${String(deckSize).padEnd(4)} weapon:${weapon.padEnd(18)} tree:${tree.padEnd(20)} archetype:${archetype}`);
+    if (pr.outcome !== "run_complete") {
+      console.log(`  ${"".padEnd(14)} failed at: ${failZone} / ${failEnc}`);
+    }
+    console.log(`  ${"".padEnd(14)} encounters:${encounters} bosses:${bossWins}/${bossTotal}`);
+  }
+
+  const cleared = report.classReports.filter((cr) => cr.policyReports[0]?.outcome === "run_complete").length;
+  console.log(`  ${"CLEARED".padEnd(14)} ${cleared}/${report.classReports.length} classes`);
+  assert.ok(cleared >= 1, "at least one class should clear the full campaign");
 });
