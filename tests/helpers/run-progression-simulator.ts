@@ -498,7 +498,7 @@ export function runProgressionPolicyFromState(
   checkpointProbeProfile: CheckpointProbeProfile = "default",
   trainingLoadoutInput: RunProgressionTrainingLoadout | null = null
 ): PolicySimulationReport {
-  const safeZoneMaxIterations = 24
+  const safeZoneMaxIterations = 12
   const PHASES = harness.appEngine.PHASES
   const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : []
   const progress = continuation?.progress

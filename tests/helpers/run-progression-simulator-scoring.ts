@@ -638,8 +638,7 @@ export function buildDeckStats(harness: AppHarness, run: RunState, policy: Build
 }
 
 export function createScoringRun(harness: AppHarness, run: RunState, assumeFullResources: boolean) {
-  const deepClone = harness.browserWindow.ROUGE_UTILS.deepClone as <T>(value: T) => T
-  const clone = harness.runFactory.hydrateRun(deepClone(run), harness.content)
+  const clone = cloneAndHydrateRun(harness, run)
   if (assumeFullResources) {
     const bonuses = harness.runFactory.buildCombatBonuses(clone, harness.content, null)
     clone.hero.currentLife = clone.hero.maxLife + Number(bonuses.heroMaxLife || 0)
@@ -649,18 +648,16 @@ export function createScoringRun(harness: AppHarness, run: RunState, assumeFullR
   return clone
 }
 
-export function evaluateRunScore(
+function computeRunScoreFromParts(
   harness: AppHarness,
-  run: RunState,
+  scoringRun: RunState,
   policy: BuildPolicyDefinition,
-  options: { assumeFullResources: boolean; archetypePlan?: RunArchetypeSimulationPlan | null }
+  overrides: ReturnType<AppHarness["runFactory"]["createCombatOverrides"]>,
+  deckStats: ReturnType<typeof buildDeckStats>,
+  weaponProfile: ReturnType<typeof getWeaponProfile>,
+  armorProfile: ReturnType<AppHarness["itemSystem"]["buildCombatMitigationProfile"]>,
+  archetypePlan: RunArchetypeSimulationPlan | null
 ) {
-  const scoringRun = createScoringRun(harness, run, options.assumeFullResources)
-  const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, null)
-  const weaponProfile = getWeaponProfile(harness, scoringRun)
-  const armorProfile = harness.itemSystem.buildCombatMitigationProfile(scoringRun, harness.content) || null
-  const deckStats = buildDeckStats(harness, scoringRun, policy)
-
   return (
     scoringRun.level * 6 +
     overrides.heroState.maxLife * policy.heroLifeWeight +
@@ -682,17 +679,31 @@ export function evaluateRunScore(
     getLoadoutTierScore(harness, scoringRun) +
     scoreWeaponProfileForDeck(weaponProfile || undefined, deckStats.proficiencyCounts) * policy.weaponWeight +
     scoreArmorProfile(armorProfile || undefined) * policy.armorWeight +
-    scoreRunewordProgress(harness, scoringRun, options.archetypePlan || null) +
+    scoreRunewordProgress(harness, scoringRun, archetypePlan) +
     scoreDeckConstructionState(harness, scoringRun, policy) +
-    scoreArchetypePlan(harness, scoringRun, policy, options.archetypePlan || null) +
+    scoreArchetypePlan(harness, scoringRun, policy, archetypePlan) +
     Number(scoringRun.progression?.skillPointsAvailable || 0) * policy.bankedSkillPointWeight +
     Number(scoringRun.progression?.classPointsAvailable || 0) * policy.bankedClassPointWeight +
     Number(scoringRun.progression?.attributePointsAvailable || 0) * policy.bankedAttributePointWeight
   )
 }
 
+export function evaluateRunScore(
+  harness: AppHarness,
+  run: RunState,
+  policy: BuildPolicyDefinition,
+  options: { assumeFullResources: boolean; archetypePlan?: RunArchetypeSimulationPlan | null }
+) {
+  const scoringRun = createScoringRun(harness, run, options.assumeFullResources)
+  const overrides = harness.runFactory.createCombatOverrides(scoringRun, harness.content, null)
+  const weaponProfile = getWeaponProfile(harness, scoringRun)
+  const armorProfile = harness.itemSystem.buildCombatMitigationProfile(scoringRun, harness.content) || null
+  const deckStats = buildDeckStats(harness, scoringRun, policy)
+  return computeRunScoreFromParts(harness, scoringRun, policy, overrides, deckStats, weaponProfile, armorProfile, options.archetypePlan || null)
+}
+
 export function cloneRun(harness: AppHarness, run: RunState) {
-  return shallowCloneRun(harness, run)
+  return cloneAndHydrateRun(harness, run)
 }
 
 function shallowCloneRun(harness: AppHarness, run: RunState): RunState {
@@ -721,7 +732,12 @@ function shallowCloneRun(harness: AppHarness, run: RunState): RunState {
   clone.town = run.town ? { ...run.town } : run.town
   clone.summary = run.summary ? { ...run.summary } : run.summary
   // Acts, zones, world state: shared references (town actions don't modify these)
-  return harness.runFactory.hydrateRun(clone, harness.content)
+  // Skip hydrateRun — callers that need hydration (applyAction) do their own
+  return clone
+}
+
+function cloneAndHydrateRun(harness: AppHarness, run: RunState): RunState {
+  return harness.runFactory.hydrateRun(shallowCloneRun(harness, run), harness.content)
 }
 
 function isOptimizableTownAction(action: TownAction) {
@@ -997,8 +1013,8 @@ export function optimizeSafeZoneRun(
     )
   }
 
-  function findBestDeckShapingAction(targetRun: RunState) {
-    const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
+  function findBestDeckShapingAction(targetRun: RunState, cachedBaseScore?: number) {
+    const baseScore = cachedBaseScore ?? evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
     const reinforcementDeficit = getCurrentReinforcementDeficit(targetRun)
     const actNumber = Number(targetRun.actNumber || 1)
     const allActions = townServices
@@ -1051,8 +1067,8 @@ export function optimizeSafeZoneRun(
     }
   }
 
-  function findBestImmediateGearFollowup(targetRun: RunState, allowVendorBuys: boolean) {
-    const baseScore = evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
+  function findBestImmediateGearFollowup(targetRun: RunState, allowVendorBuys: boolean, cachedBaseScore?: number) {
+    const baseScore = cachedBaseScore ?? evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
     const actions = townServices
       .listActions(harness.content, targetRun, profile)
       .filter((action: TownAction) => {
@@ -1102,11 +1118,25 @@ export function optimizeSafeZoneRun(
 
   settleDeckShapingActions(run, Number(run.actNumber || 1) >= 4 ? 4 : Number(run.actNumber || 1) >= 2 ? 3 : 1)
 
+  let consecutiveSmallDeltas = 0
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
     const baseScore = evaluateRunScore(harness, run, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
-    const actions = townServices
+    const allActions = townServices
       .listActions(harness.content, run, profile)
       .filter((action: TownAction) => isOptimizableTownAction(action))
+
+    // Pre-filter: prioritize progression actions and limit gear/deck evaluations
+    const progressionActions = allActions.filter((a: TownAction) => (a.id || "").startsWith("progression_") || a.id === "healer_restore_party" || a.id === "quartermaster_refill_belt")
+    const gearActions = allActions.filter((a: TownAction) => (a.id || "").startsWith("inventory_equip_") || (a.id || "").startsWith("vendor_buy_") || (a.id || "").startsWith("inventory_socket_") || (a.id || "").startsWith("inventory_commission_"))
+    const deckActions = allActions.filter((a: TownAction) => isDeckShapingAction(a.id || ""))
+    const otherActions = allActions.filter((a: TownAction) => (a.id || "").startsWith("mercenary_contract_") || a.id === "vendor_refresh_stock")
+    // Limit evaluations: progression always, gear top 6, deck top 4, other top 2
+    const actions = [
+      ...progressionActions,
+      ...gearActions.slice(0, 6),
+      ...deckActions.slice(0, 4),
+      ...otherActions.slice(0, 2),
+    ]
 
     let bestAction: TownAction | null = null
     let bestDelta = 0
@@ -1134,6 +1164,16 @@ export function optimizeSafeZoneRun(
 
     if (!bestAction || bestDelta <= 0.05) {
       break
+    }
+
+    // Early convergence: stop if recent iterations found only marginal improvements
+    if (bestDelta < 1.0) {
+      consecutiveSmallDeltas += 1
+      if (consecutiveSmallDeltas >= 2) {
+        break
+      }
+    } else {
+      consecutiveSmallDeltas = 0
     }
 
     const result = townServices.applyAction(run, profile, harness.content, bestAction.id)
