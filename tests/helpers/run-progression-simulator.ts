@@ -13,6 +13,7 @@ import {
   createSeededRandom,
   createTrackedRandom,
   getMercenaryIdForClass,
+  applyClassStrategy,
   getPolicyDefinitions,
   getPolicySimulationAssumptions,
   getRunProgressionPolicyDefinitions,
@@ -1082,7 +1083,8 @@ export function runProgressionEncounterTrace(options: {
   const encounterId = String(options.encounterId || `act_${targetActNumber}_boss`)
   const seedOffset = Math.max(0, options.seedOffset || 0)
   const maxCombatTurns = Math.max(12, options.maxCombatTurns || 36)
-  const policy = getPolicyDefinitions([options.policyId || "aggressive"])[0]
+  const basePolicy = getPolicyDefinitions([options.policyId || "aggressive"])[0]
+  const policy = applyClassStrategy(basePolicy, classId)
   const seed = hashString([classId, policy.id, "5", String(seedOffset)].join("|"))
   const harness = createQuietAppHarness()
   const state = createSimulationState(harness, classId, seed)
@@ -1262,7 +1264,8 @@ export function runProgressionSimulationReport(options: RunProgressionSimulation
     return {
       classId,
       className: classDefinition.name,
-      policyReports: policies.map((policy) => {
+      policyReports: policies.map((basePolicy) => {
+        const policy = applyClassStrategy(basePolicy, classId)
         const harness = createQuietAppHarness()
         return simulatePolicyRun(
           harness,

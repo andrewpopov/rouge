@@ -290,6 +290,204 @@ export const BUILD_POLICIES: Record<string, BuildPolicyDefinition> = {
   },
 }
 
+// Class-archetype strategies: override generic policy weights for specific class builds
+export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = {
+  // Necromancer: summon-focused, thin deck, cycle fast, protect minions
+  necromancer_summoner: {
+    id: "necromancer_summoner",
+    label: "Necromancer Summoner",
+    description: "Thin deck, fast cycling, maximize summon uptime and minion reinforcement.",
+    heroLifeWeight: 1.0,
+    heroEnergyWeight: 1.3,
+    heroDamageWeight: 1.5,
+    heroGuardWeight: 1.6,
+    heroBurnWeight: 0.5,
+    mercenaryLifeWeight: 0.9,
+    mercenaryAttackWeight: 1.0,
+    deckBloatPenalty: 2.8,
+    matchingProficiencyWeight: 1.5,
+    cardEffectMultipliers: {
+      summon_minion: 2.5,
+      draw: 1.8,
+      gain_guard_self: 1.2,
+      gain_guard_party: 1.3,
+      heal_hero: 1.1,
+      damage: 0.8,
+      damage_all: 0.7,
+      apply_burn: 0.6,
+      apply_poison: 1.3,
+      apply_poison_all: 1.3,
+    },
+  },
+  // Amazon: merc synergy, mark target, ranged burst, thin deck for consistency
+  amazon_marksman: {
+    id: "amazon_marksman",
+    label: "Amazon Marksman",
+    description: "Mark targets for mercenary, fast burst, thin deck for reliable openers.",
+    heroDamageWeight: 2.8,
+    heroGuardWeight: 1.3,
+    heroEnergyWeight: 0.8,
+    mercenaryAttackWeight: 2.2,
+    mercenaryLifeWeight: 1.2,
+    deckBloatPenalty: 2.4,
+    cardEffectMultipliers: {
+      mark_enemy_for_mercenary: 2.2,
+      buff_mercenary_next_attack: 1.8,
+      damage: 1.4,
+      draw: 1.3,
+      heal_mercenary: 1.3,
+      gain_guard_party: 1.1,
+      summon_minion: 0.7,
+      apply_burn: 0.8,
+    },
+  },
+  // Barbarian: raw damage, weapon synergy, melee focus, sustain through life
+  barbarian_berserker: {
+    id: "barbarian_berserker",
+    label: "Barbarian Berserker",
+    description: "Maximize melee and weapon damage, sustain through raw life and potions.",
+    heroDamageWeight: 3.5,
+    heroLifeWeight: 1.4,
+    heroGuardWeight: 1.5,
+    heroEnergyWeight: 0.5,
+    heroPotionWeight: 1.2,
+    weaponWeight: 1.5,
+    matchingProficiencyWeight: 3.0,
+    deckBloatPenalty: 2.0,
+    cardEffectMultipliers: {
+      damage: 1.5,
+      damage_all: 1.3,
+      gain_guard_self: 1.1,
+      heal_hero: 1.2,
+      draw: 1.0,
+      summon_minion: 0.6,
+      apply_burn: 0.9,
+      mark_enemy_for_mercenary: 1.0,
+    },
+  },
+  // Druid: summon + elemental hybrid, flexible, value both paths
+  druid_elementalist: {
+    id: "druid_elementalist",
+    label: "Druid Elementalist",
+    description: "Balance elemental damage with summon support, flexible response to threats.",
+    heroEnergyWeight: 1.1,
+    heroDamageWeight: 2.4,
+    heroGuardWeight: 1.4,
+    heroBurnWeight: 1.4,
+    deckBloatPenalty: 2.0,
+    cardEffectMultipliers: {
+      summon_minion: 1.6,
+      damage: 1.2,
+      damage_all: 1.3,
+      apply_burn: 1.4,
+      apply_burn_all: 1.4,
+      apply_poison: 1.2,
+      draw: 1.2,
+      gain_guard_party: 1.1,
+      heal_hero: 1.0,
+    },
+  },
+  // Assassin: combo-focused, cost reduction, burst damage, thin deck
+  assassin_martial: {
+    id: "assassin_martial",
+    label: "Assassin Martial Artist",
+    description: "Combo skills into burst cards, cost reduction chains, thin deck for reliability.",
+    heroDamageWeight: 3.0,
+    heroGuardWeight: 1.8,
+    heroEnergyWeight: 1.0,
+    deckBloatPenalty: 2.6,
+    cardEffectMultipliers: {
+      damage: 1.4,
+      draw: 1.4,
+      gain_guard_self: 1.3,
+      apply_stun: 1.5,
+      apply_stun_all: 1.5,
+      apply_paralyze: 1.4,
+      apply_slow: 1.2,
+      summon_minion: 0.8,
+      apply_burn: 0.7,
+    },
+  },
+  // Paladin: party defense, auras, sustain, merc synergy
+  paladin_guardian: {
+    id: "paladin_guardian",
+    label: "Paladin Guardian",
+    description: "Party-wide defense and healing, mercenary synergy, outlast the enemy.",
+    heroGuardWeight: 2.2,
+    heroLifeWeight: 1.3,
+    heroDamageWeight: 2.2,
+    mercenaryLifeWeight: 1.3,
+    mercenaryAttackWeight: 1.5,
+    heroPotionWeight: 1.1,
+    deckBloatPenalty: 1.8,
+    cardEffectMultipliers: {
+      gain_guard_party: 1.6,
+      gain_guard_self: 1.3,
+      heal_hero: 1.4,
+      heal_mercenary: 1.3,
+      buff_mercenary_next_attack: 1.4,
+      mark_enemy_for_mercenary: 1.2,
+      damage: 1.1,
+      draw: 1.1,
+      summon_minion: 0.8,
+    },
+  },
+  // Sorceress: energy scaling, burn/elemental damage, fast kills
+  sorceress_fire: {
+    id: "sorceress_fire",
+    label: "Sorceress Fire",
+    description: "Maximize energy and burn damage, fast spell cycling, glass cannon.",
+    heroEnergyWeight: 1.5,
+    heroDamageWeight: 2.8,
+    heroBurnWeight: 2.2,
+    heroGuardWeight: 1.0,
+    heroLifeWeight: 0.8,
+    deckBloatPenalty: 2.2,
+    cardEffectMultipliers: {
+      apply_burn: 1.8,
+      apply_burn_all: 1.8,
+      damage: 1.3,
+      damage_all: 1.4,
+      draw: 1.4,
+      gain_guard_self: 0.8,
+      heal_hero: 0.7,
+      summon_minion: 0.6,
+      mark_enemy_for_mercenary: 0.8,
+    },
+  },
+}
+
+export function getClassStrategy(classId: string): Partial<BuildPolicyDefinition> | null {
+  const strategies: Record<string, string> = {
+    necromancer: "necromancer_summoner",
+    amazon: "amazon_marksman",
+    barbarian: "barbarian_berserker",
+    druid: "druid_elementalist",
+    assassin: "assassin_martial",
+    paladin: "paladin_guardian",
+    sorceress: "sorceress_fire",
+  }
+  return CLASS_STRATEGIES[strategies[classId] || ""] || null
+}
+
+export function applyClassStrategy(basePolicy: BuildPolicyDefinition, classId: string): BuildPolicyDefinition {
+  const strategy = getClassStrategy(classId)
+  if (!strategy) { return basePolicy }
+  const merged = { ...basePolicy }
+  for (const [key, value] of Object.entries(strategy)) {
+    if (key === "id" || key === "label" || key === "description") { continue }
+    if (key === "cardEffectMultipliers" && typeof value === "object") {
+      merged.cardEffectMultipliers = {
+        ...merged.cardEffectMultipliers,
+        ...(value as Partial<Record<CardEffectKind, number>>),
+      }
+    } else {
+      (merged as Record<string, unknown>)[key] = value
+    }
+  }
+  return merged
+}
+
 export interface CombatCandidateAction {
   type: "card" | "skill" | "melee" | "potion" | "end_turn"
   score: number

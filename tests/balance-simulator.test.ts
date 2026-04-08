@@ -3,6 +3,7 @@ export {};
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runBalanceSimulationReport, runCraftedCombatSimulationReport } from "./helpers/combat-simulator";
+import { applyClassStrategy, BUILD_POLICIES } from "./helpers/run-progression-simulator-core";
 
 test("balance simulator produces an Act V endgame report", () => {
   const report = runBalanceSimulationReport({
