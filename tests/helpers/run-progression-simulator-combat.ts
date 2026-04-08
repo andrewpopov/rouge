@@ -535,19 +535,48 @@ function scoreCombatStateDelta(
   const underImmediateThreat = beforeShortfall > 0 || (chargeThreat && beforePressure >= 0.55)
   const shortfallWeight = underImmediateThreat ? (chargeThreat ? 22 : 12) : (chargeThreat ? 14 : 7)
 
+  // Intent-aware defense: compute exact incoming damage and scale guard/heal value proportionally
+  const heroHpRatio = before.hero.maxLife > 0 ? before.hero.life / before.hero.maxLife : 1
+  const survivalUrgency = heroHpRatio < 0.3 ? 2.5 : heroHpRatio < 0.5 ? 1.8 : heroHpRatio < 0.7 ? 1.3 : 1.0
+  const incomingThreat = getIncomingThreat(before)
+  const guardGap = Math.max(0, incomingThreat - before.hero.guard)
+  const guardSurplus = Math.max(0, before.hero.guard - incomingThreat)
+  // Guard value scales with how much we need: high when gap exists, diminishes past sufficiency
+  const guardUrgency = guardGap > 0 ? 1.5 + Math.min(1.5, guardGap / Math.max(1, before.hero.maxLife) * 3) : Math.max(0.4, 1 - guardSurplus * 0.06)
+  // Would this action prevent lethal? (hero dies if no guard gained)
+  const wouldBeLethal = incomingThreat > before.hero.guard + before.hero.life
+  const afterSurvivesLethal = wouldBeLethal && (incomingThreat <= after.hero.guard + after.hero.life)
+  // Kill-removes-threat: killing an enemy removes its incoming intent damage
+  const killedEnemyThreatRemoved = before.enemies.reduce((sum, enemy) => {
+    if (!enemy.alive) { return sum }
+    const afterEnemy = after.enemies.find((e) => e.id === enemy.id)
+    if (afterEnemy && !afterEnemy.alive && enemy.currentIntent) {
+      const intentValue = Number(enemy.currentIntent.value || 0)
+      if (ATTACK_INTENT_KINDS.has(enemy.currentIntent.kind)) { return sum + intentValue }
+      if (enemy.currentIntent.kind === "charge") { return sum + intentValue }
+    }
+    return sum
+  }, 0)
+
   let score =
-    (beforeEnemyLife - afterEnemyLife) * 3.4 +
+    (beforeEnemyLife - afterEnemyLife) * 3.0 +
     (beforeEnemyGuard - afterEnemyGuard) * 1.0 +
-    (after.hero.life - before.hero.life) * 2.3 +
-    (after.hero.guard - before.hero.guard) * (1.6 + policy.heroGuardWeight * 0.2) * guardValueFactor +
-    (after.mercenary.life - before.mercenary.life) * 0.9 +
-    (after.mercenary.guard - before.mercenary.guard) * 0.7 * guardValueFactor +
+    (after.hero.life - before.hero.life) * (2.5 * survivalUrgency) +
+    (after.hero.guard - before.hero.guard) * (2.2 + policy.heroGuardWeight * 0.3) * guardValueFactor * guardUrgency +
+    (after.mercenary.life - before.mercenary.life) * 1.8 +
+    (after.mercenary.guard - before.mercenary.guard) * 1.2 * guardValueFactor +
     (beforeLivingEnemies - afterLivingEnemies) * 45 +
-    (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.5 +
+    killedEnemyThreatRemoved * 3.5 +
+    (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.2 +
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
     (beforeShortfall - afterShortfall) * shortfallWeight +
     (beforePressure - afterPressure) * (chargeThreat ? 42 : 18) +
     (getHandValue(after, content, policy, matchingProficiencies) - getHandValue(before, content, policy, matchingProficiencies)) * 0.12
+
+  // Lethal prevention bonus: surviving a kill shot is extremely valuable
+  if (afterSurvivesLethal) {
+    score += 80
+  }
 
   if (!beforeSafeFromThreat && afterSafeFromThreat) {
     score += chargeThreat ? 90 : 45
@@ -580,14 +609,11 @@ function scoreCombatStateDelta(
     score -= 1000
   }
   if (actionType === "potion") {
-    score -= 5
-    if (beforeShortfall > 0 || before.hero.life / Math.max(1, before.hero.maxLife) <= 0.35) {
-      score += 18
+    // Potions are just healing — score based on survival value, no flat penalty
+    if (wouldBeLethal) {
+      score += 30
     }
-    if (chargeThreat && beforePressure >= 0.55) {
-      score += 12
-    }
-    if ((before.hero.heroBurn + before.hero.heroPoison) >= 2 && before.hero.life / Math.max(1, before.hero.maxLife) <= 0.6) {
+    if ((before.hero.heroBurn + before.hero.heroPoison) >= 2 && heroHpRatio <= 0.6) {
       score += 8
     }
   }

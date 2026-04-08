@@ -21,6 +21,8 @@ const CARD_EFFECT_WEIGHTS: Record<CardEffectKind, number> = {
   apply_paralyze: 2.8,
   apply_paralyze_all: 3.2,
   summon_minion: 3.6,
+  apply_taunt: 2.4,
+  apply_fade: 2.0,
 };
 
 const WEAPON_PROFICIENCIES_BY_FAMILY: Record<string, string[]> = {
