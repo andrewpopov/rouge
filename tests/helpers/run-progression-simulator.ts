@@ -498,6 +498,7 @@ export function runProgressionPolicyFromState(
   checkpointProbeProfile: CheckpointProbeProfile = "default",
   trainingLoadoutInput: RunProgressionTrainingLoadout | null = null
 ): PolicySimulationReport {
+  const safeZoneMaxIterations = 24
   const PHASES = harness.appEngine.PHASES
   const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : []
   const progress = continuation?.progress
@@ -575,7 +576,7 @@ export function runProgressionPolicyFromState(
     updateArchetypeCommitmentLock(state, archetypePlan)
     reportOperation("started", "optimize_safe_zone", 0, "initial")
     const optimizeStartedAt = Date.now()
-    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, 24, archetypePlan, {
+    optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, safeZoneMaxIterations, archetypePlan, {
       onTownActionApplied: (actionId) => countTownAction(progress, actionId),
     })
     applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
@@ -696,7 +697,7 @@ export function runProgressionPolicyFromState(
           updateArchetypeCommitmentLock(state, archetypePlan)
           reportOperation("started", "optimize_safe_zone", 0, "town return")
           const optimizeStartedAt = Date.now()
-          optimizeSafeZoneRun(harness, state.run, state.profile, policy, 24, archetypePlan, {
+          optimizeSafeZoneRun(harness, state.run, state.profile, policy, safeZoneMaxIterations, archetypePlan, {
             onTownActionApplied: (actionId) => countTownAction(progress, actionId),
           })
           applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
