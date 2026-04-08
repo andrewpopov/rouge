@@ -472,10 +472,23 @@ const BALANCE_SCENARIOS: Record<string, BalanceScenarioDefinition> = {
 };
 
 const ENCOUNTER_SET_LABELS: Record<string, string> = {
+  act1_bosses: "Act I Bosses",
+  act1_endgame: "Act I Bosses And Elite Packs",
+  act1_all: "All Act I Combat Encounters",
+  act2_bosses: "Act II Bosses",
+  act2_endgame: "Act II Bosses And Elite Packs",
+  act2_all: "All Act II Combat Encounters",
+  act3_bosses: "Act III Bosses",
+  act3_endgame: "Act III Bosses And Elite Packs",
+  act3_all: "All Act III Combat Encounters",
+  act4_bosses: "Act IV Bosses",
+  act4_endgame: "Act IV Bosses And Elite Packs",
+  act4_all: "All Act IV Combat Encounters",
   act5_bosses: "Act V Bosses",
   act5_unique_packs: "Act V Elite And Miniboss Packs",
   act5_endgame: "Act V Bosses And Elite Packs",
   act5_all: "All Act V Combat Encounters",
+  all_bosses: "All Act Bosses",
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -1162,40 +1175,59 @@ function buildSimulatedRun(harness: ReturnType<typeof createAppHarness>, classId
   };
 }
 
+function parseEncounterSetActNumber(encounterSetId: string): number {
+  const match = encounterSetId.match(/^act(\d+)_/);
+  return match ? Number(match[1]) : 0;
+}
+
+function parseEncounterSetKind(encounterSetId: string): string {
+  return encounterSetId.replace(/^act\d+_/, "");
+}
+
 function getEncounterEntries(context: SimulatedBuildContext, encounterSetId: string, encounterLimit = 0) {
-  const act = context.run.acts[context.scenario.actNumber - 1];
+  const isAllBosses = encounterSetId === "all_bosses";
+  const setActNumber = isAllBosses ? 0 : parseEncounterSetActNumber(encounterSetId);
+  const setKind = isAllBosses ? "bosses" : parseEncounterSetKind(encounterSetId);
+  const actsToSearch = isAllBosses
+    ? context.run.acts
+    : setActNumber > 0
+      ? [context.run.acts[setActNumber - 1]].filter(Boolean)
+      : [context.run.acts[context.scenario.actNumber - 1]].filter(Boolean);
+
   const entries = uniqueEncounterEntries(
-    act.zones.flatMap((zone) => {
-      return (zone.encounterIds || []).map((encounterId) => {
-        const encounter = context.harness.content.encounterCatalog[encounterId];
-        if (!encounter) {
-          return null;
-        }
-        const hasBoss = encounter.enemies.some((enemy) => enemy.templateId.endsWith("_boss"));
-        const hasMiniboss = zone.kind === "miniboss";
-        const hasElite = !hasMiniboss && encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
-        const include =
-          encounterSetId === "act5_bosses"
-            ? zone.kind === "boss" || hasBoss
-            : encounterSetId === "act5_unique_packs"
-              ? zone.kind === "miniboss" || hasElite
-              : encounterSetId === "act5_endgame"
-                ? zone.kind === "boss" || zone.kind === "miniboss" || hasElite
-                : zone.kind === "battle" || zone.kind === "miniboss" || zone.kind === "boss";
-        if (!include) {
-          return null;
-        }
-        return {
-          encounterId,
-          encounterName: encounter.name,
-          zoneTitle: zone.title,
-          zoneKind: zone.kind,
-          hasBoss,
-          hasMiniboss,
-          hasElite,
-        } as BalanceEncounterEntry;
-      });
-    })
+    actsToSearch.flatMap((act) =>
+      act.zones.flatMap((zone) => {
+        return (zone.encounterIds || []).map((encounterId) => {
+          const encounter = context.harness.content.encounterCatalog[encounterId];
+          if (!encounter) {
+            return null;
+          }
+          const hasBoss = encounter.enemies.some((enemy) => enemy.templateId.endsWith("_boss"));
+          const hasMiniboss = zone.kind === "miniboss";
+          const hasElite = !hasMiniboss && encounter.enemies.some((enemy) => enemy.templateId.includes("_elite"));
+          const include =
+            setKind === "bosses"
+              ? zone.kind === "boss" || hasBoss
+              : setKind === "unique_packs"
+                ? zone.kind === "miniboss" || hasElite
+                : setKind === "endgame"
+                  ? zone.kind === "boss" || zone.kind === "miniboss" || hasElite
+                  : zone.kind === "battle" || zone.kind === "miniboss" || zone.kind === "boss";
+          if (!include) {
+            return null;
+          }
+          return {
+            encounterId,
+            encounterName: encounter.name,
+            zoneTitle: zone.title,
+            zoneKind: zone.kind,
+            hasBoss,
+            hasMiniboss,
+            hasElite,
+          } as BalanceEncounterEntry;
+        });
+      })
+    )
   );
 
   const sorted = entries.sort((left, right) => {

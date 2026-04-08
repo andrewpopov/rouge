@@ -177,30 +177,21 @@ test("class vs boss matrix: all classes against all act bosses with full power",
   for (const classId of classes) {
     const report = runBalanceSimulationReport({
       classIds: [classId],
-      scenarioIds: ["mainline_rewarded", "full_clear_power"],
-      encounterSetId: "act5_all",
+      scenarioIds: ["full_clear_power"],
+      encounterSetId: "all_bosses",
       runsPerEncounter: 3,
     });
 
-    for (const scenario of report.classReports[0]?.scenarios || []) {
-      for (const enc of scenario.encounters) {
-        if (bosses.includes(enc.encounterId)) {
-          const existing = matrix.find((r) => r.classId === classId && r.bossId === enc.encounterId);
-          if (existing) {
-            existing.wins += enc.wins;
-            existing.runs += enc.runs;
-            existing.avgTurns = (existing.avgTurns + enc.averageTurns) / 2;
-          } else {
-            matrix.push({
-              classId,
-              bossId: enc.encounterId,
-              wins: enc.wins,
-              runs: enc.runs,
-              avgTurns: enc.averageTurns,
-            });
-          }
-        }
-      }
+    const scenario = report.classReports[0]?.scenarios[0];
+    if (!scenario) { continue; }
+    for (const enc of scenario.encounters) {
+      matrix.push({
+        classId,
+        bossId: enc.encounterId,
+        wins: enc.wins,
+        runs: enc.runs,
+        avgTurns: enc.averageTurns,
+      });
     }
   }
 
