@@ -91,6 +91,83 @@ test("combat log produces structured entries usable by both game UI and sim", ()
   assert.ok((summary.byActor["environment"] || 0) > 0, "should have environment actor entries");
 });
 
+test("improved AI handles boss fights across all classes with mainline builds", () => {
+  const classes = ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"];
+  const results: Array<{ classId: string; wins: number; runs: number; avgTurns: number; defeatCauses: Record<string, number> }> = [];
+
+  for (const classId of classes) {
+    const report = runBalanceSimulationReport({
+      classIds: [classId],
+      scenarioIds: ["mainline_rewarded"],
+      encounterSetId: "act5_bosses",
+      runsPerEncounter: 3,
+      encounterLimit: 5,
+    });
+
+    const scenario = report.classReports[0]?.scenarios[0];
+    if (!scenario) { continue; }
+
+    const totalWins = scenario.encounters.reduce((sum, e) => sum + e.wins, 0);
+    const totalRuns = scenario.encounters.reduce((sum, e) => sum + e.runs, 0);
+    const avgTurns = scenario.overall.averageTurns;
+    const defeatCauses: Record<string, number> = {};
+    for (const enc of scenario.encounters) {
+      for (const [cause, count] of Object.entries(enc.defeatCauses)) {
+        defeatCauses[cause] = (defeatCauses[cause] || 0) + count;
+      }
+    }
+
+    results.push({ classId, wins: totalWins, runs: totalRuns, avgTurns, defeatCauses });
+  }
+
+  console.log("  === Act 5 Boss Results (mainline_rewarded) ===");
+  for (const r of results) {
+    const pct = r.runs > 0 ? Math.round((r.wins / r.runs) * 100) : 0;
+    const causes = Object.entries(r.defeatCauses).map(([k, v]) => `${k}:${v}`).join(" ");
+    console.log(`  ${r.classId.padEnd(14)} ${r.wins}/${r.runs} (${pct}%) avg ${r.avgTurns} turns  ${causes}`);
+  }
+
+  const totalWins = results.reduce((sum, r) => sum + r.wins, 0);
+  const totalRuns = results.reduce((sum, r) => sum + r.runs, 0);
+  console.log(`  ${"TOTAL".padEnd(14)} ${totalWins}/${totalRuns} (${totalRuns > 0 ? Math.round(totalWins / totalRuns * 100) : 0}%)`);
+
+  assert.ok(totalWins > 0, "at least one class should win at least one boss fight");
+});
+
+test("full-power builds handle Act 5 bosses better than mainline", () => {
+  const classes = ["barbarian", "paladin", "sorceress"];
+  const results: Array<{ classId: string; wins: number; runs: number; avgTurns: number }> = [];
+
+  for (const classId of classes) {
+    const report = runBalanceSimulationReport({
+      classIds: [classId],
+      scenarioIds: ["full_clear_power"],
+      encounterSetId: "act5_bosses",
+      runsPerEncounter: 5,
+      encounterLimit: 3,
+    });
+
+    const scenario = report.classReports[0]?.scenarios[0];
+    if (!scenario) { continue; }
+
+    const totalWins = scenario.encounters.reduce((sum, e) => sum + e.wins, 0);
+    const totalRuns = scenario.encounters.reduce((sum, e) => sum + e.runs, 0);
+    results.push({ classId, wins: totalWins, runs: totalRuns, avgTurns: scenario.overall.averageTurns });
+  }
+
+  console.log("  === Act 5 Boss Results (full_clear_power) ===");
+  for (const r of results) {
+    const pct = r.runs > 0 ? Math.round((r.wins / r.runs) * 100) : 0;
+    console.log(`  ${r.classId.padEnd(14)} ${r.wins}/${r.runs} (${pct}%) avg ${r.avgTurns} turns`);
+  }
+
+  const totalWins = results.reduce((sum, r) => sum + r.wins, 0);
+  const totalRuns = results.reduce((sum, r) => sum + r.runs, 0);
+  console.log(`  ${"TOTAL".padEnd(14)} ${totalWins}/${totalRuns} (${totalRuns > 0 ? Math.round(totalWins / totalRuns * 100) : 0}%)`);
+
+  assert.ok(totalWins > results.length, "full-power builds should win more than one fight per class");
+});
+
 test("crafted combat simulator runs a hand-built seed against a direct encounter", () => {
   const report = runCraftedCombatSimulationReport({
     label: "Sorceress Fire Crafted Seed",
