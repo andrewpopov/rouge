@@ -169,6 +169,62 @@ test("full-power builds handle Act 5 bosses better than mainline", () => {
   assert.ok(totalWins > results.length, "full-power builds should win more than one fight per class");
 });
 
+test("class vs boss matrix: all classes against all act bosses with full power", () => {
+  const classes = ["amazon", "assassin", "barbarian", "druid", "necromancer", "paladin", "sorceress"];
+  const bosses = ["act_1_boss", "act_2_boss", "act_3_boss", "act_4_boss", "act_5_boss"];
+  const matrix: Array<{ classId: string; bossId: string; wins: number; runs: number; avgTurns: number }> = [];
+
+  for (const classId of classes) {
+    const report = runBalanceSimulationReport({
+      classIds: [classId],
+      scenarioIds: ["mainline_rewarded", "full_clear_power"],
+      encounterSetId: "act5_all",
+      runsPerEncounter: 3,
+    });
+
+    for (const scenario of report.classReports[0]?.scenarios || []) {
+      for (const enc of scenario.encounters) {
+        if (bosses.includes(enc.encounterId)) {
+          const existing = matrix.find((r) => r.classId === classId && r.bossId === enc.encounterId);
+          if (existing) {
+            existing.wins += enc.wins;
+            existing.runs += enc.runs;
+            existing.avgTurns = (existing.avgTurns + enc.averageTurns) / 2;
+          } else {
+            matrix.push({
+              classId,
+              bossId: enc.encounterId,
+              wins: enc.wins,
+              runs: enc.runs,
+              avgTurns: enc.averageTurns,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Print matrix
+  const bossIds = [...new Set(matrix.map((r) => r.bossId))];
+  const header = "CLASS".padEnd(14) + bossIds.map((b) => b.replace("act_", "A").replace("_boss", "B").padStart(8)).join("");
+  console.log(`  ${header}`);
+  for (const classId of classes) {
+    const row = classId.padEnd(14) + bossIds.map((bossId) => {
+      const entry = matrix.find((r) => r.classId === classId && r.bossId === bossId);
+      if (!entry) { return "   -   "; }
+      const pct = entry.runs > 0 ? Math.round((entry.wins / entry.runs) * 100) : 0;
+      return `${String(pct).padStart(4)}%  `;
+    }).join("");
+    console.log(`  ${row}`);
+  }
+
+  const totalWins = matrix.reduce((sum, r) => sum + r.wins, 0);
+  const totalRuns = matrix.reduce((sum, r) => sum + r.runs, 0);
+  console.log(`  ${"OVERALL".padEnd(14)}${Math.round(totalWins / Math.max(1, totalRuns) * 100)}% (${totalWins}/${totalRuns})`);
+
+  assert.ok(totalWins > 0, "at least some boss fights should be won");
+});
+
 test("crafted combat simulator runs a hand-built seed against a direct encounter", () => {
   const report = runCraftedCombatSimulationReport({
     label: "Sorceress Fire Crafted Seed",

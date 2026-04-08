@@ -1326,6 +1326,43 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
     return sum;
   }, 0);
 
+  // Focus fire: bonus for bringing an enemy close to death or finishing it
+  let focusFireBonus = 0;
+  for (const enemy of before.enemies) {
+    if (!enemy.alive) { continue; }
+    const afterEnemy = after.enemies.find((e) => e.id === enemy.id);
+    if (!afterEnemy) { continue; }
+    const lifeLost = enemy.life - afterEnemy.life;
+    if (lifeLost > 0 && afterEnemy.alive && afterEnemy.life <= afterEnemy.maxLife * 0.25) {
+      focusFireBonus += 8;
+    }
+  }
+
+  // Skill-buffs-next-card: value skill modifiers that prep the next card
+  let skillPrepBonus = 0;
+  if (actionType === "skill") {
+    const mods = after.skillModifiers;
+    const beforeMods = before.skillModifiers;
+    if (mods.nextCardDamageBonus > beforeMods.nextCardDamageBonus) {
+      skillPrepBonus += (mods.nextCardDamageBonus - beforeMods.nextCardDamageBonus) * 2.0;
+    }
+    if (mods.nextCardCostReduction > beforeMods.nextCardCostReduction) {
+      skillPrepBonus += (mods.nextCardCostReduction - beforeMods.nextCardCostReduction) * 4.0;
+    }
+    if (mods.nextCardGuard > beforeMods.nextCardGuard) {
+      skillPrepBonus += (mods.nextCardGuard - beforeMods.nextCardGuard) * 1.5;
+    }
+    if (mods.nextCardBurn > beforeMods.nextCardBurn) {
+      skillPrepBonus += (mods.nextCardBurn - beforeMods.nextCardBurn) * 1.5;
+    }
+    if (mods.nextCardDraw > beforeMods.nextCardDraw) {
+      skillPrepBonus += (mods.nextCardDraw - beforeMods.nextCardDraw) * 3.0;
+    }
+  }
+
+  // Draw value: worth more when hand is small
+  const drawBonus = after.hand.length > before.hand.length ? (before.hand.length <= 2 ? 4 : 1) : 0;
+
   let score =
     (beforeEnemyLife - afterEnemyLife) * 3.0 +
     (beforeEnemyGuard - afterEnemyGuard) * 1.0 +
@@ -1335,6 +1372,9 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
     (after.mercenary.guard - before.mercenary.guard) * 1.2 * guardValueFactor +
     (beforeLivingEnemies - afterLivingEnemies) * 45 +
     killedEnemyThreatRemoved * 3.5 +
+    focusFireBonus +
+    skillPrepBonus +
+    drawBonus +
     (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.2 +
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
     (beforeShortfall - afterShortfall) * shortfallWeight +
