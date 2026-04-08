@@ -82,6 +82,7 @@ export function runCampaignSim(options: {
   seedOffset?: number;
   throughActNumber?: number;
   maxCombatTurns?: number;
+  autoWinCombat?: boolean;
 }): CampaignSimResult {
   const startedAt = Date.now();
   const classId = options.classId;
@@ -103,7 +104,9 @@ export function runCampaignSim(options: {
     throughActNumber,
     0,
     maxCombatTurns,
-    seedOffset
+    seedOffset,
+    undefined,
+    options.autoWinCombat ? { autoWinCombat: true } : undefined
   );
 
   const powerCurve = (report.checkpoints || []).map(extractPowerSnapshot);
@@ -130,7 +133,8 @@ export function runCampaignSim(options: {
 export function runRewardDistributionSim(
   classId: string,
   seedCount: number,
-  policyId = "aggressive"
+  policyId = "aggressive",
+  autoWinCombat = true
 ): {
   classId: string;
   runs: number;
@@ -146,7 +150,7 @@ export function runRewardDistributionSim(
 } {
   const results: CampaignSimResult[] = [];
   for (let i = 0; i < seedCount; i += 1) {
-    results.push(runCampaignSim({ classId, policyId, seedOffset: i }));
+    results.push(runCampaignSim({ classId, policyId, seedOffset: i, autoWinCombat }));
   }
 
   const cleared = results.filter((r) => r.outcome === "run_complete").length;

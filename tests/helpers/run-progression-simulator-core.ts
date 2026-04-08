@@ -1076,6 +1076,7 @@ export interface PolicySimulationHooks {
     report: PolicySimulationReport
     continuationContext: RunProgressionContinuationContext
   }) => void
+  autoWinCombat?: boolean
 }
 
 export function clamp(value: number, min: number, max: number) {

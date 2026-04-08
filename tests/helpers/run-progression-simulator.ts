@@ -815,32 +815,42 @@ export function runProgressionPolicyFromState(
 
     if (state.phase === PHASES.ENCOUNTER) {
       const currentEncounterContext = lastEncounterContext ? { ...lastEncounterContext } : null
-      const combatResult = playStateCombat(
-        harness,
-        state,
-        policy,
-        maxCombatTurns,
-        hooks?.onEncounterProgress && currentEncounterContext
-          ? {
-              onProgress: (progressEvent) => {
-                hooks.onEncounterProgress?.({
-                  classId,
-                  policy,
-                  seedOffset,
-                  encounter: currentEncounterContext,
-                  stage: progressEvent.stage,
-                  turn: progressEvent.turn,
-                  actionIndex: progressEvent.actionIndex,
-                  candidateCount: progressEvent.candidateCount,
-                  bestScore: progressEvent.bestScore,
-                  stepElapsedMs: progressEvent.stepElapsedMs,
-                  encounterElapsedMs: progressEvent.encounterElapsedMs,
-                  detail: progressEvent.detail,
-                })
-              },
-            }
-          : undefined
-      )
+      let combatResult: ReturnType<typeof playStateCombat> = null
+      if (hooks?.autoWinCombat && state.combat) {
+        // Auto-win: force victory without running combat simulation
+        state.combat.enemies.forEach((enemy: CombatEnemyState) => {
+          enemy.life = 0
+          enemy.alive = false
+        })
+        state.combat.outcome = "victory" as CombatOutcome
+      } else {
+        combatResult = playStateCombat(
+          harness,
+          state,
+          policy,
+          maxCombatTurns,
+          hooks?.onEncounterProgress && currentEncounterContext
+            ? {
+                onProgress: (progressEvent) => {
+                  hooks.onEncounterProgress?.({
+                    classId,
+                    policy,
+                    seedOffset,
+                    encounter: currentEncounterContext,
+                    stage: progressEvent.stage,
+                    turn: progressEvent.turn,
+                    actionIndex: progressEvent.actionIndex,
+                    candidateCount: progressEvent.candidateCount,
+                    bestScore: progressEvent.bestScore,
+                    stepElapsedMs: progressEvent.stepElapsedMs,
+                    encounterElapsedMs: progressEvent.encounterElapsedMs,
+                    detail: progressEvent.detail,
+                  })
+                },
+              }
+            : undefined
+        )
+      }
       const encounterMetric = buildEncounterMetric(harness, state.run, lastEncounterContext, combatResult)
       if (encounterMetric) {
         progress.encounterResults.push(encounterMetric)
