@@ -692,8 +692,36 @@ export function evaluateRunScore(
 }
 
 export function cloneRun(harness: AppHarness, run: RunState) {
-  const deepClone = harness.browserWindow.ROUGE_UTILS.deepClone as <T>(value: T) => T
-  return harness.runFactory.hydrateRun(deepClone(run), harness.content)
+  return shallowCloneRun(harness, run)
+}
+
+function shallowCloneRun(harness: AppHarness, run: RunState): RunState {
+  const clone = Object.assign({}, run) as RunState
+  // Deep-copy only the fields that town actions mutate
+  clone.deck = [...run.deck]
+  clone.hero = { ...run.hero }
+  clone.mercenary = { ...run.mercenary }
+  clone.belt = { ...run.belt }
+  clone.inventory = run.inventory
+    ? JSON.parse(JSON.stringify(run.inventory)) as RunInventoryState
+    : run.inventory
+  clone.loadout = {
+    weapon: run.loadout.weapon ? { ...run.loadout.weapon } : null,
+    armor: run.loadout.armor ? { ...run.loadout.armor } : null,
+    helm: run.loadout.helm ? { ...run.loadout.helm } : null,
+    shield: run.loadout.shield ? { ...run.loadout.shield } : null,
+    gloves: run.loadout.gloves ? { ...run.loadout.gloves } : null,
+    boots: run.loadout.boots ? { ...run.loadout.boots } : null,
+    belt: run.loadout.belt ? { ...run.loadout.belt } : null,
+    ring1: run.loadout.ring1 ? { ...run.loadout.ring1 } : null,
+    ring2: run.loadout.ring2 ? { ...run.loadout.ring2 } : null,
+    amulet: run.loadout.amulet ? { ...run.loadout.amulet } : null,
+  }
+  clone.progression = run.progression ? { ...run.progression, classProgression: { ...run.progression.classProgression, treeRanks: { ...run.progression.classProgression.treeRanks }, unlockedSkillIds: [...run.progression.classProgression.unlockedSkillIds], equippedSkillBar: { ...run.progression.classProgression.equippedSkillBar } } } : run.progression
+  clone.town = run.town ? { ...run.town } : run.town
+  clone.summary = run.summary ? { ...run.summary } : run.summary
+  // Acts, zones, world state: shared references (town actions don't modify these)
+  return harness.runFactory.hydrateRun(clone, harness.content)
 }
 
 function isOptimizableTownAction(action: TownAction) {
