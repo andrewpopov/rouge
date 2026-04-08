@@ -1585,7 +1585,7 @@ function scoreCandidateAction(candidate: CombatCandidateAction, state: CombatSta
   };
 }
 
-function chooseBestAction(state: CombatState, content: GameContent, engine: CombatEngineApi) {
+export function chooseBestAction(state: CombatState, content: GameContent, engine: CombatEngineApi) {
   const candidates = listCandidateActions(state, content, engine).sort((left, right) => right.score - left.score);
   const best = candidates[0] || { type: "end_turn", score: 0 };
   const currentShortfall = getThreatShortfall(state);
@@ -1615,7 +1615,7 @@ function chooseBestAction(state: CombatState, content: GameContent, engine: Comb
   return best;
 }
 
-function executeAction(action: CombatCandidateAction, state: CombatState, content: GameContent, engine: CombatEngineApi) {
+export function executeAction(action: CombatCandidateAction, state: CombatState, content: GameContent, engine: CombatEngineApi) {
   if (action.type === "card" && action.instanceId) {
     return engine.playCard(state, content, action.instanceId, action.targetId || "");
   }
