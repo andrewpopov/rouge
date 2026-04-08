@@ -7,7 +7,7 @@ import {
   scorePartyPower,
   scoreWeaponProfile,
 } from "./balance-power-score";
-import { SIMULATION_SCORING_WEIGHTS } from "./run-progression-simulator-core";
+import { ATTACK_INTENT_KINDS, SIMULATION_SCORING_WEIGHTS } from "./run-progression-simulator-core";
 import { applySimulationTrainingLoadout } from "./run-progression-simulator";
 import {
   getEnemyStatusScore,
@@ -954,10 +954,30 @@ function buildScenarioDeck(harness: ReturnType<typeof createAppHarness>, classId
     ...(harness.content.rewardPools?.bossCards || []),
   ]).filter((cardId) => !starterDeck.includes(cardId) && Boolean(harness.content.cardCatalog[cardId]));
 
-  const ranked = candidateIds.sort((left, right) => {
-    return scoreCard(harness.content.cardCatalog[right]) - scoreCard(harness.content.cardCatalog[left]);
-  });
-  const addedCards = ranked.slice(0, scenario.deckAdditions);
+  // Draft with offense/defense balance: ~60% offense, ~40% defense
+  // A pure score-ranked draft produces all-offense decks that can't survive.
+  const isDefensiveCard = (cardId: string) => {
+    const card = harness.content.cardCatalog[cardId];
+    if (!card) return false;
+    const hasGuard = (card.effects || []).some((e: CardEffect) => e.kind === "gain_guard_self" || e.kind === "gain_guard_party");
+    const hasHeal = (card.effects || []).some((e: CardEffect) => e.kind === "heal_hero" || e.kind === "heal_mercenary");
+    const hasDamage = (card.effects || []).some((e: CardEffect) => e.kind === "damage" || e.kind === "damage_all");
+    return (hasGuard || hasHeal) && !hasDamage;
+  };
+
+  const offenseCandidates = candidateIds.filter((id) => !isDefensiveCard(id))
+    .sort((left, right) => scoreCard(harness.content.cardCatalog[right]) - scoreCard(harness.content.cardCatalog[left]));
+  const defenseCandidates = candidateIds.filter((id) => isDefensiveCard(id))
+    .sort((left, right) => scoreCard(harness.content.cardCatalog[right]) - scoreCard(harness.content.cardCatalog[left]));
+
+  const targetDefense = Math.max(2, Math.floor(scenario.deckAdditions * 0.35));
+  const targetOffense = scenario.deckAdditions - targetDefense;
+
+  const addedCards = [
+    ...offenseCandidates.slice(0, targetOffense),
+    ...defenseCandidates.slice(0, targetDefense),
+  ];
+
   return {
     deck: [...starterDeck, ...addedCards],
     addedCards,
@@ -1284,20 +1304,46 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
   const underImmediateThreat = beforeShortfall > 0 || (chargeThreat && beforePressure >= 0.55);
   const shortfallWeight = underImmediateThreat ? (chargeThreat ? 22 : 12) : (chargeThreat ? 14 : 7);
 
+  // Intent-aware defense: compute exact incoming damage and scale guard/heal value proportionally
+  const heroHpRatio = before.hero.maxLife > 0 ? before.hero.life / before.hero.maxLife : 1;
+  const survivalUrgency = heroHpRatio < 0.3 ? 2.5 : heroHpRatio < 0.5 ? 1.8 : heroHpRatio < 0.7 ? 1.3 : 1.0;
+  const incomingThreat = _beforeThreat;
+  const guardGap = Math.max(0, incomingThreat - before.hero.guard);
+  const guardSurplus = Math.max(0, before.hero.guard - incomingThreat);
+  const guardUrgency = guardGap > 0 ? 1.5 + Math.min(1.5, guardGap / Math.max(1, before.hero.maxLife) * 3) : Math.max(0.4, 1 - guardSurplus * 0.06);
+  const wouldBeLethal = incomingThreat > before.hero.guard + before.hero.life;
+  const afterSurvivesLethal = wouldBeLethal && (incomingThreat <= after.hero.guard + after.hero.life);
+
+  // Kill-removes-threat: killing an enemy removes its incoming intent damage
+  const killedEnemyThreatRemoved = before.enemies.reduce((sum, enemy) => {
+    if (!enemy.alive) { return sum; }
+    const afterEnemy = after.enemies.find((e) => e.id === enemy.id);
+    if (afterEnemy && !afterEnemy.alive && enemy.currentIntent) {
+      const intentValue = Number(enemy.currentIntent.value || 0);
+      if (ATTACK_INTENT_KINDS.has(enemy.currentIntent.kind)) { return sum + intentValue; }
+      if (enemy.currentIntent.kind === "charge") { return sum + intentValue; }
+    }
+    return sum;
+  }, 0);
+
   let score =
-    (beforeEnemyLife - afterEnemyLife) * 3.4 +
+    (beforeEnemyLife - afterEnemyLife) * 3.0 +
     (beforeEnemyGuard - afterEnemyGuard) * 1.0 +
-    (before.hero.life - after.hero.life) * 0 +
-    (after.hero.life - before.hero.life) * 2.4 +
-    (after.hero.guard - before.hero.guard) * 1.8 * guardValueFactor +
-    (after.mercenary.life - before.mercenary.life) * 1.0 +
-    (after.mercenary.guard - before.mercenary.guard) * 0.8 * guardValueFactor +
+    (after.hero.life - before.hero.life) * (2.5 * survivalUrgency) +
+    (after.hero.guard - before.hero.guard) * (2.2 + 0.3) * guardValueFactor * guardUrgency +
+    (after.mercenary.life - before.mercenary.life) * 1.8 +
+    (after.mercenary.guard - before.mercenary.guard) * 1.2 * guardValueFactor +
     (beforeLivingEnemies - afterLivingEnemies) * 45 +
-    (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.4 +
+    killedEnemyThreatRemoved * 3.5 +
+    (getEnemyStatusScore(after) - getEnemyStatusScore(before)) * 1.2 +
     (getHeroDebuffScore(before) - getHeroDebuffScore(after)) * 2.0 +
     (beforeShortfall - afterShortfall) * shortfallWeight +
     (beforePressure - afterPressure) * (chargeThreat ? 42 : 18) +
     (getHandValue(after, content) - getHandValue(before, content)) * 0.12;
+
+  if (afterSurvivesLethal) {
+    score += 80;
+  }
 
   if (beforeShortfall > 0 && afterShortfall <= 0) {
     score += chargeThreat ? 90 : 45;
@@ -1307,6 +1353,9 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
   }
   if (beforeShortfall > 0 && afterShortfall > 0) {
     score += (beforeShortfall - afterShortfall) * (chargeThreat ? 18 : 10);
+  }
+  if (chargeThreat && after.hero.guard > before.hero.guard && afterShortfall < beforeShortfall) {
+    score += 18;
   }
   if (afterThreatProfile.bypassGuardThreat > beforeThreatProfile.bypassGuardThreat) {
     score -= (afterThreatProfile.bypassGuardThreat - beforeThreatProfile.bypassGuardThreat) * 0.9;
@@ -1327,14 +1376,10 @@ function scoreCombatStateDelta(before: CombatState, after: CombatState, content:
     score -= 1000;
   }
   if (actionType === "potion") {
-    score -= 5;
-    if (beforeShortfall > 0 || before.hero.life / Math.max(1, before.hero.maxLife) <= 0.35) {
-      score += 18;
+    if (wouldBeLethal) {
+      score += 30;
     }
-    if (chargeThreat && beforePressure >= 0.55) {
-      score += 12;
-    }
-    if ((before.hero.heroBurn + before.hero.heroPoison) >= 2 && before.hero.life / Math.max(1, before.hero.maxLife) <= 0.6) {
+    if ((before.hero.heroBurn + before.hero.heroPoison) >= 2 && heroHpRatio <= 0.6) {
       score += 8;
     }
   }
@@ -1489,17 +1534,11 @@ function chooseBestAction(state: CombatState, content: GameContent, engine: Comb
   if (currentShortfall > 0 && bestThreatReducer && Number(bestThreatReducer.afterShortfall ?? Number.POSITIVE_INFINITY) < currentShortfall) {
     return bestThreatReducer;
   }
-  if (!best || best.score < 1) {
-    const chargeThreat = hasChargeThreat(state);
-    const threatPressure = getThreatPressure(state);
-    if (
-      bestActiveCandidate &&
-      (chargeThreat || threatPressure >= 0.45) &&
-      bestActiveCandidate.score > Number(candidates.find((candidate) => candidate.type === "end_turn")?.score ?? Number.NEGATIVE_INFINITY)
-    ) {
-      return bestActiveCandidate;
-    }
-    return { type: "end_turn", score: 0 } as CombatCandidateAction;
+  // Play any action that scores higher than end_turn
+  const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn");
+  const endTurnScore = Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY);
+  if (!best || !bestActiveCandidate || bestActiveCandidate.score <= endTurnScore) {
+    return endTurnCandidate || ({ type: "end_turn", score: 0 } as CombatCandidateAction);
   }
   return best;
 }
