@@ -110,6 +110,7 @@ interface AppState {
     explorationEvent: ExplorationEvent | null;
     combatPileView: "" | "draw" | "discard" | "decklist";
     combatLogOpen: boolean;
+    enemyInspectId: string;
     scrollMapOpen: boolean;
     routeIntelOpen: boolean;
     actTransitionScrollOpen: boolean;

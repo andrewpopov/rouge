@@ -118,6 +118,7 @@
         explorationEvent: null,
         combatPileView: "",
         combatLogOpen: false,
+        enemyInspectId: "",
         scrollMapOpen: false,
         routeIntelOpen: false,
         actTransitionScrollOpen: false,

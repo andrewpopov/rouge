@@ -211,28 +211,41 @@
     `;
   }
 
-  function getAfflictionStateClasses(options: { burn?: number; poison?: number }): string {
+  interface AfflictionOptions {
+    burn?: number;
+    poison?: number;
+    slow?: number;
+    freeze?: number;
+    stun?: number;
+    paralyze?: number;
+  }
+
+  function getAfflictionStateClasses(options: AfflictionOptions): string {
     const classes: string[] = [];
-    if ((options.burn || 0) > 0) {
-      classes.push("sprite--afflicted-burn");
-    }
-    if ((options.poison || 0) > 0) {
-      classes.push("sprite--afflicted-poison");
-    }
+    if ((options.burn || 0) > 0) { classes.push("sprite--afflicted-burn"); }
+    if ((options.poison || 0) > 0) { classes.push("sprite--afflicted-poison"); }
+    if ((options.freeze || 0) > 0) { classes.push("sprite--afflicted-freeze"); }
+    if ((options.stun || 0) > 0) { classes.push("sprite--afflicted-stun"); }
+    if ((options.paralyze || 0) > 0) { classes.push("sprite--afflicted-paralyze"); }
+    if ((options.slow || 0) > 0) { classes.push("sprite--afflicted-slow"); }
     return classes.join(" ");
   }
 
-  function renderAfflictionLayers(options: { burn?: number; poison?: number }): string {
-    const burn = options.burn || 0;
-    const poison = options.poison || 0;
-    if (burn <= 0 && poison <= 0) {
+  function renderAfflictionLayers(options: AfflictionOptions): string {
+    const entries = [
+      (options.burn || 0) > 0 ? "burn" : "",
+      (options.poison || 0) > 0 ? "poison" : "",
+      (options.freeze || 0) > 0 ? "freeze" : "",
+      (options.stun || 0) > 0 ? "stun" : "",
+      (options.paralyze || 0) > 0 ? "paralyze" : "",
+      (options.slow || 0) > 0 ? "slow" : "",
+    ].filter(Boolean);
+    if (entries.length === 0) {
       return "";
     }
-
     return `
       <div class="sprite__affliction-layers" aria-hidden="true">
-        ${burn > 0 ? `<span class="sprite__affliction sprite__affliction--burn"></span>` : ""}
-        ${poison > 0 ? `<span class="sprite__affliction sprite__affliction--poison"></span>` : ""}
+        ${entries.map((kind) => `<span class="sprite__affliction sprite__affliction--${kind}"></span>`).join("")}
       </div>
     `;
   }
@@ -471,8 +484,8 @@
       enemyTierClass = "sprite--elite";
     }
     const enemyStageClass = getEnemyStageProfile(enemy);
-    const afflictionStateClasses = getAfflictionStateClasses({ burn: enemy.burn, poison: enemy.poison });
-    const afflictionLayerHtml = renderAfflictionLayers({ burn: enemy.burn, poison: enemy.poison });
+    const afflictionStateClasses = getAfflictionStateClasses({ burn: enemy.burn, poison: enemy.poison, slow: enemy.slow, freeze: enemy.freeze, stun: enemy.stun, paralyze: enemy.paralyze });
+    const afflictionLayerHtml = renderAfflictionLayers({ burn: enemy.burn, poison: enemy.poison, slow: enemy.slow, freeze: enemy.freeze, stun: enemy.stun, paralyze: enemy.paralyze });
     const enemyHpPct = Math.round((enemy.life / enemy.maxLife) * 100);
     const enemyIcon = assets ? assets.getEnemyIcon(enemy.templateId || enemy.id) : "";
     const intentSvg = assets ? svgIcon(assets.getIntentIcon(intentDesc), "intent-icon", intentDesc) : "";
@@ -521,6 +534,71 @@
           ${enemyFooter ? `<div class="sprite__enemy-footer">${enemyFooter}</div>` : '<span class="sprite__action-spacer" aria-hidden="true"></span>'}
         </div>
       </button>
+    `;
+  }
+
+  const STATUS_DESCRIPTIONS: Record<string, { icon: string; name: string; color: string; desc: string }> = {
+    burn: { icon: "\u{1F525}", name: "Burn", color: "#f4a87c", desc: "Takes damage each turn. Stacks decay by 1." },
+    poison: { icon: "\u2620", name: "Poison", color: "#7cd48c", desc: "Takes damage each turn. Stacks decay by 1." },
+    slow: { icon: "\u{1F422}", name: "Slow", color: "#8cc8e8", desc: "Delayed actions. Reduces by 1 each turn." },
+    freeze: { icon: "\u2744", name: "Freeze", color: "#a0d8f4", desc: "Cannot act this turn. Reduces by 1." },
+    stun: { icon: "\u26A1", name: "Stun", color: "#f4e87c", desc: "Cannot act this turn. Reduces by 1." },
+    paralyze: { icon: "\u{1F50C}", name: "Paralyze", color: "#c8a0f4", desc: "Attack power weakened. Reduces by 1." },
+  };
+
+  function renderEnemyInspectPanel(
+    combat: CombatState,
+    enemy: CombatEnemyState,
+    escapeHtml: (s: string) => string
+  ): string {
+    const hpPct = Math.round((enemy.life / enemy.maxLife) * 100);
+    const intentDesc = runtimeWindow.ROUGE_COMBAT_ENGINE?.describeIntent?.(enemy.currentIntent) || "Unknown";
+
+    const statuses: Array<{ icon: string; name: string; stacks: number; color: string; desc: string }> = [];
+    if (enemy.guard > 0) {
+      statuses.push({ icon: "\u{1F6E1}", name: "Guard", stacks: enemy.guard, color: "#7caaf4", desc: "Absorbs damage before life is lost." });
+    }
+    for (const [key, meta] of Object.entries(STATUS_DESCRIPTIONS)) {
+      const value = Number((enemy as unknown as Record<string, number>)[key] || 0);
+      if (value > 0) {
+        statuses.push({ ...meta, stacks: value });
+      }
+    }
+
+    const traits = Array.isArray(enemy.traits) && enemy.traits.length > 0
+      ? enemy.traits.map((trait) => escapeHtml(String(trait).replace(/_/g, " "))).join(", ")
+      : "";
+
+    return `
+      <div class="enemy-inspect" data-action="close-enemy-inspect" aria-label="Enemy details">
+        <div class="enemy-inspect__card">
+          <header class="enemy-inspect__header">
+            <h3 class="enemy-inspect__name">${escapeHtml(enemy.name)}</h3>
+            <span class="enemy-inspect__hp">${enemy.life} / ${enemy.maxLife} HP (${hpPct}%)</span>
+          </header>
+          ${enemy.alive ? `
+            <div class="enemy-inspect__intent">
+              <span class="enemy-inspect__intent-label">Intent:</span>
+              <span class="enemy-inspect__intent-value">${escapeHtml(intentDesc)}</span>
+            </div>
+          ` : `<div class="enemy-inspect__intent"><span class="enemy-inspect__intent-value">Defeated</span></div>`}
+          ${statuses.length > 0 ? `
+            <ul class="enemy-inspect__statuses">
+              ${statuses.map((status) => `
+                <li class="enemy-inspect__status" style="border-color: ${status.color}33">
+                  <span class="enemy-inspect__status-icon" style="color: ${status.color}">${status.icon}</span>
+                  <div class="enemy-inspect__status-body">
+                    <span class="enemy-inspect__status-name" style="color: ${status.color}">${escapeHtml(status.name)} <strong>${status.stacks}</strong></span>
+                    <span class="enemy-inspect__status-desc">${escapeHtml(status.desc)}</span>
+                  </div>
+                </li>
+              `).join("")}
+            </ul>
+          ` : `<p class="enemy-inspect__clean">No active effects.</p>`}
+          ${traits ? `<div class="enemy-inspect__traits"><span class="enemy-inspect__traits-label">Traits:</span> ${traits}</div>` : ""}
+          <button class="enemy-inspect__close" data-action="close-enemy-inspect">Dismiss</button>
+        </div>
+      </div>
     `;
   }
 
@@ -578,6 +656,7 @@
     renderAllySprite,
     renderMinionRack,
     renderEnemySprite,
+    renderEnemyInspectPanel,
     renderHandCard,
     renderCombatCardComponent,
     svgIcon,

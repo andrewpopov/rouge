@@ -413,6 +413,11 @@
                   ).join("")}
                 </div>
 
+                ${appState.ui.enemyInspectId ? (() => {
+                  const inspectedEnemy = combat.enemies.find((enemy) => enemy.id === appState.ui.enemyInspectId);
+                  return inspectedEnemy ? renderers.renderEnemyInspectPanel(combat, inspectedEnemy, escapeHtml) : "";
+                })() : ""}
+
                 ${combat.outcome ? `
                   <div class="stage__outcome stage__outcome--${combat.outcome}">
                     <div class="stage__outcome-title">${combat.outcome === COMBAT_OUTCOME.VICTORY ? "\u2694 Victory!" : "\u{1F480} Defeat"}</div>

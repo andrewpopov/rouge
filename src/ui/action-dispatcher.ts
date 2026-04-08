@@ -306,8 +306,17 @@
         return true;
       case "select-enemy":
         if (appState.combat) {
-          appState.combat.selectedEnemyId = actionEl.dataset.enemyId || "";
+          const enemyId = actionEl.dataset.enemyId || "";
+          if (appState.combat.selectedEnemyId === enemyId && enemyId) {
+            appState.ui.enemyInspectId = enemyId;
+          } else {
+            appState.combat.selectedEnemyId = enemyId;
+            appState.ui.enemyInspectId = "";
+          }
         }
+        return true;
+      case "close-enemy-inspect":
+        appState.ui.enemyInspectId = "";
         return true;
       case "open-combat-pile":
         if (appState.combat && appState.phase === appEngine.PHASES.ENCOUNTER) {
