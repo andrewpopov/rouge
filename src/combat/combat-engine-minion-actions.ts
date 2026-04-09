@@ -38,6 +38,13 @@
   const damageModule = runtimeWindow.__ROUGE_COMBAT_ENGINE_DAMAGE;
   const { healEntity, applyGuard, dealDamage } = damageModule;
 
+  const { parseInteger } = runtimeWindow.ROUGE_UTILS;
+  const { isTrapTemplate, isSupportTemplate, isTankTemplate } = runtimeWindow.__ROUGE_COMBAT_UTILS;
+
+  function getMinionStackCount(minion: CombatMinionState): number {
+    return Math.max(1, (minion as { stackCount?: number }).stackCount || 1);
+  }
+
   function summonMinion(state: CombatState, effect: CardEffect) {
     const template = getMinionTemplate(String(effect.minionId || ""));
     if (!template) {
@@ -47,9 +54,33 @@
     const power = getMinionPrimaryValue(effect);
     const secondaryValue = getMinionSecondaryValue(effect);
     const duration = getMinionDuration(effect, template);
-    const existing = getActiveMinions(state).find((minion) => minion.templateId === template.id);
+    const templateStackCap = Math.max(0, parseInteger((template as { stackCap?: number }).stackCap, 0));
+    const templateStackGroup = (template as { stackGroup?: string }).stackGroup || "";
+    const existing = getActiveMinions(state).find((minion) => {
+      if (minion.templateId === template.id) { return true; }
+      if (templateStackGroup) {
+        const minionTemplate = getMinionTemplate(minion.templateId);
+        return minionTemplate && (minionTemplate as { stackGroup?: string }).stackGroup === templateStackGroup;
+      }
+      return false;
+    });
 
     if (existing) {
+      const currentStackCount = getMinionStackCount(existing);
+      const atStackCap = templateStackCap > 0 && currentStackCount >= templateStackCap;
+      if (atStackCap) {
+        if (!existing.persistent) {
+          existing.remainingTurns = Math.max(existing.remainingTurns, duration) + 1;
+        }
+        return `${existing.name} is already at max stack (${templateStackCap}) and refreshes (${getMinionSkillSummary(existing)}, ${existing.life}/${existing.maxLife} HP${existing.persistent ? "" : `, ${existing.remainingTurns} turns`}).`;
+      }
+      const stackAbility = (template as { stackAbility?: string }).stackAbility || "";
+      if (stackAbility && !(existing as { stackAbilities?: string[] }).stackAbilities?.includes(stackAbility)) {
+        const abilities = (existing as { stackAbilities?: string[] }).stackAbilities || [];
+        abilities.push(stackAbility);
+        existing.stackAbilities = abilities;
+      }
+      existing.stackCount = getMinionStackCount(existing) + 1;
       existing.power += getMinionReinforcementValue(power);
       if (secondaryValue > 0) {
         existing.secondaryValue += getMinionReinforcementValue(secondaryValue);
@@ -57,13 +88,41 @@
       if (!existing.persistent) {
         existing.remainingTurns = Math.max(existing.remainingTurns, duration) + 1;
       }
-      return `${existing.name} is reinforced (${getMinionSkillSummary(existing)}${existing.persistent ? "" : `, ${existing.remainingTurns} turns`}).`;
+      const hpGain = getMinionReinforcementValue(power) * 2;
+      existing.maxLife += hpGain;
+      existing.life = Math.min(existing.maxLife, existing.life + hpGain);
+      existing.alive = true;
+      return `${existing.name} is reinforced (${getMinionSkillSummary(existing)}, ${existing.life}/${existing.maxLife} HP${existing.persistent ? "" : `, ${existing.remainingTurns} turns`}).`;
     }
 
-    if (getActiveMinions(state).length >= MAX_ACTIVE_MINIONS) {
-      return `${template.name} cannot enter the field. Minion limit reached (${MAX_ACTIVE_MINIONS}).`;
+    // Classify minion type for HP and targeting
+    const isTankMinion = isTankTemplate(template);
+    const isTrapMinion = isTrapTemplate(template);
+    const isSupportMinion = isSupportTemplate(template);
+
+    // Split cap: creatures and traps have separate limits
+    const activeMinions = getActiveMinions(state);
+    const activeCreatures = activeMinions.filter((m: CombatMinionState) => !m.invulnerable).length;
+    const activeTraps = activeMinions.filter((m: CombatMinionState) => m.invulnerable).length;
+    const isNewTrap = isTrapMinion || isSupportMinion;
+    let atCap = false;
+    if (isNewTrap) {
+      atCap = activeTraps >= minionModule.MAX_ACTIVE_TRAPS;
+    } else {
+      atCap = activeCreatures >= minionModule.MAX_ACTIVE_CREATURES;
     }
 
+    if (atCap) {
+      const capLabel = isNewTrap ? "trap" : "creature";
+      const capValue = isNewTrap ? minionModule.MAX_ACTIVE_TRAPS : minionModule.MAX_ACTIVE_CREATURES;
+      return `${template.name} cannot enter the field. ${capLabel} limit reached (${capValue}).`;
+    }
+    let minionMaxLife = Math.max(8, power * 2);
+    if (isTrapMinion) {
+      minionMaxLife = 1;
+    } else if (isTankMinion) {
+      minionMaxLife = Math.max(12, power * 3);
+    }
     const minion: CombatMinionState = {
       id: `minion_${state.turn}_${state.minions.length + 1}_${template.id}`,
       templateId: template.id,
@@ -75,6 +134,14 @@
       secondaryValue,
       remainingTurns: duration,
       persistent: template.persistent,
+      life: minionMaxLife,
+      maxLife: minionMaxLife,
+      guard: 0,
+      alive: true,
+      taunt: isTankMinion,
+      invulnerable: isTrapMinion || isSupportMinion,
+      stackCount: 1,
+      stackAbilities: (template as { stackAbility?: string }).stackAbility ? [(template as { stackAbility?: string }).stackAbility!] : [],
     };
     state.minions.push(minion);
     return `${minion.name} joins the field (${getMinionSkillSummary(minion)}${minion.persistent ? "" : `, ${minion.remainingTurns} turns`}).`;
@@ -281,10 +348,17 @@
     state.minions = getActiveMinions(state).filter((minion: CombatMinionState) => minion.persistent || minion.remainingTurns > 0);
   }
 
+  function getMinionArtTier(minion: CombatMinionState, maxTier?: number): number {
+    const tierCap = Math.max(1, Number(maxTier) || 5);
+    return Math.min(tierCap, getMinionStackCount(minion));
+  }
+
   runtimeWindow.__ROUGE_COMBAT_ENGINE_MINION_ACTIONS = {
     summonMinion,
     chooseMinionTarget,
     resolveMinionAction,
     resolveMinionPhase,
+    getMinionStackCount,
+    getMinionArtTier,
   };
 })();

@@ -56,7 +56,7 @@
 
   // Import from extracted modules
   const damageModule = runtimeWindow.__ROUGE_COMBAT_ENGINE_DAMAGE;
-  const { hasTrait, healEntity, applyGuard, dealDamage, dealDirectDamage, dealLifeDamage } = damageModule;
+  const { hasTrait, healEntity, applyGuard, dealDamage, dealDirectDamage, dealDamageIgnoringGuard, dealLifeDamage } = damageModule;
   const enemyTurnsModule = runtimeWindow.__ROUGE_COMBAT_ENGINE_ENEMY_TURNS;
   const { resolveEnemyAction, advanceEnemyIntents } = enemyTurnsModule;
 
@@ -87,7 +87,7 @@
   }
 
   const minionActionsModule = runtimeWindow.__ROUGE_COMBAT_ENGINE_MINION_ACTIONS;
-  const { summonMinion, resolveMinionPhase } = minionActionsModule;
+  const { summonMinion, resolveMinionPhase, getMinionStackCount, getMinionArtTier } = minionActionsModule;
 
   /* summonMinion, chooseMinionTarget, resolveMinionAction, resolveMinionPhase → combat-engine-minion-actions.ts */
 
@@ -159,6 +159,8 @@
       nextCardParalyze: 0,
       nextCardDraw: 0,
       nextCardGuard: 0,
+      nextCardIgnoreGuard: 0,
+      nextCardExtraStatus: 0,
     };
   }
 
@@ -357,7 +359,10 @@
     applyGuard,
     dealDamage,
     dealDirectDamage,
+    dealDamageIgnoringGuard,
     dealLifeDamage,
+    getMinionStackCount,
+    getMinionArtTier,
     checkOutcome,
     getLivingEnemies,
     getFirstLivingEnemyId,

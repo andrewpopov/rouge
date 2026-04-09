@@ -1123,6 +1123,7 @@ interface Window {
     handleDefeat(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState): void;
     dealDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number, damageType?: DamageType): number;
     dealDirectDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number, damageType?: DamageType): number;
+    dealDamageIgnoringGuard(state: CombatState, entity: CombatEnemyState, amount: number, ignoreGuard: number, damageType?: DamageType): number;
     dealLifeDamage(state: CombatState, entity: CombatEnemyState, amount: number): number;
   };
   __ROUGE_COMBAT_ENGINE_MINION_ACTIONS: {
@@ -1130,6 +1131,8 @@ interface Window {
     chooseMinionTarget(state: CombatState, minion: CombatMinionState): CombatEnemyState | null;
     resolveMinionAction(state: CombatState, minion: CombatMinionState): void;
     resolveMinionPhase(state: CombatState): void;
+    getMinionStackCount(minion: CombatMinionState): number;
+    getMinionArtTier(minion: CombatMinionState, maxTier?: number): number;
   };
   __ROUGE_COMBAT_ENGINE_ENEMY_TURNS: {
     chooseEnemyTarget(state: CombatState, rule: EnemyIntentTarget | undefined): CombatHeroState | CombatMercenaryState | null;

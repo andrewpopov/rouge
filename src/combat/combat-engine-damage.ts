@@ -224,6 +224,27 @@
     return before - entity.life;
   }
 
+  function dealDamageIgnoringGuard(
+    state: CombatState,
+    entity: CombatEnemyState,
+    amount: number,
+    ignoreGuard: number,
+    damageType: DamageType = "physical"
+  ) {
+    if (!entity || !entity.alive) { return 0; }
+    const damage = getMitigatedIncomingDamage(state, entity, amount, damageType);
+    const effectiveGuard = Math.max(0, entity.guard - Math.max(0, ignoreGuard));
+    const blocked = Math.min(effectiveGuard, damage);
+    entity.guard = Math.max(0, entity.guard - blocked);
+    const lifeLoss = Math.max(0, damage - blocked);
+    entity.life = Math.max(0, entity.life - lifeLoss);
+    trackLowestLife(state, entity);
+    if (entity.life <= 0 && entity.alive) {
+      handleDefeat(state, entity);
+    }
+    return lifeLoss;
+  }
+
   runtimeWindow.__ROUGE_COMBAT_ENGINE_DAMAGE = {
     hasTrait,
     healEntity,
@@ -232,6 +253,7 @@
     handleDefeat,
     dealDamage,
     dealDirectDamage,
+    dealDamageIgnoringGuard,
     dealLifeDamage,
   };
 })();
