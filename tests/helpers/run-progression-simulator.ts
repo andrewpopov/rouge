@@ -121,6 +121,52 @@ function getSimulationAssumptions(archetypePlan: RunArchetypeSimulationPlan | nu
   return assumptions
 }
 
+function autoUnlockAndEquipSkills(
+  harness: ReturnType<typeof createQuietAppHarness>,
+  state: AppState
+) {
+  if (!state.run) { return }
+  const progressionApi = harness.browserWindow.ROUGE_RUN_PROGRESSION
+  if (!progressionApi) { return }
+  const run = state.run
+
+  // Sync the skill state with current tree ranks
+  progressionApi.syncUnlockedClassSkills(run, harness.content)
+
+  // Try to unlock and equip skills for slot2 and slot3
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId)
+  if (!classProgression) { return }
+
+  const trees = (classProgression as unknown as { trees?: Array<{ id: string; skills?: Array<{ id: string; slot?: number; tier?: string; requiredLevel?: number }> }> }).trees || []
+
+  for (const slotKey of ["slot2", "slot3"] as const) {
+    const currentSkillId = run.progression?.classProgression?.equippedSkillBar?.[`${slotKey}SkillId`] || ""
+    if (currentSkillId) { continue } // Already equipped
+
+    const targetSlot = slotKey === "slot2" ? 2 : 3
+
+    // Find eligible skills for this slot — try unlock, then equip first success
+    for (const tree of trees) {
+      for (const skill of (tree.skills || [])) {
+        if (Number(skill.slot || 0) !== targetSlot) { continue }
+        if (Number(skill.requiredLevel || 99) > run.level) { continue }
+
+        // Try to unlock
+        const unlockResult = progressionApi.unlockTrainingSkill(run, harness.content, skill.id)
+        if (!unlockResult?.ok && !unlockResult?.message?.includes("already learned")) { continue }
+
+        // Try to equip
+        const equipResult = progressionApi.equipTrainingSkill(run, harness.content, slotKey, skill.id)
+        if (equipResult?.ok) { break }
+      }
+      const equipped = run.progression?.classProgression?.equippedSkillBar?.[`${slotKey}SkillId`] || ""
+      if (equipped) { break }
+    }
+  }
+
+  progressionApi.syncUnlockedClassSkills(run, harness.content)
+}
+
 export function applySimulationTrainingLoadout(
   harness: ReturnType<typeof createQuietAppHarness>,
   state: AppState,
@@ -589,6 +635,7 @@ export function runProgressionPolicyFromState(
     optimizeSafeZoneRun(harness, state.run as RunState, state.profile, policy, safeZoneMaxIterations, archetypePlan, {
       onTownActionApplied: (actionId) => countTownAction(progress, actionId),
     })
+    autoUnlockAndEquipSkills(harness, state)
     applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
     reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "initial")
     reportOperation("started", "build_checkpoint", 0, "initial")
@@ -710,6 +757,7 @@ export function runProgressionPolicyFromState(
           optimizeSafeZoneRun(harness, state.run, state.profile, policy, safeZoneMaxIterations, archetypePlan, {
             onTownActionApplied: (actionId) => countTownAction(progress, actionId),
           })
+          autoUnlockAndEquipSkills(harness, state)
           applySimulationTrainingLoadout(harness, state, requestedTrainingLoadout)
           reportOperation("completed", "optimize_safe_zone", Date.now() - optimizeStartedAt, "town return")
           const postRecoverySignature = getTownRecoverySignature()

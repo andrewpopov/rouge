@@ -986,6 +986,56 @@ function scoreTownActionStrategicBias(
     }
   }
 
+  // Tree investment bias: concentrate ranks, reward slot unlock gates
+  if (actionId.startsWith("progression_tree_")) {
+    const treeId = actionId.replace("progression_tree_", "")
+    const beforeRanks = beforeRun.progression?.classProgression?.treeRanks || {}
+    const afterRanks = afterRun.progression?.classProgression?.treeRanks || {}
+    const beforeHighestRank = Math.max(0, ...Object.values(beforeRanks).map(Number))
+    const afterHighestRank = Math.max(0, ...Object.values(afterRanks).map(Number))
+    const investedTreeRank = Number(afterRanks[treeId] || 0)
+    const beforeTreeRank = Number(beforeRanks[treeId] || 0)
+    const heroLevel = Number(beforeRun.level || 1)
+
+    // Strong bonus for concentrating in one tree
+    if (investedTreeRank > beforeHighestRank) {
+      total += 40
+    } else if (investedTreeRank === beforeHighestRank) {
+      total += 20
+    } else {
+      total -= 15
+    }
+
+    // Massive bonus for approaching skill unlock gates
+    // Slot 2: needs 3 ranks in any tree + level 6
+    if (heroLevel >= 6 && investedTreeRank === 3 && beforeTreeRank === 2) {
+      total += 80
+    } else if (heroLevel >= 4 && investedTreeRank >= 2 && beforeTreeRank < 2) {
+      total += 50
+    }
+
+    // Slot 3: needs 6 ranks in favored tree + level 12
+    if (heroLevel >= 12 && investedTreeRank === 6 && beforeTreeRank === 5) {
+      total += 100
+    } else if (heroLevel >= 10 && investedTreeRank >= 5 && beforeTreeRank < 5) {
+      total += 60
+    }
+
+    // General progression bonus — investing is better than not investing
+    total += 25
+
+    // Bonus for matching the favored tree
+    const favoredTreeId = beforeRun.progression?.classProgression?.favoredTreeId || ""
+    if (favoredTreeId && treeId === favoredTreeId) {
+      total += 30
+    }
+  }
+
+  // Skill point and attribute point spending bonus
+  if (actionId.startsWith("progression_spend_") || actionId.startsWith("progression_attribute_")) {
+    total += 15
+  }
+
   return total
 }
 
