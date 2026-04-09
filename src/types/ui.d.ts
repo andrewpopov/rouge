@@ -687,6 +687,27 @@ interface Window {
   __ROUGE_COMBAT_WEAPON_SCALING: CombatWeaponScalingApi;
   __ROUGE_COMBAT_MINIONS: CombatMinionsApi;
   __ROUGE_COMBAT_WEAPON_EFFECTS: CombatWeaponEffectsApi;
+  __ROUGE_COMBAT_ENGINE_DAMAGE: {
+    hasTrait(enemy: CombatEnemyState, trait: MonsterTraitKind): boolean;
+    healEntity(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number): number;
+    applyGuard(entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number): number;
+    trackLowestLife(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState): void;
+    handleDefeat(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState): void;
+    dealDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number, damageType?: DamageType): number;
+    dealDirectDamage(state: CombatState, entity: CombatHeroState | CombatMercenaryState | CombatEnemyState, amount: number, damageType?: DamageType): number;
+    dealLifeDamage(state: CombatState, entity: CombatEnemyState, amount: number): number;
+  };
+  __ROUGE_COMBAT_ENGINE_MINION_ACTIONS: {
+    summonMinion(state: CombatState, effect: CardEffect): string;
+    chooseMinionTarget(state: CombatState, minion: CombatMinionState): CombatEnemyState | null;
+    resolveMinionAction(state: CombatState, minion: CombatMinionState): void;
+    resolveMinionPhase(state: CombatState): void;
+  };
+  __ROUGE_COMBAT_ENGINE_ENEMY_TURNS: {
+    chooseEnemyTarget(state: CombatState, rule: EnemyIntentTarget | undefined): CombatHeroState | CombatMercenaryState | null;
+    resolveEnemyAction(state: CombatState, enemy: CombatEnemyState): void;
+    advanceEnemyIntents(state: CombatState): void;
+  };
   __ROUGE_COMBAT_ENGINE_TURNS: CombatTurnsApi;
   __ROUGE_CARD_EFFECTS: CombatCardEffectsApi;
   __ROUGE_APPROACH_BONUS: {
@@ -728,6 +749,12 @@ interface Window {
   ROUGE_REWARD_ENGINE: RewardEngineApi;
   ROUGE_EXPLORATION_EVENTS: ExplorationEventsApi;
   __ROUGE_COMBAT_VIEW_PREVIEW: CombatViewPreviewApi;
+  __ROUGE_SKILL_PREVIEW_DATA: {
+    SKILL_MODIFIER_MAP: Record<string, Array<Record<string, unknown>>>;
+    SKILL_PASSIVE_MAP: Record<string, Array<Record<string, unknown>>>;
+    renderModPart(part: Record<string, unknown>, scale: number): string;
+    renderPassivePart(part: Record<string, unknown>, scale: number): string;
+  };
   __ROUGE_COMBAT_VIEW_PREVIEW_SKILLS: {
     buildSkillPreviewOutcome(combat: CombatState, skill: CombatEquippedSkillState, selectedEnemy: CombatEnemyState | null): string;
     buildPassiveSkillOpeningPreview(combat: CombatState, skill: CombatEquippedSkillState): { hero: string[]; mercenary: string[]; deck: string[] };

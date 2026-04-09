@@ -1,5 +1,6 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
+  const previewData = runtimeWindow.__ROUGE_SKILL_PREVIEW_DATA;
 
   function getSkillTierScale(skill: CombatEquippedSkillState): number {
     if (skill.slot === 3 || skill.tier === "capstone") { return 3; }
@@ -42,130 +43,32 @@
     }
   }
 
+  // ── Skill modifier preview (data-driven) ──────────────────────────────────
+
+  const BARBARIAN_WEAPON_MASTERIES = [
+    "barbarian_sword_mastery", "barbarian_axe_mastery", "barbarian_mace_mastery",
+    "barbarian_polearm_mastery", "barbarian_throwing_mastery",
+  ];
+
   function getExactSkillModifierPreviewParts(skill: CombatEquippedSkillState, combat?: CombatState | null): string[] {
     const scale = getSkillTierScale(skill);
-    switch (skill.skillId) {
-      case "amazon_call_the_shot":
-        return [`Next card +${scale + 1} damage`];
-      case "assassin_shadow_feint":
-        return ["Next card cost -1", `Next card +${scale + 1} damage`, `Next card Guard ${scale + 1}`];
-      case "amazon_critical_strike":
-        return [`Next card +${scale + 1} damage`];
-      case "amazon_dodge":
-        return [`Next card Guard ${scale + 1}`, "Next card cost -1"];
-      case "amazon_evade":
-        return [`Next card Guard ${scale + 1}`, "Next card Draw 1"];
-      case "sorceress_warmth":
-        return ["Next card cost -1", `Next card Burn ${scale}`];
-      case "sorceress_fire_mastery":
-        return [`Next card Burn ${scale + 2}`, `Next card +${scale} damage`];
-      case "sorceress_cold_mastery":
-        return [`Next card Freeze ${scale + 1}`, `Next card Slow ${scale + 1}`];
-      case "sorceress_lightning_mastery":
-        return [`Next card Paralyze ${scale + 1}`, `Next card +${scale} damage`];
-      case "amazon_pierce":
-        return ["Next card cost -1", `Next card +${scale + 2} damage`];
-      case "assassin_claw_mastery":
-        return ["Next card cost -1", `Next card +${scale} damage`];
-      case "barbarian_sword_mastery":
-      case "barbarian_axe_mastery":
-      case "barbarian_mace_mastery":
-      case "barbarian_polearm_mastery":
-      case "barbarian_throwing_mastery": {
-        const weaponFamily = String(combat?.weaponFamily || "").toLowerCase();
-        const token = skill.skillId
-          .replace("barbarian_", "")
-          .replace("_mastery", "")
-          .replace("throwing", "throw");
-        return weaponFamily.includes(token) ? [`Next card +${scale + 1} damage`] : ["Next card Guard 1"];
-      }
-      case "druid_lycanthropy":
-        return [`Next card +${scale + 1} damage`];
-      case "druid_primal_attunement":
-        return [`Next card +${scale + 1} damage`];
-      case "barbarian_increased_speed":
-        return ["Next card cost -1", "Next card Draw 1", `Next card +${scale} damage`];
-      case "barbarian_natural_resistance":
-        return [`Next card Guard ${scale + 1}`];
-      case "necromancer_skeleton_mastery":
-        return [`Next card Guard ${scale}`];
-      case "necromancer_summon_resist":
-        return [`Next card Guard ${scale + 1}`];
-      case "amazon_decoy":
-        return [`Next card Guard ${scale}`];
-      case "amazon_lightning_fury":
-        return [`Next card Paralyze ${scale + 1}`];
-      case "amazon_lightning_strike":
-        return [`Next card +${scale + 1} damage`];
-      case "amazon_freezing_arrow":
-        return [`Next card Freeze ${scale + 1}`];
-      case "assassin_shadow_master":
-        return ["Next card cost -1"];
-      case "assassin_wake_of_inferno":
-        return [`Next card Burn ${scale}`];
-      case "assassin_phoenix_strike":
-        return [`Next card Burn ${scale + 2}`, `Next card +${scale} damage`];
-      case "barbarian_whirlwind":
-      case "barbarian_grim_ward":
-      case "barbarian_war_cry":
-        return [`Next card +${scale} damage`];
-      case "barbarian_battle_command":
-        return ["Next card cost -1", `Next card +${scale + 1} damage`];
-      case "druid_shock_wave":
-        return [`Next card Guard ${scale}`];
-      case "druid_volcano":
-        return [`Next card Burn ${scale + 1}`];
-      case "druid_armageddon":
-        return [`Next card Burn ${scale + 2}`];
-      case "druid_hurricane":
-        return [`Next card Freeze ${scale + 1}`];
-      case "necromancer_decrepify":
-        return ["Next card cost -1"];
-      case "necromancer_lower_resist":
-        return [`Next card +${scale + 2} damage`];
-      case "necromancer_bone_prison":
-        return [`Next card Guard ${scale + 1}`];
-      case "necromancer_poison_nova":
-        return [`Next card Poison ${scale + 2}`];
-      case "necromancer_fire_golem":
-        return [`Next card Burn ${scale + 1}`];
-      case "paladin_meditation":
-        return ["Next card cost -1"];
-      case "paladin_sanctify":
-        return [`Next card +${scale + 1} damage`, `Next card Guard ${scale + 1}`];
-      case "paladin_redemption":
-        return [`Next card Guard ${scale + 1}`];
-      case "paladin_salvation":
-        return [`Next card Guard ${scale + 1}`];
-      case "paladin_sanctuary":
-        return [`Next card Guard ${scale}`];
-      case "paladin_conviction":
-        return [`Next card +${scale + 2} damage`];
-      case "paladin_fanaticism":
-        return ["Next card cost -1", `Next card +${scale + 2} damage`];
-      case "paladin_holy_shock":
-      case "paladin_fist_of_the_heavens":
-        return [`Next card Paralyze ${scale + 1}`];
-      case "sorceress_blizzard":
-        return [`Next card Freeze ${scale + 1}`];
-      case "sorceress_core_fire_bolt":
-        return ["Next card cost -1"];
-      case "sorceress_frozen_orb":
-        return [`Next card Freeze ${scale + 1}`, `Next card +${scale} damage`];
-      case "sorceress_meteor":
-        return [`Next card Burn ${scale + 2}`];
-      case "sorceress_hydra":
-        return [`Next card Burn ${scale + 1}`];
-      case "sorceress_chilling_armor":
-        return [`Next card Guard ${scale + 1}`, `Next card Freeze ${scale + 1}`];
-      case "sorceress_energy_shield":
-        return [`Next card Guard ${scale + 2}`];
-      case "sorceress_thunder_storm":
-        return [`Next card Paralyze ${scale + 2}`, `Next card +${scale} damage`];
-      default:
-        return [];
+
+    // Barbarian weapon masteries: runtime weapon family check
+    if (BARBARIAN_WEAPON_MASTERIES.includes(skill.skillId)) {
+      const weaponFamily = String(combat?.weaponFamily || "").toLowerCase();
+      const token = skill.skillId.replace("barbarian_", "").replace("_mastery", "").replace("throwing", "throw");
+      return weaponFamily.includes(token) ? [`Next card +${scale + 1} damage`] : ["Next card Guard 1"];
     }
+
+    // Data-driven lookup
+    const parts = previewData.SKILL_MODIFIER_MAP[skill.skillId];
+    if (parts) {
+      return parts.map((part: Record<string, unknown>) => previewData.renderModPart(part, scale));
+    }
+    return [];
   }
+
+  // ── Passive skill opening preview (data-driven) ───────────────────────────
 
   function buildPassiveSkillOpeningPreview(
     combat: CombatState,
@@ -176,80 +79,34 @@
     const mercenary: string[] = [];
     const deck = getExactSkillModifierPreviewParts(skill, combat);
     const add = (parts: string[], text: string) => {
-      if (text && !parts.includes(text)) {
-        parts.push(text);
-      }
+      if (text && !parts.includes(text)) { parts.push(text); }
     };
 
-    switch (skill.skillId) {
-      case "amazon_critical_strike":
-        add(hero, `Damage +${scale + 1}`);
-        break;
-      case "amazon_dodge":
-        add(hero, `Guard ${3 + scale}`);
-        if (combat.mercenary.alive) { add(mercenary, `Guard ${2 + scale}`); }
-        break;
-      case "amazon_evade":
-        add(hero, `Guard ${4 + scale}`);
-        if (combat.mercenary.alive) { add(mercenary, `Guard ${3 + scale}`); }
-        break;
-      case "amazon_pierce":
-        add(hero, `Damage +${scale + 2}`);
-        break;
-      case "assassin_claw_mastery":
-        add(hero, `Damage +${scale + 1}`);
-        break;
-      case "barbarian_sword_mastery":
-      case "barbarian_axe_mastery":
-      case "barbarian_mace_mastery":
-      case "barbarian_polearm_mastery":
-      case "barbarian_throwing_mastery": {
-        const weaponFamily = String(combat.weaponFamily || "").toLowerCase();
-        const token = skill.skillId
-          .replace("barbarian_", "")
-          .replace("_mastery", "")
-          .replace("throwing", "throw");
-        add(hero, `Damage +${weaponFamily.includes(token) ? scale + 2 : scale + 1}`);
-        break;
+    // Barbarian weapon masteries: runtime check
+    if (BARBARIAN_WEAPON_MASTERIES.includes(skill.skillId)) {
+      const weaponFamily = String(combat.weaponFamily || "").toLowerCase();
+      const token = skill.skillId.replace("barbarian_", "").replace("_mastery", "").replace("throwing", "throw");
+      add(hero, `Damage +${weaponFamily.includes(token) ? scale + 2 : scale + 1}`);
+      return { hero, mercenary, deck };
+    }
+
+    // Data-driven lookup
+    const passiveParts = previewData.SKILL_PASSIVE_MAP[skill.skillId];
+    if (passiveParts) {
+      for (const part of passiveParts) {
+        const target = (part as { target: string }).target;
+        if (target === "mercenary" && !combat.mercenary.alive) { continue; }
+        const text = previewData.renderPassivePart(part, scale);
+        if (target === "hero") { add(hero, text); }
+        else if (target === "mercenary") { add(mercenary, text); }
+        else if (target === "deck") { add(deck, text); }
       }
-      case "druid_lycanthropy":
-        add(hero, `Damage +${scale + 1}`);
-        add(hero, `Guard ${2 + scale}`);
-        break;
-      case "barbarian_natural_resistance":
-        add(hero, `Guard ${4 + scale}`);
-        add(hero, `Heal ${1 + scale}`);
-        if (combat.mercenary.alive) { add(mercenary, `Guard ${3 + scale}`); }
-        break;
-      case "necromancer_skeleton_mastery":
-        add(deck, `Summon power +${scale + 1}`);
-        add(deck, "Summon riders +1");
-        break;
-      case "necromancer_summon_resist":
-        add(hero, `Guard ${3 + scale}`);
-        if (combat.mercenary.alive) { add(mercenary, `Guard ${2 + scale}`); }
-        add(deck, `Summon power +${scale + 1}`);
-        add(deck, `Summon riders +${scale}`);
-        break;
-      case "sorceress_warmth":
-        add(hero, `Heal ${2 + scale}`);
-        add(hero, `Burn +${scale + 1}`);
-        break;
-      case "sorceress_cold_mastery":
-        add(hero, `Damage +${scale + 1}`);
-        break;
-      case "sorceress_fire_mastery":
-        add(hero, `Burn +${scale + 2}`);
-        break;
-      case "sorceress_lightning_mastery":
-        add(hero, `Damage +${scale + 1}`);
-        break;
-      default:
-        break;
     }
 
     return { hero, mercenary, deck };
   }
+
+  // ── Active skill preview outcome ──────────────────────────────────────────
 
   function joinPreviewOutcome(baseParts: string[], modifierParts: string[]): string {
     return [...baseParts, ...modifierParts].filter(Boolean).join(" + ") || "Resolve";
@@ -277,6 +134,7 @@
       return joinPreviewOutcome(openingParts, passive.deck.filter((part) => !part.startsWith("Summon ")));
     }
 
+    // Skill-specific active outcomes (complex logic that can't be data-driven)
     switch (skill.skillId) {
       case "amazon_call_the_shot":
         return joinPreviewOutcome([`Merc mark +${3 + scale}`], exactModifierParts);
@@ -294,11 +152,8 @@
           return `Reinforce summon +${scale + 1}`;
         }
         const servantEffect: CardEffect = {
-          kind: "summon_minion",
-          minionId: "necromancer_servant",
-          value: 1 + scale,
-          secondaryValue: 0,
-          duration: 2,
+          kind: "summon_minion", minionId: "necromancer_servant",
+          value: 1 + scale, secondaryValue: 0, duration: 2,
         };
         return joinPreviewOutcome([turns?.getSummonPreview?.(combat, servantEffect) || "Summon Servant"], exactModifierParts);
       }
@@ -374,6 +229,7 @@
         break;
     }
 
+    // Generic fallback for skills without specific outcome data
     const preview = runtimeWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
     const scopes = preview.deriveSkillPreviewScopes(skill);
     const parts: string[] = [];
