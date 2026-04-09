@@ -116,9 +116,9 @@ to something like:
   "id": "amazon_call_the_shot",
   "name": "Call the Shot",
   "requiredLevel": 1,
-  "description": "Mark a target and steady the line.",
-  "skillType": "command",
-  "damageType": "physical",
+  "description": "Marks a target and readies the next precise follow-up.",
+  "skillType": "debuff",
+  "damageType": null,
   "active": true,
   "prerequisites": [],
   "synergies": [],
@@ -126,9 +126,9 @@ to something like:
   "slot": 1,
   "tier": "starter",
   "cost": 1,
-  "cooldown": 2,
-  "summary": "Mark one enemy and ready the next ranged payoff.",
-  "exactText": "Mark an enemy. Your next Bow or Javelin payoff this turn deals +6 damage.",
+  "cooldown": 1,
+  "summary": "Designate one enemy for precise follow-up from you and your mercenary.",
+  "exactText": "Choose an enemy. Your next 2 ranged hits or your mercenary's next hit against it each deal +4 damage.",
   "isStarter": true
 }
 ```

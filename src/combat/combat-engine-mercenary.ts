@@ -94,7 +94,15 @@
       return;
     }
 
-    let damage = state.mercenary.attack + state.mercenary.nextAttackBonus + state.mercenary.contractAttackBonus;
+    let damage =
+      state.mercenary.attack
+      + state.mercenary.nextAttackBonus
+      + state.mercenary.contractAttackBonus
+      + Math.max(0, state.tempMercenaryDamageBonus || 0);
+    const skillTargetMatched = target.id === state.mercenary.skillTargetEnemyId;
+    if (skillTargetMatched) {
+      damage += Math.max(0, state.mercenary.skillTargetDamageBonus || 0);
+    }
     if (state.mercenary.behavior === "mark_hunter" && target.id === state.mercenary.markedEnemyId) {
       damage += state.mercenary.markBonus + state.mercenary.contractBehaviorBonus;
     }
@@ -131,6 +139,9 @@
     }
 
     const dealt = dealDamage(state, target, damage);
+    if (skillTargetMatched && dealt > 0 && state.mercenary.skillTargetNextAttackPenalty > 0) {
+      target.nextAttackPenalty = Math.max(0, (target.nextAttackPenalty || 0) + state.mercenary.skillTargetNextAttackPenalty);
+    }
     logCombat(state, {
       actor: "mercenary",
       actorName: state.mercenary.name,
@@ -165,9 +176,17 @@
       });
     }
 
+    if (skillTargetMatched && dealt > 0 && state.mercenary.skillTargetDraw > 0) {
+      runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.drawCards?.(state, state.mercenary.skillTargetDraw);
+    }
+
     state.mercenary.nextAttackBonus = 0;
     state.mercenary.markedEnemyId = "";
     state.mercenary.markBonus = 0;
+    state.mercenary.skillTargetEnemyId = "";
+    state.mercenary.skillTargetDamageBonus = 0;
+    state.mercenary.skillTargetDraw = 0;
+    state.mercenary.skillTargetNextAttackPenalty = 0;
     state.selectedEnemyId = getFirstLivingEnemyId(state);
   }
 

@@ -219,7 +219,7 @@
     let attackStep = 1;
 
     if (boss) {
-      lifeStep = 18;
+      lifeStep = 20;
       attackStep = 4;
     } else if (elite) {
       lifeStep = 10;
@@ -239,8 +239,8 @@
         attackBonus = 0;
         guardBonus = 0;
       } else if (elite) {
-        lifeMultiplier = 1.15;
-        lifeBonus = 4;
+        lifeMultiplier = 1.2;
+        lifeBonus = 6;
         attackBonus = 2;
         guardBonus = 1;
       } else {
@@ -251,79 +251,79 @@
       }
     } else if (actNumber === 2) {
       if (boss) {
-        lifeMultiplier = 1.15;
-        lifeBonus = 6;
-        attackBonus = 1;
-        guardBonus = 1;
-      } else if (elite) {
-        lifeMultiplier = 1.3;
+        lifeMultiplier = 1.2;
         lifeBonus = 10;
         attackBonus = 2;
+        guardBonus = 1;
+      } else if (elite) {
+        lifeMultiplier = 1.4;
+        lifeBonus = 14;
+        attackBonus = 3;
         guardBonus = 2;
       } else {
-        lifeMultiplier = 1.1;
-        lifeBonus = 3;
+        lifeMultiplier = 1.15;
+        lifeBonus = 4;
         attackBonus = 1;
       }
     } else if (actNumber === 3) {
       if (boss) {
-        lifeMultiplier = 1.38;
-        lifeBonus = 18;
-        attackBonus = 2;
-        guardBonus = 2;
-        healBonus = 1;
-      } else if (elite) {
-        lifeMultiplier = 1.82;
-        lifeBonus = 30;
-        attackBonus = 5;
-        guardBonus = 4;
-        healBonus = 1;
-      } else {
-        lifeMultiplier = 1.38;
-        lifeBonus = 14;
-        attackBonus = 3;
-        guardBonus = 1;
-        healBonus = 1;
-      }
-    } else if (actNumber === 4) {
-      if (boss) {
-        lifeMultiplier = 1.56;
-        lifeBonus = 28;
+        lifeMultiplier = 1.5;
+        lifeBonus = 24;
         attackBonus = 3;
         guardBonus = 3;
         healBonus = 2;
       } else if (elite) {
-        lifeMultiplier = 2.18;
-        lifeBonus = 46;
+        lifeMultiplier = 2.0;
+        lifeBonus = 36;
         attackBonus = 6;
         guardBonus = 5;
         healBonus = 2;
       } else {
-        lifeMultiplier = 1.58;
-        lifeBonus = 24;
-        attackBonus = 4;
+        lifeMultiplier = 1.45;
+        lifeBonus = 18;
+        attackBonus = 3;
+        guardBonus = 2;
+        healBonus = 1;
+      }
+    } else if (actNumber === 4) {
+      if (boss) {
+        lifeMultiplier = 1.8;
+        lifeBonus = 40;
+        attackBonus = 5;
+        guardBonus = 4;
+        healBonus = 3;
+      } else if (elite) {
+        lifeMultiplier = 2.4;
+        lifeBonus = 54;
+        attackBonus = 8;
+        guardBonus = 6;
+        healBonus = 3;
+      } else {
+        lifeMultiplier = 1.7;
+        lifeBonus = 30;
+        attackBonus = 5;
         guardBonus = 3;
         healBonus = 2;
       }
     } else if (actNumber >= 5) {
       if (boss) {
-        lifeMultiplier = 1.74;
-        lifeBonus = 40;
-        attackBonus = 4;
-        guardBonus = 5;
-        healBonus = 3;
+        lifeMultiplier = 2.8;
+        lifeBonus = 80;
+        attackBonus = 10;
+        guardBonus = 8;
+        healBonus = 5;
       } else if (elite) {
-        lifeMultiplier = 2.42;
-        lifeBonus = 64;
-        attackBonus = 7;
-        guardBonus = 6;
-        healBonus = 3;
+        lifeMultiplier = 3.2;
+        lifeBonus = 100;
+        attackBonus = 12;
+        guardBonus = 10;
+        healBonus = 5;
       } else {
-        lifeMultiplier = 1.82;
-        lifeBonus = 34;
-        attackBonus = 5;
-        guardBonus = 4;
-        healBonus = 3;
+        lifeMultiplier = 2.4;
+        lifeBonus = 50;
+        attackBonus = 8;
+        guardBonus = 6;
+        healBonus = 4;
       }
     }
 
@@ -658,22 +658,24 @@
   }
 
   function getBossScaleAdjustments(bossId: string) {
+    // Boss-specific multipliers on top of act-based scaling.
+    // Keep these modest since act scaling already handles the power curve.
     if (bossId === "andariel") {
-      return { lifeMultiplier: 2.55, attackBonus: 1, guardBonus: 3, healBonus: 1 };
+      return { lifeMultiplier: 1.6, attackBonus: 0, guardBonus: 2, healBonus: 0 };
     }
     if (bossId === "duriel") {
-      return { lifeMultiplier: 2.34, attackBonus: 2, guardBonus: 5, healBonus: 1 };
+      return { lifeMultiplier: 1.7, attackBonus: 1, guardBonus: 3, healBonus: 0 };
     }
     if (bossId === "mephisto") {
-      return { lifeMultiplier: 2.58, attackBonus: 2, guardBonus: 5, healBonus: 2 };
+      return { lifeMultiplier: 1.8, attackBonus: 1, guardBonus: 3, healBonus: 1 };
     }
     if (bossId === "diablo") {
-      return { lifeMultiplier: 2.88, attackBonus: -3, guardBonus: 5, healBonus: 2 };
+      return { lifeMultiplier: 2.0, attackBonus: 0, guardBonus: 4, healBonus: 1 };
     }
     if (bossId === "baal") {
-      return { lifeMultiplier: 3.28, attackBonus: 2, guardBonus: 8, healBonus: 3 };
+      return { lifeMultiplier: 2.2, attackBonus: 1, guardBonus: 5, healBonus: 2 };
     }
-    return { lifeMultiplier: 1.2, attackBonus: 1, guardBonus: 1, healBonus: 0 };
+    return { lifeMultiplier: 1.2, attackBonus: 0, guardBonus: 1, healBonus: 0 };
   }
 
   function buildEnemyTemplate({

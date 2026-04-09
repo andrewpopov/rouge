@@ -69,7 +69,9 @@ type CardEffectKind =
   | "apply_stun"
   | "apply_stun_all"
   | "apply_paralyze"
-  | "apply_paralyze_all";
+  | "apply_paralyze_all"
+  | "apply_taunt"
+  | "apply_fade";
 type CardRewardRole = "foundation" | "engine" | "support" | "tech";
 type CardBehaviorTag =
   | "pressure"
@@ -158,6 +160,7 @@ interface CardDefinition {
   roleTag?: CardRoleTag;
   counterTags?: CounterTag[];
   splashRole?: CardSplashRole;
+  auraId?: string;  // if set, card is an aura — first play activates, second play does active effect
 }
 
 interface ClassCardDefinition extends CardDefinition {

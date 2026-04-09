@@ -8,11 +8,11 @@
   };
 
   const ROLE_STATS = {
-    raider: { life: 12, attack: 4 },
-    ranged: { life: 10, attack: 5 },
-    support: { life: 11, attack: 3, heal: 4 },
-    brute: { life: 18, attack: 6, guard: 4 },
-    boss: { life: 38, attack: 9, guard: 6, heal: 6 },
+    raider: { life: 14, attack: 4 },
+    ranged: { life: 12, attack: 5 },
+    support: { life: 12, attack: 3, heal: 4 },
+    brute: { life: 20, attack: 7, guard: 4 },
+    boss: { life: 55, attack: 10, guard: 6, heal: 6 },
   };
 
   const ELITE_AFFIX_PROFILES = {

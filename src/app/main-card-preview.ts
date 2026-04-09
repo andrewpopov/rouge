@@ -312,6 +312,16 @@
         case "attack":
           addTargetDamage(minion.power);
           break;
+        case "attack_all":
+          combat.enemies
+            .filter((enemy) => enemy.alive)
+            .forEach((enemy) => {
+              const previewEnemy = { guard: enemy.guard, life: enemy.life };
+              const resolved = applyPreviewEnemyDamage(previewEnemy, minion.power);
+              if (resolved.life > 0) { addLinePart(enemy.id, `${resolved.life} dmg`); }
+              if (resolved.guard > 0) { addLinePart(enemy.id, `${resolved.guard} guard`); }
+            });
+          break;
         case "attack_mark":
           addTargetDamage(minion.power);
           appendPreviewPart(targetParts, `Mark +${minion.secondaryValue}`);

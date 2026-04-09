@@ -2,12 +2,19 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   // ── Paladin Cards ─────────────────────────────────────────────────────
-  // Combat: holy damage and smiting strikes
-  // Defensive Auras: party guard and healing
-  // Offensive Auras: damage amplification and elemental strikes
+  // Combat Zeal: rapid multi-hit melee + holy damage — Zeal/Smite cadence
+  // Offensive Aura: persistent aura layering + spell AoE — Hammerdin/FOHdin engine
+  // Defensive Anchor: party guard + healing accumulation → defense-to-offense conversion
+  // Class Glue: multi-lane utility
+  // Hybrid Bridges: cross-lane support cards
 
   const PALADIN_CARDS: Record<string, ClassCardDefinition> = {
-    // ── Tier 1 ──
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 1 — Starter shell and identity cards
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Zeal ──
     paladin_sacrifice: {
       id: "paladin_sacrifice",
       title: "Sacrifice",
@@ -27,13 +34,11 @@
       title: "Might",
       cost: 1,
       target: "enemy",
-      text: "Deal 6 damage. Apply 1 Slow. Mercenary next attack +8. You and your mercenary gain 6 Guard. Draw 1 card.",
+      text: "Deal 6 damage. Apply 1 Slow. Mercenary next attack +8. Draw 1 card.",
       effects: [
         { kind: "damage", value: 6 },
         { kind: "apply_slow", value: 1 },
         { kind: "buff_mercenary_next_attack", value: 8 },
-        { kind: "gain_guard_party", value: 6 },
-        { kind: "draw", value: 1 },
       ],
       behaviorTags: ["pressure", "setup", "support", "salvage", "mitigation", "disruption"],
       roleTag: "setup",
@@ -50,9 +55,9 @@
       target: "none",
       text: "Heal 5. Heal your mercenary 5. Gain 4 Guard. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 5 },
+        { kind: "heal_hero", value: 6 },
         { kind: "heal_mercenary", value: 5 },
-        { kind: "gain_guard_self", value: 4 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "support", "salvage", "protection"],
@@ -67,10 +72,9 @@
       title: "Smite",
       cost: 1,
       target: "enemy",
-      text: "Deal 6 damage. Gain 5 Guard.",
+      text: "Deal 6 damage.",
       effects: [
         { kind: "damage", value: 6 },
-        { kind: "gain_guard_self", value: 5 },
       ],
       behaviorTags: ["pressure", "mitigation", "protection"],
       roleTag: "answer",
@@ -84,11 +88,10 @@
       title: "Thorns",
       cost: 1,
       target: "enemy",
-      text: "Deal 5 damage. Apply 2 Burn. You and your mercenary gain 5 Guard.",
+      text: "Deal 5 damage. Apply 2 Burn.",
       effects: [
         { kind: "damage", value: 5 },
         { kind: "apply_burn", value: 2 },
-        { kind: "gain_guard_party", value: 5 },
       ],
       behaviorTags: ["pressure", "setup", "mitigation", "protection", "support", "payoff"],
       roleTag: "setup",
@@ -104,8 +107,8 @@
       target: "none",
       text: "Heal 5. Gain 6 Guard. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 5 },
-        { kind: "gain_guard_self", value: 6 },
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "salvage", "support"],
@@ -116,7 +119,11 @@
       tier: 1,
     },
 
-    // ── Tier 2 ──
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 2 — Early reward pool: lane formation begins
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Zeal ──
     paladin_holy_bolt: {
       id: "paladin_holy_bolt",
       title: "Holy Bolt",
@@ -139,14 +146,12 @@
       title: "Holy Fire",
       cost: 1,
       target: "enemy",
-      text: "Heal 3. Heal your mercenary 4. Deal 9 fire damage. Apply 4 Burn. You and your mercenary gain 9 Guard. Draw 1 card.",
+      text: "Deal 9 fire damage. Apply 4 Burn. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 3 },
-        { kind: "heal_mercenary", value: 4 },
         { kind: "damage", value: 9 },
         { kind: "apply_burn", value: 4 },
-        { kind: "gain_guard_party", value: 9 },
         { kind: "draw", value: 1 },
+        { kind: "buff_mercenary_next_attack", value: 6 },
       ],
       behaviorTags: ["pressure", "setup", "mitigation", "protection", "payoff", "salvage"],
       roleTag: "setup",
@@ -163,8 +168,9 @@
       target: "none",
       text: "You and your mercenary gain 12 Guard. Draw 1 card.",
       effects: [
-        { kind: "gain_guard_party", value: 12 },
+        { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 1 },
+        { kind: "apply_taunt", value: 1 },
       ],
       behaviorTags: ["mitigation", "support", "salvage", "protection"],
       roleTag: "support",
@@ -178,12 +184,11 @@
       title: "Zeal",
       cost: 2,
       target: "enemy",
-      text: "Deal 5 damage. Deal 4 damage. Deal 3 damage. Gain 5 Guard.",
+      text: "Deal 5 damage. Deal 4 damage. Deal 3 damage.",
       effects: [
         { kind: "damage", value: 5 },
         { kind: "damage", value: 4 },
         { kind: "damage", value: 3 },
-        { kind: "gain_guard_self", value: 5 },
       ],
       behaviorTags: ["pressure", "payoff", "mitigation"],
       roleTag: "payoff",
@@ -193,17 +198,130 @@
       tier: 2,
     },
 
-    // ── Tier 3 ──
+    paladin_charge: {
+      id: "paladin_charge",
+      title: "Charge",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 12 damage. Your next Attack this turn deals +3 damage.",
+      effects: [
+        { kind: "damage", value: 12 },
+      ],
+      behaviorTags: ["pressure", "setup", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 2,
+    },
+    paladin_blessed_aim: {
+      id: "paladin_blessed_aim",
+      title: "Blessed Aim",
+      cost: 1,
+      target: "none",
+      text: "Your next 2 Attacks this turn each deal +4 damage. Gain 6 Guard. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "mitigation", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Offensive Aura ──
+    paladin_concentration: {
+      id: "paladin_concentration",
+      title: "Concentration",
+      cost: 1,
+      target: "none",
+      text: "Your next Aura or Attack card this turn deals +5 damage. Gain 6 Guard. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "salvage", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Defensive Anchor ──
+    paladin_resist_fire: {
+      id: "paladin_resist_fire",
+      title: "Resist Fire",
+      cost: 1,
+      target: "none",
+      text: "Gain 10 Guard. Reduce the next Burn application against you by 3. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "protection", "salvage"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["anti_fire_pressure"],
+      skillRef: "",
+      tier: 2,
+    },
+    paladin_vigor: {
+      id: "paladin_vigor",
+      title: "Vigor",
+      cost: 0,
+      target: "none",
+      text: "Gain 4 Guard. Draw 1 card. Your next card this turn costs 1 less. Exhaust.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "mitigation", "conversion"],
+      roleTag: "salvage",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Class Glue ──
+    paladin_holy_resolve: {
+      id: "paladin_holy_resolve",
+      title: "Holy Resolve",
+      cost: 1,
+      target: "none",
+      text: "Heal 4. Gain 7 Guard. Draw 1 card.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 3 — Mid reward pool: lane engines come online
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Zeal ──
     paladin_vengeance: {
       id: "paladin_vengeance",
       title: "Vengeance",
       cost: 2,
       target: "enemy",
-      text: "Deal 13 damage. Apply 5 Burn. Gain 5 Guard.",
+      text: "Deal 13 damage. Apply 5 Burn.",
       effects: [
         { kind: "damage", value: 13 },
         { kind: "apply_burn", value: 5 },
-        { kind: "gain_guard_self", value: 5 },
       ],
       behaviorTags: ["pressure", "setup", "mitigation", "scaling", "payoff"],
       roleTag: "setup",
@@ -231,11 +349,11 @@
       title: "Holy Freeze",
       cost: 2,
       target: "none",
-      text: "Deal 8 cold damage to all enemies. Apply 1 Freeze to all. You and your mercenary gain 10 Guard.",
+      text: "Deal 8 cold damage to all enemies. Apply 1 Freeze to all.",
       effects: [
         { kind: "damage_all", value: 8 },
         { kind: "apply_freeze_all", value: 1 },
-        { kind: "gain_guard_party", value: 10 },
+        { kind: "buff_mercenary_next_attack", value: 6 },
       ],
       behaviorTags: ["pressure", "mitigation", "disruption", "payoff", "protection"],
       roleTag: "payoff",
@@ -263,17 +381,191 @@
       tier: 3,
     },
 
-    // ── Tier 4 ──
+    paladin_conversion: {
+      id: "paladin_conversion",
+      title: "Conversion",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 10 damage. Heal 5. Gain 8 Guard. If the target is attacking next turn, deal 5 more.",
+      effects: [
+        { kind: "damage", value: 10 },
+        { kind: "heal_hero", value: 5 },
+        { kind: "gain_guard_self", value: 8 },
+      ],
+      behaviorTags: ["pressure", "mitigation", "conversion"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+    paladin_holy_strike: {
+      id: "paladin_holy_strike",
+      title: "Holy Strike",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 8 damage 3 times. If any hit lands on an enemy with Burn or Slow, deal 3 more per hit.",
+      effects: [
+        { kind: "damage", value: 8 },
+        { kind: "damage", value: 8 },
+        { kind: "damage", value: 8 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "scaling"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Offensive Aura ──
+    paladin_holy_shock: {
+      id: "paladin_holy_shock",
+      title: "Holy Shock",
+      cost: 2,
+      target: "none",
+      text: "Deal 10 lightning damage to all enemies. Apply 2 Paralyze to all.",
+      effects: [
+        { kind: "damage_all", value: 10 },
+        { kind: "apply_paralyze_all", value: 2 },
+        { kind: "buff_mercenary_next_attack", value: 8 },
+      ],
+      behaviorTags: ["pressure", "payoff", "disruption", "mitigation"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    paladin_sanctuary: {
+      id: "paladin_sanctuary",
+      title: "Sanctuary",
+      cost: 1,
+      target: "none",
+      text: "Deal 7 magic damage to all enemies. Draw 1 card.",
+      effects: [
+        { kind: "damage_all", value: 7 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "mitigation", "protection", "salvage"],
+      roleTag: "support",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Defensive Anchor ──
+    paladin_meditation: {
+      id: "paladin_meditation",
+      title: "Meditation",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "heal_mercenary", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "support", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    paladin_resist_cold: {
+      id: "paladin_resist_cold",
+      title: "Resist Cold",
+      cost: 1,
+      target: "none",
+      text: "Gain 12 Guard. The next enemy attack against you or your mercenary this turn deals 5 less damage. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "protection", "salvage"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Class Glue ──
+    paladin_righteous_guard: {
+      id: "paladin_righteous_guard",
+      title: "Righteous Guard",
+      cost: 1,
+      target: "none",
+      text: "Gain 12 Guard. All non-boss enemies deal 3 less damage next turn. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "disruption", "salvage"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Hybrid Bridges ──
+    paladin_holy_war: {
+      id: "paladin_holy_war",
+      title: "Holy War",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 10 damage. Your mercenary deals +10 to this target. Apply 2 Burn.",
+      effects: [
+        { kind: "damage", value: 10 },
+        { kind: "mark_enemy_for_mercenary", value: 10 },
+        { kind: "apply_burn", value: 2 },
+      ],
+      behaviorTags: ["pressure", "setup", "support", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 3,
+    },
+    paladin_divine_shield: {
+      id: "paladin_divine_shield",
+      title: "Divine Shield",
+      cost: 1,
+      target: "none",
+      text: "Gain 14 Guard. Your next Attack this turn deals +5 damage. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 4 — Late reward pool: lane capstones and closers
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Zeal ──
     paladin_fist_of_the_heavens: {
       id: "paladin_fist_of_the_heavens",
       title: "Fist of the Heavens",
       cost: 2,
       target: "enemy",
-      text: "Deal 22 magic damage. Heal 12. Gain 6 Guard.",
+      text: "Deal 22 magic damage. Heal 12.",
       effects: [
         { kind: "damage", value: 22 },
         { kind: "heal_hero", value: 12 },
-        { kind: "gain_guard_self", value: 6 },
       ],
       behaviorTags: ["pressure", "mitigation", "protection", "salvage", "payoff"],
       roleTag: "payoff",
@@ -287,14 +579,11 @@
       title: "Fanaticism",
       cost: 2,
       target: "none",
-      text: "Heal 4. Deal 10 damage to all enemies. You and your mercenary gain 16 Guard. Apply 1 Slow to all enemies. Mercenary next attack +12. Draw 1 card.",
+      text: "Deal 10 damage to all enemies. Apply 1 Slow to all enemies. Mercenary next attack +12. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 4 },
         { kind: "damage_all", value: 10 },
-        { kind: "gain_guard_party", value: 16 },
         { kind: "apply_slow_all", value: 1 },
         { kind: "buff_mercenary_next_attack", value: 12 },
-        { kind: "draw", value: 1 },
       ],
       behaviorTags: ["support", "mitigation", "protection", "salvage", "scaling", "disruption"],
       roleTag: "answer",
@@ -309,21 +598,251 @@
       title: "Conviction",
       cost: 2,
       target: "none",
-      text: "Heal 4. Deal 15 damage to all enemies. Apply 2 Burn and 1 Slow to all enemies. You and your mercenary gain 16 Guard. Mercenary next attack +12.",
+      text: "Deal 15 damage to all enemies. Apply 2 Burn and 1 Slow to all enemies.",
       effects: [
-        { kind: "heal_hero", value: 4 },
         { kind: "damage_all", value: 15 },
         { kind: "apply_burn_all", value: 2 },
         { kind: "apply_slow_all", value: 1 },
-        { kind: "gain_guard_party", value: 16 },
-        { kind: "buff_mercenary_next_attack", value: 12 },
+        { kind: "buff_mercenary_next_attack", value: 10 },
       ],
-      behaviorTags: ["pressure", "payoff", "setup", "mitigation", "protection", "scaling", "disruption"],
+      behaviorTags: ["pressure", "payoff", "setup", "disruption"],
       roleTag: "payoff",
       rewardRole: "engine",
       splashRole: "primary_only",
       counterTags: ["anti_summon", "anti_fire_pressure", "telegraph_respect"],
       skillRef: "paladin_conviction",
+      tier: 4,
+    },
+    paladin_zealous_fury: {
+      id: "paladin_zealous_fury",
+      title: "Zealous Fury",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 7 damage 4 times. Heal 3 per hit.",
+      effects: [
+        { kind: "damage", value: 7 },
+        { kind: "damage", value: 7 },
+        { kind: "damage", value: 7 },
+        { kind: "damage", value: 7 },
+      ],
+      behaviorTags: ["pressure", "payoff", "scaling", "mitigation"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_combat_mastery: {
+      id: "paladin_combat_mastery",
+      title: "Combat Mastery",
+      cost: 1,
+      target: "none",
+      text: "This combat, your Attacks deal +3 damage and gain +3 Guard. Draw 2 cards. Exhaust.",
+      effects: [{ kind: "draw", value: 2 }],
+      behaviorTags: ["scaling", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "paladin_combat_mastery",
+      tier: 4,
+    },
+
+    // ── Offensive Aura ──
+    paladin_aura_mastery: {
+      id: "paladin_aura_mastery",
+      title: "Aura Mastery",
+      cost: 1,
+      target: "none",
+      text: "This combat, your Aura cards deal +4 damage and gain +4 Guard. Draw 1 card. Exhaust.",
+      effects: [{ kind: "draw", value: 1 }],
+      behaviorTags: ["scaling", "setup"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "paladin_aura_mastery",
+      tier: 4,
+    },
+    paladin_blessed_hammer_storm: {
+      id: "paladin_blessed_hammer_storm",
+      title: "Hammer Storm",
+      cost: 2,
+      target: "none",
+      text: "Deal 14 magic damage to all enemies. If any enemy has Burn or Slow, deal 5 more to it.",
+      effects: [
+        { kind: "damage_all", value: 14 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Defensive Anchor ──
+    paladin_redemption: {
+      id: "paladin_redemption",
+      title: "Redemption",
+      cost: 1,
+      target: "none",
+      text: "Heal 8. Heal your mercenary 8. You and your mercenary gain 10 Guard. If an enemy died last turn, heal 6 more.",
+      effects: [
+        { kind: "heal_hero", value: 8 },
+        { kind: "heal_mercenary", value: 8 },
+        { kind: "gain_guard_party", value: 14 },
+      ],
+      behaviorTags: ["salvage", "support", "conversion", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_salvation: {
+      id: "paladin_salvation",
+      title: "Salvation",
+      cost: 2,
+      target: "none",
+      text: "You and your mercenary gain 22 Guard. All enemies deal 4 less damage next turn. Heal 6. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_party", value: 22 },
+        { kind: "heal_hero", value: 10 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "protection", "disruption", "support"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      counterTags: ["telegraph_respect", "anti_fire_pressure"],
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_holy_fortress: {
+      id: "paladin_holy_fortress",
+      title: "Holy Fortress",
+      cost: 2,
+      target: "none",
+      text: "Gain 18 Guard. Deal bonus magic damage to all enemies equal to half your current Guard (max 12). Heal 4.",
+      effects: [
+        { kind: "damage_all", value: 6 },
+        { kind: "heal_hero", value: 4 },
+      ],
+      behaviorTags: ["mitigation", "payoff", "conversion"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Class Glue ──
+    paladin_blessed_ward: {
+      id: "paladin_blessed_ward",
+      title: "Blessed Ward",
+      cost: 1,
+      target: "none",
+      text: "Gain 14 Guard. Heal your mercenary 6. The next enemy attack against you or your mercenary this turn deals 6 less damage.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "heal_mercenary", value: 6 },
+      ],
+      behaviorTags: ["mitigation", "protection", "support"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect", "anti_fire_pressure"],
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_divine_renewal: {
+      id: "paladin_divine_renewal",
+      title: "Divine Renewal",
+      cost: 1,
+      target: "none",
+      text: "Heal 10. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      effects: [
+        { kind: "heal_hero", value: 10 },
+        { kind: "heal_mercenary", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "support", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Hybrid Bridges ──
+    paladin_holy_judgment: {
+      id: "paladin_holy_judgment",
+      title: "Holy Judgment",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 16 magic damage. All enemies deal 3 less damage next turn. Draw 1 card.",
+      effects: [
+        { kind: "damage", value: 16 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "disruption", "protection"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_crusade: {
+      id: "paladin_crusade",
+      title: "Crusade",
+      cost: 2,
+      target: "none",
+      text: "Deal 10 damage to all enemies. Apply 2 Burn to all. You and your mercenary gain +5 damage this turn.",
+      effects: [
+        { kind: "damage_all", value: 10 },
+        { kind: "apply_burn_all", value: 2 },
+      ],
+      behaviorTags: ["pressure", "payoff", "setup", "support"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_righteous_wrath: {
+      id: "paladin_righteous_wrath",
+      title: "Righteous Wrath",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 12 damage twice. If either hit lands on a target with Burn or Slow, deal 5 more per hit.",
+      effects: [
+        { kind: "damage", value: 12 },
+        { kind: "damage", value: 12 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "scaling"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+    paladin_divine_command: {
+      id: "paladin_divine_command",
+      title: "Divine Command",
+      cost: 2,
+      target: "none",
+      text: "You and your mercenary gain +5 damage this turn. You and your mercenary gain 14 Guard. Your next 2 cards this turn each gain +4 damage or +4 Guard. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_party", value: 22 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "support", "protection", "scaling"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
       tier: 4,
     },
   };

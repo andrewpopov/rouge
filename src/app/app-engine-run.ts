@@ -2,16 +2,16 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   const PHASES = {
-    BOOT: "boot",
-    FRONT_DOOR: "front_door",
-    CHARACTER_SELECT: "character_select",
-    SAFE_ZONE: "safe_zone",
-    WORLD_MAP: "world_map",
-    ENCOUNTER: "encounter",
-    REWARD: "reward",
-    ACT_TRANSITION: "act_transition",
-    RUN_COMPLETE: "run_complete",
-    RUN_FAILED: "run_failed",
+    BOOT: "boot" as AppPhase,
+    FRONT_DOOR: "front_door" as AppPhase,
+    CHARACTER_SELECT: "character_select" as AppPhase,
+    SAFE_ZONE: "safe_zone" as AppPhase,
+    WORLD_MAP: "world_map" as AppPhase,
+    ENCOUNTER: "encounter" as AppPhase,
+    REWARD: "reward" as AppPhase,
+    ACT_TRANSITION: "act_transition" as AppPhase,
+    RUN_COMPLETE: "run_complete" as AppPhase,
+    RUN_FAILED: "run_failed" as AppPhase,
   };
 
   function getPersistence() {
@@ -285,7 +285,7 @@
       PHASES.RUN_COMPLETE,
       PHASES.RUN_FAILED,
     ]);
-    return (allowedPhases.has(phase) ? phase : PHASES.SAFE_ZONE) as AppPhase;
+    return (allowedPhases.has(phase as AppPhase) ? phase : PHASES.SAFE_ZONE) as AppPhase;
   }
 
   function restoreSnapshotIntoState(state: AppState, snapshot: RunSnapshotEnvelope): ActionResult {

@@ -26,9 +26,11 @@
       name: "Blackwood Hunter",
       role: "Blackwood Hunter",
       actOrigin: 1,
-      maxLife: 28,
-      attack: 5,
+      maxLife: 45,
+      attack: 6,
       behavior: "mark_hunter",
+      aura: "precision",
+      auraText: "Precision Aura: Your ranged cards deal +2 damage.",
       passiveText: "Consumes hero marks for extra damage.",
       routePerks: [
         routePerk("forward_spotters", "Forward Spotters", ["rogue_route_forward_spotters"], {
@@ -139,9 +141,11 @@
       name: "Sepulcher Spearwall",
       role: "Sepulcher Spearwall",
       actOrigin: 2,
-      maxLife: 34,
-      attack: 4,
+      maxLife: 52,
+      attack: 5,
       behavior: "guard_after_attack",
+      aura: "chill",
+      auraText: "Chill Aura: All enemies deal 2 less damage.",
       passiveText: "Gains Guard after attacking.",
       routePerks: [
         routePerk("spearwall_posts", "Spearwall Posts", ["sunwell_spearwall_posts"], {
@@ -252,6 +256,8 @@
       maxLife: 26,
       attack: 4,
       behavior: "burn_finisher",
+      aura: "enchant",
+      auraText: "Enchant Aura: Your fire and Burn effects deal +2.",
       passiveText: "Deals extra damage to burning enemies.",
       routePerks: [
         routePerk("dock_wards", "Dock Wards", ["kurast_dock_wards_laced"], {
@@ -349,9 +355,11 @@
       name: "River Shadow",
       role: "Idol Reach Cutthroat",
       actOrigin: 3,
-      maxLife: 27,
-      attack: 5,
+      maxLife: 48,
+      attack: 6,
       behavior: "backline_hunter",
+      aura: "amplify",
+      auraText: "Amplify Aura: Wounded enemies take +3 damage from all sources.",
       passiveText: "Prioritizes support and ranged enemies and cuts them down harder.",
       routePerks: [
         routePerk("dock_wards", "Dock Wards", ["kurast_dock_wards_laced"], {
@@ -444,6 +452,92 @@
           scalingStartAct: 3,
         }),
       ],
+    },
+
+    // ── Act 1 Variants ──
+    rogue_tracker: {
+      id: "rogue_tracker",
+      name: "Blackwood Tracker",
+      role: "Blackwood Tracker",
+      actOrigin: 1,
+      maxLife: 40,
+      attack: 5,
+      behavior: "wounded_hunter",
+      aura: "venom",
+      auraText: "Venom Aura: Your Poison applications deal +2.",
+      passiveText: "Prioritizes wounded enemies and finishes them with poison.",
+      routePerks: [] as ReturnType<typeof routePerk>[],
+    },
+    rogue_sentinel: {
+      id: "rogue_sentinel",
+      name: "Blackwood Sentinel",
+      role: "Blackwood Sentinel",
+      actOrigin: 1,
+      maxLife: 50,
+      attack: 4,
+      behavior: "guard_after_attack",
+      aura: "vigilance",
+      auraText: "Vigilance Aura: Party gains +4 Guard at start of each turn.",
+      passiveText: "Gains Guard after attacking. A defensive scout.",
+      routePerks: [] as ReturnType<typeof routePerk>[],
+    },
+
+    // ── Act 2 Variants ──
+    sunwell_lancer: {
+      id: "sunwell_lancer",
+      name: "Sunwell Lancer",
+      role: "Sunwell Lancer",
+      actOrigin: 2,
+      maxLife: 48,
+      attack: 7,
+      behavior: "might_striker",
+      aura: "might",
+      auraText: "Might Aura: Hero and summons deal +3 damage.",
+      passiveText: "Hits hard with raw physical force.",
+      routePerks: [] as ReturnType<typeof routePerk>[],
+    },
+    oasis_warmage: {
+      id: "oasis_warmage",
+      name: "Oasis Warmage",
+      role: "Oasis Warmage",
+      actOrigin: 2,
+      maxLife: 38,
+      attack: 4,
+      behavior: "spell_support",
+      aura: "meditation",
+      auraText: "Meditation Aura: Hero recovers +1 Energy every 3 turns.",
+      passiveText: "Supports with arcane energy recovery.",
+      routePerks: [] as ReturnType<typeof routePerk>[],
+    },
+
+    // ── Act 3 Variant ──
+    kurast_sage: {
+      id: "kurast_sage",
+      name: "River Sage",
+      role: "Kurast Healer",
+      actOrigin: 3,
+      maxLife: 35,
+      attack: 3,
+      behavior: "heal_support",
+      aura: "prayer",
+      auraText: "Prayer Aura: Heal hero and mercenary 3 each turn.",
+      passiveText: "Heals the party each turn instead of dealing damage.",
+      routePerks: [] as ReturnType<typeof routePerk>[],
+    },
+
+    // ── Act 5 Variant ──
+    harrogath_berserker: {
+      id: "harrogath_berserker",
+      name: "Frosthaven Berserker",
+      role: "Frosthaven Berserker",
+      actOrigin: 5,
+      maxLife: 44,
+      attack: 8,
+      behavior: "might_striker",
+      aura: "fanaticism",
+      auraText: "Fanaticism Aura: Hero and all allies deal +2 damage.",
+      passiveText: "Hits with berserker fury and inspires the whole party.",
+      routePerks: [] as ReturnType<typeof routePerk>[],
     },
   };
 

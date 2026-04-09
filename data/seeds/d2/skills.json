@@ -32,7 +32,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "amazon_exploding_arrow", "bonus": "+12% Fire Damage per level" }
+                {
+                  "skillId": "amazon_exploding_arrow",
+                  "bonus": "+12% Fire Damage per level"
+                }
               ]
             },
             {
@@ -45,7 +48,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "amazon_ice_arrow", "bonus": "+12% Cold Damage per level" }
+                {
+                  "skillId": "amazon_ice_arrow",
+                  "bonus": "+12% Cold Damage per level"
+                }
               ]
             },
             {
@@ -56,7 +62,9 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["amazon_magic_arrow"],
+              "prerequisites": [
+                "amazon_magic_arrow"
+              ],
               "synergies": []
             },
             {
@@ -67,9 +75,16 @@
               "skillType": "attack",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["amazon_magic_arrow", "amazon_fire_arrow", "amazon_multiple_shot"],
+              "prerequisites": [
+                "amazon_magic_arrow",
+                "amazon_fire_arrow",
+                "amazon_multiple_shot"
+              ],
               "synergies": [
-                { "skillId": "amazon_fire_arrow", "bonus": "+12% Fire Damage per level" }
+                {
+                  "skillId": "amazon_fire_arrow",
+                  "bonus": "+12% Fire Damage per level"
+                }
               ]
             },
             {
@@ -80,10 +95,18 @@
               "skillType": "attack",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["amazon_cold_arrow"],
+              "prerequisites": [
+                "amazon_cold_arrow"
+              ],
               "synergies": [
-                { "skillId": "amazon_cold_arrow", "bonus": "+8% Cold Damage per level" },
-                { "skillId": "amazon_freezing_arrow", "bonus": "+5% Cold Length per level" }
+                {
+                  "skillId": "amazon_cold_arrow",
+                  "bonus": "+8% Cold Damage per level"
+                },
+                {
+                  "skillId": "amazon_freezing_arrow",
+                  "bonus": "+5% Cold Length per level"
+                }
               ]
             },
             {
@@ -94,7 +117,11 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["amazon_magic_arrow", "amazon_cold_arrow", "amazon_multiple_shot"],
+              "prerequisites": [
+                "amazon_magic_arrow",
+                "amazon_cold_arrow",
+                "amazon_multiple_shot"
+              ],
               "synergies": []
             },
             {
@@ -105,10 +132,21 @@
               "skillType": "attack",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["amazon_magic_arrow", "amazon_fire_arrow", "amazon_multiple_shot", "amazon_exploding_arrow"],
+              "prerequisites": [
+                "amazon_magic_arrow",
+                "amazon_fire_arrow",
+                "amazon_multiple_shot",
+                "amazon_exploding_arrow"
+              ],
               "synergies": [
-                { "skillId": "amazon_fire_arrow", "bonus": "+5% Average Fire Damage per second per level" },
-                { "skillId": "amazon_exploding_arrow", "bonus": "+10% Fire Damage per level" }
+                {
+                  "skillId": "amazon_fire_arrow",
+                  "bonus": "+5% Average Fire Damage per second per level"
+                },
+                {
+                  "skillId": "amazon_exploding_arrow",
+                  "bonus": "+10% Fire Damage per level"
+                }
               ]
             },
             {
@@ -119,7 +157,12 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["amazon_magic_arrow", "amazon_multiple_shot", "amazon_cold_arrow", "amazon_guided_arrow"],
+              "prerequisites": [
+                "amazon_magic_arrow",
+                "amazon_multiple_shot",
+                "amazon_cold_arrow",
+                "amazon_guided_arrow"
+              ],
               "synergies": []
             },
             {
@@ -130,11 +173,74 @@
               "skillType": "attack",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["amazon_cold_arrow", "amazon_ice_arrow"],
+              "prerequisites": [
+                "amazon_cold_arrow",
+                "amazon_ice_arrow"
+              ],
               "synergies": [
-                { "skillId": "amazon_cold_arrow", "bonus": "+12% Cold Damage per level" },
-                { "skillId": "amazon_ice_arrow", "bonus": "+5% Freeze Length per level" }
+                {
+                  "skillId": "amazon_cold_arrow",
+                  "bonus": "+12% Cold Damage per level"
+                },
+                {
+                  "skillId": "amazon_ice_arrow",
+                  "bonus": "+5% Freeze Length per level"
+                }
               ]
+            },
+            {
+              "id": "amazon_serrated_volley",
+              "name": "Serrated Volley",
+              "requiredLevel": 6,
+              "description": "Arm the next ranged volley for bonus damage and slow.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Arm the next ranged volley for bonus damage and slow.",
+              "exactText": "Your next 2 ranged cards this turn deal +3 damage. If they hit the same enemy, apply 1 Slow each time."
+            },
+            {
+              "id": "amazon_pinning_fire",
+              "name": "Pinning Fire",
+              "requiredLevel": 6,
+              "description": "Punish an attacking enemy with damage reduction and slow.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Punish an attacking enemy with damage reduction and slow.",
+              "exactText": "Deal 6 damage. If the target is attacking next turn, it deals 6 less damage and gains 1 Slow."
+            },
+            {
+              "id": "amazon_kill_zone",
+              "name": "Kill Zone",
+              "requiredLevel": 12,
+              "description": "Set a kill zone for devastating focused fire.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Set a kill zone for devastating focused fire.",
+              "exactText": "Choose an enemy. Your next 3 ranged hits this turn and your mercenary's next hit against it each deal +6 damage. If any of those hits damage it while it is attacking next turn, it deals 8 less damage."
             }
           ]
         },
@@ -161,12 +267,26 @@
               "skillType": "attack",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["amazon_jab"],
+              "prerequisites": [
+                "amazon_jab"
+              ],
               "synergies": [
-                { "skillId": "amazon_lightning_bolt", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "amazon_charged_strike", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_strike", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_fury", "bonus": "+10% Lightning Damage per level" }
+                {
+                  "skillId": "amazon_lightning_bolt",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_charged_strike",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_strike",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_fury",
+                  "bonus": "+10% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -179,7 +299,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "amazon_plague_javelin", "bonus": "+12% Poison Damage per level" }
+                {
+                  "skillId": "amazon_plague_javelin",
+                  "bonus": "+12% Poison Damage per level"
+                }
               ]
             },
             {
@@ -190,7 +313,9 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["amazon_jab"],
+              "prerequisites": [
+                "amazon_jab"
+              ],
               "synergies": []
             },
             {
@@ -201,12 +326,26 @@
               "skillType": "attack",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["amazon_poison_javelin"],
+              "prerequisites": [
+                "amazon_poison_javelin"
+              ],
               "synergies": [
-                { "skillId": "amazon_power_strike", "bonus": "+3% Lightning Damage per level" },
-                { "skillId": "amazon_charged_strike", "bonus": "+3% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_strike", "bonus": "+3% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_fury", "bonus": "+3% Lightning Damage per level" }
+                {
+                  "skillId": "amazon_power_strike",
+                  "bonus": "+3% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_charged_strike",
+                  "bonus": "+3% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_strike",
+                  "bonus": "+3% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_fury",
+                  "bonus": "+3% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -217,12 +356,29 @@
               "skillType": "attack",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["amazon_jab", "amazon_poison_javelin", "amazon_power_strike", "amazon_lightning_bolt"],
+              "prerequisites": [
+                "amazon_jab",
+                "amazon_poison_javelin",
+                "amazon_power_strike",
+                "amazon_lightning_bolt"
+              ],
               "synergies": [
-                { "skillId": "amazon_power_strike", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_bolt", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_strike", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_fury", "bonus": "+10% Lightning Damage per level" }
+                {
+                  "skillId": "amazon_power_strike",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_bolt",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_strike",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_fury",
+                  "bonus": "+10% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -233,9 +389,15 @@
               "skillType": "attack",
               "damageType": "poison",
               "active": true,
-              "prerequisites": ["amazon_poison_javelin", "amazon_lightning_bolt"],
+              "prerequisites": [
+                "amazon_poison_javelin",
+                "amazon_lightning_bolt"
+              ],
               "synergies": [
-                { "skillId": "amazon_poison_javelin", "bonus": "+10% Poison Damage per level" }
+                {
+                  "skillId": "amazon_poison_javelin",
+                  "bonus": "+10% Poison Damage per level"
+                }
               ]
             },
             {
@@ -246,7 +408,10 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["amazon_jab", "amazon_impale"],
+              "prerequisites": [
+                "amazon_jab",
+                "amazon_impale"
+              ],
               "synergies": []
             },
             {
@@ -257,12 +422,30 @@
               "skillType": "attack",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["amazon_jab", "amazon_poison_javelin", "amazon_power_strike", "amazon_lightning_bolt", "amazon_charged_strike"],
+              "prerequisites": [
+                "amazon_jab",
+                "amazon_poison_javelin",
+                "amazon_power_strike",
+                "amazon_lightning_bolt",
+                "amazon_charged_strike"
+              ],
               "synergies": [
-                { "skillId": "amazon_power_strike", "bonus": "+8% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_bolt", "bonus": "+8% Lightning Damage per level" },
-                { "skillId": "amazon_charged_strike", "bonus": "+8% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_fury", "bonus": "+8% Lightning Damage per level" }
+                {
+                  "skillId": "amazon_power_strike",
+                  "bonus": "+8% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_bolt",
+                  "bonus": "+8% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_charged_strike",
+                  "bonus": "+8% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_fury",
+                  "bonus": "+8% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -273,13 +456,83 @@
               "skillType": "attack",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["amazon_poison_javelin", "amazon_lightning_bolt", "amazon_plague_javelin"],
+              "prerequisites": [
+                "amazon_poison_javelin",
+                "amazon_lightning_bolt",
+                "amazon_plague_javelin"
+              ],
               "synergies": [
-                { "skillId": "amazon_power_strike", "bonus": "+1% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_bolt", "bonus": "+1% Lightning Damage per level" },
-                { "skillId": "amazon_charged_strike", "bonus": "+1% Lightning Damage per level" },
-                { "skillId": "amazon_lightning_strike", "bonus": "+1% Lightning Damage per level" }
+                {
+                  "skillId": "amazon_power_strike",
+                  "bonus": "+1% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_bolt",
+                  "bonus": "+1% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_charged_strike",
+                  "bonus": "+1% Lightning Damage per level"
+                },
+                {
+                  "skillId": "amazon_lightning_strike",
+                  "bonus": "+1% Lightning Damage per level"
+                }
               ]
+            },
+            {
+              "id": "amazon_spear_break",
+              "name": "Spear Break",
+              "requiredLevel": 6,
+              "description": "Break an attacker's momentum and set up the mercenary.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Break an attacker's momentum and set up the mercenary.",
+              "exactText": "Deal 7 damage. If the target is attacking next turn, it deals 6 less damage and your mercenary deals +4 damage against it."
+            },
+            {
+              "id": "amazon_storm_step",
+              "name": "Storm Step",
+              "requiredLevel": 6,
+              "description": "Guard up and arm the next attack for area damage.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Guard up and arm the next attack for area damage.",
+              "exactText": "Gain 5 Guard. Your next Attack this turn deals +5 damage to all enemies it hits."
+            },
+            {
+              "id": "amazon_storm_spear",
+              "name": "Storm Spear",
+              "requiredLevel": 12,
+              "description": "Unleash a storm of javelins across the field.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Unleash a storm of javelins across the field.",
+              "exactText": "Deal 10 damage to all enemies. Your next Attack this turn deals +8 damage to all enemies it hits."
             }
           ]
         },
@@ -302,8 +555,8 @@
               "tier": "starter",
               "cost": 1,
               "cooldown": 1,
-              "summary": "Mark one enemy and tee up the next shot.",
-              "exactText": "Choose an enemy. Mark it for +4 mercenary damage and give your next card +2 damage.",
+              "summary": "Designate one enemy for precise follow-up from you and your mercenary.",
+              "exactText": "Choose an enemy. Your next 2 ranged hits or your mercenary's next hit against it each deal +4 damage.",
               "isStarter": true
             },
             {
@@ -347,7 +600,9 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["amazon_inner_sight"],
+              "prerequisites": [
+                "amazon_inner_sight"
+              ],
               "synergies": []
             },
             {
@@ -358,7 +613,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["amazon_dodge"],
+              "prerequisites": [
+                "amazon_dodge"
+              ],
               "synergies": []
             },
             {
@@ -369,7 +626,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["amazon_critical_strike"],
+              "prerequisites": [
+                "amazon_critical_strike"
+              ],
               "synergies": []
             },
             {
@@ -380,7 +639,10 @@
               "skillType": "summon",
               "damageType": null,
               "active": true,
-              "prerequisites": ["amazon_inner_sight", "amazon_slow_missiles"],
+              "prerequisites": [
+                "amazon_inner_sight",
+                "amazon_slow_missiles"
+              ],
               "synergies": []
             },
             {
@@ -391,7 +653,10 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["amazon_dodge", "amazon_avoid"],
+              "prerequisites": [
+                "amazon_dodge",
+                "amazon_avoid"
+              ],
               "synergies": []
             },
             {
@@ -402,14 +667,39 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["amazon_inner_sight", "amazon_dodge", "amazon_slow_missiles", "amazon_avoid", "amazon_decoy", "amazon_evade"],
+              "prerequisites": [
+                "amazon_inner_sight",
+                "amazon_dodge",
+                "amazon_slow_missiles",
+                "amazon_avoid",
+                "amazon_decoy",
+                "amazon_evade"
+              ],
               "synergies": [
-                { "skillId": "amazon_critical_strike", "bonus": "improved Valkyrie equipment" },
-                { "skillId": "amazon_dodge", "bonus": "improved Valkyrie equipment" },
-                { "skillId": "amazon_avoid", "bonus": "improved Valkyrie equipment" },
-                { "skillId": "amazon_evade", "bonus": "improved Valkyrie equipment" },
-                { "skillId": "amazon_decoy", "bonus": "+2% Resist All per level" },
-                { "skillId": "amazon_penetrate", "bonus": "improved Valkyrie equipment" }
+                {
+                  "skillId": "amazon_critical_strike",
+                  "bonus": "improved Valkyrie equipment"
+                },
+                {
+                  "skillId": "amazon_dodge",
+                  "bonus": "improved Valkyrie equipment"
+                },
+                {
+                  "skillId": "amazon_avoid",
+                  "bonus": "improved Valkyrie equipment"
+                },
+                {
+                  "skillId": "amazon_evade",
+                  "bonus": "improved Valkyrie equipment"
+                },
+                {
+                  "skillId": "amazon_decoy",
+                  "bonus": "+2% Resist All per level"
+                },
+                {
+                  "skillId": "amazon_penetrate",
+                  "bonus": "improved Valkyrie equipment"
+                }
               ]
             },
             {
@@ -420,8 +710,65 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["amazon_critical_strike", "amazon_penetrate"],
+              "prerequisites": [
+                "amazon_critical_strike",
+                "amazon_penetrate"
+              ],
               "synergies": []
+            },
+            {
+              "id": "amazon_evasive_step",
+              "name": "Evasive Step",
+              "requiredLevel": 6,
+              "description": "Dodge incoming damage for you and your mercenary.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Dodge incoming damage for you and your mercenary.",
+              "exactText": "Gain 7 Guard. The next enemy attack against you or your mercenary this turn deals 6 less damage."
+            },
+            {
+              "id": "amazon_hunters_focus",
+              "name": "Hunter's Focus",
+              "requiredLevel": 6,
+              "description": "Focus the hunt and draw on confirmed hits.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Focus the hunt and draw on confirmed hits.",
+              "exactText": "Choose an enemy. Your next single-target card this turn and your mercenary's next hit against it each draw 1 if they damage it."
+            },
+            {
+              "id": "amazon_predators_calm",
+              "name": "Predator's Calm",
+              "requiredLevel": 12,
+              "description": "Enter a state of calm precision for sustained single-target payoff.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Enter a state of calm precision for sustained single-target payoff.",
+              "exactText": "Gain 10 Guard. Your next 3 damaging cards this turn each gain +5 damage and draw 1 if they hit only one enemy."
             }
           ]
         }
@@ -468,7 +815,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "assassin_phoenix_strike", "bonus": "+12% Fire Damage per level" }
+                {
+                  "skillId": "assassin_phoenix_strike",
+                  "bonus": "+12% Fire Damage per level"
+                }
               ]
             },
             {
@@ -479,9 +829,14 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_dragon_talon"],
+              "prerequisites": [
+                "assassin_dragon_talon"
+              ],
               "synergies": [
-                { "skillId": "assassin_claw_mastery", "bonus": "+4% Damage per level" }
+                {
+                  "skillId": "assassin_claw_mastery",
+                  "bonus": "+4% Damage per level"
+                }
               ]
             },
             {
@@ -492,7 +847,9 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_tiger_strike"],
+              "prerequisites": [
+                "assassin_tiger_strike"
+              ],
               "synergies": []
             },
             {
@@ -503,9 +860,14 @@
               "skillType": "attack",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["assassin_fists_of_fire"],
+              "prerequisites": [
+                "assassin_fists_of_fire"
+              ],
               "synergies": [
-                { "skillId": "assassin_phoenix_strike", "bonus": "+8% Lightning Damage per level" }
+                {
+                  "skillId": "assassin_phoenix_strike",
+                  "bonus": "+8% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -516,7 +878,10 @@
               "skillType": "attack",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["assassin_dragon_talon", "assassin_dragon_claw"],
+              "prerequisites": [
+                "assassin_dragon_talon",
+                "assassin_dragon_claw"
+              ],
               "synergies": []
             },
             {
@@ -527,9 +892,15 @@
               "skillType": "attack",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["assassin_fists_of_fire", "assassin_claws_of_thunder"],
+              "prerequisites": [
+                "assassin_fists_of_fire",
+                "assassin_claws_of_thunder"
+              ],
               "synergies": [
-                { "skillId": "assassin_phoenix_strike", "bonus": "+8% Cold Damage per level" }
+                {
+                  "skillId": "assassin_phoenix_strike",
+                  "bonus": "+8% Cold Damage per level"
+                }
               ]
             },
             {
@@ -540,7 +911,11 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_dragon_talon", "assassin_dragon_claw", "assassin_dragon_tail"],
+              "prerequisites": [
+                "assassin_dragon_talon",
+                "assassin_dragon_claw",
+                "assassin_dragon_tail"
+              ],
               "synergies": []
             },
             {
@@ -551,12 +926,81 @@
               "skillType": "attack",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["assassin_tiger_strike", "assassin_fists_of_fire", "assassin_cobra_strike", "assassin_claws_of_thunder", "assassin_blades_of_ice"],
+              "prerequisites": [
+                "assassin_tiger_strike",
+                "assassin_fists_of_fire",
+                "assassin_cobra_strike",
+                "assassin_claws_of_thunder",
+                "assassin_blades_of_ice"
+              ],
               "synergies": [
-                { "skillId": "assassin_fists_of_fire", "bonus": "+10% Fire Damage, +6% Fire DPS per level" },
-                { "skillId": "assassin_claws_of_thunder", "bonus": "+13% Lightning Damage per level" },
-                { "skillId": "assassin_blades_of_ice", "bonus": "+10% Cold Damage per level" }
+                {
+                  "skillId": "assassin_fists_of_fire",
+                  "bonus": "+10% Fire Damage, +6% Fire DPS per level"
+                },
+                {
+                  "skillId": "assassin_claws_of_thunder",
+                  "bonus": "+13% Lightning Damage per level"
+                },
+                {
+                  "skillId": "assassin_blades_of_ice",
+                  "bonus": "+10% Cold Damage per level"
+                }
               ]
+            },
+            {
+              "id": "assassin_marked_opening",
+              "name": "Marked Opening",
+              "requiredLevel": 6,
+              "description": "Mark a target for coordinated burst damage.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Mark a target for coordinated burst damage.",
+              "exactText": "Choose an enemy. Your next Attack and your mercenary's next hit against it each deal +5 damage."
+            },
+            {
+              "id": "assassin_flash_step",
+              "name": "Flash Step",
+              "requiredLevel": 6,
+              "description": "Gain Guard and discount the next Assassin strike.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Gain Guard and discount the next Assassin strike.",
+              "exactText": "Gain 7 Guard. Your next Assassin damage card this turn costs 1 less."
+            },
+            {
+              "id": "assassin_death_blossom",
+              "name": "Death Blossom",
+              "requiredLevel": 12,
+              "description": "Unleash a deadly burst of discounted, empowered strikes.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Unleash a deadly burst of discounted, empowered strikes.",
+              "exactText": "Your next 2 Assassin damage cards this turn each cost 1 less and deal +8 damage. If they hit the same enemy, gain 1 Energy next turn."
             }
           ]
         },
@@ -580,7 +1024,7 @@
               "cost": 1,
               "cooldown": 1,
               "summary": "Gain Guard and sharpen the next Assassin follow-up.",
-              "exactText": "Gain 5 Guard. Your next card this turn costs 1 less and gains +2 damage or +2 Guard.",
+              "exactText": "Gain 6 Guard. Your next Assassin card this turn costs 1 less and deals +4 damage or gains +4 Guard.",
               "isStarter": true
             },
             {
@@ -613,7 +1057,9 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["assassin_claw_mastery"],
+              "prerequisites": [
+                "assassin_claw_mastery"
+              ],
               "synergies": []
             },
             {
@@ -624,7 +1070,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["assassin_claw_mastery"],
+              "prerequisites": [
+                "assassin_claw_mastery"
+              ],
               "synergies": []
             },
             {
@@ -635,7 +1083,9 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["assassin_psychic_hammer"],
+              "prerequisites": [
+                "assassin_psychic_hammer"
+              ],
               "synergies": []
             },
             {
@@ -646,7 +1096,10 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["assassin_claw_mastery", "assassin_burst_of_speed"],
+              "prerequisites": [
+                "assassin_claw_mastery",
+                "assassin_burst_of_speed"
+              ],
               "synergies": []
             },
             {
@@ -657,7 +1110,12 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_claw_mastery", "assassin_psychic_hammer", "assassin_weapon_block", "assassin_cloak_of_shadows"],
+              "prerequisites": [
+                "assassin_claw_mastery",
+                "assassin_psychic_hammer",
+                "assassin_weapon_block",
+                "assassin_cloak_of_shadows"
+              ],
               "synergies": []
             },
             {
@@ -668,7 +1126,10 @@
               "skillType": "spell",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["assassin_psychic_hammer", "assassin_cloak_of_shadows"],
+              "prerequisites": [
+                "assassin_psychic_hammer",
+                "assassin_cloak_of_shadows"
+              ],
               "synergies": []
             },
             {
@@ -679,7 +1140,11 @@
               "skillType": "buff",
               "damageType": "poison",
               "active": true,
-              "prerequisites": ["assassin_claw_mastery", "assassin_burst_of_speed", "assassin_fade"],
+              "prerequisites": [
+                "assassin_claw_mastery",
+                "assassin_burst_of_speed",
+                "assassin_fade"
+              ],
               "synergies": []
             },
             {
@@ -690,8 +1155,68 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_claw_mastery", "assassin_psychic_hammer", "assassin_weapon_block", "assassin_cloak_of_shadows", "assassin_shadow_warrior"],
+              "prerequisites": [
+                "assassin_claw_mastery",
+                "assassin_psychic_hammer",
+                "assassin_weapon_block",
+                "assassin_cloak_of_shadows",
+                "assassin_shadow_warrior"
+              ],
               "synergies": []
+            },
+            {
+              "id": "assassin_execution_window",
+              "name": "Execution Window",
+              "requiredLevel": 6,
+              "description": "Cash out status effects for burst damage.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 2,
+              "cooldown": 3,
+              "summary": "Cash out status effects for burst damage.",
+              "exactText": "Your next 2 Assassin damage cards this turn deal +6 damage to enemies with Burn, Poison, Slow, or Mark."
+            },
+            {
+              "id": "assassin_veil_step",
+              "name": "Veil Step",
+              "requiredLevel": 6,
+              "description": "Enter shadow stance and smooth the next play.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Enter shadow stance and smooth the next play.",
+              "exactText": "Gain 6 Guard. Your next shadow card this turn draws 1 and costs 1 less."
+            },
+            {
+              "id": "assassin_living_shade",
+              "name": "Living Shade",
+              "requiredLevel": 12,
+              "description": "Exploit every status on the field for bonus damage.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Exploit every status on the field for bonus damage.",
+              "exactText": "For this turn, your Assassin cards deal +5 damage to enemies with Burn, Poison, Slow, Freeze, or Mark. Gain 6 Guard."
             }
           ]
         },
@@ -709,12 +1234,30 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "assassin_shock_web", "bonus": "+9% Fire Damage per level" },
-                { "skillId": "assassin_charged_bolt_sentry", "bonus": "+9% Fire Damage per level" },
-                { "skillId": "assassin_wake_of_fire", "bonus": "+9% Fire Damage per level" },
-                { "skillId": "assassin_lightning_sentry", "bonus": "+9% Fire Damage per level" },
-                { "skillId": "assassin_wake_of_inferno", "bonus": "+9% Fire Damage per level" },
-                { "skillId": "assassin_death_sentry", "bonus": "+9% Fire Damage per level" }
+                {
+                  "skillId": "assassin_shock_web",
+                  "bonus": "+9% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_charged_bolt_sentry",
+                  "bonus": "+9% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_wake_of_fire",
+                  "bonus": "+9% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_lightning_sentry",
+                  "bonus": "+9% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_wake_of_inferno",
+                  "bonus": "+9% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_death_sentry",
+                  "bonus": "+9% Fire Damage per level"
+                }
               ]
             },
             {
@@ -725,12 +1268,26 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["assassin_fire_blast"],
+              "prerequisites": [
+                "assassin_fire_blast"
+              ],
               "synergies": [
-                { "skillId": "assassin_fire_blast", "bonus": "+1 missile per 3 levels" },
-                { "skillId": "assassin_charged_bolt_sentry", "bonus": "+11% Lightning Damage per level" },
-                { "skillId": "assassin_lightning_sentry", "bonus": "+11% Lightning Damage per level" },
-                { "skillId": "assassin_death_sentry", "bonus": "+11% Lightning Damage per level" }
+                {
+                  "skillId": "assassin_fire_blast",
+                  "bonus": "+1 missile per 3 levels"
+                },
+                {
+                  "skillId": "assassin_charged_bolt_sentry",
+                  "bonus": "+11% Lightning Damage per level"
+                },
+                {
+                  "skillId": "assassin_lightning_sentry",
+                  "bonus": "+11% Lightning Damage per level"
+                },
+                {
+                  "skillId": "assassin_death_sentry",
+                  "bonus": "+11% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -752,12 +1309,27 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["assassin_fire_blast", "assassin_shock_web"],
+              "prerequisites": [
+                "assassin_fire_blast",
+                "assassin_shock_web"
+              ],
               "synergies": [
-                { "skillId": "assassin_shock_web", "bonus": "+1 bolt per 3 levels" },
-                { "skillId": "assassin_lightning_sentry", "bonus": "+1 shot per 4 levels" },
-                { "skillId": "assassin_fire_blast", "bonus": "+6% Lightning Damage per level" },
-                { "skillId": "assassin_death_sentry", "bonus": "+6% Lightning Damage per level" }
+                {
+                  "skillId": "assassin_shock_web",
+                  "bonus": "+1 bolt per 3 levels"
+                },
+                {
+                  "skillId": "assassin_lightning_sentry",
+                  "bonus": "+1 shot per 4 levels"
+                },
+                {
+                  "skillId": "assassin_fire_blast",
+                  "bonus": "+6% Lightning Damage per level"
+                },
+                {
+                  "skillId": "assassin_death_sentry",
+                  "bonus": "+6% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -768,10 +1340,18 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["assassin_fire_blast"],
+              "prerequisites": [
+                "assassin_fire_blast"
+              ],
               "synergies": [
-                { "skillId": "assassin_fire_blast", "bonus": "+8% Fire Damage per level" },
-                { "skillId": "assassin_wake_of_inferno", "bonus": "+8% Fire Damage per level" }
+                {
+                  "skillId": "assassin_fire_blast",
+                  "bonus": "+8% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_wake_of_inferno",
+                  "bonus": "+8% Fire Damage per level"
+                }
               ]
             },
             {
@@ -782,7 +1362,11 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_fire_blast", "assassin_blade_sentinel", "assassin_wake_of_fire"],
+              "prerequisites": [
+                "assassin_fire_blast",
+                "assassin_blade_sentinel",
+                "assassin_wake_of_fire"
+              ],
               "synergies": []
             },
             {
@@ -793,11 +1377,24 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["assassin_fire_blast", "assassin_shock_web", "assassin_charged_bolt_sentry"],
+              "prerequisites": [
+                "assassin_fire_blast",
+                "assassin_shock_web",
+                "assassin_charged_bolt_sentry"
+              ],
               "synergies": [
-                { "skillId": "assassin_shock_web", "bonus": "+12% Lightning Damage per level" },
-                { "skillId": "assassin_charged_bolt_sentry", "bonus": "+12% Lightning Damage per level" },
-                { "skillId": "assassin_death_sentry", "bonus": "+12% Lightning Damage per level" }
+                {
+                  "skillId": "assassin_shock_web",
+                  "bonus": "+12% Lightning Damage per level"
+                },
+                {
+                  "skillId": "assassin_charged_bolt_sentry",
+                  "bonus": "+12% Lightning Damage per level"
+                },
+                {
+                  "skillId": "assassin_death_sentry",
+                  "bonus": "+12% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -808,12 +1405,27 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["assassin_fire_blast", "assassin_wake_of_fire"],
+              "prerequisites": [
+                "assassin_fire_blast",
+                "assassin_wake_of_fire"
+              ],
               "synergies": [
-                { "skillId": "assassin_wake_of_fire", "bonus": "+0.5 yards per level" },
-                { "skillId": "assassin_fire_blast", "bonus": "+10% Fire Damage per level" },
-                { "skillId": "assassin_death_sentry", "bonus": "+10% Fire Damage per level" },
-                { "skillId": "assassin_wake_of_fire", "bonus": "+7% Fire Damage per level" }
+                {
+                  "skillId": "assassin_wake_of_fire",
+                  "bonus": "+0.5 yards per level"
+                },
+                {
+                  "skillId": "assassin_fire_blast",
+                  "bonus": "+10% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_death_sentry",
+                  "bonus": "+10% Fire Damage per level"
+                },
+                {
+                  "skillId": "assassin_wake_of_fire",
+                  "bonus": "+7% Fire Damage per level"
+                }
               ]
             },
             {
@@ -824,10 +1436,21 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["assassin_fire_blast", "assassin_shock_web", "assassin_charged_bolt_sentry", "assassin_lightning_sentry"],
+              "prerequisites": [
+                "assassin_fire_blast",
+                "assassin_shock_web",
+                "assassin_charged_bolt_sentry",
+                "assassin_lightning_sentry"
+              ],
               "synergies": [
-                { "skillId": "assassin_fire_blast", "bonus": "+1 shot per 3 levels" },
-                { "skillId": "assassin_lightning_sentry", "bonus": "+12% Lightning Damage per level" }
+                {
+                  "skillId": "assassin_fire_blast",
+                  "bonus": "+1 shot per 3 levels"
+                },
+                {
+                  "skillId": "assassin_lightning_sentry",
+                  "bonus": "+12% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -838,8 +1461,67 @@
               "skillType": "buff",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["assassin_fire_blast", "assassin_blade_sentinel", "assassin_wake_of_fire", "assassin_blade_fury"],
+              "prerequisites": [
+                "assassin_fire_blast",
+                "assassin_blade_sentinel",
+                "assassin_wake_of_fire",
+                "assassin_blade_fury"
+              ],
               "synergies": []
+            },
+            {
+              "id": "assassin_prepared_ground",
+              "name": "Prepared Ground",
+              "requiredLevel": 6,
+              "description": "Arm the next trap for bonus damage and slow.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Arm the next trap for bonus damage and slow.",
+              "exactText": "Your next Trap or field card this turn deals +5 damage and applies 1 Slow to all enemies it hits."
+            },
+            {
+              "id": "assassin_wire_snare",
+              "name": "Wire Snare",
+              "requiredLevel": 6,
+              "description": "Slow all enemies and blunt the next attack.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Slow all enemies and blunt the next attack.",
+              "exactText": "Apply 1 Slow to all enemies. The next enemy that attacks this turn deals 6 less damage."
+            },
+            {
+              "id": "assassin_night_maze",
+              "name": "Night Maze",
+              "requiredLevel": 12,
+              "description": "Double the next trap and slow the field.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Double the next trap and slow the field.",
+              "exactText": "Your next Trap, field, or shadow setup card this turn triggers twice. All enemies gain 1 Slow."
             }
           ]
         }
@@ -883,8 +1565,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "barbarian_stun", "bonus": "+5% Damage per level" },
-                { "skillId": "barbarian_concentrate", "bonus": "+5% Attack Rating per level" }
+                {
+                  "skillId": "barbarian_stun",
+                  "bonus": "+5% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_concentrate",
+                  "bonus": "+5% Attack Rating per level"
+                }
               ]
             },
             {
@@ -895,9 +1583,14 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_bash"],
+              "prerequisites": [
+                "barbarian_bash"
+              ],
               "synergies": [
-                { "skillId": "barbarian_bash", "bonus": "+10% Damage per level" }
+                {
+                  "skillId": "barbarian_bash",
+                  "bonus": "+10% Damage per level"
+                }
               ]
             },
             {
@@ -919,9 +1612,15 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_bash", "barbarian_double_swing"],
+              "prerequisites": [
+                "barbarian_bash",
+                "barbarian_double_swing"
+              ],
               "synergies": [
-                { "skillId": "barbarian_double_swing", "bonus": "+8% Damage per level" }
+                {
+                  "skillId": "barbarian_double_swing",
+                  "bonus": "+8% Damage per level"
+                }
               ]
             },
             {
@@ -932,11 +1631,22 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_bash"],
+              "prerequisites": [
+                "barbarian_bash"
+              ],
               "synergies": [
-                { "skillId": "barbarian_bash", "bonus": "+8% Damage per level" },
-                { "skillId": "barbarian_concentrate", "bonus": "+5% Attack Rating per level" },
-                { "skillId": "barbarian_war_cry", "bonus": "+5% Stun Duration per level" }
+                {
+                  "skillId": "barbarian_bash",
+                  "bonus": "+8% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_concentrate",
+                  "bonus": "+5% Attack Rating per level"
+                },
+                {
+                  "skillId": "barbarian_war_cry",
+                  "bonus": "+5% Stun Duration per level"
+                }
               ]
             },
             {
@@ -947,9 +1657,14 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_leap"],
+              "prerequisites": [
+                "barbarian_leap"
+              ],
               "synergies": [
-                { "skillId": "barbarian_leap", "bonus": "+10% Damage per level" }
+                {
+                  "skillId": "barbarian_leap",
+                  "bonus": "+10% Damage per level"
+                }
               ]
             },
             {
@@ -960,11 +1675,23 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_bash", "barbarian_stun"],
+              "prerequisites": [
+                "barbarian_bash",
+                "barbarian_stun"
+              ],
               "synergies": [
-                { "skillId": "barbarian_bash", "bonus": "+5% Damage per level" },
-                { "skillId": "barbarian_battle_orders", "bonus": "+10% Damage per level" },
-                { "skillId": "barbarian_berserk", "bonus": "+1% Magic Damage per level" }
+                {
+                  "skillId": "barbarian_bash",
+                  "bonus": "+5% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_battle_orders",
+                  "bonus": "+10% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_berserk",
+                  "bonus": "+1% Magic Damage per level"
+                }
               ]
             },
             {
@@ -975,11 +1702,24 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_bash", "barbarian_double_swing", "barbarian_double_throw"],
+              "prerequisites": [
+                "barbarian_bash",
+                "barbarian_double_swing",
+                "barbarian_double_throw"
+              ],
               "synergies": [
-                { "skillId": "barbarian_double_swing", "bonus": "+8% Damage per level" },
-                { "skillId": "barbarian_taunt", "bonus": "+8% Damage per level" },
-                { "skillId": "barbarian_berserk", "bonus": "+1% Magic Damage per level" }
+                {
+                  "skillId": "barbarian_double_swing",
+                  "bonus": "+8% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_taunt",
+                  "bonus": "+8% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_berserk",
+                  "bonus": "+1% Magic Damage per level"
+                }
               ]
             },
             {
@@ -990,7 +1730,13 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_bash", "barbarian_leap", "barbarian_stun", "barbarian_concentrate", "barbarian_leap_attack"],
+              "prerequisites": [
+                "barbarian_bash",
+                "barbarian_leap",
+                "barbarian_stun",
+                "barbarian_concentrate",
+                "barbarian_leap_attack"
+              ],
               "synergies": []
             },
             {
@@ -1001,11 +1747,75 @@
               "skillType": "attack",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["barbarian_bash", "barbarian_stun", "barbarian_concentrate"],
+              "prerequisites": [
+                "barbarian_bash",
+                "barbarian_stun",
+                "barbarian_concentrate"
+              ],
               "synergies": [
-                { "skillId": "barbarian_howl", "bonus": "+10% Magic Damage per level" },
-                { "skillId": "barbarian_shout", "bonus": "+10% Magic Damage per level" }
+                {
+                  "skillId": "barbarian_howl",
+                  "bonus": "+10% Magic Damage per level"
+                },
+                {
+                  "skillId": "barbarian_shout",
+                  "bonus": "+10% Magic Damage per level"
+                }
               ]
+            },
+            {
+              "id": "barbarian_bar_double_swing",
+              "name": "Double Swing",
+              "requiredLevel": 6,
+              "description": "Two quick strikes for reliable pressure.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Two quick strikes for reliable pressure.",
+              "exactText": "Deal 5 damage twice."
+            },
+            {
+              "id": "barbarian_bar_leap",
+              "name": "Leap",
+              "requiredLevel": 6,
+              "description": "Leap to safety and arm the next attack.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Leap to safety and arm the next attack.",
+              "exactText": "Gain 8 Block. Your next Attack this turn deals +5 damage."
+            },
+            {
+              "id": "barbarian_relentless_assault",
+              "name": "Relentless Assault",
+              "requiredLevel": 12,
+              "description": "Open with a strike and empower the next attacks.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Open with a strike and empower the next attacks.",
+              "exactText": "Deal 10 damage. Your next 2 Attacks this turn each deal +6 damage. If they hit the same enemy, gain 6 Guard."
             }
           ]
         },
@@ -1109,7 +1919,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["barbarian_increased_stamina"],
+              "prerequisites": [
+                "barbarian_increased_stamina"
+              ],
               "synergies": []
             },
             {
@@ -1120,8 +1932,64 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["barbarian_iron_skin"],
+              "prerequisites": [
+                "barbarian_iron_skin"
+              ],
               "synergies": []
+            },
+            {
+              "id": "barbarian_iron_discipline",
+              "name": "Iron Discipline",
+              "requiredLevel": 6,
+              "description": "Steel yourself and punch through enemy defenses.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Steel yourself and punch through enemy defenses.",
+              "exactText": "Gain 7 Guard. Your next 2 Attacks this turn each ignore 3 Guard."
+            },
+            {
+              "id": "barbarian_measured_blow",
+              "name": "Measured Blow",
+              "requiredLevel": 6,
+              "description": "Convert defense into a heavier strike.",
+              "skillType": "attack",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Convert defense into a heavier strike.",
+              "exactText": "Deal 8 damage. If you gained Guard this turn, deal 4 more."
+            },
+            {
+              "id": "barbarian_perfect_form",
+              "name": "Perfect Form",
+              "requiredLevel": 12,
+              "description": "Enter perfect form for a turn of devastating attacks.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Enter perfect form for a turn of devastating attacks.",
+              "exactText": "For this turn, your Attacks cost 1 less, ignore 5 Guard, and gain +4 damage. Gain 8 Guard."
             }
           ]
         },
@@ -1159,10 +2027,18 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_howl"],
+              "prerequisites": [
+                "barbarian_howl"
+              ],
               "synergies": [
-                { "skillId": "barbarian_battle_orders", "bonus": "+5 seconds duration per level" },
-                { "skillId": "barbarian_battle_command", "bonus": "+5 seconds duration per level" }
+                {
+                  "skillId": "barbarian_battle_orders",
+                  "bonus": "+5 seconds duration per level"
+                },
+                {
+                  "skillId": "barbarian_battle_command",
+                  "bonus": "+5 seconds duration per level"
+                }
               ]
             },
             {
@@ -1173,7 +2049,9 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_howl"],
+              "prerequisites": [
+                "barbarian_howl"
+              ],
               "synergies": []
             },
             {
@@ -1184,7 +2062,9 @@
               "skillType": "spell",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_find_potion"],
+              "prerequisites": [
+                "barbarian_find_potion"
+              ],
               "synergies": []
             },
             {
@@ -1195,7 +2075,10 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_howl", "barbarian_taunt"],
+              "prerequisites": [
+                "barbarian_howl",
+                "barbarian_taunt"
+              ],
               "synergies": []
             },
             {
@@ -1206,10 +2089,19 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_howl", "barbarian_shout"],
+              "prerequisites": [
+                "barbarian_howl",
+                "barbarian_shout"
+              ],
               "synergies": [
-                { "skillId": "barbarian_shout", "bonus": "+5 seconds duration per level" },
-                { "skillId": "barbarian_battle_command", "bonus": "+5 seconds duration per level" }
+                {
+                  "skillId": "barbarian_shout",
+                  "bonus": "+5 seconds duration per level"
+                },
+                {
+                  "skillId": "barbarian_battle_command",
+                  "bonus": "+5 seconds duration per level"
+                }
               ]
             },
             {
@@ -1220,7 +2112,10 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_find_potion", "barbarian_find_item"],
+              "prerequisites": [
+                "barbarian_find_potion",
+                "barbarian_find_item"
+              ],
               "synergies": []
             },
             {
@@ -1231,11 +2126,26 @@
               "skillType": "spell",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["barbarian_howl", "barbarian_taunt", "barbarian_shout", "barbarian_battle_cry", "barbarian_battle_orders"],
+              "prerequisites": [
+                "barbarian_howl",
+                "barbarian_taunt",
+                "barbarian_shout",
+                "barbarian_battle_cry",
+                "barbarian_battle_orders"
+              ],
               "synergies": [
-                { "skillId": "barbarian_howl", "bonus": "+6% Damage per level" },
-                { "skillId": "barbarian_taunt", "bonus": "+6% Damage per level" },
-                { "skillId": "barbarian_battle_cry", "bonus": "+6% Damage per level" }
+                {
+                  "skillId": "barbarian_howl",
+                  "bonus": "+6% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_taunt",
+                  "bonus": "+6% Damage per level"
+                },
+                {
+                  "skillId": "barbarian_battle_cry",
+                  "bonus": "+6% Damage per level"
+                }
               ]
             },
             {
@@ -1246,11 +2156,75 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["barbarian_howl", "barbarian_shout", "barbarian_battle_orders"],
+              "prerequisites": [
+                "barbarian_howl",
+                "barbarian_shout",
+                "barbarian_battle_orders"
+              ],
               "synergies": [
-                { "skillId": "barbarian_shout", "bonus": "+5 seconds duration per level" },
-                { "skillId": "barbarian_battle_orders", "bonus": "+5 seconds duration per level" }
+                {
+                  "skillId": "barbarian_shout",
+                  "bonus": "+5 seconds duration per level"
+                },
+                {
+                  "skillId": "barbarian_battle_orders",
+                  "bonus": "+5 seconds duration per level"
+                }
               ]
+            },
+            {
+              "id": "barbarian_bar_howl",
+              "name": "Howl",
+              "requiredLevel": 6,
+              "description": "Intimidate enemies into weaker attacks.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Intimidate enemies into weaker attacks.",
+              "exactText": "All non-boss enemies deal 4 less damage next turn."
+            },
+            {
+              "id": "barbarian_bar_battle_cry",
+              "name": "Battle Cry",
+              "requiredLevel": 6,
+              "description": "Weaken a target and coordinate the counterattack.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Weaken a target and coordinate the counterattack.",
+              "exactText": "One enemy deals 6 less damage next turn. Your next Attack against it and your mercenary's next hit each deal +5 damage."
+            },
+            {
+              "id": "barbarian_warlords_command",
+              "name": "Warlord's Command",
+              "requiredLevel": 12,
+              "description": "Command the field with offense, defense, and draw.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Command the field with offense, defense, and draw.",
+              "exactText": "You and your mercenary gain +5 damage this turn. All enemies deal 4 less damage next turn. Draw 1."
             }
           ]
         }
@@ -1275,8 +2249,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "druid_molten_boulder", "bonus": "+23% Fire Damage per level" },
-                { "skillId": "druid_fissure", "bonus": "+23% Fire Damage per level" }
+                {
+                  "skillId": "druid_molten_boulder",
+                  "bonus": "+23% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_fissure",
+                  "bonus": "+23% Fire Damage per level"
+                }
               ]
             },
             {
@@ -1287,10 +2267,18 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["druid_firestorm"],
+              "prerequisites": [
+                "druid_firestorm"
+              ],
               "synergies": [
-                { "skillId": "druid_volcano", "bonus": "+10% Damage per level" },
-                { "skillId": "druid_firestorm", "bonus": "+8% Fire Damage per level" }
+                {
+                  "skillId": "druid_volcano",
+                  "bonus": "+10% Damage per level"
+                },
+                {
+                  "skillId": "druid_firestorm",
+                  "bonus": "+8% Fire Damage per level"
+                }
               ]
             },
             {
@@ -1303,8 +2291,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "druid_hurricane", "bonus": "+15% Cold Damage per level" },
-                { "skillId": "druid_cyclone_armor", "bonus": "+15% Cold Damage per level" }
+                {
+                  "skillId": "druid_hurricane",
+                  "bonus": "+15% Cold Damage per level"
+                },
+                {
+                  "skillId": "druid_cyclone_armor",
+                  "bonus": "+15% Cold Damage per level"
+                }
               ]
             },
             {
@@ -1315,11 +2309,22 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["druid_arctic_blast"],
+              "prerequisites": [
+                "druid_arctic_blast"
+              ],
               "synergies": [
-                { "skillId": "druid_twister", "bonus": "+7% Absorb per level" },
-                { "skillId": "druid_tornado", "bonus": "+7% Absorb per level" },
-                { "skillId": "druid_hurricane", "bonus": "+7% Absorb per level" }
+                {
+                  "skillId": "druid_twister",
+                  "bonus": "+7% Absorb per level"
+                },
+                {
+                  "skillId": "druid_tornado",
+                  "bonus": "+7% Absorb per level"
+                },
+                {
+                  "skillId": "druid_hurricane",
+                  "bonus": "+7% Absorb per level"
+                }
               ]
             },
             {
@@ -1330,10 +2335,19 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["druid_firestorm", "druid_molten_boulder"],
+              "prerequisites": [
+                "druid_firestorm",
+                "druid_molten_boulder"
+              ],
               "synergies": [
-                { "skillId": "druid_firestorm", "bonus": "+12% Fire Damage per level" },
-                { "skillId": "druid_volcano", "bonus": "+12% Fire Damage per level" }
+                {
+                  "skillId": "druid_firestorm",
+                  "bonus": "+12% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_volcano",
+                  "bonus": "+12% Fire Damage per level"
+                }
               ]
             },
             {
@@ -1344,10 +2358,19 @@
               "skillType": "spell",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_arctic_blast", "druid_cyclone_armor"],
+              "prerequisites": [
+                "druid_arctic_blast",
+                "druid_cyclone_armor"
+              ],
               "synergies": [
-                { "skillId": "druid_tornado", "bonus": "+10% Damage per level" },
-                { "skillId": "druid_hurricane", "bonus": "+10% Damage per level" }
+                {
+                  "skillId": "druid_tornado",
+                  "bonus": "+10% Damage per level"
+                },
+                {
+                  "skillId": "druid_hurricane",
+                  "bonus": "+10% Damage per level"
+                }
               ]
             },
             {
@@ -1358,11 +2381,24 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["druid_firestorm", "druid_molten_boulder", "druid_fissure"],
+              "prerequisites": [
+                "druid_firestorm",
+                "druid_molten_boulder",
+                "druid_fissure"
+              ],
               "synergies": [
-                { "skillId": "druid_molten_boulder", "bonus": "+12% Damage per level" },
-                { "skillId": "druid_fissure", "bonus": "+12% Damage per level" },
-                { "skillId": "druid_armageddon", "bonus": "+12% Damage per level" }
+                {
+                  "skillId": "druid_molten_boulder",
+                  "bonus": "+12% Damage per level"
+                },
+                {
+                  "skillId": "druid_fissure",
+                  "bonus": "+12% Damage per level"
+                },
+                {
+                  "skillId": "druid_armageddon",
+                  "bonus": "+12% Damage per level"
+                }
               ]
             },
             {
@@ -1373,11 +2409,24 @@
               "skillType": "spell",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_arctic_blast", "druid_cyclone_armor", "druid_twister"],
+              "prerequisites": [
+                "druid_arctic_blast",
+                "druid_cyclone_armor",
+                "druid_twister"
+              ],
               "synergies": [
-                { "skillId": "druid_cyclone_armor", "bonus": "+9% Damage per level" },
-                { "skillId": "druid_twister", "bonus": "+9% Damage per level" },
-                { "skillId": "druid_hurricane", "bonus": "+9% Damage per level" }
+                {
+                  "skillId": "druid_cyclone_armor",
+                  "bonus": "+9% Damage per level"
+                },
+                {
+                  "skillId": "druid_twister",
+                  "bonus": "+9% Damage per level"
+                },
+                {
+                  "skillId": "druid_hurricane",
+                  "bonus": "+9% Damage per level"
+                }
               ]
             },
             {
@@ -1388,11 +2437,25 @@
               "skillType": "spell",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["druid_arctic_blast", "druid_cyclone_armor", "druid_twister", "druid_tornado"],
+              "prerequisites": [
+                "druid_arctic_blast",
+                "druid_cyclone_armor",
+                "druid_twister",
+                "druid_tornado"
+              ],
               "synergies": [
-                { "skillId": "druid_cyclone_armor", "bonus": "+2 seconds duration per level" },
-                { "skillId": "druid_twister", "bonus": "+9% Damage per level" },
-                { "skillId": "druid_tornado", "bonus": "+9% Damage per level" }
+                {
+                  "skillId": "druid_cyclone_armor",
+                  "bonus": "+2 seconds duration per level"
+                },
+                {
+                  "skillId": "druid_twister",
+                  "bonus": "+9% Damage per level"
+                },
+                {
+                  "skillId": "druid_tornado",
+                  "bonus": "+9% Damage per level"
+                }
               ]
             },
             {
@@ -1403,13 +2466,89 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["druid_firestorm", "druid_molten_boulder", "druid_fissure", "druid_volcano", "druid_arctic_blast", "druid_cyclone_armor", "druid_twister", "druid_tornado", "druid_hurricane"],
+              "prerequisites": [
+                "druid_firestorm",
+                "druid_molten_boulder",
+                "druid_fissure",
+                "druid_volcano",
+                "druid_arctic_blast",
+                "druid_cyclone_armor",
+                "druid_twister",
+                "druid_tornado",
+                "druid_hurricane"
+              ],
               "synergies": [
-                { "skillId": "druid_firestorm", "bonus": "+14% Fire Damage per level" },
-                { "skillId": "druid_molten_boulder", "bonus": "+14% Fire Damage per level" },
-                { "skillId": "druid_volcano", "bonus": "+14% Fire Damage per level" },
-                { "skillId": "druid_fissure", "bonus": "+2 seconds duration per level" }
+                {
+                  "skillId": "druid_firestorm",
+                  "bonus": "+14% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_molten_boulder",
+                  "bonus": "+14% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_volcano",
+                  "bonus": "+14% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_fissure",
+                  "bonus": "+2 seconds duration per level"
+                }
               ]
+            },
+            {
+              "id": "druid_tempest_channel",
+              "name": "Tempest Channel",
+              "requiredLevel": 6,
+              "description": "Channel the storm to amplify elemental effects.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Channel the storm to amplify elemental effects.",
+              "exactText": "Your next 2 elemental cards this turn each apply +1 Burn or +1 Slow."
+            },
+            {
+              "id": "druid_arc_root",
+              "name": "Arc Root",
+              "requiredLevel": 6,
+              "description": "Ground yourself and widen the next elemental blast.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Ground yourself and widen the next elemental blast.",
+              "exactText": "Gain 6 Guard. Your next elemental damage card this turn deals +5 damage to all enemies it hits."
+            },
+            {
+              "id": "druid_cataclysm",
+              "name": "Cataclysm",
+              "requiredLevel": 12,
+              "description": "Unleash elemental devastation across the field.",
+              "skillType": "attack",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Unleash elemental devastation across the field.",
+              "exactText": "Deal 8 damage to all enemies. Your next 2 elemental cards this turn each apply +2 Burn or +2 Slow and deal +4 damage."
             }
           ]
         },
@@ -1436,7 +2575,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["druid_werewolf"],
+              "prerequisites": [
+                "druid_werewolf"
+              ],
               "synergies": []
             },
             {
@@ -1458,7 +2599,9 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_werebear"],
+              "prerequisites": [
+                "druid_werebear"
+              ],
               "synergies": []
             },
             {
@@ -1469,7 +2612,9 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_werewolf"],
+              "prerequisites": [
+                "druid_werewolf"
+              ],
               "synergies": []
             },
             {
@@ -1480,12 +2625,29 @@
               "skillType": "attack",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["druid_werewolf", "druid_werebear", "druid_feral_rage", "druid_maul"],
+              "prerequisites": [
+                "druid_werewolf",
+                "druid_werebear",
+                "druid_feral_rage",
+                "druid_maul"
+              ],
               "synergies": [
-                { "skillId": "druid_firestorm", "bonus": "+22% Fire Damage per level" },
-                { "skillId": "druid_molten_boulder", "bonus": "+22% Fire Damage per level" },
-                { "skillId": "druid_fissure", "bonus": "+22% Fire Damage per level" },
-                { "skillId": "druid_volcano", "bonus": "+22% Fire Damage per level" }
+                {
+                  "skillId": "druid_firestorm",
+                  "bonus": "+22% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_molten_boulder",
+                  "bonus": "+22% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_fissure",
+                  "bonus": "+22% Fire Damage per level"
+                },
+                {
+                  "skillId": "druid_volcano",
+                  "bonus": "+22% Fire Damage per level"
+                }
               ]
             },
             {
@@ -1496,9 +2658,15 @@
               "skillType": "attack",
               "damageType": "poison",
               "active": true,
-              "prerequisites": ["druid_werewolf", "druid_feral_rage"],
+              "prerequisites": [
+                "druid_werewolf",
+                "druid_feral_rage"
+              ],
               "synergies": [
-                { "skillId": "druid_poison_creeper", "bonus": "+20% Poison Damage per level" }
+                {
+                  "skillId": "druid_poison_creeper",
+                  "bonus": "+20% Poison Damage per level"
+                }
               ]
             },
             {
@@ -1509,9 +2677,15 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_werebear", "druid_maul"],
+              "prerequisites": [
+                "druid_werebear",
+                "druid_maul"
+              ],
               "synergies": [
-                { "skillId": "druid_maul", "bonus": "+10% Damage per level" }
+                {
+                  "skillId": "druid_maul",
+                  "bonus": "+10% Damage per level"
+                }
               ]
             },
             {
@@ -1522,7 +2696,13 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_werewolf", "druid_werebear", "druid_feral_rage", "druid_maul", "druid_fire_claws"],
+              "prerequisites": [
+                "druid_werewolf",
+                "druid_werebear",
+                "druid_feral_rage",
+                "druid_maul",
+                "druid_fire_claws"
+              ],
               "synergies": []
             },
             {
@@ -1533,10 +2713,71 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_werewolf", "druid_feral_rage", "druid_rabies"],
+              "prerequisites": [
+                "druid_werewolf",
+                "druid_feral_rage",
+                "druid_rabies"
+              ],
               "synergies": [
-                { "skillId": "druid_feral_rage", "bonus": "+6% Damage per level" }
+                {
+                  "skillId": "druid_feral_rage",
+                  "bonus": "+6% Damage per level"
+                }
               ]
+            },
+            {
+              "id": "druid_stonebark",
+              "name": "Stonebark",
+              "requiredLevel": 6,
+              "description": "Harden the front line and punish attackers.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Harden the front line and punish attackers.",
+              "exactText": "You and your mercenary gain 6 Guard. The next enemy that attacks this turn gains 1 Slow."
+            },
+            {
+              "id": "druid_predatory_lunge",
+              "name": "Predatory Lunge",
+              "requiredLevel": 6,
+              "description": "Lunge and exploit slowed prey.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Lunge and exploit slowed prey.",
+              "exactText": "Your next Shapeshift or melee card this turn deals +6 damage. If it hits a slowed enemy, draw 1."
+            },
+            {
+              "id": "druid_elder_shape",
+              "name": "Elder Shape",
+              "requiredLevel": 12,
+              "description": "Assume elder form for armored, slowing strikes.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Assume elder form for armored, slowing strikes.",
+              "exactText": "Gain 10 Guard. Your next 2 Shapeshift or melee cards this turn each deal +6 damage and apply 1 Slow."
             }
           ]
         },
@@ -1559,8 +2800,8 @@
               "tier": "starter",
               "cost": 1,
               "cooldown": 1,
-              "summary": "Gain Guard, nurture the board, and empower the next card.",
-              "exactText": "Gain 4 Guard. Reinforce one summon by +1 if you control one. Your next card this turn gains +2 damage.",
+              "summary": "Establish context for spells, shapeshifts, and summons.",
+              "exactText": "Gain 5 Guard. Your next Spell or Shapeshift card this turn deals +4 damage. If your next card this turn summons, that summon gains +2 power.",
               "isStarter": true
             },
             {
@@ -1604,7 +2845,9 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_raven"],
+              "prerequisites": [
+                "druid_raven"
+              ],
               "synergies": []
             },
             {
@@ -1615,7 +2858,9 @@
               "skillType": "summon",
               "damageType": null,
               "active": true,
-              "prerequisites": ["druid_poison_creeper"],
+              "prerequisites": [
+                "druid_poison_creeper"
+              ],
               "synergies": []
             },
             {
@@ -1626,7 +2871,9 @@
               "skillType": "summon",
               "damageType": null,
               "active": true,
-              "prerequisites": ["druid_oak_sage"],
+              "prerequisites": [
+                "druid_oak_sage"
+              ],
               "synergies": []
             },
             {
@@ -1637,7 +2884,11 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_raven", "druid_oak_sage", "druid_summon_spirit_wolf"],
+              "prerequisites": [
+                "druid_raven",
+                "druid_oak_sage",
+                "druid_summon_spirit_wolf"
+              ],
               "synergies": []
             },
             {
@@ -1648,7 +2899,10 @@
               "skillType": "summon",
               "damageType": null,
               "active": true,
-              "prerequisites": ["druid_poison_creeper", "druid_carrion_vine"],
+              "prerequisites": [
+                "druid_poison_creeper",
+                "druid_carrion_vine"
+              ],
               "synergies": []
             },
             {
@@ -1659,7 +2913,10 @@
               "skillType": "summon",
               "damageType": null,
               "active": true,
-              "prerequisites": ["druid_oak_sage", "druid_heart_of_wolverine"],
+              "prerequisites": [
+                "druid_oak_sage",
+                "druid_heart_of_wolverine"
+              ],
               "synergies": []
             },
             {
@@ -1670,8 +2927,67 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["druid_raven", "druid_oak_sage", "druid_summon_spirit_wolf", "druid_summon_dire_wolf"],
+              "prerequisites": [
+                "druid_raven",
+                "druid_oak_sage",
+                "druid_summon_spirit_wolf",
+                "druid_summon_dire_wolf"
+              ],
               "synergies": []
+            },
+            {
+              "id": "druid_pack_call",
+              "name": "Pack Call",
+              "requiredLevel": 6,
+              "description": "Call a wolf or strengthen the existing pack.",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Call a wolf or strengthen the existing pack.",
+              "exactText": "Summon a Wolf for 2 turns. If you already control a summon, reinforce it by +2 instead."
+            },
+            {
+              "id": "druid_spirit_shepherd",
+              "name": "Spirit Shepherd",
+              "requiredLevel": 6,
+              "description": "Heal and extend the pack's presence.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "recovery",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Heal and extend the pack's presence.",
+              "exactText": "Heal 4. Your summons gain +2 power this turn and +1 turn if any summon is already active."
+            },
+            {
+              "id": "druid_wild_convergence",
+              "name": "Wild Convergence",
+              "requiredLevel": 12,
+              "description": "Summon a bear or empower the entire pack.",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Summon a bear or empower the entire pack.",
+              "exactText": "Summon a Bear for 2 turns. If you already control a summon, all your summons gain +2 power and +1 turn instead."
             }
           ]
         }
@@ -1716,7 +3032,9 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_amplify_damage"],
+              "prerequisites": [
+                "necromancer_amplify_damage"
+              ],
               "synergies": []
             },
             {
@@ -1727,7 +3045,9 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_amplify_damage"],
+              "prerequisites": [
+                "necromancer_amplify_damage"
+              ],
               "synergies": []
             },
             {
@@ -1738,7 +3058,10 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_amplify_damage", "necromancer_weaken"],
+              "prerequisites": [
+                "necromancer_amplify_damage",
+                "necromancer_weaken"
+              ],
               "synergies": []
             },
             {
@@ -1749,7 +3072,9 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_dim_vision"],
+              "prerequisites": [
+                "necromancer_dim_vision"
+              ],
               "synergies": []
             },
             {
@@ -1760,7 +3085,10 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_amplify_damage", "necromancer_iron_maiden"],
+              "prerequisites": [
+                "necromancer_amplify_damage",
+                "necromancer_iron_maiden"
+              ],
               "synergies": []
             },
             {
@@ -1771,7 +3099,10 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_dim_vision", "necromancer_confuse"],
+              "prerequisites": [
+                "necromancer_dim_vision",
+                "necromancer_confuse"
+              ],
               "synergies": []
             },
             {
@@ -1782,7 +3113,11 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_amplify_damage", "necromancer_weaken", "necromancer_terror"],
+              "prerequisites": [
+                "necromancer_amplify_damage",
+                "necromancer_weaken",
+                "necromancer_terror"
+              ],
               "synergies": []
             },
             {
@@ -1793,8 +3128,69 @@
               "skillType": "debuff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_amplify_damage", "necromancer_weaken", "necromancer_iron_maiden", "necromancer_terror", "necromancer_life_tap", "necromancer_decrepify"],
+              "prerequisites": [
+                "necromancer_amplify_damage",
+                "necromancer_weaken",
+                "necromancer_iron_maiden",
+                "necromancer_terror",
+                "necromancer_life_tap",
+                "necromancer_decrepify"
+              ],
               "synergies": []
+            },
+            {
+              "id": "necromancer_grave_mend",
+              "name": "Grave Mend",
+              "requiredLevel": 6,
+              "description": "Heal and extend your summoned presence.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "recovery",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Heal and extend your summoned presence.",
+              "exactText": "Heal 5. If you control a summon, it gains +2 power and +1 turn."
+            },
+            {
+              "id": "necromancer_hex_pulse",
+              "name": "Hex Pulse",
+              "requiredLevel": 6,
+              "description": "Amplify the next curse and draw on application.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Amplify the next curse and draw on application.",
+              "exactText": "Your next curse or control card this turn applies +1 extra status and draws 1."
+            },
+            {
+              "id": "necromancer_black_benediction",
+              "name": "Black Benediction",
+              "requiredLevel": 12,
+              "description": "Weaken all enemies and empower the next curses.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Weaken all enemies and empower the next curses.",
+              "exactText": "All enemies deal 4 less damage next turn. Your next 2 curse or control cards this turn each draw 1 and deal +4 damage or apply +1 extra status."
             }
           ]
         },
@@ -1812,10 +3208,22 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "necromancer_bone_wall", "bonus": "+15% Magic Damage per level" },
-                { "skillId": "necromancer_bone_spear", "bonus": "+15% Magic Damage per level" },
-                { "skillId": "necromancer_bone_prison", "bonus": "+15% Magic Damage per level" },
-                { "skillId": "necromancer_bone_spirit", "bonus": "+15% Magic Damage per level" }
+                {
+                  "skillId": "necromancer_bone_wall",
+                  "bonus": "+15% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_spear",
+                  "bonus": "+15% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_prison",
+                  "bonus": "+15% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_spirit",
+                  "bonus": "+15% Magic Damage per level"
+                }
               ]
             },
             {
@@ -1828,8 +3236,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "necromancer_bone_wall", "bonus": "+15 Damage Absorbed per level" },
-                { "skillId": "necromancer_bone_prison", "bonus": "+15 Damage Absorbed per level" }
+                {
+                  "skillId": "necromancer_bone_wall",
+                  "bonus": "+15 Damage Absorbed per level"
+                },
+                {
+                  "skillId": "necromancer_bone_prison",
+                  "bonus": "+15 Damage Absorbed per level"
+                }
               ]
             },
             {
@@ -1842,8 +3256,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "necromancer_poison_explosion", "bonus": "+20% Poison Damage per level" },
-                { "skillId": "necromancer_poison_nova", "bonus": "+20% Poison Damage per level" }
+                {
+                  "skillId": "necromancer_poison_explosion",
+                  "bonus": "+20% Poison Damage per level"
+                },
+                {
+                  "skillId": "necromancer_poison_nova",
+                  "bonus": "+20% Poison Damage per level"
+                }
               ]
             },
             {
@@ -1854,7 +3274,9 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["necromancer_teeth"],
+              "prerequisites": [
+                "necromancer_teeth"
+              ],
               "synergies": []
             },
             {
@@ -1865,10 +3287,18 @@
               "skillType": "spell",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_bone_armor"],
+              "prerequisites": [
+                "necromancer_bone_armor"
+              ],
               "synergies": [
-                { "skillId": "necromancer_bone_armor", "bonus": "+10% Life per level" },
-                { "skillId": "necromancer_bone_prison", "bonus": "+10% Life per level" }
+                {
+                  "skillId": "necromancer_bone_armor",
+                  "bonus": "+10% Life per level"
+                },
+                {
+                  "skillId": "necromancer_bone_prison",
+                  "bonus": "+10% Life per level"
+                }
               ]
             },
             {
@@ -1879,10 +3309,20 @@
               "skillType": "spell",
               "damageType": "poison",
               "active": true,
-              "prerequisites": ["necromancer_teeth", "necromancer_corpse_explosion", "necromancer_poison_dagger"],
+              "prerequisites": [
+                "necromancer_teeth",
+                "necromancer_corpse_explosion",
+                "necromancer_poison_dagger"
+              ],
               "synergies": [
-                { "skillId": "necromancer_poison_dagger", "bonus": "+15% Poison Damage per level" },
-                { "skillId": "necromancer_poison_nova", "bonus": "+15% Poison Damage per level" }
+                {
+                  "skillId": "necromancer_poison_dagger",
+                  "bonus": "+15% Poison Damage per level"
+                },
+                {
+                  "skillId": "necromancer_poison_nova",
+                  "bonus": "+15% Poison Damage per level"
+                }
               ]
             },
             {
@@ -1893,12 +3333,27 @@
               "skillType": "spell",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["necromancer_teeth", "necromancer_corpse_explosion"],
+              "prerequisites": [
+                "necromancer_teeth",
+                "necromancer_corpse_explosion"
+              ],
               "synergies": [
-                { "skillId": "necromancer_teeth", "bonus": "+7% Magic Damage per level" },
-                { "skillId": "necromancer_bone_wall", "bonus": "+7% Magic Damage per level" },
-                { "skillId": "necromancer_bone_prison", "bonus": "+7% Magic Damage per level" },
-                { "skillId": "necromancer_bone_spirit", "bonus": "+7% Magic Damage per level" }
+                {
+                  "skillId": "necromancer_teeth",
+                  "bonus": "+7% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_wall",
+                  "bonus": "+7% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_prison",
+                  "bonus": "+7% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_spirit",
+                  "bonus": "+7% Magic Damage per level"
+                }
               ]
             },
             {
@@ -1909,10 +3364,22 @@
               "skillType": "spell",
               "damageType": null,
               "active": true,
-              "prerequisites": ["necromancer_teeth", "necromancer_bone_armor", "necromancer_corpse_explosion", "necromancer_bone_wall", "necromancer_bone_spear"],
+              "prerequisites": [
+                "necromancer_teeth",
+                "necromancer_bone_armor",
+                "necromancer_corpse_explosion",
+                "necromancer_bone_wall",
+                "necromancer_bone_spear"
+              ],
               "synergies": [
-                { "skillId": "necromancer_bone_armor", "bonus": "+8% Life per level" },
-                { "skillId": "necromancer_bone_wall", "bonus": "+8% Life per level" }
+                {
+                  "skillId": "necromancer_bone_armor",
+                  "bonus": "+8% Life per level"
+                },
+                {
+                  "skillId": "necromancer_bone_wall",
+                  "bonus": "+8% Life per level"
+                }
               ]
             },
             {
@@ -1923,10 +3390,21 @@
               "skillType": "spell",
               "damageType": "poison",
               "active": true,
-              "prerequisites": ["necromancer_poison_dagger", "necromancer_teeth", "necromancer_corpse_explosion", "necromancer_poison_explosion"],
+              "prerequisites": [
+                "necromancer_poison_dagger",
+                "necromancer_teeth",
+                "necromancer_corpse_explosion",
+                "necromancer_poison_explosion"
+              ],
               "synergies": [
-                { "skillId": "necromancer_poison_dagger", "bonus": "+10% Poison Damage per level" },
-                { "skillId": "necromancer_poison_explosion", "bonus": "+10% Poison Damage per level" }
+                {
+                  "skillId": "necromancer_poison_dagger",
+                  "bonus": "+10% Poison Damage per level"
+                },
+                {
+                  "skillId": "necromancer_poison_explosion",
+                  "bonus": "+10% Poison Damage per level"
+                }
               ]
             },
             {
@@ -1937,13 +3415,83 @@
               "skillType": "spell",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["necromancer_teeth", "necromancer_corpse_explosion", "necromancer_bone_spear"],
+              "prerequisites": [
+                "necromancer_teeth",
+                "necromancer_corpse_explosion",
+                "necromancer_bone_spear"
+              ],
               "synergies": [
-                { "skillId": "necromancer_teeth", "bonus": "+6% Magic Damage per level" },
-                { "skillId": "necromancer_bone_wall", "bonus": "+6% Magic Damage per level" },
-                { "skillId": "necromancer_bone_spear", "bonus": "+6% Magic Damage per level" },
-                { "skillId": "necromancer_bone_prison", "bonus": "+6% Magic Damage per level" }
+                {
+                  "skillId": "necromancer_teeth",
+                  "bonus": "+6% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_wall",
+                  "bonus": "+6% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_spear",
+                  "bonus": "+6% Magic Damage per level"
+                },
+                {
+                  "skillId": "necromancer_bone_prison",
+                  "bonus": "+6% Magic Damage per level"
+                }
               ]
+            },
+            {
+              "id": "necromancer_unholy_order",
+              "name": "Unholy Order",
+              "requiredLevel": 6,
+              "description": "Direct the undead and mercenary against one target.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Direct the undead and mercenary against one target.",
+              "exactText": "Choose an enemy. Your summons and mercenary each deal +4 damage on their next hit against it."
+            },
+            {
+              "id": "necromancer_bone_ward",
+              "name": "Bone Ward",
+              "requiredLevel": 6,
+              "description": "Raise a bone shield and profit from death.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Raise a bone shield and profit from death.",
+              "exactText": "Gain 7 Guard. If an enemy dies this turn, draw 1."
+            },
+            {
+              "id": "necromancer_grave_rupture",
+              "name": "Grave Rupture",
+              "requiredLevel": 12,
+              "description": "Convert a kill into area damage and poison.",
+              "skillType": "attack",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Convert a kill into area damage and poison.",
+              "exactText": "Deal 12 damage. If an enemy died this turn, deal 8 damage to all enemies and apply 2 Poison to all enemies."
             }
           ]
         },
@@ -1966,8 +3514,8 @@
               "tier": "starter",
               "cost": 1,
               "cooldown": 1,
-              "summary": "Put a short-lived servant on the field or reinforce your board.",
-              "exactText": "Summon a Servant for 2 turns. If you already control a summon, reinforce it by +2 instead.",
+              "summary": "Put a skeleton on the field or reinforce your board.",
+              "exactText": "Summon a Skeleton for 2 turns. If you already control a summon, reinforce it by +2 instead.",
               "isStarter": true
             },
             {
@@ -1980,7 +3528,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "necromancer_skeleton_mastery", "bonus": "improved skeleton stats" }
+                {
+                  "skillId": "necromancer_skeleton_mastery",
+                  "bonus": "improved skeleton stats"
+                }
               ]
             },
             {
@@ -1991,7 +3542,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["necromancer_raise_skeleton"],
+              "prerequisites": [
+                "necromancer_raise_skeleton"
+              ],
               "synergies": []
             },
             {
@@ -2004,7 +3557,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+                {
+                  "skillId": "necromancer_golem_mastery",
+                  "bonus": "improved golem stats"
+                }
               ]
             },
             {
@@ -2015,7 +3571,9 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["necromancer_clay_golem"],
+              "prerequisites": [
+                "necromancer_clay_golem"
+              ],
               "synergies": []
             },
             {
@@ -2026,9 +3584,14 @@
               "skillType": "summon",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["necromancer_raise_skeleton"],
+              "prerequisites": [
+                "necromancer_raise_skeleton"
+              ],
               "synergies": [
-                { "skillId": "necromancer_skeleton_mastery", "bonus": "improved skeletal mage stats" }
+                {
+                  "skillId": "necromancer_skeleton_mastery",
+                  "bonus": "improved skeletal mage stats"
+                }
               ]
             },
             {
@@ -2039,9 +3602,14 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["necromancer_clay_golem"],
+              "prerequisites": [
+                "necromancer_clay_golem"
+              ],
               "synergies": [
-                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+                {
+                  "skillId": "necromancer_golem_mastery",
+                  "bonus": "improved golem stats"
+                }
               ]
             },
             {
@@ -2052,7 +3620,10 @@
               "skillType": "passive",
               "damageType": null,
               "active": false,
-              "prerequisites": ["necromancer_clay_golem", "necromancer_golem_mastery"],
+              "prerequisites": [
+                "necromancer_clay_golem",
+                "necromancer_golem_mastery"
+              ],
               "synergies": []
             },
             {
@@ -2063,9 +3634,15 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["necromancer_clay_golem", "necromancer_blood_golem"],
+              "prerequisites": [
+                "necromancer_clay_golem",
+                "necromancer_blood_golem"
+              ],
               "synergies": [
-                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+                {
+                  "skillId": "necromancer_golem_mastery",
+                  "bonus": "improved golem stats"
+                }
               ]
             },
             {
@@ -2076,9 +3653,16 @@
               "skillType": "summon",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["necromancer_clay_golem", "necromancer_blood_golem", "necromancer_iron_golem"],
+              "prerequisites": [
+                "necromancer_clay_golem",
+                "necromancer_blood_golem",
+                "necromancer_iron_golem"
+              ],
               "synergies": [
-                { "skillId": "necromancer_golem_mastery", "bonus": "improved golem stats" }
+                {
+                  "skillId": "necromancer_golem_mastery",
+                  "bonus": "improved golem stats"
+                }
               ]
             },
             {
@@ -2089,10 +3673,73 @@
               "skillType": "summon",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["necromancer_raise_skeleton", "necromancer_clay_golem", "necromancer_skeletal_mage", "necromancer_blood_golem", "necromancer_iron_golem"],
+              "prerequisites": [
+                "necromancer_raise_skeleton",
+                "necromancer_clay_golem",
+                "necromancer_skeletal_mage",
+                "necromancer_blood_golem",
+                "necromancer_iron_golem"
+              ],
               "synergies": [
-                { "skillId": "necromancer_skeleton_mastery", "bonus": "improved revive stats" }
+                {
+                  "skillId": "necromancer_skeleton_mastery",
+                  "bonus": "improved revive stats"
+                }
               ]
+            },
+            {
+              "id": "necromancer_corpse_pact",
+              "name": "Corpse Pact",
+              "requiredLevel": 6,
+              "description": "Convert death into area damage and recovery.",
+              "skillType": "attack",
+              "damageType": "magic",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 2,
+              "cooldown": 3,
+              "summary": "Convert death into area damage and recovery.",
+              "exactText": "If an enemy or summon died this turn, deal 9 damage to all enemies and heal 4."
+            },
+            {
+              "id": "necromancer_mass_reassembly",
+              "name": "Mass Reassembly",
+              "requiredLevel": 6,
+              "description": "Rebuild or reinforce the undead line.",
+              "skillType": "summon",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "recovery",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Rebuild or reinforce the undead line.",
+              "exactText": "Reinforce all your summons by +1. If you have no summons, summon a Skeleton for 2 turns."
+            },
+            {
+              "id": "necromancer_army_of_dust",
+              "name": "Army of Dust",
+              "requiredLevel": 12,
+              "description": "Raise an army or strengthen the existing horde.",
+              "skillType": "summon",
+              "damageType": "physical",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Raise an army or strengthen the existing horde.",
+              "exactText": "Summon 2 Skeletons for 2 turns. If you already control summons, reinforce all of them by +2 instead."
             }
           ]
         }
@@ -2117,8 +3764,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "paladin_redemption", "bonus": "+15% Damage per level" },
-                { "skillId": "paladin_fanaticism", "bonus": "+5% Damage per level" }
+                {
+                  "skillId": "paladin_redemption",
+                  "bonus": "+15% Damage per level"
+                },
+                {
+                  "skillId": "paladin_fanaticism",
+                  "bonus": "+5% Damage per level"
+                }
               ]
             },
             {
@@ -2142,9 +3795,18 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "paladin_blessed_aim", "bonus": "+50% Magic Damage per level" },
-                { "skillId": "paladin_fist_of_the_heavens", "bonus": "+50% Magic Damage per level" },
-                { "skillId": "paladin_prayer", "bonus": "+20% Healing per level" }
+                {
+                  "skillId": "paladin_blessed_aim",
+                  "bonus": "+50% Magic Damage per level"
+                },
+                {
+                  "skillId": "paladin_fist_of_the_heavens",
+                  "bonus": "+50% Magic Damage per level"
+                },
+                {
+                  "skillId": "paladin_prayer",
+                  "bonus": "+20% Healing per level"
+                }
               ]
             },
             {
@@ -2155,9 +3817,14 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["paladin_sacrifice"],
+              "prerequisites": [
+                "paladin_sacrifice"
+              ],
               "synergies": [
-                { "skillId": "paladin_sacrifice", "bonus": "+12% Damage per level" }
+                {
+                  "skillId": "paladin_sacrifice",
+                  "bonus": "+12% Damage per level"
+                }
               ]
             },
             {
@@ -2168,10 +3835,18 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["paladin_smite"],
+              "prerequisites": [
+                "paladin_smite"
+              ],
               "synergies": [
-                { "skillId": "paladin_vigor", "bonus": "+20% Damage per level" },
-                { "skillId": "paladin_might", "bonus": "+20% Damage per level" }
+                {
+                  "skillId": "paladin_vigor",
+                  "bonus": "+20% Damage per level"
+                },
+                {
+                  "skillId": "paladin_might",
+                  "bonus": "+20% Damage per level"
+                }
               ]
             },
             {
@@ -2182,12 +3857,27 @@
               "skillType": "attack",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["paladin_sacrifice", "paladin_zeal"],
+              "prerequisites": [
+                "paladin_sacrifice",
+                "paladin_zeal"
+              ],
               "synergies": [
-                { "skillId": "paladin_resist_fire", "bonus": "+10% Fire Damage per level" },
-                { "skillId": "paladin_resist_cold", "bonus": "+10% Cold Damage per level" },
-                { "skillId": "paladin_resist_lightning", "bonus": "+10% Lightning Damage per level" },
-                { "skillId": "paladin_salvation", "bonus": "+2% each element per level" }
+                {
+                  "skillId": "paladin_resist_fire",
+                  "bonus": "+10% Fire Damage per level"
+                },
+                {
+                  "skillId": "paladin_resist_cold",
+                  "bonus": "+10% Cold Damage per level"
+                },
+                {
+                  "skillId": "paladin_resist_lightning",
+                  "bonus": "+10% Lightning Damage per level"
+                },
+                {
+                  "skillId": "paladin_salvation",
+                  "bonus": "+2% each element per level"
+                }
               ]
             },
             {
@@ -2198,10 +3888,18 @@
               "skillType": "spell",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["paladin_holy_bolt"],
+              "prerequisites": [
+                "paladin_holy_bolt"
+              ],
               "synergies": [
-                { "skillId": "paladin_blessed_aim", "bonus": "+14% Magic Damage per level" },
-                { "skillId": "paladin_vigor", "bonus": "+14% Magic Damage per level" }
+                {
+                  "skillId": "paladin_blessed_aim",
+                  "bonus": "+14% Magic Damage per level"
+                },
+                {
+                  "skillId": "paladin_vigor",
+                  "bonus": "+14% Magic Damage per level"
+                }
               ]
             },
             {
@@ -2212,7 +3910,11 @@
               "skillType": "attack",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["paladin_sacrifice", "paladin_zeal", "paladin_vengeance"],
+              "prerequisites": [
+                "paladin_sacrifice",
+                "paladin_zeal",
+                "paladin_vengeance"
+              ],
               "synergies": []
             },
             {
@@ -2223,9 +3925,17 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_smite", "paladin_holy_bolt", "paladin_charge", "paladin_blessed_hammer"],
+              "prerequisites": [
+                "paladin_smite",
+                "paladin_holy_bolt",
+                "paladin_charge",
+                "paladin_blessed_hammer"
+              ],
               "synergies": [
-                { "skillId": "paladin_defiance", "bonus": "+15% Defense per level" }
+                {
+                  "skillId": "paladin_defiance",
+                  "bonus": "+15% Defense per level"
+                }
               ]
             },
             {
@@ -2236,11 +3946,78 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["paladin_sacrifice", "paladin_holy_bolt", "paladin_zeal", "paladin_vengeance", "paladin_blessed_hammer", "paladin_conversion"],
+              "prerequisites": [
+                "paladin_sacrifice",
+                "paladin_holy_bolt",
+                "paladin_zeal",
+                "paladin_vengeance",
+                "paladin_blessed_hammer",
+                "paladin_conversion"
+              ],
               "synergies": [
-                { "skillId": "paladin_holy_bolt", "bonus": "+15% Holy Bolt Damage per level" },
-                { "skillId": "paladin_holy_shock", "bonus": "+7% Lightning Damage per level" }
+                {
+                  "skillId": "paladin_holy_bolt",
+                  "bonus": "+15% Holy Bolt Damage per level"
+                },
+                {
+                  "skillId": "paladin_holy_shock",
+                  "bonus": "+7% Lightning Damage per level"
+                }
               ]
+            },
+            {
+              "id": "paladin_zealous_chorus",
+              "name": "Zealous Chorus",
+              "requiredLevel": 6,
+              "description": "Rally the party for a stronger turn.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Rally the party for a stronger turn.",
+              "exactText": "You and your mercenary gain +3 damage this turn. Gain 5 Guard."
+            },
+            {
+              "id": "paladin_crusaders_step",
+              "name": "Crusader's Step",
+              "requiredLevel": 6,
+              "description": "Arm the next strike and punish aggressors.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Arm the next strike and punish aggressors.",
+              "exactText": "Your next Attack this turn deals +6 damage. If it hits an attacking enemy, gain 6 Guard."
+            },
+            {
+              "id": "paladin_judgment_march",
+              "name": "Judgment March",
+              "requiredLevel": 12,
+              "description": "March with righteous fury and empower the party.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "command",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "March with righteous fury and empower the party.",
+              "exactText": "You and your mercenary gain +5 damage this turn. Your next 2 Attack or Aura cards this turn each gain +4 damage or +4 Guard."
             }
           ]
         },
@@ -2264,7 +4041,7 @@
               "cost": 1,
               "cooldown": 1,
               "summary": "Fortify the party and prime the next righteous play.",
-              "exactText": "You and your mercenary gain 4 Guard. Your next card this turn gains +2 damage or +2 Guard.",
+              "exactText": "You and your mercenary gain 6 Guard. Your next Attack or Aura card this turn deals +4 damage or gains +4 Guard.",
               "isStarter": true
             },
             {
@@ -2319,7 +4096,9 @@
               "skillType": "aura",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_prayer"],
+              "prerequisites": [
+                "paladin_prayer"
+              ],
               "synergies": []
             },
             {
@@ -2341,7 +4120,11 @@
               "skillType": "aura",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_prayer", "paladin_cleansing", "paladin_defiance"],
+              "prerequisites": [
+                "paladin_prayer",
+                "paladin_cleansing",
+                "paladin_defiance"
+              ],
               "synergies": []
             },
             {
@@ -2352,7 +4135,10 @@
               "skillType": "aura",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_prayer", "paladin_cleansing"],
+              "prerequisites": [
+                "paladin_prayer",
+                "paladin_cleansing"
+              ],
               "synergies": []
             },
             {
@@ -2363,7 +4149,12 @@
               "skillType": "aura",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_prayer", "paladin_cleansing", "paladin_defiance", "paladin_vigor"],
+              "prerequisites": [
+                "paladin_prayer",
+                "paladin_cleansing",
+                "paladin_defiance",
+                "paladin_vigor"
+              ],
               "synergies": []
             },
             {
@@ -2376,6 +4167,60 @@
               "active": true,
               "prerequisites": [],
               "synergies": []
+            },
+            {
+              "id": "paladin_aegis_prayer",
+              "name": "Aegis Prayer",
+              "requiredLevel": 6,
+              "description": "Cleanse, guard, and blunt the next blow.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Cleanse, guard, and blunt the next blow.",
+              "exactText": "Remove 1 debuff from the party. Gain 8 Guard. The next enemy attack this turn deals 5 less damage."
+            },
+            {
+              "id": "paladin_shield_of_grace",
+              "name": "Shield of Grace",
+              "requiredLevel": 6,
+              "description": "Heal and protect the front line.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "recovery",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Heal and protect the front line.",
+              "exactText": "Heal 4. You and your mercenary gain 5 Guard."
+            },
+            {
+              "id": "paladin_bulwark_of_faith",
+              "name": "Bulwark of Faith",
+              "requiredLevel": 12,
+              "description": "Raise an unbreakable bulwark of faith.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Raise an unbreakable bulwark of faith.",
+              "exactText": "Remove 1 debuff from the party. You and your mercenary gain 12 Guard. The next attack against either ally this turn deals 10 less damage."
             }
           ]
         },
@@ -2402,10 +4247,18 @@
               "skillType": "aura",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["paladin_might"],
+              "prerequisites": [
+                "paladin_might"
+              ],
               "synergies": [
-                { "skillId": "paladin_resist_fire", "bonus": "+18% Fire Damage per level" },
-                { "skillId": "paladin_salvation", "bonus": "+6% Fire Damage per level" }
+                {
+                  "skillId": "paladin_resist_fire",
+                  "bonus": "+18% Fire Damage per level"
+                },
+                {
+                  "skillId": "paladin_salvation",
+                  "bonus": "+6% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2427,7 +4280,9 @@
               "skillType": "aura",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_might"],
+              "prerequisites": [
+                "paladin_might"
+              ],
               "synergies": []
             },
             {
@@ -2438,7 +4293,10 @@
               "skillType": "aura",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["paladin_might", "paladin_blessed_aim"],
+              "prerequisites": [
+                "paladin_might",
+                "paladin_blessed_aim"
+              ],
               "synergies": []
             },
             {
@@ -2449,10 +4307,19 @@
               "skillType": "aura",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["paladin_might", "paladin_holy_fire"],
+              "prerequisites": [
+                "paladin_might",
+                "paladin_holy_fire"
+              ],
               "synergies": [
-                { "skillId": "paladin_resist_cold", "bonus": "+15% Cold Damage per level" },
-                { "skillId": "paladin_salvation", "bonus": "+7% Cold Damage per level" }
+                {
+                  "skillId": "paladin_resist_cold",
+                  "bonus": "+15% Cold Damage per level"
+                },
+                {
+                  "skillId": "paladin_salvation",
+                  "bonus": "+7% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2463,10 +4330,20 @@
               "skillType": "aura",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["paladin_might", "paladin_holy_fire", "paladin_holy_freeze"],
+              "prerequisites": [
+                "paladin_might",
+                "paladin_holy_fire",
+                "paladin_holy_freeze"
+              ],
               "synergies": [
-                { "skillId": "paladin_resist_lightning", "bonus": "+12% Lightning Damage per level" },
-                { "skillId": "paladin_salvation", "bonus": "+4% Lightning Damage per level" }
+                {
+                  "skillId": "paladin_resist_lightning",
+                  "bonus": "+12% Lightning Damage per level"
+                },
+                {
+                  "skillId": "paladin_salvation",
+                  "bonus": "+4% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -2477,9 +4354,17 @@
               "skillType": "aura",
               "damageType": "magic",
               "active": true,
-              "prerequisites": ["paladin_might", "paladin_thorns", "paladin_holy_fire", "paladin_holy_freeze"],
+              "prerequisites": [
+                "paladin_might",
+                "paladin_thorns",
+                "paladin_holy_fire",
+                "paladin_holy_freeze"
+              ],
               "synergies": [
-                { "skillId": "paladin_cleansing", "bonus": "+7% Magic Damage per level" }
+                {
+                  "skillId": "paladin_cleansing",
+                  "bonus": "+7% Magic Damage per level"
+                }
               ]
             },
             {
@@ -2490,7 +4375,11 @@
               "skillType": "aura",
               "damageType": "physical",
               "active": true,
-              "prerequisites": ["paladin_might", "paladin_blessed_aim", "paladin_concentration"],
+              "prerequisites": [
+                "paladin_might",
+                "paladin_blessed_aim",
+                "paladin_concentration"
+              ],
               "synergies": []
             },
             {
@@ -2501,8 +4390,68 @@
               "skillType": "aura",
               "damageType": null,
               "active": true,
-              "prerequisites": ["paladin_might", "paladin_thorns", "paladin_holy_fire", "paladin_holy_freeze", "paladin_sanctuary"],
+              "prerequisites": [
+                "paladin_might",
+                "paladin_thorns",
+                "paladin_holy_fire",
+                "paladin_holy_freeze",
+                "paladin_sanctuary"
+              ],
               "synergies": []
+            },
+            {
+              "id": "paladin_righteous_verdict",
+              "name": "Righteous Verdict",
+              "requiredLevel": 6,
+              "description": "Judge an enemy and weaken its offense.",
+              "skillType": "debuff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Judge an enemy and weaken its offense.",
+              "exactText": "Choose an enemy. Your next 2 hits against it deal +4 damage. If it is attacking, it deals 5 less damage next turn."
+            },
+            {
+              "id": "paladin_aura_surge",
+              "name": "Aura Surge",
+              "requiredLevel": 6,
+              "description": "Surge an aura into the next play and draw.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Surge an aura into the next play and draw.",
+              "exactText": "Your next Aura or Attack card this turn gains +5 damage or +5 Guard. Draw 1."
+            },
+            {
+              "id": "paladin_fanatic_decree",
+              "name": "Fanatic Decree",
+              "requiredLevel": 12,
+              "description": "Decree fanatical judgment on all who oppose you.",
+              "skillType": "buff",
+              "damageType": null,
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Decree fanatical judgment on all who oppose you.",
+              "exactText": "For this turn, your Attacks and Aura cards deal +5 damage. The next 2 enemies you hit each deal 6 less damage next turn."
             }
           ]
         }
@@ -2527,11 +4476,26 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "sorceress_frost_nova", "bonus": "+15% Cold Damage per level" },
-                { "skillId": "sorceress_ice_blast", "bonus": "+15% Cold Damage per level" },
-                { "skillId": "sorceress_glacial_spike", "bonus": "+15% Cold Damage per level" },
-                { "skillId": "sorceress_blizzard", "bonus": "+15% Cold Damage per level" },
-                { "skillId": "sorceress_frozen_orb", "bonus": "+15% Cold Damage per level" }
+                {
+                  "skillId": "sorceress_frost_nova",
+                  "bonus": "+15% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_ice_blast",
+                  "bonus": "+15% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_glacial_spike",
+                  "bonus": "+15% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_blizzard",
+                  "bonus": "+15% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_frozen_orb",
+                  "bonus": "+15% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2544,8 +4508,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "sorceress_shiver_armor", "bonus": "+10 seconds duration per level" },
-                { "skillId": "sorceress_chilling_armor", "bonus": "+5% Freeze Length per level" }
+                {
+                  "skillId": "sorceress_shiver_armor",
+                  "bonus": "+10 seconds duration per level"
+                },
+                {
+                  "skillId": "sorceress_chilling_armor",
+                  "bonus": "+5% Freeze Length per level"
+                }
               ]
             },
             {
@@ -2558,8 +4528,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "sorceress_blizzard", "bonus": "+10% Cold Damage per level" },
-                { "skillId": "sorceress_frozen_orb", "bonus": "+10% Cold Damage per level" }
+                {
+                  "skillId": "sorceress_blizzard",
+                  "bonus": "+10% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_frozen_orb",
+                  "bonus": "+10% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2570,12 +4546,26 @@
               "skillType": "spell",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["sorceress_ice_bolt"],
+              "prerequisites": [
+                "sorceress_ice_bolt"
+              ],
               "synergies": [
-                { "skillId": "sorceress_ice_bolt", "bonus": "+8% Cold Damage per level" },
-                { "skillId": "sorceress_blizzard", "bonus": "+8% Cold Damage per level" },
-                { "skillId": "sorceress_frozen_orb", "bonus": "+8% Cold Damage per level" },
-                { "skillId": "sorceress_glacial_spike", "bonus": "+10% Freeze Length per level" }
+                {
+                  "skillId": "sorceress_ice_bolt",
+                  "bonus": "+8% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_blizzard",
+                  "bonus": "+8% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_frozen_orb",
+                  "bonus": "+8% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_glacial_spike",
+                  "bonus": "+10% Freeze Length per level"
+                }
               ]
             },
             {
@@ -2586,10 +4576,20 @@
               "skillType": "buff",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["sorceress_frozen_armor", "sorceress_ice_bolt", "sorceress_ice_blast"],
+              "prerequisites": [
+                "sorceress_frozen_armor",
+                "sorceress_ice_bolt",
+                "sorceress_ice_blast"
+              ],
               "synergies": [
-                { "skillId": "sorceress_frozen_armor", "bonus": "+10 seconds duration per level" },
-                { "skillId": "sorceress_chilling_armor", "bonus": "+9% Cold Damage per level" }
+                {
+                  "skillId": "sorceress_frozen_armor",
+                  "bonus": "+10 seconds duration per level"
+                },
+                {
+                  "skillId": "sorceress_chilling_armor",
+                  "bonus": "+9% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2600,12 +4600,27 @@
               "skillType": "spell",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["sorceress_ice_bolt", "sorceress_ice_blast"],
+              "prerequisites": [
+                "sorceress_ice_bolt",
+                "sorceress_ice_blast"
+              ],
               "synergies": [
-                { "skillId": "sorceress_ice_bolt", "bonus": "+5% Cold Damage per level" },
-                { "skillId": "sorceress_ice_blast", "bonus": "+5% Cold Damage per level" },
-                { "skillId": "sorceress_frozen_orb", "bonus": "+5% Cold Damage per level" },
-                { "skillId": "sorceress_blizzard", "bonus": "+3% Freeze Length per level" }
+                {
+                  "skillId": "sorceress_ice_bolt",
+                  "bonus": "+5% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_ice_blast",
+                  "bonus": "+5% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_frozen_orb",
+                  "bonus": "+5% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_blizzard",
+                  "bonus": "+3% Freeze Length per level"
+                }
               ]
             },
             {
@@ -2616,11 +4631,25 @@
               "skillType": "spell",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["sorceress_ice_bolt", "sorceress_ice_blast", "sorceress_frost_nova", "sorceress_glacial_spike"],
+              "prerequisites": [
+                "sorceress_ice_bolt",
+                "sorceress_ice_blast",
+                "sorceress_frost_nova",
+                "sorceress_glacial_spike"
+              ],
               "synergies": [
-                { "skillId": "sorceress_ice_bolt", "bonus": "+5% Cold Damage per level" },
-                { "skillId": "sorceress_ice_blast", "bonus": "+5% Cold Damage per level" },
-                { "skillId": "sorceress_glacial_spike", "bonus": "+5% Cold Damage per level" }
+                {
+                  "skillId": "sorceress_ice_bolt",
+                  "bonus": "+5% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_ice_blast",
+                  "bonus": "+5% Cold Damage per level"
+                },
+                {
+                  "skillId": "sorceress_glacial_spike",
+                  "bonus": "+5% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2631,10 +4660,21 @@
               "skillType": "buff",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["sorceress_frozen_armor", "sorceress_ice_bolt", "sorceress_ice_blast", "sorceress_shiver_armor"],
+              "prerequisites": [
+                "sorceress_frozen_armor",
+                "sorceress_ice_bolt",
+                "sorceress_ice_blast",
+                "sorceress_shiver_armor"
+              ],
               "synergies": [
-                { "skillId": "sorceress_frozen_armor", "bonus": "+10 seconds duration per level" },
-                { "skillId": "sorceress_shiver_armor", "bonus": "+7% Cold Damage per level" }
+                {
+                  "skillId": "sorceress_frozen_armor",
+                  "bonus": "+10 seconds duration per level"
+                },
+                {
+                  "skillId": "sorceress_shiver_armor",
+                  "bonus": "+7% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2645,9 +4685,18 @@
               "skillType": "spell",
               "damageType": "cold",
               "active": true,
-              "prerequisites": ["sorceress_ice_bolt", "sorceress_ice_blast", "sorceress_frost_nova", "sorceress_glacial_spike", "sorceress_blizzard"],
+              "prerequisites": [
+                "sorceress_ice_bolt",
+                "sorceress_ice_blast",
+                "sorceress_frost_nova",
+                "sorceress_glacial_spike",
+                "sorceress_blizzard"
+              ],
               "synergies": [
-                { "skillId": "sorceress_ice_bolt", "bonus": "+2% Cold Damage per level" }
+                {
+                  "skillId": "sorceress_ice_bolt",
+                  "bonus": "+2% Cold Damage per level"
+                }
               ]
             },
             {
@@ -2660,6 +4709,60 @@
               "active": false,
               "prerequisites": [],
               "synergies": []
+            },
+            {
+              "id": "sorceress_bar_frozen_armor",
+              "name": "Frozen Armor",
+              "requiredLevel": 6,
+              "description": "Armor up and chill attackers.",
+              "skillType": "buff",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 3,
+              "summary": "Armor up and chill attackers.",
+              "exactText": "Gain 10 Block. The next enemy that attacks you this turn gains 2 Chill."
+            },
+            {
+              "id": "sorceress_crippling_frost",
+              "name": "Crippling Frost",
+              "requiredLevel": 6,
+              "description": "Arm the next spell for crowd control.",
+              "skillType": "buff",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "trigger_arming",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Arm the next spell for crowd control.",
+              "exactText": "Your next Spell this turn applies 1 Slow and 1 Freeze if it damages an enemy."
+            },
+            {
+              "id": "sorceress_absolute_zero",
+              "name": "Absolute Zero",
+              "requiredLevel": 12,
+              "description": "Freeze the field and draw into the next play.",
+              "skillType": "spell",
+              "damageType": "cold",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "answer",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Freeze the field and draw into the next play.",
+              "exactText": "Gain 10 Guard. Apply 1 Slow and 1 Freeze to all enemies. Your next Spell this turn draws 1."
             }
           ]
         },
@@ -2696,8 +4799,14 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "sorceress_fireball", "bonus": "+16% Fire Damage per level" },
-                { "skillId": "sorceress_meteor", "bonus": "+16% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_fireball",
+                  "bonus": "+16% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_meteor",
+                  "bonus": "+16% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2721,7 +4830,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "sorceress_warmth", "bonus": "+13% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_warmth",
+                  "bonus": "+13% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2732,10 +4844,18 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["sorceress_inferno"],
+              "prerequisites": [
+                "sorceress_inferno"
+              ],
               "synergies": [
-                { "skillId": "sorceress_warmth", "bonus": "+4% Fire Damage per level" },
-                { "skillId": "sorceress_fire_wall", "bonus": "+1% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_warmth",
+                  "bonus": "+4% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_fire_wall",
+                  "bonus": "+1% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2746,10 +4866,18 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["sorceress_fire_bolt"],
+              "prerequisites": [
+                "sorceress_fire_bolt"
+              ],
               "synergies": [
-                { "skillId": "sorceress_fire_bolt", "bonus": "+14% Fire Damage per level" },
-                { "skillId": "sorceress_meteor", "bonus": "+14% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_fire_bolt",
+                  "bonus": "+14% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_meteor",
+                  "bonus": "+14% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2760,10 +4888,19 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["sorceress_inferno", "sorceress_blaze"],
+              "prerequisites": [
+                "sorceress_inferno",
+                "sorceress_blaze"
+              ],
               "synergies": [
-                { "skillId": "sorceress_warmth", "bonus": "+4% Fire Damage per level" },
-                { "skillId": "sorceress_inferno", "bonus": "+1% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_warmth",
+                  "bonus": "+4% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_inferno",
+                  "bonus": "+1% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2774,9 +4911,16 @@
               "skillType": "buff",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["sorceress_fire_bolt", "sorceress_warmth", "sorceress_fireball"],
+              "prerequisites": [
+                "sorceress_fire_bolt",
+                "sorceress_warmth",
+                "sorceress_fireball"
+              ],
               "synergies": [
-                { "skillId": "sorceress_warmth", "bonus": "+9% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_warmth",
+                  "bonus": "+9% Fire Damage per level"
+                }
               ]
             },
             {
@@ -2787,11 +4931,26 @@
               "skillType": "spell",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["sorceress_fire_bolt", "sorceress_inferno", "sorceress_blaze", "sorceress_fire_wall", "sorceress_fireball"],
+              "prerequisites": [
+                "sorceress_fire_bolt",
+                "sorceress_inferno",
+                "sorceress_blaze",
+                "sorceress_fire_wall",
+                "sorceress_fireball"
+              ],
               "synergies": [
-                { "skillId": "sorceress_fire_bolt", "bonus": "+5% Fire Damage per level" },
-                { "skillId": "sorceress_fireball", "bonus": "+5% Fire Damage per level" },
-                { "skillId": "sorceress_inferno", "bonus": "+3% Fire Damage per second per level" }
+                {
+                  "skillId": "sorceress_fire_bolt",
+                  "bonus": "+5% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_fireball",
+                  "bonus": "+5% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_inferno",
+                  "bonus": "+3% Fire Damage per second per level"
+                }
               ]
             },
             {
@@ -2813,11 +4972,76 @@
               "skillType": "summon",
               "damageType": "fire",
               "active": true,
-              "prerequisites": ["sorceress_fire_bolt", "sorceress_warmth", "sorceress_fireball", "sorceress_enchant"],
+              "prerequisites": [
+                "sorceress_fire_bolt",
+                "sorceress_warmth",
+                "sorceress_fireball",
+                "sorceress_enchant"
+              ],
               "synergies": [
-                { "skillId": "sorceress_fire_bolt", "bonus": "+3% Fire Damage per level" },
-                { "skillId": "sorceress_fireball", "bonus": "+3% Fire Damage per level" }
+                {
+                  "skillId": "sorceress_fire_bolt",
+                  "bonus": "+3% Fire Damage per level"
+                },
+                {
+                  "skillId": "sorceress_fireball",
+                  "bonus": "+3% Fire Damage per level"
+                }
               ]
+            },
+            {
+              "id": "sorceress_bar_fire_ball",
+              "name": "Fire Ball",
+              "requiredLevel": 6,
+              "description": "A heavy fire blast with lingering burn.",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 2,
+              "cooldown": 1,
+              "summary": "A heavy fire blast with lingering burn.",
+              "exactText": "Deal 13 damage. Apply 2 Burn."
+            },
+            {
+              "id": "sorceress_kindle",
+              "name": "Kindle",
+              "requiredLevel": 6,
+              "description": "Stoke the flame for bonus spell damage and energy.",
+              "skillType": "buff",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Stoke the flame for bonus spell damage and energy.",
+              "exactText": "Gain 1 Energy next turn. Your next Spell this turn deals +6 damage."
+            },
+            {
+              "id": "sorceress_meteor_rain",
+              "name": "Meteor Rain",
+              "requiredLevel": 12,
+              "description": "Rain fire and empower the next spell.",
+              "skillType": "spell",
+              "damageType": "fire",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "commitment",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Rain fire and empower the next spell.",
+              "exactText": "Deal 9 damage to all enemies. Apply 2 Burn to all enemies. Your next Spell this turn deals +8 damage."
             }
           ]
         },
@@ -2835,7 +5059,10 @@
               "active": true,
               "prerequisites": [],
               "synergies": [
-                { "skillId": "sorceress_lightning", "bonus": "+6% Lightning Damage per level" }
+                {
+                  "skillId": "sorceress_lightning",
+                  "bonus": "+6% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -2868,11 +5095,22 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["sorceress_charged_bolt"],
+              "prerequisites": [
+                "sorceress_charged_bolt"
+              ],
               "synergies": [
-                { "skillId": "sorceress_charged_bolt", "bonus": "+8% Lightning Damage per level" },
-                { "skillId": "sorceress_nova", "bonus": "+8% Lightning Damage per level" },
-                { "skillId": "sorceress_chain_lightning", "bonus": "+8% Lightning Damage per level" }
+                {
+                  "skillId": "sorceress_charged_bolt",
+                  "bonus": "+8% Lightning Damage per level"
+                },
+                {
+                  "skillId": "sorceress_nova",
+                  "bonus": "+8% Lightning Damage per level"
+                },
+                {
+                  "skillId": "sorceress_chain_lightning",
+                  "bonus": "+8% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -2883,7 +5121,9 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["sorceress_static_field"],
+              "prerequisites": [
+                "sorceress_static_field"
+              ],
               "synergies": []
             },
             {
@@ -2894,11 +5134,23 @@
               "skillType": "spell",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["sorceress_charged_bolt", "sorceress_lightning"],
+              "prerequisites": [
+                "sorceress_charged_bolt",
+                "sorceress_lightning"
+              ],
               "synergies": [
-                { "skillId": "sorceress_charged_bolt", "bonus": "+4% Lightning Damage per level" },
-                { "skillId": "sorceress_nova", "bonus": "+4% Lightning Damage per level" },
-                { "skillId": "sorceress_lightning", "bonus": "+4% Lightning Damage per level" }
+                {
+                  "skillId": "sorceress_charged_bolt",
+                  "bonus": "+4% Lightning Damage per level"
+                },
+                {
+                  "skillId": "sorceress_nova",
+                  "bonus": "+4% Lightning Damage per level"
+                },
+                {
+                  "skillId": "sorceress_lightning",
+                  "bonus": "+4% Lightning Damage per level"
+                }
               ]
             },
             {
@@ -2909,7 +5161,9 @@
               "skillType": "spell",
               "damageType": null,
               "active": true,
-              "prerequisites": ["sorceress_telekinesis"],
+              "prerequisites": [
+                "sorceress_telekinesis"
+              ],
               "synergies": []
             },
             {
@@ -2920,7 +5174,13 @@
               "skillType": "buff",
               "damageType": "lightning",
               "active": true,
-              "prerequisites": ["sorceress_charged_bolt", "sorceress_static_field", "sorceress_lightning", "sorceress_nova", "sorceress_chain_lightning"],
+              "prerequisites": [
+                "sorceress_charged_bolt",
+                "sorceress_static_field",
+                "sorceress_lightning",
+                "sorceress_nova",
+                "sorceress_chain_lightning"
+              ],
               "synergies": []
             },
             {
@@ -2931,9 +5191,18 @@
               "skillType": "buff",
               "damageType": null,
               "active": true,
-              "prerequisites": ["sorceress_charged_bolt", "sorceress_telekinesis", "sorceress_lightning", "sorceress_teleport", "sorceress_chain_lightning"],
+              "prerequisites": [
+                "sorceress_charged_bolt",
+                "sorceress_telekinesis",
+                "sorceress_lightning",
+                "sorceress_teleport",
+                "sorceress_chain_lightning"
+              ],
               "synergies": [
-                { "skillId": "sorceress_telekinesis", "bonus": "improved damage absorption efficiency" }
+                {
+                  "skillId": "sorceress_telekinesis",
+                  "bonus": "improved damage absorption efficiency"
+                }
               ]
             },
             {
@@ -2946,6 +5215,60 @@
               "active": false,
               "prerequisites": [],
               "synergies": []
+            },
+            {
+              "id": "sorceress_bar_charged_bolt",
+              "name": "Charged Bolt",
+              "requiredLevel": 6,
+              "description": "Scatter lightning bolts across the field.",
+              "skillType": "spell",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 1,
+              "summary": "Scatter lightning bolts across the field.",
+              "exactText": "Deal 4 damage 3 times, randomly split among enemies."
+            },
+            {
+              "id": "sorceress_static_flow",
+              "name": "Static Flow",
+              "requiredLevel": 6,
+              "description": "Gain energy and reward area spells with draw.",
+              "skillType": "buff",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "state",
+              "slot": 2,
+              "tier": "bridge",
+              "cost": 1,
+              "cooldown": 2,
+              "summary": "Gain energy and reward area spells with draw.",
+              "exactText": "Gain 1 Energy now. Your next Spell this turn draws 1 if it hits multiple enemies."
+            },
+            {
+              "id": "sorceress_storm_rhythm",
+              "name": "Storm Rhythm",
+              "requiredLevel": 12,
+              "description": "Enter a rhythm of empowered spells with draw on area hits.",
+              "skillType": "buff",
+              "damageType": "lightning",
+              "active": true,
+              "prerequisites": [],
+              "synergies": [],
+              "family": "conversion",
+              "slot": 3,
+              "tier": "capstone",
+              "cost": 2,
+              "cooldown": 4,
+              "summary": "Enter a rhythm of empowered spells with draw on area hits.",
+              "exactText": "Gain 1 Energy now. Your next 3 Spells this turn each deal +4 damage. If any of them hit multiple enemies, draw 1."
             }
           ]
         }

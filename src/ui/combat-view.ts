@@ -120,6 +120,14 @@
     const energyIconMarkup = assets?.getUiIcon("energy")
       ? `<img src="${assets.getUiIcon("energy") || ""}" class="hud-icon hud-icon--inline" alt="" aria-hidden="true" loading="lazy" onerror="this.style.display='none'" />`
       : "\u26A1";
+    const statusIconMarkup = (key: string, label: string): string => {
+      const src = assets?.getUiIcon(key) || "";
+      return src
+        ? `<img src="${src}" class="status-icon status-icon--${key}" alt="" aria-hidden="true" loading="lazy" onerror="this.style.display='none'" />`
+        : escapeHtml(label.charAt(0));
+    };
+    const heroStatusChip = (key: string, label: string, text: string): string =>
+      `<div class="sprite__status sprite__status--${key}">${statusIconMarkup(key, label)} ${text}</div>`;
     const potionIconMarkup = "\u{1F9EA}";
     const goldIconMarkup = "\u{1F4B0}";
     let pileCards: typeof combat.drawPile;
@@ -177,11 +185,24 @@
     if ((combat.skillModifiers?.nextCardParalyze || 0) > 0) {
       skillPrepParts.push(`Paralyze ${combat.skillModifiers.nextCardParalyze}`);
     }
+    if ((combat.skillModifiers?.nextCardIgnoreGuard || 0) > 0) {
+      skillPrepParts.push(`Ignore ${combat.skillModifiers.nextCardIgnoreGuard} guard`);
+    }
+    if ((combat.skillModifiers?.nextCardExtraStatus || 0) > 0) {
+      skillPrepParts.push(`+${combat.skillModifiers.nextCardExtraStatus} status`);
+    }
     if ((combat.summonPowerBonus || 0) > 0) {
       skillPrepParts.push(`Summon power +${combat.summonPowerBonus}`);
     }
     if ((combat.summonSecondaryBonus || 0) > 0) {
       skillPrepParts.push(`Summon riders +${combat.summonSecondaryBonus}`);
+    }
+    if (Array.isArray(combat.skillWindows)) {
+      combat.skillWindows
+        .filter((window) => window.remainingUses > 0)
+        .forEach((window) => {
+          skillPrepParts.push(`${window.summary}${window.remainingUses > 1 ? ` x${window.remainingUses}` : ""}`);
+        });
     }
     const skillPrepSummary = skillPrepParts.join(" · ");
     const skillButtonsMarkup = combat.equippedSkills.length > 0 ? `
@@ -221,6 +242,13 @@
           const previewLabel = preview.describePreviewScopes(previewScopes);
           const previewOutcome = preview.buildSkillPreviewOutcome(combat, skill, selectedEnemy);
           const previewSummary = preview.summarizePreviewOutcome(previewOutcome);
+          const skillIllustrationSrc = assets?.getCardIllustration?.(skill.skillId) || "";
+          const skillArtSrc = skillIllustrationSrc || assets?.getCardIcon?.(skill.skillId, []);
+          const skillArtMarkup = skillArtSrc
+            ? `<span class="combat-skill__art${skillIllustrationSrc ? " combat-skill__art--illustrated" : " combat-skill__art--icon"}">
+                <img src="${skillArtSrc}" class="combat-skill__art-img" alt="${escapeHtml(skill.name)}" loading="lazy" onerror="this.style.display='none';this.parentElement&&this.parentElement.classList.add('combat-skill__art--missing')" />
+              </span>`
+            : "";
           let tierClass: string;
           if (skill.tier === "capstone") {
             tierClass = " combat-skill--capstone";
@@ -246,6 +274,7 @@
                 data-preview-outcome="${escapeHtml(previewOutcome)}"
                 title="${escapeHtml(skill.exactText)}">
                 <span class="combat-skill__slot">${slotLabel}</span>
+                ${skillArtMarkup}
                 <div class="combat-skill__body">
                   <div class="combat-skill__name-row">
                     <span class="combat-skill__name">${escapeHtml(skill.name)}</span>
@@ -272,6 +301,7 @@
               title="${escapeHtml(skill.exactText)}"
               ${ready ? "" : "disabled"}>
               <span class="combat-skill__slot">${slotLabel}</span>
+              ${skillArtMarkup}
               <div class="combat-skill__body">
                 <div class="combat-skill__name-row">
                   <span class="combat-skill__name">${escapeHtml(skill.name)}</span>
@@ -374,12 +404,12 @@
                         poison: combat.hero.heroPoison,
                       },
                       extraStatusHtml: [
-                        combat.hero.heroBurn > 0 ? `<div class="sprite__status sprite__status--burn">\u{1F525} ${combat.hero.heroBurn}</div>` : "",
-                        combat.hero.heroPoison > 0 ? `<div class="sprite__status sprite__status--poison">\u2620 ${combat.hero.heroPoison}</div>` : "",
-                        combat.hero.chill > 0 ? `<div class="sprite__status sprite__status--chill">\u2744 Chill</div>` : "",
-                        combat.hero.amplify > 0 ? `<div class="sprite__status sprite__status--amplify">\u{1F53A} Amp ${combat.hero.amplify}t</div>` : "",
-                        combat.hero.weaken > 0 ? `<div class="sprite__status sprite__status--weaken">\u{1F53B} Weak ${combat.hero.weaken}t</div>` : "",
-                        combat.hero.energyDrain > 0 ? `<div class="sprite__status sprite__status--drain">\u{1F50C} -${combat.hero.energyDrain} Energy</div>` : "",
+                        combat.hero.heroBurn > 0 ? heroStatusChip("burn", "Burn", String(combat.hero.heroBurn)) : "",
+                        combat.hero.heroPoison > 0 ? heroStatusChip("poison", "Poison", String(combat.hero.heroPoison)) : "",
+                        combat.hero.chill > 0 ? heroStatusChip("chill", "Chill", "Chill") : "",
+                        combat.hero.amplify > 0 ? heroStatusChip("amplify", "Amplify", `Amp ${combat.hero.amplify}t`) : "",
+                        combat.hero.weaken > 0 ? heroStatusChip("weaken", "Weaken", `Weak ${combat.hero.weaken}t`) : "",
+                        combat.hero.energyDrain > 0 ? heroStatusChip("drain", "Drain", `-${combat.hero.energyDrain} Energy`) : "",
                       ].join(""),
                       incomingPressureHtml: pressure.renderIncomingPressure(incomingPressure.hero, escapeHtml),
                       threatened: incomingPressure.hero.attackers > 0,

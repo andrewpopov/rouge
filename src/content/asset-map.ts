@@ -4,10 +4,12 @@
   const {
     UNIQUE_ART_BASE,
     CARD_ILLUSTRATION_BASE: _CARD_ILLUSTRATION_BASE,
+    MINION_ILLUSTRATION_BASE: _MINION_ILLUSTRATION_BASE,
     CARD_FRAME_BASE: _CARD_FRAME_BASE,
     SPRITE_BASE,
     CARD_ICONS,
     CARD_ILLUSTRATIONS,
+    MINION_ILLUSTRATIONS,
     CARD_FRAMES,
     ATTACK_ICONS,
     SKILL_ICONS,
@@ -42,6 +44,21 @@
   const UNIQUE_MERCENARY_SPRITES = new Set(uniqueArtManifest.mercenaries || []);
   const UNIQUE_ITEM_SPRITES = new Set(uniqueArtManifest.items || []);
   const UNIQUE_ART_VARIANT_SALT = Math.random().toString(36).slice(2);
+  const MINION_ILLUSTRATION_FAMILIES: Record<string, string> = {
+    necromancer_skeleton: "necro_army",
+    necromancer_servant: "necro_army",
+    necromancer_skeletal_mage: "necro_army",
+    necromancer_clay_golem: "necro_golem",
+    necromancer_blood_golem: "necro_golem",
+    necromancer_iron_golem: "necro_golem",
+    necromancer_fire_golem: "necro_golem",
+    druid_spirit_wolf: "druid_pack",
+    druid_spirit_wolf_2: "druid_pack",
+    druid_dire_wolf: "druid_pack",
+    necro_army: "necro_army",
+    necro_golem: "necro_golem",
+    druid_pack: "druid_pack",
+  };
 
   const TEMPLATE_ID_RE = /^act_\d+_(.+)_(raider|ranged|support|brute|base|boss|alt|elite(?:_.*)?)$/;
 
@@ -105,6 +122,18 @@
     if (CARD_ILLUSTRATIONS[cardId]) {return CARD_ILLUSTRATIONS[cardId];}
     const baseId = cardId.replace(/_plus$/, "");
     if (CARD_ILLUSTRATIONS[baseId]) {return CARD_ILLUSTRATIONS[baseId];}
+    return null;
+  }
+
+  function getMinionIllustration(templateId: string, artTier = 1): string | null {
+    if (MINION_ILLUSTRATIONS[templateId]) {return MINION_ILLUSTRATIONS[templateId];}
+    const family = MINION_ILLUSTRATION_FAMILIES[templateId] || templateId;
+    if (MINION_ILLUSTRATIONS[family]) {return MINION_ILLUSTRATIONS[family];}
+    const tier = Math.max(1, Math.min(5, Number(artTier) || 1));
+    for (let candidate = tier; candidate >= 1; candidate--) {
+      const key = `${family}_t${candidate}`;
+      if (MINION_ILLUSTRATIONS[key]) {return MINION_ILLUSTRATIONS[key];}
+    }
     return null;
   }
 
@@ -244,6 +273,7 @@
   runtimeWindow.ROUGE_ASSET_MAP = {
     getCardIcon,
     getCardIllustration,
+    getMinionIllustration,
     getCardFrame,
     getEnemyIcon,
     getEnemySprite,

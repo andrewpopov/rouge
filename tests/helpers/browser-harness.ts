@@ -26,6 +26,7 @@ const SHARED_RUNTIME_FILES = [
   "src/content/skill-evolution-trees.js",
   "src/content/game-content.js",
   "src/combat/combat-log.js",
+  "src/combat/combat-utils.js",
   "src/combat/combat-modifiers.js",
   "src/combat/monster-traits.js",
   "src/combat/combat-engine-monster-actions.js",
@@ -40,6 +41,7 @@ const SHARED_RUNTIME_FILES = [
   "src/combat/card-effects.js",
   "src/combat/combat-engine.js",
   "src/combat/combat-engine-skills.js",
+  "src/combat/card-behavior-data.js",
   "src/combat/combat-engine-combat.js",
 ];
 

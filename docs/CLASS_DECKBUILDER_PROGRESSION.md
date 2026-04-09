@@ -23,6 +23,8 @@ Documentation note:
 - Use `CLASS_CARD_AUTHORING_MATRIX.md` for the per-class deck-package targets, lane health checks, and class-by-class card expansion order.
 - Use this document for the class, skill, deck, and upgrade-path combat model.
 - Use `D2_SPECIALIZATION_MODEL.md` for the one-tree specialization, utility-splash, and boss-prep rules that should shape class card rewrites.
+- Use `CLASS_ARCHETYPE_ENGINE_MAP.md` for the D2-to-STS/MT engine pattern mapping per lane.
+- Use `OPTIMIZED_BUILD_PROFILES.md` for target endgame deck shapes, discovery combos, act-based unlock pacing, and balance pass framework.
 
 ## Core Loop
 

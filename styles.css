@@ -9054,6 +9054,12 @@ button.waypoint:hover {
   transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
 }
 
+.combat-minion--illustrated {
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
 .combat-minion[data-preview-scope] {
   cursor: help;
 }
@@ -9101,7 +9107,7 @@ button.waypoint:hover {
 }
 
 .minion-rack--command .minion-rack__list {
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
   gap: 6px;
 }
 
@@ -9111,10 +9117,77 @@ button.waypoint:hover {
   border-radius: 10px;
 }
 
+.minion-rack--command .combat-minion--illustrated {
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 9px;
+}
+
 .minion-rack--command .combat-minion__topline,
 .minion-rack--command .combat-minion__skill,
 .minion-rack--command .combat-minion__summary {
   font-size: 0.56rem;
+}
+
+.minion-rack--command .combat-minion__art-frame {
+  min-height: 62px;
+  border-radius: 9px;
+}
+
+.minion-rack--command .combat-minion__stack {
+  left: -2px;
+  right: auto;
+  bottom: -2px;
+  font-size: 0.48rem;
+  padding: 1px 5px;
+}
+
+.combat-minion__visual {
+  position: relative;
+  min-width: 0;
+}
+
+.combat-minion__art-frame {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 72px;
+  padding: 4px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(214, 171, 108, 0.14);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(122, 194, 224, 0.2), rgba(122, 194, 224, 0) 56%),
+    linear-gradient(180deg, rgba(31, 19, 22, 0.96), rgba(14, 9, 11, 0.98));
+}
+
+.combat-minion__art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.34));
+}
+
+.combat-minion__stack {
+  position: absolute;
+  left: -4px;
+  right: auto;
+  bottom: -4px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 192, 139, 0.26);
+  background: rgba(12, 7, 9, 0.92);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.26);
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f1d7bd;
+}
+
+.combat-minion__content {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
 }
 
 .combat-minion__topline {
@@ -10229,6 +10302,42 @@ button.waypoint:hover {
 
 .status-icon--burn {
   filter: brightness(0) invert(0.5) sepia(1) saturate(5) hue-rotate(0deg);
+}
+
+.status-icon--poison {
+  filter: brightness(0) invert(0.68) sepia(0.95) saturate(3.2) hue-rotate(48deg);
+}
+
+.status-icon--slow {
+  filter: brightness(0) invert(0.72) sepia(0.88) saturate(2.4) hue-rotate(176deg);
+}
+
+.status-icon--freeze {
+  filter: brightness(0) invert(0.8) sepia(0.92) saturate(2.4) hue-rotate(174deg);
+}
+
+.status-icon--stun {
+  filter: brightness(0) invert(0.82) sepia(0.92) saturate(3.8) hue-rotate(8deg);
+}
+
+.status-icon--paralyze {
+  filter: brightness(0) invert(0.75) sepia(0.96) saturate(4.2) hue-rotate(266deg);
+}
+
+.status-icon--chill {
+  filter: brightness(0) invert(0.8) sepia(0.92) saturate(2.1) hue-rotate(182deg);
+}
+
+.status-icon--amplify {
+  filter: brightness(0) invert(0.63) sepia(1) saturate(3.2) hue-rotate(-8deg);
+}
+
+.status-icon--weaken {
+  filter: brightness(0) invert(0.74) sepia(0.88) saturate(2.7) hue-rotate(252deg);
+}
+
+.status-icon--drain {
+  filter: brightness(0) invert(0.72) sepia(0.85) saturate(2.3) hue-rotate(212deg);
 }
 
 .fan-card__icon {
@@ -12530,34 +12639,6 @@ button.waypoint:hover {
   background:
     linear-gradient(180deg, rgba(9, 4, 6, 0.08), rgba(9, 4, 6, 0.04) 30%, rgba(9, 4, 6, 0.38) 100%);
   pointer-events: none;
-}
-
-.reward-choice-card__sigil {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid rgba(246, 216, 196, 0.24);
-  background: rgba(22, 10, 12, 0.76);
-  box-shadow:
-    0 10px 16px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.reward-choice-card__sigil-img {
-  width: 18px;
-  height: 18px;
-  max-width: 18px;
-  max-height: 18px;
-  object-fit: contain;
-  filter:
-    saturate(1.02)
-    drop-shadow(0 3px 6px rgba(0, 0, 0, 0.24));
 }
 
 .reward-choice-card__glyph {
@@ -15912,8 +15993,8 @@ button.waypoint:hover {
 
 .d2inv {
   position: relative;
-  width: min(1180px, 96vw);
-  max-height: min(920px, 94vh);
+  width: min(1460px, 97vw);
+  max-height: min(940px, 95vh);
   overflow: auto;
   cursor: default;
   animation: merchant-in 0.24s ease-out;
@@ -16091,7 +16172,7 @@ button.waypoint:hover {
 }
 
 .d2inv__body--inventory {
-  grid-template-columns: 408px minmax(0, 1fr);
+  grid-template-columns: 780px minmax(0, 1fr);
   align-items: start;
 }
 
@@ -16625,33 +16706,33 @@ button.waypoint:hover {
 
 .d2inv__panel--loadout {
   overflow: visible;
+  padding: 6px 0 0;
 }
 
 .d2inv-doll {
   position: relative;
-  width: min(100%, 334px);
-  height: 366px;
-  margin: 4px auto 0;
+  width: min(100%, 860px);
+  aspect-ratio: 3 / 2;
+  height: auto;
+  margin: -24px auto -24px;
   overflow: visible;
 }
 
 .d2inv-doll__backdrop {
   position: absolute;
-  left: 26px;
-  right: 26px;
-  top: 34px;
-  bottom: 14px;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  border: 1px solid rgba(145, 88, 61, 0.16);
+  border: none;
   border-radius: 24px;
   background:
     center center / contain no-repeat
-    url("assets/curated/inventory/loadout_backdrop_board_v6.png");
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 18px 30px rgba(0, 0, 0, 0.16);
+    url("assets/curated/inventory/loadout_backdrop_board_user_ref_v13.png");
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -16716,68 +16797,68 @@ button.waypoint:hover {
 }
 
 .d2inv-doll__slot-wrap--helm {
-  top: 4px;
+  top: 1.9%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .d2inv-doll__slot-wrap--amulet {
-  top: 78px;
-  right: 44px;
+  top: 11.7%;
+  right: 11.4%;
 }
 
 .d2inv-doll__slot-wrap--weapon {
-  top: 78px;
-  left: 10px;
+  top: 21.8%;
+  left: 5.7%;
 }
 
 .d2inv-doll__slot-wrap--armor {
-  top: 92px;
+  top: 24%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .d2inv-doll__slot-wrap--shield {
-  top: 80px;
-  right: 10px;
+  top: 21.3%;
+  right: 5.7%;
 }
 
 .d2inv-doll__slot-wrap--ring1 {
-  top: 246px;
-  left: 54px;
+  top: 62.9%;
+  left: 7.9%;
 }
 
 .d2inv-doll__slot-wrap--belt {
-  top: 238px;
+  top: 63.3%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .d2inv-doll__slot-wrap--ring2 {
-  top: 246px;
-  right: 54px;
+  top: 62.9%;
+  right: 7.9%;
 }
 
 .d2inv-doll__slot-wrap--gloves {
-  top: 286px;
-  left: 18px;
+  top: 81%;
+  left: 4.4%;
 }
 
 .d2inv-doll__slot-wrap--boots {
-  top: 286px;
-  right: 18px;
+  top: 81%;
+  right: 4.4%;
 }
 
-.d2inv-doll .d2inv-slot--helm    { width: 72px; height: 72px; }
-.d2inv-doll .d2inv-slot--amulet  { width: 42px; height: 42px; }
-.d2inv-doll .d2inv-slot--weapon  { width: 82px; height: 142px; }
-.d2inv-doll .d2inv-slot--armor   { width: 94px; height: 120px; }
-.d2inv-doll .d2inv-slot--shield  { width: 82px; height: 120px; }
-.d2inv-doll .d2inv-slot--ring1   { width: 42px; height: 42px; }
-.d2inv-doll .d2inv-slot--ring2   { width: 42px; height: 42px; }
-.d2inv-doll .d2inv-slot--gloves  { width: 70px; height: 70px; }
-.d2inv-doll .d2inv-slot--boots   { width: 70px; height: 70px; }
-.d2inv-doll .d2inv-slot--belt    { width: 88px; height: 42px; }
+.d2inv-doll .d2inv-slot--helm    { width: 25.4%; height: 17%; }
+.d2inv-doll .d2inv-slot--amulet  { width: 13.2%; height: 8.8%; }
+.d2inv-doll .d2inv-slot--weapon  { width: 27.4%; height: 32%; }
+.d2inv-doll .d2inv-slot--armor   { width: 34.4%; height: 31.9%; }
+.d2inv-doll .d2inv-slot--shield  { width: 26.8%; height: 31.9%; }
+.d2inv-doll .d2inv-slot--ring1   { width: 13.2%; height: 8.8%; }
+.d2inv-doll .d2inv-slot--ring2   { width: 13.2%; height: 8.8%; }
+.d2inv-doll .d2inv-slot--gloves  { width: 25.4%; height: 17%; }
+.d2inv-doll .d2inv-slot--boots   { width: 25.4%; height: 17%; }
+.d2inv-doll .d2inv-slot--belt    { width: 29.2%; height: 8.8%; }
 
 .d2inv-doll .d2inv-slot {
   gap: 0;
@@ -16794,6 +16875,12 @@ button.waypoint:hover {
     inset 0 0 0 1px rgba(255, 185, 108, 0.08),
     0 0 18px rgba(255, 146, 62, 0.08);
   transform: none;
+}
+
+.d2inv-doll .d2inv-slot:not(.d2inv-slot--filled):hover {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 .d2inv-doll .d2inv-slot__glyph,
@@ -16821,13 +16908,15 @@ button.waypoint:hover {
 }
 
 .d2inv__panel--loadout .d2inv__panel-head {
-  margin-bottom: 8px;
+  margin-bottom: -8px;
+  padding: 0 14px;
 }
 
 .d2inv__panel--loadout .d2inv__panel-copy {
-  margin-top: 4px;
-  font-size: 0.72rem;
-  line-height: 1.45;
+  margin-top: 2px;
+  max-width: 28ch;
+  font-size: 0.66rem;
+  line-height: 1.28;
 }
 
 .d2inv-loadout-grid {
@@ -18920,6 +19009,11 @@ button.waypoint:hover {
   font-size: 1rem;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+.enemy-inspect__status-icon-asset {
+  width: 16px;
+  height: 16px;
 }
 
 .enemy-inspect__status-body {
@@ -22152,27 +22246,6 @@ button.combat-command__pile-stack:focus-visible {
     drop-shadow(0 calc(10px * var(--card-scale)) calc(18px * var(--card-scale)) rgba(0, 0, 0, 0.28));
 }
 
-.combat-card__sigil {
-  position: absolute;
-  right: calc(8px * var(--card-scale));
-  bottom: calc(8px * var(--card-scale));
-  z-index: 2;
-  width: calc(20px * var(--card-scale));
-  height: calc(20px * var(--card-scale));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: calc(6px * var(--card-scale));
-  border: 1px solid rgba(var(--card-accent, 150, 112, 74), 0.32);
-  background: rgba(18, 10, 11, 0.84);
-}
-
-.combat-card__sigil-icon {
-  width: calc(13px * var(--card-scale));
-  height: calc(13px * var(--card-scale));
-  object-fit: contain;
-}
-
 .combat-card__art-fallback {
   position: relative;
   z-index: 2;
@@ -22961,7 +23034,7 @@ button.combat-command__pile-stack:focus-visible {
 
 .combat-skill {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-columns: 34px 48px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
@@ -23013,6 +23086,41 @@ button.combat-command__pile-stack:focus-visible {
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
+}
+
+.combat-skill__art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(194, 168, 112, 0.24);
+  background:
+    linear-gradient(180deg, rgba(33, 24, 18, 0.96), rgba(18, 12, 10, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 220, 0.05),
+    0 8px 16px rgba(0, 0, 0, 0.16);
+}
+
+.combat-skill__art--icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.combat-skill__art--missing {
+  display: none;
+}
+
+.combat-skill__art-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 24%;
 }
 
 .combat-skill__body {
@@ -23083,9 +23191,9 @@ button.combat-command__pile-stack:focus-visible {
   grid-template-columns: 1fr;
   justify-items: center;
   align-items: center;
-  gap: 5px;
-  min-height: 82px;
-  padding: 9px 6px 8px;
+  gap: 6px;
+  min-height: 138px;
+  padding: 9px 6px 10px;
   border-radius: 14px;
   border-color: rgba(181, 136, 77, 0.24);
   background:
@@ -23119,12 +23227,18 @@ button.combat-command__pile-stack:focus-visible {
   justify-items: center;
   gap: 4px;
   width: 100%;
-  padding-top: 11px;
+  padding-top: 0;
 }
 
 .combat-command__hand-skills .combat-skill__name-row {
   display: block;
   width: 100%;
+}
+
+.combat-command__hand-skills .combat-skill__art {
+  width: 60px;
+  height: 80px;
+  margin-top: 4px;
 }
 
 .combat-command__hand-skills .combat-skill__name {
@@ -23170,8 +23284,9 @@ button.combat-command__pile-stack:focus-visible {
 .combat-command__actions .combat-skill {
   grid-template-columns: 1fr;
   justify-items: center;
-  gap: 5px;
-  padding: 8px 6px;
+  gap: 6px;
+  min-height: 126px;
+  padding: 8px 6px 10px;
   text-align: center;
 }
 
@@ -23186,6 +23301,11 @@ button.combat-command__pile-stack:focus-visible {
   justify-items: center;
   width: 100%;
   gap: 2px;
+}
+
+.combat-command__actions .combat-skill__art {
+  width: 56px;
+  height: 74px;
 }
 
 .combat-command__actions .combat-skill__name-row {

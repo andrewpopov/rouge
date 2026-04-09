@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -5,20 +6,22 @@
     combat: CombatState,
     content: GameContent,
     instance: { cardId: string },
-    card: CardDefinition
+    card: CardDefinition,
+    selectedEnemy: CombatEnemyState | null = null
   ): number {
     const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
     const reduction = evo ? evo.getTreeCostReduction(instance.cardId, combat.deckCardIds, content.cardCatalog) : 0;
-    const skillReduction = Math.max(0, combat.skillModifiers?.nextCardCostReduction || 0);
+    const windowPatch = runtimeWindow.__ROUGE_COMBAT_ENGINE_HELPERS?.getSkillWindowModifierPatch?.(combat, instance.cardId, card, selectedEnemy) || {};
+    const skillReduction = Math.max(0, (combat.skillModifiers?.nextCardCostReduction || 0) + Math.max(0, windowPatch.nextCardCostReduction || 0));
     return Math.max(0, card.cost - reduction - skillReduction);
   }
 
-  function getCardPreviewAttackValue(combat: CombatState, instance: { cardId: string }, effectValue: number): number {
+  function getCardPreviewAttackValue(combat: CombatState, instance: { cardId: string }, effectValue: number, bonus = 0): number {
     const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
     const evo = runtimeWindow.__ROUGE_SKILL_EVOLUTION;
     const synergy = evo ? evo.getSynergyDamageBonus(instance.cardId, combat.deckCardIds) : 0;
     const weaponBonus = turns?.getWeaponAttackBonus?.(combat, instance.cardId) || 0;
-    const skillBonus = Math.max(0, combat.skillModifiers?.nextCardDamageBonus || 0);
+    const skillBonus = Math.max(0, combat.skillModifiers?.nextCardDamageBonus || 0) + Math.max(0, bonus);
     let amount = Math.max(0, effectValue + combat.hero.damageBonus + synergy + weaponBonus + skillBonus);
     if (combat.hero.weaken > 0) {
       amount = Math.max(1, Math.floor(amount * 0.7));
@@ -26,11 +29,11 @@
     return amount;
   }
 
-  function getCardPreviewSupportValue(combat: CombatState, instance: { cardId: string }, effect: CardEffect): number {
+  function getCardPreviewSupportValue(combat: CombatState, instance: { cardId: string }, effect: CardEffect, bonusGuard = 0): number {
     const turns = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS;
     const weaponBonus = turns?.getWeaponSupportBonus?.(combat, instance.cardId) || 0;
     const guardBonus = effect.kind === "gain_guard_self" || effect.kind === "gain_guard_party"
-      ? Math.max(0, combat.skillModifiers?.nextCardGuard || 0)
+      ? Math.max(0, combat.skillModifiers?.nextCardGuard || 0) + Math.max(0, bonusGuard)
       : 0;
     return Math.max(0, effect.value + weaponBonus + guardBonus);
   }
@@ -50,6 +53,7 @@
     selectedEnemy: CombatEnemyState | null
   ): string {
     const targetPreview = selectedEnemy ? { guard: selectedEnemy.guard, life: selectedEnemy.life } : null;
+    const windowPatch = runtimeWindow.__ROUGE_COMBAT_ENGINE_HELPERS?.getSkillWindowModifierPatch?.(combat, instance.cardId, card, selectedEnemy) || {};
     const linePreview = combat.enemies
       .filter((enemy) => enemy.alive)
       .map((enemy) => ({ id: enemy.id, guard: enemy.guard, life: enemy.life }));
@@ -85,9 +89,11 @@
     card.effects.forEach((effect) => {
       switch (effect.kind) {
         case "damage": {
-          const amount = getCardPreviewAttackValue(combat, instance, effect.value);
+          const amount = getCardPreviewAttackValue(combat, instance, effect.value, Math.max(0, windowPatch.nextCardDamageBonus || 0));
           if (targetPreview) {
-            const resolved = applyPreviewEnemyDamage(targetPreview, amount);
+            const guardIgnored = Math.max(0, windowPatch.nextCardIgnoreGuard || 0);
+            const previewTarget = guardIgnored > 0 ? { guard: Math.max(0, targetPreview.guard - guardIgnored), life: targetPreview.life } : targetPreview;
+            const resolved = applyPreviewEnemyDamage(previewTarget, amount);
             singleDamage += resolved.life;
             singleGuardDamage += resolved.guard;
           } else {
@@ -96,19 +102,22 @@
           break;
         }
         case "damage_all": {
-          const amount = getCardPreviewAttackValue(combat, instance, effect.value);
+          const amount = getCardPreviewAttackValue(combat, instance, effect.value, Math.max(0, windowPatch.nextCardDamageBonus || 0));
           linePreview.forEach((enemy) => {
-            const resolved = applyPreviewEnemyDamage(enemy, amount);
+            const previewEnemy = Math.max(0, windowPatch.nextCardIgnoreGuard || 0) > 0
+              ? { ...enemy, guard: Math.max(0, enemy.guard - Math.max(0, windowPatch.nextCardIgnoreGuard || 0)) }
+              : enemy;
+            const resolved = applyPreviewEnemyDamage(previewEnemy, amount);
             lineDamage += resolved.life;
             lineGuardDamage += resolved.guard;
           });
           break;
         }
         case "gain_guard_self":
-          selfGuard += getCardPreviewSupportValue(combat, instance, effect) + combat.hero.guardBonus;
+          selfGuard += getCardPreviewSupportValue(combat, instance, effect, Math.max(0, windowPatch.nextCardGuard || 0)) + combat.hero.guardBonus;
           break;
         case "gain_guard_party":
-          partyGuard += getCardPreviewSupportValue(combat, instance, effect) + combat.hero.guardBonus;
+          partyGuard += getCardPreviewSupportValue(combat, instance, effect, Math.max(0, windowPatch.nextCardGuard || 0)) + combat.hero.guardBonus;
           break;
         case "heal_hero": {
           const amount = getCardPreviewSupportValue(combat, instance, effect);
@@ -126,7 +135,7 @@
           break;
         }
         case "draw":
-          drawCount += effect.value + Math.max(0, combat.skillModifiers?.nextCardDraw || 0);
+          drawCount += effect.value + Math.max(0, combat.skillModifiers?.nextCardDraw || 0) + Math.max(0, windowPatch.nextCardDraw || 0);
           break;
         case "summon_minion": {
           const summonPreview = runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.getSummonPreview?.(combat, effect) || "Summon";
@@ -142,28 +151,28 @@
           mercBuff += getCardPreviewSupportValue(combat, instance, effect);
           break;
         case "apply_burn":
-          burn += Math.max(0, effect.value + combat.hero.burnBonus + (combat.skillModifiers?.nextCardBurn || 0));
+          burn += Math.max(0, effect.value + combat.hero.burnBonus + (combat.skillModifiers?.nextCardBurn || 0) + Math.max(0, windowPatch.nextCardBurn || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_burn_all":
-          burnAll += Math.max(0, effect.value + combat.hero.burnBonus + (combat.skillModifiers?.nextCardBurn || 0));
+          burnAll += Math.max(0, effect.value + combat.hero.burnBonus + (combat.skillModifiers?.nextCardBurn || 0) + Math.max(0, windowPatch.nextCardBurn || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_poison":
-          poison += Math.max(0, effect.value + (combat.skillModifiers?.nextCardPoison || 0));
+          poison += Math.max(0, effect.value + (combat.skillModifiers?.nextCardPoison || 0) + Math.max(0, windowPatch.nextCardPoison || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_poison_all":
-          poisonAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardPoison || 0));
+          poisonAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardPoison || 0) + Math.max(0, windowPatch.nextCardPoison || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_slow":
-          slow += Math.max(0, effect.value + (combat.skillModifiers?.nextCardSlow || 0));
+          slow += Math.max(0, effect.value + (combat.skillModifiers?.nextCardSlow || 0) + Math.max(0, windowPatch.nextCardSlow || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_slow_all":
-          slowAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardSlow || 0));
+          slowAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardSlow || 0) + Math.max(0, windowPatch.nextCardSlow || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_freeze":
-          freeze += Math.max(0, effect.value + (combat.skillModifiers?.nextCardFreeze || 0));
+          freeze += Math.max(0, effect.value + (combat.skillModifiers?.nextCardFreeze || 0) + Math.max(0, windowPatch.nextCardFreeze || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_freeze_all":
-          freezeAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardFreeze || 0));
+          freezeAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardFreeze || 0) + Math.max(0, windowPatch.nextCardFreeze || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_stun":
           stun = 1;
@@ -172,10 +181,10 @@
           stunAll = 1;
           break;
         case "apply_paralyze":
-          paralyze += Math.max(0, effect.value + (combat.skillModifiers?.nextCardParalyze || 0));
+          paralyze += Math.max(0, effect.value + (combat.skillModifiers?.nextCardParalyze || 0) + Math.max(0, windowPatch.nextCardParalyze || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         case "apply_paralyze_all":
-          paralyzeAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardParalyze || 0));
+          paralyzeAll += Math.max(0, effect.value + (combat.skillModifiers?.nextCardParalyze || 0) + Math.max(0, windowPatch.nextCardParalyze || 0) + Math.max(0, windowPatch.nextCardExtraStatus || 0));
           break;
         default:
           break;
@@ -275,7 +284,7 @@
       case "assassin_lightning_sentry":
         return build("assassin_lightning_sentry", 2 + scale, 1 + scale, 4);
       case "assassin_wake_of_inferno":
-        return build("assassin_wake_of_fire", 2 + scale, 1 + scale, 4);
+        return build("assassin_wake_of_inferno", 2 + scale, 1 + scale, 4);
       case "assassin_death_sentry":
         return build("assassin_death_sentry", 3 + scale, 1 + scale, 4);
       case "druid_raven":

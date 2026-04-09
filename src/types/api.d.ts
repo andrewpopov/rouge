@@ -423,6 +423,7 @@ interface ExplorationEventsApi {
 interface AssetMapApi {
   getCardIcon(cardId: string, effects?: CardEffect[]): string;
   getCardIllustration(cardId: string): string | null;
+  getMinionIllustration(templateId: string, artTier?: number): string | null;
   getCardFrame(roleKey: string): string | null;
   getEnemyIcon(templateId: string): string;
   getEnemySprite(templateId: string): string | null;

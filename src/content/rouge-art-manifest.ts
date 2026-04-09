@@ -159,7 +159,8 @@
       "abominable.webp"
     ],
     "baal_s_minion": [
-      "baal_s_minion.webp"
+      "baal_s_minion.webp",
+      "baal_s_minion__gpt15high_refresh_v2.webp"
     ],
     "baboon_demon": [
       "baboon_demon.webp"
@@ -432,7 +433,9 @@
       "eldritch_the_rectifier.webp"
     ],
     "eyeback_the_unleashed": [
-      "eyeback_the_unleashed.webp"
+      "eyeback_the_unleashed.webp",
+      "eyeback_the_unleashed__gpt15high_refresh_v1.webp",
+      "eyeback_the_unleashed__gpt15high_refresh_v2.webp"
     ],
     "fangskin": [
       "fangskin.webp"

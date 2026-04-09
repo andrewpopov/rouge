@@ -105,11 +105,11 @@
     };
   }
 
-  function createSnapshot({ phase, selectedClassId, selectedMercenaryId, run }: { phase: string; selectedClassId: string; selectedMercenaryId: string; run: RunState }) {
+  function createSnapshot({ phase, selectedClassId, selectedMercenaryId, run }: { phase: string; selectedClassId: string; selectedMercenaryId: string; run: RunState }): RunSnapshotEnvelope {
     return {
       schemaVersion: SCHEMA_VERSION,
       savedAt: new Date().toISOString(),
-      phase,
+      phase: phase as AppPhase,
       selectedClassId,
       selectedMercenaryId,
       run: deepClone(run),
@@ -208,7 +208,7 @@
   function getAccountTreeSummaries(profile: ProfileState | null) {
     const milestones = listAccountMilestoneSummaries(profile);
     const focusedTreeId = getFocusedTreeId(profile);
-    return ACCOUNT_PROGRESSION_TREES.map((tree: { id: string; title: string; description: string }) => {
+    return ACCOUNT_PROGRESSION_TREES.map((tree: { id: string; title?: string; description?: string }) => {
       const treeMilestones = milestones.filter((milestone: ProfileAccountMilestoneSummary) => milestone.treeId === tree.id);
       const nextMilestone = treeMilestones.find((milestone: ProfileAccountMilestoneSummary) => milestone.status === "available") || treeMilestones.find((milestone: ProfileAccountMilestoneSummary) => !milestone.unlocked) || null;
       const capstone = [...treeMilestones].reverse().find((milestone) => milestone.isCapstone) || null;

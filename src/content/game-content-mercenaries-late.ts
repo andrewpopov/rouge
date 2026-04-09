@@ -19,6 +19,8 @@
       maxLife: 32,
       attack: 4,
       behavior: "guard_breaker",
+      aura: "fortify",
+      auraText: "Fortify Aura: Hero starts combat with 6 Guard.",
       passiveText: "Prioritizes guarded targets, shatters their Guard, and strikes harder.",
       routePerks: [
         routePerk("phalanx_steps", "Phalanx Steps", ["hellforge_phalanx_steps_locked"], {
@@ -130,6 +132,8 @@
       maxLife: 36,
       attack: 5,
       behavior: "boss_hunter",
+      aura: "battle_cry",
+      auraText: "Battle Cry Aura: Boss enemies deal 3 less damage.",
       passiveText: "Prioritizes elite and boss enemies and deals extra damage to them.",
       routePerks: [
         routePerk("peak_guard", "Peak Guard", ["harrogath_peak_guard_drilled"], {
@@ -240,6 +244,8 @@
       maxLife: 31,
       attack: 5,
       behavior: "wounded_hunter",
+      aura: "conviction",
+      auraText: "Conviction Aura: Enemy resistances reduced by 2.",
       passiveText: "Prioritizes wounded enemies and deals extra damage once they are faltering.",
       routePerks: [
         routePerk("phalanx_steps", "Phalanx Steps", ["hellforge_phalanx_steps_locked"], {

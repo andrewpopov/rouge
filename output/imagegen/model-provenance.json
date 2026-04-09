@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-06T05:33:05.999Z",
+  "generatedAt": "2026-04-09T17:16:51.085264+00:00",
   "note": "AI-generated card art provenance for current Blood Rogue review batches.",
   "entries": [
     {
@@ -1252,6 +1252,366 @@
       "size": "1024x1536",
       "batchFile": "tmp/imagegen/card_art_remaining98_batch3.jsonl",
       "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a battle sorceress shaping fire, frost, lightning, and arcane force. Depict the skill \"Lightning Mastery\". Card rules: \"Deal 12 lightning damage to all enemies. Apply 2 Paralyze to all. You and your mercenary gain 8 Guard. Draw 1 card.\". Focus on a perfected storm lattice answering the sorceress with disciplined mass lightning.\nSubject: one centered web of chained lightning under total control.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, strong centered silhouette, dark uncluttered edges, readable inside a small card art window.\nLighting/mood: masterful, electric, commanding, precise.\nColor palette: blue-white, pale gold, storm gray, cold steel, soot black.\nMaterials/textures: flame, frost crystal, lightning forks, smoke, vapor, cinders.\nConstraints: no text, no logo, no frame, no watermark, no modern objects, no crowded battlefield unless the card absolutely requires a wide effect.\nAvoid: no cartoon style, no anime, no goofy proportions, no UI overlays, no generic stock-fantasy posing."
+    },
+    {
+      "output": "output/imagegen/rally-mercenary-fix-gpt15low/rally_mercenary__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/rally_mercenary_fix_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a premium dark-fantasy card illustration for an original game called Blood Rogue showing a hardened mercenary answering a rally command and surging into battle as a reliable frontline ally.\nSubject: one centered veteran mercenary with polearm or spear and partial shield presence, no commanding hero in frame, no crowd scene, the mercenary should be the sole focal subject.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant full upper-body to mid-body martial silhouette, dark uncluttered edges, readable at small card size.\nLighting/mood: disciplined, loyal, battle-ready, protective.\nColor palette: worn steel, old bronze, ash brown, muted crimson, soot black.\nMaterials/textures: dented mail, leather straps, scarred shield rim, spear shaft, dust, ash, subdued command glow.\nConstraints: no text, no logo, no frame, no watermark, no modern objects, no extra allies, no battlefield crowd.\nAvoid: no cartoon style, no anime, no bright heroic fantasy poster look, no oversized banner, no busy war scene."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/swing__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a brutal martial card illustration showing a single battle-worn weapon swing cutting across darkness with simple grounded force.\nSubject: one centered sword, axe, or mace arc with no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: direct, martial, grounded, efficient.\nColor palette: black iron, old bronze, dried blood red, soot black, ash gray.\nMaterials/textures: nicked steel, leather wrap, sparks, smoke, grit.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/measured_swing__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a disciplined strike delivered behind a guarded stance, mixing offense and protection in one controlled motion.\nSubject: one centered guarded weapon swing with a partial shield rim or braced forearm, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: controlled, defensive, veteran, severe.\nColor palette: steel gray, old bronze, leather brown, ash ivory, soot black.\nMaterials/textures: shield edge, mail, worn leather, sparks, dust.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/mark_target__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a hunter or commander marking one doomed target for a mercenary kill, with a precise weak-point sigil and restrained lethal intent.\nSubject: one centered marked weak point or enemy silhouette under a tactical sigil, no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: focused, tactical, predatory, deliberate.\nColor palette: pale gold, ember red, iron gray, soot black, smoke ivory.\nMaterials/textures: etched sigil light, arrow scar, scratched metal, smoke.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/kick__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a savage boot strike landing center-mass and jarring the target with a brief stun shock.\nSubject: one centered armored boot impact with a compact shock-burst, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: sudden, rough, destabilizing, aggressive.\nColor palette: mud brown, iron gray, bruised crimson, ash gray, soot black.\nMaterials/textures: leather boot, dented plate, dust burst, grit.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/forward_guard__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a protective frontline maneuver where hero and mercenary surge together behind a shared defensive line.\nSubject: one centered defensive wedge of shield and weapon with two allied presences implied, not a crowded battle scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: protective, coordinated, resolute, martial.\nColor palette: old bronze, steel gray, ash ivory, dark leather, soot black.\nMaterials/textures: shield faces, spear haft, mail, dust, sparks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/shove__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a hard forward body-check that drives an enemy back and leaves them slowed and off-balance.\nSubject: one centered collision or shield-check impact with a target silhouette being driven backward.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: forceful, disruptive, controlling, blunt.\nColor palette: black iron, ash brown, muted crimson, dust gray, soot black.\nMaterials/textures: shield wood, iron rim, dirt spray, impact grit.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/field_dressing__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a fast battlefield treatment with bandage, cloth, and grit-stained healing done under pressure.\nSubject: one centered close martial vignette of gloved hands binding a wound, no hospital scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: practical, urgent, steady, restorative.\nColor palette: bone cloth, leather brown, muted red, ash gray, soot black.\nMaterials/textures: wrapped bandages, worn gloves, buckles, dust, dried blood.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/swing_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a devastating upgraded martial swing landing with noticeably heavier force and a wider lethal arc.\nSubject: one centered weapon cleave with stronger impact flare than the base swing, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: heavier, punishing, seasoned, decisive.\nColor palette: black iron, hot bronze, dried blood, ash gray, soot black.\nMaterials/textures: scarred steel, sparks, leather, cinder grit.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/measured_swing_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: an upgraded guarded strike with firmer protection and a more punishing follow-through.\nSubject: one centered guarded swing with a stronger defensive frame and sharper impact read.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: disciplined, protected, punishing, elite.\nColor palette: steel gray, old bronze, ivory smoke, leather brown, soot black.\nMaterials/textures: mail links, shield rim, steel flash, dust.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/mark_target_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: an upgraded kill-mark that brands the enemy with a harsher tactical omen and sharper mercenary setup.\nSubject: one centered marked target under a brighter weak-point sigil and impending strike line.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: cold, exact, tactical, merciless.\nColor palette: pale gold, dried crimson, black iron, smoke gray, soot black.\nMaterials/textures: sigil light, cracked armor, arrow scoring, haze.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/kick_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a harder upgraded kick that snaps the target backward with a stronger stun impact.\nSubject: one centered armored boot smash with a severe shock-burst and folding silhouette.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: violent, sudden, controlling, rough.\nColor palette: mud brown, black iron, crimson bruise, ash gray, soot black.\nMaterials/textures: boot leather, dented plate, dust plume, impact sparks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/forward_guard_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a stronger shared defensive command where hero and mercenary lock in behind an even sturdier wall.\nSubject: one centered overlapping shields and weapons with two allied presences implied and reinforced guard energy.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: stalwart, coordinated, fortified, dependable.\nColor palette: old bronze, steel gray, pale ivory, leather brown, soot black.\nMaterials/textures: shield faces, metal edges, mail, dust, restrained command glow.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/shove_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: an upgraded shove that batters the enemy farther off line and leaves a stronger sense of control.\nSubject: one centered shield-check or shoulder-check impact with a more violent displacement.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: dominating, disruptive, blunt, tactical.\nColor palette: black iron, ash brown, muted crimson, smoke gray, soot black.\nMaterials/textures: shield rim, wood splinters, impact dust, grit.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/rally_mercenary_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a stronger mercenary rally card showing the same frontline veteran driving forward with greater confidence and urgency.\nSubject: one centered veteran mercenary with spear and shield surging harder than the base version, no crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: loyal, emboldened, battle-ready, commanding.\nColor palette: worn steel, old bronze, ash brown, muted crimson, soot black.\nMaterials/textures: dented mail, leather straps, spear shaft, shield scarring, dust.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/field_dressing_plus__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: an upgraded battlefield treatment with steadier hands, cleaner wrapping, and stronger recovery under pressure.\nSubject: one centered close martial vignette of hands binding a wound with clearer restorative focus, no hospital scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: calm, practiced, restorative, resilient.\nColor palette: bone cloth, leather brown, faded crimson, ash gray, soot black.\nMaterials/textures: bandage wraps, gauntlet leather, buckles, dust, dried blood.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/guard_stance__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a compact defensive stance built entirely around endurance, footing, and a ready guard.\nSubject: one centered braced warrior silhouette behind a shield or guarded forearm, no attack swing.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: defensive, immovable, patient, ready.\nColor palette: steel gray, old bronze, ash ivory, soot black, leather brown.\nMaterials/textures: shield face, strapped leather, dust, dull metal.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/crushing_blow__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a heavy finishing strike landing with crushing force as armor buckles under the impact.\nSubject: one centered impact moment of a maul, hammer, or brutal weapon smash, no gore.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: massive, punishing, terminal, brutal.\nColor palette: black iron, bronze, dried crimson, ash gray, soot black.\nMaterials/textures: shattered plate, sparks, splintered force, dust.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/press_the_attack__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a relentless command to keep pressure on one target while the mercenary closes for the kill.\nSubject: one centered forward-driving attack line with a marked target and allied follow-through implied.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: relentless, tactical, aggressive, coordinated.\nColor palette: iron gray, pale gold, ember red, ash brown, soot black.\nMaterials/textures: weapon flash, mark sigil, dust, leather straps.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/throw_oil__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a thrown flask bursting into slick firestarter oil across the enemy line before ignition.\nSubject: one centered oil flask explosion spreading across dark ground, no modern grenade look.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: messy, dangerous, tactical, volatile.\nColor palette: amber gold, dirty black, ash brown, ember orange, soot black.\nMaterials/textures: glass shards, oil splash, cloth wick, cinders, dirt.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/brace__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a grim defensive preparation where the fighter sets their weight and absorbs the coming blow.\nSubject: one centered braced stance or shield-set moment with no outgoing attack.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: stoic, defensive, grounded, immovable.\nColor palette: iron gray, old bronze, dust brown, ash ivory, soot black.\nMaterials/textures: shield edge, leather wrap, planted boots, drifting grit.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/scout_ahead__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a lone scout slipping forward into hostile darkness to uncover what comes next.\nSubject: one centered scouting figure or silhouette moving ahead through dim terrain, no party scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: watchful, cautious, tense, resourceful.\nColor palette: moonlit gray, leather brown, soot black, pale ivory, muted green-gray.\nMaterials/textures: cloak cloth, boots, dust, faint map or trail marks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/hold_the_line__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a shared defensive stand where hero and mercenary refuse to give ground under pressure.\nSubject: one centered line-holding shield-and-weapon composition with two allied presences implied, not a crowd scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: defiant, coordinated, protective, steady.\nColor palette: steel gray, bronze, ash ivory, leather brown, soot black.\nMaterials/textures: shield faces, mail, spear haft, dust, sparks.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/triage__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a battlefield triage moment where two wounded allies are stabilized in the middle of danger.\nSubject: one centered healing vignette with aid shared between hero and mercenary, intimate and practical, not a medical tent.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: urgent, compassionate, practical, resilient.\nColor palette: bone cloth, ash gray, faded crimson, leather brown, soot black.\nMaterials/textures: bandages, gloves, buckles, dust, dried blood.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/regroup__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a tactical reset where the fighter gathers themselves, firms their guard, and draws the next opening.\nSubject: one centered warrior pulling back into a tighter defensive posture with readiness implied.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: composed, resetting, tactical, steady.\nColor palette: iron gray, leather brown, ash ivory, muted crimson, soot black.\nMaterials/textures: strapped leather, shield rim, dust, faint card-like motion lines.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/blood_moor_raiders__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a grim encounter card illustration showing raiders emerging across the blood moor as a hostile opening threat.\nSubject: one centered moorland ambush with a few hostile silhouettes advancing through mist, readable and uncluttered.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: ominous, feral, hostile, windswept.\nColor palette: moor brown, dead grass gold, soot black, ember dim red, ash gray.\nMaterials/textures: wet earth, rough weapons, torn cloth, fog, brush.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/burial_grounds__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: a cursed graveyard encounter card illustration showing the burial grounds as an ominous place of restless dead and broken sanctity.\nSubject: one centered grave marker cluster and disturbed earth with menace implied, no full battlefield.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: haunted, desecrated, ominous, funereal.\nColor palette: grave gray, dead ivory, moss dark, soot black, bruised crimson.\nMaterials/textures: weathered stone, broken wood, loose dirt, mist, roots.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/shared-neutral-cards-batch1-gpt15low/catacombs_gate__gpt15low_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "low",
+      "size": "1024x1536",
+      "batchFile": "tmp/imagegen/shared_neutral_cards_batch1_gpt15low.jsonl",
+      "prompt": "Use case: stylized-concept\nAsset type: combat card illustration\nPrimary request: an encounter card illustration showing the sealed gate into the catacombs, heavy with dread and the promise of descent.\nSubject: one centered ancient gate or doorway into darkness with no full party scene.\nStyle/medium: painterly gothic dark fantasy, mature deckbuilder art.\nComposition/framing: vertical 3:4 illustration, one dominant centered subject or action read, dark uncluttered edges, readable at small card size.\nLighting/mood: foreboding, severe, ancient, claustrophobic.\nColor palette: stone gray, bone ivory, soot black, old bronze, cold shadow blue.\nMaterials/textures: cut stone, iron bands, worn steps, dust, torch smoke.\nConstraints: no text, no logo, no frame, no watermark, no modern objects.\nAvoid: no cartoon style, no anime, no busy battlefield, no generic poster composition."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_blade_sentinel_t1__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Blade Sentinel summon portrait for a dark fantasy action RPG, inspired by Diablo II's Blade Sentinel skill identity but clearly original Blood Rogue art direction.\n\nCharacter direction: Blade Sentinel is a temporary battlefield device, not a free-floating boomerang and not a human assassin. It should read as an occult assassin trap engineered to rake the entire battlefield with disciplined spinning blades: compact, sinister, precise, and intelligently crafted.\n\nCritical subject rule: depict one Blade Sentinel device only. No assassin, no extra sentinels, no enemies, no environment, no floor, no detached blade swarm.\n\nRole read: temporary offensive deployable at stack tier 1. The silhouette should feel low, predatory, right-facing, and clearly built to launch or cycle whirling blades through the line.\n\nBody and materials: one dark forged-metal trap with a central rotary blade housing, hooked stabilizers, restrained runic seams, and tightly attached spinning-edge energy or motion pressure hugging the mechanism. Premium tactile steel, leather wrap accents, soot, and occult engineering.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black steel, ash, bronze, and controlled blade-motion rendering. Match the Blood Rogue visual world.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon spinning blades, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_blade_sentinel_t2__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Blade Sentinel summon portrait for a dark fantasy action RPG, inspired by Diablo II's Blade Sentinel skill identity but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-2 form of Blade Sentinel. It is still one single battlefield device, not multiple traps and not a detached blade swarm. It should read as the same occult assassin machine as tier 1, but upgraded: broader rotary blade housing, denser stabilizers, richer runic seams, and a more dangerous contained whirling-edge pressure.\n\nCritical subject rule: depict one Blade Sentinel device only. No assassin, no extra sentinels, no enemies, no environment, no floor, no detached blade storm.\n\nRole read: temporary offensive deployable at stack tier 2, visibly stronger than the base version while remaining compact, right-facing, and readable.\n\nBody and materials: one premium dark-metal trap with reinforced blade housings, sharper hooked limbs, stronger occult axle geometry, and tightly attached spinning blade energy hugging the machine. Keep it engineered, lethal, and elegant rather than cluttered.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black steel, old bronze, ash, and controlled blade-motion rendering. Match the Blood Rogue visual world and keep continuity with the base Blade Sentinel portrait.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon spinning blades, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_blade_sentinel_t3__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Blade Sentinel summon portrait for a dark fantasy action RPG, inspired by Diablo II's Blade Sentinel skill identity but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-3 cap form of Blade Sentinel. It is still one single battlefield device, not multiple traps and not a detached storm of knives. It should feel like the apex version of the same assassin machine: harsher blade geometry, more severe occult stabilizers, denser rune carving, and a stronger but still disciplined whirling edge read attached to the device.\n\nCritical subject rule: depict one Blade Sentinel device only. No assassin, no extra sentinels, no enemies, no environment, no floor, no detached blade storm.\n\nRole read: temporary offensive deployable at stack tier 3, clearly stronger than tier 2 while remaining a clean right-facing silhouette readable at small size.\n\nBody and materials: one premium ritual-metal blade trap with layered rotary housings, sharpened hooked limbs, a dominant central blade core, and tightly attached motion energy hugging the machine. It should feel elite, occult, and merciless rather than like a generic spinning saw.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, bronze, soot, and controlled blade-motion rendering. Match the Blood Rogue visual world and keep continuity with the lower Blade Sentinel tiers.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon spinning blades, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_charged_bolt_sentry_t1__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Charged Bolt Sentry summon portrait for a dark fantasy action RPG, inspired by Diablo II's Charged Bolt Sentry trap identity but clearly original Blood Rogue art direction.\n\nCharacter direction: Charged Bolt Sentry is a temporary battlefield device, not a detached lightning spell and not a modern machine turret. It should feel like a compact occult assassin sentry built to spit forked lightning through the entire enemy line: precise, tense, mechanical, and sinister.\n\nCritical subject rule: depict one Charged Bolt Sentry device only. No assassin, no extra sentries, no enemies, no environment, no floor, no detached storm scene.\n\nRole read: temporary offensive deployable at stack tier 1. The silhouette should feel mechanical, compact, right-facing, and clearly distinct from Lightning Sentry by reading as a lighter, faster, more bolt-spray focused device.\n\nBody and materials: one forged dark-metal sentry with compact stabilizers, forked coil or prong assemblies, sharpened blade details, and tightly attached blue-white electrical pressure hugging the device. Premium occult engineering, not generic steampunk.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium dark steel, copper, ash, and controlled forked-lightning rendering. Match the Blood Rogue visual world.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi cannon styling, giant detached lightning bolts, cartoon electricity, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_charged_bolt_sentry_t2__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Charged Bolt Sentry summon portrait for a dark fantasy action RPG, inspired by Diablo II's Charged Bolt Sentry trap identity but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-2 form of Charged Bolt Sentry. It is still one single battlefield device, not multiple sentries and not a detached storm scene. It should read as the same occult assassin turret as tier 1, but upgraded: denser coil architecture, stronger stabilizers, sharper hooked details, and a more aggressive but still disciplined forked static charge attached tightly to the machine.\n\nCritical subject rule: depict one Charged Bolt Sentry device only. No assassin, no extra sentries, no enemies, no environment, no floor, no detached storm scene.\n\nRole read: temporary offensive deployable at stack tier 2, visibly stronger than the base version while staying compact, right-facing, and legible.\n\nBody and materials: one premium dark-metal sentry with reinforced forked coils, occult housings, sharper blade details, and tighter blue-white lightning crawling along the mechanism. It should feel engineered, elite, and dangerous rather than cluttered.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium dark steel, copper, soot, and controlled forked-lightning rendering. Match the Blood Rogue visual world and keep continuity with the base Charged Bolt Sentry portrait.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi cannon styling, giant detached lightning bolts, cartoon electricity, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_charged_bolt_sentry_t3__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Charged Bolt Sentry summon portrait for a dark fantasy action RPG, inspired by Diablo II's Charged Bolt Sentry trap identity but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-3 cap form of Charged Bolt Sentry. It is still one single battlefield device, not multiple sentries and not a full storm effect. It should feel like the final upgraded version of the same assassin machine: richer coil geometry, harsher hooked limbs, denser occult housing detail, and a stronger but still disciplined charged-bolt spray read attached to the device.\n\nCritical subject rule: depict one Charged Bolt Sentry device only. No assassin, no extra sentries, no enemies, no environment, no floor, no detached storm scene.\n\nRole read: temporary offensive deployable at stack tier 3, clearly stronger than tier 2 while remaining a clean, right-facing silhouette readable at small size.\n\nBody and materials: one premium dark-metal sentry with severe forked coil assemblies, stronger stabilizers, sharper blade details, and tightly attached blue-white charged-bolt pressure. It must feel elite and engineered, not like a recolored Lightning Sentry.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black steel, copper, ash, and controlled forked-lightning rendering. Match the Blood Rogue visual world and keep continuity with the lower Charged Bolt Sentry tiers.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi cannon styling, giant detached lightning bolts, cartoon electricity, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_shadow_trap_t1__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Shadow Trap summon portrait for a dark fantasy action RPG, inspired by Diablo II's shadow-assassin trap language but clearly original Blood Rogue art direction.\n\nCharacter direction: Shadow Trap is a temporary battlefield device, not a free-floating smoke cloud and not a human assassin. It should feel like an occult assassin trap that releases disciplined umbral pressure through the enemy line: sinister, low, precise, and intelligently designed.\n\nCritical subject rule: depict one Shadow Trap device only. No assassin, no extra traps, no enemies, no environment, no floor, no detached shadow cloud.\n\nRole read: temporary offensive deployable at stack tier 1. The silhouette should feel compact, right-facing, and clearly built around an obsidian shadow core or occult maw prepared to pulse controlled darkness.\n\nBody and materials: one dark ritual-metal device with hooked blades, an obsidian or smoked-glass core, restrained rune seams, and tightly attached violet-black shadow pressure hugging the machine. Premium black iron, soot, and occult materials. Keep it like a device, not a ghost.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, obsidian, ash, and controlled umbral-energy rendering. Match the Blood Rogue visual world.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon purple smoke, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_shadow_trap_t2__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Shadow Trap summon portrait for a dark fantasy action RPG, inspired by Diablo II's shadow-assassin trap language but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-2 form of Shadow Trap. It is still one single battlefield device, not multiple traps and not a detached cloud of darkness. It should read as the same occult assassin machine as tier 1, but upgraded: denser rune housings, stronger hooked blade geometry, a darker obsidian core, and more dangerous but still tightly attached umbral pressure.\n\nCritical subject rule: depict one Shadow Trap device only. No assassin, no extra traps, no enemies, no environment, no floor, no detached shadow cloud.\n\nRole read: temporary offensive deployable at stack tier 2, visibly stronger than the base version while remaining compact, right-facing, and readable.\n\nBody and materials: one premium ritual-metal trap with reinforced blade housings, darker obsidian or smoked-glass core, sharper occult geometry, and tightly attached violet-black shadow energy hugging the machine. It should feel engineered and lethal rather than messy.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, obsidian, soot, and controlled umbral-energy rendering. Match the Blood Rogue visual world and keep continuity with the base Shadow Trap portrait.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon purple smoke, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_shadow_trap_t3__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Shadow Trap summon portrait for a dark fantasy action RPG, inspired by Diablo II's shadow-assassin trap language but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-3 cap form of Shadow Trap. It is still one single battlefield device, not multiple traps and not a detached cloud of darkness. It should feel like the final upgraded version of the same assassin machine: denser ritual plating, harsher hooked blades, a more dominant obsidian core, and a stronger but still disciplined umbral pulse attached tightly to the device.\n\nCritical subject rule: depict one Shadow Trap device only. No assassin, no extra traps, no enemies, no environment, no floor, no detached shadow cloud.\n\nRole read: temporary offensive deployable at stack tier 3, clearly stronger than tier 2 while remaining a clean, right-facing silhouette readable at small size.\n\nBody and materials: one premium ritual-metal trap with severe hooked limbs, denser plated housing, dominant obsidian shadow core, and tightly attached violet-black pressure. It should feel elite, occult, and merciless rather than like a generic dark crystal prop.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, obsidian, ash, and controlled umbral-energy rendering. Match the Blood Rogue visual world and keep continuity with the lower Shadow Trap tiers.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon purple smoke, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_wake_of_inferno_t1__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Wake of Inferno summon portrait for a dark fantasy action RPG, inspired by Diablo II's Wake of Inferno trap identity but clearly original Blood Rogue art direction.\n\nCharacter direction: Wake of Inferno is a temporary battlefield device, not a detached fire beam and not a generic brazier. It should feel like a more elite infernal assassin trap than Wake of Fire: narrower, crueler, more focused, and built to project repeated controlled inferno pressure through the line.\n\nCritical subject rule: depict one Wake of Inferno device only. No assassin, no extra traps, no enemies, no environment, no floor, no detached flame wall.\n\nRole read: temporary offensive deployable at stack tier 1. The silhouette should feel compact, right-facing, and engineered around a hotter infernal core and a more focused lance-like flame vent than Wake of Fire.\n\nBody and materials: one premium forged-metal trap with elongated furnace vents, severe hooked fins, infernal rune seams, and tightly attached orange-red inferno pressure hugging the machine. It should feel more advanced and more dangerous than Wake of Fire, not just bigger fire.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, ember red, ash, cinder, and controlled infernal-fire rendering. Match the Blood Rogue visual world.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon fire, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_wake_of_inferno_t2__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Wake of Inferno summon portrait for a dark fantasy action RPG, inspired by Diablo II's Wake of Inferno trap identity but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-2 form of Wake of Inferno. It is still one single battlefield device, not multiple traps and not a detached beam of fire. It should read as the same elite infernal assassin machine as tier 1, but upgraded: broader inferno vent geometry, denser rune carving, harsher hooked fins, and a more oppressive contained furnace core.\n\nCritical subject rule: depict one Wake of Inferno device only. No assassin, no extra traps, no enemies, no environment, no floor, no detached flame wall.\n\nRole read: temporary offensive deployable at stack tier 2, visibly stronger than the base version while remaining compact, right-facing, and readable.\n\nBody and materials: one premium ritual-metal infernal trap with reinforced lance vents, stronger hooked fins, denser infernal seams, and tightly attached orange-red inferno pressure hugging the machine. Keep it engineered and controllable rather than like a bonfire.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, ember red, ash, cinder, and controlled infernal-fire rendering. Match the Blood Rogue visual world and keep continuity with the base Wake of Inferno portrait.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon fire, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
+    },
+    {
+      "output": "output/imagegen/minion-assassin-missing-ladders-gpt15high/assassin_wake_of_inferno_t3__gpt15high_v1.png",
+      "exists": true,
+      "model": "gpt-image-1.5",
+      "quality": "high",
+      "size": "1024x1024",
+      "batchFile": "tmp/imagegen/minion_assassin_missing_ladders_gpt15high.jsonl",
+      "prompt": "Create a single Wake of Inferno summon portrait for a dark fantasy action RPG, inspired by Diablo II's Wake of Inferno trap identity but clearly original Blood Rogue art direction.\n\nCharacter direction: this is the reinforced tier-3 cap form of Wake of Inferno. It is still one single battlefield device, not multiple traps and not a detached inferno beam. It should feel like the apex version of the same assassin machine: more severe infernal housings, harsher lance vents, richer rune carving, and a stronger but still disciplined furnace pressure attached tightly to the device.\n\nCritical subject rule: depict one Wake of Inferno device only. No assassin, no extra traps, no enemies, no environment, no floor, no detached flame wall.\n\nRole read: temporary offensive deployable at stack tier 3, clearly stronger than tier 2 while remaining a clean, right-facing silhouette readable at small size.\n\nBody and materials: one premium ritual-metal infernal trap with denser plated furnace housing, dominant hooked fins, harsher lance vents, and tightly attached orange-red inferno pressure. It should feel elite, cruel, and more advanced than Wake of Fire rather than just brighter.\n\nCritical framing rule: the device must angle or face right. Do not face left. Full subject must be visible and fully inside frame.\n\nComposition: full device visible, 3/4 view facing right, centered on a square canvas, readable at small size.\n\nStyle: hand-painted dark fantasy, mature action-RPG summon art, premium black iron, ember red, ash, cinder, and controlled infernal-fire rendering. Match the Blood Rogue visual world and keep continuity with the lower Wake of Inferno tiers.\n\nHard output requirement: transparent background with real alpha. No floor, no cast shadow, no backdrop, no border, no text, no watermark.\n\nAvoid: multiple devices, photorealism, glossy sci-fi turret styling, cartoon fire, anime, generic prop-sheet look, or any composition that depends on a background.\n\nTarget output: 1024x1024 PNG, single subject, battlefield summon portrait, cutout-ready."
     }
   ]
 }

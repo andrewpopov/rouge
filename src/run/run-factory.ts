@@ -488,11 +488,13 @@
   function createCombatOverrides(run: RunState, content: GameContent, profile?: ProfileState | null) {
     const bonuses = getCombatBonuses(run, content, profile);
     const heroMaxLife = run.hero.maxLife + toBonusValue(bonuses.heroMaxLife);
-    const heroMaxEnergy = run.hero.maxEnergy + toBonusValue(bonuses.heroMaxEnergy);
+    const heroMaxEnergy = clamp(run.hero.maxEnergy + toBonusValue(bonuses.heroMaxEnergy), 1, runtimeWindow.ROUGE_LIMITS.MAX_HERO_ENERGY);
     const heroHandSize = run.hero.handSize + toBonusValue(bonuses.heroHandSize);
     const heroPotionHeal = run.hero.potionHeal + toBonusValue(bonuses.heroPotionHeal);
-    const mercenaryMaxLife = run.mercenary.maxLife + toBonusValue(bonuses.mercenaryMaxLife);
-    const mercenaryAttack = run.mercenary.attack + toBonusValue(bonuses.mercenaryAttack);
+    // Mercenary auto-scales with act progression: +8 HP and +1 ATK per act
+    const actIndex = Math.max(0, run.currentActIndex || 0);
+    const mercenaryMaxLife = run.mercenary.maxLife + toBonusValue(bonuses.mercenaryMaxLife) + actIndex * 8;
+    const mercenaryAttack = run.mercenary.attack + toBonusValue(bonuses.mercenaryAttack) + actIndex;
 
     return {
       heroState: {

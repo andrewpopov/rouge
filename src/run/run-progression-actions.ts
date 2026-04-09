@@ -206,7 +206,7 @@
       statusLabel,
       gateLabel: unlocked ? `${meta.roleLabel} slot is ready.` : meta.lockedLabel,
       equippedSkillId, equippedSkillName,
-      family: equippedSkill?.family || "",
+      family: (equippedSkill?.family || "") as SkillFamilyId | "",
       cost: Math.max(0, toBonusValue(equippedSkill?.cost)),
       cooldown: Math.max(0, toBonusValue(equippedSkill?.cooldown)),
       shortRuleText: equippedSkill?.summary || (unlocked ? `No ${meta.roleLabel.toLowerCase()} skill equipped yet.` : meta.lockedLabel),

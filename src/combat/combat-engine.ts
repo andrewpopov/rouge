@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
@@ -70,6 +71,10 @@
       contractHeroStartGuard: Math.max(0, parseInteger(merged.contractHeroStartGuard, 0)),
       contractOpeningDraw: Math.max(0, parseInteger(merged.contractOpeningDraw, 0)),
       contractPerkLabels: Array.isArray(merged.contractPerkLabels) ? [...merged.contractPerkLabels] : [],
+      skillTargetEnemyId: "",
+      skillTargetDamageBonus: 0,
+      skillTargetDraw: 0,
+      skillTargetNextAttackPenalty: 0,
     };
   }
 
@@ -95,6 +100,7 @@
       intentIndex: 0,
       currentIntent: { ...template.intents[0] },
       intents: template.intents.map((intent: EnemyIntent) => ({ ...intent })),
+      confuse: 0,
       traits: Array.isArray(template.traits) ? [...template.traits] : [],
       family: template.family || "",
       summonTemplateId: template.summonTemplateId || "",
@@ -102,6 +108,7 @@
       consumed: false,
       buffedAttack: 0,
       cooldowns: {},
+      nextAttackPenalty: 0,
     };
   }
 
@@ -150,6 +157,134 @@
     return content.cardCatalog[cardId] || null;
   }
 
+  const RANGED_CARD_TOKEN = /(arrow|shot|strafe|volley|barrage|guided|bolt)/;
+  const SHADOW_CARD_TOKEN = /(shadow|cloak|veil|fade)/;
+  const TRAP_FIELD_CARD_TOKEN = /(trap|sentry|wake|web|bomb|field)/;
+  const BARBARIAN_WARCRY_CARD_TOKEN = /(cry|shout|command|war_cry|taunt|howl)/;
+  const PALADIN_AURA_CARD_TOKEN = /(might|prayer|meditation|fanaticism|conviction|holy_fire|holy_freeze|holy_shock|aura)/;
+  const DRUID_ELEMENTAL_CARD_TOKEN = /(fire|storm|molten|boulder|fissure|twister|arctic|cyclone|volcano|hurricane|tempest|cataclysm|tornado|root|earth|wind|shock)/;
+  const DRUID_SHAPESHIFT_CARD_TOKEN = /(were|lycan|wolf|bear|rabies|maul|claw|fang|feral|rend|fury|shred|lunge|shape)/;
+  const NECROMANCER_BONE_CARD_TOKEN = /(bone|teeth|spear|spirit|prison|wall|fang|corpse)/;
+  const NECROMANCER_CURSE_CONTROL_TOKEN = /(amplify|life_tap|iron_maiden|weaken|dim_vision|bone_prison|decrepify|terror|lower_resist|confuse|attract|curse|bone_wall)/;
+
+  function cardHasEffect(card: CardDefinition | null, kind: CardEffect["kind"]) {
+    return Boolean(card?.effects?.some((effect) => effect.kind === kind));
+  }
+
+  function getCardSkillKinds(cardId: string, card: CardDefinition | null) {
+    const kinds = new Set<string>();
+    const normalizedId = String(cardId || "").toLowerCase();
+    const behaviorTags = Array.isArray(card?.behaviorTags) ? card.behaviorTags : [];
+    const hasSingleTargetDamage = cardHasEffect(card, "damage");
+    const hasMultiTargetDamage = cardHasEffect(card, "damage_all");
+    const hasDamage = hasSingleTargetDamage || hasMultiTargetDamage;
+    const hasBurnApplication = cardHasEffect(card, "apply_burn") || cardHasEffect(card, "apply_burn_all");
+    const hasPoisonApplication = cardHasEffect(card, "apply_poison") || cardHasEffect(card, "apply_poison_all");
+    const hasSlowApplication = cardHasEffect(card, "apply_slow") || cardHasEffect(card, "apply_slow_all");
+    const hasFreezeApplication = cardHasEffect(card, "apply_freeze") || cardHasEffect(card, "apply_freeze_all");
+    const hasParalyzeApplication = cardHasEffect(card, "apply_paralyze") || cardHasEffect(card, "apply_paralyze_all");
+    const hasGuardGain = cardHasEffect(card, "gain_guard_self") || cardHasEffect(card, "gain_guard_party");
+    const hasSummon = cardHasEffect(card, "summon_minion");
+    const classPrefix = normalizedId.split("_")[0] || "";
+    if (classPrefix) {
+      kinds.add(classPrefix);
+    }
+    if (hasDamage) {
+      kinds.add("damage");
+    }
+    if (hasSingleTargetDamage) {
+      kinds.add("single_target_damage");
+    }
+    if (hasMultiTargetDamage) {
+      kinds.add("multi_target_damage");
+    }
+    if (card?.auraId) {
+      kinds.add("aura");
+    }
+    if (hasBurnApplication) {
+      kinds.add("burn_application");
+    }
+    if (hasPoisonApplication) {
+      kinds.add("poison_application");
+    }
+    if (hasSlowApplication) {
+      kinds.add("slow_application");
+    }
+    if (hasFreezeApplication) {
+      kinds.add("freeze_application");
+    }
+    if (hasParalyzeApplication) {
+      kinds.add("paralyze_application");
+    }
+    if (hasGuardGain) {
+      kinds.add("guard_card");
+    }
+    if (hasSummon) {
+      kinds.add("summon");
+    }
+    if (hasDamage && !normalizedId.startsWith("sorceress_")) {
+      kinds.add("attack");
+    }
+    if (normalizedId.startsWith("amazon_") && RANGED_CARD_TOKEN.test(normalizedId)) {
+      kinds.add("ranged");
+    }
+    if (normalizedId.startsWith("assassin_")) {
+      if (hasDamage) {
+        kinds.add("assassin_damage");
+      }
+      if (SHADOW_CARD_TOKEN.test(normalizedId)) {
+        kinds.add("shadow");
+      }
+      if (TRAP_FIELD_CARD_TOKEN.test(normalizedId)) {
+        kinds.add("trap_field");
+      }
+    }
+    if ((kinds.has("shadow") || kinds.has("trap_field")) && behaviorTags.includes("setup")) {
+      kinds.add("shadow_or_trap_setup");
+    }
+    if (hasDamage && !normalizedId.startsWith("sorceress_") && !kinds.has("ranged") && !kinds.has("trap_field") && !kinds.has("shadow")) {
+      kinds.add("melee");
+    }
+    if (normalizedId.startsWith("barbarian_") && BARBARIAN_WARCRY_CARD_TOKEN.test(normalizedId)) {
+      kinds.add("warcry");
+    }
+    if (normalizedId.startsWith("druid_")) {
+      if (DRUID_ELEMENTAL_CARD_TOKEN.test(normalizedId)) {
+        kinds.add("elemental");
+      }
+      if (DRUID_SHAPESHIFT_CARD_TOKEN.test(normalizedId)) {
+        kinds.add("shapeshift_melee");
+      }
+    }
+    if (normalizedId.startsWith("necromancer_") && NECROMANCER_CURSE_CONTROL_TOKEN.test(normalizedId)) {
+      kinds.add("curse_control");
+      kinds.add("curse");
+    }
+    if (normalizedId.startsWith("necromancer_") && NECROMANCER_BONE_CARD_TOKEN.test(normalizedId)) {
+      kinds.add("bone");
+    }
+    if (normalizedId.startsWith("sorceress_")) {
+      kinds.add("spell");
+    }
+    if (normalizedId.startsWith("paladin_") && hasDamage) {
+      kinds.add("attack");
+    }
+    if (normalizedId.startsWith("paladin_") && PALADIN_AURA_CARD_TOKEN.test(normalizedId)) {
+      kinds.add("aura_card");
+    }
+    return kinds;
+  }
+
+  function targetHasSkillWindowStatus(state: CombatState, targetEnemy: CombatEnemyState | null, status: "burn" | "poison" | "slow" | "freeze" | "paralyze" | "mark") {
+    if (!targetEnemy || !targetEnemy.alive) {
+      return false;
+    }
+    if (status === "mark") {
+      return targetEnemy.id === state.mercenary.markedEnemyId && state.mercenary.markBonus > 0;
+    }
+    return Math.max(0, parseInteger((targetEnemy as unknown as Record<string, unknown>)[status], 0)) > 0;
+  }
+
   const INTENT_TEMPLATES: Record<string, string | null> = {
     attack: "V dmg", attack_all: "V dmg all", attack_and_guard: "V dmg + Guard",
     drain_attack: "V dmg + heal", guard: "+V Guard", guard_allies: "+V Guard all",
@@ -187,6 +322,52 @@
       nextCardParalyze: 0,
       nextCardDraw: 0,
       nextCardGuard: 0,
+      nextCardIgnoreGuard: 0,
+      nextCardExtraStatus: 0,
+    };
+  }
+
+  function createSkillWindow(patch: Partial<CombatSkillWindowState> & Pick<CombatSkillWindowState, "id" | "skillId" | "summary">): CombatSkillWindowState {
+    return {
+      id: patch.id,
+      skillId: patch.skillId,
+      summary: patch.summary,
+      remainingUses: Math.max(1, parseInteger(patch.remainingUses, 1)),
+      expiresAtEndOfTurn: patch.expiresAtEndOfTurn !== false,
+      requireKindsAny: Array.isArray(patch.requireKindsAny) ? [...patch.requireKindsAny] : [],
+      requireKindsAll: Array.isArray(patch.requireKindsAll) ? [...patch.requireKindsAll] : [],
+      requireBehaviorTagsAny: Array.isArray(patch.requireBehaviorTagsAny) ? [...patch.requireBehaviorTagsAny] : [],
+      requireBehaviorTagsAll: Array.isArray(patch.requireBehaviorTagsAll) ? [...patch.requireBehaviorTagsAll] : [],
+      requireDamageCard: Boolean(patch.requireDamageCard),
+      requireSingleTargetDamage: Boolean(patch.requireSingleTargetDamage),
+      requireMultiTargetDamage: Boolean(patch.requireMultiTargetDamage),
+      requireTargetEnemyId: String(patch.requireTargetEnemyId || ""),
+      requireEnemyStatusesAny: Array.isArray(patch.requireEnemyStatusesAny) ? [...patch.requireEnemyStatusesAny] : [],
+      damageBonus: Math.max(0, parseInteger(patch.damageBonus, 0)),
+      costReduction: Math.max(0, parseInteger(patch.costReduction, 0)),
+      guardBonus: Math.max(0, parseInteger(patch.guardBonus, 0)),
+      drawBonus: Math.max(0, parseInteger(patch.drawBonus, 0)),
+      burn: Math.max(0, parseInteger(patch.burn, 0)),
+      poison: Math.max(0, parseInteger(patch.poison, 0)),
+      slow: Math.max(0, parseInteger(patch.slow, 0)),
+      freeze: Math.max(0, parseInteger(patch.freeze, 0)),
+      paralyze: Math.max(0, parseInteger(patch.paralyze, 0)),
+      ignoreGuard: Math.max(0, parseInteger(patch.ignoreGuard, 0)),
+      extraStatus: Math.max(0, parseInteger(patch.extraStatus, 0)),
+      duplicateOnResolve: Boolean(patch.duplicateOnResolve),
+      drawOnDamage: Math.max(0, parseInteger(patch.drawOnDamage, 0)),
+      drawOnSingleTargetDamage: Math.max(0, parseInteger(patch.drawOnSingleTargetDamage, 0)),
+      drawOnMultiTargetDamage: Math.max(0, parseInteger(patch.drawOnMultiTargetDamage, 0)),
+      drawOnSlowedEnemyHit: Math.max(0, parseInteger(patch.drawOnSlowedEnemyHit, 0)),
+      gainGuardOnAttackingEnemyHit: Math.max(0, parseInteger(patch.gainGuardOnAttackingEnemyHit, 0)),
+      applySlowOnDamage: Math.max(0, parseInteger(patch.applySlowOnDamage, 0)),
+      nextAttackPenaltyOnHit: Math.max(0, parseInteger(patch.nextAttackPenaltyOnHit, 0)),
+      requireEnemyAttackingNextTurnForPenalty: Boolean(patch.requireEnemyAttackingNextTurnForPenalty),
+      sameEnemyId: String(patch.sameEnemyId || ""),
+      sameEnemyHitCount: Math.max(0, parseInteger(patch.sameEnemyHitCount, 0)),
+      slowOnSameEnemyCombo: Math.max(0, parseInteger(patch.slowOnSameEnemyCombo, 0)),
+      guardOnSameEnemyCombo: Math.max(0, parseInteger(patch.guardOnSameEnemyCombo, 0)),
+      energyNextTurnOnSameEnemyCombo: Math.max(0, parseInteger(patch.energyNextTurnOnSameEnemyCombo, 0)),
     };
   }
 
@@ -205,6 +386,85 @@
       next[key] = Math.max(0, (next[key] || 0) + Math.max(0, patch[key] || 0));
     });
     state.skillModifiers = next;
+  }
+
+  function addSkillWindow(state: CombatState, patch: Partial<CombatSkillWindowState> & Pick<CombatSkillWindowState, "id" | "skillId" | "summary">) {
+    const window = createSkillWindow(patch);
+    state.skillWindows.push(window);
+    return window;
+  }
+
+  function getSkillWindowSummaries(state: CombatState) {
+    return (Array.isArray(state.skillWindows) ? state.skillWindows : [])
+      .filter((window) => window.remainingUses > 0)
+      .map((window) => `${window.summary}${window.remainingUses > 1 ? ` x${window.remainingUses}` : ""}`);
+  }
+
+  function getMatchingSkillWindows(
+    state: CombatState,
+    cardId: string,
+    card: CardDefinition | null,
+    targetEnemy: CombatEnemyState | null
+  ) {
+    const kinds = getCardSkillKinds(cardId, card);
+    const behaviorTags = Array.isArray(card?.behaviorTags) ? card.behaviorTags : [];
+    return (Array.isArray(state.skillWindows) ? state.skillWindows : []).filter((window) => {
+      if (!window || window.remainingUses <= 0) {
+        return false;
+      }
+      if (window.requireDamageCard && !kinds.has("damage")) {
+        return false;
+      }
+      if (window.requireSingleTargetDamage && !kinds.has("single_target_damage")) {
+        return false;
+      }
+      if (window.requireMultiTargetDamage && !kinds.has("multi_target_damage")) {
+        return false;
+      }
+      if (window.requireTargetEnemyId && targetEnemy?.id !== window.requireTargetEnemyId) {
+        return false;
+      }
+      if (window.requireKindsAny && window.requireKindsAny.length > 0 && !window.requireKindsAny.some((kind) => kinds.has(kind))) {
+        return false;
+      }
+      if (window.requireKindsAll && window.requireKindsAll.length > 0 && !window.requireKindsAll.every((kind) => kinds.has(kind))) {
+        return false;
+      }
+      if (window.requireBehaviorTagsAny && window.requireBehaviorTagsAny.length > 0 && !window.requireBehaviorTagsAny.some((tag) => behaviorTags.includes(tag))) {
+        return false;
+      }
+      if (window.requireBehaviorTagsAll && window.requireBehaviorTagsAll.length > 0 && !window.requireBehaviorTagsAll.every((tag) => behaviorTags.includes(tag))) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function getSkillWindowModifierPatch(
+    state: CombatState,
+    cardId: string,
+    card: CardDefinition | null,
+    targetEnemy: CombatEnemyState | null
+  ): Partial<CombatSkillModifierState> {
+    const patch: Partial<CombatSkillModifierState> = {};
+    const matching = getMatchingSkillWindows(state, cardId, card, targetEnemy);
+    matching.forEach((window) => {
+      const statusSatisfied = !window.requireEnemyStatusesAny
+        || window.requireEnemyStatusesAny.length === 0
+        || window.requireEnemyStatusesAny.some((status) => targetHasSkillWindowStatus(state, targetEnemy, status));
+      patch.nextCardCostReduction = Math.max(0, (patch.nextCardCostReduction || 0) + window.costReduction);
+      patch.nextCardDamageBonus = Math.max(0, (patch.nextCardDamageBonus || 0) + (statusSatisfied ? window.damageBonus : 0));
+      patch.nextCardGuard = Math.max(0, (patch.nextCardGuard || 0) + window.guardBonus);
+      patch.nextCardDraw = Math.max(0, (patch.nextCardDraw || 0) + window.drawBonus);
+      patch.nextCardBurn = Math.max(0, (patch.nextCardBurn || 0) + window.burn);
+      patch.nextCardPoison = Math.max(0, (patch.nextCardPoison || 0) + window.poison);
+      patch.nextCardSlow = Math.max(0, (patch.nextCardSlow || 0) + window.slow);
+      patch.nextCardFreeze = Math.max(0, (patch.nextCardFreeze || 0) + window.freeze);
+      patch.nextCardParalyze = Math.max(0, (patch.nextCardParalyze || 0) + window.paralyze);
+      patch.nextCardIgnoreGuard = Math.max(0, (patch.nextCardIgnoreGuard || 0) + window.ignoreGuard);
+      patch.nextCardExtraStatus = Math.max(0, (patch.nextCardExtraStatus || 0) + window.extraStatus);
+    });
+    return patch;
   }
 
   function getSkillTierScale(skill: CombatEquippedSkillState) {
@@ -376,11 +636,23 @@
         modifiers.nextCardCostReduction = 1;
         segments.push("sets a guarded footing");
         break;
+      case "amazon_avoid":
+        applyGuard(state.hero, 4 + scale);
+        modifiers.nextCardGuard = scale;
+        modifiers.nextCardDamageBonus = scale + 1;
+        segments.push("keeps the opener clear of incoming fire");
+        break;
       case "amazon_evade":
         applyGuardToParty(state, 4 + scale, 3 + scale);
         modifiers.nextCardGuard = scale + 1;
         modifiers.nextCardDraw = 1;
         segments.push("keeps the whole line evasive");
+        break;
+      case "amazon_penetrate":
+        state.hero.damageBonus += scale + 1;
+        modifiers.nextCardDamageBonus = scale + 1;
+        modifiers.nextCardIgnoreGuard = scale + 2;
+        segments.push("lines up a penetrating opener");
         break;
       case "amazon_pierce":
         state.hero.damageBonus += scale + 2;
@@ -394,10 +666,17 @@
         modifiers.nextCardDamageBonus = scale;
         segments.push("accelerates claw follow-ups");
         break;
+      case "assassin_weapon_block":
+        applyGuard(state.hero, 4 + scale);
+        modifiers.nextCardGuard = scale + 1;
+        modifiers.nextCardDamageBonus = scale;
+        segments.push("turns the opener into a countering stance");
+        break;
       case "barbarian_sword_mastery":
       case "barbarian_axe_mastery":
       case "barbarian_mace_mastery":
       case "barbarian_polearm_mastery":
+      case "barbarian_spear_mastery":
       case "barbarian_throwing_mastery": {
         const token = skill.skillId
           .replace("barbarian_", "")
@@ -426,6 +705,17 @@
         modifiers.nextCardDamageBonus = scale;
         segments.push("accelerates the first exchange");
         break;
+      case "barbarian_increased_stamina":
+        applyGuard(state.hero, 3 + scale);
+        modifiers.nextCardGuard = scale;
+        modifiers.nextCardDraw = 1;
+        segments.push("settles into a long-running pace");
+        break;
+      case "barbarian_iron_skin":
+        applyGuard(state.hero, 5 + scale);
+        modifiers.nextCardGuard = scale + 1;
+        segments.push("plates the opener in iron");
+        break;
       case "barbarian_natural_resistance":
         applyGuardToParty(state, 4 + scale, 3 + scale);
         healEntity(state.hero, 1 + scale);
@@ -437,6 +727,12 @@
         state.summonSecondaryBonus = Math.max(0, state.summonSecondaryBonus + 1);
         modifiers.nextCardGuard = scale;
         segments.push("empowers future summons");
+        break;
+      case "necromancer_golem_mastery":
+        state.summonPowerBonus = Math.max(0, state.summonPowerBonus + scale + 2);
+        state.summonSecondaryBonus = Math.max(0, state.summonSecondaryBonus + scale);
+        modifiers.nextCardGuard = scale;
+        segments.push("fortifies future golems");
         break;
       case "necromancer_summon_resist":
         state.summonPowerBonus = Math.max(0, state.summonPowerBonus + scale + 1);
@@ -495,6 +791,7 @@
     clearSkillModifiers, applySpecificPassiveSkill, describeIntent, createEmptySkillModifiers, hasSkillModifiers,
     makeCardInstance, createHero, createMercenary, createEnemy, parseActNumber, applyRandomAffixes, createDeck,
     getCardDefinition, summonMinion: _summonMinion, getSkillPreparationSummary, applyPassiveSkill,
+    addSkillWindow, getSkillWindowSummaries, getMatchingSkillWindows, getSkillWindowModifierPatch, getCardSkillKinds,
   };
 
 
@@ -509,6 +806,8 @@
     if (modifiers.nextCardSlow > 0) { parts.push(`Slow ${modifiers.nextCardSlow}`); }
     if (modifiers.nextCardFreeze > 0) { parts.push(`Freeze ${modifiers.nextCardFreeze}`); }
     if (modifiers.nextCardParalyze > 0) { parts.push(`Paralyze ${modifiers.nextCardParalyze}`); }
+    if (modifiers.nextCardIgnoreGuard > 0) { parts.push(`ignore ${modifiers.nextCardIgnoreGuard} guard`); }
+    if (modifiers.nextCardExtraStatus > 0) { parts.push(`+${modifiers.nextCardExtraStatus} status`); }
     return parts.join(", ");
   }
 

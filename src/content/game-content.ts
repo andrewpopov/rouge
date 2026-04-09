@@ -90,9 +90,10 @@
       title: "Rally Mercenary",
       cost: 1,
       target: "none",
-      text: "Heal your mercenary 5. Draw 1 card.",
+      text: "Heal your mercenary 8. Mercenary taunts for 1 turn. Draw 1 card.",
       effects: [
-        { kind: "heal_mercenary", value: 5 },
+        { kind: "heal_mercenary", value: 8 },
+        { kind: "apply_taunt", value: 1 },
         { kind: "draw", value: 1 },
       ],
     },

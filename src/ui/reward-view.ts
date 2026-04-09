@@ -305,7 +305,6 @@
         return `
           ${decorativeImg(illustration, "reward-choice-card__art-img reward-choice-card__art-img--illustration", escapeHtml)}
           <div class="reward-choice-card__art-vignette" aria-hidden="true"></div>
-          ${sprite ? `<span class="reward-choice-card__sigil" aria-hidden="true">${svgIcon(sprite, "reward-choice-card__sigil-img", "", escapeHtml)}</span>` : ""}
         `;
       }
       if (sprite) {

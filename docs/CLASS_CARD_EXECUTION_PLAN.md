@@ -9,6 +9,8 @@ Documentation note:
 - Use [CARD_ECONOMY_SPEC.md](/Users/andrew/proj/rouge/docs/CARD_ECONOMY_SPEC.md) for the shared foundation-card rules and reward-surface constraints.
 - Use [BALANCE_PLAN.md](/Users/andrew/proj/rouge/docs/BALANCE_PLAN.md) and [BALANCE_EXECUTION_CHECKLIST.md](/Users/andrew/proj/rouge/docs/BALANCE_EXECUTION_CHECKLIST.md) for validation policy after each content batch.
 - Use [COMBAT_DECISION_AUDIT.md](/Users/andrew/proj/rouge/docs/COMBAT_DECISION_AUDIT.md) and [DECKBUILDER_COMBAT_MODEL.md](/Users/andrew/proj/rouge/docs/DECKBUILDER_COMBAT_MODEL.md) for turn-quality guardrails.
+- Use [CLASS_ARCHETYPE_ENGINE_MAP.md](/Users/andrew/proj/rouge/docs/CLASS_ARCHETYPE_ENGINE_MAP.md) for the D2-to-STS/MT engine pattern mapping per lane.
+- Use [OPTIMIZED_BUILD_PROFILES.md](/Users/andrew/proj/rouge/docs/OPTIMIZED_BUILD_PROFILES.md) for target endgame deck shapes, discovery combos, act-based unlock pacing, and balance pass framework.
 
 ## Purpose
 

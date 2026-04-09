@@ -268,6 +268,19 @@ test("combat skill action renders and can be triggered through the dispatcher", 
   assert.ok(activeSkill.remainingCooldown > 0 || activeSkill.usedThisBattle, "skill should enter cooldown or spend its battle use");
 });
 
+test("combat skill rail renders illustration art for equipped skills", () => {
+  const { root, render, browserWindow } = startRunAndEnterCombat(createHarness());
+
+  render();
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+
+  assert.match(root.innerHTML, /combat-skill__art/);
+  assert.match(
+    root.innerHTML,
+    /combat-skill__art[^>]*>\s*<img src="[^"]*assets\/curated\/card-illustrations\/barbarian_bash__gpt15low_v1\.png" class="combat-skill__art-img"/
+  );
+});
+
 test("combat skill rail renders preview metadata and capstone summaries for summon skills", () => {
   const harness = createHarness();
   const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
@@ -928,6 +941,14 @@ test("minion rack entries render hover preview metadata for summon actions", () 
       secondaryValue: 3,
       remainingTurns: 0,
       persistent: true,
+      life: 20,
+      maxLife: 20,
+      guard: 0,
+      alive: true,
+      taunt: false,
+      invulnerable: false,
+      stackCount: 3,
+      stackAbilities: [],
     },
   ];
 
@@ -939,9 +960,225 @@ test("minion rack entries render hover preview metadata for summon actions", () 
   });
 
   assert.match(root.innerHTML, /data-preview-minion-id="minion_preview_hydra"/);
+  assert.match(root.innerHTML, /data-minion-stack-count="3"/);
+  assert.match(root.innerHTML, /data-minion-art-tier="3"/);
   assert.match(root.innerHTML, /data-preview-scope="enemy_line"/);
   assert.match(root.innerHTML, /data-preview-title="Hydra · Hydra Breath"/);
   assert.match(root.innerHTML, /data-preview-outcome="5 line \+ Burn 3"/);
+});
+
+test("minion rack uses tiered illustration art for stackable summon families", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "necromancer");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat.minions = [
+    {
+      id: "minion_preview_skeleton_army",
+      templateId: "necromancer_skeleton",
+      name: "Skeleton Army",
+      skillLabel: "Bone Rush",
+      actionKind: "attack",
+      targetRule: "selected_enemy",
+      power: 7,
+      secondaryValue: 0,
+      remainingTurns: 0,
+      persistent: true,
+      life: 20,
+      maxLife: 20,
+      guard: 0,
+      alive: true,
+      taunt: false,
+      invulnerable: false,
+      stackCount: 4,
+      stackAbilities: [],
+    },
+  ];
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /combat-minion--illustrated/);
+  assert.match(root.innerHTML, /data-minion-art-tier="4"/);
+  assert.match(root.innerHTML, /assets\/curated\/minion-illustrations\/skeleton_army_t4__gpt15high_final\.png/);
+  assert.match(root.innerHTML, /combat-minion__stack">x4</);
+});
+
+test("minion rack uses direct illustration art for persistent standalone summons", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "druid");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat.minions = [
+    {
+      id: "minion_preview_oak_sage",
+      templateId: "druid_oak_sage",
+      name: "Oak Sage",
+      skillLabel: "Vital Bloom",
+      actionKind: "heal_party",
+      targetRule: "all_enemies",
+      power: 5,
+      secondaryValue: 0,
+      remainingTurns: 0,
+      persistent: true,
+      life: 20,
+      maxLife: 20,
+      guard: 0,
+      alive: true,
+      taunt: false,
+      invulnerable: false,
+      stackCount: 1,
+      stackAbilities: [],
+    },
+  ];
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /combat-minion--illustrated/);
+  assert.match(root.innerHTML, /assets\/curated\/minion-illustrations\/druid_oak_sage__gpt15high_v2\.png/);
+  assert.match(root.innerHTML, /combat-minion__stack">x1</);
+});
+
+test("minion rack uses direct illustration art for temporary device summons", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "assassin");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat.minions = [
+    {
+      id: "minion_preview_lightning_sentry",
+      templateId: "assassin_lightning_sentry",
+      name: "Lightning Sentry",
+      skillLabel: "Static Volley",
+      actionKind: "attack_all_paralyze",
+      targetRule: "all_enemies",
+      power: 4,
+      secondaryValue: 1,
+      remainingTurns: 2,
+      persistent: false,
+      life: 1,
+      maxLife: 1,
+      guard: 0,
+      alive: true,
+      taunt: false,
+      invulnerable: true,
+      stackCount: 3,
+      stackAbilities: [],
+    },
+  ];
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /combat-minion--illustrated/);
+  assert.match(root.innerHTML, /assets\/curated\/minion-illustrations\/assassin_lightning_sentry_t3__gpt15high_final\.png/);
+  assert.match(root.innerHTML, /data-minion-stack-count="3"/);
+  assert.match(root.innerHTML, /combat-minion__stack">x3</);
+});
+
+test("new assassin trap ladders resolve their promoted minion illustration tiers in the rack", () => {
+  const harness = createHarness();
+  const { appEngine, appShell, browserWindow, content, combatEngine, seedBundle } = harness;
+  const state = appEngine.createAppState({
+    content,
+    seedBundle,
+    combatEngine,
+    randomFn: () => 0.5,
+  });
+  appEngine.startCharacterSelect(state);
+  appEngine.setSelectedClass(state, "assassin");
+  appEngine.setSelectedMercenary(state, "rogue_scout");
+  appEngine.startRun(state);
+  appEngine.leaveSafeZone(state);
+  const runFactory = browserWindow.ROUGE_RUN_FACTORY;
+  const openingZoneId = runFactory.getCurrentZones(state.run)[0].id;
+  appEngine.selectZone(state, openingZoneId);
+  state.ui.exploring = false;
+  state.combat.minions = [
+    {
+      id: "minion_preview_wake_of_inferno",
+      templateId: "assassin_wake_of_inferno",
+      name: "Wake of Inferno",
+      skillLabel: "Inferno Sweep",
+      actionKind: "attack_all_burn",
+      targetRule: "all_enemies",
+      power: 9,
+      secondaryValue: 5,
+      remainingTurns: 2,
+      persistent: false,
+      life: 1,
+      maxLife: 1,
+      guard: 0,
+      alive: true,
+      taunt: false,
+      invulnerable: true,
+      stackCount: 3,
+      stackAbilities: [],
+    },
+  ];
+
+  const root = { innerHTML: "" } as Parameters<AppShellApi["render"]>[0];
+  appShell.render(root, {
+    appState: state,
+    baseContent: browserWindow.ROUGE_GAME_CONTENT,
+    bootState: { status: "ready", error: "" },
+  });
+
+  assert.match(root.innerHTML, /combat-minion--illustrated/);
+  assert.match(root.innerHTML, /assets\/curated\/minion-illustrations\/assassin_wake_of_inferno_t3__gpt15high_final\.png/);
+  assert.match(root.innerHTML, /data-minion-art-tier="3"/);
 });
 
 test("select-enemy action updates selectedEnemyId without re-rendering", () => {

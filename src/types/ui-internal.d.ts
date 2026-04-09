@@ -73,25 +73,25 @@ interface AccountMetaDrilldownInternalApi {
 }
 
 interface AppEngineRunApi {
-  PHASES: Record<string, string>;
+  PHASES: Record<string, AppPhase>;
   getPersistence(): PersistenceApi | null;
   createFallbackProfile(): ProfileState;
   syncProfileMetaSelection(profile: ProfileState, classId: string): void;
-  loadProfile(): ProfileState;
-  persistProfile(profile: ProfileState): void;
-  clearActiveRunProfile(profile: ProfileState): void;
-  recordRunHistory(profile: ProfileState, entry: RunHistoryEntry): void;
-  recordSnapshotRunHistory(profile: ProfileState, run: RunState, outcome: string): void;
-  getTrainingRankCount(run: RunState): number;
+  loadProfile(content: GameContent): ProfileState;
+  persistProfile(state: AppState): void;
+  clearActiveRunProfile(state: AppState): void;
+  recordRunHistory(state: AppState, outcome: RunHistoryEntry["outcome"]): void;
+  recordSnapshotRunHistory(state: AppState, outcome: RunHistoryEntry["outcome"]): void;
+  getTrainingRankCount(training: RunProgressionState["training"] | null | undefined): number;
   parseInteger(value: unknown, fallback?: number): number;
-  buildMercenaryRouteCombatBonuses(run: RunState): CombatBonusSet;
-  getPhaseLabel(phase: string): string;
-  resetFrontDoorUi(appState: AppState): void;
-  clampRunHistoryReviewIndex(appState: AppState): void;
-  getPreferredClassId(profile: ProfileState): string;
-  createRunSnapshot(run: RunState): unknown;
-  persistRunIfPossible(appState: AppState): void;
-  restoreSnapshotIntoState(appState: AppState, snapshot: unknown): RunState | null;
+  buildMercenaryRouteCombatBonuses(run: RunState, content: GameContent): CombatMercenaryRouteBonusState;
+  getPhaseLabel(phase: AppPhase): string;
+  resetFrontDoorUi(state: AppState): void;
+  clampRunHistoryReviewIndex(state: AppState, historyIndex: number): number;
+  getPreferredClassId(classes: ClassDefinition[], profile: ProfileState): string;
+  createRunSnapshot(state: AppState): RunSnapshotEnvelope | null;
+  persistRunIfPossible(state: AppState): void;
+  restoreSnapshotIntoState(state: AppState, snapshot: RunSnapshotEnvelope): ActionResult;
 }
 
 interface RougeUtilsApi {

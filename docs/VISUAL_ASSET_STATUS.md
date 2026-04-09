@@ -1,6 +1,6 @@
 # Visual Asset Status
 
-Last updated: April 6, 2026.
+Last updated: April 9, 2026.
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -28,30 +28,33 @@ Current live folder counts:
 
 - `7` class portraits in `assets/curated/rouge-art/portraits`
 - `6` mercenary portraits in `assets/curated/rouge-art/mercenaries`
-- `72` enemy files in `assets/curated/rouge-art/enemies`
-- `66` boss files in `assets/curated/rouge-art/bosses`
+- `73` enemy files in `assets/curated/rouge-art/enemies`
+- `68` boss files in `assets/curated/rouge-art/bosses`
 
 Current verdict:
 
 - strong enough for live use
 - no broad replacement pass needed
-- one targeted subject-art repair queue remains: `8` curated enemy or boss files are present on disk but intentionally disabled in the live runtime because they are judged broken or weak
+- no active subject-art repair queue remains
+- battlefield summon art is now live for every runtime-supported summon family and summon template through `assets/curated/minion-illustrations`
 - fallback portrait and sprite folders are safeguards, not the quality baseline
 
 ### Active Subject-Art Fix Queue
 
-The current exception to the “no broad replacement pass” rule is the explicit broken-sprite guardrail in `src/content/asset-map-data.ts`.
+There is no active curated enemy or boss repair queue right now.
 
-Current targeted replacement queue:
+Recent approved outcomes from the last selective review:
 
-- `3` enemy replacements: `baal_s_minion`, `fire_tower`, `lightning_spire`
-- `5` boss replacements: `bishibosh`, `corpsefire`, `eyeback_the_unleashed`, `fire_eye`, `rakanishu`
+- primary current art kept: `lightning_spire`
+- primary replacement kept live: `fire_tower`, `bishibosh`, `corpsefire`, `fire_eye`
+- approved alt variant added: `baal_s_minion__gpt15high_refresh_v2`
+- approved alt variants added: `eyeback_the_unleashed__gpt15high_refresh_v1`, `eyeback_the_unleashed__gpt15high_refresh_v2`
 
 Important distinction:
 
 - these are not missing-file gaps
-- the current files already exist in `assets/curated/rouge-art`
-- the runtime skips them because the current versions are not considered live-quality enough
+- the approved generated files now exist as additive variants in `assets/curated/rouge-art`
+- unique-art variant rotation is handled through `src/content/rouge-art-manifest.ts`
 
 Current staged review artifacts:
 
@@ -59,11 +62,66 @@ Current staged review artifacts:
 - `tmp/imagegen/reference-non-card-art-sheet.png`
 - `tmp/imagegen/non_card_art_replace8_review.md`
 - `tmp/imagegen/non_card_art_replace8_gpt15low.jsonl`
+- `tmp/imagegen/non-card-replace7-gpt15high-comparison.png`
+- `tmp/imagegen/non-card-reroll3-gpt15high-comparison.png`
+
+Historical note:
+
+- the review artifact names still say `replace8` because they were staged before `rakanishu` was repaired and promoted live
 
 Current decision:
 
-- treat this as one selective eight-asset repair batch
-- do not reopen a broad enemy or boss replacement program beyond these flagged exceptions unless another live asset clearly fails in context
+- the explicit broken-sprite guardrail is cleared
+- keep `lightning_spire` on its current primary art
+- keep the approved `baal_s_minion` and `eyeback_the_unleashed` generated versions as alt art, not base replacements
+- do not reopen a broad enemy or boss replacement program unless another live asset clearly fails in context
+
+### Battlefield Summon Art
+
+The battlefield summon-art pass is now live.
+
+Current runtime truth:
+
+- repeated summons reinforce an existing battlefield unit in `src/combat/combat-engine-turns.ts`
+- live summon templates are defined in `src/combat/combat-engine-minions.ts`
+- summon art resolves through `src/content/asset-map.ts`
+- the command-stage summon rack in `src/ui/combat-view-renderers.ts` now renders dedicated summon illustrations instead of text-only labels
+- curated summon art now lives in `assets/curated/minion-illustrations`
+
+Current live coverage:
+
+- `3` stack-family ladders are live with `15` total variants:
+  - Skeleton Army: `5` tiers
+  - Wolf Pack: `5` tiers
+  - Necromancer Golem: `5` tiers
+- `14` persistent singleton summons now have direct illustrations:
+  - `necromancer_revive`
+  - `amazon_valkyrie`
+  - `amazon_decoy`
+  - `druid_raven`
+  - `druid_poison_creeper`
+  - `druid_oak_sage`
+  - `druid_heart_of_wolverine`
+  - `druid_grizzly`
+  - `assassin_shadow_master`
+  - `druid_solar_creeper`
+  - `druid_spirit_of_barbs`
+  - `druid_carrion_vine`
+  - `druid_treant`
+  - `sorceress_hydra`
+- `7` temporary battlefield device ladders are now live with `21` total variants:
+  - `assassin_blade_sentinel`: tiers `1-3`
+  - `assassin_charged_bolt_sentry`: tiers `1-3`
+  - `assassin_wake_of_fire`: tiers `1-3`
+  - `assassin_lightning_sentry`: tiers `1-3`
+  - `assassin_death_sentry`: tiers `1-3`
+  - `assassin_shadow_trap`: tiers `1-3`
+  - `assassin_wake_of_inferno`: tiers `1-3`
+
+Current decision:
+
+- treat battlefield summon art as complete for all runtime-supported summons
+- do not reopen the summon-art queue unless a live asset proves weak in context or a new runtime summon template lands
 
 ### 2. Icon Systems
 
@@ -165,18 +223,26 @@ This matters because it changes the replacement priority:
 
 ## What Still Justifies New Images
 
-There is no large required image-generation bucket left right now.
+There is still no broad coverage gap left right now.
 
 The best remaining image work is selective:
 
-1. replacement of the `8` explicitly broken unique enemy or boss sprites listed above
-2. one-off replacement of another genuinely weak live asset if it stands out in context
-3. net-new art for future features or future content expansions
-4. luxury repaint work for map-like or poster-like surfaces if we want a premium presentation pass later
+1. an ability-first reroll pass for select class card illustrations that currently read too much like repeated hero portraits with minor FX swaps
+2. explicit skill-icon coverage for Rouge-original class cards that still rely on fallback or alias behavior
+3. one-off replacement of another genuinely weak live asset if it stands out in context
+4. net-new art for future features or future content expansions
+5. optional luxury repaint work for map-like or poster-like surfaces if we want a premium presentation pass later
+
+Current verdict on card illustrations:
+
+- coverage is complete
+- the next issue is differentiation, not absence
+- the highest-value reroll classes are currently `Assassin`, `Barbarian`, `Paladin`, `Sorceress`, and `Amazon`
+- the working review and candidate queue for that pass lives in `tmp/imagegen/card-illustration-ability-first-review.md`
 
 ## What Should Not Be Churned Right Now
 
-Do not start a broad replacement pass for:
+Do not start a blind broad replacement pass for:
 
 - class skill icons
 - hero, mercenary, enemy, or boss subject art as a whole
@@ -185,9 +251,11 @@ Do not start a broad replacement pass for:
 
 Allowed exception:
 
-- the `8` subject-art repair targets listed in the active fix queue above
+- selective class-card rerolls when the current art is coverage-complete but too character-redundant to read distinctly at a glance
 
-Those surfaces are either already strong or were just tested against replacement candidates that did not improve the live app.
+- one-off replacement of a clearly weak live asset if it actually fails in context
+
+Those surfaces are either already strong or now have an approved live primary or alt-art solution.
 
 ## Document Boundaries
 

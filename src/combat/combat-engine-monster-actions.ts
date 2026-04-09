@@ -3,6 +3,7 @@
 
   const traits = runtimeWindow.__ROUGE_MONSTER_TRAITS;
   const { TRAIT, applyHeroBurn, applyHeroPoison, applyHeroChill, applyHeroAmplify, applyHeroWeaken, applyHeroEnergyDrain, putIntentOnCooldown } = traits;
+  const { clearCrowdControl, calculateIntentGuard } = runtimeWindow.__ROUGE_COMBAT_UTILS;
 
   const MAX_ENEMIES_IN_COMBAT = 6;
 
@@ -215,7 +216,7 @@
     }
 
     if (intent.kind === "charge") {
-      const guardGained = Math.max(0, intent.secondaryValue || Math.max(2, Math.ceil(intent.value / 3)));
+      const guardGained = Math.max(0, calculateIntentGuard(intent.value, intent.secondaryValue, 3));
       if (guardGained > 0) {
         runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.applyGuard?.(enemy, guardGained);
       }
@@ -236,10 +237,7 @@
     }
 
     if (intent.kind === "teleport") {
-      enemy.slow = 0;
-      enemy.freeze = 0;
-      enemy.stun = 0;
-      enemy.paralyze = 0;
+      clearCrowdControl(enemy);
       runtimeWindow.__ROUGE_COMBAT_ENGINE_TURNS?.applyGuard?.(enemy, Math.max(0, intent.value));
       _logCombat(state, {
         actor: "enemy", actorName: enemy.name, actorId: enemy.id,

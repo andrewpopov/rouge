@@ -1,6 +1,7 @@
 (() => {
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
+  const assets = runtimeWindow.ROUGE_ASSET_MAP;
   const renderers = runtimeWindow.__ROUGE_COMBAT_VIEW_RENDERERS;
 
   function renderPileCard({
@@ -126,15 +127,30 @@
     environment: "",
   };
 
-  const EFFECT_STATUS_ICON: Record<string, string> = {
-    burn: "\u{1F525}",
-    poison: "\u2620",
-    chill: "\u2744",
-    freeze: "\u2744",
-    stun: "\u26A1",
-    paralyze: "\u26A1",
-    slow: "\u23F3",
+  const EFFECT_STATUS_ICON: Record<string, { key: string; fallback: string }> = {
+    burn: { key: "burn", fallback: "\u{1F525}" },
+    poison: { key: "poison", fallback: "\u2620" },
+    chill: { key: "chill", fallback: "\u2744" },
+    freeze: { key: "freeze", fallback: "\u2744" },
+    stun: { key: "stun", fallback: "\u26A1" },
+    paralyze: { key: "paralyze", fallback: "\u26A1" },
+    slow: { key: "slow", fallback: "\u23F3" },
+    amplify: { key: "amplify", fallback: "\u{1F53A}" },
+    weaken: { key: "weaken", fallback: "\u{1F53B}" },
+    energyDrain: { key: "drain", fallback: "\u{1F50C}" },
   };
+
+  function renderStatusIcon(kind: string): string {
+    const meta = EFFECT_STATUS_ICON[kind];
+    if (!meta) {
+      return "";
+    }
+    const src = assets?.getUiIcon(meta.key) || "";
+    if (!src) {
+      return meta.fallback;
+    }
+    return `<img src="${src}" class="status-icon status-icon--${meta.key}" alt="" aria-hidden="true" loading="lazy" onerror="this.style.display='none'" />`;
+  }
 
   function getEntryPresentation(entry: CombatLogEntry): { tone: CombatLogTone; icon: string; label: string } {
     const presentation = TONE_PRESENTATION[entry.tone] || TONE_PRESENTATION.report;
@@ -145,7 +161,7 @@
     return escapeHtml(message)
       .replace(/(\d+)/g, '<span class="combat-log-entry__value">$1</span>')
       .replace(
-        /\b(Burn|Poison|Chill|Freeze|Stun|Paralyze|Slow|Guard|damage|fire|lightning|cold|energy|heals?|drains?|spawns?|resurrects?)\b/gi,
+        /\b(Burn|Poison|Chill|Freeze|Stun|Paralyze|Slow|Guard|Amplify|Weaken|Drain|damage|fire|lightning|cold|energy|heals?|drains?|spawns?|resurrects?)\b/gi,
         '<span class="combat-log-entry__keyword">$1</span>'
       );
   }
@@ -169,9 +185,10 @@
         chips.push(`<span class="combat-log-chip combat-log-chip--damage">${effect.guardDamage} guard broken</span>`);
       }
       if (effect.statusApplied) {
-        const statusIcon = EFFECT_STATUS_ICON[effect.statusApplied.kind] || "";
+        const statusIcon = renderStatusIcon(effect.statusApplied.kind);
+        const statusLabel = effect.statusApplied.kind === "energyDrain" ? "drain" : effect.statusApplied.kind;
         chips.push(
-          `<span class="combat-log-chip combat-log-chip--status">${statusIcon} ${escapeHtml(effect.statusApplied.kind)} ${effect.statusApplied.stacks}</span>`
+          `<span class="combat-log-chip combat-log-chip--status">${statusIcon} ${escapeHtml(statusLabel)} ${effect.statusApplied.stacks}</span>`
         );
       }
       if (effect.killed) {

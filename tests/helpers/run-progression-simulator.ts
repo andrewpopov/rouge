@@ -550,7 +550,7 @@ export function runProgressionPolicyFromState(
   harness: ReturnType<typeof createQuietAppHarness>,
   state: AppState,
   classId: string,
-  policy: BuildPolicyDefinition,
+  basePolicy: BuildPolicyDefinition,
   throughActNumber: number,
   probeRuns: number,
   maxCombatTurns: number,
@@ -561,6 +561,8 @@ export function runProgressionPolicyFromState(
   checkpointProbeProfile: CheckpointProbeProfile = "default",
   trainingLoadoutInput: RunProgressionTrainingLoadout | null = null
 ): PolicySimulationReport {
+  // Always apply class strategy to ensure preferred tree and class-specific weights
+  const policy = applyClassStrategy(basePolicy, classId)
   const safeZoneMaxIterations = 12
   const PHASES = harness.appEngine.PHASES
   const checkpoints = Array.isArray(continuation?.checkpoints) ? continuation.checkpoints.map((entry) => ({ ...entry })) : []

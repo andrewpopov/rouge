@@ -25,6 +25,14 @@
     return `<img src="${src}" class="${cls}" alt="${alt}" loading="lazy" onerror="this.style.display='none'" />`;
   }
 
+  function renderStatusIcon(key: string, label: string, extraClasses = ""): string {
+    const src = runtimeWindow.ROUGE_ASSET_MAP?.getUiIcon?.(key) || "";
+    if (!src) {
+      return "";
+    }
+    return svgIcon(src, ["status-icon", `status-icon--${key}`, extraClasses].filter(Boolean).join(" "), label);
+  }
+
   function isTemplatedIllustrationSrc(src: string | null | undefined): boolean {
     return typeof src === "string" && src.includes("/themes/diablo-inspired/icons/cards/");
   }
@@ -178,7 +186,6 @@
     const artInner = customIllustrationSrc ? `
       ${templatedIllustration ? emblemInner : ""}
       <img src="${customIllustrationSrc}" class="${illustrationClass}" alt="" aria-hidden="true" loading="eager" decoding="async" onerror="this.style.display='none'" />
-      ${sigilSrc ? `<span class="combat-card__sigil">${svgIcon(sigilSrc, `combat-card__sigil-icon combat-card__sigil-icon--${element}`, card.title)}</span>` : ""}
     ` : emblemInner;
 
     return `
@@ -324,7 +331,7 @@
             <div class="sprite__hp-fill sprite__hp-fill--${figureClass === "sprite__figure--hero" ? "hero" : "merc"} ${lowHp ? "sprite__hp-fill--low" : ""}" style="width:${hpPct}%"></div>
             <span class="sprite__hp-text">${unit.life}/${unit.maxLife}</span>
           </div>
-          ${unit.guard > 0 ? `<div class="sprite__status sprite__status--guard">${assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}"} ${unit.guard}</div>` : ""}
+          ${unit.guard > 0 ? `<div class="sprite__status sprite__status--guard">${renderStatusIcon("guard", "Guard") || "\u{1F6E1}"} ${unit.guard}</div>` : ""}
           ${extraStatusHtml}
         </div>
         <div class="sprite__meta-row">${incomingPressureHtml}</div>
@@ -358,9 +365,14 @@
               const summary = turns?.getMinionSkillSummary?.(minion) || minion.skillLabel;
               const durationLabel = minion.persistent ? "Persistent" : `${minion.remainingTurns}t`;
               const toneClass = minion.persistent ? "combat-minion--persistent" : "combat-minion--temporary";
+              const stackCount = turns?.getMinionStackCount?.(minion)
+                || Math.max(1, Number((minion as { stackCount?: number }).stackCount || 1));
+              const artTier = turns?.getMinionArtTier?.(minion, 5)
+                || Math.min(5, stackCount);
+              const illustrationSrc = runtimeWindow.ROUGE_ASSET_MAP?.getMinionIllustration?.(minion.templateId, artTier) || null;
               const previewScopes = (() => {
                 const scopes = new Set<string>();
-                if (minion.actionKind === "attack_all_burn" || minion.actionKind === "attack_all_paralyze") {
+                if (minion.actionKind === "attack_all" || minion.actionKind === "attack_all_burn" || minion.actionKind === "attack_all_paralyze") {
                   scopes.add("enemy_line");
                 } else if (minion.targetRule === "selected_enemy" || minion.targetRule === "lowest_life") {
                   scopes.add("selected_enemy");
@@ -382,8 +394,10 @@
               })();
               const previewOutcome = summary;
               return `
-                <div class="combat-minion ${toneClass}"
+                <div class="combat-minion ${toneClass}${illustrationSrc ? " combat-minion--illustrated" : ""}"
                   data-preview-minion-id="${escapeHtml(minion.id)}"
+                  data-minion-stack-count="${escapeHtml(String(stackCount))}"
+                  data-minion-art-tier="${escapeHtml(String(artTier))}"
                   data-preview-scope="${escapeHtml(previewScopes.join(","))}"
                   data-preview-label="${escapeHtml(previewScopes.length > 0 ? previewScopes.map((scope) => {
                     if (scope === "selected_enemy") { return "Target"; }
@@ -395,12 +409,22 @@
                   }).join(" + ") : "Summon")}"
                   data-preview-title="${escapeHtml(`${minion.name} · ${minion.skillLabel}`)}"
                   data-preview-outcome="${escapeHtml(previewOutcome)}">
-                  <div class="combat-minion__topline">
-                    <span class="combat-minion__name">${escapeHtml(minion.name)}</span>
-                    <span class="combat-minion__duration">${escapeHtml(durationLabel)}</span>
+                  ${illustrationSrc ? `
+                    <div class="combat-minion__visual" aria-hidden="true">
+                      <div class="combat-minion__art-frame">
+                        <img src="${escapeHtml(illustrationSrc)}" class="combat-minion__art" alt="" loading="lazy" decoding="async" onerror="this.closest('.combat-minion__visual').style.display='none'" />
+                      </div>
+                      <span class="combat-minion__stack">x${escapeHtml(String(stackCount))}</span>
+                    </div>
+                  ` : ""}
+                  <div class="combat-minion__content">
+                    <div class="combat-minion__topline">
+                      <span class="combat-minion__name">${escapeHtml(minion.name)}</span>
+                      <span class="combat-minion__duration">${escapeHtml(durationLabel)}</span>
+                    </div>
+                    <div class="combat-minion__skill">${escapeHtml(minion.skillLabel)}</div>
+                    <div class="combat-minion__summary">${escapeHtml(summary)}</div>
                   </div>
-                  <div class="combat-minion__skill">${escapeHtml(minion.skillLabel)}</div>
-                  <div class="combat-minion__summary">${escapeHtml(summary)}</div>
                 </div>
               `;
             }).join("")}
@@ -501,13 +525,13 @@
     const intentPresentation = pressure.buildEnemyIntentPresentation(combat, enemy);
     const intentClasses = [intentTone, intentPresentation.intentClass].filter(Boolean).join(" ");
     const effectItems = [
-      enemy.guard > 0 ? { css: "sprite__effect--guard", icon: assets ? svgIcon(assets.getUiIcon("guard") || "", "status-icon status-icon--guard", "Guard") : "\u{1F6E1}", value: String(enemy.guard), label: `Guard ${enemy.guard}` } : null,
-      enemy.burn > 0 ? { css: "sprite__effect--burn", icon: "\u{1F525}", value: String(enemy.burn), label: `Burn ${enemy.burn}` } : null,
-      enemy.poison > 0 ? { css: "sprite__effect--poison", icon: "\u2620", value: String(enemy.poison), label: `Poison ${enemy.poison}` } : null,
-      enemy.slow > 0 ? { css: "sprite__effect--slow", icon: "\u{1F422}", value: String(enemy.slow), label: `Slow ${enemy.slow}` } : null,
-      enemy.freeze > 0 ? { css: "sprite__effect--freeze", icon: "\u2744", value: String(enemy.freeze), label: `Freeze ${enemy.freeze}` } : null,
-      enemy.stun > 0 ? { css: "sprite__effect--stun", icon: "\u26A1", value: String(enemy.stun), label: `Stun ${enemy.stun}` } : null,
-      enemy.paralyze > 0 ? { css: "sprite__effect--paralyze", icon: "\u{1F50C}", value: String(enemy.paralyze), label: `Paralyze ${enemy.paralyze}` } : null,
+      enemy.guard > 0 ? { css: "sprite__effect--guard", icon: renderStatusIcon("guard", "Guard") || "\u{1F6E1}", value: String(enemy.guard), label: `Guard ${enemy.guard}` } : null,
+      enemy.burn > 0 ? { css: "sprite__effect--burn", icon: renderStatusIcon("burn", "Burn") || "\u{1F525}", value: String(enemy.burn), label: `Burn ${enemy.burn}` } : null,
+      enemy.poison > 0 ? { css: "sprite__effect--poison", icon: renderStatusIcon("poison", "Poison") || "\u2620", value: String(enemy.poison), label: `Poison ${enemy.poison}` } : null,
+      enemy.slow > 0 ? { css: "sprite__effect--slow", icon: renderStatusIcon("slow", "Slow") || "\u23F3", value: String(enemy.slow), label: `Slow ${enemy.slow}` } : null,
+      enemy.freeze > 0 ? { css: "sprite__effect--freeze", icon: renderStatusIcon("freeze", "Freeze") || "\u2744", value: String(enemy.freeze), label: `Freeze ${enemy.freeze}` } : null,
+      enemy.stun > 0 ? { css: "sprite__effect--stun", icon: renderStatusIcon("stun", "Stun") || "\u26A1", value: String(enemy.stun), label: `Stun ${enemy.stun}` } : null,
+      enemy.paralyze > 0 ? { css: "sprite__effect--paralyze", icon: renderStatusIcon("paralyze", "Paralyze") || "\u{1F50C}", value: String(enemy.paralyze), label: `Paralyze ${enemy.paralyze}` } : null,
     ].filter(Boolean) as Array<{ css: string; icon: string; value: string; label: string }>;
     const effectStrip = effectItems.length > 0 ? renderEffectStrip(effectItems) : "";
     const traitsContent = [
@@ -537,13 +561,13 @@
     `;
   }
 
-  const STATUS_DESCRIPTIONS: Record<string, { icon: string; name: string; color: string; desc: string }> = {
-    burn: { icon: "\u{1F525}", name: "Burn", color: "#f4a87c", desc: "Takes damage each turn. Stacks decay by 1." },
-    poison: { icon: "\u2620", name: "Poison", color: "#7cd48c", desc: "Takes damage each turn. Stacks decay by 1." },
-    slow: { icon: "\u{1F422}", name: "Slow", color: "#8cc8e8", desc: "Delayed actions. Reduces by 1 each turn." },
-    freeze: { icon: "\u2744", name: "Freeze", color: "#a0d8f4", desc: "Cannot act this turn. Reduces by 1." },
-    stun: { icon: "\u26A1", name: "Stun", color: "#f4e87c", desc: "Cannot act this turn. Reduces by 1." },
-    paralyze: { icon: "\u{1F50C}", name: "Paralyze", color: "#c8a0f4", desc: "Attack power weakened. Reduces by 1." },
+  const STATUS_DESCRIPTIONS: Record<string, { iconKey: string; fallbackIcon: string; name: string; color: string; desc: string }> = {
+    burn: { iconKey: "burn", fallbackIcon: "\u{1F525}", name: "Burn", color: "#f4a87c", desc: "Takes damage each turn. Stacks decay by 1." },
+    poison: { iconKey: "poison", fallbackIcon: "\u2620", name: "Poison", color: "#7cd48c", desc: "Takes damage each turn. Stacks decay by 1." },
+    slow: { iconKey: "slow", fallbackIcon: "\u23F3", name: "Slow", color: "#8cc8e8", desc: "Delayed actions. Reduces by 1 each turn." },
+    freeze: { iconKey: "freeze", fallbackIcon: "\u2744", name: "Freeze", color: "#a0d8f4", desc: "Cannot act this turn. Reduces by 1." },
+    stun: { iconKey: "stun", fallbackIcon: "\u26A1", name: "Stun", color: "#f4e87c", desc: "Cannot act this turn. Reduces by 1." },
+    paralyze: { iconKey: "paralyze", fallbackIcon: "\u{1F50C}", name: "Paralyze", color: "#c8a0f4", desc: "Attack power weakened. Reduces by 1." },
   };
 
   function renderEnemyInspectPanel(
@@ -554,9 +578,9 @@
     const hpPct = Math.round((enemy.life / enemy.maxLife) * 100);
     const intentDesc = runtimeWindow.ROUGE_COMBAT_ENGINE?.describeIntent?.(enemy.currentIntent) || "Unknown";
 
-    const statuses: Array<{ icon: string; name: string; stacks: number; color: string; desc: string }> = [];
+    const statuses: Array<{ iconKey: string; fallbackIcon: string; name: string; stacks: number; color: string; desc: string }> = [];
     if (enemy.guard > 0) {
-      statuses.push({ icon: "\u{1F6E1}", name: "Guard", stacks: enemy.guard, color: "#7caaf4", desc: "Absorbs damage before life is lost." });
+      statuses.push({ iconKey: "guard", fallbackIcon: "\u{1F6E1}", name: "Guard", stacks: enemy.guard, color: "#7caaf4", desc: "Absorbs damage before life is lost." });
     }
     for (const [key, meta] of Object.entries(STATUS_DESCRIPTIONS)) {
       const value = Number((enemy as unknown as Record<string, number>)[key] || 0);
@@ -586,7 +610,7 @@
             <ul class="enemy-inspect__statuses">
               ${statuses.map((status) => `
                 <li class="enemy-inspect__status" style="border-color: ${status.color}33">
-                  <span class="enemy-inspect__status-icon" style="color: ${status.color}">${status.icon}</span>
+                  <span class="enemy-inspect__status-icon">${renderStatusIcon(status.iconKey, status.name, "enemy-inspect__status-icon-asset") || status.fallbackIcon}</span>
                   <div class="enemy-inspect__status-body">
                     <span class="enemy-inspect__status-name" style="color: ${status.color}">${escapeHtml(status.name)} <strong>${status.stacks}</strong></span>
                     <span class="enemy-inspect__status-desc">${escapeHtml(status.desc)}</span>

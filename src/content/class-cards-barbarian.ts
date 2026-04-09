@@ -2,12 +2,19 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   // ── Barbarian Cards ───────────────────────────────────────────────────
-  // Combat: heavy melee damage, multi-hit, AoE
-  // Masteries: passive weapon bonuses (guard, toughness)
-  // Warcries: party-wide buffs and debuffs
+  // Combat Pressure: Frenzy stacking → Whirlwind AoE — escalating melee aggression
+  // Mastery Frontline: weapon reliability + guard accumulation → defense-to-offense conversion
+  // Warcry Tempo: party buffs + enemy debuffs — persistent aura stacking
+  // Class Glue: multi-lane utility
+  // Hybrid Bridges: cross-lane support cards
 
   const BARBARIAN_CARDS: Record<string, ClassCardDefinition> = {
-    // ── Tier 1 ──
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 1 — Starter shell and identity cards
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Pressure ──
     barbarian_bash: {
       id: "barbarian_bash",
       title: "Bash",
@@ -30,7 +37,7 @@
       text: "Apply 1 Slow to all enemies. Gain 5 Guard. Draw 1 card.",
       effects: [
         { kind: "apply_slow_all", value: 1 },
-        { kind: "gain_guard_self", value: 5 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["disruption", "protection", "salvage"],
@@ -45,10 +52,9 @@
       title: "Sword Mastery",
       cost: 1,
       target: "enemy",
-      text: "Deal 8 damage. Gain 6 Guard. Draw 1 card.",
+      text: "Deal 8 damage. Draw 1 card.",
       effects: [
         { kind: "damage", value: 8 },
-        { kind: "gain_guard_self", value: 6 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["pressure", "mitigation", "salvage", "support"],
@@ -65,8 +71,8 @@
       target: "none",
       text: "Heal 5. Gain 4 Guard. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 5 },
-        { kind: "gain_guard_self", value: 4 },
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "salvage", "support"],
@@ -83,7 +89,7 @@
       target: "none",
       text: "Gain 10 Guard. Draw 1 card.",
       effects: [
-        { kind: "gain_guard_self", value: 10 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "salvage", "support"],
@@ -100,8 +106,8 @@
       target: "none",
       text: "Heal 5. Gain 6 Guard. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 5 },
-        { kind: "gain_guard_self", value: 6 },
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "salvage", "support"],
@@ -112,7 +118,11 @@
       tier: 1,
     },
 
-    // ── Tier 2 ──
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 2 — Early reward pool: lane formation begins
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Pressure ──
     barbarian_double_swing: {
       id: "barbarian_double_swing",
       title: "Double Swing",
@@ -135,10 +145,9 @@
       title: "Leap",
       cost: 1,
       target: "enemy",
-      text: "Deal 8 damage. Gain 4 Guard.",
+      text: "Deal 8 damage.",
       effects: [
         { kind: "damage", value: 8 },
-        { kind: "gain_guard_self", value: 4 },
       ],
       behaviorTags: ["pressure", "mitigation", "setup"],
       roleTag: "setup",
@@ -155,8 +164,9 @@
       text: "Apply 1 Slow to all enemies. You and your mercenary gain 10 Guard. Draw 1 card.",
       effects: [
         { kind: "apply_slow_all", value: 1 },
-        { kind: "gain_guard_party", value: 10 },
+        { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 1 },
+        { kind: "apply_taunt", value: 1 },
       ],
       behaviorTags: ["disruption", "protection", "salvage", "support"],
       roleTag: "support",
@@ -170,10 +180,9 @@
       title: "Weapon Mastery",
       cost: 1,
       target: "enemy",
-      text: "Deal 10 damage. Gain 8 Guard. Mercenary next attack +8. Draw 1 card.",
+      text: "Deal 10 damage. Mercenary next attack +8. Draw 1 card.",
       effects: [
         { kind: "damage", value: 10 },
-        { kind: "gain_guard_self", value: 8 },
         { kind: "buff_mercenary_next_attack", value: 8 },
         { kind: "draw", value: 1 },
       ],
@@ -202,7 +211,98 @@
       tier: 2,
     },
 
-    // ── Tier 3 ──
+    // ── Mastery Frontline ──
+    barbarian_axe_mastery: {
+      id: "barbarian_axe_mastery",
+      title: "Axe Mastery",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 10 damage. Your next Attack this turn deals +3 damage.",
+      effects: [
+        { kind: "damage", value: 10 },
+      ],
+      behaviorTags: ["pressure", "mitigation", "setup"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 2,
+    },
+    barbarian_increased_speed: {
+      id: "barbarian_increased_speed",
+      title: "Increased Speed",
+      cost: 0,
+      target: "none",
+      text: "Draw 1 card. Your next Attack this turn costs 1 less. Exhaust.",
+      effects: [{ kind: "draw", value: 1 }],
+      behaviorTags: ["salvage", "setup", "conversion"],
+      roleTag: "salvage",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Warcry Tempo ──
+    barbarian_taunt: {
+      id: "barbarian_taunt",
+      title: "Taunt",
+      cost: 0,
+      target: "enemy",
+      text: "Your next Attack against this target deals +6 damage. Your mercenary deals +6 to this target. Draw 1 card. Exhaust.",
+      effects: [
+        { kind: "mark_enemy_for_mercenary", value: 6 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "support", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+    barbarian_battle_cry: {
+      id: "barbarian_battle_cry",
+      title: "Battle Cry",
+      cost: 1,
+      target: "none",
+      text: "All enemies deal 3 less damage next turn. Your next Attack this turn deals +4 damage. Gain 5 Guard. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["disruption", "setup", "mitigation", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Class Glue ──
+    barbarian_battle_charge: {
+      id: "barbarian_battle_charge",
+      title: "Battle Charge",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 9 damage. Draw 1 card.",
+      effects: [
+        { kind: "damage", value: 9 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "mitigation", "salvage"],
+      roleTag: "support",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 3 — Mid reward pool: lane engines come online
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Pressure ──
     barbarian_concentrate: {
       id: "barbarian_concentrate",
       title: "Concentrate",
@@ -247,11 +347,10 @@
       target: "none",
       text: "Heal 6. Apply 1 Slow to all enemies. You and your mercenary gain 22 Guard. Mercenary next attack +16. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 6 },
+        { kind: "heal_hero", value: 10 },
         { kind: "apply_slow_all", value: 1 },
         { kind: "gain_guard_party", value: 22 },
         { kind: "buff_mercenary_next_attack", value: 16 },
-        { kind: "draw", value: 1 },
       ],
       behaviorTags: ["protection", "support", "salvage", "scaling", "disruption"],
       roleTag: "support",
@@ -294,18 +393,187 @@
       tier: 3,
     },
 
-    // ── Tier 4 ──
+    barbarian_double_throw: {
+      id: "barbarian_double_throw",
+      title: "Double Throw",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 7 damage. Deal 7 damage to a random other enemy.",
+      effects: [
+        { kind: "damage", value: 7 },
+        { kind: "damage_all", value: 4 },
+      ],
+      behaviorTags: ["pressure", "payoff"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Mastery Frontline ──
+    barbarian_mace_mastery: {
+      id: "barbarian_mace_mastery",
+      title: "Mace Mastery",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 12 damage. Apply 1 Stun. Gain 8 Guard.",
+      effects: [
+        { kind: "damage", value: 12 },
+        { kind: "apply_stun", value: 1 },
+        { kind: "gain_guard_self", value: 8 },
+      ],
+      behaviorTags: ["pressure", "disruption", "mitigation"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    barbarian_increased_stamina: {
+      id: "barbarian_increased_stamina",
+      title: "Increased Stamina",
+      cost: 1,
+      target: "none",
+      text: "Gain 12 Guard. Heal 4. Your next 2 Attacks this turn each deal +3 damage.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "heal_hero", value: 6 },
+      ],
+      behaviorTags: ["mitigation", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    barbarian_guard_slam: {
+      id: "barbarian_guard_slam",
+      title: "Guard Slam",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 10 damage. Deal bonus damage equal to half your current Guard (max 10 bonus). Gain 6 Guard.",
+      effects: [
+        { kind: "damage", value: 10 },
+        { kind: "gain_guard_self", value: 6 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Warcry Tempo ──
+    barbarian_find_item: {
+      id: "barbarian_find_item",
+      title: "Find Item",
+      cost: 1,
+      target: "none",
+      text: "Heal 6. Gain 6 Guard. Draw 2 cards.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 2 },
+      ],
+      behaviorTags: ["salvage", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 3,
+    },
+    barbarian_grim_ward: {
+      id: "barbarian_grim_ward",
+      title: "Grim Ward",
+      cost: 1,
+      target: "none",
+      text: "All non-boss enemies deal 4 less damage next turn. Your mercenary deals +8 to all enemies. Gain 6 Guard.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+      ],
+      behaviorTags: ["disruption", "support", "mitigation"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Class Glue ──
+    barbarian_war_stance: {
+      id: "barbarian_war_stance",
+      title: "War Stance",
+      cost: 1,
+      target: "none",
+      text: "Gain 12 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "protection"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect", "anti_guard_break"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Hybrid Bridges ──
+    barbarian_fury_howl: {
+      id: "barbarian_fury_howl",
+      title: "Fury Howl",
+      cost: 1,
+      target: "none",
+      text: "Apply 1 Slow to all enemies. Your next 2 Attacks this turn each deal +4 damage. Gain 5 Guard. Draw 1 card.",
+      effects: [
+        { kind: "apply_slow_all", value: 1 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "disruption", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 3,
+    },
+    barbarian_war_stomp: {
+      id: "barbarian_war_stomp",
+      title: "War Stomp",
+      cost: 1,
+      target: "none",
+      text: "Deal 6 damage to all enemies. Apply 1 Stun to all non-boss enemies.",
+      effects: [
+        { kind: "damage_all", value: 6 },
+        { kind: "apply_stun_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "disruption", "mitigation"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 4 — Late reward pool: lane capstones and closers
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Combat Pressure ──
     barbarian_whirlwind: {
       id: "barbarian_whirlwind",
       title: "Whirlwind",
       cost: 2,
       target: "none",
-      text: "Heal 5. Deal 16 damage to all enemies. Apply 1 Slow to all enemies. Gain 12 Guard.",
+      text: "Deal 16 damage to all enemies. Apply 1 Slow to all enemies.",
       effects: [
-        { kind: "heal_hero", value: 5 },
         { kind: "damage_all", value: 16 },
         { kind: "apply_slow_all", value: 1 },
-        { kind: "gain_guard_self", value: 12 },
       ],
       behaviorTags: ["pressure", "payoff", "mitigation", "disruption"],
       roleTag: "payoff",
@@ -320,10 +588,9 @@
       title: "Berserk",
       cost: 2,
       target: "enemy",
-      text: "Deal 28 magic damage. Gain 16 Guard.",
+      text: "Deal 28 magic damage.",
       effects: [
         { kind: "damage", value: 28 },
-        { kind: "gain_guard_self", value: 16 },
       ],
       behaviorTags: ["pressure", "payoff", "conversion", "mitigation"],
       roleTag: "payoff",
@@ -337,12 +604,10 @@
       title: "War Cry",
       cost: 2,
       target: "none",
-      text: "Heal 6. Deal 14 damage to all enemies. Apply 1 Stun to all. You and your mercenary gain 22 Guard.",
+      text: "Deal 14 damage to all enemies. Apply 1 Stun to all.",
       effects: [
-        { kind: "heal_hero", value: 6 },
         { kind: "damage_all", value: 14 },
         { kind: "apply_stun_all", value: 1 },
-        { kind: "gain_guard_party", value: 22 },
       ],
       behaviorTags: ["disruption", "pressure", "protection", "payoff"],
       roleTag: "answer",
@@ -357,16 +622,13 @@
       title: "Battle Instinct",
       cost: 2,
       target: "enemy",
-      text: "Deal 22 damage. Deal 8 damage to all enemies. Apply 1 Slow to all enemies. You and your mercenary gain 16 Guard. Mercenary next attack +14. Draw 1 card.",
+      text: "Deal 22 damage. Deal 8 damage to all enemies. Apply 1 Slow to all enemies.",
       effects: [
         { kind: "damage", value: 22 },
         { kind: "damage_all", value: 8 },
         { kind: "apply_slow_all", value: 1 },
-        { kind: "gain_guard_party", value: 16 },
-        { kind: "buff_mercenary_next_attack", value: 14 },
-        { kind: "draw", value: 1 },
       ],
-      behaviorTags: ["pressure", "mitigation", "disruption", "salvage", "payoff", "scaling", "protection"],
+      behaviorTags: ["pressure", "disruption", "payoff"],
       roleTag: "payoff",
       rewardRole: "engine",
       splashRole: "primary_only",
@@ -391,6 +653,219 @@
       rewardRole: "engine",
       splashRole: "primary_only",
       skillRef: "barbarian_unyielding",
+      tier: 4,
+    },
+    barbarian_frenzy_rush: {
+      id: "barbarian_frenzy_rush",
+      title: "Frenzy Rush",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 9 damage 3 times. Heal 3 per hit.",
+      effects: [
+        { kind: "damage", value: 9 },
+        { kind: "damage", value: 9 },
+        { kind: "damage", value: 9 },
+      ],
+      behaviorTags: ["pressure", "payoff", "scaling", "mitigation"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Mastery Frontline ──
+    barbarian_combat_mastery: {
+      id: "barbarian_combat_mastery",
+      title: "Combat Mastery",
+      cost: 1,
+      target: "none",
+      text: "This combat, your Attacks deal +3 damage and gain +3 Guard. Draw 2 cards. Exhaust.",
+      effects: [{ kind: "draw", value: 2 }],
+      behaviorTags: ["scaling", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "barbarian_combat_mastery",
+      tier: 4,
+    },
+    barbarian_iron_fortress: {
+      id: "barbarian_iron_fortress",
+      title: "Iron Fortress",
+      cost: 2,
+      target: "none",
+      text: "Gain 20 Guard. Deal bonus damage to all enemies equal to half your current Guard (max 12). Heal 6.",
+      effects: [
+        { kind: "damage_all", value: 6 },
+        { kind: "heal_hero", value: 6 },
+      ],
+      behaviorTags: ["mitigation", "payoff", "conversion"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+    barbarian_polearm_mastery: {
+      id: "barbarian_polearm_mastery",
+      title: "Polearm Mastery",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 14 damage. Deal 7 damage to all other enemies.",
+      effects: [
+        { kind: "damage", value: 14 },
+        { kind: "damage_all", value: 7 },
+      ],
+      behaviorTags: ["pressure", "payoff", "mitigation"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Warcry Tempo ──
+    barbarian_battle_command: {
+      id: "barbarian_battle_command",
+      title: "Battle Command",
+      cost: 1,
+      target: "none",
+      text: "This combat, your Warcry cards draw 1 extra card and gain +4 Guard. Draw 1 card. Exhaust.",
+      effects: [{ kind: "draw", value: 1 }],
+      behaviorTags: ["scaling", "setup"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "barbarian_battle_command",
+      tier: 4,
+    },
+    barbarian_warlord_shout: {
+      id: "barbarian_warlord_shout",
+      title: "Warlord Shout",
+      cost: 2,
+      target: "none",
+      text: "All enemies deal 5 less damage next turn. You and your mercenary gain +5 damage this turn. You and your mercenary gain 16 Guard. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_party", value: 22 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["disruption", "support", "conversion", "protection"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Class Glue ──
+    barbarian_bulwark: {
+      id: "barbarian_bulwark",
+      title: "Bulwark",
+      cost: 1,
+      target: "none",
+      text: "Gain 14 Guard. Heal your mercenary 6. The next enemy attack against you or your mercenary this turn deals 6 less damage.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "heal_mercenary", value: 6 },
+      ],
+      behaviorTags: ["mitigation", "protection", "support"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect", "anti_fire_pressure"],
+      skillRef: "",
+      tier: 4,
+    },
+    barbarian_second_wind: {
+      id: "barbarian_second_wind",
+      title: "Second Wind",
+      cost: 1,
+      target: "none",
+      text: "Heal 10. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      effects: [
+        { kind: "heal_hero", value: 10 },
+        { kind: "heal_mercenary", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "support", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Hybrid Bridges ──
+    barbarian_raging_cleave: {
+      id: "barbarian_raging_cleave",
+      title: "Raging Cleave",
+      cost: 2,
+      target: "none",
+      text: "Deal 12 damage to all enemies. Apply 1 Slow to all. If you have 10+ Guard, deal 5 more to all.",
+      effects: [
+        { kind: "damage_all", value: 12 },
+        { kind: "apply_slow_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "disruption"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    barbarian_warcry_strike: {
+      id: "barbarian_warcry_strike",
+      title: "Warcry Strike",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 18 damage. All enemies deal 3 less damage next turn. Draw 1 card.",
+      effects: [
+        { kind: "damage", value: 18 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "disruption", "protection"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    barbarian_fury_mastery: {
+      id: "barbarian_fury_mastery",
+      title: "Fury Mastery",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 10 damage twice. If either hit lands on a Stunned or Slowed target, deal 6 more per hit.",
+      effects: [
+        { kind: "damage", value: 10 },
+        { kind: "damage", value: 10 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "scaling"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+    barbarian_ancient_vow: {
+      id: "barbarian_ancient_vow",
+      title: "Ancient Vow",
+      cost: 2,
+      target: "none",
+      text: "Heal 8. You and your mercenary gain 18 Guard. Your next 3 Attacks this turn each deal +4 damage. Draw 1 card.",
+      effects: [
+        { kind: "heal_hero", value: 10 },
+        { kind: "gain_guard_party", value: 22 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "support", "mitigation", "protection"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
       tier: 4,
     },
   };

@@ -2,12 +2,19 @@
   const runtimeWindow = (typeof window === "object" ? window : ({} as Window)) as Window;
 
   // ── Sorceress Cards ───────────────────────────────────────────────────
-  // Cold: freeze + defense, AoE cold damage
-  // Fire: high single-target and AoE burn damage
-  // Lightning: burst damage and utility (teleport = draw)
+  // Fire Burst: Burn setup → explosive burst — Meteor/Hydra payoff engine
+  // Cold Control: Freeze/Slow stacking → safe damage turns — Blizzard/FO control
+  // Lightning Tempo: high variance + draw acceleration — Chain Lightning tempo
+  // Class Glue: multi-lane utility
+  // Hybrid Bridges: cross-lane support cards
 
   const SORCERESS_CARDS: Record<string, ClassCardDefinition> = {
-    // ── Tier 1 ──
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 1 — Starter shell and identity cards
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Cold Control ──
     sorceress_ice_bolt: {
       id: "sorceress_ice_bolt",
       title: "Ice Bolt",
@@ -66,9 +73,9 @@
       target: "none",
       text: "Heal 5. Heal your mercenary 4. You and your mercenary gain 12 Guard. Draw 1 card.",
       effects: [
-        { kind: "heal_hero", value: 5 },
+        { kind: "heal_hero", value: 6 },
         { kind: "heal_mercenary", value: 4 },
-        { kind: "gain_guard_party", value: 12 },
+        { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "salvage", "support", "protection"],
@@ -86,7 +93,7 @@
       target: "none",
       text: "Gain 10 Guard. Draw 1 card.",
       effects: [
-        { kind: "gain_guard_self", value: 10 },
+        { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["mitigation", "salvage", "support"],
@@ -103,8 +110,8 @@
       target: "none",
       text: "Heal 4. You and your mercenary gain 6 Guard.",
       effects: [
-        { kind: "heal_hero", value: 4 },
-        { kind: "gain_guard_party", value: 6 },
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_party", value: 14 },
       ],
       behaviorTags: ["mitigation", "salvage", "support", "protection"],
       roleTag: "answer",
@@ -115,17 +122,20 @@
       tier: 1,
     },
 
-    // ── Tier 2 ──
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 2 — Early reward pool: lane formation begins
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Cold Control ──
     sorceress_frost_nova: {
       id: "sorceress_frost_nova",
       title: "Frost Nova",
       cost: 2,
       target: "none",
-      text: "Deal 6 cold damage to all enemies. Apply 1 Freeze to all. You and your mercenary gain 6 Guard.",
+      text: "Deal 6 cold damage to all enemies. Apply 1 Freeze to all.",
       effects: [
         { kind: "damage_all", value: 6 },
         { kind: "apply_freeze_all", value: 1 },
-        { kind: "gain_guard_party", value: 6 },
       ],
       behaviorTags: ["pressure", "disruption", "mitigation", "payoff", "protection"],
       roleTag: "payoff",
@@ -140,12 +150,11 @@
       title: "Fireball",
       cost: 2,
       target: "enemy",
-      text: "Heal 4. Deal 12 fire damage. Apply 4 Burn. Gain 4 Guard.",
+      text: "Deal 12 fire damage. Apply 4 Burn.",
       effects: [
-        { kind: "heal_hero", value: 4 },
         { kind: "damage", value: 12 },
         { kind: "apply_burn", value: 4 },
-        { kind: "gain_guard_self", value: 4 },
+        { kind: "buff_mercenary_next_attack", value: 6 },
       ],
       behaviorTags: ["pressure", "payoff", "mitigation", "salvage"],
       roleTag: "payoff",
@@ -160,11 +169,10 @@
       title: "Static Field",
       cost: 1,
       target: "none",
-      text: "Deal 5 lightning damage to all enemies. Apply 1 Paralyze to all. You and your mercenary gain 6 Guard. Draw 1 card.",
+      text: "Deal 5 lightning damage to all enemies. Apply 1 Paralyze to all. Draw 1 card.",
       effects: [
         { kind: "damage_all", value: 5 },
         { kind: "apply_paralyze_all", value: 1 },
-        { kind: "gain_guard_party", value: 6 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["pressure", "setup", "salvage", "payoff", "mitigation", "protection"],
@@ -180,12 +188,11 @@
       title: "Inferno",
       cost: 1,
       target: "enemy",
-      text: "Heal 4. Deal 7 fire damage. Apply 6 Burn. Gain 4 Guard.",
+      text: "Deal 7 fire damage. Apply 6 Burn.",
       effects: [
-        { kind: "heal_hero", value: 4 },
         { kind: "damage", value: 7 },
         { kind: "apply_burn", value: 6 },
-        { kind: "gain_guard_self", value: 4 },
+        { kind: "buff_mercenary_next_attack", value: 4 },
       ],
       behaviorTags: ["pressure", "setup", "mitigation", "payoff", "salvage"],
       roleTag: "setup",
@@ -196,17 +203,114 @@
       tier: 2,
     },
 
-    // ── Tier 3 ──
+    // ── Fire Burst ──
+    sorceress_blaze: {
+      id: "sorceress_blaze",
+      title: "Blaze",
+      cost: 1,
+      target: "none",
+      text: "Deal 4 fire damage to all enemies. Apply 3 Burn to all.",
+      effects: [
+        { kind: "damage_all", value: 4 },
+        { kind: "apply_burn_all", value: 3 },
+        { kind: "buff_mercenary_next_attack", value: 6 },
+      ],
+      behaviorTags: ["setup", "pressure", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 2,
+    },
+    sorceress_enchant: {
+      id: "sorceress_enchant",
+      title: "Enchant",
+      cost: 1,
+      target: "none",
+      text: "Your next 2 Spells this turn deal +4 damage. Mercenary next attack +8. Gain 5 Guard. Draw 1 card.",
+      effects: [
+        { kind: "buff_mercenary_next_attack", value: 8 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "support", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Lightning Tempo ──
+    sorceress_telekinesis: {
+      id: "sorceress_telekinesis",
+      title: "Telekinesis",
+      cost: 0,
+      target: "enemy",
+      text: "Deal 4 damage. The target deals 5 less damage next turn. Draw 1 card. Exhaust.",
+      effects: [
+        { kind: "damage", value: 4 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["disruption", "salvage", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+    sorceress_nova: {
+      id: "sorceress_nova",
+      title: "Nova",
+      cost: 2,
+      target: "none",
+      text: "Deal 8 lightning damage to all enemies. Apply 1 Paralyze to all. If you played another Spell this turn, draw 1 card.",
+      effects: [
+        { kind: "damage_all", value: 8 },
+        { kind: "apply_paralyze_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "disruption", "conversion"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ── Class Glue ──
+    sorceress_arcane_focus: {
+      id: "sorceress_arcane_focus",
+      title: "Arcane Focus",
+      cost: 1,
+      target: "none",
+      text: "Heal 4. Gain 7 Guard. Draw 1 card. Your next Spell this turn costs 1 less.",
+      effects: [
+        { kind: "heal_hero", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "mitigation", "conversion"],
+      roleTag: "salvage",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 2,
+    },
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 3 — Mid reward pool: lane engines come online
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Cold Control ──
     sorceress_blizzard: {
       id: "sorceress_blizzard",
       title: "Blizzard",
       cost: 2,
       target: "none",
-      text: "Deal 8 cold damage to all enemies. Apply 1 Freeze to all. You and your mercenary gain 8 Guard.",
+      text: "Deal 8 cold damage to all enemies. Apply 1 Freeze to all.",
       effects: [
         { kind: "damage_all", value: 8 },
         { kind: "apply_freeze_all", value: 1 },
-        { kind: "gain_guard_party", value: 8 },
       ],
       behaviorTags: ["pressure", "setup", "mitigation", "disruption", "protection"],
       roleTag: "setup",
@@ -221,11 +325,8 @@
       title: "Meteor",
       cost: 2,
       target: "none",
-      text: "Heal 8. Heal your mercenary 5. You and your mercenary gain 12 Guard. Deal 10 fire damage to all enemies. Apply 4 Burn and 1 Slow to all.",
+      text: "You and your mercenary gain 12 Guard. Deal 10 fire damage to all enemies. Apply 4 Burn and 1 Slow to all.",
       effects: [
-        { kind: "heal_hero", value: 8 },
-        { kind: "heal_mercenary", value: 5 },
-        { kind: "gain_guard_party", value: 12 },
         { kind: "damage_all", value: 10 },
         { kind: "apply_burn_all", value: 4 },
         { kind: "apply_slow_all", value: 1 },
@@ -263,7 +364,7 @@
       target: "none",
       text: "You and your mercenary gain 10 Guard. Draw 2 cards.",
       effects: [
-        { kind: "gain_guard_party", value: 10 },
+        { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 2 },
       ],
       behaviorTags: ["mitigation", "salvage", "support", "protection"],
@@ -275,17 +376,202 @@
       tier: 3,
     },
 
-    // ── Tier 4 ──
+    sorceress_glacial_spike: {
+      id: "sorceress_glacial_spike",
+      title: "Glacial Spike",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 10 cold damage. Apply 1 Freeze. Apply 1 Slow.",
+      effects: [
+        { kind: "damage", value: 10 },
+        { kind: "apply_freeze", value: 1 },
+        { kind: "apply_slow", value: 1 },
+      ],
+      behaviorTags: ["pressure", "disruption", "mitigation"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    sorceress_ice_blast: {
+      id: "sorceress_ice_blast",
+      title: "Ice Blast",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 16 cold damage. Apply 1 Freeze and 2 Slow. If the target is already Slowed, deal 6 more.",
+      effects: [
+        { kind: "damage", value: 16 },
+        { kind: "apply_freeze", value: 1 },
+        { kind: "apply_slow", value: 2 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "disruption"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    sorceress_shiver_armor: {
+      id: "sorceress_shiver_armor",
+      title: "Shiver Armor",
+      cost: 1,
+      target: "none",
+      text: "Gain 12 Guard. The next enemy that attacks you gains 2 Slow. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "disruption", "salvage"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Fire Burst ──
+    sorceress_fire_wall: {
+      id: "sorceress_fire_wall",
+      title: "Fire Wall",
+      cost: 2,
+      target: "none",
+      text: "Deal 7 fire damage to all enemies. Apply 5 Burn to all.",
+      effects: [
+        { kind: "damage_all", value: 7 },
+        { kind: "apply_burn_all", value: 5 },
+        { kind: "buff_mercenary_next_attack", value: 8 },
+      ],
+      behaviorTags: ["pressure", "setup", "scaling", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    sorceress_combustion: {
+      id: "sorceress_combustion",
+      title: "Combustion",
+      cost: 2,
+      target: "none",
+      text: "Deal 6 fire damage to all enemies. Each enemy with Burn takes 3 additional damage per Burn stack (max 5 stacks).",
+      effects: [{ kind: "damage_all", value: 6 }],
+      behaviorTags: ["payoff", "conversion", "scaling"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Lightning Tempo ──
+    sorceress_lightning: {
+      id: "sorceress_lightning",
+      title: "Lightning",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 20 lightning damage. Apply 2 Paralyze. Draw 1 card.",
+      effects: [
+        { kind: "damage", value: 20 },
+        { kind: "apply_paralyze", value: 2 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "disruption", "salvage"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+    sorceress_thunder_storm: {
+      id: "sorceress_thunder_storm",
+      title: "Thunder Storm",
+      cost: 1,
+      target: "none",
+      text: "Deal 6 lightning damage to all enemies. Apply 1 Paralyze to all. Your next Spell this turn deals +5 damage.",
+      effects: [
+        { kind: "damage_all", value: 6 },
+        { kind: "apply_paralyze_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "setup", "disruption"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Class Glue ──
+    sorceress_mana_shield: {
+      id: "sorceress_mana_shield",
+      title: "Mana Shield",
+      cost: 1,
+      target: "none",
+      text: "Gain 12 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "protection", "salvage"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ── Hybrid Bridges ──
+    sorceress_frost_bolt: {
+      id: "sorceress_frost_bolt",
+      title: "Frost Bolt",
+      cost: 1,
+      target: "enemy",
+      text: "Deal 8 cold damage. Apply 1 Slow. If you played a fire Spell this turn, apply 1 Freeze instead.",
+      effects: [
+        { kind: "damage", value: 8 },
+        { kind: "apply_slow", value: 1 },
+      ],
+      behaviorTags: ["pressure", "disruption", "conversion", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 3,
+    },
+    sorceress_spell_surge: {
+      id: "sorceress_spell_surge",
+      title: "Spell Surge",
+      cost: 1,
+      target: "none",
+      text: "Deal 5 damage to all enemies. Your next Spell this turn deals +6 damage. Draw 1 card.",
+      effects: [
+        { kind: "damage_all", value: 5 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["setup", "pressure", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 3,
+    },
+
+    // ════════════════════════════════════════════════════════════════════
+    // TIER 4 — Late reward pool: lane capstones and closers
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Cold Control ──
     sorceress_frozen_orb: {
       id: "sorceress_frozen_orb",
       title: "Frozen Orb",
       cost: 2,
       target: "none",
-      text: "Deal 10 cold damage to all enemies. Apply 2 Freeze to all. You and your mercenary gain 10 Guard.",
+      text: "Deal 10 cold damage to all enemies. Apply 2 Freeze to all.",
       effects: [
         { kind: "damage_all", value: 10 },
         { kind: "apply_freeze_all", value: 2 },
-        { kind: "gain_guard_party", value: 10 },
       ],
       behaviorTags: ["pressure", "payoff", "mitigation", "disruption", "protection"],
       roleTag: "payoff",
@@ -300,10 +586,8 @@
       title: "Hydra",
       cost: 2,
       target: "none",
-      text: "Heal 5. You and your mercenary gain 12 Guard. Deal 11 fire damage to all enemies. Apply 8 Burn and 1 Slow to all.",
+      text: "You and your mercenary gain 12 Guard. Deal 11 fire damage to all enemies. Apply 8 Burn and 1 Slow to all.",
       effects: [
-        { kind: "heal_hero", value: 5 },
-        { kind: "gain_guard_party", value: 12 },
         { kind: "damage_all", value: 11 },
         { kind: "apply_burn_all", value: 8 },
         { kind: "apply_slow_all", value: 1 },
@@ -321,11 +605,10 @@
       title: "Lightning Mastery",
       cost: 2,
       target: "none",
-      text: "Deal 12 lightning damage to all enemies. Apply 2 Paralyze to all. You and your mercenary gain 8 Guard. Draw 1 card.",
+      text: "Deal 12 lightning damage to all enemies. Apply 2 Paralyze to all. Draw 1 card.",
       effects: [
         { kind: "damage_all", value: 12 },
         { kind: "apply_paralyze_all", value: 2 },
-        { kind: "gain_guard_party", value: 8 },
         { kind: "draw", value: 1 },
       ],
       behaviorTags: ["pressure", "payoff", "disruption", "mitigation", "protection"],
@@ -334,6 +617,222 @@
       splashRole: "primary_only",
       counterTags: ["anti_backline", "anti_support_disruption", "anti_fire_pressure"],
       skillRef: "sorceress_lightning_mastery",
+      tier: 4,
+    },
+    sorceress_cold_mastery: {
+      id: "sorceress_cold_mastery",
+      title: "Cold Mastery",
+      cost: 1,
+      target: "none",
+      text: "This combat, your cold Spells deal +3 damage and apply +1 Slow. Draw 2 cards. Exhaust.",
+      effects: [{ kind: "draw", value: 2 }],
+      behaviorTags: ["scaling", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "sorceress_cold_mastery",
+      tier: 4,
+    },
+    sorceress_chilling_armor: {
+      id: "sorceress_chilling_armor",
+      title: "Chilling Armor",
+      cost: 1,
+      target: "none",
+      text: "Gain 14 Guard. Apply 1 Slow to all enemies. The next enemy that attacks you this turn gains 2 Freeze. Draw 1 card.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "apply_slow_all", value: 1 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["mitigation", "disruption", "protection"],
+      roleTag: "answer",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      counterTags: ["telegraph_respect"],
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Fire Burst ──
+    sorceress_fire_mastery: {
+      id: "sorceress_fire_mastery",
+      title: "Fire Mastery",
+      cost: 1,
+      target: "none",
+      text: "This combat, your fire Spells deal +3 damage and apply +2 Burn. Draw 2 cards. Exhaust.",
+      effects: [{ kind: "draw", value: 2 }],
+      behaviorTags: ["scaling", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "sorceress_fire_mastery",
+      tier: 4,
+    },
+    sorceress_conflagration: {
+      id: "sorceress_conflagration",
+      title: "Conflagration",
+      cost: 2,
+      target: "none",
+      text: "Deal 12 fire damage to all enemies. Apply 6 Burn to all. If any enemy has 4+ Burn, deal 8 more to it.",
+      effects: [
+        { kind: "damage_all", value: 12 },
+        { kind: "apply_burn_all", value: 6 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "scaling"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Lightning Tempo ──
+    sorceress_overcharge: {
+      id: "sorceress_overcharge",
+      title: "Overcharge",
+      cost: 2,
+      target: "none",
+      text: "Deal 10 lightning damage to all enemies. Apply 2 Paralyze to all. If you played another Spell this turn, deal 6 more to all. Draw 1 card.",
+      effects: [
+        { kind: "damage_all", value: 10 },
+        { kind: "apply_paralyze_all", value: 2 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "disruption"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      tier: 4,
+    },
+    sorceress_arc_mastery: {
+      id: "sorceress_arc_mastery",
+      title: "Arc Mastery",
+      cost: 1,
+      target: "none",
+      text: "This combat, your lightning Spells deal +3 damage and draw 1 extra card. Draw 1 card. Exhaust.",
+      effects: [{ kind: "draw", value: 1 }],
+      behaviorTags: ["scaling", "setup", "salvage"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "primary_only",
+      skillRef: "",
+      auraId: "sorceress_arc_mastery",
+      tier: 4,
+    },
+
+    // ── Class Glue ──
+    sorceress_arcane_ward: {
+      id: "sorceress_arcane_ward",
+      title: "Arcane Ward",
+      cost: 1,
+      target: "none",
+      text: "Gain 14 Guard. Heal your mercenary 6. The next enemy attack against you or your mercenary this turn deals 6 less damage.",
+      effects: [
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "heal_mercenary", value: 6 },
+      ],
+      behaviorTags: ["mitigation", "protection", "support"],
+      roleTag: "answer",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      counterTags: ["telegraph_respect", "anti_fire_pressure"],
+      skillRef: "",
+      tier: 4,
+    },
+    sorceress_renewal: {
+      id: "sorceress_renewal",
+      title: "Renewal",
+      cost: 1,
+      target: "none",
+      text: "Heal 10. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      effects: [
+        { kind: "heal_hero", value: 10 },
+        { kind: "heal_mercenary", value: 6 },
+        { kind: "gain_guard_self", value: 14 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["salvage", "support", "mitigation"],
+      roleTag: "salvage",
+      rewardRole: "support",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+
+    // ── Hybrid Bridges ──
+    sorceress_elemental_mastery: {
+      id: "sorceress_elemental_mastery",
+      title: "Elemental Mastery",
+      cost: 2,
+      target: "none",
+      text: "Deal 8 damage to all enemies. Apply 2 Burn and 1 Slow to all. If any enemy has Paralyze, deal 5 more to it.",
+      effects: [
+        { kind: "damage_all", value: 8 },
+        { kind: "apply_burn_all", value: 2 },
+        { kind: "apply_slow_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "conversion", "disruption"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    sorceress_arcane_barrage: {
+      id: "sorceress_arcane_barrage",
+      title: "Arcane Barrage",
+      cost: 2,
+      target: "enemy",
+      text: "Deal 14 magic damage. Deal 7 magic damage to all other enemies. Draw 1 card.",
+      effects: [
+        { kind: "damage", value: 14 },
+        { kind: "damage_all", value: 7 },
+        { kind: "draw", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "mitigation", "salvage"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    sorceress_spell_cascade: {
+      id: "sorceress_spell_cascade",
+      title: "Spell Cascade",
+      cost: 2,
+      target: "none",
+      text: "Deal 6 fire damage, 6 cold damage, and 6 lightning damage to all enemies. Apply 2 Burn, 1 Slow, and 1 Paralyze to all.",
+      effects: [
+        { kind: "damage_all", value: 18 },
+        { kind: "apply_burn_all", value: 2 },
+        { kind: "apply_slow_all", value: 1 },
+        { kind: "apply_paralyze_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "payoff", "setup", "disruption"],
+      roleTag: "payoff",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
+      tier: 4,
+    },
+    sorceress_tempest: {
+      id: "sorceress_tempest",
+      title: "Tempest",
+      cost: 2,
+      target: "none",
+      text: "Deal 10 cold damage to all enemies. Apply 1 Freeze to all. Your next Spell this turn deals +8 damage.",
+      effects: [
+        { kind: "damage_all", value: 10 },
+        { kind: "apply_freeze_all", value: 1 },
+      ],
+      behaviorTags: ["pressure", "setup", "disruption", "mitigation"],
+      roleTag: "setup",
+      rewardRole: "engine",
+      splashRole: "utility_splash_ok",
+      skillRef: "",
       tier: 4,
     },
   };

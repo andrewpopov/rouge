@@ -116,10 +116,15 @@ interface CombatMercenaryState extends MercenaryDefinition {
   contractHeroStartGuard: number;
   contractOpeningDraw: number;
   contractPerkLabels: string[];
+  skillTargetEnemyId: string;
+  skillTargetDamageBonus: number;
+  skillTargetDraw: number;
+  skillTargetNextAttackPenalty: number;
 }
 
 type CombatMinionActionKind =
   | "attack"
+  | "attack_all"
   | "attack_mark"
   | "attack_poison"
   | "attack_guard_party"
@@ -142,6 +147,15 @@ interface CombatMinionState {
   secondaryValue: number;
   remainingTurns: number;
   persistent: boolean;
+  // Targetable minion fields
+  life: number;
+  maxLife: number;
+  guard: number;
+  alive: boolean;
+  taunt: boolean;
+  invulnerable: boolean;  // traps and fade summons cannot be targeted
+  stackCount?: number;  // number of times this summon has been added or reinforced; visual art tiers can clamp this
+  stackAbilities: string[];  // abilities added by stacking different templates (e.g., "poison" from skeletal mage)
 }
 
 interface CombatEnemyState {
@@ -162,6 +176,7 @@ interface CombatEnemyState {
   intentIndex: number;
   currentIntent: EnemyIntent;
   intents: EnemyIntent[];
+  confuse?: number;
   traits?: MonsterTraitKind[];
   family?: string;
   summonTemplateId?: string;
@@ -169,6 +184,7 @@ interface CombatEnemyState {
   consumed?: boolean;
   buffedAttack?: number;
   cooldowns?: Record<number, number>;
+  nextAttackPenalty?: number;
 }
 
 interface CombatSkillModifierState {
@@ -181,6 +197,50 @@ interface CombatSkillModifierState {
   nextCardParalyze: number;
   nextCardDraw: number;
   nextCardGuard: number;
+  nextCardIgnoreGuard: number;
+  nextCardExtraStatus: number;
+}
+
+interface CombatSkillWindowState {
+  id: string;
+  skillId: string;
+  summary: string;
+  remainingUses: number;
+  expiresAtEndOfTurn: boolean;
+  requireKindsAny?: string[];
+  requireKindsAll?: string[];
+  requireBehaviorTagsAny?: CardBehaviorTag[];
+  requireBehaviorTagsAll?: CardBehaviorTag[];
+  requireDamageCard?: boolean;
+  requireSingleTargetDamage?: boolean;
+  requireMultiTargetDamage?: boolean;
+  requireTargetEnemyId?: string;
+  requireEnemyStatusesAny?: Array<"burn" | "poison" | "slow" | "freeze" | "paralyze" | "mark">;
+  damageBonus: number;
+  costReduction: number;
+  guardBonus: number;
+  drawBonus: number;
+  burn: number;
+  poison: number;
+  slow: number;
+  freeze: number;
+  paralyze: number;
+  ignoreGuard: number;
+  extraStatus: number;
+  duplicateOnResolve: boolean;
+  drawOnDamage: number;
+  drawOnSingleTargetDamage: number;
+  drawOnMultiTargetDamage: number;
+  drawOnSlowedEnemyHit: number;
+  gainGuardOnAttackingEnemyHit: number;
+  applySlowOnDamage: number;
+  nextAttackPenaltyOnHit: number;
+  requireEnemyAttackingNextTurnForPenalty?: boolean;
+  sameEnemyId?: string;
+  sameEnemyHitCount?: number;
+  slowOnSameEnemyCombo: number;
+  guardOnSameEnemyCombo: number;
+  energyNextTurnOnSameEnemyCombo: number;
 }
 
 interface CombatSkillLoadoutEntry {
@@ -226,6 +286,7 @@ interface CombatState {
   hand: CardInstance[];
   equippedSkills: CombatEquippedSkillState[];
   skillModifiers: CombatSkillModifierState;
+  skillWindows: CombatSkillWindowState[];
   log: CombatLogEntry[];
   selectedEnemyId: string;
   meleeUsed?: boolean;
@@ -239,9 +300,32 @@ interface CombatState {
   summonSecondaryBonus: number;
   deckCardIds: string[];
   cardsPlayed: number;
+  playedCardIdsThisTurn: string[];
   potionsUsed: number;
   lowestHeroLife: number;
   lowestMercenaryLife: number;
+  pendingEnergyNextTurn: number;
+  gainedGuardThisTurn: boolean;
+  enemyDiedThisTurn: boolean;
+  enemyDiedLastTurn: boolean;
+  summonDiedThisTurn: boolean;
+  nextEnemyAttackReduction: number;
+  nextEnemyAttackReductionHeroOnly: boolean;
+  nextEnemyAttackSlow: number;
+  nextEnemyAttackFreeze: number;
+  tempHeroDamageBonus: number;
+  tempMercenaryDamageBonus: number;
+  tempSummonPowerBonus: number;
+  tempTrapPowerBonus: number;
+  summonFocusEnemyId: string;
+  summonFocusDamageBonus: number;
+  summonFocusNextAttackPenalty: number;
+  tauntTarget: "mercenary" | "minion" | "";
+  tauntTurnsRemaining: number;
+  tauntMinionId: string;
+  heroFade: number;  // turns of reduced aggro — enemies prefer other targets
+  mercenaryAura: string;  // active merc aura id (e.g., "might", "chill", "enchant")
+  activePlayerAuras: string[];  // aura card IDs that have been activated this combat
 }
 
 interface CombatMercenaryRouteBonusState {
