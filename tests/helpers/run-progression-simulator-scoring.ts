@@ -783,7 +783,8 @@ function scoreTownActionStrategicBias(
   harness: AppHarness,
   beforeRun: RunState,
   afterRun: RunState,
-  actionId: string
+  actionId: string,
+  policy?: BuildPolicyDefinition
 ) {
   const beforeDeck = buildDeckConstructionState(harness, beforeRun)
   const afterDeck = buildDeckConstructionState(harness, afterRun)
@@ -996,6 +997,7 @@ function scoreTownActionStrategicBias(
     const investedTreeRank = Number(afterRanks[treeId] || 0)
     const beforeTreeRank = Number(beforeRanks[treeId] || 0)
     const heroLevel = Number(beforeRun.level || 1)
+    const strategyPreferredTree = String(policy?.preferredTreeId || "")
 
     // Strong bonus for concentrating in one tree
     if (investedTreeRank > beforeHighestRank) {
@@ -1004,6 +1006,13 @@ function scoreTownActionStrategicBias(
       total += 20
     } else {
       total -= 15
+    }
+
+    // Bonus for matching the strategy's preferred tree
+    if (strategyPreferredTree && treeId === strategyPreferredTree) {
+      total += 50
+    } else if (strategyPreferredTree && treeId !== strategyPreferredTree) {
+      total -= 20
     }
 
     // Massive bonus for approaching skill unlock gates
@@ -1097,7 +1106,7 @@ export function optimizeSafeZoneRun(
       }
 
       const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
-      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, targetRun, clone, action.id || "")
+      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, targetRun, clone, action.id || "", policy)
       if (delta > bestDelta) {
         bestDelta = delta
         bestAction = action
@@ -1210,7 +1219,7 @@ export function optimizeSafeZoneRun(
       }
 
       const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
-      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, run, clone, action.id || "")
+      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, run, clone, action.id || "", policy)
       if (delta > bestDelta) {
         bestDelta = delta
         bestAction = action

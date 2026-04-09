@@ -119,6 +119,7 @@ export interface BuildPolicyDefinition {
   bankedSkillPointWeight: number
   bankedClassPointWeight: number
   bankedAttributePointWeight: number
+  preferredTreeId?: string
   cardEffectMultipliers: Partial<Record<CardEffectKind, number>>
 }
 
@@ -297,6 +298,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "necromancer_summoner",
     label: "Necromancer Summoner",
     description: "Thin deck, fast cycling, maximize summon uptime and minion reinforcement.",
+    preferredTreeId: "necromancer_summoning",
     heroLifeWeight: 1.0,
     heroEnergyWeight: 1.3,
     heroDamageWeight: 1.5,
@@ -324,6 +326,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "amazon_marksman",
     label: "Amazon Marksman",
     description: "Mark targets for mercenary, fast burst, thin deck for reliable openers.",
+    preferredTreeId: "amazon_bow_and_crossbow",
     heroDamageWeight: 2.8,
     heroGuardWeight: 1.3,
     heroEnergyWeight: 0.8,
@@ -346,6 +349,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "barbarian_berserker",
     label: "Barbarian Berserker",
     description: "Maximize melee and weapon damage, sustain through raw life and potions.",
+    preferredTreeId: "barbarian_combat_skills",
     heroDamageWeight: 3.5,
     heroLifeWeight: 1.4,
     heroGuardWeight: 1.5,
@@ -370,6 +374,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "druid_elementalist",
     label: "Druid Elementalist",
     description: "Balance elemental damage with summon support, flexible response to threats.",
+    preferredTreeId: "druid_elemental",
     heroEnergyWeight: 1.1,
     heroDamageWeight: 2.4,
     heroGuardWeight: 1.4,
@@ -392,6 +397,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "assassin_martial",
     label: "Assassin Martial Artist",
     description: "Combo skills into burst cards, cost reduction chains, thin deck for reliability.",
+    preferredTreeId: "assassin_martial_arts",
     heroDamageWeight: 3.0,
     heroGuardWeight: 1.8,
     heroEnergyWeight: 1.0,
@@ -413,6 +419,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "paladin_guardian",
     label: "Paladin Guardian",
     description: "Party-wide defense and healing, mercenary synergy, outlast the enemy.",
+    preferredTreeId: "paladin_combat_skills",
     heroGuardWeight: 2.2,
     heroLifeWeight: 1.3,
     heroDamageWeight: 2.2,
@@ -437,6 +444,7 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "sorceress_fire",
     label: "Sorceress Fire",
     description: "Maximize energy and burn damage, fast spell cycling, glass cannon.",
+    preferredTreeId: "sorceress_fire",
     heroEnergyWeight: 1.5,
     heroDamageWeight: 2.8,
     heroBurnWeight: 2.2,
