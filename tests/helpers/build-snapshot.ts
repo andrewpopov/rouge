@@ -99,6 +99,7 @@ export function generateBuildSnapshots(options: {
   const report = runProgressionPolicyFromState(
     harness, state, classId, policy, throughActNumber, 0, 36, seedOffset, undefined,
     {
+      autoWinCombat: true,
       onCheckpoint: (payload) => {
         const run = payload.state.run;
         if (!run) { return; }
