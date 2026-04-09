@@ -327,8 +327,8 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     label: "Amazon Marksman",
     description: "Mark targets for mercenary, fast burst, thin deck for reliable openers.",
     preferredTreeId: "amazon_bow_and_crossbow",
-    heroDamageWeight: 2.8,
-    heroGuardWeight: 1.3,
+    heroDamageWeight: 3.2,
+    heroGuardWeight: 1.1,
     heroEnergyWeight: 0.8,
     mercenaryAttackWeight: 2.2,
     mercenaryLifeWeight: 1.2,
@@ -376,8 +376,8 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     description: "Balance elemental damage with summon support, flexible response to threats.",
     preferredTreeId: "druid_elemental",
     heroEnergyWeight: 1.1,
-    heroDamageWeight: 2.4,
-    heroGuardWeight: 1.4,
+    heroDamageWeight: 2.8,
+    heroGuardWeight: 1.2,
     heroBurnWeight: 1.4,
     deckBloatPenalty: 2.0,
     cardEffectMultipliers: {
@@ -420,9 +420,10 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     label: "Paladin Guardian",
     description: "Party-wide defense and healing, mercenary synergy, outlast the enemy.",
     preferredTreeId: "paladin_combat_skills",
-    heroGuardWeight: 2.2,
-    heroLifeWeight: 1.3,
-    heroDamageWeight: 2.2,
+    heroGuardWeight: 1.8,
+    heroLifeWeight: 1.2,
+    heroDamageWeight: 2.8,
+    weaponWeight: 1.4,
     mercenaryLifeWeight: 1.3,
     mercenaryAttackWeight: 1.5,
     heroPotionWeight: 1.1,
@@ -463,19 +464,194 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
       mark_enemy_for_mercenary: 0.8,
     },
   },
+  // === SECOND ARCHETYPES ===
+  // Amazon: Javelin + merc tank — close range, high single-target damage
+  amazon_javazon: {
+    id: "amazon_javazon",
+    label: "Amazon Javazon",
+    description: "Javelin and spear focus, melee burst, tanky mercenary.",
+    preferredTreeId: "amazon_javelin_and_spear",
+    heroDamageWeight: 3.4,
+    heroGuardWeight: 1.4,
+    weaponWeight: 1.3,
+    mercenaryAttackWeight: 1.8,
+    deckBloatPenalty: 2.2,
+    cardEffectMultipliers: {
+      damage: 1.5,
+      mark_enemy_for_mercenary: 1.6,
+      buff_mercenary_next_attack: 1.4,
+      draw: 1.2,
+      gain_guard_self: 1.1,
+      summon_minion: 0.7,
+    },
+  },
+  // Assassin: Trap specialist — set traps, control the board
+  assassin_trapper: {
+    id: "assassin_trapper",
+    label: "Assassin Trapper",
+    description: "Trap placement, lightning/fire damage, area control.",
+    preferredTreeId: "assassin_traps",
+    heroDamageWeight: 2.4,
+    heroEnergyWeight: 1.3,
+    heroBurnWeight: 1.6,
+    heroGuardWeight: 1.6,
+    deckBloatPenalty: 2.2,
+    cardEffectMultipliers: {
+      apply_burn: 1.5,
+      apply_burn_all: 1.5,
+      summon_minion: 1.8,
+      damage_all: 1.3,
+      draw: 1.3,
+      gain_guard_self: 1.2,
+      damage: 0.9,
+    },
+  },
+  // Barbarian: Warcry support — buff party, debuff enemies, tank
+  barbarian_warcrier: {
+    id: "barbarian_warcrier",
+    label: "Barbarian Warcrier",
+    description: "Shouts and warcries to buff party and debuff enemies, sustain tank.",
+    preferredTreeId: "barbarian_warcries",
+    heroDamageWeight: 2.2,
+    heroGuardWeight: 2.0,
+    heroLifeWeight: 1.4,
+    mercenaryLifeWeight: 1.2,
+    mercenaryAttackWeight: 1.3,
+    deckBloatPenalty: 2.0,
+    cardEffectMultipliers: {
+      gain_guard_party: 1.5,
+      gain_guard_self: 1.4,
+      heal_hero: 1.3,
+      buff_mercenary_next_attack: 1.3,
+      damage: 1.1,
+      draw: 1.1,
+      summon_minion: 0.6,
+    },
+  },
+  // Druid: Shapeshifter — werewolf/werebear melee, sustain through lifesteal
+  druid_shapeshifter: {
+    id: "druid_shapeshifter",
+    label: "Druid Shapeshifter",
+    description: "Shapeshift forms for melee burst, summon allies for support.",
+    preferredTreeId: "druid_shape_shifting",
+    heroDamageWeight: 3.0,
+    heroLifeWeight: 1.3,
+    heroGuardWeight: 1.3,
+    weaponWeight: 1.3,
+    deckBloatPenalty: 2.2,
+    cardEffectMultipliers: {
+      damage: 1.5,
+      heal_hero: 1.3,
+      gain_guard_self: 1.2,
+      summon_minion: 1.2,
+      draw: 1.1,
+      apply_burn: 0.7,
+    },
+  },
+  // Necromancer: Poison and Bone — direct damage, corpse manipulation
+  necromancer_bone: {
+    id: "necromancer_bone",
+    label: "Necromancer Bone Mage",
+    description: "Poison and bone spells for direct damage, corpse explosion finishers.",
+    preferredTreeId: "necromancer_poison_and_bone",
+    heroDamageWeight: 2.6,
+    heroEnergyWeight: 1.2,
+    heroGuardWeight: 1.4,
+    deckBloatPenalty: 2.4,
+    cardEffectMultipliers: {
+      damage: 1.4,
+      damage_all: 1.3,
+      apply_poison: 1.6,
+      apply_poison_all: 1.6,
+      draw: 1.3,
+      gain_guard_self: 1.1,
+      summon_minion: 0.8,
+    },
+  },
+  // Paladin: Zealot — offensive auras, melee burst, less defense
+  paladin_zealot: {
+    id: "paladin_zealot",
+    label: "Paladin Zealot",
+    description: "Offensive auras and melee burst, high damage, less sustain.",
+    preferredTreeId: "paladin_offensive_auras",
+    heroDamageWeight: 3.2,
+    heroGuardWeight: 1.2,
+    weaponWeight: 1.4,
+    matchingProficiencyWeight: 2.8,
+    deckBloatPenalty: 2.2,
+    cardEffectMultipliers: {
+      damage: 1.5,
+      damage_all: 1.3,
+      buff_mercenary_next_attack: 1.3,
+      draw: 1.2,
+      gain_guard_self: 0.9,
+      heal_hero: 0.8,
+      summon_minion: 0.6,
+    },
+  },
+  // Sorceress: Cold — freeze control, blizzard AoE, defensive through CC
+  sorceress_cold: {
+    id: "sorceress_cold",
+    label: "Sorceress Cold",
+    description: "Freeze and slow enemies, blizzard AoE, defensive through crowd control.",
+    preferredTreeId: "sorceress_cold",
+    heroEnergyWeight: 1.4,
+    heroDamageWeight: 2.4,
+    heroGuardWeight: 1.4,
+    deckBloatPenalty: 2.2,
+    cardEffectMultipliers: {
+      apply_freeze: 1.8,
+      apply_freeze_all: 1.8,
+      apply_slow: 1.5,
+      apply_slow_all: 1.5,
+      damage: 1.2,
+      damage_all: 1.3,
+      draw: 1.3,
+      apply_burn: 0.6,
+      gain_guard_self: 1.1,
+    },
+  },
+}
+
+const DEFAULT_CLASS_STRATEGY: Record<string, string> = {
+  necromancer: "necromancer_summoner",
+  amazon: "amazon_marksman",
+  barbarian: "barbarian_berserker",
+  druid: "druid_elementalist",
+  assassin: "assassin_martial",
+  paladin: "paladin_guardian",
+  sorceress: "sorceress_fire",
+}
+
+const ALT_CLASS_STRATEGY: Record<string, string> = {
+  necromancer: "necromancer_bone",
+  amazon: "amazon_javazon",
+  barbarian: "barbarian_warcrier",
+  druid: "druid_shapeshifter",
+  assassin: "assassin_trapper",
+  paladin: "paladin_zealot",
+  sorceress: "sorceress_cold",
 }
 
 export function getClassStrategy(classId: string): Partial<BuildPolicyDefinition> | null {
-  const strategies: Record<string, string> = {
-    necromancer: "necromancer_summoner",
-    amazon: "amazon_marksman",
-    barbarian: "barbarian_berserker",
-    druid: "druid_elementalist",
-    assassin: "assassin_martial",
-    paladin: "paladin_guardian",
-    sorceress: "sorceress_fire",
+  return CLASS_STRATEGIES[DEFAULT_CLASS_STRATEGY[classId] || ""] || null
+}
+
+export function getClassStrategyById(strategyId: string): Partial<BuildPolicyDefinition> | null {
+  return CLASS_STRATEGIES[strategyId] || null
+}
+
+export function getClassStrategies(classId: string): Array<{ id: string; label: string; isDefault: boolean }> {
+  const defaultId = DEFAULT_CLASS_STRATEGY[classId] || ""
+  const altId = ALT_CLASS_STRATEGY[classId] || ""
+  const result = []
+  if (defaultId && CLASS_STRATEGIES[defaultId]) {
+    result.push({ id: defaultId, label: CLASS_STRATEGIES[defaultId].label || defaultId, isDefault: true })
   }
-  return CLASS_STRATEGIES[strategies[classId] || ""] || null
+  if (altId && CLASS_STRATEGIES[altId]) {
+    result.push({ id: altId, label: CLASS_STRATEGIES[altId].label || altId, isDefault: false })
+  }
+  return result
 }
 
 export function applyClassStrategy(basePolicy: BuildPolicyDefinition, classId: string): BuildPolicyDefinition {
