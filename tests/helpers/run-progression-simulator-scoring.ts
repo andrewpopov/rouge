@@ -1008,11 +1008,11 @@ function scoreTownActionStrategicBias(
       total -= 15
     }
 
-    // Bonus for matching the strategy's preferred tree
+    // Bonus for matching the strategy's preferred tree — this is THE dominant factor
     if (strategyPreferredTree && treeId === strategyPreferredTree) {
-      total += 50
+      total += 120
     } else if (strategyPreferredTree && treeId !== strategyPreferredTree) {
-      total -= 20
+      total -= 80
     }
 
     // Massive bonus for approaching skill unlock gates
