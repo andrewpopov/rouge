@@ -105,3 +105,27 @@ The game is balanced when:
 4. **Build diversity matters** — within each class, different archetype paths should be viable (even if one is stronger)
 
 The sim should test each class with its optimal strategy, not with generic aggressive/balanced/control policies.
+
+---
+
+## Validation Status (2026-04-08)
+
+### Strategies implemented in sim
+All 7 class strategies are defined as policy overrides in `run-progression-simulator-core.ts` and auto-applied via `applyClassStrategy()` in the progression sim.
+
+### Build snapshot results (auto-win campaign to Act 4)
+| Class | HP | Dmg | Guard | Deck | Weapon | vs A3 Boss | vs A4 Boss |
+|-------|-----|------|-------|------|--------|-----------|-----------|
+| Barbarian | 237 | +22 | +7 | 28 | War Hammer | 3/3 | 1/3 |
+| Necromancer | 171 | +8 | +13 | 30 | Bone Wand | 1/3 | 0/3 |
+| Sorceress | 143 | +7 | +9 | 34 | War Staff | 3/3 | 0/3 |
+
+### Known strategy failures
+1. **Deck bloat not controlled**: Necro/Sorc strategies specify thin decks (14-18) but sim builds 30-34 cards. The `deckBloatPenalty` weight isn't driving enough sage_purge/card removal.
+2. **Skills not progressing**: All classes at Lv16 only have slot 1 skill. Class point investment isn't meeting tree rank gates for slot 2 (Lv6 + 3 ranks).
+3. **Strategies affect drafting but not town decisions enough**: The card effect multipliers influence which rewards are chosen but don't force deck thinning or skill investment.
+
+### What needs to happen
+- Town optimization must prioritize sage_purge actions when deck exceeds strategy target
+- Class point investment must be front-loaded to hit slot 2 gate by Act 2
+- Each strategy needs a `targetDeckSize` field that drives pruning behavior

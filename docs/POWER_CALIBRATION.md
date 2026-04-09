@@ -1,8 +1,11 @@
-# Power Calibration — Balance Data from 144 Campaign Runs
+# Power Calibration — Balance Data
 
-Data from post-nerf and v2-strategy experiments in balance-runs.db.
+_Updated: 2026-04-08_
 
-## Win Rate Matrix
+Data from 144 campaign runs (post-nerf + v2-strategy experiments) in balance-runs.db,
+plus build snapshot diagnostics.
+
+## Win Rate Matrix (144 campaign runs)
 
 | Class | Aggressive | Balanced | Control | Bulwark |
 |-------|-----------|----------|---------|---------|
@@ -13,6 +16,18 @@ Data from post-nerf and v2-strategy experiments in balance-runs.db.
 | Druid | 67% | 17% | 33% | 0% |
 | Necromancer | 56% | 33% | 67% | 0% |
 | Barbarian | 44% | 17% | 33% | 0% |
+
+## Boss Viability Matrix (per-act, full_clear_power builds)
+
+| Class | Act 1 | Act 2 | Act 3 | Act 4 | Act 5 |
+|-------|-------|-------|-------|-------|-------|
+| Assassin | 100% | 100% | 100% | 33% | **100%** |
+| Paladin | 100% | 100% | 100% | 100% | **67%** |
+| Druid | 100% | 100% | 100% | 100% | 33% |
+| Barbarian | 100% | 100% | 100% | 67% | 33% |
+| Sorceress | 100% | 100% | 100% | 33% | 33% |
+| Amazon | 100% | 100% | 100% | 33% | 0% |
+| Necromancer | 100% | 100% | 100% | 33% | 33% |
 
 ## Power Score Calibration
 
@@ -34,26 +49,49 @@ Data from post-nerf and v2-strategy experiments in balance-runs.db.
 
 ## Defeat Analysis
 
-- **92% burst deaths** — hero killed in 1-2 turns
-- **8% attrition** — ground down over 8+ turns
-- **0% energy/merc collapse** — these aren't happening
+- **92% burst deaths** (46/50) — hero killed in 1-2 turns
+- **8% attrition** (4/50) — ground down over 8+ turns
+- **0% energy/merc collapse** — these aren't occurring
 
 ## Failure Distribution by Act
 
-- Act 1: 13 failures (26%)
-- Act 2: 5 failures (10%)
-- Act 4: 30 failures (60%)
-- Act 5: 2 failures (4%)
+| Act | Failures | % of total |
+|-----|----------|------------|
+| Act 1 | 13 | 26% |
+| Act 2 | 5 | 10% |
+| Act 4 | 30 | **60%** |
+| Act 5 | 2 | 4% |
 
 **Act 4 is the primary gate.** The difficulty jump from Act 3 to Act 4 causes 60% of all run deaths.
 
-## Balance Recommendations
+## Build Snapshot Diagnostics (auto-win campaign builds at Act 4)
 
-1. **Reduce Act 4 spike** — either lower enemy scaling at Act 4 or increase Act 3 rewards
-2. **Add burst protection** — 92% burst deaths means Guard/HP is insufficient against big hits. Consider:
-   - Higher base Guard values on neutral cards
-   - Act 4 encounter modifier tuning (reduce opening burst)
-   - Town feature that grants Guard at combat start
-3. **Fix Bulwark policy** — 0% across all classes. Either buff defensive scaling or rethink the policy
-4. **Buff Barbarian** — weakest class at 44% aggressive. Core skill (Rallying Bash) gives no scaling Guard
-5. **Investigate Amazon/Druid balanced policy** — 17% is very low. Balanced policy may undervalue their key mechanics (marks/summons)
+| Class | HP | Energy | Damage | Guard | Deck | Weapon | Merc Atk | vs A3 Boss | vs A4 Boss |
+|-------|-----|--------|--------|-------|------|--------|----------|-----------|-----------|
+| Barbarian | 237 | 6 | +22 | +7 | 28 | War Hammer | 73 | 3/3 | 1/3 (attrition) |
+| Necromancer | 171 | 6 | +8 | +13 | **30** | Bone Wand | 81 | 1/3 | 0/3 (burst) |
+| Sorceress | 143 | 6 | +7 | +9 | **34** | War Staff | 67 | 3/3 | 0/3 (burst) |
+
+### Diagnosed Build Problems
+
+1. **Decks are too fat**: Necro 30, Sorceress 34 — strategies say 14-18. Class strategy `deckBloatPenalty` isn't driving enough card removal.
+2. **No slot 2/3 skills equipped** at Lv16 — all classes only have core skill. Progression not investing enough class points or tree ranks aren't meeting unlock gates.
+3. **Necromancer lowest HP (171)** with bloated deck — can't find summon cards fast enough, dies before army online.
+4. **Barbarian dies to attrition** not burst at Act 4 — he survives hits but can't kill fast enough. Needs more burst damage options.
+
+## Sim AI Validation
+
+Decision audit confirmed the AI makes correct defensive choices:
+- Guard Stance scores 61.5 (highest) when 27 damage incoming
+- Measured Swing 32.3, Field Dressing 18.0, Melee 1.0
+- AI correctly prioritizes defense > offense > heal when threatened
+- The 92% burst death rate is a real game problem, not an AI problem
+
+## Balance Recommendations (priority order)
+
+1. **Fix deck bloat in sim** — class strategies aren't driving enough card pruning. Necro/Sorc decks should be 16-20, not 30-34.
+2. **Fix skill progression in sim** — builds at Lv16 should have bridge skills (Lv6 gate). Sim may not be investing class points correctly.
+3. **Reduce Act 4 spike** — 60% of failures. Either lower Act 4 enemy scaling or increase Act 3 reward power.
+4. **Add burst protection** — 92% burst deaths. Consider: higher base Guard on neutral cards, encounter modifier tuning, town feature granting combat-start Guard.
+5. **Fix Bulwark policy** — 0% across all classes. Either buff defensive damage scaling or remove the policy.
+6. **Buff Barbarian** — weakest class. Rallying Bash's 2 Guard doesn't scale with slot tier.
