@@ -353,10 +353,20 @@ function chooseBestRewardChoice(
       harness.runFactory.advanceToNextAct(runClone, harness.content)
     }
 
-    const score = evaluateRunScore(harness, runClone, policy, {
+    let score = evaluateRunScore(harness, runClone, policy, {
       assumeFullResources,
       archetypePlan: archetypePlan || null,
     }) + getCommittedChoiceBias(choice, runClone)
+
+    // Penalize card-adding choices when deck is already bloated
+    const addsCard = (Array.isArray(choice.effects) ? choice.effects : []).some((e) => e.kind === "add_card")
+    if (addsCard && run.deck.length >= 22) {
+      score -= (run.deck.length - 20) * policy.deckBloatPenalty * 2.5
+    }
+    if (addsCard && run.deck.length >= 28) {
+      score -= (run.deck.length - 26) * policy.deckBloatPenalty * 4
+    }
+
     if (score > bestScore) {
       bestScore = score
       bestChoice = choice

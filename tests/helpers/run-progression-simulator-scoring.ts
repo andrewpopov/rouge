@@ -432,7 +432,9 @@ function scoreDeckConstructionState(harness: AppHarness, run: RunState, policy: 
     total += 12
   }
   if (run.deck.length > 18) {
-    total -= (run.deck.length - 18) * 2.4
+    const excessCards = run.deck.length - 18
+    // Quadratic scaling: each additional card over 18 is progressively worse
+    total -= excessCards * (4.0 + excessCards * 0.8)
   }
 
   return total
@@ -610,7 +612,7 @@ export function buildDeckStats(harness: AppHarness, run: RunState, policy: Build
   const deckScore =
     topCards.reduce((sum, score) => sum + score, 0) * policy.deckTopWeight +
     restCards.reduce((sum, score) => sum + score, 0) * policy.deckRestWeight -
-    Math.max(0, run.deck.length - 16) * policy.deckBloatPenalty
+    Math.max(0, run.deck.length - 16) * policy.deckBloatPenalty * (1 + Math.max(0, run.deck.length - 20) * 0.15)
 
   const proficiencyCounts = run.deck.reduce((counts, cardId) => {
     const proficiency = harness.content.cardCatalog[cardId]?.proficiency || "neutral"
@@ -827,10 +829,17 @@ function scoreTownActionStrategicBias(
     const reinforced = String(cardId || "").endsWith("_plus") || getEvolutionRootCardIdForScoring(cardId, reverseEvolutionMap) !== baseCardId
 
     if (beforeReinforcementDeficit > 0) {
-      total -= 30 + beforeReinforcementDeficit * 6
+      total -= 10 + beforeReinforcementDeficit * 3
     }
-    if (Number(beforeRun.actNumber || 1) <= 2) {
-      total -= 12
+    if (Number(beforeRun.actNumber || 1) <= 1) {
+      total -= 8
+    }
+    // Bonus for purging when deck is bloated (over 20 cards)
+    if (beforeRun.deck.length > 20) {
+      total += (beforeRun.deck.length - 20) * 4
+    }
+    if (beforeRun.deck.length > 26) {
+      total += (beforeRun.deck.length - 26) * 6
     }
 
     if (unchangedStarterCopies > 0) {
@@ -1023,13 +1032,9 @@ export function optimizeSafeZoneRun(
         const actionId = action.id || ""
         return !action.disabled && isDeckShapingAction(actionId)
       })
-    const reinforcementActions = allActions.filter((action: TownAction) => isReinforcementAction(action.id || ""))
-    const actions =
-      reinforcementDeficit > 0 && reinforcementActions.length > 0
-        ? reinforcementActions
-        : reinforcementDeficit > 0 && actNumber <= 2
-          ? allActions.filter((action: TownAction) => !isCleanupAction(action.id || ""))
-          : allActions
+    // Allow both reinforcement and purge actions to compete — purge scoring
+    // handles reinforcement deficit via its strategic bias penalty
+    const actions = allActions
 
     let bestAction: TownAction | null = null
     let bestDelta = 0
@@ -1116,7 +1121,7 @@ export function optimizeSafeZoneRun(
     }
   }
 
-  settleDeckShapingActions(run, Number(run.actNumber || 1) >= 4 ? 4 : Number(run.actNumber || 1) >= 2 ? 3 : 1)
+  settleDeckShapingActions(run, Number(run.actNumber || 1) >= 4 ? 6 : Number(run.actNumber || 1) >= 2 ? 4 : 2)
 
   let consecutiveSmallDeltas = 0
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
