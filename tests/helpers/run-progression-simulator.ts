@@ -135,7 +135,10 @@ function autoUnlockAndEquipSkills(
 
   // Try to unlock and equip skills for slot2 and slot3
   const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId)
-  if (!classProgression) { return }
+  if (!classProgression) {
+    console.warn("autoUnlockAndEquipSkills: no class progression for", run.classId)
+    return
+  }
 
   const trees = (classProgression as unknown as { trees?: Array<{ id: string; skills?: Array<{ id: string; slot?: number; tier?: string; requiredLevel?: number }> }> }).trees || []
 
@@ -153,11 +156,15 @@ function autoUnlockAndEquipSkills(
 
         // Try to unlock
         const unlockResult = progressionApi.unlockTrainingSkill(run, harness.content, skill.id)
-        if (!unlockResult?.ok && !unlockResult?.message?.includes("already learned")) { continue }
+        if (!unlockResult?.ok && !unlockResult?.message?.includes("already learned")) {
+          continue
+        }
 
         // Try to equip
         const equipResult = progressionApi.equipTrainingSkill(run, harness.content, slotKey, skill.id)
-        if (equipResult?.ok) { break }
+        if (equipResult?.ok) {
+          break
+        }
       }
       const equipped = run.progression?.classProgression?.equippedSkillBar?.[`${slotKey}SkillId`] || ""
       if (equipped) { break }
@@ -721,6 +728,7 @@ export function runProgressionPolicyFromState(
         return report
       }
 
+      autoUnlockAndEquipSkills(harness, state)
       reportOperation("started", "leave_safe_zone", 0, `act ${state.run.actNumber}`)
       const leaveStartedAt = Date.now()
       const leaveResult = harness.appEngine.leaveSafeZone(state)
