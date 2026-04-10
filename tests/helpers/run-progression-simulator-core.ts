@@ -344,12 +344,12 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
       apply_burn: 0.8,
     },
   },
-  // Barbarian: raw damage, weapon synergy, melee focus, sustain through life
+  // Barbarian: combat masteries — weapon scaling, balanced offense/defense
   barbarian_berserker: {
     id: "barbarian_berserker",
     label: "Barbarian Berserker",
     description: "Maximize melee and weapon damage, sustain through raw life and potions.",
-    preferredTreeId: "barbarian_combat_skills",
+    preferredTreeId: "barbarian_combat_masteries",
     heroDamageWeight: 3.5,
     heroLifeWeight: 1.4,
     heroGuardWeight: 1.5,
@@ -369,7 +369,28 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
       mark_enemy_for_mercenary: 1.0,
     },
   },
-  // Druid: summon + elemental hybrid, flexible, value both paths
+  // Druid: summoner — summon army, support with guard and healing
+  druid_summoner: {
+    id: "druid_summoner",
+    label: "Druid Summoner",
+    description: "Summon wolves and spirits, support with guard and healing, let army do the damage.",
+    preferredTreeId: "druid_summoning",
+    heroGuardWeight: 1.6,
+    heroLifeWeight: 1.2,
+    heroDamageWeight: 2.0,
+    heroEnergyWeight: 1.0,
+    deckBloatPenalty: 2.0,
+    cardEffectMultipliers: {
+      summon_minion: 2.2,
+      gain_guard_self: 1.3,
+      gain_guard_party: 1.3,
+      heal_hero: 1.2,
+      draw: 1.2,
+      damage: 0.9,
+      apply_burn: 0.7,
+    },
+  },
+  // Druid: elementalist — burn and direct damage (alt)
   druid_elementalist: {
     id: "druid_elementalist",
     label: "Druid Elementalist",
@@ -392,7 +413,29 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
       heal_hero: 1.0,
     },
   },
-  // Assassin: combo-focused, cost reduction, burst damage, thin deck
+  // Assassin: shadow disciplines — energy scaling, survivable, balanced offense
+  assassin_shadow: {
+    id: "assassin_shadow",
+    label: "Assassin Shadow Master",
+    description: "Shadow disciplines for energy scaling and survivability, steady damage output.",
+    preferredTreeId: "assassin_shadow_disciplines",
+    heroDamageWeight: 2.6,
+    heroGuardWeight: 1.8,
+    heroLifeWeight: 1.2,
+    heroEnergyWeight: 1.3,
+    deckBloatPenalty: 2.0,
+    cardEffectMultipliers: {
+      damage: 1.2,
+      draw: 1.3,
+      gain_guard_self: 1.3,
+      gain_guard_party: 1.2,
+      apply_stun: 1.3,
+      apply_paralyze: 1.2,
+      heal_hero: 1.1,
+      summon_minion: 0.8,
+    },
+  },
+  // Assassin: martial arts — combo burst (alt, high risk/reward)
   assassin_martial: {
     id: "assassin_martial",
     label: "Assassin Martial Artist",
@@ -419,11 +462,11 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
     id: "paladin_guardian",
     label: "Paladin Guardian",
     description: "Party-wide defense and healing, mercenary synergy, outlast the enemy.",
-    preferredTreeId: "paladin_combat_skills",
-    heroGuardWeight: 1.8,
-    heroLifeWeight: 1.2,
-    heroDamageWeight: 2.8,
-    weaponWeight: 1.4,
+    preferredTreeId: "paladin_defensive_auras",
+    heroGuardWeight: 2.0,
+    heroLifeWeight: 1.3,
+    heroDamageWeight: 2.4,
+    weaponWeight: 1.2,
     mercenaryLifeWeight: 1.3,
     mercenaryAttackWeight: 1.5,
     heroPotionWeight: 1.1,
@@ -440,7 +483,30 @@ export const CLASS_STRATEGIES: Record<string, Partial<BuildPolicyDefinition>> = 
       summon_minion: 0.8,
     },
   },
-  // Sorceress: energy scaling, burn/elemental damage, fast kills
+  // Sorceress: lightning — chain lightning, energy scaling, balanced
+  sorceress_lightning: {
+    id: "sorceress_lightning",
+    label: "Sorceress Lightning",
+    description: "Lightning mastery for chain damage, energy scaling, balanced survivability.",
+    preferredTreeId: "sorceress_lightning",
+    heroEnergyWeight: 1.4,
+    heroDamageWeight: 2.6,
+    heroGuardWeight: 1.2,
+    heroLifeWeight: 1.0,
+    deckBloatPenalty: 2.0,
+    cardEffectMultipliers: {
+      damage: 1.3,
+      damage_all: 1.4,
+      draw: 1.3,
+      apply_stun: 1.3,
+      apply_stun_all: 1.3,
+      gain_guard_self: 1.0,
+      heal_hero: 0.9,
+      apply_burn: 0.8,
+      summon_minion: 0.7,
+    },
+  },
+  // Sorceress: fire — burn focus, glass cannon (alt)
   sorceress_fire: {
     id: "sorceress_fire",
     label: "Sorceress Fire",
@@ -617,20 +683,20 @@ const DEFAULT_CLASS_STRATEGY: Record<string, string> = {
   necromancer: "necromancer_summoner",
   amazon: "amazon_marksman",
   barbarian: "barbarian_berserker",
-  druid: "druid_elementalist",
-  assassin: "assassin_martial",
+  druid: "druid_summoner",
+  assassin: "assassin_shadow",
   paladin: "paladin_guardian",
-  sorceress: "sorceress_fire",
+  sorceress: "sorceress_lightning",
 }
 
 const ALT_CLASS_STRATEGY: Record<string, string> = {
   necromancer: "necromancer_bone",
   amazon: "amazon_javazon",
   barbarian: "barbarian_warcrier",
-  druid: "druid_shapeshifter",
-  assassin: "assassin_trapper",
+  druid: "druid_elementalist",
+  assassin: "assassin_martial",
   paladin: "paladin_zealot",
-  sorceress: "sorceress_cold",
+  sorceress: "sorceress_fire",
 }
 
 export function getClassStrategy(classId: string): Partial<BuildPolicyDefinition> | null {
