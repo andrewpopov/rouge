@@ -44,10 +44,10 @@
     MAX_ACTIVE_MINIONS,
     getActiveMinions,
     getMinionTemplate,
-    getMinionDuration,
-    getMinionPrimaryValue,
-    getMinionSecondaryValue,
-    getMinionReinforcementValue,
+    getMinionDuration: _getMinionDuration,
+    getMinionPrimaryValue: _getMinionPrimaryValue,
+    getMinionSecondaryValue: _getMinionSecondaryValue,
+    getMinionReinforcementValue: _getMinionReinforcementValue,
     getMinionSkillSummary,
     getSummonPreview,
   } = minionModule;
@@ -119,6 +119,21 @@
 
   function resolveMercenaryAction(state: CombatState) {
     mercenaryModule.resolveMercenaryAction(state, appendLog, dealDamage, applyGuard, getFirstLivingEnemyId);
+  }
+
+  function decayHeroTurnDebuffs(state: CombatState) {
+    if (state.hero.chill > 0) {
+      state.hero.chill = Math.max(0, state.hero.chill - 1);
+    }
+    if (state.hero.energyDrain > 0) {
+      state.hero.energyDrain = Math.max(0, state.hero.energyDrain - 1);
+    }
+    if (state.hero.amplify > 0) {
+      state.hero.amplify = Math.max(0, state.hero.amplify - 1);
+    }
+    if (state.hero.weaken > 0) {
+      state.hero.weaken = Math.max(0, state.hero.weaken - 1);
+    }
   }
 
   function drawCards(state: CombatState, amount: number) {
@@ -232,12 +247,28 @@
         });
         return;
       }
+
+      if (state.tauntTurnsRemaining > 0) {
+        state.tauntTurnsRemaining = Math.max(0, state.tauntTurnsRemaining - 1);
+        if (state.tauntTurnsRemaining <= 0) {
+          state.tauntTarget = "";
+          state.tauntMinionId = "";
+        }
+      }
+
+      if (state.heroFade > 0) {
+        state.heroFade = Math.max(0, state.heroFade - 1);
+      }
     }
 
     // Energy: apply energy drain
     let energyThisTurn = state.hero.maxEnergy;
     if (state.hero.energyDrain > 0 && state.turn > 1) {
       energyThisTurn = Math.max(1, energyThisTurn - 1);
+    }
+    if (state.pendingEnergyNextTurn > 0) {
+      energyThisTurn += Math.max(0, state.pendingEnergyNextTurn);
+      state.pendingEnergyNextTurn = 0;
     }
     state.hero.energy = energyThisTurn;
 
@@ -277,6 +308,8 @@
       });
       clearSkillModifiers(state);
     }
+
+    decayHeroTurnDebuffs(state);
 
     discardHand(state);
     state.phase = COMBAT_PHASE.ENEMY;

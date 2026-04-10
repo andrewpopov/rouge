@@ -2,9 +2,9 @@ export {};
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createAppHarness } from "./helpers/browser-harness";
 
 function createHarness() {
-  const { createAppHarness } = require("./helpers/browser-harness");
   const harness = createAppHarness();
   return {
     harness,
@@ -21,6 +21,19 @@ function createState(h: ReturnType<typeof createHarness>, encounterId = "act_1_o
     mercenaryId: "rogue_scout",
     randomFn: () => 0.5,
   });
+}
+
+function prepareSingleTargetEnemyAttackState(h: ReturnType<typeof createHarness>) {
+  const state = createState(h);
+  const enemy = state.enemies[0];
+  enemy.intents = [{ kind: "attack", label: "Test Strike", value: 7, target: "hero" }];
+  enemy.intentIndex = 0;
+  enemy.currentIntent = { ...enemy.intents[0] };
+  state.enemies = [enemy];
+  state.selectedEnemyId = enemy.id;
+  state.mercenary.attack = 0;
+  state.mercenary.nextAttackBonus = 0;
+  return state;
 }
 
 // ─── Combat Log: Actor Attribution ────────────────────────────────────────────
@@ -207,7 +220,7 @@ test("apply_taunt card effect sets taunt on mercenary", () => {
 
 test("taunt redirects single-target enemy attacks to mercenary", () => {
   const h = createHarness();
-  const state = createState(h);
+  const state = prepareSingleTargetEnemyAttackState(h);
   state.tauntTarget = "mercenary";
   state.tauntTurnsRemaining = 2;
   state.mercenary.life = state.mercenary.maxLife;
@@ -221,17 +234,33 @@ test("taunt redirects single-target enemy attacks to mercenary", () => {
   if (heroTookDamage || mercTookDamage) {
     assert.ok(mercTookDamage, "mercenary should take damage when taunting");
   }
+  assert.equal(state.tauntTurnsRemaining, 1, "taunt should persist for the remaining enemy phase duration");
 });
 
 test("taunt decays each turn and clears when expired", () => {
   const h = createHarness();
-  const state = createState(h);
+  const state = prepareSingleTargetEnemyAttackState(h);
   state.tauntTarget = "mercenary";
   state.tauntTurnsRemaining = 1;
   state.phase = "player" as CombatPhase;
   h.engine.endTurn(state);
   assert.equal(state.tauntTurnsRemaining, 0, "taunt should decay by 1");
   assert.equal(state.tauntTarget, "", "taunt target should clear when expired");
+});
+
+test("fade redirects single-target enemy attacks away from the hero and expires next turn", () => {
+  const h = createHarness();
+  const state = prepareSingleTargetEnemyAttackState(h);
+  state.heroFade = 1;
+  state.mercenary.life = state.mercenary.maxLife;
+  state.hero.life = state.hero.maxLife;
+  const mercLifeBefore = state.mercenary.life;
+  const heroLifeBefore = state.hero.life;
+  state.phase = "player" as CombatPhase;
+  h.engine.endTurn(state);
+  assert.equal(state.hero.life, heroLifeBefore, "fade should keep the hero out of the hit");
+  assert.ok(state.mercenary.life < mercLifeBefore, "fade should redirect single-target pressure to another ally when possible");
+  assert.equal(state.heroFade, 0, "fade should expire after the protected enemy phase");
 });
 
 // ─── Multi-Turn Combat Flow ───────────────────────────────────────────────────

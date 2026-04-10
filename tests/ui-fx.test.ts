@@ -607,6 +607,290 @@ test("combat skill preview api exposes party, mercenary, and hero support scopes
   assert.match(preview.buildSkillPreviewOutcome(combat, energyShieldSkill, selectedEnemy), /Next card Guard 4/);
 });
 
+test("combat skill preview api exposes authored amazon legacy bow, javelin, and passive windows", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const amazonSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "amazon")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = amazonSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime amazon skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: skillId === "amazon_immolation_arrow" || skillId === "amazon_inner_sight" ? "act_1_boss" : "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const innerSight = buildEquippedSkill("amazon_inner_sight");
+  const slowMissiles = buildEquippedSkill("amazon_slow_missiles");
+  const immolationArrow = buildEquippedSkill("amazon_immolation_arrow");
+  const fend = buildEquippedSkill("amazon_fend");
+  const predatorsCalm = buildEquippedSkill("amazon_predators_calm");
+
+  assert.match(preview.buildSkillPreviewOutcome(innerSight.combat, innerSight.equipped, innerSight.target), /Merc \+6/);
+  assert.match(preview.buildSkillPreviewOutcome(innerSight.combat, innerSight.equipped, innerSight.target), /ignore 3 guard/);
+  assert.match(preview.buildSkillPreviewOutcome(slowMissiles.combat, slowMissiles.equipped, slowMissiles.target), /Ranged\/support -6 next turn/);
+  assert.match(preview.buildSkillPreviewOutcome(immolationArrow.combat, immolationArrow.equipped, immolationArrow.target), /Burn 4/);
+  assert.match(preview.buildSkillPreviewOutcome(immolationArrow.combat, immolationArrow.equipped, immolationArrow.target), /Next ranged Burn 2/);
+  assert.match(preview.buildSkillPreviewOutcome(fend.combat, fend.equipped, fend.target), /18 dmg split/);
+  assert.match(preview.buildSkillPreviewOutcome(predatorsCalm.combat, predatorsCalm.equipped, predatorsCalm.target), /Next 3 damaging cards \+5/);
+});
+
+test("combat skill preview api exposes authored assassin martial, shadow, and trap windows", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const assassinSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "assassin")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = assassinSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime assassin skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: skillId === "assassin_tiger_strike" || skillId === "assassin_dragon_flight" ? "act_1_boss" : "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const tigerStrike = buildEquippedSkill("assassin_tiger_strike");
+  const wakeOfFire = buildEquippedSkill("assassin_wake_of_fire");
+  const mindBlast = buildEquippedSkill("assassin_mind_blast");
+  const venom = buildEquippedSkill("assassin_venom");
+  const nightMaze = buildEquippedSkill("assassin_night_maze");
+
+  assert.match(preview.buildSkillPreviewOutcome(tigerStrike.combat, tigerStrike.equipped, tigerStrike.target), /Next Assassin melee \+3/);
+  assert.match(preview.buildSkillPreviewOutcome(wakeOfFire.combat, wakeOfFire.equipped, wakeOfFire.target), /Wake of Fire/);
+  assert.match(preview.buildSkillPreviewOutcome(wakeOfFire.combat, wakeOfFire.equipped, wakeOfFire.target), /Burn 3/);
+  assert.match(preview.buildSkillPreviewOutcome(mindBlast.combat, mindBlast.equipped, mindBlast.target), /Enemies -3 next turn/);
+  assert.match(preview.buildSkillPreviewOutcome(venom.combat, venom.equipped, venom.target), /Next melee \+4/);
+  assert.match(preview.buildSkillPreviewOutcome(nightMaze.combat, nightMaze.equipped, nightMaze.target), /triggers twice/);
+});
+
+test("combat skill preview api exposes authored paladin combat and aura windows", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const paladinSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "paladin")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = paladinSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime paladin skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: skillId === "paladin_sacrifice" || skillId === "paladin_holy_shield" ? "act_1_boss" : "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const sacrifice = buildEquippedSkill("paladin_sacrifice");
+  const cleansing = buildEquippedSkill("paladin_cleansing");
+  const blessedAim = buildEquippedSkill("paladin_blessed_aim");
+  const holyShield = buildEquippedSkill("paladin_holy_shield");
+  const fanaticDecree = buildEquippedSkill("paladin_fanatic_decree");
+
+  assert.match(preview.buildSkillPreviewOutcome(sacrifice.combat, sacrifice.equipped, sacrifice.target), /Lose 3 Life/);
+  assert.match(preview.buildSkillPreviewOutcome(cleansing.combat, cleansing.equipped, cleansing.target), /Cleanse 1 debuff/);
+  assert.match(preview.buildSkillPreviewOutcome(blessedAim.combat, blessedAim.equipped, blessedAim.target), /Next 2 Attacks \+4/);
+  assert.match(preview.buildSkillPreviewOutcome(holyShield.combat, holyShield.equipped, holyShield.target), /Guard 18 party/);
+  assert.match(preview.buildSkillPreviewOutcome(holyShield.combat, holyShield.equipped, holyShield.target), /8 magic dmg line/);
+  assert.match(preview.buildSkillPreviewOutcome(fanaticDecree.combat, fanaticDecree.equipped, fanaticDecree.target), /Attack\/Aura cards \+5 this turn/);
+});
+
+test("combat skill preview api exposes authored barbarian combat and warcry windows", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const barbarianSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "barbarian")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = barbarianSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime barbarian skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: skillId === "barbarian_bash" || skillId === "barbarian_taunt" ? "act_1_boss" : "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const bash = buildEquippedSkill("barbarian_bash");
+  const taunt = buildEquippedSkill("barbarian_taunt");
+  const battleOrders = buildEquippedSkill("barbarian_battle_orders");
+  const findPotion = buildEquippedSkill("barbarian_find_potion");
+  const perfectForm = buildEquippedSkill("barbarian_perfect_form");
+
+  assert.match(preview.buildSkillPreviewOutcome(bash.combat, bash.equipped, bash.target), /14 dmg/);
+  assert.match(preview.buildSkillPreviewOutcome(taunt.combat, taunt.equipped, taunt.target), /Merc \+6/);
+  assert.match(preview.buildSkillPreviewOutcome(taunt.combat, taunt.equipped, taunt.target), /Next Attack vs target \+6/);
+  assert.match(preview.buildSkillPreviewOutcome(battleOrders.combat, battleOrders.equipped, battleOrders.target), /Guard 22 party/);
+  assert.match(preview.buildSkillPreviewOutcome(findPotion.combat, findPotion.equipped, findPotion.target), /Heal 5 \+ Guard 4 \+ Draw 1/);
+  assert.match(preview.buildSkillPreviewOutcome(perfectForm.combat, perfectForm.equipped, perfectForm.target), /ignore 5/);
+});
+
+test("combat skill preview api exposes authored sorceress tree skill outcomes", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const sorceressSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "sorceress")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = sorceressSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime sorceress skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const frozenArmor = buildEquippedSkill("sorceress_frozen_armor");
+  const enchant = buildEquippedSkill("sorceress_enchant");
+  const glacialSpike = buildEquippedSkill("sorceress_glacial_spike");
+  const teleport = buildEquippedSkill("sorceress_teleport");
+  const chainLightning = buildEquippedSkill("sorceress_chain_lightning");
+
+  assert.match(preview.buildSkillPreviewOutcome(frozenArmor.combat, frozenArmor.equipped, frozenArmor.target), /Guard 8/);
+  assert.match(preview.buildSkillPreviewOutcome(frozenArmor.combat, frozenArmor.equipped, frozenArmor.target), /Freeze 1/);
+  assert.match(preview.buildSkillPreviewOutcome(enchant.combat, enchant.equipped, enchant.target), /Next 2 damage cards \+4/);
+  assert.match(preview.buildSkillPreviewOutcome(enchant.combat, enchant.equipped, enchant.target), /Merc \+6/);
+  assert.match(preview.buildSkillPreviewOutcome(glacialSpike.combat, glacialSpike.equipped, glacialSpike.target), /Freeze 1 line/);
+  assert.match(preview.buildSkillPreviewOutcome(teleport.combat, teleport.equipped, teleport.target), /Next Spell cost -1/);
+  assert.match(preview.buildSkillPreviewOutcome(chainLightning.combat, chainLightning.equipped, chainLightning.target), /Draw 1 if it chains/);
+});
+
+test("combat skill preview api exposes authored necromancer curse, bone, and summon windows", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const necromancerSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "necromancer")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = necromancerSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime necromancer skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const amplify = buildEquippedSkill("necromancer_amplify_damage");
+  const lifeTap = buildEquippedSkill("necromancer_life_tap");
+  const boneSpirit = buildEquippedSkill("necromancer_bone_spirit");
+  const massReassembly = buildEquippedSkill("necromancer_mass_reassembly");
+
+  assert.match(preview.buildSkillPreviewOutcome(amplify.combat, amplify.equipped, amplify.target), /Merc \+8/);
+  assert.match(preview.buildSkillPreviewOutcome(amplify.combat, amplify.equipped, amplify.target), /Next 2 attacks vs target \+4/);
+  assert.match(preview.buildSkillPreviewOutcome(lifeTap.combat, lifeTap.equipped, lifeTap.target), /Heal 6 \+ Guard 5 \+ Draw 1/);
+  assert.match(preview.buildSkillPreviewOutcome(boneSpirit.combat, boneSpirit.equipped, boneSpirit.target), /ignore 4 guard/);
+  assert.match(preview.buildSkillPreviewOutcome(massReassembly.combat, massReassembly.equipped, massReassembly.target), /Summon Skeleton/);
+});
+
+test("combat skill preview api exposes authored druid elemental, shifter, and summon windows", () => {
+  const harness = createHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const preview = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW;
+  const druidSkills = (browserWindow.ROUGE_CLASS_REGISTRY.getClassProgression(content, "druid")?.trees || [])
+    .flatMap((tree: { skills?: RuntimeClassSkillDefinition[] }) => tree.skills || []);
+  const getSkill = (skillId: string) => {
+    const skill = druidSkills.find((entry) => entry.id === skillId) || null;
+    assert.ok(skill, `missing runtime druid skill ${skillId}`);
+    return skill;
+  };
+  const buildEquippedSkill = (skillId: string) => {
+    const skill = getSkill(skillId);
+    const combat = combatEngine.createCombatState({
+      content,
+      encounterId: "act_1_opening_crossfire",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    return {
+      combat,
+      equipped: combat.equippedSkills[0],
+      target: combat.enemies.find((enemy) => enemy.alive) || null,
+    };
+  };
+
+  const arcticBlast = buildEquippedSkill("druid_arctic_blast");
+  const feralRage = buildEquippedSkill("druid_feral_rage");
+  const werebear = buildEquippedSkill("druid_werebear");
+  const packCall = buildEquippedSkill("druid_pack_call");
+
+  assert.match(preview.buildSkillPreviewOutcome(arcticBlast.combat, arcticBlast.equipped, arcticBlast.target), /6 cold dmg line/);
+  assert.match(preview.buildSkillPreviewOutcome(feralRage.combat, feralRage.equipped, feralRage.target), /Next Shapeshift\/melee \+3/);
+  assert.match(preview.buildSkillPreviewOutcome(werebear.combat, werebear.equipped, werebear.target), /Guard 6 party/);
+  assert.match(preview.buildSkillPreviewOutcome(packCall.combat, packCall.equipped, packCall.target), /Wolf Pack|Spirit Wolf/);
+});
+
 test("combat skill preview skills expose exact opener state for passive skills", () => {
   const harness = createHarness();
   const { browserWindow, content, combatEngine } = harness;

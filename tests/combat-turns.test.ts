@@ -18,6 +18,13 @@ type CombatTurnsApi = {
   getWeaponSupportBonus: (state: CombatState, cardId: string) => number;
   applyWeaponTypedDamage: (state: CombatState, targets: CombatEnemyState[], cardId: string) => string[];
   applyWeaponEffects: (state: CombatState, targets: CombatEnemyState[], cardId: string) => string[];
+  startPlayerTurn: (state: CombatState) => void;
+  dealDirectDamage: (
+    state: CombatState,
+    entity: CombatHeroState | CombatMercenaryState | CombatEnemyState,
+    amount: number,
+    damageType?: DamageType
+  ) => number;
 };
 
 function createTurnsHarness() {
@@ -321,6 +328,7 @@ test("damage cards gain proficiency-matched weapon bonuses and on-hit effects", 
       effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
     },
   });
+  state.mercenary.alive = false;
   const target = state.enemies[0];
   target.guard = 0;
   target.life = 99;
@@ -352,6 +360,7 @@ test("preferred weapon families amplify matching weapon-skill bonuses", () => {
       effects: [{ kind: "burn", amount: 1, proficiency: "bow" }],
     },
   });
+  state.mercenary.alive = false;
   const target = state.enemies[0];
   target.guard = 0;
   target.life = 99;
@@ -379,6 +388,7 @@ test("typed weapon damage applies as a separate packet on matching attack cards"
       typedDamage: [{ type: "fire", amount: 2, proficiency: "bow" }],
     },
   });
+  state.mercenary.alive = false;
   const target = state.enemies[0];
   target.guard = 0;
   target.life = 99;
@@ -438,11 +448,12 @@ test("matching weapon proficiencies boost support skills as well as attacks", ()
   assert.ok(card);
   state.hero.life = Math.max(1, state.hero.maxLife - 10);
   state.hero.guard = 0;
+  state.mercenary.alive = false;
 
   harness.engine.playCard(state, harness.content, card.instanceId);
 
-  assert.equal(state.hero.life, state.hero.maxLife - 2);
-  assert.equal(state.hero.guard, 9);
+  assert.equal(state.hero.life, state.hero.maxLife - 1);
+  assert.equal(state.hero.guard, 17);
 });
 
 test("preferred weapon families amplify matching support skill bonuses", () => {
@@ -464,11 +475,12 @@ test("preferred weapon families amplify matching support skill bonuses", () => {
   assert.ok(card);
   state.hero.life = Math.max(1, state.hero.maxLife - 10);
   state.hero.guard = 0;
+  state.mercenary.alive = false;
 
   harness.engine.playCard(state, harness.content, card.instanceId);
 
-  assert.equal(state.hero.life, state.hero.maxLife - 1);
-  assert.equal(state.hero.guard, 10);
+  assert.equal(state.hero.life, state.hero.maxLife);
+  assert.equal(state.hero.guard, 18);
 });
 
 test("preferred weapon family adds the same helper lift to matching attack and support bonuses", () => {
@@ -687,6 +699,116 @@ test("fire immunity on armor negates fire attacks and burn application", () => {
 
   assert.equal(heroBefore - state.hero.life, 0);
   assert.equal(state.hero.heroBurn, 0);
+});
+
+test("direct incoming damage respects amplify and armor resistance while bypassing guard", () => {
+  const { content, combatEngine, turns } = createTurnsHarness();
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    armorProfile: {
+      resistances: [{ type: "fire", amount: 2 }],
+    },
+  });
+  state.hero.guard = 10;
+  state.hero.amplify = 1;
+  const heroBefore = state.hero.life;
+
+  const dealt = turns.dealDirectDamage(state, state.hero, 4, "fire");
+
+  assert.equal(dealt, 4);
+  assert.equal(heroBefore - state.hero.life, 4);
+  assert.equal(state.hero.guard, 10);
+});
+
+test("chill and energy drain affect the next player turn and expire after it", () => {
+  const harness = createCombatHarness();
+  const state = createState(harness);
+  const enemies = state.enemies.slice(0, 2);
+  assert.equal(enemies.length, 2);
+  state.enemies = enemies;
+  state.mercenary.alive = false;
+  enemies[0].intents = [{ kind: "attack_chill", label: "Frost Bolt", value: 0, target: "hero", secondaryValue: 1 }];
+  enemies[0].currentIntent = { ...enemies[0].intents[0] };
+  enemies[1].intents = [{ kind: "drain_energy", label: "Mana Drain", value: 0, target: "hero" }];
+  enemies[1].currentIntent = { ...enemies[1].intents[0] };
+
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  if (state.outcome) { return; }
+  assert.equal(state.turn, 2);
+  assert.equal(state.hero.energy, state.hero.maxEnergy - 1);
+  assert.equal(state.hand.length, Math.max(0, state.hero.handSize - 1));
+  assert.equal(state.hero.chill, 1);
+  assert.equal(state.hero.energyDrain, 1);
+
+  enemies[0].intents = [{ kind: "attack", label: "Glance", value: 0, target: "hero" }];
+  enemies[0].currentIntent = { ...enemies[0].intents[0] };
+  enemies[1].intents = [{ kind: "attack", label: "Glance", value: 0, target: "hero" }];
+  enemies[1].currentIntent = { ...enemies[1].intents[0] };
+
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  if (state.outcome) { return; }
+  assert.equal(state.turn, 3);
+  assert.equal(state.hero.energy, state.hero.maxEnergy);
+  assert.equal(state.hand.length, state.hero.handSize);
+  assert.equal(state.hero.chill, 0);
+  assert.equal(state.hero.energyDrain, 0);
+});
+
+test("weaken affects the next player turn and expires after that turn", () => {
+  const harness = createCombatHarness();
+  const baseline = createState(harness);
+  baseline.enemies = [baseline.enemies[0]];
+  baseline.mercenary.alive = false;
+  baseline.weaponDamageBonus = 10;
+  baseline.weaponName = "Short Sword";
+  baseline.meleeUsed = false;
+  baseline.enemies[0].guard = 0;
+  baseline.enemies[0].life = 50;
+  baseline.enemies[0].maxLife = 50;
+  baseline.selectedEnemyId = baseline.enemies[0].id;
+  const baselineLifeBefore = baseline.enemies[0].life;
+
+  harness.engine.meleeStrike(baseline, harness.content);
+  const baselineDamage = baselineLifeBefore - baseline.enemies[0].life;
+
+  const state = createState(harness);
+  state.enemies = [state.enemies[0]];
+  state.mercenary.alive = false;
+  state.weaponDamageBonus = 10;
+  state.weaponName = "Short Sword";
+  state.enemies[0].guard = 0;
+  state.enemies[0].life = 50;
+  state.enemies[0].maxLife = 50;
+  state.selectedEnemyId = state.enemies[0].id;
+  state.enemies[0].intents = [{ kind: "curse_weaken", label: "Decrepify", value: 1, target: "hero", cooldown: 2 }];
+  state.enemies[0].currentIntent = { ...state.enemies[0].intents[0] };
+
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  if (state.outcome) { return; }
+  state.meleeUsed = false;
+  const weakenedLifeBefore = state.enemies[0].life;
+  harness.engine.meleeStrike(state, harness.content);
+  const weakenedDamage = weakenedLifeBefore - state.enemies[0].life;
+
+  assert.equal(state.hero.weaken, 1);
+  assert.equal(weakenedDamage, Math.max(1, Math.floor(baselineDamage * 0.7)));
+
+  state.enemies[0].intents = [{ kind: "attack", label: "Glance", value: 0, target: "hero" }];
+  state.enemies[0].currentIntent = { ...state.enemies[0].intents[0] };
+  state.phase = "player" as CombatPhase;
+  harness.engine.endTurn(state);
+
+  if (state.outcome) { return; }
+  assert.equal(state.hero.weaken, 0);
 });
 
 test("thorns retaliation respects physical mitigation and guard", () => {

@@ -85,6 +85,94 @@ test("temporary trap minions expire after taking their last action", () => {
   assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("fades from the field")), "the expiration should be logged");
 });
 
+test("summon focus retargets selected-enemy summons and only boosts the focused enemy", () => {
+  const harness = createAppHarness();
+  const minionActions = harness.browserWindow.__ROUGE_COMBAT_ENGINE_MINION_ACTIONS as {
+    resolveMinionPhase(state: CombatState): void;
+  };
+  const state = createState(harness, "act_1_opening_crossfire");
+  state.enemies.forEach((enemy: CombatEnemyState) => {
+    enemy.life = 20;
+    enemy.maxLife = 20;
+    enemy.guard = 0;
+    enemy.alive = true;
+  });
+
+  const primary = state.enemies[0];
+  const focused = state.enemies[1];
+  state.selectedEnemyId = primary.id;
+  state.summonFocusEnemyId = focused.id;
+  state.summonFocusDamageBonus = 4;
+  state.minions.push({
+    id: "focus_skeleton",
+    templateId: "necromancer_skeleton",
+    name: "Skeleton Army",
+    skillLabel: "Bone Rush",
+    actionKind: "attack",
+    targetRule: "selected_enemy",
+    power: 4,
+    secondaryValue: 0,
+    remainingTurns: 0,
+    persistent: true,
+    life: 18,
+    maxLife: 18,
+    guard: 0,
+    alive: true,
+    taunt: false,
+    invulnerable: false,
+    stackAbilities: [],
+  });
+
+  minionActions.resolveMinionPhase(state);
+
+  assert.equal(primary.life, 20, "focused summons should stop following the selected enemy");
+  assert.equal(focused.life, 12, "focused summons should gain their bonus damage on the marked target");
+  assert.equal(state.summonFocusEnemyId, "", "summon focus should clear after the minion phase");
+  assert.equal(state.summonFocusDamageBonus, 0, "summon focus bonus should not leak into later turns");
+});
+
+test("summon focus bonus applies only to the focused enemy on line attacks", () => {
+  const harness = createAppHarness();
+  const minionActions = harness.browserWindow.__ROUGE_COMBAT_ENGINE_MINION_ACTIONS as {
+    resolveMinionPhase(state: CombatState): void;
+  };
+  const state = createState(harness, "act_1_opening_crossfire");
+  state.enemies.forEach((enemy: CombatEnemyState) => {
+    enemy.life = 20;
+    enemy.maxLife = 20;
+    enemy.guard = 0;
+    enemy.alive = true;
+  });
+
+  const focused = state.enemies[1];
+  state.summonFocusEnemyId = focused.id;
+  state.summonFocusDamageBonus = 4;
+  state.minions.push({
+    id: "focus_sentinel",
+    templateId: "assassin_blade_sentinel",
+    name: "Blade Sentinel",
+    skillLabel: "Whirling Slash",
+    actionKind: "attack_all",
+    targetRule: "all_enemies",
+    power: 3,
+    secondaryValue: 0,
+    remainingTurns: 0,
+    persistent: true,
+    life: 12,
+    maxLife: 12,
+    guard: 0,
+    alive: true,
+    taunt: false,
+    invulnerable: true,
+    stackAbilities: [],
+  });
+
+  minionActions.resolveMinionPhase(state);
+
+  assert.equal(state.enemies[0].life, 17);
+  assert.equal(focused.life, 13, "only the focused enemy should take the extra summon focus damage");
+});
+
 test("temporary trap summons reinforce up to a 3-stack cap and then only refresh duration", () => {
   const harness = createAppHarness();
   const turns = harness.browserWindow.__ROUGE_COMBAT_ENGINE_TURNS as CombatTurnsApi;

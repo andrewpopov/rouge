@@ -111,7 +111,11 @@
       finalAmount = Math.floor(finalAmount * 1.5);
     }
     if (!isHero) {
-      return Math.max(0, Math.floor(finalAmount));
+      let outgoing = Math.max(0, Math.floor(finalAmount));
+      if (state.mercenary.alive && state.mercenaryAura === "conviction" && state.enemies.includes(entity as CombatEnemyState)) {
+        outgoing += 2;
+      }
+      return outgoing;
     }
     if (heroIsImmuneTo(state, damageType)) {
       return 0;

@@ -2,10 +2,38 @@ export {};
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createCombatHarness } from "./helpers/browser-harness";
+import { createAppHarness, createCombatHarness } from "./helpers/browser-harness";
 
 function createState(harness: ReturnType<typeof createCombatHarness>) {
   return harness.engine.createCombatState({
+    content: harness.content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0.5,
+  });
+}
+
+type MonsterTraitsApi = {
+  applyHeroBurn: (state: CombatState, stacks: number) => void;
+  applyHeroPoison: (state: CombatState, stacks: number) => void;
+  applyHeroChill: (state: CombatState, stacks: number) => void;
+  applyHeroAmplify: (state: CombatState, stacks: number) => void;
+  applyHeroWeaken: (state: CombatState, stacks: number) => void;
+  applyHeroEnergyDrain: (state: CombatState, stacks: number) => void;
+  processHeroDebuffs: (state: CombatState) => void;
+};
+
+function createTraitsHarness() {
+  const harness = createAppHarness();
+  return {
+    content: harness.content,
+    combatEngine: harness.combatEngine,
+    traits: harness.browserWindow.__ROUGE_MONSTER_TRAITS as MonsterTraitsApi,
+  };
+}
+
+function createTraitsState(harness: ReturnType<typeof createTraitsHarness>) {
+  return harness.combatEngine.createCombatState({
     content: harness.content,
     encounterId: "act_1_opening_skirmish",
     mercenaryId: "rogue_scout",
@@ -544,4 +572,64 @@ test("processHeroDebuffs reduces poison stacks", () => {
   if (state.outcome) { return; }
   assert.ok(state.hero.life < heroBefore, "hero should take poison damage");
   assert.ok(state.hero.heroPoison < 2, "poison stacks should decrease");
+});
+
+test("hero debuff helpers stack repeated applications and honor matching immunities", () => {
+  const harness = createTraitsHarness();
+  const state = createTraitsState(harness);
+
+  harness.traits.applyHeroBurn(state, 2);
+  harness.traits.applyHeroBurn(state, 3);
+  harness.traits.applyHeroPoison(state, 1);
+  harness.traits.applyHeroPoison(state, 2);
+  harness.traits.applyHeroChill(state, 1);
+  harness.traits.applyHeroChill(state, 2);
+  harness.traits.applyHeroAmplify(state, 1);
+  harness.traits.applyHeroAmplify(state, 2);
+  harness.traits.applyHeroWeaken(state, 1);
+  harness.traits.applyHeroWeaken(state, 2);
+  harness.traits.applyHeroEnergyDrain(state, 1);
+  harness.traits.applyHeroEnergyDrain(state, 2);
+
+  assert.equal(state.hero.heroBurn, 5);
+  assert.equal(state.hero.heroPoison, 3);
+  assert.equal(state.hero.chill, 3);
+  assert.equal(state.hero.amplify, 3);
+  assert.equal(state.hero.weaken, 3);
+  assert.equal(state.hero.energyDrain, 3);
+
+  state.armorProfile = {
+    immunities: ["fire", "poison", "cold"],
+  };
+  harness.traits.applyHeroBurn(state, 2);
+  harness.traits.applyHeroPoison(state, 2);
+  harness.traits.applyHeroChill(state, 2);
+
+  assert.equal(state.hero.heroBurn, 5);
+  assert.equal(state.hero.heroPoison, 3);
+  assert.equal(state.hero.chill, 3);
+});
+
+test("processHeroDebuffs burn and poison ticks bypass guard, respect resistance, and decay one stack", () => {
+  const harness = createTraitsHarness();
+  const state = createTraitsState(harness);
+  state.hero.guard = 9;
+  state.armorProfile = {
+    resistances: [
+      { type: "fire", amount: 2 },
+      { type: "poison", amount: 1 },
+    ],
+  };
+  state.hero.heroBurn = 4;
+  state.hero.heroPoison = 3;
+  const heroBefore = state.hero.life;
+
+  harness.traits.processHeroDebuffs(state);
+
+  assert.equal(state.hero.guard, 9);
+  assert.equal(heroBefore - state.hero.life, 4);
+  assert.equal(state.hero.heroBurn, 3);
+  assert.equal(state.hero.heroPoison, 2);
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Burn damage")));
+  assert.ok(state.log.some((entry: CombatLogEntry) => entry.message.includes("Poison damage")));
 });

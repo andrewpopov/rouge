@@ -24,17 +24,24 @@
       case "amazon_decoy": return build("amazon_decoy", 2 + scale, 2 + scale);
       case "amazon_valkyrie": return build("amazon_valkyrie", 3 + scale, 2 + scale);
       case "assassin_shadow_master": return build("assassin_shadow_master", 3 + scale, 1 + scale);
+      case "assassin_shadow_warrior": return build("assassin_shadow_master", 2 + scale, 1 + scale);
       case "assassin_lightning_sentry": return build("assassin_lightning_sentry", 2 + scale, 1 + scale, 4);
       case "assassin_wake_of_inferno": return build("assassin_wake_of_fire", 2 + scale, 1 + scale, 4);
       case "assassin_death_sentry": return build("assassin_death_sentry", 3 + scale, 1 + scale, 4);
       case "druid_raven": return build("druid_raven", 2 + scale, 1 + scale);
       case "druid_poison_creeper": return build("druid_poison_creeper", 2 + scale, 1 + scale);
+      case "druid_carrion_vine": return build("druid_carrion_vine", 2 + scale);
       case "druid_oak_sage": return build("druid_oak_sage", 2 + scale);
+      case "druid_summon_spirit_wolf": return build("druid_spirit_wolf", 2 + scale, 0, 2);
+      case "druid_heart_of_wolverine": return build("druid_heart_of_wolverine", 2 + scale, 1 + scale);
+      case "druid_summon_dire_wolf": return build("druid_dire_wolf", 3 + scale, 1 + scale, 2);
       case "druid_solar_creeper": return build("druid_solar_creeper", 2 + scale, 1 + scale);
       case "druid_spirit_of_barbs": return build("druid_spirit_of_barbs", 2 + scale, 2 + scale);
       case "druid_summon_grizzly": return build("druid_grizzly", 3 + scale, 2 + scale);
       case "necromancer_raise_skeleton": return build("necromancer_skeleton", 2 + scale);
+      case "necromancer_skeletal_mage": return build("necromancer_skeletal_mage", 2 + scale, 1 + scale);
       case "necromancer_clay_golem": return build("necromancer_clay_golem", 2 + scale, 1 + scale);
+      case "necromancer_blood_golem": return build("necromancer_blood_golem", 3 + scale, 2 + scale);
       case "necromancer_iron_golem": return build("necromancer_iron_golem", 3 + scale, 2 + scale);
       case "necromancer_fire_golem": return build("necromancer_fire_golem", 3 + scale, 2 + scale);
       case "necromancer_revive": return build("necromancer_revive", 3 + scale, 2 + scale);
@@ -47,7 +54,7 @@
 
   const BARBARIAN_WEAPON_MASTERIES = [
     "barbarian_sword_mastery", "barbarian_axe_mastery", "barbarian_mace_mastery",
-    "barbarian_polearm_mastery", "barbarian_throwing_mastery",
+    "barbarian_polearm_mastery", "barbarian_spear_mastery", "barbarian_throwing_mastery",
   ];
 
   function getExactSkillModifierPreviewParts(skill: CombatEquippedSkillState, combat?: CombatState | null): string[] {
@@ -134,6 +141,11 @@
       return joinPreviewOutcome(openingParts, passive.deck.filter((part) => !part.startsWith("Summon ")));
     }
 
+    const staticOutcome = previewData.getStaticActiveSkillPreview?.(skill.skillId, combat);
+    if (staticOutcome) {
+      return staticOutcome;
+    }
+
     // Skill-specific active outcomes (complex logic that can't be data-driven)
     switch (skill.skillId) {
       case "amazon_call_the_shot":
@@ -157,10 +169,42 @@
         };
         return joinPreviewOutcome([turns?.getSummonPreview?.(combat, servantEffect) || "Summon Servant"], exactModifierParts);
       }
+      case "druid_pack_call": {
+        if (combat.minions.length > 0) {
+          return "Reinforce summon +2";
+        }
+        const wolfEffect: CardEffect = {
+          kind: "summon_minion", minionId: "druid_spirit_wolf",
+          value: 2 + scale, secondaryValue: 0, duration: 2,
+        };
+        return joinPreviewOutcome([turns?.getSummonPreview?.(combat, wolfEffect) || "Summon Spirit Wolf"], exactModifierParts);
+      }
+      case "druid_spirit_shepherd":
+        return combat.minions.length > 0 ? "Heal 4 + Summons +2 power +1 turn" : "Heal 4 + Summons +2 power";
+      case "druid_wild_convergence": {
+        if (combat.minions.length > 0) {
+          return "All summons +2 power +1 turn";
+        }
+        const grizzlyEffect: CardEffect = {
+          kind: "summon_minion", minionId: "druid_grizzly",
+          value: 3 + scale, secondaryValue: 2 + scale, duration: 2,
+        };
+        return joinPreviewOutcome([turns?.getSummonPreview?.(combat, grizzlyEffect) || "Summon Grizzly"], exactModifierParts);
+      }
+      case "necromancer_corpse_explosion":
+        return joinPreviewOutcome([`${2 + scale} fire dmg line`, `Burn ${scale} line`], exactModifierParts);
       case "paladin_sanctify":
         return joinPreviewOutcome([`Guard ${3 + scale} party`], exactModifierParts);
       case "sorceress_core_fire_bolt":
         return joinPreviewOutcome([`${3 + scale} dmg`], exactModifierParts);
+      case "sorceress_frost_nova":
+        return joinPreviewOutcome([`${2 + scale * 2} cold dmg line`, `Freeze ${scale + 1} line`, `Slow ${scale + 1} line`], exactModifierParts);
+      case "sorceress_inferno":
+        return joinPreviewOutcome([`${2 + scale} fire dmg line`, `Burn ${scale + 1} line`], exactModifierParts);
+      case "sorceress_fire_wall":
+        return "6 fire dmg line + Burn 4 line + Next card Burn 2";
+      case "sorceress_static_field":
+        return joinPreviewOutcome([`${2 + scale} lightning dmg line`, `Paralyze ${scale + 1} line`], exactModifierParts);
       case "amazon_strafe":
         return `${(2 + scale) * Math.max(1, combat.enemies.filter((enemy) => enemy.alive).length)} dmg line + Draw 1`;
       case "amazon_lightning_fury":
@@ -169,6 +213,110 @@
         return joinPreviewOutcome([`${6 + scale} dmg`, `Paralyze ${scale + 2}`, `arc ${2 + scale}`, `Paralyze ${scale}`], exactModifierParts);
       case "amazon_freezing_arrow":
         return joinPreviewOutcome([`${4 + scale} dmg`, `Freeze ${scale + 1} line`, `Slow ${scale + 1} line`], exactModifierParts);
+      case "amazon_magic_arrow":
+        return "7 dmg + ignore 4 guard + Draw 1";
+      case "amazon_fire_arrow":
+        return "5 dmg + Burn 2 + Next ranged Burn 1";
+      case "amazon_cold_arrow":
+        return "6 dmg + Slow 2";
+      case "amazon_multiple_shot":
+        return "4 dmg line + Slow 1 line";
+      case "amazon_exploding_arrow":
+        return "7 dmg + Burn 2 line";
+      case "amazon_guided_arrow":
+        return "10 dmg + ignore 6 guard + Draw 1";
+      case "amazon_ice_arrow":
+        return "7 dmg + Freeze 1 + Slow 1";
+      case "amazon_immolation_arrow":
+        return "8 dmg + Burn 4 + Burn 2 line + Next ranged Burn 2";
+      case "amazon_jab":
+        return "9 dmg";
+      case "amazon_poison_javelin":
+        return "4 dmg + Poison 4 + Poison 2 line";
+      case "amazon_power_strike":
+        return "9 dmg + Paralyze 1 + Guard 4 if attacking";
+      case "amazon_impale":
+        return "11 dmg + ignore 3 guard + 5 more if slowed/paralyzed";
+      case "amazon_lightning_bolt":
+        return "7 dmg + Paralyze 1 + Paralyze 1 others";
+      case "amazon_charged_strike":
+        return "8 dmg + Paralyze 2 + 3 dmg others";
+      case "amazon_plague_javelin":
+        return "5 dmg + Poison 4 line";
+      case "amazon_fend":
+        return "18 dmg split + Energy next turn 1 if slowed/paralyzed";
+      case "amazon_inner_sight":
+        return "Slow 1 + Merc +6 + Next 2 hits vs target +3 dmg + ignore 3 guard";
+      case "amazon_slow_missiles":
+        return combat.enemies.some((enemy) => enemy.alive && ["ranged", "support"].includes(enemy.role))
+          ? "Slow 2 line + Guard 5 + Ranged/support -6 next turn"
+          : "Slow 2 line + Guard 5 + Next enemy attack -4";
+      case "assassin_tiger_strike":
+        return "7 dmg + Next Assassin melee +3";
+      case "assassin_dragon_talon":
+        return "5 dmg x3";
+      case "assassin_fists_of_fire":
+        return "8 fire dmg + Burn 3 + Draw 1";
+      case "assassin_dragon_claw":
+        return "7 dmg x2 + 3 more per hit if burned, poisoned, or paralyzed";
+      case "assassin_cobra_strike":
+        return "10 dmg + Draw 1";
+      case "assassin_claws_of_thunder":
+        return "17 lightning dmg + Paralyze 1 + Draw 1";
+      case "assassin_dragon_tail":
+        return "12 fire dmg line + Burn 3 line + 5 more line if melee earlier";
+      case "assassin_blades_of_ice":
+        return "15 cold dmg + Freeze 1 + Slow 1 + Draw 1";
+      case "assassin_dragon_flight":
+        return "20 dmg + 10 more if melee earlier";
+      case "assassin_psychic_hammer":
+        return "4 dmg + Paralyze 1 + Merc mark 8";
+      case "assassin_burst_of_speed":
+        return "Guard 7 + Merc +10 + Draw 2";
+      case "assassin_cloak_of_shadows":
+        return "Guard 7 + Draw 1";
+      case "assassin_fade":
+        return "Guard 24 party + Heal 8 + Slow 1 line + Draw 1";
+      case "assassin_mind_blast":
+        return "Stun non-boss line + Enemies -3 next turn + Guard 6";
+      case "assassin_venom":
+        return "6 dmg + Poison 4 + Next melee +4 + Draw 1";
+      case "assassin_fire_blast":
+        return "6 fire dmg + Burn 5";
+      case "assassin_blade_sentinel": {
+        const effect: CardEffect = {
+          kind: "summon_minion",
+          minionId: "assassin_blade_sentinel",
+          value: 5,
+          secondaryValue: 0,
+          duration: 3,
+        };
+        return `4 dmg line + ${turns?.getSummonPreview?.(combat, effect) || "Summon Blade Sentinel"}`;
+      }
+      case "assassin_charged_bolt_sentry": {
+        const effect: CardEffect = {
+          kind: "summon_minion",
+          minionId: "assassin_charged_bolt_sentry",
+          value: 5,
+          secondaryValue: 1,
+          duration: 3,
+        };
+        return `4 lightning dmg line + ${turns?.getSummonPreview?.(combat, effect) || "Summon Charged Bolt Sentry"}`;
+      }
+      case "assassin_wake_of_fire": {
+        const effect: CardEffect = {
+          kind: "summon_minion",
+          minionId: "assassin_wake_of_fire",
+          value: 7,
+          secondaryValue: 4,
+          duration: 4,
+        };
+        return `6 fire dmg line + Burn 3 line + ${turns?.getSummonPreview?.(combat, effect) || "Summon Wake of Fire"}`;
+      }
+      case "assassin_blade_fury":
+        return "12 dmg random split";
+      case "assassin_blade_shield":
+        return "6 dmg line + Slow 1 line + Merc +8 + Draw 1";
       case "assassin_phoenix_strike":
         return joinPreviewOutcome([`${5 + scale} dmg`, `Burn ${scale + 1} line`], exactModifierParts);
       case "assassin_shock_web":

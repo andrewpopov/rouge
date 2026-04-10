@@ -87,6 +87,20 @@
     }
   }
 
+  function postRunComplete(entry: Record<string, unknown>) {
+    if (!canUseBackendProfileStore(null) || !runtimeWindow.fetch) {
+      return;
+    }
+    runtimeWindow.fetch("/api/run-complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ entry, encounters: [], combatLogs: [] }),
+    }).catch(() => {
+      // Fire-and-forget: run telemetry is best-effort
+    });
+  }
+
   function queueBackendProfileSave(serializedProfile: string) {
     backendProfileStore.queuedSerializedProfile = serializedProfile;
     if (backendProfileStore.savePromise) {
@@ -363,6 +377,9 @@
     profile.runHistory = profile.runHistory.slice(0, getRunHistoryCapacity(profile));
     entry.newFeatureIds = uniqueStrings((profile.meta.unlocks?.townFeatureIds || []).filter((featureId: string) => !previousFeatureIds.includes(featureId)));
     entry.newCharmIds = uniqueStrings((profile.meta.charms?.unlockedCharmIds || []).filter((charmId: string) => !previousCharmIds.includes(charmId)));
+
+    // Record to server DB (fire-and-forget)
+    postRunComplete(entry as unknown as Record<string, unknown>);
   }
 
   function saveToStorage(snapshot: RunSnapshotEnvelope | string, storage: StorageLike | null = getDefaultStorage()) {

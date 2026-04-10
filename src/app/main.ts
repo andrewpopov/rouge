@@ -171,6 +171,25 @@
       render();
       return true;
     },
+    resumeSavedRun(options?: { dismissActGuide?: boolean }): boolean {
+      if (!appState) {
+        return false;
+      }
+      const resumed = appEngine.continueSavedRun(appState);
+      if (!resumed.ok) {
+        return false;
+      }
+      const dismissActGuide = options?.dismissActGuide ?? true;
+      if (
+        dismissActGuide &&
+        appState.run?.guide?.overlayKind &&
+        (appState.phase === appEngine.PHASES.WORLD_MAP || appState.phase === appEngine.PHASES.ACT_TRANSITION)
+      ) {
+        appEngine.continueActGuide(appState);
+      }
+      render();
+      return true;
+    },
   };
 
   root.addEventListener("click", (event) => {

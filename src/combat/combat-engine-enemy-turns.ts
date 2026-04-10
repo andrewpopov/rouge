@@ -44,8 +44,19 @@
     return state.enemies.filter((enemy: CombatEnemyState) => enemy.alive);
   }
 
+  function getTargetKind(state: CombatState, target: CombatHeroState | CombatMercenaryState): "hero" | "mercenary" {
+    return target === state.hero ? "hero" : "mercenary";
+  }
+
   function chooseEnemyTarget(state: CombatState, rule: EnemyIntentTarget | undefined) {
+    const mercenaryAvailable = state.mercenary.alive;
+    const tauntedToMercenary = mercenaryAvailable && state.tauntTarget === "mercenary" && state.tauntTurnsRemaining > 0;
+    const heroFaded = mercenaryAvailable && state.heroFade > 0 && state.hero.alive;
+
     if (rule === "mercenary" && state.mercenary.alive) {
+      return state.mercenary;
+    }
+    if (tauntedToMercenary || heroFaded) {
       return state.mercenary;
     }
     if (rule === "lowest_life" && state.mercenary.alive && state.mercenary.life < state.hero.life) {
@@ -76,7 +87,7 @@
           actor: "enemy", actorName: enemy.name, actorId: enemy.id,
           action: "intent", tone: "strike",
           message: `${enemy.name} attacks ${target.name} for ${dealt}. (${intent.label} on cooldown)`,
-          effects: [{ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+          effects: [{ target: getTargetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
         });
       }
       return;
@@ -166,6 +177,17 @@
     if (enemy.buffedAttack && enemy.buffedAttack > 0 && ATTACK_INTENT_KINDS.has(intent.kind)) {
       intentValue += enemy.buffedAttack;
       enemy.buffedAttack = 0;
+    }
+
+    if (state.mercenary.alive && state.mercenaryAura === "battle_cry" && enemy.templateId.endsWith("_boss") && ATTACK_INTENT_KINDS.has(intent.kind)) {
+      intentValue = Math.max(0, intentValue - 3);
+      logCombat(state, {
+        actor: "mercenary",
+        actorName: state.mercenary.name,
+        action: "trait",
+        tone: "report",
+        message: `${state.mercenary.name}'s battle cry shakes ${enemy.name}'s offense.`,
+      });
     }
 
     if (isFrenzied && ATTACK_INTENT_KINDS.has(intent.kind)) {
@@ -299,7 +321,7 @@
       const attackAllEffects: CombatLogEffect[] = [];
       const segments = partyTargets.map((target) => {
         const dealt = dealDamage(state, target, intentValue);
-        attackAllEffects.push({ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
+        attackAllEffects.push({ target: getTargetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
         return `${target.name} for ${dealt}`;
       });
       logCombat(state, {
@@ -323,7 +345,7 @@
         action: "intent", actionId: intent.kind,
         message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and gains ${guardGained} Guard.`,
         effects: [
-          { target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+          { target: getTargetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
           { target: "enemy", targetId: enemy.id, targetName: enemy.name, guardApplied: guardGained, lifeAfter: enemy.life, guardAfter: enemy.guard },
         ],
       });
@@ -342,7 +364,7 @@
         actor: "enemy", actorName: enemy.name, actorId: enemy.id,
         action: "intent", actionId: intent.kind,
         message: `${enemy.name} uses ${intent.label}, shattering ${removedGuard} Guard and hitting ${target.name} for ${dealt}.`,
-        effects: [{ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, guardDamage: removedGuard, lifeAfter: target.life, guardAfter: target.guard }],
+        effects: [{ target: getTargetKind(state, target), targetName: target.name, damage: dealt, guardDamage: removedGuard, lifeAfter: target.life, guardAfter: target.guard }],
       });
       return;
     }
@@ -359,7 +381,7 @@
         action: "intent", actionId: intent.kind,
         message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt} and heals ${healed}.`,
         effects: [
-          { target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+          { target: getTargetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
           { target: "enemy", targetId: enemy.id, targetName: enemy.name, healing: healed, lifeAfter: enemy.life, guardAfter: enemy.guard },
         ],
       });
@@ -376,7 +398,7 @@
         actor: "enemy", actorName: enemy.name, actorId: enemy.id,
         action: "intent", actionId: intent.kind,
         message: `${enemy.name} uses ${intent.label} on ${target.name} for ${dealt}.`,
-        effects: [{ target: target === state.hero ? "hero" : "mercenary", targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+        effects: [{ target: getTargetKind(state, target), targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
       });
     }
   }

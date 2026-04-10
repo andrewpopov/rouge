@@ -14,6 +14,33 @@ function getRuntimeClassSkills(harness: ReturnType<typeof createAppHarness>) {
     .flatMap((tree) => tree.skills || []);
 }
 
+function getRuntimeSkill(harness: ReturnType<typeof createAppHarness>, skillId: string) {
+  return getRuntimeClassSkills(harness).find((skill) => skill.id === skillId) || null;
+}
+
+function getExplicitPreviewCoverageFromSource() {
+  const previewDataSource = fs.readFileSync("src/ui/skill-preview-data.ts", "utf8");
+  const previewSkillSource = fs.readFileSync("src/ui/combat-view-preview-skills.ts", "utf8");
+  const collectIds = (source: string, pattern: RegExp) => new Set(Array.from(source.matchAll(pattern), (match) => match[1]));
+  const staticIds = collectIds(previewDataSource, /case\s+"([^"]+)":/g);
+  const modifierSection = previewDataSource.match(/const SKILL_MODIFIER_MAP:[\s\S]*?const SKILL_PASSIVE_MAP:/)?.[0] || "";
+  const passiveSection = previewDataSource.match(/const SKILL_PASSIVE_MAP:[\s\S]*?function renderPassivePart/)?.[0] || "";
+  const modifierIds = collectIds(modifierSection, /^\s*([a-z0-9_]+):\s*\[/gm);
+  const passiveIds = collectIds(passiveSection, /^\s*([a-z0-9_]+):\s*\[/gm);
+  const summonSection = previewSkillSource.match(/function createSkillSummonEffect[\s\S]*?\/\/ ── Skill modifier preview/)?.[0] || "";
+  const summonIds = collectIds(summonSection, /case\s+"([^"]+)":\s+return build/g);
+  const complexSection =
+    previewSkillSource.match(/\/\/ Skill-specific active outcomes \(complex logic that can't be data-driven\)[\s\S]*?default:\n\s+break;/)?.[0]
+    || "";
+  const complexIds = collectIds(complexSection, /case\s+"([^"]+)":/g);
+  const weaponMasterySection = previewSkillSource.match(/const BARBARIAN_WEAPON_MASTERIES = \[(.*?)\];/s)?.[1] || "";
+  const weaponMasteryIds = new Set(Array.from(weaponMasterySection.matchAll(/"([^"]+)"/g), (match) => match[1]));
+  return {
+    active: new Set([...staticIds, ...summonIds, ...complexIds]),
+    passive: new Set([...staticIds, ...modifierIds, ...passiveIds, ...summonIds, ...complexIds, ...weaponMasteryIds]),
+  };
+}
+
 test("crossfire lane modifiers sharpen ranged scripts without buffing the frontline opener", () => {
   const { content, engine } = createHarness();
   const state = engine.createCombatState({
@@ -511,6 +538,492 @@ test("legacy bridge passives promoted into runtime slots carry concrete opener e
   browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
 });
 
+test("amazon inner sight can reveal one target for mercenary and precise follow-up hits", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const skill = getRuntimeSkill(harness, "amazon_inner_sight");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  assert.equal(target.slow, 1);
+  assert.equal(state.mercenary.skillTargetEnemyId, target.id);
+  assert.equal(state.mercenary.skillTargetDamageBonus, 6);
+  assert.equal(state.skillWindows.length, 1);
+  assert.equal(state.skillWindows[0].damageBonus, 3);
+  assert.equal(state.skillWindows[0].ignoreGuard, 3);
+  assert.equal(state.skillWindows[0].remainingUses, 2);
+  assert.equal(state.skillWindows[0].requireTargetEnemyId, target.id);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("amazon magic arrow can pierce guard and refill the hand", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const skill = getRuntimeSkill(harness, "amazon_magic_arrow");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  target.guard = 10;
+  state.hand = [];
+  state.drawPile = [{ instanceId: "draw_magic_arrow", cardId: "amazon_jab" }];
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.hand.length, 1);
+  assert.equal(state.hand[0].cardId, "amazon_jab");
+  assert.ok(target.life < target.maxLife, "Magic Arrow should still deal life damage through heavy Guard");
+  assert.ok(target.guard > 0 && target.guard < 10, "Magic Arrow should ignore part of Guard instead of fully stripping it");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("amazon slow missiles now blunts ranged pressure instead of falling through generic debuff prep", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const skill = getRuntimeSkill(harness, "amazon_slow_missiles");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  assert.equal(state.hero.guard, 5);
+  assert.ok(state.enemies.every((enemy) => !enemy.alive || enemy.slow >= 2));
+  const rangedOrSupport = state.enemies.filter((enemy) => enemy.alive && ["ranged", "support"].includes(enemy.role));
+  assert.ok(rangedOrSupport.length > 0, "crossfire encounter should provide ranged pressure");
+  assert.ok(rangedOrSupport.every((enemy) => enemy.nextAttackPenalty >= 6));
+  assert.equal(state.nextEnemyAttackReduction, 0, "ranged encounters should use the authored missile slowdown path");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("amazon fend sweeps multiple hits and refunds energy setup on primed targets", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const skill = getRuntimeSkill(harness, "amazon_fend");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot3", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  target.slow = 1;
+  state.hero.energy = 10;
+  const before = state.enemies.map((enemy) => enemy.life);
+
+  const result = combatEngine.useSkill(state, "slot3", target.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.pendingEnergyNextTurn, 1);
+  const damagedCount = state.enemies.filter((enemy, index) => enemy.life < before[index]).length;
+  assert.ok(damagedCount >= 2, "Fend should sweep across the frontline instead of acting like a generic single hit");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("energy next turn payouts are granted and cleared at the next player turn", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const skill = getRuntimeSkill(harness, "sorceress_kindle");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_skirmish",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const enemy = state.enemies[0];
+  enemy.intents = [{ kind: "guard", label: "Brace", value: 0 }];
+  enemy.intentIndex = 0;
+  enemy.currentIntent = { ...enemy.intents[0] };
+  state.enemies = [enemy];
+  state.selectedEnemyId = enemy.id;
+  state.mercenary.attack = 0;
+  state.hero.energy = 10;
+
+  assert.equal(combatEngine.useSkill(state, "slot2", enemy.id).ok, true);
+  assert.equal(state.pendingEnergyNextTurn, 1);
+
+  assert.equal(combatEngine.endTurn(state).ok, true);
+  assert.equal(state.turn, 2);
+  assert.equal(state.hero.energy, state.hero.maxEnergy + 1);
+  assert.equal(state.pendingEnergyNextTurn, 0);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("assassin tiger strike now arms a real melee follow-up window", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "assassin_tiger_strike");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  const window = state.skillWindows.find((entry) => entry.skillId === skill.id);
+  assert.ok(window, "Tiger Strike should add a skill window for the next Assassin melee card");
+  assert.equal(window?.damageBonus, 3);
+  assert.equal(Array.from(window?.requireKindsAll || []).join(","), "assassin,melee");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("assassin dragon claw now cashes in status openings instead of generic attack fallback", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "assassin_dragon_claw");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  target.guard = 0;
+  target.poison = 1;
+  state.hero.energy = 10;
+  const beforeLife = target.life;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  assert.ok(beforeLife - target.life >= 20, "Dragon Claw should add its status payoff instead of resolving as a flat hit");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("assassin wake of fire now creates a real trap and scorches the opening line", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "assassin_wake_of_fire");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  assert.equal(state.minions[0]?.templateId, "assassin_wake_of_fire");
+  const burnedEnemies = state.enemies.filter((enemy) => enemy.alive && enemy.burn >= 3);
+  assert.ok(burnedEnemies.length >= 2, "Wake of Fire should burn the line before the trap starts ticking");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("assassin mind blast now stuns non-boss enemies and blunts the next attack cycle", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "assassin_mind_blast");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot3", skill }],
+  });
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot3");
+  assert.equal(result.ok, true);
+  const nonBossEnemies = state.enemies.filter((enemy) => enemy.alive && !enemy.templateId.endsWith("_boss"));
+  assert.ok(nonBossEnemies.every((enemy) => enemy.stun >= 1));
+  assert.ok(state.enemies.filter((enemy) => enemy.alive).every((enemy) => enemy.nextAttackPenalty >= 3));
+  assert.equal(state.hero.guard, 6);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("paladin sacrifice now trades life for a real heavy hit", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "paladin_sacrifice");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  target.guard = 0;
+  state.hero.energy = 10;
+  const beforeLife = state.hero.life;
+  const beforeTargetLife = target.life;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  assert.equal(state.hero.life, beforeLife - 3);
+  assert.ok(target.life <= beforeTargetLife - 10, "Sacrifice should land as a real heavy hit");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("paladin smite now stuns through guard instead of falling through the generic attack template", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "paladin_smite");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  target.guard = 8;
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  assert.equal(target.stun, 1);
+  assert.ok(target.guard < 8, "Smite should break through some guard instead of behaving like a flat hit");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("paladin cleansing now removes party debuffs and restores a guarded recovery turn", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "paladin_cleansing");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  state.hero.energy = 10;
+  state.hero.heroPoison = 4;
+
+  const result = combatEngine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  assert.equal(state.hero.heroPoison, 0);
+  assert.equal(state.hero.guard, 6);
+  assert.ok(state.hero.life <= state.hero.maxLife);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("paladin blessed aim now creates a real two-attack setup window", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "paladin_blessed_aim");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  const window = state.skillWindows.find((entry) => entry.skillId === skill.id);
+  assert.ok(window);
+  assert.equal(window?.damageBonus, 4);
+  assert.equal(window?.remainingUses, 2);
+  assert.equal(Array.from(window?.requireKindsAny || []).join(","), "attack");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("barbarian bash now lands as a real heavy strike instead of a generic bridge hit", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "barbarian_bash");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  target.guard = 0;
+  state.hero.energy = 10;
+  const beforeLife = target.life;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  assert.ok(target.life <= beforeLife - 10, "Bash should resolve as a real heavy hit");
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("barbarian taunt now opens a focused attack window instead of falling through generic debuff prep", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "barbarian_taunt");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  const target = state.enemies.find((enemy) => enemy.alive);
+  assert.ok(target);
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot2", target.id);
+  assert.equal(result.ok, true);
+  const window = state.skillWindows.find((entry) => entry.skillId === skill.id);
+  assert.ok(window);
+  assert.equal(window?.damageBonus, 6);
+  assert.equal(window?.requireTargetEnemyId, target.id);
+  assert.equal(state.mercenary.skillTargetEnemyId, target.id);
+  assert.ok(state.mercenary.skillTargetDamageBonus >= 6);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("barbarian battle orders now functions as a real party command button", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "barbarian_battle_orders");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot3", skill }],
+  });
+  state.hero.energy = 10;
+
+  const result = combatEngine.useSkill(state, "slot3");
+  assert.equal(result.ok, true);
+  assert.equal(state.hero.guard, 22);
+  assert.equal(state.mercenary.guard, 22);
+  assert.ok(state.mercenary.nextAttackBonus >= 16);
+  assert.ok(state.enemies.every((enemy) => !enemy.alive || enemy.slow >= 1));
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("barbarian find potion now creates a real recovery button", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content } = harness;
+  const combatEngine = browserWindow.ROUGE_COMBAT_ENGINE;
+  assert.ok(combatEngine);
+  const skill = getRuntimeSkill(harness, "barbarian_find_potion");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  state.hero.energy = 10;
+  state.hero.life = Math.max(1, state.hero.life - 6);
+  const beforeLife = state.hero.life;
+
+  const result = combatEngine.useSkill(state, "slot2");
+  assert.equal(result.ok, true);
+  assert.equal(state.hero.guard, 4);
+  assert.ok(state.hero.life > beforeLife);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
 test("summon class skills can create real combat minions", () => {
   const { content, engine } = createHarness();
   const state = engine.createCombatState({
@@ -727,6 +1240,9 @@ test("capstone support skills can debuff the full enemy line and prep the next c
 });
 
 test("slot-authored active skills stay explicitly implemented in combat and preview surfaces", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const previewApi = browserWindow.__ROUGE_COMBAT_VIEW_PREVIEW_SKILLS;
   const skillSeed = JSON.parse(fs.readFileSync("data/seeds/d2/skills.json", "utf8"));
   const slotSkills = (skillSeed.classes || [])
     .flatMap((classEntry: { trees?: Array<{ skills?: unknown[] }> }) => classEntry.trees || [])
@@ -734,12 +1250,26 @@ test("slot-authored active skills stay explicitly implemented in combat and prev
     .filter((skill: { active?: boolean; slot?: number; id?: string }) => skill.active !== false && typeof skill.slot === "number" && typeof skill.id === "string")
     .map((skill: { id: string }) => skill.id);
   const combatSource = fs.readFileSync("src/combat/combat-engine-skills.ts", "utf8");
-  const previewSource = fs.readFileSync("src/ui/combat-view-preview-skills.ts", "utf8");
   const missingCombat = slotSkills.filter((id: string) => !combatSource.includes(`"${id}"`));
-  const missingPreview = slotSkills.filter((id: string) => !previewSource.includes(`"${id}"`));
+  const missingPreview = slotSkills.filter((id: string) => {
+    const skill = getRuntimeSkill(harness, id);
+    if (!skill) {
+      return true;
+    }
+    const state = combatEngine.createCombatState({
+      content,
+      encounterId: "act_1_boss",
+      mercenaryId: "rogue_scout",
+      randomFn: () => 0,
+      equippedSkills: [{ slotKey: `slot${skill.slot}` as RunSkillBarSlotKey, skill }],
+    });
+    const preview = previewApi.buildSkillPreviewOutcome(state, state.equippedSkills[0], state.enemies.find((enemy) => enemy.alive) || null);
+    return typeof preview !== "string" || !preview.trim();
+  });
 
   assert.deepEqual(missingCombat, [], `missing combat handlers for: ${missingCombat.join(", ")}`);
   assert.deepEqual(missingPreview, [], `missing preview handlers for: ${missingPreview.join(", ")}`);
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
 });
 
 test("normalized runtime class skills stay usable and previewable across the live catalog", () => {
@@ -781,6 +1311,107 @@ test("normalized runtime class skills stay usable and previewable across the liv
 
   browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
   assert.deepEqual(failures, []);
+});
+
+test("normalized runtime class skills keep complete authored runtime metadata", () => {
+  const harness = createAppHarness();
+  const failures = getRuntimeClassSkills(harness).flatMap((skill) => {
+    const local: string[] = [];
+    if (![1, 2, 3].includes(skill.slot)) {
+      local.push(`${skill.id}: invalid slot ${String(skill.slot)}`);
+    }
+    if (!["starter", "bridge", "capstone"].includes(skill.tier)) {
+      local.push(`${skill.id}: invalid tier ${String(skill.tier)}`);
+    }
+    if (!["state", "command", "answer", "trigger_arming", "conversion", "recovery", "commitment"].includes(skill.family)) {
+      local.push(`${skill.id}: invalid family ${String(skill.family)}`);
+    }
+    if (skill.tier !== "capstone" && skill.family === "commitment") {
+      local.push(`${skill.id}: non-capstone skill should not use commitment family`);
+    }
+    if (typeof skill.summary !== "string" || !skill.summary.trim()) {
+      local.push(`${skill.id}: missing summary`);
+    }
+    if (typeof skill.exactText !== "string" || !skill.exactText.trim()) {
+      local.push(`${skill.id}: missing exactText`);
+    }
+    if (typeof skill.skillType !== "string" || !skill.skillType.trim()) {
+      local.push(`${skill.id}: missing skillType`);
+    }
+    return local;
+  });
+
+  harness.browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+  assert.deepEqual(failures, []);
+});
+
+test("normalized runtime class skills stay inside the tier economy envelope", () => {
+  const harness = createAppHarness();
+  const failures = getRuntimeClassSkills(harness).flatMap((skill) => {
+    const local: string[] = [];
+    if (skill.tier === "starter") {
+      if (skill.cost > 1) { local.push(`${skill.id}: starter cost ${skill.cost} exceeds 1`); }
+      if (skill.cooldown > 2) { local.push(`${skill.id}: starter cooldown ${skill.cooldown} exceeds 2`); }
+    } else if (skill.tier === "bridge") {
+      if (skill.cost > 2) { local.push(`${skill.id}: bridge cost ${skill.cost} exceeds 2`); }
+      if (skill.cooldown > 3) { local.push(`${skill.id}: bridge cooldown ${skill.cooldown} exceeds 3`); }
+    } else if (skill.tier === "capstone") {
+      if (skill.cost > 3) { local.push(`${skill.id}: capstone cost ${skill.cost} exceeds 3`); }
+      if (skill.cooldown > 5) { local.push(`${skill.id}: capstone cooldown ${skill.cooldown} exceeds 5`); }
+    }
+    return local;
+  });
+
+  harness.browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+  assert.deepEqual(failures, []);
+});
+
+test("normalized runtime class skills have explicit preview source coverage across split preview modules", () => {
+  const harness = createAppHarness();
+  const coverage = getExplicitPreviewCoverageFromSource();
+  const missing = getRuntimeClassSkills(harness)
+    .filter((skill) => (skill.active === false ? !coverage.passive.has(skill.id) : !coverage.active.has(skill.id)))
+    .map((skill) => skill.id);
+
+  harness.browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+  assert.deepEqual(missing, [], `missing explicit preview source coverage for: ${missing.join(", ")}`);
+});
+
+test("active runtime skills that deal direct damage declare a damage type", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const failures: string[] = [];
+
+  getRuntimeClassSkills(harness)
+    .filter((skill) => skill.active !== false && (!skill.damageType || skill.damageType === "none"))
+    .forEach((skill) => {
+      const state = combatEngine.createCombatState({
+        content,
+        encounterId: "act_1_opening_crossfire",
+        mercenaryId: "rogue_scout",
+        randomFn: () => 0,
+        starterDeck: ["amazon_magic_arrow"],
+        equippedSkills: [{ slotKey: `slot${skill.slot}`, skill }],
+      });
+      state.hero.energy = 10;
+      state.enemies.forEach((enemy) => {
+        enemy.guard = 0;
+      });
+      const beforeLife = state.enemies.reduce((total, enemy) => total + enemy.life, 0);
+      const target = state.enemies.find((enemy) => enemy.alive) || null;
+      const result = combatEngine.useSkill(state, state.equippedSkills[0].slotKey, target?.id || "");
+      if (!result?.ok) {
+        failures.push(`${skill.id}: useSkill failed with "${result?.message || "unknown error"}"`);
+        return;
+      }
+      const afterLife = state.enemies.reduce((total, enemy) => total + enemy.life, 0);
+      if (afterLife < beforeLife) {
+        failures.push(skill.id);
+      }
+    });
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+  assert.deepEqual(failures, [], `direct-damage runtime skills missing damageType: ${failures.join(", ")}`);
 });
 
 test("interesting class cards with authored conditional text have explicit runtime coverage", () => {
@@ -955,6 +1586,428 @@ test("static flow draws when the next spell damages multiple enemies", () => {
   assert.equal(playResult.ok, true);
   assert.equal(state.hand.length, 1, "Static Flow should refill the hand after a multi-hit spell");
   assert.equal(state.hand[0].cardId, "sorceress_fire_bolt");
+});
+
+test("sorceress classic tree skills resolve authored control, setup, and tempo behavior", () => {
+  const { content, engine } = createHarness();
+
+  const iceBlastState = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "sorceress_ice_blast",
+          name: "Ice Blast",
+          requiredLevel: 6,
+          family: "answer",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Freeze a single foe.",
+          exactText: "Deal 12 cold damage. Apply 1 Freeze and 2 Slow. If the target is already Slowed, deal 6 more.",
+          active: true,
+          skillType: "spell",
+          damageType: "cold",
+        },
+      },
+    ],
+  });
+  iceBlastState.hero.energy = 10;
+  const chilledTarget = iceBlastState.enemies.find((enemy) => enemy.alive);
+  assert.ok(chilledTarget);
+  chilledTarget.slow = 1;
+  chilledTarget.guard = 0;
+  const startLife = chilledTarget.life;
+  assert.equal(engine.useSkill(iceBlastState, "slot2").ok, true);
+  assert.ok(startLife - chilledTarget.life >= 18, "Ice Blast should cash in extra damage against slowed targets");
+  assert.ok(chilledTarget.freeze >= 1);
+  assert.ok(chilledTarget.slow >= 3);
+
+  const enchantState = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "sorceress_enchant",
+          name: "Enchant",
+          requiredLevel: 18,
+          family: "state",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Empower the next damage plays.",
+          exactText: "Your next 2 damage cards this turn deal +4 damage and apply 1 Burn. Mercenary next attack +6.",
+          active: true,
+          skillType: "buff",
+          damageType: "fire",
+        },
+      },
+    ],
+  });
+  enchantState.hero.energy = 10;
+  assert.equal(engine.useSkill(enchantState, "slot2").ok, true);
+  assert.equal(enchantState.mercenary.nextAttackBonus, 6);
+  const enchantWindow = enchantState.skillWindows.find((window) => window.skillId === "sorceress_enchant");
+  assert.ok(enchantWindow);
+  assert.equal(enchantWindow.remainingUses, 2);
+  assert.equal(enchantWindow.damageBonus, 4);
+  assert.equal(enchantWindow.burn, 1);
+
+  const teleportState = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "sorceress_teleport",
+          name: "Teleport",
+          requiredLevel: 18,
+          family: "answer",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Reposition and smooth the next cast.",
+          exactText: "Gain 8 Guard for you and your mercenary. Draw 1. Your next Spell this turn costs 1 less.",
+          active: true,
+          skillType: "spell",
+        },
+      },
+    ],
+  });
+  teleportState.hero.energy = 10;
+  teleportState.hand = [{ instanceId: "next_spell", cardId: "sorceress_fireball" }];
+  teleportState.drawPile = [];
+  teleportState.discardPile = [];
+  assert.equal(engine.useSkill(teleportState, "slot3").ok, true);
+  assert.ok(teleportState.hero.guard >= 8);
+  assert.ok(teleportState.mercenary.guard >= 8);
+  assert.ok(teleportState.skillWindows.some((window) =>
+    window.skillId === "sorceress_teleport" && window.costReduction === 1 && window.requireKindsAny.includes("spell")
+  ));
+
+  const novaState = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "sorceress_nova",
+          name: "Nova",
+          requiredLevel: 12,
+          family: "answer",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Shock the whole line.",
+          exactText: "Deal 5 lightning damage to all enemies. Apply 1 Paralyze to all. If you played another Spell this turn, draw 1.",
+          active: true,
+          skillType: "spell",
+          damageType: "lightning",
+        },
+      },
+    ],
+  });
+  novaState.hero.energy = 10;
+  novaState.playedCardIdsThisTurn = ["sorceress_fire_bolt"];
+  novaState.drawPile = [{ instanceId: "refill", cardId: "sorceress_ice_bolt" }];
+  novaState.hand = [];
+  novaState.discardPile = [];
+  assert.equal(engine.useSkill(novaState, "slot2").ok, true);
+  assert.equal(novaState.hand.length, 1, "Nova should reward earlier spell sequencing with draw");
+  assert.ok(novaState.enemies.filter((enemy) => enemy.alive).every((enemy) => enemy.paralyze >= 1));
+});
+
+test("necromancer curse and bone skills resolve authored setup, sustain, and line pressure", () => {
+  const { content, engine } = createHarness();
+
+  const amplifyState = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "necromancer_amplify_damage",
+          name: "Amplify Damage",
+          requiredLevel: 1,
+          family: "state",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Open a target for attacks.",
+          exactText: "Deal 2 damage. Your mercenary deals +8 to this target. Your next 2 attacks against it deal +4. Draw 1.",
+          active: true,
+          skillType: "debuff",
+        },
+      },
+    ],
+  });
+  amplifyState.hero.energy = 10;
+  amplifyState.drawPile = [{ instanceId: "refill", cardId: "necromancer_teeth" }];
+  amplifyState.hand = [];
+  amplifyState.discardPile = [];
+  const amplifyTarget = amplifyState.enemies.find((enemy) => enemy.alive);
+  assert.ok(amplifyTarget);
+  assert.equal(engine.useSkill(amplifyState, "slot2").ok, true);
+  assert.equal(amplifyState.mercenary.skillTargetEnemyId, amplifyTarget.id);
+  assert.equal(amplifyState.mercenary.skillTargetDamageBonus, 8);
+  const amplifyWindow = amplifyState.skillWindows.find((window) => window.skillId === "necromancer_amplify_damage");
+  assert.ok(amplifyWindow);
+  assert.equal(amplifyWindow.damageBonus, 4);
+  assert.equal(amplifyWindow.remainingUses, 2);
+  assert.equal(amplifyState.hand.length, 1);
+
+  const lifeTapState = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "necromancer_life_tap",
+          name: "Life Tap",
+          requiredLevel: 18,
+          family: "recovery",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Recover and stabilize.",
+          exactText: "Heal 6. Gain 5 Guard. Draw 1.",
+          active: true,
+          skillType: "debuff",
+        },
+      },
+    ],
+  });
+  lifeTapState.hero.energy = 10;
+  lifeTapState.hero.life = Math.max(1, lifeTapState.hero.life - 10);
+  lifeTapState.drawPile = [{ instanceId: "refill", cardId: "necromancer_bone_armor" }];
+  lifeTapState.hand = [];
+  lifeTapState.discardPile = [];
+  const preTapLife = lifeTapState.hero.life;
+  assert.equal(engine.useSkill(lifeTapState, "slot2").ok, true);
+  assert.ok(lifeTapState.hero.life > preTapLife);
+  assert.ok(lifeTapState.hero.guard >= 5);
+  assert.equal(lifeTapState.hand.length, 1);
+
+  const poisonExplosionState = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "necromancer_poison_explosion",
+          name: "Poison Explosion",
+          requiredLevel: 18,
+          family: "conversion",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Poison the whole line.",
+          exactText: "Deal 4 poison damage to all enemies. Apply 3 Poison to all.",
+          active: true,
+          skillType: "spell",
+          damageType: "poison",
+        },
+      },
+    ],
+  });
+  poisonExplosionState.hero.energy = 10;
+  assert.equal(engine.useSkill(poisonExplosionState, "slot3").ok, true);
+  assert.ok(poisonExplosionState.enemies.filter((enemy) => enemy.alive).every((enemy) => enemy.poison >= 3));
+});
+
+test("necromancer summon focus directs summoned attacks to the marked target and boosts their damage", () => {
+  const harness = createAppHarness();
+  const { browserWindow, content, combatEngine } = harness;
+  const skill = getRuntimeSkill(harness, "necromancer_attract");
+  assert.ok(skill);
+
+  const state = combatEngine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [{ slotKey: "slot2", skill }],
+  });
+  state.mercenary.alive = false;
+  state.hero.energy = 10;
+  const focusTarget = state.enemies.find((enemy) => enemy.alive && enemy.id !== state.selectedEnemyId) || state.enemies.find((enemy) => enemy.alive);
+  const selectedTarget = state.enemies.find((enemy) => enemy.alive && enemy.id === state.selectedEnemyId) || null;
+  assert.ok(focusTarget);
+  assert.ok(selectedTarget);
+  state.enemies.forEach((enemy) => {
+    enemy.guard = 0;
+    enemy.life = 30;
+    enemy.maxLife = 30;
+  });
+  state.minions.push({
+    id: "focused_skeleton",
+    templateId: "necromancer_skeleton",
+    name: "Skeleton Army",
+    skillLabel: "Bone Rush",
+    actionKind: "attack",
+    targetRule: "selected_enemy",
+    power: 4,
+    secondaryValue: 0,
+    remainingTurns: 0,
+    persistent: true,
+    life: 18,
+    maxLife: 18,
+    guard: 0,
+    alive: true,
+    taunt: false,
+    invulnerable: false,
+    stackAbilities: [],
+  });
+
+  assert.equal(combatEngine.useSkill(state, "slot2", focusTarget.id).ok, true);
+  assert.equal(combatEngine.endTurn(state).ok, true);
+  assert.equal(focusTarget.life, 22, "the focused enemy should take the summon's base damage plus the focus bonus");
+  assert.equal(selectedTarget.life, 30, "summons should abandon the selected enemy once focus is set");
+  assert.equal(state.summonFocusEnemyId, "");
+  assert.equal(state.summonFocusDamageBonus, 0);
+
+  browserWindow.ROUGE_VIEW_LIFECYCLE.cleanup();
+});
+
+test("druid elemental and shapeshift skills resolve authored setup, payoff, and recovery behavior", () => {
+  const { content, engine } = createHarness();
+
+  const feralRageState = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot2",
+        skill: {
+          id: "druid_feral_rage",
+          name: "Feral Rage",
+          requiredLevel: 12,
+          family: "state",
+          slot: 2,
+          tier: "bridge",
+          cost: 1,
+          cooldown: 2,
+          summary: "Prime the next shapeshift strike.",
+          exactText: "Deal 8 damage. Heal 4. Your next Shapeshift or melee card this turn deals +3 damage.",
+          active: true,
+          skillType: "attack",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+  feralRageState.hero.energy = 10;
+  feralRageState.hero.life = Math.max(1, feralRageState.hero.life - 8);
+  const preFeralLife = feralRageState.hero.life;
+  assert.equal(engine.useSkill(feralRageState, "slot2").ok, true);
+  assert.ok(feralRageState.hero.life > preFeralLife);
+  const feralWindow = feralRageState.skillWindows.find((window) => window.skillId === "druid_feral_rage");
+  assert.ok(feralWindow);
+  assert.equal(feralWindow.damageBonus, 3);
+
+  const tornadoState = engine.createCombatState({
+    content,
+    encounterId: "act_1_opening_crossfire",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "druid_tornado",
+          name: "Tornado",
+          requiredLevel: 24,
+          family: "conversion",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Cash in slowed targets.",
+          exactText: "Deal 12 damage to all enemies. If any enemy is Slowed, deal 4 more to it.",
+          active: true,
+          skillType: "spell",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+  tornadoState.hero.energy = 10;
+  const slowedTarget = tornadoState.enemies.find((enemy) => enemy.alive);
+  assert.ok(slowedTarget);
+  slowedTarget.slow = 1;
+  const preTornadoLife = slowedTarget.life;
+  assert.equal(engine.useSkill(tornadoState, "slot3").ok, true);
+  assert.ok(preTornadoLife - slowedTarget.life >= 16, "Tornado should cash in slowed enemies for bonus damage");
+
+  const hungerState = engine.createCombatState({
+    content,
+    encounterId: "act_1_boss",
+    mercenaryId: "rogue_scout",
+    randomFn: () => 0,
+    equippedSkills: [
+      {
+        slotKey: "slot3",
+        skill: {
+          id: "druid_hunger",
+          name: "Hunger",
+          requiredLevel: 24,
+          family: "recovery",
+          slot: 3,
+          tier: "capstone",
+          cost: 2,
+          cooldown: 4,
+          summary: "Drain a slowed target.",
+          exactText: "Deal 18 damage. Heal 10. If the target is Slowed, deal 6 more.",
+          active: true,
+          skillType: "attack",
+          damageType: "physical",
+        },
+      },
+    ],
+  });
+  hungerState.hero.energy = 10;
+  hungerState.hero.life = Math.max(1, hungerState.hero.life - 14);
+  const prey = hungerState.enemies.find((enemy) => enemy.alive);
+  assert.ok(prey);
+  prey.slow = 1;
+  prey.guard = 0;
+  const preHungerLife = hungerState.hero.life;
+  const prePreyLife = prey.life;
+  assert.equal(engine.useSkill(hungerState, "slot3").ok, true);
+  assert.ok(hungerState.hero.life > preHungerLife);
+  assert.ok(prePreyLife - prey.life >= 24, "Hunger should spike slowed prey");
 });
 
 test("elite onslaught modifiers push elite packs into their harder follow-up without advancing non-elites", () => {

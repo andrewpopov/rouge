@@ -363,13 +363,14 @@
       }
     }
 
+    // These debuffs shape the player's upcoming turn, so they decay after the
+    // turn ends instead of before the player can feel them.
     if (state.hero.chill > 0) {
       _logCombat(state, {
         actor: "environment", actorName: "",
         action: "status_tick", tone: "status",
         message: `The Wanderer is Chilled — draws 1 fewer card.`,
       });
-      state.hero.chill = Math.max(0, state.hero.chill - 1);
     }
 
     if (state.hero.energyDrain > 0) {
@@ -378,7 +379,6 @@
         action: "status_tick", tone: "status",
         message: `The Wanderer is drained — 1 less Energy this turn.`,
       });
-      state.hero.energyDrain = Math.max(0, state.hero.energyDrain - 1);
     }
 
     if (state.hero.amplify > 0) {
@@ -387,7 +387,6 @@
         action: "status_tick", tone: "status",
         message: `Amplify Damage active — the Wanderer takes increased damage.`,
       });
-      state.hero.amplify = Math.max(0, state.hero.amplify - 1);
     }
 
     if (state.hero.weaken > 0) {
@@ -396,7 +395,6 @@
         action: "status_tick", tone: "status",
         message: `Decrepify active — the Wanderer deals reduced damage.`,
       });
-      state.hero.weaken = Math.max(0, state.hero.weaken - 1);
     }
   }
 

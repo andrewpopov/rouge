@@ -44,6 +44,7 @@ interface ScreenshotCombatFixtureOptions {
 interface ScreenshotHelpersApi {
   ready: boolean;
   loadCombatFixture(options?: ScreenshotCombatFixtureOptions): boolean;
+  resumeSavedRun(options?: { dismissActGuide?: boolean }): boolean;
 }
 
 interface RenderUtilsApi {
@@ -1174,6 +1175,7 @@ interface Window {
   __ROUGE_SKILL_PREVIEW_DATA: {
     SKILL_MODIFIER_MAP: Record<string, Array<Record<string, unknown>>>;
     SKILL_PASSIVE_MAP: Record<string, Array<Record<string, unknown>>>;
+    getStaticActiveSkillPreview(skillId: string, combat: CombatState): string | null;
     renderModPart(part: Record<string, unknown>, scale: number): string;
     renderPassivePart(part: Record<string, unknown>, scale: number): string;
   };

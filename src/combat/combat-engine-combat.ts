@@ -457,14 +457,16 @@
     if (mods) {
       if (mods.tempHeroDamageBonus) {
         state.tempHeroDamageBonus = Math.max(0, state.tempHeroDamageBonus + mods.tempHeroDamageBonus);
-        if (mods.tempMercenaryDamageBonus) {
-          state.tempMercenaryDamageBonus = Math.max(0, state.tempMercenaryDamageBonus + mods.tempMercenaryDamageBonus);
-        }
         segments.push((cardBehaviorData.STATE_MOD_MESSAGES.tempHeroDamageBonus || "").replace("{N}", String(mods.tempHeroDamageBonus)));
-      } else if (mods.tempSummonPowerBonus) {
+      }
+      if (mods.tempMercenaryDamageBonus) {
+        state.tempMercenaryDamageBonus = Math.max(0, state.tempMercenaryDamageBonus + mods.tempMercenaryDamageBonus);
+      }
+      if (mods.tempSummonPowerBonus) {
         state.tempSummonPowerBonus = Math.max(0, state.tempSummonPowerBonus + mods.tempSummonPowerBonus);
         segments.push((cardBehaviorData.STATE_MOD_MESSAGES.tempSummonPowerBonus || "").replace("{N}", String(mods.tempSummonPowerBonus)));
-      } else if (mods.tempTrapPowerBonus) {
+      }
+      if (mods.tempTrapPowerBonus) {
         state.tempTrapPowerBonus = Math.max(0, state.tempTrapPowerBonus + mods.tempTrapPowerBonus);
         segments.push((cardBehaviorData.STATE_MOD_MESSAGES.tempTrapPowerBonus || "").replace("{N}", String(mods.tempTrapPowerBonus)));
       }

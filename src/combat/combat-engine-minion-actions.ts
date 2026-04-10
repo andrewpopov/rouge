@@ -23,9 +23,19 @@
     return getLivingEnemies(state)[0]?.id || "";
   }
 
-  const minionModule = runtimeWindow.__ROUGE_COMBAT_MINIONS;
+  const neutralMinionModule = {
+    MAX_ACTIVE_CREATURES: 3,
+    MAX_ACTIVE_TRAPS: 3,
+    getActiveMinions: (_state: CombatState): CombatMinionState[] => [],
+    getMinionTemplate: (_templateId: string): null => null,
+    getMinionDuration: (_effect: CardEffect, _template: unknown): number => 0,
+    getMinionPrimaryValue: (_effect: CardEffect): number => 0,
+    getMinionSecondaryValue: (_effect: CardEffect): number => 0,
+    getMinionReinforcementValue: (value: number): number => value,
+    getMinionSkillSummary: (_minion: CombatMinionState): string => "",
+  };
+  const minionModule = runtimeWindow.__ROUGE_COMBAT_MINIONS || neutralMinionModule;
   const {
-    MAX_ACTIVE_MINIONS,
     getActiveMinions,
     getMinionTemplate,
     getMinionDuration,
@@ -35,7 +45,12 @@
     getMinionSkillSummary,
   } = minionModule;
 
-  const damageModule = runtimeWindow.__ROUGE_COMBAT_ENGINE_DAMAGE;
+  const neutralDamageModule = {
+    healEntity: (_entity: unknown, _amount: number): number => 0,
+    applyGuard: (_entity: unknown, _amount: number): number => 0,
+    dealDamage: (_state: CombatState, _entity: unknown, _amount: number): number => 0,
+  };
+  const damageModule = runtimeWindow.__ROUGE_COMBAT_ENGINE_DAMAGE || neutralDamageModule;
   const { healEntity, applyGuard, dealDamage } = damageModule;
 
   const { parseInteger } = runtimeWindow.ROUGE_UTILS;
@@ -152,6 +167,10 @@
     if (livingEnemies.length === 0) {
       return null;
     }
+    const focusedEnemy = livingEnemies.find((enemy: CombatEnemyState) => enemy.id === state.summonFocusEnemyId) || null;
+    if (focusedEnemy) {
+      return focusedEnemy;
+    }
     if (minion.targetRule === "lowest_life") {
       return livingEnemies
         .slice()
@@ -166,14 +185,101 @@
     return selected || livingEnemies[0] || null;
   }
 
+  function getSummonFocusBonus(state: CombatState, target: CombatEnemyState | null) {
+    if (!target || target.id !== state.summonFocusEnemyId) {
+      return 0;
+    }
+    return Math.max(0, state.summonFocusDamageBonus || 0);
+  }
+
+  function clearSummonFocus(state: CombatState) {
+    state.summonFocusEnemyId = "";
+    state.summonFocusDamageBonus = 0;
+    state.summonFocusNextAttackPenalty = 0;
+  }
+
+  function applyStackAbilityRiders(
+    state: CombatState,
+    minion: CombatMinionState,
+    target: CombatEnemyState | null,
+    effects: CombatLogEffect[]
+  ): string[] {
+    const segments: string[] = [];
+    const abilities = Array.isArray(minion.stackAbilities) ? minion.stackAbilities : [];
+    const riderValue = Math.max(0, minion.secondaryValue || 0);
+    if (abilities.length === 0 || riderValue <= 0) {
+      return segments;
+    }
+
+    if (target && abilities.includes("poison")) {
+      target.poison = Math.max(0, target.poison + riderValue);
+      effects.push({
+        target: "enemy",
+        targetId: target.id,
+        targetName: target.name,
+        statusApplied: { kind: "poison", stacks: riderValue },
+        lifeAfter: target.life,
+        guardAfter: target.guard,
+      });
+      segments.push(`applies ${riderValue} Poison`);
+    }
+
+    if (target && abilities.includes("burn")) {
+      target.burn = Math.max(0, target.burn + riderValue);
+      effects.push({
+        target: "enemy",
+        targetId: target.id,
+        targetName: target.name,
+        statusApplied: { kind: "burn", stacks: riderValue },
+        lifeAfter: target.life,
+        guardAfter: target.guard,
+      });
+      segments.push(`applies ${riderValue} Burn`);
+    }
+
+    if (abilities.includes("guard_party")) {
+      applyGuard(state.hero, riderValue);
+      effects.push({
+        target: "hero",
+        targetName: "the Wanderer",
+        guardApplied: riderValue,
+        lifeAfter: state.hero.life,
+        guardAfter: state.hero.guard,
+      });
+      if (state.mercenary.alive) {
+        applyGuard(state.mercenary, riderValue);
+        effects.push({
+          target: "mercenary",
+          targetName: state.mercenary.name,
+          guardApplied: riderValue,
+          lifeAfter: state.mercenary.life,
+          guardAfter: state.mercenary.guard,
+        });
+      }
+      segments.push(`grants ${riderValue} Guard to the party`);
+    }
+
+    return segments;
+  }
+
   function resolveMinionAction(state: CombatState, minion: CombatMinionState) {
     const actionLabel = `${minion.name} uses ${minion.skillLabel}`;
 
     if (minion.actionKind === "attack") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power);
-      logCombat(state, { actor: "minion", actorName: minion.name, actorId: minion.id, action: "intent", actionId: minion.actionKind, message: `${actionLabel} on ${target.name} for ${dealt}.`, effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }] });
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+      const effects: CombatLogEffect[] = [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }];
+      const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
+      logCombat(state, {
+        actor: "minion",
+        actorName: minion.name,
+        actorId: minion.id,
+        action: "intent",
+        actionId: minion.actionKind,
+        message: `${actionLabel} on ${target.name} for ${dealt}${riderSegments.length > 0 ? ` and ${riderSegments.join(" and ")}` : ""}.`,
+        effects,
+      });
       return;
     }
 
@@ -183,7 +289,7 @@
       let total = 0;
       const effects: CombatLogEffect[] = [];
       targets.forEach((target) => {
-        const dealt = dealDamage(state, target, minion.power);
+        const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
         total += dealt;
         effects.push({ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
       });
@@ -194,14 +300,16 @@
     if (minion.actionKind === "attack_mark") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power);
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
       state.mercenary.markedEnemyId = target.id;
       state.mercenary.markBonus = Math.max(state.mercenary.markBonus, minion.secondaryValue);
+      const effects: CombatLogEffect[] = [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }];
+      const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
       logCombat(state, {
         actor: "minion", actorName: minion.name, actorId: minion.id,
         action: "intent", actionId: minion.actionKind,
-        message: `${actionLabel} on ${target.name} for ${dealt} and marks it for +${minion.secondaryValue} mercenary damage.`,
-        effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }],
+        message: `${actionLabel} on ${target.name} for ${dealt} and marks it for +${minion.secondaryValue} mercenary damage${riderSegments.length > 0 ? `, and ${riderSegments.join(" and ")}` : ""}.`,
+        effects,
       });
       return;
     }
@@ -209,13 +317,15 @@
     if (minion.actionKind === "attack_poison") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power);
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
       target.poison = Math.max(0, target.poison + minion.secondaryValue);
+      const effects: CombatLogEffect[] = [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, statusApplied: { kind: "poison", stacks: minion.secondaryValue }, lifeAfter: target.life, guardAfter: target.guard }];
+      const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
       logCombat(state, {
         actor: "minion", actorName: minion.name, actorId: minion.id,
         action: "intent", actionId: minion.actionKind,
-        message: `${actionLabel} on ${target.name} for ${dealt} and applies ${minion.secondaryValue} Poison.`,
-        effects: [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, statusApplied: { kind: "poison", stacks: minion.secondaryValue }, lifeAfter: target.life, guardAfter: target.guard }],
+        message: `${actionLabel} on ${target.name} for ${dealt} and applies ${minion.secondaryValue} Poison${riderSegments.length > 0 ? `, and ${riderSegments.join(" and ")}` : ""}.`,
+        effects,
       });
       return;
     }
@@ -223,18 +333,20 @@
     if (minion.actionKind === "attack_guard_party") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power);
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
       applyGuard(state.hero, minion.secondaryValue);
       if (state.mercenary.alive) { applyGuard(state.mercenary, minion.secondaryValue); }
+      const effects: CombatLogEffect[] = [
+        { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+        { target: "hero", targetName: "the Wanderer", guardApplied: minion.secondaryValue, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
+        ...(state.mercenary.alive ? [{ target: "mercenary" as const, targetName: state.mercenary.name, guardApplied: minion.secondaryValue, lifeAfter: state.mercenary.life, guardAfter: state.mercenary.guard }] : []),
+      ];
+      const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
       logCombat(state, {
         actor: "minion", actorName: minion.name, actorId: minion.id,
         action: "intent", actionId: minion.actionKind,
-        message: `${actionLabel} on ${target.name} for ${dealt} and grants ${minion.secondaryValue} Guard to the party.`,
-        effects: [
-          { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
-          { target: "hero", targetName: "the Wanderer", guardApplied: minion.secondaryValue, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
-          ...(state.mercenary.alive ? [{ target: "mercenary" as const, targetName: state.mercenary.name, guardApplied: minion.secondaryValue, lifeAfter: state.mercenary.life, guardAfter: state.mercenary.guard }] : []),
-        ],
+        message: `${actionLabel} on ${target.name} for ${dealt} and grants ${minion.secondaryValue} Guard to the party${riderSegments.length > 0 ? `, and ${riderSegments.join(" and ")}` : ""}.`,
+        effects,
       });
       return;
     }
@@ -242,16 +354,18 @@
     if (minion.actionKind === "attack_heal_hero") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power);
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
       const healed = healEntity(state.hero, minion.secondaryValue);
+      const effects: CombatLogEffect[] = [
+        { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
+        { target: "hero", targetName: "the Wanderer", healing: healed, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
+      ];
+      const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
       logCombat(state, {
         actor: "minion", actorName: minion.name, actorId: minion.id,
         action: "intent", actionId: minion.actionKind,
-        message: `${actionLabel} on ${target.name} for ${dealt} and heals the Wanderer for ${healed}.`,
-        effects: [
-          { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },
-          { target: "hero", targetName: "the Wanderer", healing: healed, lifeAfter: state.hero.life, guardAfter: state.hero.guard },
-        ],
+        message: `${actionLabel} on ${target.name} for ${dealt} and heals the Wanderer for ${healed}${riderSegments.length > 0 ? `, and ${riderSegments.join(" and ")}` : ""}.`,
+        effects,
       });
       return;
     }
@@ -293,7 +407,7 @@
       let totalDamage = 0;
       const burnEffects: CombatLogEffect[] = [];
       livingEnemies.forEach((enemy: CombatEnemyState) => {
-        const dmg = dealDamage(state, enemy, minion.power);
+        const dmg = dealDamage(state, enemy, minion.power + getSummonFocusBonus(state, enemy));
         totalDamage += dmg;
         if (enemy.alive) { enemy.burn = Math.max(0, enemy.burn + minion.secondaryValue); }
         burnEffects.push({ target: "enemy", targetId: enemy.id, targetName: enemy.name, damage: dmg, statusApplied: { kind: "burn", stacks: minion.secondaryValue }, lifeAfter: enemy.life, guardAfter: enemy.guard });
@@ -313,7 +427,7 @@
       let totalDamage = 0;
       const paraEffects: CombatLogEffect[] = [];
       livingEnemies.forEach((enemy: CombatEnemyState) => {
-        const dmg = dealDamage(state, enemy, minion.power);
+        const dmg = dealDamage(state, enemy, minion.power + getSummonFocusBonus(state, enemy));
         totalDamage += dmg;
         if (enemy.alive) { enemy.paralyze = Math.max(0, enemy.paralyze + Math.max(1, minion.secondaryValue)); }
         paraEffects.push({ target: "enemy", targetId: enemy.id, targetName: enemy.name, damage: dmg, statusApplied: { kind: "paralyze", stacks: Math.max(1, minion.secondaryValue) }, lifeAfter: enemy.life, guardAfter: enemy.guard });
@@ -329,7 +443,10 @@
 
   function resolveMinionPhase(state: CombatState) {
     const minionsToAct = [...getActiveMinions(state)];
-    if (minionsToAct.length === 0) { return; }
+    if (minionsToAct.length === 0) {
+      clearSummonFocus(state);
+      return;
+    }
 
     for (let index = 0; index < minionsToAct.length; index += 1) {
       const minion = minionsToAct[index];
@@ -346,6 +463,7 @@
     }
 
     state.minions = getActiveMinions(state).filter((minion: CombatMinionState) => minion.persistent || minion.remainingTurns > 0);
+    clearSummonFocus(state);
   }
 
   function getMinionArtTier(minion: CombatMinionState, maxTier?: number): number {

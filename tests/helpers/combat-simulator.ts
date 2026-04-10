@@ -191,6 +191,12 @@ interface ScenarioBalanceReport {
     averageEarlyDecisionScoreSpread?: number;
     earlyCloseDecisionRate?: number;
     averageEarlyEndTurnRegret?: number;
+    skillActionRate?: number;
+    skillUseTurnRate?: number;
+    readySkillUnusedTurnRate?: number;
+    slot1UseRate?: number;
+    slot2UseRate?: number;
+    slot3UseRate?: number;
     beamDecisionRate?: number;
     averageBeamDepth?: number;
     beamOverrideRate?: number;
@@ -309,6 +315,36 @@ interface CombatCandidateAction {
   potionTarget?: "hero" | "mercenary";
   afterShortfall?: number;
 }
+
+interface CombatActionChoiceStats {
+  action: CombatCandidateAction;
+  candidateCount: number;
+  meaningfulCandidateCount: number;
+  scoreSpread: number;
+  endTurnRegret: number;
+}
+
+interface TurnDecisionTelemetry {
+  startingEnergy: number;
+  startingHandSize: number;
+  cardsPlayed: number;
+  endingEnergy: number;
+  endingHandSize: number;
+  meaningfulUnplayed: number;
+  candidateCount: number;
+  meaningfulCandidateCount: number;
+  decisionScoreSpread: number;
+  endTurnRegret: number;
+  readySkillCount: number;
+  skillActionsUsed: number;
+  slot1Used: boolean;
+  slot2Used: boolean;
+  slot3Used: boolean;
+}
+
+const MEANINGFUL_DECISION_MARGIN = 8;
+const CLOSE_DECISION_SPREAD_THRESHOLD = 6;
+const PASS_REGRET_SIGNIFICANCE_THRESHOLD = 2;
 
 const BALANCE_SCENARIOS: Record<string, BalanceScenarioDefinition> = {
   mainline_conservative: {
@@ -555,6 +591,72 @@ function getMercenaryIdForClass(classId: string) {
 function getAllClassSkills(harness: ReturnType<typeof createAppHarness>, classId: string) {
   const progression = harness.classRegistry.getClassProgression(harness.content, classId) || null;
   return progression ? progression.trees.flatMap((tree: RuntimeClassTreeDefinition) => tree.skills) : [];
+}
+
+function resolveScenarioTrainingTreeId(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  deck: string[]
+) {
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId) || null;
+  const trees = classProgression?.trees || [];
+  if (trees.length === 0) {
+    return "";
+  }
+  const favoredTreeId = String(run.progression?.classProgression?.favoredTreeId || "");
+  const treeRanks = run.progression?.classProgression?.treeRanks || {};
+  const deckSkillIds = new Set(
+    deck
+      .map((cardId) => harness.content.cardCatalog[cardId]?.skillRef || "")
+      .filter(Boolean)
+  );
+  return trees
+    .map((tree) => ({
+      treeId: tree.id,
+      rank: Number(treeRanks[tree.id] || 0),
+      deckScore: (tree.skills || []).filter((skill) => deckSkillIds.has(skill.id)).length,
+      favored: tree.id === favoredTreeId ? 1 : 0,
+    }))
+    .sort((left, right) => {
+      return (
+        right.rank - left.rank ||
+        right.deckScore - left.deckScore ||
+        right.favored - left.favored ||
+        left.treeId.localeCompare(right.treeId)
+      );
+    })[0]?.treeId || favoredTreeId || trees[0]?.id || "";
+}
+
+function buildScenarioTrainingLoadout(
+  harness: ReturnType<typeof createAppHarness>,
+  run: RunState,
+  deck: string[]
+) {
+  const classProgression = harness.classRegistry.getClassProgression(harness.content, run.classId) || null;
+  const trees = classProgression?.trees || [];
+  if (trees.length === 0) {
+    return null;
+  }
+  const targetTreeId = resolveScenarioTrainingTreeId(harness, run, deck);
+  const targetTree = trees.find((tree) => tree.id === targetTreeId) || trees[0] || null;
+  if (!targetTree) {
+    return null;
+  }
+  const bridgeSkill = targetTree.skills.find((skill) => skill.slot === 2 || skill.tier === "bridge") || null;
+  const capstoneSkill = targetTree.skills.find((skill) => skill.slot === 3 || skill.tier === "capstone") || null;
+  const equippedSkillIds = {
+    slot2: bridgeSkill?.id || "",
+    slot3: capstoneSkill?.id || "",
+  };
+  const unlockedSkillIds = Object.values(equippedSkillIds).filter(Boolean);
+  if (!targetTree.id && unlockedSkillIds.length === 0) {
+    return null;
+  }
+  return {
+    favoredTreeId: targetTree.id,
+    unlockedSkillIds,
+    equippedSkillIds,
+  };
 }
 
 function buildTrainingSummary(harness: ReturnType<typeof createAppHarness>, run: RunState) {
@@ -971,7 +1073,9 @@ function buildScenarioDeck(harness: ReturnType<typeof createAppHarness>, classId
   // A pure score-ranked draft produces all-offense decks that can't survive.
   const isDefensiveCard = (cardId: string) => {
     const card = harness.content.cardCatalog[cardId];
-    if (!card) return false;
+    if (!card) {
+      return false;
+    }
     const hasGuard = (card.effects || []).some((e: CardEffect) => e.kind === "gain_guard_self" || e.kind === "gain_guard_party");
     const hasHeal = (card.effects || []).some((e: CardEffect) => e.kind === "heal_hero" || e.kind === "heal_mercenary");
     const hasDamage = (card.effects || []).some((e: CardEffect) => e.kind === "damage" || e.kind === "damage_all");
@@ -1135,6 +1239,12 @@ function buildSimulatedRun(harness: ReturnType<typeof createAppHarness>, classId
   applyRunLevelAndAct(harness, state.run, scenario.targetLevel, scenario.actNumber);
   allocateAttributePoints(state.run, scenario);
   allocateClassPoints(harness, state.run, deckBundle.deck);
+  const synthesizedTrainingLoadout = buildScenarioTrainingLoadout(harness, state.run, deckBundle.deck);
+  applySimulationTrainingLoadout(
+    harness as ReturnType<typeof import("./run-progression-simulator").createQuietAppHarness>,
+    state,
+    synthesizedTrainingLoadout
+  );
   equipScenarioLoadout({
     harness,
     state,
@@ -1585,11 +1695,14 @@ function scoreCandidateAction(candidate: CombatCandidateAction, state: CombatSta
   };
 }
 
-export function chooseBestAction(state: CombatState, content: GameContent, engine: CombatEngineApi) {
+function chooseBestActionWithTelemetry(state: CombatState, content: GameContent, engine: CombatEngineApi): CombatActionChoiceStats {
   const candidates = listCandidateActions(state, content, engine).sort((left, right) => right.score - left.score);
   const best = candidates[0] || { type: "end_turn", score: 0 };
   const currentShortfall = getThreatShortfall(state);
   const bestActiveCandidate = candidates.find((candidate) => candidate.type !== "end_turn") || null;
+  const finiteCandidates = candidates.filter((candidate) => Number.isFinite(Number(candidate.score)));
+  const activeFiniteCandidates = finiteCandidates.filter((candidate) => candidate.type !== "end_turn");
+  const bestActiveScore = Number(bestActiveCandidate?.score ?? Number.NEGATIVE_INFINITY);
   const bestThreatReducer =
     currentShortfall > 0
       ? candidates
@@ -1603,16 +1716,107 @@ export function chooseBestAction(state: CombatState, content: GameContent, engin
             return Number(right.score) - Number(left.score);
           })[0] || null
       : null;
-  if (currentShortfall > 0 && bestThreatReducer && Number(bestThreatReducer.afterShortfall ?? Number.POSITIVE_INFINITY) < currentShortfall) {
-    return bestThreatReducer;
-  }
-  // Play any action that scores higher than end_turn
-  const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn");
+  const endTurnCandidate = candidates.find((candidate) => candidate.type === "end_turn") || null;
   const endTurnScore = Number(endTurnCandidate?.score ?? Number.NEGATIVE_INFINITY);
-  if (!best || !bestActiveCandidate || bestActiveCandidate.score <= endTurnScore) {
-    return endTurnCandidate || ({ type: "end_turn", score: 0 } as CombatCandidateAction);
+  const meaningfulFloor = Math.max(bestActiveScore - MEANINGFUL_DECISION_MARGIN, endTurnScore + PASS_REGRET_SIGNIFICANCE_THRESHOLD);
+  const meaningfulCandidateCount = Number.isFinite(bestActiveScore)
+    ? activeFiniteCandidates.filter((candidate) => Number(candidate.score) >= meaningfulFloor).length
+    : 0;
+  const bestScore = Number(finiteCandidates[0]?.score ?? 0);
+  const secondBestScore = Number(finiteCandidates[1]?.score ?? bestScore);
+  const scoreSpread = roundTo(Math.max(0, bestScore - secondBestScore), 3);
+  const endTurnRegret = roundTo(
+    Number.isFinite(bestActiveScore) && Number.isFinite(endTurnScore) ? Math.max(0, bestActiveScore - endTurnScore) : 0,
+    3
+  );
+  let action: CombatCandidateAction;
+  if (currentShortfall > 0 && bestThreatReducer && Number(bestThreatReducer.afterShortfall ?? Number.POSITIVE_INFINITY) < currentShortfall) {
+    action = bestThreatReducer;
+  } else if (!best || !bestActiveCandidate || bestActiveCandidate.score <= endTurnScore) {
+    action = endTurnCandidate || ({ type: "end_turn", score: 0 } as CombatCandidateAction);
+  } else {
+    action = best;
   }
-  return best;
+  return {
+    action,
+    candidateCount: candidates.length,
+    meaningfulCandidateCount,
+    scoreSpread,
+    endTurnRegret,
+  };
+}
+
+function isSkillReadyNow(skill: CombatEquippedSkillState, availableEnergy: number) {
+  return (
+    skill.active &&
+    skill.cost <= Math.max(0, availableEnergy) &&
+    skill.remainingCooldown <= 0 &&
+    (!skill.oncePerBattle || !skill.usedThisBattle) &&
+    (skill.chargeCount <= 0 || skill.chargesRemaining > 0)
+  );
+}
+
+function getReadySkillCount(state: CombatState, availableEnergy: number) {
+  return state.equippedSkills.reduce((count, skill) => {
+    return isSkillReadyNow(skill, availableEnergy) ? count + 1 : count;
+  }, 0);
+}
+
+function summarizeTurnTelemetry(turns: TurnDecisionTelemetry[]) {
+  const earlyTurns = turns.slice(0, 3);
+  const opening = turns[0] || {
+    startingEnergy: 0,
+    startingHandSize: 0,
+    cardsPlayed: 0,
+    endingEnergy: 0,
+    endingHandSize: 0,
+    meaningfulUnplayed: 0,
+    candidateCount: 0,
+    meaningfulCandidateCount: 0,
+    decisionScoreSpread: 0,
+    endTurnRegret: 0,
+    readySkillCount: 0,
+    skillActionsUsed: 0,
+    slot1Used: false,
+    slot2Used: false,
+    slot3Used: false,
+  };
+  const divisor = Math.max(1, earlyTurns.length);
+  const totalTurns = Math.max(1, turns.length);
+  const readySkillTurns = turns.filter((turn) => turn.readySkillCount > 0);
+  return {
+    openingHandFullSpendRate: opening.endingHandSize === 0 ? 1 : 0,
+    averageTurn1UnspentEnergy: opening.endingEnergy,
+    averageEarlyUnspentEnergy: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.endingEnergy, 0) / divisor),
+    averageEarlyMeaningfulUnplayedRate: roundTo(earlyTurns.filter((turn) => turn.meaningfulUnplayed > 0).length / divisor, 3),
+    averageEarlyCandidateCount: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.candidateCount, 0) / divisor),
+    averageEarlyMeaningfulCandidateCount: roundTo(
+      earlyTurns.reduce((sum, turn) => sum + turn.meaningfulCandidateCount, 0) / divisor,
+      3
+    ),
+    averageEarlyDecisionScoreSpread: roundTo(
+      earlyTurns.reduce((sum, turn) => sum + turn.decisionScoreSpread, 0) / divisor,
+      3
+    ),
+    earlyCloseDecisionRate: roundTo(
+      earlyTurns.filter((turn) => turn.meaningfulCandidateCount >= 2 && turn.decisionScoreSpread <= CLOSE_DECISION_SPREAD_THRESHOLD).length / divisor,
+      3
+    ),
+    averageEarlyEndTurnRegret: roundTo(earlyTurns.reduce((sum, turn) => sum + turn.endTurnRegret, 0) / divisor, 3),
+    skillActionRate: roundTo(turns.reduce((sum, turn) => sum + turn.skillActionsUsed, 0) / totalTurns, 3),
+    skillUseTurnRate: roundTo(turns.filter((turn) => turn.skillActionsUsed > 0).length / totalTurns, 3),
+    readySkillUnusedTurnRate: roundTo(
+      readySkillTurns.filter((turn) => turn.skillActionsUsed === 0).length / Math.max(1, readySkillTurns.length),
+      3
+    ),
+    slot1UseRate: roundTo(turns.filter((turn) => turn.slot1Used).length / totalTurns, 3),
+    slot2UseRate: roundTo(turns.filter((turn) => turn.slot2Used).length / totalTurns, 3),
+    slot3UseRate: roundTo(turns.filter((turn) => turn.slot3Used).length / totalTurns, 3),
+  };
+}
+
+export function chooseBestAction(state: CombatState, content: GameContent, engine: CombatEngineApi) {
+  return chooseBestActionWithTelemetry(state, content, engine).action;
 }
 
 export function executeAction(action: CombatCandidateAction, state: CombatState, content: GameContent, engine: CombatEngineApi) {
@@ -1635,21 +1839,54 @@ function simulateEncounter(context: SimulatedBuildContext, entry: BalanceEncount
   const seed = hashString([context.classId, context.scenario.id, entry.encounterId, String(runIndex)].join("|"));
   const combatState = buildCombatStateForEncounter(context, entry.encounterId, seed);
   const actionLimitPerTurn = 32;
+  const turnTelemetry: TurnDecisionTelemetry[] = [];
 
   while (!combatState.outcome && combatState.turn < context.scenario.maxTurns) {
     if (combatState.phase !== "player") {
       context.harness.combatEngine.endTurn(combatState);
       continue;
     }
+    const telemetry: TurnDecisionTelemetry = {
+      startingEnergy: Number(combatState.hero.energy || 0),
+      startingHandSize: combatState.hand.length,
+      cardsPlayed: 0,
+      endingEnergy: 0,
+      endingHandSize: 0,
+      meaningfulUnplayed: 0,
+      candidateCount: 0,
+      meaningfulCandidateCount: 0,
+      decisionScoreSpread: 0,
+      endTurnRegret: 0,
+      readySkillCount: getReadySkillCount(combatState, Number(combatState.hero.energy || 0)),
+      skillActionsUsed: 0,
+      slot1Used: false,
+      slot2Used: false,
+      slot3Used: false,
+    };
     let actionsTaken = 0;
     while (combatState.phase === "player" && !combatState.outcome && actionsTaken < actionLimitPerTurn) {
-      const action = chooseBestAction(combatState, context.harness.content, context.harness.combatEngine);
-      const result = executeAction(action, combatState, context.harness.content, context.harness.combatEngine);
+      const choice = chooseBestActionWithTelemetry(combatState, context.harness.content, context.harness.combatEngine);
+      if (actionsTaken === 0) {
+        telemetry.candidateCount = choice.candidateCount;
+        telemetry.meaningfulCandidateCount = choice.meaningfulCandidateCount;
+        telemetry.decisionScoreSpread = choice.scoreSpread;
+        telemetry.endTurnRegret = choice.endTurnRegret;
+      }
+      const result = executeAction(choice.action, combatState, context.harness.content, context.harness.combatEngine);
+      if (result.ok && choice.action.type === "card") {
+        telemetry.cardsPlayed += 1;
+      } else if (result.ok && choice.action.type === "skill") {
+        telemetry.skillActionsUsed += 1;
+        telemetry[`${choice.action.slotKey}Used` as "slot1Used" | "slot2Used" | "slot3Used"] = true;
+      }
       actionsTaken += 1;
-      if (!result.ok || action.type === "end_turn") {
+      if (!result.ok || choice.action.type === "end_turn") {
         break;
       }
     }
+    telemetry.endingEnergy = Number(combatState.hero.energy || 0);
+    telemetry.endingHandSize = combatState.hand.length;
+    turnTelemetry.push(telemetry);
     if (!combatState.outcome && combatState.phase === "player") {
       context.harness.combatEngine.endTurn(combatState);
     }
@@ -1657,6 +1894,7 @@ function simulateEncounter(context: SimulatedBuildContext, entry: BalanceEncount
 
   const remainingEnemyLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.life, 0);
   const enemyMaxLife = combatState.enemies.reduce((sum, enemy) => sum + enemy.maxLife, 0);
+  const telemetrySummary = summarizeTurnTelemetry(turnTelemetry);
   const logSummary = context.harness.browserWindow.__ROUGE_COMBAT_LOG.summarizeCombatLog(combatState);
   return {
     outcome: combatState.outcome || "timeout",
@@ -1665,6 +1903,7 @@ function simulateEncounter(context: SimulatedBuildContext, entry: BalanceEncount
     mercenaryLifePct: combatState.mercenary.maxLife > 0 ? combatState.mercenary.life / combatState.mercenary.maxLife : 0,
     potionsRemaining: combatState.potions,
     enemyLifePct: enemyMaxLife > 0 ? remainingEnemyLife / enemyMaxLife : 0,
+    ...telemetrySummary,
     logSummary,
   };
 }
@@ -1698,21 +1937,30 @@ function summarizeEncounterRuns(
     averageMercenaryLifePct: roundTo((runs.reduce((sum, result) => sum + result.mercenaryLifePct, 0) / divisor) * 100),
     averagePotionsRemaining: roundTo(runs.reduce((sum, result) => sum + result.potionsRemaining, 0) / divisor),
     averageEnemyLifePct: roundTo((runs.reduce((sum, result) => sum + result.enemyLifePct, 0) / divisor) * 100),
-    openingHandFullSpendRate: 0,
-    averageTurn1UnspentEnergy: 0,
-    averageEarlyUnspentEnergy: 0,
-    averageEarlyMeaningfulUnplayedRate: 0,
-    averageEarlyCandidateCount: 0,
-    averageEarlyMeaningfulCandidateCount: 0,
-    averageEarlyDecisionScoreSpread: 0,
-    earlyCloseDecisionRate: 0,
-    averageEarlyEndTurnRegret: 0,
-    skillActionRate: 0,
-    skillUseTurnRate: 0,
-    readySkillUnusedTurnRate: 0,
-    slot1UseRate: 0,
-    slot2UseRate: 0,
-    slot3UseRate: 0,
+    openingHandFullSpendRate: roundTo(runs.reduce((sum, result) => sum + Number(result.openingHandFullSpendRate || 0), 0) / divisor, 3),
+    averageTurn1UnspentEnergy: roundTo(runs.reduce((sum, result) => sum + Number(result.averageTurn1UnspentEnergy || 0), 0) / divisor, 3),
+    averageEarlyUnspentEnergy: roundTo(runs.reduce((sum, result) => sum + Number(result.averageEarlyUnspentEnergy || 0), 0) / divisor, 3),
+    averageEarlyMeaningfulUnplayedRate: roundTo(
+      runs.reduce((sum, result) => sum + Number(result.averageEarlyMeaningfulUnplayedRate || 0), 0) / divisor,
+      3
+    ),
+    averageEarlyCandidateCount: roundTo(runs.reduce((sum, result) => sum + Number(result.averageEarlyCandidateCount || 0), 0) / divisor, 3),
+    averageEarlyMeaningfulCandidateCount: roundTo(
+      runs.reduce((sum, result) => sum + Number(result.averageEarlyMeaningfulCandidateCount || 0), 0) / divisor,
+      3
+    ),
+    averageEarlyDecisionScoreSpread: roundTo(
+      runs.reduce((sum, result) => sum + Number(result.averageEarlyDecisionScoreSpread || 0), 0) / divisor,
+      3
+    ),
+    earlyCloseDecisionRate: roundTo(runs.reduce((sum, result) => sum + Number(result.earlyCloseDecisionRate || 0), 0) / divisor, 3),
+    averageEarlyEndTurnRegret: roundTo(runs.reduce((sum, result) => sum + Number(result.averageEarlyEndTurnRegret || 0), 0) / divisor, 3),
+    skillActionRate: roundTo(runs.reduce((sum, result) => sum + Number(result.skillActionRate || 0), 0) / divisor, 3),
+    skillUseTurnRate: roundTo(runs.reduce((sum, result) => sum + Number(result.skillUseTurnRate || 0), 0) / divisor, 3),
+    readySkillUnusedTurnRate: roundTo(runs.reduce((sum, result) => sum + Number(result.readySkillUnusedTurnRate || 0), 0) / divisor, 3),
+    slot1UseRate: roundTo(runs.reduce((sum, result) => sum + Number(result.slot1UseRate || 0), 0) / divisor, 3),
+    slot2UseRate: roundTo(runs.reduce((sum, result) => sum + Number(result.slot2UseRate || 0), 0) / divisor, 3),
+    slot3UseRate: roundTo(runs.reduce((sum, result) => sum + Number(result.slot3UseRate || 0), 0) / divisor, 3),
     beamDecisionRate: 0,
     averageBeamDepth: 0,
     beamOverrideRate: 0,
@@ -1921,6 +2169,36 @@ function buildScenarioReport(context: SimulatedBuildContext, encounterSetId: str
       averageMercenaryLifePct: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageMercenaryLifePct * runsPerEncounter, 0) / totalAttempts),
       averagePotionsRemaining: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averagePotionsRemaining * runsPerEncounter, 0) / totalAttempts),
       averageEnemyLifePct: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageEnemyLifePct * runsPerEncounter, 0) / totalAttempts),
+      openingHandFullSpendRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.openingHandFullSpendRate * runsPerEncounter, 0) / totalAttempts, 3),
+      averageTurn1UnspentEnergy: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageTurn1UnspentEnergy * runsPerEncounter, 0) / totalAttempts, 3),
+      averageEarlyUnspentEnergy: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageEarlyUnspentEnergy * runsPerEncounter, 0) / totalAttempts, 3),
+      averageEarlyMeaningfulUnplayedRate: roundTo(
+        encounters.reduce((sum, encounter) => sum + encounter.averageEarlyMeaningfulUnplayedRate * runsPerEncounter, 0) / totalAttempts,
+        3
+      ),
+      averageEarlyCandidateCount: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageEarlyCandidateCount * runsPerEncounter, 0) / totalAttempts, 3),
+      averageEarlyMeaningfulCandidateCount: roundTo(
+        encounters.reduce((sum, encounter) => sum + encounter.averageEarlyMeaningfulCandidateCount * runsPerEncounter, 0) / totalAttempts,
+        3
+      ),
+      averageEarlyDecisionScoreSpread: roundTo(
+        encounters.reduce((sum, encounter) => sum + encounter.averageEarlyDecisionScoreSpread * runsPerEncounter, 0) / totalAttempts,
+        3
+      ),
+      earlyCloseDecisionRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.earlyCloseDecisionRate * runsPerEncounter, 0) / totalAttempts, 3),
+      averageEarlyEndTurnRegret: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageEarlyEndTurnRegret * runsPerEncounter, 0) / totalAttempts, 3),
+      skillActionRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.skillActionRate * runsPerEncounter, 0) / totalAttempts, 3),
+      skillUseTurnRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.skillUseTurnRate * runsPerEncounter, 0) / totalAttempts, 3),
+      readySkillUnusedTurnRate: roundTo(
+        encounters.reduce((sum, encounter) => sum + encounter.readySkillUnusedTurnRate * runsPerEncounter, 0) / totalAttempts,
+        3
+      ),
+      slot1UseRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.slot1UseRate * runsPerEncounter, 0) / totalAttempts, 3),
+      slot2UseRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.slot2UseRate * runsPerEncounter, 0) / totalAttempts, 3),
+      slot3UseRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.slot3UseRate * runsPerEncounter, 0) / totalAttempts, 3),
+      beamDecisionRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.beamDecisionRate * runsPerEncounter, 0) / totalAttempts, 3),
+      averageBeamDepth: roundTo(encounters.reduce((sum, encounter) => sum + encounter.averageBeamDepth * runsPerEncounter, 0) / totalAttempts, 3),
+      beamOverrideRate: roundTo(encounters.reduce((sum, encounter) => sum + encounter.beamOverrideRate * runsPerEncounter, 0) / totalAttempts, 3),
     },
   };
 }
