@@ -53,7 +53,7 @@
       title: "Prayer",
       cost: 1,
       target: "none",
-      text: "Heal 5. Heal your mercenary 5. Gain 4 Guard. Draw 1 card.",
+      text: "Heal 6. Heal your mercenary 5. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "heal_mercenary", value: 5 },
@@ -105,7 +105,7 @@
       title: "Cleansing",
       cost: 1,
       target: "none",
-      text: "Heal 5. Gain 6 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -166,7 +166,7 @@
       title: "Defiance",
       cost: 1,
       target: "none",
-      text: "You and your mercenary gain 12 Guard. Draw 1 card.",
+      text: "You and your mercenary gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 1 },
@@ -219,7 +219,7 @@
       title: "Blessed Aim",
       cost: 1,
       target: "none",
-      text: "Your next 2 Attacks this turn each deal +4 damage. Gain 6 Guard. Draw 1 card.",
+      text: "Your next 2 Attacks this turn each deal +4 damage. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -238,7 +238,7 @@
       title: "Concentration",
       cost: 1,
       target: "none",
-      text: "Your next Aura or Attack card this turn deals +5 damage. Gain 6 Guard. Draw 1 card.",
+      text: "Your next Aura or Attack card this turn deals +5 damage. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -257,7 +257,7 @@
       title: "Resist Fire",
       cost: 1,
       target: "none",
-      text: "Gain 10 Guard. Reduce the next Burn application against you by 3. Draw 1 card.",
+      text: "Gain 14 Guard. Reduce the next Burn application against you by 3. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -275,7 +275,7 @@
       title: "Vigor",
       cost: 0,
       target: "none",
-      text: "Gain 4 Guard. Draw 1 card. Your next card this turn costs 1 less. Exhaust.",
+      text: "Gain 14 Guard. Draw 1 card. Your next card this turn costs 1 less. Exhaust.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -294,7 +294,7 @@
       title: "Holy Resolve",
       cost: 1,
       target: "none",
-      text: "Heal 4. Gain 7 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -462,7 +462,7 @@
       title: "Meditation",
       cost: 1,
       target: "none",
-      text: "Heal 6. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      text: "Heal 6. Heal your mercenary 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "heal_mercenary", value: 6 },
@@ -481,7 +481,7 @@
       title: "Resist Cold",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. The next enemy attack against you or your mercenary this turn deals 5 less damage. Draw 1 card.",
+      text: "Gain 14 Guard. The next enemy attack against you or your mercenary this turn deals 5 less damage. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -501,7 +501,7 @@
       title: "Righteous Guard",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. All non-boss enemies deal 3 less damage next turn. Draw 1 card.",
+      text: "Gain 14 Guard. All non-boss enemies deal 3 less damage next turn. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -687,7 +687,7 @@
       title: "Redemption",
       cost: 1,
       target: "none",
-      text: "Heal 8. Heal your mercenary 8. You and your mercenary gain 10 Guard. If an enemy died last turn, heal 6 more.",
+      text: "Heal 8. Heal your mercenary 8. You and your mercenary gain 14 Guard. If an enemy died last turn, heal 6 more.",
       effects: [
         { kind: "heal_hero", value: 8 },
         { kind: "heal_mercenary", value: 8 },
@@ -705,7 +705,7 @@
       title: "Salvation",
       cost: 2,
       target: "none",
-      text: "You and your mercenary gain 22 Guard. All enemies deal 4 less damage next turn. Heal 6. Draw 1 card.",
+      text: "You and your mercenary gain 22 Guard. All enemies deal 4 less damage next turn. Heal 10. Draw 1 card.",
       effects: [
         { kind: "gain_guard_party", value: 22 },
         { kind: "heal_hero", value: 10 },
@@ -761,7 +761,7 @@
       title: "Divine Renewal",
       cost: 1,
       target: "none",
-      text: "Heal 10. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      text: "Heal 10. Heal your mercenary 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 10 },
         { kind: "heal_mercenary", value: 6 },
@@ -833,7 +833,7 @@
       title: "Divine Command",
       cost: 2,
       target: "none",
-      text: "You and your mercenary gain +5 damage this turn. You and your mercenary gain 14 Guard. Your next 2 cards this turn each gain +4 damage or +4 Guard. Draw 1 card.",
+      text: "You and your mercenary gain +5 damage this turn. You and your mercenary gain 22 Guard. Your next 2 cards this turn each gain +4 damage or +4 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_party", value: 22 },
         { kind: "draw", value: 1 },

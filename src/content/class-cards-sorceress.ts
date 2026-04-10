@@ -71,7 +71,7 @@
       title: "Warmth",
       cost: 1,
       target: "none",
-      text: "Heal 5. Heal your mercenary 4. You and your mercenary gain 12 Guard. Draw 1 card.",
+      text: "Heal 6. Heal your mercenary 4. You and your mercenary gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "heal_mercenary", value: 4 },
@@ -91,7 +91,7 @@
       title: "Energy Shield",
       cost: 1,
       target: "none",
-      text: "Gain 10 Guard. Draw 1 card.",
+      text: "Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -108,7 +108,7 @@
       title: "Frozen Armor",
       cost: 1,
       target: "none",
-      text: "Heal 4. You and your mercenary gain 6 Guard.",
+      text: "Heal 6. You and your mercenary gain 14 Guard.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_party", value: 14 },
@@ -227,7 +227,7 @@
       title: "Enchant",
       cost: 1,
       target: "none",
-      text: "Your next 2 Spells this turn deal +4 damage. Mercenary next attack +8. Gain 5 Guard. Draw 1 card.",
+      text: "Your next 2 Spells this turn deal +4 damage. Mercenary next attack +8. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "buff_mercenary_next_attack", value: 8 },
         { kind: "gain_guard_self", value: 14 },
@@ -283,7 +283,7 @@
       title: "Arcane Focus",
       cost: 1,
       target: "none",
-      text: "Heal 4. Gain 7 Guard. Draw 1 card. Your next Spell this turn costs 1 less.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card. Your next Spell this turn costs 1 less.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -362,7 +362,7 @@
       title: "Teleport",
       cost: 1,
       target: "none",
-      text: "You and your mercenary gain 10 Guard. Draw 2 cards.",
+      text: "You and your mercenary gain 14 Guard. Draw 2 cards.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 2 },
@@ -417,7 +417,7 @@
       title: "Shiver Armor",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. The next enemy that attacks you gains 2 Slow. Draw 1 card.",
+      text: "Gain 14 Guard. The next enemy that attacks you gains 2 Slow. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -508,7 +508,7 @@
       title: "Mana Shield",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
+      text: "Gain 14 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -747,7 +747,7 @@
       title: "Renewal",
       cost: 1,
       target: "none",
-      text: "Heal 10. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      text: "Heal 10. Heal your mercenary 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 10 },
         { kind: "heal_mercenary", value: 6 },

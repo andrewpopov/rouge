@@ -39,6 +39,7 @@
       unlockThreshold: 2,
       unlockBonusPerThreshold: {
         heroMaxLife: 2,
+        heroDamageBonus: 1,
       },
     },
     command: {
@@ -53,6 +54,7 @@
       unlockBonusPerThreshold: {
         mercenaryAttack: 1,
         mercenaryMaxLife: 2,
+        heroDamageBonus: 1,
       },
     },
   };
@@ -279,6 +281,36 @@
     return "answer" as SkillFamilyId;
   }
 
+  const SKILL_ECONOMY_ENVELOPE: Record<ClassSkillTier, { maxCost: number; maxCooldown: number }> = {
+    starter: { maxCost: 1, maxCooldown: 2 },
+    bridge: { maxCost: 2, maxCooldown: 3 },
+    capstone: { maxCost: 3, maxCooldown: 5 },
+  };
+
+  function clampSkillEconomy(tier: ClassSkillTier, rawCost: number, rawCooldown: number) {
+    const envelope = SKILL_ECONOMY_ENVELOPE[tier] || SKILL_ECONOMY_ENVELOPE.bridge;
+    return {
+      cost: Math.min(envelope.maxCost, Math.max(0, rawCost)),
+      cooldown: Math.min(envelope.maxCooldown, Math.max(0, rawCooldown)),
+    };
+  }
+
+  function resolveSkillFamily(
+    explicitFamily: string | undefined,
+    archetypeId: string,
+    slot: ClassSkillSlotNumber,
+    tier: ClassSkillTier
+  ) {
+    if (
+      explicitFamily
+      && ["state", "command", "answer", "trigger_arming", "conversion", "recovery", "commitment"].includes(explicitFamily)
+      && !(explicitFamily === "commitment" && tier !== "capstone")
+    ) {
+      return explicitFamily as SkillFamilyId;
+    }
+    return inferSkillFamily(archetypeId, slot, tier);
+  }
+
   function normalizeSkillDefinition(
     skill: SkillSeedDefinition,
     index: number,
@@ -294,7 +326,7 @@
     const description = String(skill.summary || skill.description || "").trim();
     const exactText = String(skill.exactText || description || skill.name).trim();
     const summary = String(skill.summary || description || `${skill.name} becomes available as a ${tier} class skill.`).trim();
-    const cost = Math.max(0, toNumber(skill.cost, slot === 3 ? 2 : 1));
+    const rawCost = Math.max(0, toNumber(skill.cost, slot === 3 ? 2 : 1));
     let defaultCooldown: number;
     if (slot === 1) {
       defaultCooldown = 2;
@@ -303,12 +335,9 @@
     } else {
       defaultCooldown = 4;
     }
-    const cooldown = Math.max(0, toNumber(skill.cooldown, defaultCooldown));
-    const explicitFamily = skill.family;
-    const family = explicitFamily
-      && ["state", "command", "answer", "trigger_arming", "conversion", "recovery", "commitment"].includes(explicitFamily)
-      ? explicitFamily
-      : inferSkillFamily(archetypeId, slot, tier);
+    const rawCooldown = Math.max(0, toNumber(skill.cooldown, defaultCooldown));
+    const { cost, cooldown } = clampSkillEconomy(tier, rawCost, rawCooldown);
+    const family = resolveSkillFamily(skill.family, archetypeId, slot, tier);
 
     return {
       id: skill.id,

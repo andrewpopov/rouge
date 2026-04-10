@@ -58,7 +58,7 @@
       title: "Raven",
       cost: 1,
       target: "none",
-      text: "You and your mercenary gain 4 Guard. Summon Raven. Each ally phase it pecks for 4 and marks for +4 mercenary damage.",
+      text: "You and your mercenary gain 14 Guard. Summon Raven. Each ally phase it pecks for 4 and marks for +4 mercenary damage.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "summon_minion", value: 4, minionId: "druid_raven" },
@@ -76,7 +76,7 @@
       title: "Poison Creeper",
       cost: 1,
       target: "none",
-      text: "You and your mercenary gain 4 Guard. Summon Poison Creeper. Each ally phase it bites for 4 and applies 4 Poison.",
+      text: "You and your mercenary gain 14 Guard. Summon Poison Creeper. Each ally phase it bites for 4 and applies 4 Poison.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "summon_minion", value: 4, minionId: "druid_poison_creeper" },
@@ -96,7 +96,7 @@
       title: "Cyclone Armor",
       cost: 1,
       target: "none",
-      text: "Gain 8 Guard. Draw 1 card.",
+      text: "Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -113,7 +113,7 @@
       title: "Lycanthropy",
       cost: 1,
       target: "none",
-      text: "Heal 5. Gain 5 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -265,7 +265,7 @@
       title: "Oak Sage",
       cost: 1,
       target: "none",
-      text: "You and your mercenary gain 6 Guard. Summon Oak Sage. Each ally phase it heals you and your mercenary for 4.",
+      text: "You and your mercenary gain 14 Guard. Summon Oak Sage. Each ally phase it heals you and your mercenary for 4.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "summon_minion", value: 4, minionId: "druid_oak_sage" },
@@ -282,7 +282,7 @@
       title: "Spirit Wolf",
       cost: 1,
       target: "none",
-      text: "Gain 5 Guard. Summon Spirit Wolf. Each ally phase it bites for 5 cold damage and applies 1 Slow.",
+      text: "Gain 14 Guard. Summon Spirit Wolf. Each ally phase it bites for 5 cold damage and applies 1 Slow.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "summon_minion", value: 5, minionId: "druid_spirit_wolf" },
@@ -299,7 +299,7 @@
       title: "Carrion Vine",
       cost: 1,
       target: "none",
-      text: "Gain 4 Guard. Summon Carrion Vine. Each ally phase it heals you for 3. If an enemy died last turn, heal 6 instead.",
+      text: "Gain 14 Guard. Summon Carrion Vine. Each ally phase it heals you for 3. If an enemy died last turn, heal 6 instead.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "summon_minion", value: 3, minionId: "druid_carrion_vine" },
@@ -318,7 +318,7 @@
       title: "Nature's Balance",
       cost: 1,
       target: "none",
-      text: "Heal 3. Gain 6 Guard. If you control a summon, draw 1 card. If an enemy has Burn, gain 3 more Guard.",
+      text: "Heal 6. Gain 14 Guard. If you control a summon, draw 1 card. If an enemy has Burn, gain 3 more Guard.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -481,7 +481,7 @@
       title: "Heart of Wolverine",
       cost: 1,
       target: "none",
-      text: "You and your mercenary gain 8 Guard. Draw 1 card. Summon Heart of Wolverine. Each ally phase it strikes for 6 and marks for +7 mercenary damage.",
+      text: "You and your mercenary gain 14 Guard. Draw 1 card. Summon Heart of Wolverine. Each ally phase it strikes for 6 and marks for +7 mercenary damage.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "draw", value: 1 },
@@ -499,7 +499,7 @@
       title: "Dire Wolf",
       cost: 2,
       target: "none",
-      text: "Gain 6 Guard. Summon Dire Wolf. Each ally phase it mauls for 7 and grants 4 Guard to the party. If you control 2+ summons, it deals +3.",
+      text: "Gain 22 Guard. Summon Dire Wolf. Each ally phase it mauls for 7 and grants 4 Guard to the party. If you control 2+ summons, it deals +3.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
         { kind: "summon_minion", value: 7, minionId: "druid_dire_wolf" },
@@ -516,7 +516,7 @@
       title: "Spirit of Barbs",
       cost: 1,
       target: "none",
-      text: "Gain 6 Guard. Summon Spirit of Barbs. Each ally phase it deals 3 damage to all enemies and applies 1 Burn to all.",
+      text: "Gain 14 Guard. Summon Spirit of Barbs. Each ally phase it deals 3 damage to all enemies and applies 1 Burn to all.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "summon_minion", value: 3, minionId: "druid_spirit_of_barbs" },
@@ -564,7 +564,7 @@
       title: "Hibernation",
       cost: 1,
       target: "none",
-      text: "Heal 8. Gain 10 Guard. Draw 1 card.",
+      text: "Heal 8. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 8 },
         { kind: "gain_guard_self", value: 14 },
@@ -584,7 +584,7 @@
       title: "Solar Creeper",
       cost: 1,
       target: "none",
-      text: "Gain 5 Guard. Summon Solar Creeper. Each ally phase it drains 3 from all enemies and heals you for 2.",
+      text: "Gain 14 Guard. Summon Solar Creeper. Each ally phase it drains 3 from all enemies and heals you for 2.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "summon_minion", value: 3, secondaryValue: 2, minionId: "druid_solar_creeper" },
@@ -601,7 +601,7 @@
       title: "Summon Spirit Wolves",
       cost: 2,
       target: "none",
-      text: "Gain 6 Guard. Summon 2 Spirit Wolves. Each ally phase they bite for 4 cold damage and apply 1 Slow.",
+      text: "Gain 22 Guard. Summon 2 Spirit Wolves. Each ally phase they bite for 4 cold damage and apply 1 Slow.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
         { kind: "summon_minion", value: 4, minionId: "druid_spirit_wolf" },
@@ -814,7 +814,7 @@
       title: "Renewal",
       cost: 1,
       target: "none",
-      text: "Heal 6. Heal your mercenary 6. Gain 8 Guard. If you control a summon, reinforce it by +2. Draw 1 card.",
+      text: "Heal 6. Heal your mercenary 6. Gain 14 Guard. If you control a summon, reinforce it by +2. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "heal_mercenary", value: 6 },
@@ -887,7 +887,7 @@
       title: "Grove Sentinel",
       cost: 2,
       target: "none",
-      text: "Gain 12 Guard. Grant 8 Guard to the party. Summon Treant. Each ally phase it strikes for 6 and grants 4 Guard to the party.",
+      text: "Gain 22 Guard. Grant 22 Guard to the party. Summon Treant. Each ally phase it strikes for 6 and grants 4 Guard to the party.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
         { kind: "gain_guard_party", value: 22 },
@@ -906,13 +906,14 @@
   const DRUID_STARTER_DECK = [
     "druid_firestorm", "druid_firestorm",
     "druid_werewolf", "druid_werewolf",
-    "druid_raven", "druid_raven",
-    "druid_poison_creeper", "druid_poison_creeper",
+    "swing", "swing",
+    "druid_raven",
+    "druid_poison_creeper",
+    "kick",
     "rally_mercenary",
     "druid_lycanthropy",
     "druid_cyclone_armor",
     "druid_werebear",
-    "druid_oak_sage",
   ];
 
   function getCardIdsByTier(cards: Record<string, { id: string; tier: number }>, tier: number): string[] {

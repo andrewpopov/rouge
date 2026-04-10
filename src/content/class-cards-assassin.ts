@@ -95,7 +95,7 @@
       title: "Cloak of Shadows",
       cost: 1,
       target: "none",
-      text: "Gain 7 Guard. Draw 1 card.",
+      text: "Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -250,7 +250,7 @@
       title: "Burst of Speed",
       cost: 1,
       target: "none",
-      text: "Gain 7 Guard. Mercenary next attack +10. Draw 2 cards.",
+      text: "Gain 14 Guard. Mercenary next attack +10. Draw 2 cards.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "buff_mercenary_next_attack", value: 10 },
@@ -287,7 +287,7 @@
       title: "Weapon Block",
       cost: 1,
       target: "none",
-      text: "Gain 10 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
+      text: "Gain 14 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -307,7 +307,7 @@
       title: "Shadow Shroud",
       cost: 1,
       target: "none",
-      text: "Heal 4. Gain 6 Guard. Draw 1 card. Your next Assassin card this turn costs 1 less.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card. Your next Assassin card this turn costs 1 less.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -457,7 +457,7 @@
       title: "Mind Blast",
       cost: 1,
       target: "none",
-      text: "Apply 1 Stun to all non-boss enemies. All enemies deal 3 less damage next turn. Gain 6 Guard.",
+      text: "Apply 1 Stun to all non-boss enemies. All enemies deal 3 less damage next turn. Gain 14 Guard.",
       effects: [
         { kind: "apply_stun_all", value: 1 },
         { kind: "gain_guard_self", value: 14 },
@@ -497,7 +497,7 @@
       title: "Shadow Warrior",
       cost: 1,
       target: "enemy",
-      text: "Mark an enemy for your mercenary for 16. Mercenary next attack +16. Gain 6 Guard.",
+      text: "Mark an enemy for your mercenary for 16. Mercenary next attack +16. Gain 14 Guard.",
       effects: [
         { kind: "mark_enemy_for_mercenary", value: 16 },
         { kind: "buff_mercenary_next_attack", value: 16 },
@@ -516,7 +516,7 @@
       title: "Shadow Veil",
       cost: 1,
       target: "none",
-      text: "Gain 8 Guard. Your next 2 Assassin cards this turn each cost 1 less. Draw 1 card.",
+      text: "Gain 14 Guard. Your next 2 Assassin cards this turn each cost 1 less. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -535,7 +535,7 @@
       title: "Escape Artist",
       cost: 1,
       target: "none",
-      text: "Heal 6. Gain 10 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -553,7 +553,7 @@
       title: "Dark Discipline",
       cost: 1,
       target: "none",
-      text: "All non-boss enemies deal 3 less damage next turn. Gain 7 Guard. Draw 1 card.",
+      text: "All non-boss enemies deal 3 less damage next turn. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -773,7 +773,7 @@
       title: "Dark Recovery",
       cost: 1,
       target: "none",
-      text: "Heal 8. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      text: "Heal 8. Heal your mercenary 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 8 },
         { kind: "heal_mercenary", value: 6 },

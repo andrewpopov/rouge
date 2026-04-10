@@ -43,6 +43,50 @@ import {
   evaluateRunScore,
   optimizeSafeZoneRun,
 } from "./run-progression-simulator-scoring"
+import { BUILD_SPECS, type BuildSpec } from "./build-spec-validation"
+
+const buildSpecsByClass: Record<string, BuildSpec> = {}
+for (const spec of BUILD_SPECS) {
+  if (!buildSpecsByClass[spec.classId]) {
+    buildSpecsByClass[spec.classId] = spec
+  }
+}
+
+function getBuildSpecBias(classId: string, choice: RewardChoice, currentDeck: string[]): number {
+  const spec = buildSpecsByClass[classId]
+  if (!spec) return 0
+
+  let bias = 0
+  const effects = Array.isArray(choice.effects) ? choice.effects : []
+  const coreSet = new Set(spec.coreCards)
+  const flexSet = new Set(spec.flexCards)
+  const unwantedSet = new Set(spec.unwantedCards)
+  const [, maxDeckSize] = spec.targetDeckSize
+
+  for (const effect of effects) {
+    if (effect.kind === "add_card") {
+      const cardId = effect.cardId || ""
+      if (coreSet.has(cardId)) {
+        // Strong bonus for core synergy cards, extra if we don't have it yet
+        const alreadyHas = currentDeck.includes(cardId)
+        bias += alreadyHas ? 80 : 200
+      } else if (flexSet.has(cardId)) {
+        bias += 40
+      } else if (unwantedSet.has(cardId)) {
+        bias -= 120
+      } else {
+        // Unknown card — mild penalty to keep deck focused
+        bias -= 30
+      }
+
+      // Penalize adding any card when at or above target deck size
+      if (currentDeck.length >= maxDeckSize) {
+        bias -= 100 + (currentDeck.length - maxDeckSize) * 40
+      }
+    }
+  }
+  return bias
+}
 import {
   buildCheckpointSummary,
   buildEncounterMetric,
@@ -410,6 +454,9 @@ function chooseBestRewardChoice(
       assumeFullResources,
       archetypePlan: archetypePlan || null,
     }) + getCommittedChoiceBias(choice, runClone)
+
+    // Build-spec-driven card choice bias
+    score += getBuildSpecBias(run.classId, choice, run.deck)
 
     // Penalize card-adding choices when deck is already bloated
     const addsCard = (Array.isArray(choice.effects) ? choice.effects : []).some((e) => e.kind === "add_card")

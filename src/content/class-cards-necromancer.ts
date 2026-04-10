@@ -108,7 +108,7 @@
       title: "Life Tap",
       cost: 1,
       target: "none",
-      text: "Heal 4. Gain 5 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -202,7 +202,7 @@
       title: "Weaken",
       cost: 1,
       target: "none",
-      text: "All enemies deal 3 less damage next turn. Gain 5 Guard. Draw 1 card.",
+      text: "All enemies deal 3 less damage next turn. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -219,7 +219,7 @@
       title: "Dim Vision",
       cost: 1,
       target: "enemy",
-      text: "The target deals 5 less damage next turn. Apply 1 Slow. Gain 6 Guard.",
+      text: "The target deals 5 less damage next turn. Apply 1 Slow. Gain 14 Guard.",
       effects: [
         { kind: "apply_slow", value: 1 },
         { kind: "gain_guard_self", value: 14 },
@@ -276,7 +276,7 @@
       title: "Skeleton Mastery",
       cost: 1,
       target: "none",
-      text: "Each of your summons deals 4 bonus damage on its next hit. Gain 5 Guard. Draw 1 card.",
+      text: "Each of your summons deals 4 bonus damage on its next hit. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -295,7 +295,7 @@
       title: "Dark Pact",
       cost: 1,
       target: "none",
-      text: "Lose 3 HP. Gain 10 Guard. Draw 2 cards.",
+      text: "Lose 3 HP. Gain 14 Guard. Draw 2 cards.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 2 },
@@ -332,7 +332,7 @@
       title: "Bone Prison",
       cost: 1,
       target: "enemy",
-      text: "The target deals 6 less damage next turn. Apply 1 Slow. Gain 8 Guard. Your next bone card this turn deals +4 damage.",
+      text: "The target deals 6 less damage next turn. Apply 1 Slow. Gain 14 Guard. Your next bone card this turn deals +4 damage.",
       effects: [
         { kind: "apply_slow", value: 1 },
         { kind: "gain_guard_self", value: 14 },
@@ -386,7 +386,7 @@
       title: "Terror",
       cost: 1,
       target: "none",
-      text: "All non-boss enemies deal 4 less damage next turn. Gain 7 Guard. Draw 1 card.",
+      text: "All non-boss enemies deal 4 less damage next turn. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -421,7 +421,7 @@
       title: "Confuse",
       cost: 1,
       target: "enemy",
-      text: "The target attacks a random enemy instead of you next turn. Gain 6 Guard. Draw 1 card.",
+      text: "The target attacks a random enemy instead of you next turn. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -460,7 +460,7 @@
       title: "Golem Mastery",
       cost: 1,
       target: "none",
-      text: "Reinforce all your summons by +2. If you control a golem, it gains +3 instead. Gain 5 Guard. Draw 1 card.",
+      text: "Reinforce all your summons by +2. If you control a golem, it gains +3 instead. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -477,7 +477,7 @@
       title: "Summon Resist",
       cost: 1,
       target: "none",
-      text: "All your summons gain +1 turn. You and your mercenary gain 8 Guard. Heal 4.",
+      text: "All your summons gain +1 turn. You and your mercenary gain 14 Guard. Heal 6.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "heal_hero", value: 6 },
@@ -515,7 +515,7 @@
       title: "Soul Harvest",
       cost: 1,
       target: "none",
-      text: "Heal 6. Gain 6 Guard. If you control a summon, draw 1 card. If an enemy has Poison, heal 3 more.",
+      text: "Heal 6. Gain 14 Guard. If you control a summon, draw 1 card. If an enemy has Poison, heal 3 more.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -534,7 +534,7 @@
       title: "Attract",
       cost: 1,
       target: "enemy",
-      text: "The target takes 4 more damage from summons and mercenary this turn. Apply 1 Slow. Gain 5 Guard.",
+      text: "The target takes 4 more damage from summons and mercenary this turn. Apply 1 Slow. Gain 14 Guard.",
       effects: [
         { kind: "apply_slow", value: 1 },
         { kind: "gain_guard_self", value: 14 },
@@ -654,7 +654,7 @@
       title: "Mass Curse",
       cost: 2,
       target: "none",
-      text: "All enemies deal 5 less damage next turn. Your mercenary deals +12 to all enemies. Gain 8 Guard. Draw 1 card.",
+      text: "All enemies deal 5 less damage next turn. Your mercenary deals +12 to all enemies. Gain 22 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
         { kind: "draw", value: 1 },
@@ -691,7 +691,7 @@
       title: "Iron Golem",
       cost: 2,
       target: "none",
-      text: "Gain 10 Guard. Summon Iron Golem. Each ally phase it strikes for 9, grants 6 Guard to the party, and applies 1 Slow.",
+      text: "Gain 22 Guard. Summon Iron Golem. Each ally phase it strikes for 9, grants 6 Guard to the party, and applies 1 Slow.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
         { kind: "summon_minion", value: 9, minionId: "necromancer_iron_golem" },
@@ -762,7 +762,7 @@
       title: "Blood Ritual",
       cost: 1,
       target: "none",
-      text: "Lose 4 HP. Heal your mercenary 8. Gain 8 Guard. Draw 2 cards.",
+      text: "Lose 4 HP. Heal your mercenary 8. Gain 14 Guard. Draw 2 cards.",
       effects: [
         { kind: "heal_mercenary", value: 8 },
         { kind: "gain_guard_self", value: 14 },
@@ -813,7 +813,7 @@
       title: "Bone Offering",
       cost: 1,
       target: "none",
-      text: "Gain 8 Guard. If you control a summon, it deals 5 bonus damage and gains +1 turn. Draw 1 card.",
+      text: "Gain 14 Guard. If you control a summon, it deals 5 bonus damage and gains +1 turn. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },

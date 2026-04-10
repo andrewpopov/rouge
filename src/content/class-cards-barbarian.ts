@@ -34,7 +34,7 @@
       title: "Howl",
       cost: 1,
       target: "none",
-      text: "Apply 1 Slow to all enemies. Gain 5 Guard. Draw 1 card.",
+      text: "Apply 1 Slow to all enemies. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "apply_slow_all", value: 1 },
         { kind: "gain_guard_self", value: 14 },
@@ -69,7 +69,7 @@
       title: "Find Potion",
       cost: 1,
       target: "none",
-      text: "Heal 5. Gain 4 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -87,7 +87,7 @@
       title: "Iron Skin",
       cost: 1,
       target: "none",
-      text: "Gain 10 Guard. Draw 1 card.",
+      text: "Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -104,7 +104,7 @@
       title: "Natural Resistance",
       cost: 1,
       target: "none",
-      text: "Heal 5. Gain 6 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -161,7 +161,7 @@
       title: "Shout",
       cost: 1,
       target: "none",
-      text: "Apply 1 Slow to all enemies. You and your mercenary gain 10 Guard. Draw 1 card.",
+      text: "Apply 1 Slow to all enemies. You and your mercenary gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "apply_slow_all", value: 1 },
         { kind: "gain_guard_party", value: 14 },
@@ -266,7 +266,7 @@
       title: "Battle Cry",
       cost: 1,
       target: "none",
-      text: "All enemies deal 3 less damage next turn. Your next Attack this turn deals +4 damage. Gain 5 Guard. Draw 1 card.",
+      text: "All enemies deal 3 less damage next turn. Your next Attack this turn deals +4 damage. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -345,7 +345,7 @@
       title: "Battle Orders",
       cost: 2,
       target: "none",
-      text: "Heal 6. Apply 1 Slow to all enemies. You and your mercenary gain 22 Guard. Mercenary next attack +16. Draw 1 card.",
+      text: "Heal 10. Apply 1 Slow to all enemies. You and your mercenary gain 22 Guard. Mercenary next attack +16. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 10 },
         { kind: "apply_slow_all", value: 1 },
@@ -435,7 +435,7 @@
       title: "Increased Stamina",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. Heal 4. Your next 2 Attacks this turn each deal +3 damage.",
+      text: "Gain 14 Guard. Heal 6. Your next 2 Attacks this turn each deal +3 damage.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "heal_hero", value: 6 },
@@ -471,7 +471,7 @@
       title: "Find Item",
       cost: 1,
       target: "none",
-      text: "Heal 6. Gain 6 Guard. Draw 2 cards.",
+      text: "Heal 6. Gain 14 Guard. Draw 2 cards.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -489,7 +489,7 @@
       title: "Grim Ward",
       cost: 1,
       target: "none",
-      text: "All non-boss enemies deal 4 less damage next turn. Your mercenary deals +8 to all enemies. Gain 6 Guard.",
+      text: "All non-boss enemies deal 4 less damage next turn. Your mercenary deals +8 to all enemies. Gain 14 Guard.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
       ],
@@ -508,7 +508,7 @@
       title: "War Stance",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
+      text: "Gain 14 Guard. The next enemy attack against you this turn deals 5 less damage. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -528,7 +528,7 @@
       title: "Fury Howl",
       cost: 1,
       target: "none",
-      text: "Apply 1 Slow to all enemies. Your next 2 Attacks this turn each deal +4 damage. Gain 5 Guard. Draw 1 card.",
+      text: "Apply 1 Slow to all enemies. Your next 2 Attacks this turn each deal +4 damage. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "apply_slow_all", value: 1 },
         { kind: "gain_guard_self", value: 14 },
@@ -746,7 +746,7 @@
       title: "Warlord Shout",
       cost: 2,
       target: "none",
-      text: "All enemies deal 5 less damage next turn. You and your mercenary gain +5 damage this turn. You and your mercenary gain 16 Guard. Draw 1 card.",
+      text: "All enemies deal 5 less damage next turn. You and your mercenary gain +5 damage this turn. You and your mercenary gain 22 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_party", value: 22 },
         { kind: "draw", value: 1 },
@@ -783,7 +783,7 @@
       title: "Second Wind",
       cost: 1,
       target: "none",
-      text: "Heal 10. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      text: "Heal 10. Heal your mercenary 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 10 },
         { kind: "heal_mercenary", value: 6 },
@@ -855,7 +855,7 @@
       title: "Ancient Vow",
       cost: 2,
       target: "none",
-      text: "Heal 8. You and your mercenary gain 18 Guard. Your next 3 Attacks this turn each deal +4 damage. Draw 1 card.",
+      text: "Heal 10. You and your mercenary gain 22 Guard. Your next 3 Attacks this turn each deal +4 damage. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 10 },
         { kind: "gain_guard_party", value: 22 },

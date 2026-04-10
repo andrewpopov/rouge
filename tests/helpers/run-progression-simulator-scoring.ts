@@ -7,6 +7,14 @@ import {
   type BuildPolicyDefinition,
   type RunArchetypeSimulationPlan,
 } from "./run-progression-simulator-core"
+import { BUILD_SPECS, type BuildSpec } from "./build-spec-validation"
+
+const purgeSpecsByClass: Record<string, BuildSpec> = {}
+for (const spec of BUILD_SPECS) {
+  if (!purgeSpecsByClass[spec.classId]) {
+    purgeSpecsByClass[spec.classId] = spec
+  }
+}
 
 export function getWeaponEquipment(run: RunState) {
   return run.loadout?.weapon || null
@@ -841,6 +849,21 @@ function scoreTownActionStrategicBias(
     }
     if (beforeRun.deck.length > 26) {
       total += (beforeRun.deck.length - 26) * 6
+    }
+
+    // Build-spec-driven purge bias: strongly favor purging unwanted cards, protect core
+    const purgeSpec = purgeSpecsByClass[beforeRun.classId]
+    if (purgeSpec) {
+      const coreSet = new Set(purgeSpec.coreCards)
+      const flexSet = new Set(purgeSpec.flexCards)
+      const unwantedSet = new Set(purgeSpec.unwantedCards)
+      if (coreSet.has(baseCardId) || coreSet.has(cardId)) {
+        total -= 200  // Never purge core synergy cards
+      } else if (unwantedSet.has(baseCardId) || unwantedSet.has(cardId)) {
+        total += 80   // Strongly encourage purging unwanted cards
+      } else if (!flexSet.has(baseCardId) && !flexSet.has(cardId)) {
+        total += 30   // Encourage purging cards not in the build spec at all
+      }
     }
 
     if (unchangedStarterCopies > 0) {

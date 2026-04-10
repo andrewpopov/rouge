@@ -91,7 +91,7 @@
       title: "Dodge",
       cost: 1,
       target: "none",
-      text: "Gain 9 Guard. Draw 1 card.",
+      text: "Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -126,7 +126,7 @@
       title: "Slow Missiles",
       cost: 1,
       target: "none",
-      text: "Gain 10 Guard. Apply 3 Slow to all enemies. Draw 1 card.",
+      text: "Gain 14 Guard. Apply 3 Slow to all enemies. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "apply_slow_all", value: 3 },
@@ -144,7 +144,7 @@
       title: "Avoid",
       cost: 1,
       target: "none",
-      text: "Gain 12 Guard. Draw 2 cards.",
+      text: "Gain 14 Guard. Draw 2 cards.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 2 },
@@ -180,7 +180,7 @@
       title: "Decoy",
       cost: 1,
       target: "enemy",
-      text: "You and your mercenary gain 8 Guard. Mercenary next attack +10.",
+      text: "You and your mercenary gain 14 Guard. Mercenary next attack +10.",
       effects: [
         { kind: "gain_guard_party", value: 14 },
         { kind: "buff_mercenary_next_attack", value: 10 },
@@ -326,7 +326,7 @@
       title: "Inner Calm",
       cost: 1,
       target: "none",
-      text: "Heal 4. Gain 7 Guard. Draw 1 card. Your next ranged card this turn deals +3 damage.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card. Your next ranged card this turn deals +3 damage.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -367,7 +367,7 @@
       title: "Evade",
       cost: 1,
       target: "enemy",
-      text: "Gain 10 Guard. Apply 2 Slow. Draw 1 card.",
+      text: "Gain 14 Guard. Apply 2 Slow. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "apply_slow", value: 2 },
@@ -443,7 +443,7 @@
       title: "Valkyrie",
       cost: 2,
       target: "enemy",
-      text: "Gain 6 Guard. Summon Valkyrie. Each ally phase it strikes for 10 and grants 6 Guard to the party.",
+      text: "Gain 22 Guard. Summon Valkyrie. Each ally phase it strikes for 10 and grants 6 Guard to the party.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
         { kind: "summon_minion", value: 10, secondaryValue: 6, minionId: "amazon_valkyrie" },
@@ -569,7 +569,7 @@
       title: "War Maiden",
       cost: 1,
       target: "none",
-      text: "Heal 6. Gain 10 Guard. Draw 1 card.",
+      text: "Heal 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 6 },
         { kind: "gain_guard_self", value: 14 },
@@ -587,7 +587,7 @@
       title: "Battle Focus",
       cost: 1,
       target: "none",
-      text: "All non-boss enemies deal 3 less damage next turn. Gain 7 Guard. Draw 1 card.",
+      text: "All non-boss enemies deal 3 less damage next turn. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "gain_guard_self", value: 14 },
         { kind: "draw", value: 1 },
@@ -777,7 +777,7 @@
       title: "Renewal",
       cost: 1,
       target: "none",
-      text: "Heal 8. Heal your mercenary 6. Gain 8 Guard. Draw 1 card.",
+      text: "Heal 8. Heal your mercenary 6. Gain 14 Guard. Draw 1 card.",
       effects: [
         { kind: "heal_hero", value: 8 },
         { kind: "heal_mercenary", value: 6 },

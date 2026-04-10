@@ -756,21 +756,21 @@
     let elitePressureHealBonus = 0;
 
     if (actNumber === 3) {
-      elitePressureLifeMultiplier = 1.15;
-      elitePressureLifeBonus = 8;
+      elitePressureLifeMultiplier = 1.0;
+      elitePressureLifeBonus = 4;
+      elitePressureAttackBonus = 1;
+      elitePressureGuardBonus = 0;
+    } else if (actNumber === 4) {
+      elitePressureLifeMultiplier = 1.1;
+      elitePressureLifeBonus = 6;
       elitePressureAttackBonus = 2;
       elitePressureGuardBonus = 1;
-    } else if (actNumber === 4) {
-      elitePressureLifeMultiplier = 1.25;
-      elitePressureLifeBonus = 14;
-      elitePressureAttackBonus = 3;
-      elitePressureGuardBonus = 2;
-      elitePressureHealBonus = 1;
+      elitePressureHealBonus = 0;
     } else if (actNumber >= 5) {
-      elitePressureLifeMultiplier = 1.4;
-      elitePressureLifeBonus = 20;
-      elitePressureAttackBonus = 4;
-      elitePressureGuardBonus = 2;
+      elitePressureLifeMultiplier = 1.2;
+      elitePressureLifeBonus = 10;
+      elitePressureAttackBonus = 3;
+      elitePressureGuardBonus = 1;
       elitePressureHealBonus = 1;
     }
 
