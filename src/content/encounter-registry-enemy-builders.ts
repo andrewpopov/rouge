@@ -535,13 +535,13 @@
     }
     if (bossId === "diablo") {
       return [
-        { kind: "guard_allies", label: `${bossName} Hell Bulwark`, value: Math.max(15, scale.guard + 9) },
+        { kind: "guard_allies", label: `${bossName} Hell Bulwark`, value: Math.max(8, Math.floor(scale.guard * 0.5) + 2) },
         {
           kind: "charge",
           label: `${bossName} Apocalypse`,
           value: Math.max(7, scale.attack - 2),
           target: "all_allies",
-          secondaryValue: Math.max(16, scale.guard + 10),
+          secondaryValue: Math.max(10, scale.guard + 4),
           damageType: "fire",
         },
         { kind: "attack_burn_all", label: `${bossName} Apocalypse`, value: Math.max(7, scale.attack - 2), secondaryValue: 1 },
@@ -670,7 +670,7 @@
       return { lifeMultiplier: 1.8, attackBonus: 1, guardBonus: 3, healBonus: 1 };
     }
     if (bossId === "diablo") {
-      return { lifeMultiplier: 2.0, attackBonus: 0, guardBonus: 4, healBonus: 1 };
+      return { lifeMultiplier: 1.6, attackBonus: 0, guardBonus: 2, healBonus: 1 };
     }
     if (bossId === "baal") {
       return { lifeMultiplier: 2.2, attackBonus: 1, guardBonus: 5, healBonus: 2 };
