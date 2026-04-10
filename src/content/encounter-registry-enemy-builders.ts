@@ -287,23 +287,23 @@
       }
     } else if (actNumber === 4) {
       if (boss) {
-        lifeMultiplier = 1.8;
-        lifeBonus = 40;
-        attackBonus = 5;
-        guardBonus = 4;
-        healBonus = 3;
-      } else if (elite) {
-        lifeMultiplier = 2.4;
-        lifeBonus = 54;
-        attackBonus = 8;
-        guardBonus = 6;
-        healBonus = 3;
-      } else {
-        lifeMultiplier = 1.7;
-        lifeBonus = 30;
-        attackBonus = 5;
+        lifeMultiplier = 1.6;
+        lifeBonus = 32;
+        attackBonus = 3;
         guardBonus = 3;
         healBonus = 2;
+      } else if (elite) {
+        lifeMultiplier = 2.0;
+        lifeBonus = 44;
+        attackBonus = 6;
+        guardBonus = 5;
+        healBonus = 3;
+      } else {
+        lifeMultiplier = 1.5;
+        lifeBonus = 24;
+        attackBonus = 3;
+        guardBonus = 2;
+        healBonus = 1;
       }
     } else if (actNumber >= 5) {
       if (boss) {
