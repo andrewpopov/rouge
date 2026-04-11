@@ -66,22 +66,45 @@ function getBuildSpecBias(classId: string, choice: RewardChoice, currentDeck: st
   for (const effect of effects) {
     if (effect.kind === "add_card") {
       const cardId = effect.cardId || ""
-      if (coreSet.has(cardId)) {
-        // Strong bonus for core synergy cards, extra if we don't have it yet
-        const alreadyHas = currentDeck.includes(cardId)
-        bias += alreadyHas ? 80 : 200
-      } else if (flexSet.has(cardId)) {
-        bias += 40
-      } else if (unwantedSet.has(cardId)) {
+      const baseId = cardId.replace(/_plus$/, "")
+      const existingCopies = currentDeck.filter(c => c === cardId || c === baseId || c === baseId + "_plus").length
+
+      if (coreSet.has(cardId) || coreSet.has(baseId)) {
+        // Core card: strong bonus for first 2 copies, then diminishing
+        if (existingCopies === 0) {
+          bias += 200
+        } else if (existingCopies === 1) {
+          bias += 80
+        } else {
+          // Already have 2+, actively penalize further copies
+          bias -= 60 * (existingCopies - 1)
+        }
+      } else if (flexSet.has(cardId) || flexSet.has(baseId)) {
+        bias += existingCopies === 0 ? 40 : -20
+      } else if (unwantedSet.has(cardId) || unwantedSet.has(baseId)) {
         bias -= 120
       } else {
-        // Unknown card — mild penalty to keep deck focused
-        bias -= 30
+        // Unknown card — strong penalty to overcome archetype bias for off-spec cards
+        bias -= 100 - existingCopies * 30
       }
 
       // Penalize adding any card when at or above target deck size
       if (currentDeck.length >= maxDeckSize) {
-        bias -= 100 + (currentDeck.length - maxDeckSize) * 40
+        bias -= 150 + (currentDeck.length - maxDeckSize) * 60
+      } else if (currentDeck.length >= maxDeckSize - 2) {
+        bias -= 50
+      }
+    }
+
+    // Bias upgrades toward core/flex cards, away from filler
+    if (effect.kind === "upgrade_card") {
+      const baseCardId = (effect.fromCardId || effect.toCardId || "").replace(/_plus$/, "")
+      if (coreSet.has(baseCardId)) {
+        bias += 150
+      } else if (flexSet.has(baseCardId)) {
+        bias += 50
+      } else if (unwantedSet.has(baseCardId)) {
+        bias -= 80
       }
     }
   }

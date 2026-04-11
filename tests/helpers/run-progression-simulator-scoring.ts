@@ -840,8 +840,14 @@ function scoreTownActionStrategicBias(
     if (beforeReinforcementDeficit > 0) {
       total -= 10 + beforeReinforcementDeficit * 3
     }
+    // Build-spec-driven purge bias: strongly favor purging unwanted cards, protect core
+    const purgeSpec = purgeSpecsByClass[beforeRun.classId]
+    const purgeIsUnwanted = purgeSpec && new Set(purgeSpec.unwantedCards).has(baseCardId)
+    const purgeIsCore = purgeSpec && new Set(purgeSpec.coreCards).has(baseCardId)
+
+    // Reduce Act 1 purge penalty when purging spec-unwanted cards
     if (Number(beforeRun.actNumber || 1) <= 1) {
-      total -= 8
+      total -= purgeIsUnwanted ? 0 : 8
     }
     // Bonus for purging when deck is bloated (over 20 cards)
     if (beforeRun.deck.length > 20) {
@@ -851,15 +857,11 @@ function scoreTownActionStrategicBias(
       total += (beforeRun.deck.length - 26) * 6
     }
 
-    // Build-spec-driven purge bias: strongly favor purging unwanted cards, protect core
-    const purgeSpec = purgeSpecsByClass[beforeRun.classId]
     if (purgeSpec) {
-      const coreSet = new Set(purgeSpec.coreCards)
       const flexSet = new Set(purgeSpec.flexCards)
-      const unwantedSet = new Set(purgeSpec.unwantedCards)
-      if (coreSet.has(baseCardId) || coreSet.has(cardId)) {
+      if (purgeIsCore || new Set(purgeSpec.coreCards).has(cardId)) {
         total -= 200  // Never purge core synergy cards
-      } else if (unwantedSet.has(baseCardId) || unwantedSet.has(cardId)) {
+      } else if (purgeIsUnwanted || new Set(purgeSpec.unwantedCards).has(cardId)) {
         total += 80   // Strongly encourage purging unwanted cards
       } else if (!flexSet.has(baseCardId) && !flexSet.has(cardId)) {
         total += 30   // Encourage purging cards not in the build spec at all

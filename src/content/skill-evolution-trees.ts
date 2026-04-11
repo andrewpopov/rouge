@@ -65,6 +65,8 @@
     necromancer_clay_golem: "summoning",
     necromancer_blood_golem: "summoning",
     necromancer_revive: "summoning",
+    necromancer_skeleton_mastery: "summoning",
+    necromancer_golem_mastery: "summoning",
 
     // Amazon
     amazon_magic_arrow: "bow",
@@ -128,6 +130,15 @@
     druid_oak_sage: "summoning",
     druid_heart_of_wolverine: "summoning",
     druid_summon_grizzly: "summoning",
+    druid_spirit_wolf: "summoning",
+    druid_dire_wolf: "summoning",
+    druid_pack_howl: "summoning",
+    druid_natures_wrath: "summoning",
+    druid_natures_balance: "summoning",
+    druid_carrion_vine: "summoning",
+    druid_solar_creeper: "summoning",
+    druid_wild_stampede: "summoning",
+    druid_force_of_nature: "summoning",
 
     // Paladin
     paladin_sacrifice: "combat",
