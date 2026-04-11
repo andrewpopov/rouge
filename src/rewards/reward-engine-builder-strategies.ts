@@ -84,7 +84,7 @@
       if (roleTag === "payoff" && tier >= 4) {
         return 7;
       }
-      return tier >= 4 ? 2 : 4;
+      return tier >= 4 ? 2 : 3;
     }
     return Number.POSITIVE_INFINITY;
   }

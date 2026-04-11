@@ -1106,6 +1106,35 @@ export function optimizeSafeZoneRun(
     )
   }
 
+  function getEvolutionSpecBias(actionId: string, targetRun: RunState): number {
+    const spec = purgeSpecsByClass[targetRun.classId]
+    if (!spec) return 0
+    const coreSet = new Set(spec.coreCards)
+    const flexSet = new Set(spec.flexCards)
+
+    // For evolve actions: check if we're evolving AWAY from a core card
+    if (actionId.startsWith("blacksmith_evolve_")) {
+      const sourceCardId = actionId.replace("blacksmith_evolve_", "").replace(/_plus$/, "")
+      if (coreSet.has(sourceCardId)) {
+        // Check if the evolution target is also core/flex — if so, allow it
+        const evo = harness.browserWindow.__ROUGE_SKILL_EVOLUTION
+        const targetId = evo?.getEvolution?.(sourceCardId)?.targetId || ""
+        const targetBase = targetId.replace(/_plus$/, "")
+        if (coreSet.has(targetBase) || flexSet.has(targetBase)) return 0
+        return -150  // Penalize evolving a core card into something off-spec
+      }
+    }
+
+    // For refine actions: bonus for refining core/flex cards
+    if (actionId.startsWith("blacksmith_refine_")) {
+      const cardId = actionId.replace("blacksmith_refine_", "").replace(/_plus$/, "")
+      if (coreSet.has(cardId)) return 30
+      if (flexSet.has(cardId)) return 10
+    }
+
+    return 0
+  }
+
   function findBestDeckShapingAction(targetRun: RunState, cachedBaseScore?: number) {
     const baseScore = cachedBaseScore ?? evaluateRunScore(harness, targetRun, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
     const reinforcementDeficit = getCurrentReinforcementDeficit(targetRun)
@@ -1131,7 +1160,8 @@ export function optimizeSafeZoneRun(
       }
 
       const nextScore = evaluateRunScore(harness, clone, policy, { assumeFullResources: false, archetypePlan: archetypePlan || null })
-      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, targetRun, clone, action.id || "", policy)
+      const specBias = getEvolutionSpecBias(action.id || "", targetRun)
+      const delta = nextScore - baseScore + scoreTownActionStrategicBias(harness, targetRun, clone, action.id || "", policy) + specBias
       if (delta > bestDelta) {
         bestDelta = delta
         bestAction = action

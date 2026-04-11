@@ -456,6 +456,87 @@ export function runAchievabilityMonteCarlo(
   }
 }
 
+// ── Build Quality Score — opinionated evaluation of a final deck ──────────────
+
+export interface BuildQualityScore {
+  specId: string
+  overall: number         // 0-100 composite score
+  coreRatio: number       // 0-1: fraction of core cards present
+  deckFit: number         // 0-1: how close to target size (1 = perfect)
+  focusRatio: number      // 0-1: fraction of deck that is core+flex
+  duplicateHealth: number // 0-1: penalty for excessive duplicates
+  details: {
+    coreFound: string[]
+    coreMissing: string[]
+    offSpecCards: string[]
+    maxDuplicateCard: string
+    maxDuplicateCount: number
+    deckSize: number
+    targetSize: [number, number]
+  }
+}
+
+export function scoreBuildQuality(spec: BuildSpec, deck: string[]): BuildQualityScore {
+  const normalized = deck.map(c => c.replace(/_plus$/, ""))
+  const coreSet = new Set(spec.coreCards)
+  const flexSet = new Set(spec.flexCards)
+  const [minSize, maxSize] = spec.targetDeckSize
+
+  // Core ratio: what fraction of core cards are present?
+  const coreFound = spec.coreCards.filter(c => normalized.includes(c))
+  const coreMissing = spec.coreCards.filter(c => !normalized.includes(c))
+  const coreRatio = coreFound.length / spec.coreCards.length
+
+  // Focus ratio: what fraction of the deck is core + flex?
+  const specCards = normalized.filter(c => coreSet.has(c) || flexSet.has(c))
+  const offSpecCards = deck.filter(c => {
+    const base = c.replace(/_plus$/, "")
+    return !coreSet.has(base) && !flexSet.has(base)
+  })
+  const focusRatio = deck.length > 0 ? specCards.length / deck.length : 0
+
+  // Deck fit: 1.0 if within target range, degrades outside
+  let deckFit = 1.0
+  if (deck.length < minSize) {
+    deckFit = Math.max(0, 1 - (minSize - deck.length) * 0.15)
+  } else if (deck.length > maxSize) {
+    deckFit = Math.max(0, 1 - (deck.length - maxSize) * 0.1)
+  }
+
+  // Duplicate health: penalize having too many of one card
+  const counts: Record<string, number> = {}
+  normalized.forEach(c => { counts[c] = (counts[c] || 0) + 1 })
+  const maxCount = Math.max(...Object.values(counts), 0)
+  const maxCard = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || ""
+  const duplicateHealth = maxCount <= 2 ? 1.0 : Math.max(0, 1 - (maxCount - 2) * 0.15)
+
+  // Composite: weighted average
+  const overall = Math.round(
+    coreRatio * 35 +
+    focusRatio * 25 +
+    deckFit * 20 +
+    duplicateHealth * 20
+  )
+
+  return {
+    specId: spec.id,
+    overall,
+    coreRatio,
+    deckFit,
+    focusRatio,
+    duplicateHealth,
+    details: {
+      coreFound,
+      coreMissing,
+      offSpecCards,
+      maxDuplicateCard: maxCard,
+      maxDuplicateCount: maxCount,
+      deckSize: deck.length,
+      targetSize: spec.targetDeckSize,
+    },
+  }
+}
+
 // ── Runner: full validation pipeline ──────────────────────────────────────────
 
 export function validateBuildSpec(spec: BuildSpec) {
