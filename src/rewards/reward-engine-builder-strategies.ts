@@ -131,7 +131,7 @@
 
   function thinCandidatesByDuplicateLimit(cardIds: string[], run: RunState, content: GameContent) {
     const belowLimit = cardIds.filter((cardId: string) => isBelowDuplicateLimits(run, cardId, content));
-    return belowLimit.length > 0 ? belowLimit : cardIds;
+    return belowLimit;
   }
 
   runtimeWindow.__ROUGE_REWARD_STRATEGY_SCORING = {
