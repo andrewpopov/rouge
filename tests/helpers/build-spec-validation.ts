@@ -218,6 +218,28 @@ export const BUILD_SPECS: BuildSpec[] = [
       act5: { damageBonus: 16, guardBonus: 6, maxLife: 150, maxEnergy: 5 },
     },
   },
+  {
+    id: "assassin_shadow",
+    classId: "assassin",
+    label: "Assassin Shadow Master",
+    preferredTreeId: "assassin_shadow_disciplines",
+    targetDeckSize: [14, 17],
+    coreCards: [
+      "assassin_psychic_hammer", "assassin_burst_of_speed", "assassin_cloak_of_shadows",
+      "assassin_fade", "assassin_shadow_warrior", "assassin_claw_mastery",
+    ],
+    flexCards: [
+      "assassin_blade_shield", "assassin_weapon_block", "assassin_venom",
+      "assassin_cobra_strike", "assassin_shadow_veil", "assassin_shadow_master",
+      "assassin_lethal_tempo", "assassin_natalyas_guard", "rally_mercenary",
+    ],
+    unwantedCards: ["swing", "measured_swing", "mark_target"],
+    statTargets: {
+      act1: { damageBonus: 3, guardBonus: 3, maxLife: 55, maxEnergy: 3 },
+      act3: { damageBonus: 7, guardBonus: 6, maxLife: 100, maxEnergy: 4 },
+      act5: { damageBonus: 12, guardBonus: 9, maxLife: 160, maxEnergy: 5 },
+    },
+  },
 
   // ── Sorceress ──
   {

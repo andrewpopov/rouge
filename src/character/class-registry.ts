@@ -158,6 +158,16 @@
         heroBurnBonus: 1,
       },
     },
+    paladin_offensive_auras: {
+      bonusPerRank: {
+        heroDamageBonus: 1,
+        heroGuardBonus: 1,
+      },
+      unlockBonusPerThreshold: {
+        heroDamageBonus: 1,
+        heroMaxLife: 1,
+      },
+    },
   };
   const EXPLICIT_STARTER_SKILL_IDS: Record<string, string> = {
     amazon: "amazon_call_the_shot",

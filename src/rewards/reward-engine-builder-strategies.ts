@@ -80,8 +80,11 @@
     const role = archetypes.getCardRewardRole(terminalCardId, content);
     const roleTag = String(terminalCard?.roleTag || "answer");
     const tier = Number(terminalCard?.tier || 1);
-    if (role === "engine" && roleTag === "payoff" && tier >= 4) {
-      return 7;
+    if (role === "engine") {
+      if (roleTag === "payoff" && tier >= 4) {
+        return 7;
+      }
+      return tier >= 4 ? 2 : 4;
     }
     return Number.POSITIVE_INFINITY;
   }

@@ -14,6 +14,7 @@ import {
   createTrackedRandom,
   getMercenaryIdForClass,
   applyClassStrategy,
+  getClassStrategies,
   getPolicyDefinitions,
   getPolicySimulationAssumptions,
   getRunProgressionPolicyDefinitions,
@@ -48,7 +49,19 @@ import { BUILD_SPECS, type BuildSpec } from "./build-spec-validation"
 const buildSpecsByClass: Record<string, BuildSpec> = {}
 for (const spec of BUILD_SPECS) {
   if (!buildSpecsByClass[spec.classId]) {
+    // First spec per class is the fallback
     buildSpecsByClass[spec.classId] = spec
+  }
+}
+// Override with the spec matching each class's default strategy (if one exists)
+for (const classId of Object.keys(buildSpecsByClass)) {
+  const strategies = getClassStrategies(classId)
+  const defaultStrategy = strategies.find((s) => s.isDefault)
+  if (defaultStrategy) {
+    const matchingSpec = BUILD_SPECS.find((s) => s.classId === classId && s.id === defaultStrategy.id)
+    if (matchingSpec) {
+      buildSpecsByClass[classId] = matchingSpec
+    }
   }
 }
 
@@ -85,7 +98,7 @@ function getBuildSpecBias(classId: string, choice: RewardChoice, currentDeck: st
         bias -= 120
       } else {
         // Unknown card — strong penalty to overcome archetype bias for off-spec cards
-        bias -= 100 - existingCopies * 30
+        bias -= Math.max(30, 100 - existingCopies * 15)
       }
 
       // Penalize adding any card when at or above target deck size
