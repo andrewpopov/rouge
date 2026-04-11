@@ -77,6 +77,121 @@
 - teeth -> corpse_explosion -> bone_spear -> bone_spirit
 - bone_wall -> poison_dagger -> poison_nova
 
+---
+
+## Build Guide: Summoner
+
+### Gear Progression
+
+Necromancer preferred weapon family: **Wands**.
+
+| Act | Weapon | Family | Key Bonuses | Notes |
+|-----|--------|--------|-------------|-------|
+| 1 | Yew Wand | Wands | +1 energy, +1 guard, +1 merc atk | Starting weapon; energy matters most |
+| 3 | Wand | Wands | +2 energy, +1 guard, +2 merc atk | First upgrade; Act 2 has no wand |
+| 4 | Bone Wand | Wands | +3 energy, +3 dmg, +4 guard, +4 merc atk | Major power spike; all stats |
+| 5 | Lich Wand | Wands | +4 energy, +3 dmg, +4 guard, +5 merc atk | Endgame best-in-slot |
+
+**Note**: Wands have gaps at Act 2 -- Necromancer must survive Act 2 on the Yew Wand. This is a known progression weakness.
+
+**Armor progression:**
+
+| Act | Armor | Key Bonuses |
+|-----|-------|-------------|
+| 1 | Breast Plate | +7 maxLife, +1 potion heal |
+| 2 | Leather Armor | +8 maxLife, +2 potion heal |
+| 3 | Ring Mail | +10 maxLife, +6 merc life |
+| 4 | Ghost Armor | +12 maxLife, +1 energy, +1 guard |
+| 5 | Mage Plate | +14 maxLife, +2 energy |
+
+### Act-by-Act Progression
+
+**Act 1 (Levels 1-6)**
+- **Priority**: Get raise_skeleton and raise_servant on board immediately
+- **Key pickups**: raise_skeleton, amplify_damage, life_tap, bone_armor
+- **Tree investment**: 1-2 ranks in command; first threshold gives +1 merc atk + 2 merc life
+- **Danger signs**: No summon card by mid-Act 1; hero has no solo damage to carry fights
+
+**Act 2 (Levels 7-12)**
+- **Priority**: Add clay_golem for AoE slow; build toward 3 summons
+- **Key pickups**: clay_golem, dark_pact (draw engine), skeleton_mastery
+- **Tree investment**: 3-4 ranks; merc + summon bonuses accumulating
+- **Danger signs**: Stuck on Yew Wand with no energy scaling; summon cards sit unplayed
+
+**Act 3 (Levels 13-18)**
+- **Priority**: Wand upgrade + skeletal_mage; skeleton_mastery makes army lethal
+- **Key pickups**: skeletal_mage, golem_mastery, soul_harvest
+- **Tree investment**: 5-6 ranks; cumulative summon scaling + merc buffs
+- **Danger signs**: Evolution replacing raise_skeleton with skeletal_mage (losing board diversity)
+
+**Act 4 (Levels 19-24)**
+- **Priority**: Bone Wand is transformative (+3 energy, +4 guard, +4 merc atk)
+- **Key pickups**: bone_offering, army_of_dead (capstone)
+- **Tree investment**: 7-8 ranks
+- **Danger signs**: Deck still at 14 cards (undersized for engine); need to add, not trim
+
+**Act 5 (Levels 25-30)**
+- **Priority**: Lich Wand; full summon army; capstone scaling
+- **Key pickups**: corpse_harvest, revive
+- **Tree investment**: Max ranks; all threshold bonuses
+- **Danger signs**: Baal summons his own minions -- your summons must out-scale his
+
+### Boss Strategy
+
+**Andariel (Act 1) -- ~50-70 dmg/turn, 120 HP**
+- Necromancer's weakest boss fight; limited summon board
+- Required hero DPS: ~20/turn (1-2 skeletons + hero melee barely reaches this)
+- Deploy raise_skeleton turn 1; amplify_damage on Andariel for merc +8
+- Life_tap for sustain against her poison
+- **What kills you**: No summons deployed; hero alone does 5-8 dmg/turn
+
+**Duriel (Act 2) -- ~70-90 dmg/turn**
+- Clay_golem's slow is critical here; it delays his charge cycle
+- Required hero DPS: ~25/turn (2 summons + merc should reach this)
+- Open with clay_golem for slow; amplify_damage for merc burst
+- **What kills you**: No slow effect; Duriel charges mercenary to death turn 2
+
+**Mephisto (Act 3) -- ~100-150 dmg/turn, 311 HP**
+- Lightning AoE threatens summons; this is a scaling checkpoint
+- Required hero DPS: ~35/turn (skeleton_mastery +4 to all summons is needed)
+- skeleton_mastery before the fight; bone_armor for guard; amplify_damage for merc
+- **What kills you**: Summons die to Lightning Nova; army collapses mid-fight
+
+**Diablo (Act 4) -- ~125-175 dmg/turn, 376 HP**
+- This is where Necromancer historically fails (0/3 clear at Act 4)
+- Required hero DPS: ~45/turn (full army + bone_offering scaling needed)
+- Army_of_dead (5 dmg per summon) is the burst answer; need 4+ summons
+- **What kills you**: Infernal Resurgence heals Diablo faster than undersized army can damage
+
+**Baal (Act 5) -- ~150-200 dmg/turn**
+- Board-vs-board fight; Baal summons minions via Ruin Crown Call
+- Required hero DPS: ~55/turn (full army + golem_mastery + capstones)
+- Deploy everything turn 1; corpse_harvest for draw refuel; revive fallen summons
+- **What kills you**: Rift Burst AoE wipes your board and you cannot rebuild
+
+### Reference Endgame Deck (Summoner, 18 cards)
+
+```
+2x raise_skeleton      -- summon Skeleton (7 dmg/turn each); board foundation
+1x clay_golem          -- AoE slow + summon Golem (7 dmg + 6 guard/turn)
+1x skeletal_mage       -- poison + summon Mage (8 dmg + poison/turn)
+1x blood_golem         -- sustain summon; heals when it attacks
+1x skeleton_mastery    -- all summons +4 dmg; 14 guard; draw 1
+1x golem_mastery       -- all summons +2 (golem +3); 14 guard; draw 1
+1x amplify_damage      -- merc +8; draw 1; damage multiplier
+1x life_tap            -- heal 6; 14 guard; draw 1
+1x bone_armor          -- 16 guard; draw 1; defensive anchor
+1x dark_pact           -- lose 3 HP; 14 guard; draw 2; card velocity
+1x soul_harvest        -- heal 6; 14 guard; draw 1 if summon active
+1x bone_offering       -- scaling support for army
+1x army_of_dead        -- capstone; 5 dmg per summon; burst finisher
+1x corpse_harvest      -- capstone; draw engine from corpses
+1x revive              -- recover fallen summons; board rebuild
+1x rally_mercenary     -- mercenary activation
+```
+
+---
+
 ## Sim Findings
 - BQ 75 is reasonable but 0/3 clear rate reveals a scaling problem past Act 3
 - The evolution system actively undermines the summoner build by replacing base summons
