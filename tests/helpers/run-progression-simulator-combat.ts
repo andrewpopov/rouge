@@ -642,6 +642,23 @@ function scoreCombatStateDelta(
   }
   score += (after.mercenary.nextAttackBonus - before.mercenary.nextAttackBonus) * 2.5
   score += (after.mercenary.markBonus - before.mercenary.markBonus) * 2.5
+  // Minion board value: summoning a creature provides persistent DPS
+  const beforeMinions = (before.minions || []).filter((m: { alive: boolean }) => m.alive)
+  const afterMinions = (after.minions || []).filter((m: { alive: boolean }) => m.alive)
+  const newMinions = afterMinions.length - beforeMinions.length
+  if (newMinions > 0) {
+    // Each new minion provides ongoing damage (power) every turn — value it highly
+    const avgMinionPower = afterMinions.reduce((sum: number, m: { power: number }) => sum + (m.power || 4), 0) / Math.max(1, afterMinions.length)
+    // Value = persistent DPS × estimated remaining turns (3-5) + board presence bonus
+    score += newMinions * (avgMinionPower * 3.5 + 12)
+  }
+  // Also value minion power increases (reinforcement)
+  const beforeMinionPower = beforeMinions.reduce((sum: number, m: { power: number }) => sum + (m.power || 0), 0)
+  const afterMinionPower = afterMinions.reduce((sum: number, m: { power: number }) => sum + (m.power || 0), 0)
+  if (afterMinionPower > beforeMinionPower && newMinions === 0) {
+    score += (afterMinionPower - beforeMinionPower) * 2.5
+  }
+
   if (after.outcome === "victory") {
     score += 1000
   }
