@@ -192,6 +192,10 @@
     return Math.max(0, state.summonFocusDamageBonus || 0);
   }
 
+  function getMinionPowerBonus(state: CombatState) {
+    return Math.max(0, state.tempSummonPowerBonus || 0);
+  }
+
   function clearSummonFocus(state: CombatState) {
     state.summonFocusEnemyId = "";
     state.summonFocusDamageBonus = 0;
@@ -268,7 +272,7 @@
     if (minion.actionKind === "attack") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target) + getMinionPowerBonus(state));
       const effects: CombatLogEffect[] = [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }];
       const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
       logCombat(state, {
@@ -289,7 +293,7 @@
       let total = 0;
       const effects: CombatLogEffect[] = [];
       targets.forEach((target) => {
-        const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+        const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target) + getMinionPowerBonus(state));
         total += dealt;
         effects.push({ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard });
       });
@@ -300,7 +304,7 @@
     if (minion.actionKind === "attack_mark") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target) + getMinionPowerBonus(state));
       state.mercenary.markedEnemyId = target.id;
       state.mercenary.markBonus = Math.max(state.mercenary.markBonus, minion.secondaryValue);
       const effects: CombatLogEffect[] = [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard }];
@@ -317,7 +321,7 @@
     if (minion.actionKind === "attack_poison") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target) + getMinionPowerBonus(state));
       target.poison = Math.max(0, target.poison + minion.secondaryValue);
       const effects: CombatLogEffect[] = [{ target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, statusApplied: { kind: "poison", stacks: minion.secondaryValue }, lifeAfter: target.life, guardAfter: target.guard }];
       const riderSegments = applyStackAbilityRiders(state, minion, target, effects);
@@ -333,7 +337,7 @@
     if (minion.actionKind === "attack_guard_party") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target) + getMinionPowerBonus(state));
       applyGuard(state.hero, minion.secondaryValue);
       if (state.mercenary.alive) { applyGuard(state.mercenary, minion.secondaryValue); }
       const effects: CombatLogEffect[] = [
@@ -354,7 +358,7 @@
     if (minion.actionKind === "attack_heal_hero") {
       const target = chooseMinionTarget(state, minion);
       if (!target) { return; }
-      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target));
+      const dealt = dealDamage(state, target, minion.power + getSummonFocusBonus(state, target) + getMinionPowerBonus(state));
       const healed = healEntity(state.hero, minion.secondaryValue);
       const effects: CombatLogEffect[] = [
         { target: "enemy", targetId: target.id, targetName: target.name, damage: dealt, lifeAfter: target.life, guardAfter: target.guard },

@@ -261,7 +261,7 @@
       effects: [
         { kind: "damage", value: 5 },
         { kind: "apply_poison_all", value: 2 },
-        { kind: "summon_minion", value: 8, minionId: "necromancer_skeletal_mage" },
+        { kind: "summon_minion", value: 8, secondaryValue: 6, minionId: "necromancer_skeletal_mage" },
       ],
       behaviorTags: ["setup", "scaling", "pressure", "payoff", "salvage"],
       roleTag: "payoff",
@@ -677,7 +677,7 @@
       effects: [
         { kind: "damage", value: 9 },
         { kind: "draw", value: 1 },
-        { kind: "summon_minion", value: 13, minionId: "necromancer_revive" },
+        { kind: "summon_minion", value: 13, secondaryValue: 6, minionId: "necromancer_revive" },
       ],
       behaviorTags: ["setup", "scaling", "payoff", "protection", "pressure", "salvage"],
       roleTag: "payoff",
@@ -694,7 +694,7 @@
       text: "Gain 22 Guard. Summon Iron Golem. Each ally phase it strikes for 9, grants 6 Guard to the party, and applies 1 Slow.",
       effects: [
         { kind: "gain_guard_self", value: 22 },
-        { kind: "summon_minion", value: 9, minionId: "necromancer_iron_golem" },
+        { kind: "summon_minion", value: 9, secondaryValue: 6, minionId: "necromancer_iron_golem" },
       ],
       behaviorTags: ["setup", "protection", "scaling", "disruption"],
       roleTag: "setup",
@@ -712,7 +712,7 @@
       effects: [
         { kind: "damage_all", value: 8 },
         { kind: "apply_burn_all", value: 3 },
-        { kind: "summon_minion", value: 8, minionId: "necromancer_fire_golem" },
+        { kind: "summon_minion", value: 8, secondaryValue: 3, minionId: "necromancer_fire_golem" },
       ],
       behaviorTags: ["setup", "pressure", "scaling", "payoff"],
       roleTag: "payoff",
