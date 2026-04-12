@@ -535,8 +535,11 @@
     const playedMeleeEarlier = didPlayEarlier(content, previousCardIds, (_cardId, kinds) => kinds.has("melee"));
     const summonCount = getAliveSummons(state).length;
 
+    // Strip _plus suffix so upgraded cards resolve the same behaviors as base cards
+    const baseCardId = card.id.replace(/_plus$/, "");
+
     // ── Data-driven behavior lookup ──
-    const behavior = cardBehaviorData?.CARD_BEHAVIORS?.[card.id];
+    const behavior = cardBehaviorData?.CARD_BEHAVIORS?.[baseCardId];
     if (behavior && executeCardBehavior(
       behavior, state, targetEnemy, targetBefore, enemyBefore, segments,
       { playedMeleeEarlier, playedSpellEarlier, card }
@@ -545,7 +548,7 @@
     }
 
     // ── Remaining complex cases ──
-    switch (card.id) {
+    switch (baseCardId) {
       // amazon_amazonian_guard, amazon_inner_calm, amazon_impale, amazon_precision → data-driven
       case "amazon_battle_focus": {
         const pressuredEnemies = getLivingEnemies(state).filter((enemy) => !enemy.templateId.endsWith("_boss"));
