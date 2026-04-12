@@ -1,9 +1,11 @@
 # Druid
 
 ## Current Sim Status
-- Clear rate: 0/3 (fails Act 5 and Act 1)
-- Build quality: 70/100
+- Clear rate: 1/3 (first clear achieved, 3 seeds)
+- Build quality: 69/100
 - Deck size: 19 (target: 16-20)
+- Engine: heart_of_wolverine x3-4 + pack_howl x2 (summoner engine works when deployed)
+- Fails when: (1) town healer can't restore HP between Act 5 fights, (2) Baal's 3483 total HP pool is massive
 
 ## Primary Build: Summoner
 **Tree:** druid_summoning (command)
@@ -46,10 +48,17 @@
 - werewolf -> werebear -> fury
 
 ### Known Issues
-- **6 unspent energy per turn** -- summon cards cost 1E each but hero has 3-5E; after summoning there is nothing impactful to spend energy on
-- Summon scoring was just added to evaluation; effects not yet reflected
-- Fails at Act 5 (scaling) and Act 1 (early board too slow to establish)
+- **First clear achieved (1/3)** -- summoner engine works when fully deployed
+- Still fails at Act 5 (a5) and Act 1 (a1) in 2 of 3 seeds
+- Town healer can't restore HP between Act 5 fights, leaving hero depleted for Baal
+- Baal's 3483 total HP pool is massive and overwhelms the summon board
 - Needs more mid-cost payoff cards that benefit from having summons active
+
+#### Bugs Fixed (latest session)
+- tempSummonPowerBonus was never consumed by minions (this was the critical fix for Druid -- summons now properly benefit from power bonuses)
+- World node hero_max_life rewards destroyed overheal buffer
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
 
 ## Secondary Build: Elementalist
 **Tree:** druid_elemental (arcane)
@@ -194,7 +203,8 @@ Druid preferred weapon families: **Staves, Maces**.
 ---
 
 ## Sim Findings
-- 0/3 clear rate despite BQ 70 indicates systemic issue, not just card selection
-- Energy waste is the primary problem: hero summons then has nothing to do
+- First clear achieved (1/3) after tempSummonPowerBonus fix -- up from 0/3
+- Summoner engine works when deployed: heart_of_wolverine x3-4 + pack_howl x2
+- Still fails 2/3 seeds: town healer can't restore HP between Act 5 fights, and Baal's 3483 HP pool overwhelms
+- BQ 69; deck size 19 is within the 16-20 target range
 - Pack_howl is the key scaling card but needs 3+ summons to generate draw
-- Act 1 failures suggest starter deck is too slow against early elites

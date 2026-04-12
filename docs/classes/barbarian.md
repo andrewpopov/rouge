@@ -1,9 +1,11 @@
 # Barbarian
 
 ## Current Sim Status
-- Clear rate: 3/3 (full clear)
+- Clear rate: 3/3 (full clear, 3 seeds)
 - Build quality: 56/100
 - Deck size: 18 (target: 13-18)
+- Engine: battle_instinct x4 + steel_skin x3
+- Core cards (bash, sword_mastery, stun) evolve away but replacements are strong
 
 ## Primary Build: Berserker
 **Tree:** barbarian_combat_masteries (martial)
@@ -49,9 +51,15 @@
 
 ### Known Issues
 - **BQ 56 is lowest of all classes** -- wins via raw stat values not synergy
-- Optimizer replaces core cards with off-spec cards during progression
+- Core spec cards (bash, sword_mastery, stun) evolve away during progression; replacements (battle_instinct, steel_skin) carry the run but BQ suffers because evolution replaces spec cards
 - Deck bloats to 18 (above 16 target for Berserker) reducing combo density
 - No energy issues but synergy loop underperforms relative to card count
+
+#### Bugs Fixed (latest session)
+- tempSummonPowerBonus was never consumed by minions (critical for Druid/Necro, minor for Barbarian)
+- World node hero_max_life rewards destroyed overheal buffer
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
 
 ## Secondary Build: Warcrier
 **Tree:** barbarian_warcries (command)
@@ -194,6 +202,6 @@ Barbarian preferred weapon families: **Swords, Maces, Polearms**.
 
 ## Sim Findings
 - Barbarian clears 3/3 seeds but with the lowest build quality (56)
-- Wins come from high base stats and card values, not synergy exploitation
-- Optimizer needs tighter card-selection policy to stay on-spec
+- Wins via battle_instinct x4 + steel_skin x3 engine; core cards (bash, sword_mastery, stun) evolve away but replacements carry the run
+- BQ 56 is lowest because evolution replaces spec cards with generic strong cards
 - Deck at 18 exceeds Berserker target of 13-16; warcrier target is 15-18

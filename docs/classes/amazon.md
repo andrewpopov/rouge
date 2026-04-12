@@ -1,9 +1,11 @@
 # Amazon
 
 ## Current Sim Status
-- Clear rate: 3/3 (full clear)
+- Clear rate: 3/3 (full clear, 3 seeds -- strongest raw clear rate)
 - Build quality: 61/100
-- Deck size: 21 (target: 14-17)
+- Deck size: 20 (target: 14-17)
+- Engine: guided_arrow x4 + strafe x4 + freezing_arrow x3 + pierce x3
+- Deck slightly bloated (20-21 vs 14-17 target)
 
 ## Primary Build: Marksman
 **Tree:** amazon_bow_and_crossbow (martial)
@@ -46,11 +48,16 @@
 - jab -> power_strike -> charged_strike -> lightning_fury
 
 ### Known Issues
-- **Burst death in 2/5 seeds** -- hero plays 0 cards in some turns, dying to burst
-- This is a sim AI issue, not a game balance problem
-- Deck bloats to 21, well above the 14-17 target
+- Deck bloats to 20-21, well above the 14-17 target
 - BQ 61 is low despite 3/3 clears; deck has too many off-spec cards
 - Optimizer needs tighter discipline on deck size and card selection
+- Strongest raw clear rate of all classes despite bloated deck
+
+#### Bugs Fixed (latest session)
+- tempSummonPowerBonus was never consumed by minions (critical for Druid/Necro)
+- World node hero_max_life rewards destroyed overheal buffer
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
 
 ## Secondary Build: Javazon
 **Tree:** amazon_javelin_and_spear (martial)
@@ -224,8 +231,8 @@ Amazon preferred weapon families: **Bows, Crossbows, Javelins, Spears, Polearms*
 ---
 
 ## Sim Findings
-- Amazon clears 3/3 but BQ 61 shows the optimizer is over-acquiring cards
-- Deck at 21 is 4 cards over target maximum of 17
-- Burst death problem is sim AI failing to play cards, not amazon balance
+- Amazon clears 3/3 with strongest raw clear rate; BQ 61 shows the optimizer is over-acquiring cards
+- Converges to guided_arrow x4 + strafe x4 + freezing_arrow x3 + pierce x3
+- Deck at 20-21 is 3-4 cards over target maximum of 17
 - Marksman build has excellent merc synergy via inner_sight/penetrate marking
 - Javazon paralyze chain is theoretically strong but not the sim's primary path

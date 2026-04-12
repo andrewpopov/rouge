@@ -4,6 +4,7 @@ _Snapshot: 2026-04-06_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
+- Use `LIVE_MECHANICS_AND_BALANCE.md` for the owner-doc map, live balance doctrine, and update rules after gameplay changes.
 - Use `PROJECT_MASTER.md` plus `COMBAT_FOUNDATION.md` for the current-build overview.
 - Use `DECKBUILDER_COMBAT_MODEL.md` for the overall STS or Monster Train or D2 hybrid gameplay spine.
 - Use `SKILL_ACTION_SURFACE_SYNTHESIS.md` for the benchmark-derived split between fixed-skill mechanics and deck-card mechanics.

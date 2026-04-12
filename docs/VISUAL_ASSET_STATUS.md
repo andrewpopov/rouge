@@ -157,7 +157,47 @@ Current verdict:
 - strong enough for live use
 - no active background generation pass needed
 
-### 4. Non-Character Item and Rune Art
+### 4. Screen Backdrops
+
+The remaining screen-background work is selective and layer-based.
+
+Current live state:
+
+- title screen has bespoke background art in `assets/curated/title-screen`
+- character select has bespoke background art in `assets/curated/character-select`
+- inventory has a bespoke backdrop board in `assets/curated/inventory`
+- run summary already composites dedicated endcap art with act environment, poster, and town layers in `src/ui/run-summary-view.ts`
+- merchant overlays have portrait art for every NPC in `assets/curated/town-portraits`
+- merchant overlays currently have only one true bespoke backdrop image in `assets/curated/vendor-backgrounds`: the blacksmith forge page
+
+Important distinction:
+
+- the town screen itself should remain the functional town map surface
+- the act guide scrolls and act poster assets should remain intact
+- the next backdrop pass should add atmosphere art behind those surfaces rather than replacing the surfaces themselves
+
+Current active screen-backdrop queue:
+
+- `5` act-theme atmosphere backdrops for world-map and act-flow framing:
+  - Act I blackwood covenant atmosphere
+  - Act II sepulcher desert atmosphere
+  - Act III drowned idol river atmosphere
+  - Act IV ashen gate war-sky atmosphere
+  - Act V frost siege atmosphere
+- these should sit behind:
+  - world map in `src/ui/world-map-view.ts`
+  - act guide overlay in `src/ui/act-guide-view.ts`
+  - act transition screen in `src/ui/act-transition-view.ts`
+  - optional run-summary framing in `src/ui/run-summary-view.ts`
+- the existing act map image, town art image, and scroll/poster art should remain the foreground functional layers
+
+Current decision:
+
+- do not modify the actual town map screens as part of this pass
+- do not replace the act scroll or poster assets as part of this pass
+- next screen-art generation should target background atmosphere only
+
+### 5. Non-Character Item and Rune Art
 
 The runtime still uses direct curated sprite folders for inventory and reward art.
 

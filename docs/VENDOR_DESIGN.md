@@ -1,6 +1,6 @@
 # Vendor Design
 
-_Snapshot: 2026-03-19_
+_Snapshot: 2026-04-11_
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
@@ -12,7 +12,24 @@ Documentation note:
 
 ### One Vendor, One Job
 
-Every vendor should have a single clear purpose. The player walks up, sees what the vendor does, makes one meaningful decision, and moves on. No vendor should present a multi-tab shop interface. Minimize choices per visit.
+Every vendor should have a single clear purpose. The player walks up, sees what the vendor does, makes one meaningful decision, and moves on. No vendor should present a multi-role shop surface. Minimize choices per visit.
+
+Revision note for the live runtime:
+- The runtime now allows tabs when they split one vendor's single job into a few narrow lanes.
+- Tabs should never turn a vendor into a mixed-role kiosk.
+- Good example: the blacksmith can separate `Upgrades`, `Gear`, and `Runes` while still staying one forge vendor.
+
+### Standard Store Format
+
+Current runtime vendor/store surfaces should use one shared layout pattern:
+
+- Left rail: vendor identity only. Put the store label/logo first, then the vendor portrait or key art directly underneath it.
+- Right rail: actionable store surface. Put the category tabs, counts, stock list, and interaction cards here.
+- The left rail is for atmosphere, recognition, and a small amount of flavor copy. It should not become a second action column, and it should not duplicate tabs, counts, or instructional copy that already lives on the right.
+- The right rail is for decision-making. If a store needs subcategories, tabs belong here, along with the active lane count and the explanatory copy for the current lane.
+- Keep the active lane narrow and legible: one highlighted category, one clear set of cards, and no duplicated choices across the rails.
+
+This is now the standard store format for vendor UI. The blacksmith is the current reference implementation: Charsi sits on the left under the `Forge Bench` label, while the forge actions live on the right.
 
 ### Upgrades Over Accumulation
 

@@ -1,10 +1,11 @@
 # Necromancer
 
 ## Current Sim Status
-- Clear rate: 0/3 (fails Act 4)
-- Build quality: 75/100
-- Deck size: 14 (target: 16-20)
-- Seed variance: 0 (all seeds produce identical decks)
+- Clear rate: 2/3 (up from 0/5, fails at Act 4 in 1 seed)
+- Build quality: 77/100 (second highest of all classes)
+- Deck size: 14 (tightest of all classes; target: 16-20)
+- Engine fixed by: tempSummonPowerBonus + secondaryValue + overheal preservation
+- Still fails 1/3 at Act 4 -- the Doomtide Finger Mage (240 HP, heal+guard, 28 AoE) is the last enemy standing
 
 ## Primary Build: Summoner
 **Tree:** necromancer_summoning (command)
@@ -47,11 +48,18 @@
 - amplify_damage -> iron_maiden -> decrepify
 
 ### Known Issues
-- **golem_mastery cost fixed (9 -> 2)** but core summons evolve away during progression
+- **Now 2/3 clears** -- up from 0/5 after engine fixes
+- Deck at 14 is the tightest of all classes; BQ 77 is second highest
+- Still fails 1/3 at Act 4: the Doomtide Finger Mage (240 HP, heal+guard, 28 AoE) survives the summon army
 - raise_skeleton and clay_golem get evolved into skeletal_mage and blood_golem, breaking the summon board
-- **0 seed variance** -- all 3 seeds produce identical decks; no exploration
-- Deck at 14 is undersized for a 16-20 target engine build
 - Needs evolution policy that preserves summon diversity instead of always upgrading
+
+#### Bugs Fixed (latest session)
+- tempSummonPowerBonus was never consumed by minions (critical for Necromancer summon scaling)
+- 4 Necromancer summon cards missing secondaryValue (direct Necro fix)
+- World node hero_max_life rewards destroyed overheal buffer
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
 
 ## Secondary Build: Bone Mage
 **Tree:** necromancer_poison_and_bone (arcane)
@@ -193,7 +201,8 @@ Necromancer preferred weapon family: **Wands**.
 ---
 
 ## Sim Findings
-- BQ 75 is reasonable but 0/3 clear rate reveals a scaling problem past Act 3
+- Went from 0/5 to 2/3 clears with engine fixes (tempSummonPowerBonus + secondaryValue + overheal)
+- Deck 14 is tightest of all classes; BQ 77 is second highest
+- Still fails 1/3 at Act 4 -- the Doomtide Finger Mage (240 HP, heal+guard, 28 AoE) is the chokepoint
 - The evolution system actively undermines the summoner build by replacing base summons
-- Zero seed variance suggests the optimizer always takes the same path
 - Fix needed: evolution policy should not replace the last copy of a core summon card

@@ -2,6 +2,7 @@
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
+- Use `LIVE_MECHANICS_AND_BALANCE.md` for the routing rules around mechanic truth, balance targets, and update ownership.
 - Use `PROJECT_MASTER.md` plus `COMBAT_FOUNDATION.md` for the current-build explanation.
 - This document supports player scenarios and content workflows.
 
@@ -138,6 +139,20 @@ Documentation note:
 - hiring/replacing behavior.
 - revive/safe-zone recovery behavior.
 - deterministic turn decisions for fixed board states.
+
+### Guide 8: Update Gameplay Documentation After Mechanics or Balance Changes
+1. Identify whether the change affects current-build truth, target-state doctrine, class meta, or player-facing explanation.
+2. Update the owning current-truth doc first:
+- `COMBAT_FOUNDATION.md` for loop or action-surface changes.
+- `wiki/mechanics/status-effects.md` for timing, stacking, decay, resistance, immunity, taunt, or fade changes.
+- `CLASS_DECKBUILDER_PROGRESSION.md` for card or skill progression changes.
+3. Update the owning target or strategy doc if the intended meta changed:
+- `CLASS_CARD_AUTHORING_MATRIX.md`
+- `CLASS_CARD_EXECUTION_PLAN.md`
+- `CLASS_STRATEGY_GUIDE_SYSTEM.md`
+- relevant `strategy-guides/*.md`
+4. Update `LIVE_MECHANICS_AND_BALANCE.md` if the owner-doc map or high-level doctrine changed.
+5. Add or tighten regression tests before calling the behavior live.
 
 ## 3) Scenario Acceptance Matrix
 - Onboarding clarity: Scenario A + town readability + clear exit to first world-map route.

@@ -1,9 +1,11 @@
 # Paladin
 
 ## Current Sim Status
-- Clear rate: 3/3 (full clear)
-- Build quality: 78/100
+- Clear rate: 3/3 (full clear, 3 seeds)
+- Build quality: 78/100 (highest of all classes)
 - Deck size: 16 (target: 13-18)
+- Engine: holy_freeze x3-4 + defiance x3 + holy_shield x3-4 + conviction
+- Offensive auras tree override (+1 dmg/rank) resolved earlier Act 1 failures
 
 ## Primary Build: Zealot
 **Tree:** paladin_offensive_auras (support)
@@ -47,9 +49,15 @@
 
 ### Known Issues
 - **offensive_auras fix is working** -- 3/3 clears now
-- Act 1 failures in some seeds from elite trait RNG (extra_fast + extra_strong combo)
-- These are trait-system issues, not paladin card balance problems
-- BQ 78 is second highest; paladin is currently the best-balanced class
+- Act 1 failures resolved by offensive auras tree override (+1 dmg/rank)
+- BQ 78 is the highest of all classes; paladin is currently the best-balanced class
+- Converges reliably to holy_freeze + defiance + holy_shield + conviction engine
+
+#### Bugs Fixed (latest session)
+- tempSummonPowerBonus was never consumed by minions (critical for Druid/Necro)
+- World node hero_max_life rewards destroyed overheal buffer
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
 
 ## Secondary Build: Guardian
 **Tree:** paladin_defensive_auras (support)
@@ -196,7 +204,7 @@ Paladin preferred weapon families: **Maces, Swords**.
 ---
 
 ## Sim Findings
-- Paladin is the strongest performing class: 3/3 clear, BQ 78
-- Offensive auras build has excellent burn + buff stacking synergy
-- Act 1 RNG deaths are from trait combinations, not card balance
+- Paladin is the strongest performing class: 3/3 clear, BQ 78 (highest)
+- Converges to holy_freeze x3-4 + defiance x3 + holy_shield x3-4 + conviction
+- Offensive auras tree override (+1 dmg/rank) resolved earlier Act 1 failures
 - Guardian build is viable but slower; Zealot is primary

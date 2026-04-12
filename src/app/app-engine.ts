@@ -111,6 +111,7 @@
         spellbookOpen: false,
         townFocus: "",
         townOverviewTab: "departure",
+        townBlacksmithTab: "upgrades",
         inventoryOpen: false,
         inventoryTab: "",
         inventoryDetailEntryId: "",

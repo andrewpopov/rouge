@@ -1,6 +1,11 @@
 # Combat Foundation
 
-Last updated: March 27, 2026.
+Last updated: April 11, 2026.
+
+Documentation note:
+- Start with [PROJECT_MASTER.md](/Users/andrew/proj/rouge/docs/PROJECT_MASTER.md).
+- Use [LIVE_MECHANICS_AND_BALANCE.md](/Users/andrew/proj/rouge/docs/LIVE_MECHANICS_AND_BALANCE.md) as the routing doc for mechanic truth, balance doctrine, and documentation upkeep.
+- Use [wiki/mechanics/status-effects.md](/Users/andrew/proj/rouge/docs/wiki/mechanics/status-effects.md) for exact status timing, stacking, and resistance behavior.
 
 ## Live Rule Set
 
@@ -29,7 +34,7 @@ The encounter sandbox sits inside a larger app loop:
 - `Energy`: the hero's card-play resource each turn
 - `Hand Size`: the hero's turn-start hand target; this is usually class-defined, but unique item bonuses can now raise it
 - `Potions`: off-deck combat support actions
-- `Burn`, `Freeze`, `Shock`, `Slow`, and `Crushing`: live status or control hooks applied by skills, enemies, and weapon effects depending on source
+- `Burn`, `Poison`, `Slow`, `Freeze`, `Stun`, `Paralyze`, `Chill`, `Amplify`, `Weaken`, `Energy Drain`, `Taunt`, and `Fade`: live status, debuff, or targeting-state hooks applied by cards, skills, enemies, traits, and weapon effects depending on source
 - equipped weapons can now contribute explicit skill-proficiency attack and support bonuses, typed fire or cold or lightning or poison damage, and on-hit effects like Burn, Freeze, Shock, Slow, and Crushing depending on weapon family
 - equipped armor can now contribute physical and elemental mitigation through live resistance lines, with rare unique-only immunities on armor
 - socketed runes and completed runewords now feed directly into derived combat stats before encounter creation, and unique-only rarity bonuses can affect hand size as well as the more traditional Life or Energy or damage hooks
@@ -104,3 +109,11 @@ The runtime enemy roster is a mix of authored fallback encounters and seed-deriv
 - broader encounter-local modifier catalogs and escort or boss scripting beyond the current twenty-modifier, court-reserve, boss-salvo, linebreaker-charge, ritual-cadence, boss-screen, sniper-nest, and phalanx-march baseline
 - broader per-item and runeword coverage for the current weapon and armor combat hooks
 - more encounter archetypes and route-side combat variety
+
+## Documentation Rule
+
+If combat behavior changes:
+
+- update this document when the encounter loop, action surfaces, or combat framing changed
+- update [wiki/mechanics/status-effects.md](/Users/andrew/proj/rouge/docs/wiki/mechanics/status-effects.md) when timing, stacking, decay, or mitigation semantics changed
+- add or tighten regression tests before treating the new behavior as canonical

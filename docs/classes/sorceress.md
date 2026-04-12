@@ -1,9 +1,11 @@
 # Sorceress
 
 ## Current Sim Status
-- Clear rate: 0/3 (fails Act 4 and Act 5)
-- Build quality: 62/100
-- Deck size: 18 (target: 14-17)
+- Clear rate: 3/3 (full clear, 3 seeds -- fixed from 0/5 by overheal preservation)
+- Build quality: 63/100
+- Deck size: 17 (target: 14-17)
+- Engine: lightning_mastery x3 + chain_lightning x2 + nova x2 + teleport x3
+- Missing core: lightning, thunder_storm, charged_bolt, static_field never in reward pools
 
 ## Primary Build: Lightning
 **Tree:** sorceress_lightning (arcane)
@@ -44,11 +46,18 @@
 - inferno -> meteor -> hydra
 
 ### Known Issues
-- **lightning and thunder_storm never appear in reward pool** -- core cards are unreachable
-- Optimizer purges attack cards while keeping Lightning Mastery (an aura with no attacks to buff)
-- teleport flooding fixed (10 -> 3) but deck still bloats to 18
-- Without lightning/thunder_storm, the synergy loop cannot function
-- BQ 62 reflects a fundamentally broken reward pool, not just optimizer error
+- **Now 3/3 clears** -- fixed from 0/5 by overheal preservation fix
+- lightning, thunder_storm, charged_bolt, static_field still never appear in reward pools -- core cards are unreachable
+- Wins despite missing core cards via lightning_mastery x3 + chain_lightning x2 + nova x2 + teleport x3
+- teleport flooding fixed (10 -> 3) in prior session; support_build duplicate flooding fix this session prevents recurrence
+- BQ 63 still reflects reward pool limitations, not just optimizer error
+
+#### Bugs Fixed (latest session)
+- World node hero_max_life rewards destroyed overheal buffer (this was the critical fix for Sorceress going from 0/5 to 3/3)
+- tempSummonPowerBonus was never consumed by minions (critical for Druid/Necro)
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
+- 4 Necromancer summon cards missing secondaryValue
 
 ## Secondary Build: Fire
 **Tree:** sorceress_fire (arcane)
@@ -237,8 +246,9 @@ Sorceress preferred weapon families: **Wands, Staves**.
 ---
 
 ## Sim Findings
-- 0/3 clear rate is the worst tied with druid and necromancer
-- Root cause: lightning and thunder_storm are never offered as rewards
-- Optimizer keeps Lightning Mastery aura but purges the attack cards it should buff
-- teleport flooding was fixed (10 -> 3) but deeper reward pool issues remain
+- Fixed from 0/5 to 3/3 clears by overheal preservation fix
+- Converges to lightning_mastery x3 + chain_lightning x2 + nova x2 + teleport x3
+- Missing core cards: lightning, thunder_storm, charged_bolt, static_field never appear in reward pools
+- Wins despite reward pool gaps; BQ 63 could improve if core cards become available
+- teleport flooding was fixed (10 -> 3); support_build duplicate flooding fix prevents recurrence
 - Fire and frost builds may be viable alternatives but are not the sim's primary spec

@@ -109,13 +109,76 @@
     mercenary: "\u2694",
   };
 
+  const BLACKSMITH_TAB_ORDER = ["upgrades", "gear", "runes"] as const;
+
+  function toTitleCase(input: string): string {
+    return String(input || "")
+      .split(/[_\s]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+
+  function buildTownActionArt(action: TownAction, escapeHtml: (s: string) => string): string {
+    const assetMap = runtimeWindow.ROUGE_ASSET_MAP;
+    if (action.runeSourceId) {
+      const tier = Math.max(1, Math.min(9, action.runeTier || 1));
+      const sprite = assetMap?.getRuneSprite?.(action.runeSourceId);
+      if (sprite) {
+        return `
+          <div class="merchant-card__art merchant-item__art merchant-item__art--rune merchant-item__art--rune-tier-${tier}" aria-hidden="true">
+            <img class="merchant-item__sprite merchant-item__sprite--rune" src="${escapeHtml(sprite)}" alt="" draggable="false" />
+            <span class="merchant-item__rune-tier">T${tier}</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="merchant-card__art merchant-item__art merchant-item__art--rune merchant-item__art--rune-tier-${tier}" aria-hidden="true">
+          <span class="merchant-item__rune-glyph">${escapeHtml((action.title || action.runeSourceId || "Rune").slice(0, 3).toUpperCase())}</span>
+          <span class="merchant-item__rune-tier">T${tier}</span>
+        </div>
+      `;
+    }
+
+    if (action.itemSourceId) {
+      const sprite = assetMap?.getItemSprite?.(action.itemSourceId, action.itemRarity, action.itemSlot);
+      if (sprite) {
+        return `
+          <div class="merchant-card__art merchant-item__art merchant-item__art--equipment" aria-hidden="true">
+            <img class="merchant-item__sprite" src="${escapeHtml(sprite)}" alt="" draggable="false" />
+          </div>
+        `;
+      }
+    }
+
+    return "";
+  }
+
+  function getBlacksmithActionTab(action: TownAction): typeof BLACKSMITH_TAB_ORDER[number] {
+    if (action.id.includes("_commission_")) {
+      return "upgrades";
+    }
+    if (action.runeSourceId || action.entryKind === "rune" || action.id.startsWith("inventory_socket_")) {
+      return "runes";
+    }
+    return "gear";
+  }
+
+  function resolveBlacksmithTab(actions: TownAction[], requestedTab: AppState["ui"]["townBlacksmithTab"]): typeof BLACKSMITH_TAB_ORDER[number] {
+    if (actions.some((action) => getBlacksmithActionTab(action) === requestedTab)) {
+      return requestedTab;
+    }
+    return BLACKSMITH_TAB_ORDER.find((tab) => actions.some((action) => getBlacksmithActionTab(action) === tab)) || "gear";
+  }
+
   function buildMerchantCard(a: TownAction, escapeHtml: (s: string) => string): string {
     const icon = CATEGORY_ICONS[a.category] || "\u2726";
     const canAfford = !a.disabled;
+    const art = buildTownActionArt(a, escapeHtml);
     return `
-      <button class="merchant-card ${a.disabled ? "merchant-card--disabled" : ""}"
+      <button class="merchant-card ${art ? "merchant-card--with-art" : ""} ${a.disabled ? "merchant-card--disabled" : ""}"
               data-action="use-town-action" data-town-action-id="${escapeHtml(a.id)}">
-        <div class="merchant-card__icon">${icon}</div>
+        ${art || `<div class="merchant-card__icon">${icon}</div>`}
         <div class="merchant-card__name">${escapeHtml(a.title)}</div>
         ${a.subtitle ? `<div class="merchant-card__sub">${escapeHtml(a.subtitle)}</div>` : ""}
         ${a.description ? `<div class="merchant-card__desc">${escapeHtml(a.description)}</div>` : ""}
@@ -129,11 +192,117 @@
     `;
   }
 
+  function buildBlacksmithOverlay(
+    npc: TownNpc,
+    gold: number,
+    activeTab: AppState["ui"]["townBlacksmithTab"],
+    escapeHtml: (s: string) => string
+  ): string {
+    const tabActionCount = {
+      upgrades: npc.actions.filter((action) => getBlacksmithActionTab(action) === "upgrades").length,
+      gear: npc.actions.filter((action) => getBlacksmithActionTab(action) === "gear").length,
+      runes: npc.actions.filter((action) => getBlacksmithActionTab(action) === "runes").length,
+    };
+    const resolvedTab = resolveBlacksmithTab(npc.actions, activeTab);
+    const filteredActions = npc.actions.filter((action) => getBlacksmithActionTab(action) === resolvedTab);
+    const portraitSrc = "./assets/curated/town-portraits/charsi.webp";
+    const forgeFlavor = "Keeps the forge hot, sorts the steel, and sends the pack back out clean.";
+    const tabCopy = {
+      upgrades: {
+        eyebrow: "Forge Queue",
+        title: "Open socket work and hard upgrades.",
+        copy: "Commission lanes live here, so the best steel gets its next breakpoint first.",
+      },
+      gear: {
+        eyebrow: "Field Pack",
+        title: "Sort the gear still worth carrying.",
+        copy: "Equip, sell, or stash the pieces that still matter before the next departure.",
+      },
+      runes: {
+        eyebrow: "Rune Tray",
+        title: "Set loose runes aside cleanly.",
+        copy: "Socket or bank runes before they disappear under the rest of the pack.",
+      },
+    }[resolvedTab];
+
+    return `
+      <div class="town-npc-overlay" data-action="close-town-npc">
+        <div class="merchant-screen merchant-screen--blacksmith-desk" data-action="noop">
+          <div class="merchant-header merchant-header--forge merchant-header--forge-shell">
+            <span class="merchant-header__icon merchant-header__icon--forge-shell" aria-hidden="true">${npc.icon}</span>
+            <div class="merchant-header__gold">
+              <span class="merchant-header__coin">\u{1F4B0}</span> ${gold}g
+            </div>
+          </div>
+          <div class="merchant-body merchant-body--forge">
+            <aside class="merchant-forge-rail">
+              <div class="merchant-forge-hero__sigil" aria-hidden="true">${npc.icon}</div>
+              <div class="merchant-forge-identity">
+                <p class="merchant-forge-hero__eyebrow">Forge Bench</p>
+                <h3 class="merchant-forge-hero__title">${escapeHtml(npc.name)}</h3>
+                <p class="merchant-forge-hero__role">${escapeHtml(npc.role)}</p>
+                <p class="merchant-forge-hero__body">${escapeHtml(forgeFlavor)}</p>
+              </div>
+              <div class="merchant-forge-portrait-stack" aria-label="Charsi forge scene">
+                <div class="merchant-forge-hero__portrait-frame">
+                  <img class="merchant-forge-hero__portrait" src="${escapeHtml(portraitSrc)}" alt="${escapeHtml(npc.name)}" draggable="false" />
+                </div>
+              </div>
+            </aside>
+            <section class="merchant-forge-work">
+              <div class="merchant-forge-work__topline">
+                <p class="merchant-forge-work__eyebrow">Workboard</p>
+                <div class="merchant-forge-work__gold"><span class="merchant-header__coin">\u{1F4B0}</span> ${gold} ready</div>
+              </div>
+              <div class="merchant-forge-tabs" role="tablist" aria-label="Charsi forge categories">
+                ${BLACKSMITH_TAB_ORDER.map((tab) => `
+                  <button class="merchant-forge-tab ${tab === resolvedTab ? "merchant-forge-tab--active" : ""}"
+                          type="button"
+                          role="tab"
+                          aria-selected="${tab === resolvedTab ? "true" : "false"}"
+                          data-action="select-town-blacksmith-tab"
+                          data-town-blacksmith-tab="${tab}">
+                    <span class="merchant-forge-tab__label">${escapeHtml(toTitleCase(tab))}</span>
+                    <span class="merchant-forge-tab__count">${tabActionCount[tab]}</span>
+                  </button>
+                `).join("")}
+              </div>
+              <section class="merchant-forge-stage">
+                <div class="merchant-forge-stage__head">
+                  <div>
+                    <p class="merchant-forge-stage__eyebrow">${escapeHtml(tabCopy.eyebrow)}</p>
+                    <h4 class="merchant-forge-stage__title">${escapeHtml(tabCopy.title)}</h4>
+                  </div>
+                  <span class="merchant-forge-stage__count">${filteredActions.length}</span>
+                </div>
+                <p class="merchant-forge-stage__copy">${escapeHtml(tabCopy.copy)}</p>
+                ${filteredActions.length > 0
+                  ? `<div class="merchant-grid merchant-grid--forge">${filteredActions.map((action) => buildMerchantCard(action, escapeHtml)).join("")}</div>`
+                  : `<p class="merchant-empty merchant-empty--forge">Nothing in this lane needs work right now.</p>`
+                }
+              </section>
+            </section>
+          </div>
+          <div class="merchant-footer">
+            <p class="merchant-footer__note">Keep only the steel and runes that change the next room.</p>
+            <button class="merchant-leave" data-action="close-town-npc">
+              <span class="merchant-leave__arrow">\u2190</span> Leave
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function buildNpcOverlay(
     npc: TownNpc,
     gold: number,
+    appState: AppState,
     escapeHtml: (s: string) => string
   ): string {
+    if (npc.id === "blacksmith") {
+      return buildBlacksmithOverlay(npc, gold, appState.ui.townBlacksmithTab, escapeHtml);
+    }
     const actionCards =
       npc.actions.length > 0
         ? `<div class="merchant-grid">${npc.actions.map((a) => buildMerchantCard(a, escapeHtml)).join("")}</div>`
@@ -226,7 +395,7 @@
       .join("");
 
     const npcOverlay = focusedNpc
-      ? buildNpcOverlay(focusedNpc, run.gold, escapeHtml)
+      ? buildNpcOverlay(focusedNpc, run.gold, appState, escapeHtml)
       : "";
 
     const statusBar = `

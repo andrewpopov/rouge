@@ -166,19 +166,24 @@
       if (!equipment) {
         return;
       }
-      actions.push(
-        {
-          id: `inventory_unequip_${slot}`,
-          category: "inventory",
-          title: getItemDefinition(content, equipment.itemId)?.name || equipment.itemId,
-          subtitle: `Unequip ${SLOT_LABELS[slot] || slot}`,
-          description: `Move ${getItemDefinition(content, equipment.itemId)?.name || equipment.itemId} back into carried inventory.`,
-          previewLines: [`Sockets ${equipment.insertedRunes.length}/${equipment.socketsUnlocked}.`],
-          cost: 0,
-          actionLabel: "Unequip",
-          disabled: false,
-        }
-      );
+      const itemDefinition = getItemDefinition(content, equipment.itemId);
+      const unequipAction: TownAction = {
+        id: `inventory_unequip_${slot}`,
+        category: "inventory",
+        title: itemDefinition?.name || equipment.itemId,
+        subtitle: `Unequip ${SLOT_LABELS[slot] || slot}`,
+        description: `Move ${itemDefinition?.name || equipment.itemId} back into carried inventory.`,
+        previewLines: [`Sockets ${equipment.insertedRunes.length}/${equipment.socketsUnlocked}.`],
+        cost: 0,
+        actionLabel: "Unequip",
+        disabled: false,
+        entryKind: ENTRY_KIND.EQUIPMENT,
+        itemSourceId: itemDefinition?.sourceId || "",
+        itemSlot: itemDefinition?.slot || equipment.slot || "",
+        itemFamily: itemDefinition?.family || "",
+        itemRarity: equipment.rarity || "",
+      };
+      actions.push(unequipAction);
       const commissionAction = buildSocketCommissionAction(
         run,
         equipment,
@@ -227,17 +232,26 @@
           if (!equipment || !rune || !isRuneAllowedInSlot(rune, equipment.slot)) {
             return;
           }
-          actions.push({
+          const itemDefinition = getItemDefinition(content, equipment.itemId);
+          const socketAction: TownAction = {
             id: `inventory_socket_${slot}__${entry.entryId}`,
             category: "inventory",
             title: getEntryLabel(entry, content),
             subtitle: `Socket ${SLOT_LABELS[slot] || slot} Rune`,
-            description: `Socket ${rune.name} into ${getItemDefinition(content, equipment.itemId)?.name || equipment.itemId}.`,
+            description: `Socket ${rune.name} into ${itemDefinition?.name || equipment.itemId}.`,
             previewLines: [`${equipment.insertedRunes.length}/${equipment.socketsUnlocked} sockets filled.`],
             cost: 0,
             actionLabel: "Socket",
             disabled: equipment.insertedRunes.length >= equipment.socketsUnlocked,
-          });
+            entryKind: ENTRY_KIND.RUNE,
+            itemSourceId: itemDefinition?.sourceId || "",
+            itemSlot: itemDefinition?.slot || equipment.slot || "",
+            itemFamily: itemDefinition?.family || "",
+            itemRarity: equipment.rarity || "",
+            runeSourceId: rune.sourceId || "",
+            runeTier: toNumber(rune.progressionTier, 0),
+          };
+          actions.push(socketAction);
         });
       }
 

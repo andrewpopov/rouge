@@ -86,61 +86,70 @@
   }
 
   function inferEncounterCounterTags(id: string, modifiers: EncounterModifier[] = []): CounterTag[] {
-    const tags = new Set<CounterTag>()
-    const actNumber = Number((id.match(/^act_(\d+)_/) || [])[1] || 0)
-    if (id.includes("_boss")) {
+    const tags = new Set<CounterTag>();
+    const actNumber = Number((id.match(/^act_(\d+)_/) || [])[1] || 0);
+    const lowerId = id.toLowerCase();
+    if (lowerId.includes("_boss")) {
       if (actNumber === 1) {
-        tags.add("anti_attrition")
+        tags.add("anti_attrition");
       } else if (actNumber === 2) {
-        tags.add("anti_guard_break")
+        tags.add("anti_guard_break");
       } else if (actNumber === 3) {
-        tags.add("anti_backline")
-        tags.add("anti_lightning_pressure")
+        tags.add("anti_backline");
+        tags.add("anti_lightning_pressure");
       } else if (actNumber === 4) {
-        tags.add("anti_fire_pressure")
-        tags.add("telegraph_respect")
+        tags.add("anti_fire_pressure");
+        tags.add("telegraph_respect");
       } else if (actNumber >= 5) {
-        tags.add("anti_summon")
-        tags.add("anti_control")
+        tags.add("anti_summon");
+        tags.add("anti_control");
       }
-    } else if (id.includes("_miniboss") || id.includes("branch_retinue") || id.includes("branch_sanctum") || id.includes("branch_warhost")) {
-      tags.add("telegraph_respect")
+    } else if (
+      lowerId.includes("_miniboss") ||
+      lowerId.includes("branch_retinue") ||
+      lowerId.includes("branch_sanctum") ||
+      lowerId.includes("branch_warhost")
+    ) {
+      tags.add("telegraph_respect");
       if (actNumber === 1) {
-        tags.add("anti_attrition")
-        tags.add("anti_backline")
+        tags.add("anti_attrition");
+        tags.add("anti_backline");
       } else if (actNumber === 2) {
-        tags.add("anti_guard_break")
-        tags.add("anti_support_disruption")
+        tags.add("anti_guard_break");
+        tags.add("anti_support_disruption");
       } else if (actNumber === 3) {
-        tags.add("anti_backline")
-        tags.add("anti_lightning_pressure")
+        tags.add("anti_backline");
+        tags.add("anti_lightning_pressure");
       } else if (actNumber === 4) {
-        tags.add("anti_fire_pressure")
-        tags.add("anti_guard_break")
+        tags.add("anti_fire_pressure");
+        tags.add("anti_guard_break");
       } else if (actNumber >= 5) {
-        tags.add("anti_summon")
-        tags.add("anti_control")
+        tags.add("anti_summon");
+        tags.add("anti_control");
       }
     }
     modifiers.forEach((modifier) => {
-      const kind = String(modifier.kind || "")
-      if (kind.includes("BACKLINE") || kind.includes("SNIPER")) {
-        tags.add("anti_backline")
+      const kind = String(modifier.kind || "").toLowerCase();
+      if (kind.includes("backline") || kind.includes("sniper") || kind.includes("ambush")) {
+        tags.add("anti_backline");
       }
-      if (kind.includes("ESCORT") || kind.includes("PHALANX")) {
-        tags.add("anti_guard_break")
+      if (kind.includes("escort") || kind.includes("phalanx") || kind.includes("fortified") || kind.includes("linebreaker")) {
+        tags.add("anti_guard_break");
       }
-      if (kind.includes("RITUAL") || kind.includes("ONSLAUGHT") || kind.includes("SALVO") || kind.includes("LINEBREAKER")) {
-        tags.add("telegraph_respect")
+      if (kind.includes("ritual") || kind.includes("onslaught") || kind.includes("salvo") || kind.includes("linebreaker") || kind.includes("ambush")) {
+        tags.add("telegraph_respect");
       }
-      if (kind.includes("TRIAGE") || kind.includes("WAR_DRUMS")) {
-        tags.add("anti_support_disruption")
+      if (kind.includes("triage") || kind.includes("war_drums") || kind.includes("escort_command") || kind.includes("ritual")) {
+        tags.add("anti_support_disruption");
       }
-      if (kind.includes("COURT_RESERVES")) {
-        tags.add("anti_summon")
+      if (kind.includes("court_reserves")) {
+        tags.add("anti_summon");
       }
-    })
-    return [...tags]
+      if (kind.includes("triage") || kind.includes("fortified")) {
+        tags.add("anti_attrition");
+      }
+    });
+    return [...tags];
   }
 
   function makeEncounter(id: string, name: string, description: string, enemyTemplateIds: string[], modifiers: EncounterModifier[] = []) {

@@ -2,13 +2,37 @@
 
 Documentation note:
 - Start with `PROJECT_MASTER.md`.
+- Use `LIVE_MECHANICS_AND_BALANCE.md` for the current live doctrine and documentation routing.
 - Use `COMBAT_DECISION_DESIGN.md` for the target feel of enemy intents and why specific patterns are interesting.
 - Use `D2_SPECIALIZATION_MODEL.md` for the soft-counter and boss-prep model that minibosses and bosses should teach.
 - Use this document for monster-family implementation backlog and concrete mechanic candidates.
 
 ## Current State
 
-The game has **100+ named D2 monsters** across 5 acts in `d2-zone-monsters.json`, but they all behave identically based on 4 generic roles:
+The live build is no longer using a purely generic monster layer.
+
+Current runtime truth:
+
+- act bosses have distinct scripted loops and act-specific ask tags
+- branch elites and miniboss packages expose encounter ask tags intended to preview boss asks
+- enemies can apply player-side debuffs including Burn, Poison, Chill, Amplify, Weaken, and Energy Drain
+- enemy scripts support summon, teleport, charge, sunder, heal-and-guard, and elemental party attacks
+- elite and encounter modifiers are a major part of how an act teaches the player what the boss will later demand
+
+The game still uses broad role scaffolding across the non-boss roster, but that scaffolding is now layered with traits, scripted intents, modifiers, and act-specific ask profiles instead of a single uniform behavior model.
+
+## Boss And Elite Doctrine
+
+- each act boss should ask a different question of the deck, not just hit harder than the last one
+- branch elites and minibosses should preview one or more boss asks so the act teaches before it punishes
+- boss courts and escorts should reinforce the boss pattern rather than distract from it
+- encounter ask tags should stay aligned with the live mechanics because reward routing and player guidance use them
+
+## Remaining Expansion Backlog
+
+The sections below are still useful as future-facing backlog, but they are not a description of untouched systems anymore. Many of the items below are already partially live and should be read as `expand or deepen`, not `build from zero`.
+
+The game still has **100+ named D2 monsters** across 5 acts in `d2-zone-monsters.json`, and a large part of the remaining opportunity is pushing more of that roster beyond the current role-and-modifier baseline:
 
 | Role | Behavior |
 |------|----------|
@@ -16,8 +40,6 @@ The game has **100+ named D2 monsters** across 5 acts in `d2-zone-monsters.json`
 | **Ranged** | attack / attack_all rotation |
 | **Support** | heal_ally / guard_allies rotation |
 | **Brute** | guard → heavy attack rotation |
-
-**No monster has unique abilities, traits, or status effects applied to the player.** A Fallen plays identically to a Skeleton which plays identically to a Reanimated Horde. The only variation is stat scaling by act and role.
 
 ---
 

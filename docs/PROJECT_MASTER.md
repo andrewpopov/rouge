@@ -1,6 +1,6 @@
 # Project Master
 
-Last updated: April 6, 2026.
+Last updated: April 11, 2026.
 
 ## Purpose
 
@@ -12,6 +12,8 @@ Use it to separate:
 - live architecture patterns
 - restored target-state guidance
 - retired prototype material that should stay deleted
+
+Use [LIVE_MECHANICS_AND_BALANCE.md](/Users/andrew/proj/rouge/docs/LIVE_MECHANICS_AND_BALANCE.md) as the canonical routing doc for live mechanics, balance targets, and gameplay-documentation maintenance.
 
 ## Direction
 
@@ -69,7 +71,7 @@ Not implemented now:
 
 Use the deterministic simulator tooling for balance checks instead of one-off feel tuning.
 
-- current snapshot and latest interpretation live in [artifacts/balance/latest.md](/Users/andrew/proj/rouge/artifacts/balance/latest.md)
+- current operating snapshot lives in [artifacts/balance/committed-ledger.md](/Users/andrew/proj/rouge/artifacts/balance/committed-ledger.md) and [artifacts/balance/committed-history.md](/Users/andrew/proj/rouge/artifacts/balance/committed-history.md), while broader interpretation and target bands live in [docs/POWER_CALIBRATION.md](/Users/andrew/proj/rouge/docs/POWER_CALIBRATION.md)
 - use [docs/BALANCE_PLAN.md](/Users/andrew/proj/rouge/docs/BALANCE_PLAN.md) as the operating plan for which suites matter, what order to tune in, and what counts as success
 - use [docs/BALANCE_EXECUTION_CHECKLIST.md](/Users/andrew/proj/rouge/docs/BALANCE_EXECUTION_CHECKLIST.md) as the short working checklist for the current balance phase
 - use [docs/BALANCE_LANE_BOARD.md](/Users/andrew/proj/rouge/docs/BALANCE_LANE_BOARD.md) as the current lane-by-lane snapshot from the merged committed ledger
@@ -167,6 +169,7 @@ When docs conflict, use this order.
 - [tests/combat-engine.test.ts](/Users/andrew/proj/rouge/tests/combat-engine.test.ts)
 - [tests/app-engine.test.ts](/Users/andrew/proj/rouge/tests/app-engine.test.ts)
 - [docs/COMBAT_FOUNDATION.md](/Users/andrew/proj/rouge/docs/COMBAT_FOUNDATION.md)
+- [docs/LIVE_MECHANICS_AND_BALANCE.md](/Users/andrew/proj/rouge/docs/LIVE_MECHANICS_AND_BALANCE.md)
 - [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATION_PROGRESS.md)
 - [docs/CODEBASE_RULES.md](/Users/andrew/proj/rouge/docs/CODEBASE_RULES.md)
 
@@ -216,6 +219,7 @@ Use [docs/IMPLEMENTATION_PROGRESS.md](/Users/andrew/proj/rouge/docs/IMPLEMENTATI
 - [docs/CLASS_CAPSTONES.md](/Users/andrew/proj/rouge/docs/CLASS_CAPSTONES.md)
 - [docs/wiki/inspirations/DECKBUILDER_ACTION_SURFACE_SOURCES.md](/Users/andrew/proj/rouge/docs/wiki/inspirations/DECKBUILDER_ACTION_SURFACE_SOURCES.md)
 - [docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md](/Users/andrew/proj/rouge/docs/USER_SCENARIOS_AND_FEATURE_GUIDES.md)
+- [docs/LIVE_MECHANICS_AND_BALANCE.md](/Users/andrew/proj/rouge/docs/LIVE_MECHANICS_AND_BALANCE.md)
 - [docs/VISUAL_DESIGN_TRD.md](/Users/andrew/proj/rouge/docs/VISUAL_DESIGN_TRD.md)
 - [docs/ui-redesign-plan.md](/Users/andrew/proj/rouge/docs/ui-redesign-plan.md)
 - [docs/PROGRESSION_REFERENCE.md](/Users/andrew/proj/rouge/docs/PROGRESSION_REFERENCE.md)
@@ -234,9 +238,10 @@ Use [docs/APPLICATION_ARCHITECTURE.md](/Users/andrew/proj/rouge/docs/APPLICATION
 - [docs/VISUAL_ASSET_STATUS.md](/Users/andrew/proj/rouge/docs/VISUAL_ASSET_STATUS.md)
 - [docs/ART_GENERATION_WORKFLOW.md](/Users/andrew/proj/rouge/docs/ART_GENERATION_WORKFLOW.md)
 - [docs/ATTRIBUTION.md](/Users/andrew/proj/rouge/docs/ATTRIBUTION.md)
-- [artifacts/balance/latest.md](/Users/andrew/proj/rouge/artifacts/balance/latest.md)
+- [artifacts/balance/committed-ledger.md](/Users/andrew/proj/rouge/artifacts/balance/committed-ledger.md)
+- [docs/POWER_CALIBRATION.md](/Users/andrew/proj/rouge/docs/POWER_CALIBRATION.md)
 
-These support asset sourcing, legal tracking, and the current deterministic balance snapshot.
+These support asset sourcing, legal tracking, and the live balance read surface.
 
 The older visual asset audit and backlog docs remain in the repo as compatibility landing pages, but `VISUAL_ASSET_STATUS.md` now owns current asset truth and `ART_GENERATION_WORKFLOW.md` now owns generation and import workflow.
 

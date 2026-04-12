@@ -1,6 +1,6 @@
 # Class Strategy Guide System
 
-Last updated: March 29, 2026.
+Last updated: April 11, 2026.
 
 ## Purpose
 
@@ -27,10 +27,12 @@ Do not use them for:
 Keep these layers separate:
 
 - Current build truth:
+  - `docs/LIVE_MECHANICS_AND_BALANCE.md`
   - `src/rewards/reward-engine.ts`
   - `src/run/run-progression.ts`
   - `src/items/*`
-  - `artifacts/balance/latest.md`
+  - `artifacts/balance/committed-ledger.md`
+  - `docs/POWER_CALIBRATION.md`
   - `docs/IMPLEMENTATION_PROGRESS.md`
 - Strategy design truth:
   - `docs/CLASS_IDENTITY_PATHS.md`
@@ -133,14 +135,15 @@ Document what the eventual player-facing guide should emphasize:
 ## Recommended Update Workflow
 
 1. Confirm the live archetypes in `src/rewards/reward-engine.ts`.
-2. Check the latest balance snapshot in `artifacts/balance/latest.md`.
+2. Check the latest lane snapshot in `artifacts/balance/committed-ledger.md` and the broader interpretation in `docs/POWER_CALIBRATION.md`.
 3. Update the affected class strategy source doc.
 4. Update `docs/strategy-guides/README.md` if the roster-wide framing changed.
 5. Update `docs/PROJECT_MASTER.md` links only if the doc map changed.
+6. Update `docs/LIVE_MECHANICS_AND_BALANCE.md` if the class meta shift changes the high-level doctrine or owner-doc routing.
 
 ## Current Status
 
-As of March 29, 2026:
+As of April 11, 2026:
 
 - the reward engine has live archetype tags and archetype score tracking
 - reward screens now bias toward tracked archetype identity

@@ -1,9 +1,12 @@
 # Assassin
 
 ## Current Sim Status
-- Clear rate: 2/3 (fails Act 4 in 1 seed)
+- Clear rate: 3/3 (full clear, 3 seeds)
 - Build quality: 75/100
 - Deck size: 16 (target: 12-17)
+- Shadow spec working (94% focus)
+- Engine: shadow_warrior x4 + fade x3 + cobra_strike x3
+- Core starters evolve: psychic_hammer -> burst_of_speed -> fade, claw_mastery -> blade_shield -> shadow_warrior
 
 ## Primary Build: Shadow Master
 **Tree:** assassin_shadow_disciplines (command)
@@ -48,10 +51,16 @@
 - fire_blast -> wake_of_fire -> lightning_sentry -> death_sentry
 
 ### Known Issues
-- **Fade flooding fixed (10 -> 4 copies)** but shadow spec still fragile
-- Core cards evolve via psychic_hammer -> burst_of_speed -> fade chain, which is desirable
-- Act 4 failure in 1 seed indicates scaling gap in late game
+- **Now 3/3 clears** -- shadow spec fully functional at 94% focus
+- Core cards evolve via psychic_hammer -> burst_of_speed -> fade and claw_mastery -> blade_shield -> shadow_warrior chains, which is the intended progression
+- Fade flooding fixed (10 -> 4 copies) in prior session; support_build duplicate flooding fix this session prevents recurrence
 - Shadow build relies heavily on merc damage; if merc dies, damage collapses
+
+#### Bugs Fixed (latest session)
+- tempSummonPowerBonus was never consumed by minions (critical for Druid/Necro)
+- World node hero_max_life rewards destroyed overheal buffer
+- Safe zone optimizer spent gold on deck shaping before healer
+- support_build duplicate flooding (teleport x10, fade x10)
 
 ## Secondary Build: Martial Artist
 **Tree:** assassin_martial_arts (martial)
@@ -209,7 +218,8 @@ Assassin preferred weapon family: **Swords**.
 ---
 
 ## Sim Findings
-- 2/3 clear rate is solid; Act 4 failure is a single-seed scaling issue
-- Fade flooding fix (10 -> 4) dramatically improved deck quality
+- 3/3 clear rate with BQ 75; shadow spec working at 94% focus
+- Converges to shadow_warrior x4 + fade x3 + cobra_strike x3
+- Core starters evolve along intended chains: psychic_hammer -> burst_of_speed -> fade, claw_mastery -> blade_shield -> shadow_warrior
 - Shadow build is merc-dependent: shadow_warrior + claw_mastery mark for big merc hits
-- Evolution chain psychic_hammer -> burst_of_speed -> fade is the intended progression
+- Fade flooding fix (10 -> 4) and support_build duplicate flooding fix resolved prior deck quality issues

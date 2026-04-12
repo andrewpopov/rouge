@@ -6,6 +6,7 @@
   const { handleKeydown, setRunSummaryStep } = runtimeWindow.__ROUGE_ACTION_DISPATCHER_KEYBOARD;
   const CHARACTER_SELECT_TAB_ORDER = ["overview", "kit", "playstyle", "paths"] as const;
   const TOWN_OVERVIEW_TAB_ORDER = ["departure", "loadout", "services", "account", "districts", "debug"] as const;
+  const TOWN_BLACKSMITH_TAB_ORDER = ["upgrades", "gear", "runes"] as const;
 
   function getActionTarget(target: EventTarget | null): HTMLElement | null {
     return target instanceof Element ? target.closest("[data-action]") as HTMLElement | null : null;
@@ -146,6 +147,9 @@
         return true;
       case "focus-town-npc":
         appState.ui.townFocus = actionEl.dataset.npcId || "";
+        if (appState.ui.townFocus === "blacksmith") {
+          appState.ui.townBlacksmithTab = "upgrades";
+        }
         render();
         return true;
       case "close-town-npc":
@@ -156,6 +160,15 @@
         const nextTab = actionEl.dataset.townOverviewTab || "departure";
         if (TOWN_OVERVIEW_TAB_ORDER.includes(nextTab as typeof TOWN_OVERVIEW_TAB_ORDER[number])) {
           appState.ui.townOverviewTab = nextTab as typeof TOWN_OVERVIEW_TAB_ORDER[number];
+          render();
+          return true;
+        }
+        return false;
+      }
+      case "select-town-blacksmith-tab": {
+        const nextTab = actionEl.dataset.townBlacksmithTab || "upgrades";
+        if (TOWN_BLACKSMITH_TAB_ORDER.includes(nextTab as typeof TOWN_BLACKSMITH_TAB_ORDER[number])) {
+          appState.ui.townBlacksmithTab = nextTab as typeof TOWN_BLACKSMITH_TAB_ORDER[number];
           render();
           return true;
         }

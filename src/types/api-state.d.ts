@@ -103,6 +103,7 @@ interface AppState {
     spellbookOpen: boolean;
     townFocus: string;
     townOverviewTab: "departure" | "loadout" | "services" | "account" | "districts" | "debug";
+    townBlacksmithTab: "upgrades" | "gear" | "runes";
     inventoryOpen: boolean;
     inventoryTab: string;
     inventoryDetailEntryId: string;
