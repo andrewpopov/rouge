@@ -206,7 +206,7 @@
       if (effect.kind === "hero_max_life") {
         const gain = toNumber(effect.value, 0);
         run.hero.maxLife += gain;
-        run.hero.currentLife = Math.min(run.hero.maxLife, run.hero.currentLife + gain);
+        run.hero.currentLife = Math.max(run.hero.maxLife, run.hero.currentLife + gain);
       }
       if (effect.kind === "belt_capacity") {
         const gain = toNumber(effect.value, 0);

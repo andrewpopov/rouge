@@ -462,7 +462,7 @@
   function applyTrainingRank(run: RunState, track: string) {
     if (track === "vitality") {
       run.hero.maxLife += 4;
-      run.hero.currentLife = Math.min(run.hero.maxLife, run.hero.currentLife + 4);
+      run.hero.currentLife = Math.max(run.hero.maxLife, run.hero.currentLife + 4);
       return;
     }
 
