@@ -1235,6 +1235,29 @@ export function optimizeSafeZoneRun(
     }
   }
 
+  // Priority: heal before deck shaping — deck evolves can spend all gold leaving none for healer
+  const heroHpRatio = run.hero.maxLife > 0 ? (run.hero.currentLife || 0) / run.hero.maxLife : 1
+  if (heroHpRatio < 0.9 || (run.belt?.current || 0) < (run.belt?.max || 1)) {
+    const healAction = townServices
+      .listActions(harness.content, run, profile)
+      .find((action: TownAction) => action.id === "healer_restore_party" && !action.disabled)
+    if (healAction) {
+      const healResult = townServices.applyAction(run, profile, harness.content, healAction.id)
+      if (healResult.ok) {
+        options?.onTownActionApplied?.(healAction.id)
+      }
+    }
+    const refillAction = townServices
+      .listActions(harness.content, run, profile)
+      .find((action: TownAction) => action.id === "quartermaster_refill_belt" && !action.disabled)
+    if (refillAction) {
+      const refillResult = townServices.applyAction(run, profile, harness.content, refillAction.id)
+      if (refillResult.ok) {
+        options?.onTownActionApplied?.(refillAction.id)
+      }
+    }
+  }
+
   settleDeckShapingActions(run, Number(run.actNumber || 1) >= 4 ? 6 : Number(run.actNumber || 1) >= 2 ? 4 : 2)
 
   let consecutiveSmallDeltas = 0
